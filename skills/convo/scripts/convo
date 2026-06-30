@@ -1,0 +1,987 @@
+#!/usr/bin/env python3
+"""
+convo — read agent conversation history across harnesses (Claude Code, Codex, Gemini CLI).
+
+Built for AGENTS to read their own session transcripts, with humans as a secondary user.
+The signature view is the "clean transcript": each of YOUR prompts paired with only the
+agent's FINAL text reply before your next prompt — tool calls, tool results, thinking, and
+system/meta injections stripped away. That's usually the most valuable slice of a session.
+
+Design notes:
+  - One unified internal schema: a session is a list of Turn(role, text, ts), where role is
+    "user" or "assistant". Each harness has a loader that normalizes into this schema.
+  - "Real user turns" are aggressively distinguished from tool-results and system/meta
+    injections, which in some harnesses share the same role marker on disk.
+  - Output modes:
+      final  (default) user prompt + agent's last text block before the next user prompt
+      text             user prompt + ALL agent text (no tools/thinking)
+      full             everything, including tool calls/results/thinking (debug view)
+  - --json emits structured data for programmatic/agent consumption.
+
+Run `convo --help` for usage. No third-party dependencies (stdlib only).
+"""
+
+import argparse
+import json
+import os
+import re
+import sys
+from dataclasses import dataclass, field, asdict
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Callable, Iterable, Optional
+
+
+# Shared Claude-session lib (locating projects/sessions, compaction boundaries).
+# Importable whether running from the minnows repo (lib/ at repo root) or from a
+# vendored skill folder (lib/ copied beside this script). See minnows README.
+def _load_lib():
+    import importlib.util
+    here = Path(__file__).resolve().parent
+    for cand in (here / "lib" / "claude_sessions.py",                 # vendored beside script
+                 here.parent.parent / "lib" / "claude_sessions.py"):  # repo root lib/
+        if cand.exists():
+            spec = importlib.util.spec_from_file_location("claude_sessions", cand)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            return mod
+    return None  # convo degrades gracefully without it (chain-stitching disabled)
+
+
+cs = _load_lib()
+
+
+# --------------------------------------------------------------------------------------
+# Unified schema
+# --------------------------------------------------------------------------------------
+
+@dataclass
+class Turn:
+    role: str                      # "user" | "assistant"
+    text: str                      # all text blocks joined (text/grep modes)
+    ts: Optional[str] = None       # ISO timestamp if known
+    # Separate text blocks in emission order. For an assistant turn that streamed several
+    # text blocks across tool rounds, texts[-1] is the genuine LAST reply ("final" mode).
+    texts: list = field(default_factory=list)
+    # full-mode extras (only populated when needed):
+    events: list = field(default_factory=list)  # [{kind, name, text}] for tool_use/result/thinking
+
+    def add_text(self, t: str):
+        if t:
+            self.texts.append(t)
+            self.text = ("\n\n".join(self.texts)).strip()
+
+
+@dataclass
+class Session:
+    harness: str
+    session_id: str
+    path: str
+    project: Optional[str]         # human-readable project/cwd if known
+    mtime: float
+    turns: list = field(default_factory=list)   # list[Turn], chronological
+
+    @property
+    def started(self) -> Optional[str]:
+        for t in self.turns:
+            if t.ts:
+                return t.ts
+        return None
+
+    @property
+    def first_user_text(self) -> str:
+        for t in self.turns:
+            if t.role == "user" and t.text.strip():
+                return t.text.strip()
+        return ""
+
+    @property
+    def last_user_text(self) -> str:
+        for t in reversed(self.turns):
+            if t.role == "user" and t.text.strip():
+                return t.text.strip()
+        return ""
+
+
+# --------------------------------------------------------------------------------------
+# Shared text cleaning
+# --------------------------------------------------------------------------------------
+
+SYS_REMINDER_RE = re.compile(r"<system-reminder>.*?</system-reminder>", re.DOTALL)
+MULTINEWLINE_RE = re.compile(r"\n{3,}")
+
+
+def clean_text(text: Any) -> str:
+    """Strip system-reminder blocks and collapse excess blank lines."""
+    if not isinstance(text, str):
+        return ""
+    text = SYS_REMINDER_RE.sub("", text)
+    text = MULTINEWLINE_RE.sub("\n\n", text)
+    return text.strip()
+
+
+# Markers that mean "this 'user' turn is not a real human prompt" (Claude + Codex).
+_META_USER_MARKERS = (
+    "<local-command-",
+    "<command-name>",
+    "<command-message>",
+    "<command-args>",
+    "# AGENTS.md instructions",
+    "<INSTRUCTIONS>",
+    "Caveat: The messages below were generated by the user while running",
+    # Claude compaction summary, injected as a `user` turn — not a real human prompt.
+    # Sourced from the shared lib when available so the marker has one definition.
+    (cs.COMPACTION_MARKER if cs else "continued from a previous conversation"),
+)
+
+
+def _looks_like_meta_user(text: str) -> bool:
+    """Heuristic: is this 'user' content actually a system/command/env injection?"""
+    s = text.lstrip()
+    if not s:
+        return True
+    for m in _META_USER_MARKERS:
+        if m in text:
+            return True
+    # Shell-status injections like "   \n~ > updates --apply" (kitty status line refresh)
+    if s.startswith("~ >") or s.startswith("$ "):
+        return True
+    return False
+
+
+# --------------------------------------------------------------------------------------
+# Loaders — one per harness, each returns a Session (or None)
+# --------------------------------------------------------------------------------------
+
+def _read_jsonl(path: Path) -> Iterable[dict]:
+    with open(path, "r", encoding="utf-8", errors="replace") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                yield json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+
+def load_claude(path: Path) -> Optional[Session]:
+    """Claude Code: ~/.claude/projects/<slug>/<sessionId>.jsonl"""
+    session_id = path.stem
+    cwd = None
+    turns: list[Turn] = []
+
+    for row in _read_jsonl(path):
+        rtype = row.get("type")
+        if row.get("isSidechain"):
+            continue
+        if cwd is None and row.get("cwd"):
+            cwd = row["cwd"]
+        ts = row.get("timestamp")
+
+        if rtype == "user":
+            if row.get("isMeta"):
+                continue
+            msg = row.get("message", {})
+            content = msg.get("content")
+            if isinstance(content, str):
+                txt = clean_text(content)
+                if txt and not _looks_like_meta_user(content):
+                    turns.append(Turn("user", txt, ts))
+            elif isinstance(content, list):
+                # List form: real user text blocks, OR tool_results masquerading as 'user'.
+                text_parts, events = [], []
+                for b in content:
+                    if not isinstance(b, dict):
+                        continue
+                    bt = b.get("type")
+                    if bt == "text":
+                        t = clean_text(b.get("text", ""))
+                        if t and not _looks_like_meta_user(b.get("text", "")):
+                            text_parts.append(t)
+                    elif bt == "tool_result":
+                        events.append({
+                            "kind": "tool_result",
+                            "name": b.get("tool_use_id", ""),
+                            "text": _stringify_tool_result(b.get("content", "")),
+                        })
+                if text_parts:
+                    turns.append(Turn("user", "\n\n".join(text_parts), ts, events))
+                elif events:
+                    # Pure tool-result turn: attach to the preceding assistant turn's events.
+                    if turns and turns[-1].role == "assistant":
+                        turns[-1].events.extend(events)
+
+        elif rtype == "assistant":
+            msg = row.get("message", {})
+            content = msg.get("content", [])
+            text_parts, events = [], []
+            if isinstance(content, list):
+                for b in content:
+                    if not isinstance(b, dict):
+                        continue
+                    bt = b.get("type")
+                    if bt == "text":
+                        t = clean_text(b.get("text", ""))
+                        if t:
+                            text_parts.append(t)
+                    elif bt == "thinking":
+                        events.append({"kind": "thinking", "name": "",
+                                       "text": clean_text(b.get("thinking", ""))})
+                    elif bt == "tool_use":
+                        events.append({"kind": "tool_use", "name": b.get("name", ""),
+                                       "text": _stringify_tool_input(b.get("input", {}))})
+            elif isinstance(content, str):
+                t = clean_text(content)
+                if t:
+                    text_parts.append(t)
+            # Merge consecutive assistant rows into one logical turn (Claude streams many),
+            # but keep each text block separate so "final" mode can pick the true last one.
+            if turns and turns[-1].role == "assistant":
+                prev = turns[-1]
+                for tp in text_parts:
+                    prev.add_text(tp)
+                prev.events.extend(events)
+            else:
+                turn = Turn("assistant", "", ts, events=events)
+                for tp in text_parts:
+                    turn.add_text(tp)
+                turns.append(turn)
+
+    if not turns:
+        return None
+    return Session("claude", session_id, str(path), cwd, path.stat().st_mtime, turns)
+
+
+def load_codex(path: Path) -> Optional[Session]:
+    """Codex CLI: ~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl"""
+    session_id = path.stem.replace("rollout-", "")
+    cwd = None
+    turns: list[Turn] = []
+    seen_first_user = False
+
+    for row in _read_jsonl(path):
+        if row.get("type") == "session_meta":
+            p = row.get("payload", {})
+            cwd = p.get("cwd") or p.get("cwd_path") or cwd
+            continue
+        if row.get("type") != "response_item":
+            continue
+        p = row.get("payload", {})
+        ptype = p.get("type")
+        ts = row.get("timestamp")
+
+        if ptype == "message":
+            role = p.get("role")
+            text = _codex_text(p.get("content"))
+            if role == "user":
+                # First user message is the AGENTS.md/env preamble — skip it and any meta.
+                if _looks_like_meta_user(text):
+                    seen_first_user = True
+                    continue
+                if not text.strip():
+                    continue
+                turns.append(Turn("user", clean_text(text), ts))
+                seen_first_user = True
+            elif role == "assistant":
+                t = clean_text(text)
+                if turns and turns[-1].role == "assistant":
+                    turns[-1].add_text(t)
+                else:
+                    turn = Turn("assistant", "", ts)
+                    turn.add_text(t)
+                    turns.append(turn)
+            # role == "developer"/"system" → ignore
+        elif ptype in ("function_call", "custom_tool_call"):
+            ev = {"kind": "tool_use", "name": p.get("name", ""),
+                  "text": _stringify_tool_input(p.get("arguments", p.get("input", "")))}
+            if turns and turns[-1].role == "assistant":
+                turns[-1].events.append(ev)
+        elif ptype in ("function_call_output", "custom_tool_call_output"):
+            ev = {"kind": "tool_result", "name": p.get("call_id", ""),
+                  "text": _stringify_tool_result(p.get("output", ""))}
+            if turns and turns[-1].role == "assistant":
+                turns[-1].events.append(ev)
+        elif ptype == "reasoning":
+            ev = {"kind": "thinking", "name": "", "text": _codex_text(p.get("summary", p.get("content")))}
+            if turns and turns[-1].role == "assistant":
+                turns[-1].events.append(ev)
+
+    if not turns:
+        return None
+    return Session("codex", session_id, str(path), cwd, path.stat().st_mtime, turns)
+
+
+def load_gemini(path: Path) -> Optional[Session]:
+    """Gemini CLI: ~/.gemini/tmp/<projectHash>/chats/session-*.json"""
+    try:
+        obj = json.loads(path.read_text(encoding="utf-8", errors="replace"))
+    except (json.JSONDecodeError, OSError):
+        return None
+    if not isinstance(obj, dict):
+        return None
+    msgs = obj.get("messages")
+    if not isinstance(msgs, list):
+        return None
+
+    session_id = obj.get("sessionId") or path.stem
+    turns: list[Turn] = []
+    for m in msgs:
+        if not isinstance(m, dict):
+            continue
+        mtype = m.get("type")
+        ts = m.get("timestamp")
+        content = m.get("content")
+        text = content if isinstance(content, str) else _codex_text(content)
+        if mtype == "user":
+            t = clean_text(text)
+            if t and not _looks_like_meta_user(text):
+                turns.append(Turn("user", t, ts))
+        elif mtype in ("gemini", "assistant", "model"):
+            t = clean_text(text)
+            if turns and turns[-1].role == "assistant":
+                turns[-1].add_text(t)
+            else:
+                turn = Turn("assistant", "", ts)
+                turn.add_text(t)
+                turns.append(turn)
+
+    if not turns:
+        return None
+    # project hash dir is the parent-of-parent (chats/ -> <hash>/)
+    project = obj.get("projectHash")
+    return Session("gemini", session_id, str(path), project, path.stat().st_mtime, turns)
+
+
+# --------------------------------------------------------------------------------------
+# Tool/content stringification helpers
+# --------------------------------------------------------------------------------------
+
+def _codex_text(content: Any) -> str:
+    """Codex/Gemini content is often a list of {type, text} blocks."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for b in content:
+            if isinstance(b, dict):
+                parts.append(b.get("text", "") or b.get("content", "") or "")
+            elif isinstance(b, str):
+                parts.append(b)
+        return "\n".join(p for p in parts if p)
+    return ""
+
+
+def _stringify_tool_input(inp: Any, limit: int = 1500) -> str:
+    try:
+        s = inp if isinstance(inp, str) else json.dumps(inp, indent=2, ensure_ascii=False)
+    except (TypeError, ValueError):
+        s = str(inp)
+    return s if len(s) <= limit else s[:limit] + f"\n... (+{len(s) - limit} chars)"
+
+
+def _stringify_tool_result(content: Any, limit: int = 2000) -> str:
+    if isinstance(content, list):
+        parts = []
+        for it in content:
+            if isinstance(it, dict) and it.get("type") == "text":
+                parts.append(it.get("text", ""))
+            elif isinstance(it, dict):
+                parts.append(json.dumps(it, ensure_ascii=False))
+            else:
+                parts.append(str(it))
+        s = "\n".join(parts)
+    elif isinstance(content, str):
+        s = content
+    else:
+        s = json.dumps(content, ensure_ascii=False) if content else ""
+    s = clean_text(s) if isinstance(s, str) else str(s)
+    return s if len(s) <= limit else s[:limit] + f"\n... (+{len(s) - limit} chars)"
+
+
+# --------------------------------------------------------------------------------------
+# Lightweight peek — summary fields without parsing a whole (possibly 500MB) file.
+# --------------------------------------------------------------------------------------
+
+@dataclass
+class Peek:
+    harness: str
+    session_id: str
+    path: str
+    project: Optional[str]
+    mtime: float
+    first_user: str
+    user_msgs: int       # exact for small files, lower-bound (capped) for huge ones
+    truncated: bool      # True if we stopped scanning before EOF
+
+
+_PEEK_MAX_LINES = 4000   # scan cap for huge JSONL rollouts
+
+
+def peek_claude(path: Path) -> Optional[Peek]:
+    cwd = None
+    first_user = ""
+    user_msgs = 0
+    truncated = False
+    with open(path, "r", encoding="utf-8", errors="replace") as fh:
+        for i, line in enumerate(fh):
+            if i >= _PEEK_MAX_LINES:
+                truncated = True
+                break
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if cwd is None and row.get("cwd"):
+                cwd = row["cwd"]
+            if row.get("type") == "user" and not row.get("isMeta") and not row.get("isSidechain"):
+                c = row.get("message", {}).get("content")
+                if isinstance(c, str) and c.strip() and not _looks_like_meta_user(c):
+                    user_msgs += 1
+                    if not first_user:
+                        first_user = clean_text(c)
+    if user_msgs == 0 and not first_user:
+        return None
+    return Peek("claude", path.stem, str(path), cwd, path.stat().st_mtime,
+                first_user, user_msgs, truncated)
+
+
+def peek_codex(path: Path) -> Optional[Peek]:
+    cwd = None
+    first_user = ""
+    user_msgs = 0
+    truncated = False
+    with open(path, "r", encoding="utf-8", errors="replace") as fh:
+        for i, line in enumerate(fh):
+            if i >= _PEEK_MAX_LINES:
+                truncated = True
+                break
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if row.get("type") == "session_meta":
+                p = row.get("payload", {})
+                cwd = p.get("cwd") or p.get("cwd_path") or cwd
+                continue
+            if row.get("type") != "response_item":
+                continue
+            p = row.get("payload", {})
+            if p.get("type") == "message" and p.get("role") == "user":
+                txt = _codex_text(p.get("content"))
+                if txt.strip() and not _looks_like_meta_user(txt):
+                    user_msgs += 1
+                    if not first_user:
+                        first_user = clean_text(txt)
+    if user_msgs == 0 and not first_user:
+        return None
+    return Peek("codex", path.stem.replace("rollout-", ""), str(path), cwd,
+                path.stat().st_mtime, first_user, user_msgs, truncated)
+
+
+def peek_gemini(path: Path) -> Optional[Peek]:
+    # Gemini chat files are small single-JSON; just load fully.
+    s = load_gemini(path)
+    if not s:
+        return None
+    return Peek("gemini", s.session_id, s.path, s.project, s.mtime,
+                s.first_user_text, sum(1 for t in s.turns if t.role == "user"), False)
+
+
+# --------------------------------------------------------------------------------------
+# Discovery — find sessions across harnesses
+# --------------------------------------------------------------------------------------
+
+HARNESSES: dict[str, dict] = {
+    "claude": {
+        "root": Path.home() / ".claude" / "projects",
+        "glob": "*/*.jsonl",
+        "loader": load_claude,
+        "peek": peek_claude,
+        "skip": lambda p: p.name.startswith("agent-"),
+    },
+    "codex": {
+        "root": Path.home() / ".codex" / "sessions",
+        "glob": "**/rollout-*.jsonl",
+        "loader": load_codex,
+        "peek": peek_codex,
+        "skip": lambda p: False,
+    },
+    "gemini": {
+        "root": Path.home() / ".gemini" / "tmp",
+        "glob": "*/chats/session-*.json",
+        "loader": load_gemini,
+        "peek": peek_gemini,
+        "skip": lambda p: False,
+    },
+}
+
+
+def _slug_for_project(p: Path, harness: str) -> str:
+    """Best-effort human-readable project tag from a session path."""
+    if harness == "claude":
+        # parent dir is the slug e.g. -home-tnunamak-code-dotfiles
+        return p.parent.name
+    if harness == "gemini":
+        # parent-of-parent is the project hash dir
+        return p.parent.parent.name
+    return ""  # codex: cwd comes from session_meta, resolved after load
+
+
+def discover(harnesses: list[str], project_filter: Optional[str],
+             since_ts: Optional[float], limit: int) -> list[tuple[str, Path]]:
+    """Return [(harness, path)] candidate session files, newest first, cheaply (stat only).
+
+    Project filtering is intentionally NOT applied here: the authoritative project/cwd is
+    only known after loading (Claude/Codex store it inside the file; the path slug is a
+    lossy, dash-mangled encoding that won't substring-match a real path). discover() just
+    bounds the candidate set by mtime/since so we don't load thousands of files; the real
+    project filter runs post-load in load_sessions().
+    """
+    found: list[tuple[float, str, Path]] = []
+    for h in harnesses:
+        cfg = HARNESSES[h]
+        root: Path = cfg["root"]
+        if not root.exists():
+            continue
+        for p in root.glob(cfg["glob"]):
+            if cfg["skip"](p):
+                continue
+            try:
+                st = p.stat()
+            except OSError:
+                continue
+            if since_ts and st.st_mtime < since_ts:
+                continue
+            found.append((st.st_mtime, h, p))
+    found.sort(reverse=True)
+    # When a project filter is set we must load more candidates than the final limit,
+    # because many recent sessions belong to other projects. Cap to keep it fast.
+    cap = max(limit * 8, 400) if project_filter else max(limit * 2, 60)
+    return [(h, p) for _, h, p in found[:cap]]
+
+
+# --------------------------------------------------------------------------------------
+# Rendering
+# --------------------------------------------------------------------------------------
+
+def _short_ts(ts: Optional[str]) -> str:
+    if not ts:
+        return ""
+    try:
+        dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        return dt.astimezone().strftime("%Y-%m-%d %H:%M")
+    except (ValueError, AttributeError):
+        return ts[:16]
+
+
+def build_pairs(session: Session) -> list[dict]:
+    """Collapse a session into [{user, assistant_final, assistant_all, ts}] exchanges.
+
+    An exchange = one real user prompt + everything the assistant said until the NEXT
+    real user prompt. assistant_final = last text block; assistant_all = all text blocks.
+    """
+    pairs: list[dict] = []
+    cur: Optional[dict] = None
+    for t in session.turns:
+        if t.role == "user":
+            if cur:
+                pairs.append(cur)
+            cur = {"user": t.text, "ts": t.ts, "assistant_texts": [], "assistant_events": []}
+        elif t.role == "assistant":
+            if cur is None:
+                # assistant spoke first (rare: system-seeded). Start an empty-user exchange.
+                cur = {"user": "", "ts": t.ts, "assistant_texts": [], "assistant_events": []}
+            # Each separate text block becomes its own entry; the LAST is the final reply.
+            blocks = t.texts if t.texts else ([t.text] if t.text.strip() else [])
+            cur["assistant_texts"].extend(b for b in blocks if b.strip())
+            cur["assistant_events"].extend(t.events)
+    if cur:
+        pairs.append(cur)
+    return pairs
+
+
+def render_session(session: Session, mode: str, n: Optional[int], color: bool) -> str:
+    pairs = build_pairs(session)
+    if n is not None and n > 0:
+        pairs = pairs[-n:]
+
+    def c(s, code):
+        return f"\033[{code}m{s}\033[0m" if color else s
+
+    out: list[str] = []
+    for ex in pairs:
+        ts = _short_ts(ex["ts"])
+        head = f"[you{(' · ' + ts) if ts else ''}]"
+        out.append(c(head, "1;36"))
+        out.append(ex["user"] or "(no text)")
+        out.append("")
+
+        if mode == "final":
+            reply = ex["assistant_texts"][-1] if ex["assistant_texts"] else "(no text reply)"
+            out.append(c("[agent]", "1;32"))
+            out.append(reply)
+        elif mode == "text":
+            out.append(c("[agent]", "1;32"))
+            out.append("\n\n".join(ex["assistant_texts"]) or "(no text reply)")
+        elif mode == "full":
+            # Interleave isn't preserved across the collapse; show texts then events.
+            out.append(c("[agent]", "1;32"))
+            out.append("\n\n".join(ex["assistant_texts"]) or "(no text reply)")
+            for ev in ex["assistant_events"]:
+                kind = ev.get("kind")
+                name = ev.get("name", "")
+                label = {"tool_use": f"tool→ {name}", "tool_result": f"result← {name}",
+                         "thinking": "thinking"}.get(kind, kind)
+                out.append(c(f"  [{label}]", "2;33"))
+                body = ev.get("text", "")
+                out.append("  " + body.replace("\n", "\n  ") if body else "  (empty)")
+        out.append("")
+        out.append(c("─" * 60, "2;37"))
+    return "\n".join(out)
+
+
+def summary_line(pk: "Peek", idx: Optional[int] = None) -> str:
+    """One list entry. Works on a Peek (cheap, used by `list`)."""
+    proj = pk.project or _slug_for_project(Path(pk.path), pk.harness) or "?"
+    proj = proj.replace(str(Path.home()), "~")
+    first = " ".join(pk.first_user.split())[:80]
+    prefix = f"{idx}. " if idx is not None else ""
+    badge = {"claude": "CC", "codex": "CX", "gemini": "GM"}.get(pk.harness, pk.harness[:2].upper())
+    when = datetime.fromtimestamp(pk.mtime).strftime("%Y-%m-%d %H:%M")
+    count = f"{pk.user_msgs}{'+' if pk.truncated else ''}msg"
+    return (f"{prefix}[{badge}] {when}  {count}  {proj}\n"
+            f"     {pk.session_id}\n"
+            f"     ↳ {first}")
+
+
+def peek_matches_project(pk: "Peek", flt: str) -> bool:
+    flt = flt.lower()
+    cwd = (pk.project or "").lower()
+    slug = _slug_for_project(Path(pk.path), pk.harness).lower()
+    slug_path = slug.replace("-", "/")
+    cands = [c for c in (cwd, slug, slug_path, Path(cwd).name if cwd else "") if c]
+    if any(flt in c for c in cands):
+        return True
+    return Path(flt).name in {Path(c).name for c in cands}
+
+
+# --------------------------------------------------------------------------------------
+# CLI
+# --------------------------------------------------------------------------------------
+
+def parse_since(s: Optional[str]) -> Optional[float]:
+    """Accept '7d', '24h', '30m', or an ISO date. Returns epoch seconds or None."""
+    if not s:
+        return None
+    now = datetime.now(timezone.utc).timestamp()
+    m = re.fullmatch(r"(\d+)\s*([dhmw])", s.strip())
+    if m:
+        val, unit = int(m.group(1)), m.group(2)
+        mult = {"m": 60, "h": 3600, "d": 86400, "w": 604800}[unit]
+        return now - val * mult
+    try:
+        return datetime.fromisoformat(s).timestamp()
+    except ValueError:
+        return None
+
+
+def resolve_harnesses(arg: Optional[str]) -> list[str]:
+    if not arg or arg == "all":
+        return list(HARNESSES.keys())
+    out = []
+    for h in arg.split(","):
+        h = h.strip().lower()
+        alias = {"cc": "claude", "cx": "codex", "gm": "gemini", "gemini-cli": "gemini"}.get(h, h)
+        if alias in HARNESSES:
+            out.append(alias)
+        else:
+            sys.exit(f"convo: unknown harness '{h}' (valid: {', '.join(HARNESSES)})")
+    return out
+
+
+def load_sessions(candidates: list[tuple[str, Path]], project_filter: Optional[str]) -> list[Session]:
+    sessions: list[Session] = []
+    for h, p in candidates:
+        try:
+            s = HARNESSES[h]["loader"](p)
+        except Exception:  # noqa: BLE001 — one bad file shouldn't kill the run
+            continue
+        if not s:
+            continue
+        if project_filter and not _project_matches(s, p, h, project_filter):
+            continue
+        sessions.append(s)
+    return sessions
+
+
+def _project_matches(s: Session, p: Path, harness: str, flt: str) -> bool:
+    """Match a project filter against the session's real cwd OR its path slug.
+
+    Filter may be a full path (the cwd default) or a bare name like 'dotfiles'. The slug
+    encodes the cwd with dashes (-home-tnunamak-code-dotfiles), so we compare against both
+    the real cwd and a de-dashed slug to catch either filter style.
+    """
+    flt = flt.lower()
+    cwd = (s.project or "").lower()
+    slug = _slug_for_project(p, harness).lower()
+    slug_path = slug.replace("-", "/")  # -home-x-code-foo -> /home/x/code/foo
+    candidates = (cwd, slug, slug_path, Path(cwd).name if cwd else "")
+    if any(flt in c for c in candidates if c):
+        return True
+    # also let a path-filter match the de-dashed slug (and vice-versa) by basename
+    return Path(flt).name in {Path(c).name for c in candidates if c}
+
+
+def default_project_slug() -> Optional[str]:
+    """If run from inside a project, bias to it (matches Claude's dir-slug convention)."""
+    cwd = str(Path.cwd())
+    return cwd  # used as a substring filter; matches cwd inside codex/claude paths
+
+
+def cmd_list(args):
+    since = parse_since(args.since)
+    harnesses = resolve_harnesses(args.harness)
+    proj = None if args.all_projects else (args.project or None)
+    candidates = discover(harnesses, proj, since, args.limit)
+
+    # Cheap peek (header-only) instead of full parse — huge rollouts stay fast.
+    peeks: list[Peek] = []
+    for h, p in candidates:
+        try:
+            pk = HARNESSES[h]["peek"](p)
+        except Exception:  # noqa: BLE001
+            continue
+        if not pk:
+            continue
+        if proj and not peek_matches_project(pk, proj):
+            continue
+        peeks.append(pk)
+    peeks.sort(key=lambda pk: pk.mtime, reverse=True)
+    peeks = peeks[: args.limit]
+
+    if args.json:
+        print(json.dumps([{
+            "harness": pk.harness, "session_id": pk.session_id, "path": pk.path,
+            "project": pk.project, "mtime": pk.mtime, "user_msgs": pk.user_msgs,
+            "user_msgs_truncated": pk.truncated, "first_user": pk.first_user[:200],
+        } for pk in peeks], indent=2))
+        return
+    if not peeks:
+        print("convo: no sessions matched.", file=sys.stderr)
+        return
+    for i, pk in enumerate(peeks, 1):
+        print(summary_line(pk, i))
+        print()
+
+
+def _pick_session(args, require: bool = True) -> Optional[Session]:
+    """Resolve a single session from --session id/path, or the most recent match."""
+    target = args.session
+    if target:
+        p = Path(target).expanduser()
+        if p.exists() and p.is_file():
+            for h, cfg in HARNESSES.items():
+                # crude harness detection by location
+                if str(cfg["root"]) in str(p.resolve()):
+                    return cfg["loader"](p)
+            # fall back: try each loader
+            for cfg in HARNESSES.values():
+                s = cfg["loader"](p)
+                if s:
+                    return s
+            sys.exit(f"convo: could not parse session file {p}")
+        # treat as session-id substring
+        harnesses = resolve_harnesses(args.harness)
+        candidates = discover(harnesses, None, None, 9999)
+        for h, pth in candidates:
+            if target in pth.name:
+                return HARNESSES[h]["loader"](pth)
+        sys.exit(f"convo: no session matching id '{target}'")
+    # no explicit session → most recent matching project/harness.
+    # Peek (cheap) to find the right file, then load only that one.
+    since = parse_since(args.since)
+    harnesses = resolve_harnesses(args.harness)
+    proj = None if args.all_projects else (args.project or None)
+    candidates = discover(harnesses, proj, since, 50)
+    best: Optional[tuple[float, str, Path]] = None
+    for h, p in candidates:
+        try:
+            pk = HARNESSES[h]["peek"](p)
+        except Exception:  # noqa: BLE001
+            continue
+        if not pk:
+            continue
+        if proj and not peek_matches_project(pk, proj):
+            continue
+        if best is None or pk.mtime > best[0]:
+            best = (pk.mtime, h, p)
+    if best is None:
+        if require:
+            sys.exit("convo: no sessions found (try --all-projects or --harness all)")
+        return None
+    return HARNESSES[best[1]]["loader"](best[2])
+
+
+def cmd_show(args):
+    s = _pick_session(args)
+    if args.json:
+        pairs = build_pairs(s)
+        if args.n:
+            pairs = pairs[-args.n:]
+        data = {
+            "harness": s.harness, "session_id": s.session_id, "path": s.path,
+            "project": s.project,
+            "exchanges": [{
+                "ts": ex["ts"], "user": ex["user"],
+                "assistant_final": ex["assistant_texts"][-1] if ex["assistant_texts"] else "",
+                "assistant_all": ex["assistant_texts"],
+            } for ex in pairs],
+        }
+        print(json.dumps(data, indent=2))
+        return
+    color = sys.stdout.isatty() and not args.no_color
+    header = f"# {s.harness}:{s.session_id}  ({s.project or '?'})"
+    print(header)
+    print(render_session(s, args.mode, args.n, color))
+
+
+def cmd_grep(args):
+    since = parse_since(args.since)
+    harnesses = resolve_harnesses(args.harness)
+    proj = None if args.all_projects else (args.project or None)
+    candidates = discover(harnesses, proj, since, args.limit)
+    sessions = load_sessions(candidates, proj)
+    sessions.sort(key=lambda s: s.mtime, reverse=True)
+
+    flags = 0 if args.case_sensitive else re.IGNORECASE
+    try:
+        pat = re.compile(args.pattern, flags)
+    except re.error as e:
+        sys.exit(f"convo: bad pattern: {e}")
+
+    hits = []
+    for s in sessions:
+        for ti, t in enumerate(s.turns):
+            if pat.search(t.text):
+                hits.append((s, ti, t))
+    if args.json:
+        print(json.dumps([{
+            "harness": s.harness, "session_id": s.session_id, "path": s.path,
+            "role": t.role, "ts": t.ts, "text": t.text,
+        } for s, _, t in hits], indent=2))
+        return
+    if not hits:
+        print("convo: no matches.", file=sys.stderr)
+        return
+    color = sys.stdout.isatty() and not args.no_color
+    for s, ti, t in hits:
+        badge = {"claude": "CC", "codex": "CX", "gemini": "GM"}.get(s.harness, s.harness)
+        loc = f"{badge}:{s.session_id[:12]} {_short_ts(t.ts)} [{t.role}]"
+        snippet = " ".join(t.text.split())
+        # highlight match
+        if color:
+            snippet = pat.sub(lambda m: f"\033[1;33m{m.group(0)}\033[0m", snippet)
+            loc = f"\033[2;36m{loc}\033[0m"
+        # show a window around the first match
+        m = pat.search(t.text)
+        idx = m.start() if m else 0
+        flat = " ".join(t.text.split())
+        # recompute idx in flattened space approximately
+        start = max(0, flat.lower().find(args.pattern.lower()) - 60) if not args.case_sensitive else max(0, flat.find(args.pattern) - 60)
+        window = flat[start:start + 200]
+        if color:
+            window = pat.sub(lambda mm: f"\033[1;33m{mm.group(0)}\033[0m", window)
+        print(f"{loc}\n    …{window}…\n")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="convo",
+        description="Read agent conversation history across Claude Code, Codex, and Gemini CLI.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=textwrap_epilog(),
+    )
+    sub = p.add_subparsers(dest="cmd")
+
+    def common(sp):
+        sp.add_argument("--harness", help="claude|codex|gemini|all (or cc,cx,gm). Default: all")
+        sp.add_argument("--project", help="substring filter on project/cwd (default: current dir)")
+        sp.add_argument("--all-projects", action="store_true", help="don't filter by current dir")
+        sp.add_argument("--since", help="time window: 7d, 24h, 30m, 2w, or ISO date")
+        sp.add_argument("--json", action="store_true", help="emit JSON")
+        sp.add_argument("--no-color", action="store_true", help="disable ANSI color")
+
+    sp_list = sub.add_parser("list", help="list recent sessions (default command)")
+    common(sp_list)
+    sp_list.add_argument("--limit", type=int, default=20, help="max sessions (default 20)")
+    sp_list.set_defaults(func=cmd_list)
+
+    sp_show = sub.add_parser("show", help="print a session's clean transcript")
+    common(sp_show)
+    sp_show.add_argument("session", nargs="?", help="session id (substring) or path; default: most recent")
+    sp_show.add_argument("--mode", choices=["final", "text", "full"], default="final",
+                         help="final=user+last reply (default); text=all agent text; full=+tools")
+    sp_show.add_argument("-n", type=int, default=None, help="only the last N exchanges")
+    sp_show.set_defaults(func=cmd_show)
+
+    sp_grep = sub.add_parser("grep", help="search across sessions")
+    common(sp_grep)
+    sp_grep.add_argument("pattern", help="regex to search in turn text")
+    sp_grep.add_argument("--limit", type=int, default=100, help="max sessions to scan")
+    sp_grep.add_argument("--case-sensitive", action="store_true")
+    sp_grep.set_defaults(func=cmd_grep)
+
+    return p
+
+
+def textwrap_epilog() -> str:
+    return (
+        "examples:\n"
+        "  convo                         # recent sessions in the current project (all harnesses)\n"
+        "  convo list --all-projects --since 3d\n"
+        "  convo show                    # clean transcript of the most recent session here\n"
+        "  convo show -n 20              # just the last 20 exchanges (user + agent's final reply)\n"
+        "  convo show <id> --mode full   # full debug view with tool calls\n"
+        "  convo show <id> --json        # structured exchanges for an agent to consume\n"
+        "  convo grep 'god files' --all-projects --since 30d\n"
+        "\nThe default 'final' mode shows each of your prompts paired with ONLY the agent's last\n"
+        "text reply before your next prompt — tool calls and noise stripped. That's the clean\n"
+        "transcript that's usually most useful when reviewing 'what did we actually say'.\n"
+    )
+
+
+def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
+    parser = build_parser()
+
+    # Let -h/--help and a bare subcommand reach the top-level parser directly.
+    subcommands = {"list", "show", "grep"}
+    if argv and (argv[0] in ("-h", "--help") or argv[0] in subcommands):
+        args = parser.parse_args(argv)
+    elif not argv:
+        # bare `convo` → list
+        args = parser.parse_args(["list"])
+    else:
+        # leading flags with no subcommand (e.g. `convo --since 3d`) → treat as `list`
+        args = parser.parse_args(["list"] + argv)
+
+    if not getattr(args, "func", None):
+        parser.print_help()
+        return
+    # Default --project to current dir unless --all-projects/--project given.
+    if getattr(args, "project", None) is None and not getattr(args, "all_projects", False):
+        args.project = default_project_slug()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except BrokenPipeError:
+        try:
+            sys.stdout.close()
+        except Exception:
+            pass
+    except KeyboardInterrupt:
+        sys.exit(130)

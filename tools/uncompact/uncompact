@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+"""
+uncompact — recover a Claude Code session lost to context compaction.
+
+Claude Code auto-compacts a session when context fills, replacing the conversation
+with a lossy summary. The original messages are still on disk. This tool writes a
+NEW session file truncated to just before a chosen compaction boundary, so you can
+`claude --resume <new-id>` and pick up from before the loss.
+
+Usage:
+    uncompact <session-id>                 # recover to 1 compaction back (default)
+    uncompact <session-id> --go-back N     # N compactions back
+    uncompact <session-id> --list          # list boundaries, create nothing
+    uncompact --find <cwd>                 # print most recent session id for a dir
+
+Shared session-parsing logic lives in minnows lib/claude_sessions.py (vendored into
+this folder when shipped as a skill).
+"""
+
+import argparse
+import json
+import sys
+import uuid
+from pathlib import Path
+
+# Import the shared lib whether we're running from the minnows repo (lib/ at repo
+# root) or from a vendored skill folder (lib/ copied next to this script). See the
+# minnows README: vendor-on-ship at the skill boundary.
+def _load_lib():
+    import importlib.util
+    here = Path(__file__).resolve().parent
+    for cand in (here / "lib" / "claude_sessions.py",                 # vendored beside script
+                 here.parent.parent / "lib" / "claude_sessions.py"):  # repo root lib/
+        if cand.exists():
+            spec = importlib.util.spec_from_file_location("claude_sessions", cand)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            return mod
+    sys.exit("uncompact: cannot locate claude_sessions lib (expected ./lib/ or ../../lib/)")
+
+
+cs = _load_lib()
+
+
+def trim_trailing_noise(lines: list, cutoff: int) -> int:
+    """Walk back from `cutoff` to the last real user/assistant message with content.
+
+    Trailing last-prompt/system/permission-mode/file-history-snapshot entries with
+    empty content make Claude Code re-compact immediately on load — trim them.
+    Returns the new exclusive cutoff.
+    """
+    for j in range(cutoff - 1, -1, -1):
+        try:
+            d = json.loads(lines[j])
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if d.get("type") not in ("user", "assistant"):
+            continue
+        if d.get("message", {}).get("content", ""):
+            return j + 1
+    return cutoff
+
+
+def create_recovered_session(src_path: Path, project_dir: Path, cutoff: int, lines: list) -> str:
+    """Write a new JSONL truncated to `cutoff` lines, with every sessionId reference
+    rewritten to a fresh UUID (the id is embedded in every line, not just the name)."""
+    new_id = str(uuid.uuid4())
+    original_id = src_path.stem
+    dst_path = project_dir / f"{new_id}.jsonl"
+    dst_path.write_text("".join(line.replace(original_id, new_id) for line in lines[:cutoff]))
+    return new_id
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Recover a Claude Code session lost to compaction.")
+    parser.add_argument("session_id", nargs="?", help="Session UUID to recover")
+    parser.add_argument("--go-back", type=int, default=1, metavar="N",
+                        help="How many compactions to undo (default: 1)")
+    parser.add_argument("--list", action="store_true",
+                        help="List compaction boundaries without creating a file")
+    parser.add_argument("--find", metavar="CWD",
+                        help="Find most recent session id for a directory path")
+    args = parser.parse_args()
+
+    if args.find:
+        project_dir = cs.cwd_to_project_dir(args.find)
+        if not project_dir:
+            print(f"No Claude project directory found for: {args.find}", file=sys.stderr)
+            sys.exit(1)
+        jsonl_files = sorted(project_dir.glob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if not jsonl_files:
+            print(f"No session files found in {project_dir}", file=sys.stderr)
+            sys.exit(1)
+        print(jsonl_files[0].stem)
+        return
+
+    if not args.session_id:
+        parser.print_help()
+        sys.exit(1)
+
+    project_dir = cs.find_project_dir_for_session(args.session_id)
+    if not project_dir:
+        print(f"Session {args.session_id} not found in any project directory.", file=sys.stderr)
+        sys.exit(1)
+
+    src_path = project_dir / f"{args.session_id}.jsonl"
+    lines = src_path.read_text().splitlines(keepends=True)
+    boundaries = cs.parse_boundaries(lines)
+
+    if not boundaries:
+        print("No compaction boundaries found in this session.")
+        print("The session has never been compacted — nothing to undo.")
+        sys.exit(0)
+
+    print(f"Found {len(boundaries)} compaction boundary/boundaries:\n")
+    for idx, b in enumerate(boundaries, 1):
+        print(f"  [{idx}] After line {b['last_real_line']} — \"{b['snippet']}\"")
+    print()
+
+    if args.list:
+        return
+
+    go_back = args.go_back
+    if go_back > len(boundaries):
+        print(f"Only {len(boundaries)} compaction(s) found; going back {len(boundaries)}.")
+        go_back = len(boundaries)
+
+    target = boundaries[-go_back]
+    cutoff = trim_trailing_noise(lines, target["last_real_line"] + 1)
+    new_id = create_recovered_session(src_path, project_dir, cutoff, lines)
+
+    original_cwd = cs.cwd_from_lines(lines[:cutoff]) or cs.project_dir_to_cwd(project_dir)
+
+    print(f"Recovered session created: {new_id}")
+    print(f"  Lines: {cutoff} (stopping before compaction #{len(boundaries) - go_back + 1})")
+    print(f"  Last context: \"{target['snippet']}\"")
+    print()
+    print("To resume, open a new terminal and run:")
+    print()
+    print(f"  cd {original_cwd}")
+    print(f"  claude --resume {new_id}")
+    print()
+
+
+if __name__ == "__main__":
+    main()
