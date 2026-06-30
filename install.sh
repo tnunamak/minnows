@@ -21,6 +21,10 @@ for agent_dir in "$HOME/.claude" "$HOME/.codex" "$HOME/.gemini"; do
   for skill in "$REPO"/skills/*/; do
     [[ -d "$skill" ]] || continue
     sname="$(basename "$skill")"
+    # rm -rf first: `ln -sfn` nests INTO an existing real directory instead of
+    # replacing it (e.g. an older standalone copy of this skill), which silently
+    # shadows the new symlink. Remove any existing entry, then link cleanly.
+    rm -rf "$agent_dir/skills/$sname"
     ln -sfn "${skill%/}" "$agent_dir/skills/$sname"
     echo "  ✓ $agent_dir/skills/$sname"
   done
