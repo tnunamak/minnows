@@ -601,10 +601,13 @@ def build_pairs(session: Session) -> list[dict]:
     return pairs
 
 
+def _tail(items: list, n: Optional[int]) -> list:
+    """Last n items, or all when n is None or < 1 (so -n 0 / -n -5 mean 'all', never empty)."""
+    return items[-n:] if (n is not None and n >= 1) else items
+
+
 def render_session(session: Session, mode: str, n: Optional[int], color: bool) -> str:
-    pairs = build_pairs(session)
-    if n is not None and n > 0:
-        pairs = pairs[-n:]
+    pairs = _tail(build_pairs(session), n)
 
     def c(s, code):
         return f"\033[{code}m{s}\033[0m" if color else s
@@ -671,7 +674,12 @@ def peek_matches_project(pk: "Peek", flt: str) -> bool:
 # --------------------------------------------------------------------------------------
 
 def parse_since(s: Optional[str]) -> Optional[float]:
-    """Accept '7d', '24h', '30m', or an ISO date. Returns epoch seconds or None."""
+    """Parse a --since value to an epoch-seconds floor.
+
+    Returns None when not provided. Raises ValueError on an UNparseable value so the
+    caller can fail loudly — silently treating 'garbage' as 'no window' would return
+    an empty list that looks like 'you have no sessions', which is a footgun.
+    """
     if not s:
         return None
     now = datetime.now(timezone.utc).timestamp()
@@ -683,7 +691,9 @@ def parse_since(s: Optional[str]) -> Optional[float]:
     try:
         return datetime.fromisoformat(s).timestamp()
     except ValueError:
-        return None
+        raise ValueError(
+            f"invalid --since value {s!r} (use 7d, 24h, 30m, 2w, or an ISO date like 2026-06-01)"
+        )
 
 
 def resolve_harnesses(arg: Optional[str]) -> list[str]:
@@ -826,9 +836,7 @@ def _pick_session(args, require: bool = True) -> Optional[Session]:
 def cmd_show(args):
     s = _pick_session(args)
     if args.json:
-        pairs = build_pairs(s)
-        if args.n:
-            pairs = pairs[-args.n:]
+        pairs = _tail(build_pairs(s), args.n)
         data = {
             "harness": s.harness, "session_id": s.session_id, "path": s.path,
             "project": s.project,
@@ -872,8 +880,9 @@ def cmd_grep(args):
         } for s, _, t in hits], indent=2))
         return
     if not hits:
+        # grep convention: no match is exit 1 (not an error, just nothing found).
         print("convo: no matches.", file=sys.stderr)
-        return
+        sys.exit(1)
     color = sys.stdout.isatty() and not args.no_color
     for s, ti, t in hits:
         badge = {"claude": "CC", "codex": "CX", "gemini": "GM"}.get(s.harness, s.harness)
@@ -922,14 +931,20 @@ def build_parser() -> argparse.ArgumentParser:
     sp_show.add_argument("session", nargs="?", help="session id (substring) or path; default: most recent")
     sp_show.add_argument("--mode", choices=["final", "text", "full"], default="final",
                          help="final=user+last reply (default); text=all agent text; full=+tools")
-    sp_show.add_argument("-n", type=int, default=None, help="only the last N exchanges")
+    sp_show.add_argument("-n", type=int, default=None,
+                         help="only the last N exchanges (N<1 or omitted = all)")
     sp_show.set_defaults(func=cmd_show)
 
     sp_grep = sub.add_parser("grep", help="search across sessions")
     common(sp_grep)
     sp_grep.add_argument("pattern", help="regex to search in turn text")
     sp_grep.add_argument("--limit", type=int, default=100, help="max sessions to scan")
-    sp_grep.add_argument("--case-sensitive", action="store_true")
+    sp_grep.add_argument("--case-sensitive", action="store_true",
+                         help="case-sensitive match (default: case-insensitive)")
+    # Accept grep's reflexive -i/--ignore-case as a friendly no-op (we're already
+    # case-insensitive by default) so muscle memory doesn't hit an argparse error.
+    sp_grep.add_argument("-i", "--ignore-case", action="store_true",
+                         help=argparse.SUPPRESS)
     sp_grep.set_defaults(func=cmd_grep)
 
     return p
@@ -969,10 +984,21 @@ def main(argv=None):
     if not getattr(args, "func", None):
         parser.print_help()
         return
+
+    # --project and --all-projects are contradictory. Don't guess — fail clearly.
+    # (Was order/cache-dependent: sometimes the filter applied, sometimes not.)
+    if getattr(args, "all_projects", False) and getattr(args, "project", None) is not None:
+        sys.exit("convo: --project and --all-projects are mutually exclusive "
+                 "(use --project to scope to one, --all-projects for everything)")
+
     # Default --project to current dir unless --all-projects/--project given.
     if getattr(args, "project", None) is None and not getattr(args, "all_projects", False):
         args.project = default_project_slug()
-    args.func(args)
+
+    try:
+        args.func(args)
+    except ValueError as e:  # e.g. an invalid --since value, surfaced cleanly
+        sys.exit(f"convo: {e}")
 
 
 if __name__ == "__main__":

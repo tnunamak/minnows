@@ -39,6 +39,7 @@ convo grep 'X' --all-projects --since 30d
 - `--harness claude|codex|gemini|all` (aliases `cc,cx,gm`; default **all**)
 - `--project SUBSTR` — filter by project/cwd. **Defaults to the current directory.**
 - `--all-projects` — don't filter by cwd (use when the user means "any session anywhere").
+  Mutually exclusive with `--project` — pass one or the other, never both (it errors).
 - `--since 7d|24h|30m|2w|<ISO date>` — time window.
 - `--json` — structured output (prefer this when you'll process the result rather than show it).
 - `--no-color` — plain text.
