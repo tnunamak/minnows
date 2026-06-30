@@ -58,7 +58,7 @@ to an installed package until an *external* consumer needs versioning — pure c
 | tool | CLI | skill | what it does |
 |------|-----|-------|--------------|
 | **convo** | ✓ | ✓ | Read past agent conversation history across Claude Code / Codex / Gemini. Signature view: each user prompt + the agent's final reply, tool noise stripped. Cross-harness search. |
-| **uncompact** | ✓ | ✓ | Recover a Claude Code session lost to context compaction — writes a new resumable session truncated to before a chosen compaction boundary. |
+| **uncompact** | ✓ | ✓ | Recover a Claude Code session lost to context compaction — writes a new resumable session truncated to before a chosen compaction boundary. *Claude-only by nature, not omission:* Codex rollouts are append-only (no on-disk history loss) and Gemini stores a full `messages[]` array; both ship native resume/fork. Claude is the only harness that replaces live history with a lossy summary on auto-compact, so it's the only one with something to recover. |
 
 ## Install
 
