@@ -93,14 +93,25 @@ router was ported.
 
 `plan` groups the flagged universe by (file × tier), ranks groups with the SPEC formula
 (`gain × attention × product_impact × confidence / (risk × evidence_cost × token_cost ×
-reversibility_cost)`) using mapped heuristic scores, and emits the top `--top` packets:
+reversibility_cost)`; the numerator uses continuous log2(mass)/log2(churn) proxies so the
+enum scores don't saturate and degenerate the plan to only-cheap tiers), and emits the top
+`--top` packets (schema v1.1):
 
-- **tier → action/evidence/model_tier** is a fixed table (see `lib/plan.mjs`): T0 →
-  certified-local-transform (cheap), T1-extractable-callback → exact-move (cheap),
-  T1b/T1-seam → differential-probes + judge (standard), T2-* → integration/property + judge
-  (strong), 0-caller named fns → `delete` packets (owner-ratified, never auto-landed in v1).
+- **tier → proof_class/plan/tiers** is a fixed table (see `TIER_EXEC` in `lib/plan.mjs`):
+  T0 → certified_transform (cheap maker), T1-extractable-callback → exact_move (cheap),
+  T1b/T1-seam → pure_logic (standard), T2-* → effectful/property_at_risk (strong maker),
+  0-caller named fns → `delete` packets. `judge_tier` is strong whenever
+  `silent_wrongness_cost` is high, independently of the maker.
+- **execution_gate:** `owner_ratify` for delete/rent/contract-shaped actions AND for files
+  matching the profile's `nogo_path_pattern`; everything else `autonomous`.
+- **evidence_required** entries are literal runnable commands built from the profile's
+  `commands.test`/`commands.typecheck` plus tier-specific rungs (`git diff -w` body-move check,
+  guard-byte-identity grep for T2-property, scope-fn complexity re-measure). No oracle
+  configured → an explicit `no-oracle-configured` rung directing `work` to blocked(missing-oracle).
 - **behavior_status** defaults from the profile; `public_surface_globs` matches become `contract`.
 - **confidence is honest:** `why_this_matters` carries the numeric confidence and the
   `metrics nominate; they never decide` caveat until wave-2 semantic validation.
-- Every packet is schema-validated (`lib/validate-packet.mjs`, strict — unknown keys reject)
-  and YAML round-trip-verified before it is written; a malformed packet crashes the plan.
+- Every packet is schema-validated (`lib/validate-packet.mjs`, strict — unknown keys reject,
+  missing execution_gate rejects) and YAML round-trip-verified before it is written; a
+  malformed packet crashes the plan. Terminal packets (landed/reverted/skipped/blocked) are
+  never overwritten; candidate ids are content-derived and stable across reruns.
