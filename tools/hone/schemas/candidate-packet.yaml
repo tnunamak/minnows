@@ -1,0 +1,51 @@
+# hone candidate packet — the durable unit of work (v1, frozen 2026-07-01)
+# Expensive reasoning WRITES packets; cheap fresh contexts EXECUTE them. A packet must be
+# self-sufficient: an agent with only this packet + the named files can do the job.
+# Terminal packets (incl. skipped/blocked) are never deleted — they are the engine's memory.
+
+candidate_id: string            # stable, e.g. "srv-records-aggregate-0007"
+created: iso-date
+repo_sha: string                # inventory snapshot this packet was derived from
+subsystem: string               # e.g. "server/records"
+files: [string]
+symbols: [string]               # functions/exports in scope
+public_surface: [string]        # routes/MCP tools/error codes touched ([] if none)
+
+# ---- classification (BEFORE work; wrong classification = wrong workflow) ----
+behavior_status: contract | likely_intended | provisional | accidental | unknown
+ownership: OWN | RENT | DELETE | FREEZE | QUARANTINE | GENERATED | TEMPORARY
+action: preserve_refactor | idealize_rewrite | surface_repair | generate_evidence
+      | delete | rent | freeze | quarantine | document | propose_contract_change
+
+# ---- the case (why this, why now) ----
+why_this_matters: string        # semantic defect, validated — not just "metric fired"
+expected_quality_gain: low | medium | high
+owner_attention_reduction: low | medium | high
+product_impact: none | low | medium | high
+
+# ---- risk (drives evidence + judge strength; scrutiny ∝ cost of silent wrongness) ----
+risk:
+  blast_radius: local | subsystem | cross-cutting
+  reversibility: trivial | branch-revert | hard
+  silent_wrongness_cost: low | medium | high   # would a mistake be DETECTED? auth/storage/public = high
+  property_at_risk: string | null              # named invariant, if any (e.g. "no field outside grant scope")
+
+# ---- execution contract ----
+evidence_required: [string]     # rungs from SPEC evidence ladder, e.g. [differential-probes, independent-judge]
+not_allowed: [string]           # e.g. [public-shape-change, new-dependency, behavior-change]
+model_tier: cheap | standard | strong
+maker_provider: string | null   # filled at execution; MUST differ from judge_provider
+judge_provider: string | null
+batch_key: string               # workflow × proof-class × subsystem; batching unit
+touchset: [string]              # files this WILL modify — lane scheduler serializes overlaps
+
+# ---- outcome (terminal; the durable knowledge) ----
+status: pending | in_progress | landed | reverted | skipped | blocked
+outcome:
+  commit: string | null
+  skip_reason: string | null    # REQUIRED if skipped — e.g. "T1c: capture crosses txn boundary"
+  blocked_on: string | null     # REQUIRED if blocked — e.g. "no oracle: needs differential harness for X"
+  judge_verdict: string | null  # verbatim gist
+  evidence_receipts: [string]   # commands run + results, pasted not narrated
+  tokens_actual: int | null
+  lesson: string | null         # anything that should update priors/rules
