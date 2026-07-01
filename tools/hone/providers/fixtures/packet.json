@@ -1,0 +1,44 @@
+{
+  "candidate_id": "ri-server-enrollment-shell-ttl-0001",
+  "created": "2026-07-01",
+  "repo_sha": "bbfbff35d (fixture snapshot)",
+  "subsystem": "server/browser-enrollment",
+  "files": ["reference-implementation/server/browser-enrollment-shell-retirement.ts"],
+  "symbols": ["expiredEnrollmentShellIds"],
+  "public_surface": [],
+
+  "behavior_status": "likely_intended",
+  "ownership": "OWN",
+  "action": "preserve_refactor",
+
+  "why_this_matters": "The inline .filter callback in expiredEnrollmentShellIds captures nowMs from its enclosing closure and braids per-shell expiry policy with list traversal and id projection (cc 8). Hoisting the predicate with the captured cutoff made an EXPLICIT parameter separates the policy from the traversal (canon: hidden state -> explicit; deep module).",
+  "expected_quality_gain": "medium",
+  "owner_attention_reduction": "low",
+  "product_impact": "none",
+
+  "risk": {
+    "blast_radius": "local",
+    "reversibility": "trivial",
+    "silent_wrongness_cost": "medium",
+    "property_at_risk": "expiry-set membership: exactly the draft/active shells carrying a parseable browser_enrollment_shell TTL at or before `now` are retired — no more, no fewer"
+  },
+
+  "evidence_required": ["typecheck", "direct-unit-test", "independent-judge"],
+  "not_allowed": ["behavior-change", "public-shape-change", "new-dependency", "relocation-without-decomplection"],
+  "model_tier": "standard",
+  "maker_provider": null,
+  "judge_provider": null,
+  "batch_key": "preserve_refactor:certified-local-transform:server/browser-enrollment",
+  "touchset": ["reference-implementation/server/browser-enrollment-shell-retirement.ts"],
+
+  "status": "in_progress",
+  "outcome": {
+    "commit": null,
+    "skip_reason": null,
+    "blocked_on": null,
+    "judge_verdict": null,
+    "evidence_receipts": [],
+    "tokens_actual": null,
+    "lesson": null
+  }
+}

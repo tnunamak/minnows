@@ -1,0 +1,14 @@
+maker claim: T1b explicit-context extraction — hoisted the inline filter predicate to
+enrollmentShellExpired(shell, nowMs); the closure-captured nowMs cutoff is now an
+explicit parameter; expiredEnrollmentShellIds keeps only traversal + id projection.
+
+$ npx tsc --noEmit
+(exit 0 — no errors)
+
+$ node --test reference-implementation/server/__tests__/browser-enrollment-shell-route.test.js
+# pass 16 / fail 0 — includes a direct unit test pinning the exact filtered output of
+# expiredEnrollmentShellIds over a mixed fixture (expired draft, expired active,
+# future TTL, malformed TTL, missing TTL, wrong binding kind, completed status)
+
+$ cognitive-complexity reference-implementation/server/browser-enrollment-shell-retirement.ts
+expiredEnrollmentShellIds: cc 8 -> sub-threshold; enrollmentShellExpired: cc 5 (new, pure predicate)

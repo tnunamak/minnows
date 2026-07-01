@@ -1,0 +1,8 @@
+maker claim: extracted the expiry predicate out of the inline filter callback into a
+named function shellExpired for readability; behavior identical, one call site.
+
+$ npx tsc --noEmit
+(exit 0 — no errors)
+
+$ node --test reference-implementation/server/__tests__/browser-enrollment-shell-route.test.js
+# pass 16 / fail 0

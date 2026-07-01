@@ -1,0 +1,48 @@
+diff --git a/reference-implementation/server/browser-enrollment-shell-retirement.ts b/reference-implementation/server/browser-enrollment-shell-retirement.ts
+index bbfbff35d..7c1a92e04 100644
+--- a/reference-implementation/server/browser-enrollment-shell-retirement.ts
++++ b/reference-implementation/server/browser-enrollment-shell-retirement.ts
+@@ -26,25 +26,26 @@ export interface EnrollmentShellLike {
+ // malformed `enrollment_expires_at` is treated conservatively as not-yet-
+ // expired (the data-ops retirement contract applies only to shells with a
+ // declared TTL).
+ export function expiredEnrollmentShellIds(shells: readonly EnrollmentShellLike[], now: string): readonly string[] {
+   const nowMs = new Date(now).getTime();
+-  return shells
+-    .filter((shell) => {
+-      if (shell.status !== "draft" && shell.status !== "active") {
+-        return false;
+-      }
+-      const binding = shell.sourceBinding as Partial<BrowserEnrollmentShellSourceBinding> | null;
+-      if (binding?.kind !== "browser_enrollment_shell") {
+-        return false;
+-      }
+-      const expiresAt = binding.enrollment_expires_at;
+-      if (typeof expiresAt !== "string") {
+-        return false;
+-      }
+-      const expiresMs = new Date(expiresAt).getTime();
+-      return !Number.isNaN(expiresMs) && expiresMs <= nowMs;
+-    })
+-    .map((shell) => shell.connectorInstanceId);
++  function shellExpired(shell: EnrollmentShellLike): boolean {
++    if (shell.status !== "draft" && shell.status !== "active") {
++      return false;
++    }
++    const binding = shell.sourceBinding as Partial<BrowserEnrollmentShellSourceBinding> | null;
++    if (binding?.kind !== "browser_enrollment_shell") {
++      return false;
++    }
++    const expiresAt = binding.enrollment_expires_at;
++    if (typeof expiresAt !== "string") {
++      return false;
++    }
++    const expiresMs = new Date(expiresAt).getTime();
++    return !Number.isNaN(expiresMs) && expiresMs <= nowMs;
++  }
++  return shells
++    .filter(shellExpired)
++    .map((shell) => shell.connectorInstanceId);
+ }
+
+ export interface ShellRetirementStore {
