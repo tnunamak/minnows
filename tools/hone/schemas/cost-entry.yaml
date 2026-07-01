@@ -1,0 +1,19 @@
+# hone cost entry — one line of <repo>/quality/cost.jsonl (v1, 2026-07-01)
+# The engine's economics memory: actuals recalibrate the ranking priors, and "run N+1 cheaper
+# than run N" is measured here, not asserted.
+
+job_id: string                  # e.g. "job-<packet>-<attempt>"
+created: iso-timestamp
+candidate_id: string
+workflow: string                # packet.action
+maker: {provider: string, tier: string}
+judge: {provider: string, tier: string}
+tokens_in: int | null           # per provider metadata when available; null if only proxied
+tokens_out: int | null
+cost_usd: number | null         # real when the provider reports it (claude envelope); else null
+wall_time_s: number
+landed: bool
+revision_count: int             # maker REVISE cycles before land/abandon
+judge_result: PASS | REVISE | REJECT | null
+outcome: landed | reverted | skipped | blocked
+followup_created: [candidate_id]   # packets spawned by this job (lessons → new candidates)

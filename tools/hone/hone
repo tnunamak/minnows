@@ -13,9 +13,11 @@ commands:
               [--repo .] [--cog N] [--window '6 months ago']
   plan        inventory → ranked candidate packets → <repo>/quality/packets/*.yaml
               [--repo .] [--top 20]
-  work <id>   execute one packet (maker ≠ judge)         — not implemented in v1 wave 1
-  report      compile claim-ledger report                — not implemented in v1 wave 1
-  run         plan→work loop, conflict-aware lanes       — not implemented in v1 wave 1
+  work <id>   execute one packet (maker ≠ judge)
+              [--repo .] [--maker claude|codex] [--judge codex|claude] [--dry-run]
+  report      compile claim-ledger report → <repo>/quality/reports/
+  run         plan→work loop, conflict-aware lanes
+              [--repo .] [--n K] [--lanes L]
 
 Per-repo config: <repo>/quality/hone.yaml (falls back to generic JS/TS defaults).
 Docs: tools/hone/README.md · spec: tools/hone/SPEC.md
@@ -36,12 +38,21 @@ try {
       await runPlan(flags);
       break;
     }
-    case 'work':
-    case 'report':
-    case 'run':
-      console.error(`hone ${cmd}: not implemented in v1 wave 1`);
-      process.exit(1);
+    case 'work': {
+      const { runWork } = await import('./lib/work.mjs');
+      await runWork(flags, rest);
       break;
+    }
+    case 'report': {
+      const { runReport } = await import('./lib/report.mjs');
+      await runReport(flags);
+      break;
+    }
+    case 'run': {
+      const { runLoop } = await import('./lib/run.mjs');
+      await runLoop(flags);
+      break;
+    }
     case 'help':
     case '--help':
     case undefined:

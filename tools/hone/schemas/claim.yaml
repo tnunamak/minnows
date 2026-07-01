@@ -1,0 +1,19 @@
+# hone claim — one line of <repo>/quality/claims.jsonl (v1, 2026-07-01)
+# Reports are COMPILED from claims; they are never hand-written prose. A claim without evidence
+# is a hypothesis, and the compiler treats it as one. No claim may assert "done/complete/clean/
+# first-class/solved" unless type+evidence support that exact assertion (SPEC non-negotiable #5).
+
+claim_id: string                # stable, e.g. "clm-<packet>-<n>"
+created: iso-timestamp
+candidate_id: string            # the packet this claim belongs to
+type: verified_fact             # deterministically reproducible (command + output attached)
+    | judged_design_claim       # an independent judge's verdict (judge ≠ maker, named)
+    | behavior_preserved        # backed by the packet's evidence_required receipts
+    | behavior_changed          # REQUIRED whenever behavior moved (idealize_rewrite etc.); labeled, never silent
+    | hypothesis                # believed, not evidenced — compiler renders as open question
+    | uncertainty               # known unknown
+    | remaining_work            # follow-up the run did not do
+statement: string               # one sentence, plain
+evidence:                       # REQUIRED for verified_fact / behavior_* ; the reproducer, not a narration
+  - {command: string, output_digest: string}   # pasted-output digest or path to receipt
+judge: {provider: string, verdict: string} | null   # REQUIRED for judged_design_claim
