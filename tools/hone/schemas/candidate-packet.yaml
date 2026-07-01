@@ -1,43 +1,74 @@
-# hone candidate packet — the durable unit of work (v1, frozen 2026-07-01)
+# hone candidate packet — the durable unit of work (v1.1, 2026-07-01)
+# v1.1 incorporates the 11 amendments from the schema reality-validation (5 hand-authored packets,
+# 1 executed end-to-end; packet-alone sufficiency measured ~95% — the gaps below close the rest).
 # Expensive reasoning WRITES packets; cheap fresh contexts EXECUTE them. A packet must be
 # self-sufficient: an agent with only this packet + the named files can do the job.
 # Terminal packets (incl. skipped/blocked) are never deleted — they are the engine's memory.
 
 candidate_id: string            # stable, e.g. "srv-records-aggregate-0007"
-created: iso-date
+created: iso-timestamp
 repo_sha: string                # inventory snapshot this packet was derived from
-subsystem: string               # e.g. "server/records"
+subsystem: string               # e.g. "server/records"; use "repo" for root-level candidates
 files: [string]
-symbols: [string]               # functions/exports in scope
-public_surface: [string]        # routes/MCP tools/error codes touched ([] if none)
+symbols:                        # named symbols AND/OR structured anchors for anonymous callbacks
+  - string                      #   e.g. "buildStreamRollups"
+  - {file: string, parent_fn: string, anchor: string, line: int}   # e.g. anonymous .map callback
+public_surface: [string]        # any CALLER-VISIBLE element: routes, MCP tools, error codes/params/
+                                # messages, response-field enums, docs describing them ([] if none)
 
 # ---- classification (BEFORE work; wrong classification = wrong workflow) ----
 behavior_status: contract | likely_intended | provisional | accidental | unknown
+                                # refers to the RUNTIME BEHAVIOR in scope; for docs-only repairs this is
+                                # the documented behavior's status — the artifact being edited goes in plan
 ownership: OWN | RENT | DELETE | FREEZE | QUARANTINE | GENERATED | TEMPORARY
 action: preserve_refactor | idealize_rewrite | surface_repair | generate_evidence
       | delete | rent | freeze | quarantine | document | propose_contract_change
+proof_class: type_only | exact_move | certified_transform | pure_logic | effectful
+           | property_at_risk | judgment_first | liveness_roots | proposal
+                                # first-class (drives evidence + judge strength; also embedded in batch_key).
+                                # exact_move byte-identity = WHITESPACE-NORMALIZED body hash (a hoist
+                                # legitimately changes one indent level).
+execution_gate: autonomous | owner_ratify
+                                # REQUIRED. `hone run/work` REFUSES owner_ratify packets and packets
+                                # missing this field (fail-closed; v2 workflows are authored owner_ratify).
 
 # ---- the case (why this, why now) ----
 why_this_matters: string        # semantic defect, validated — not just "metric fired"
+plan:                           # WHAT to do (why_this_matters is the why; this is the what)
+  transform_class: string       #   e.g. "hoist-to-named-module-fn", "explicit-context-extraction"
+  instruction: string           #   the intended change: target name, params/context shape, seam
 expected_quality_gain: low | medium | high
 owner_attention_reduction: low | medium | high
 product_impact: none | low | medium | high
 
-# ---- risk (drives evidence + judge strength; scrutiny ∝ cost of silent wrongness) ----
+# ---- risk (drives evidence + judge tier; scrutiny ∝ cost of silent wrongness) ----
 risk:
   blast_radius: local | subsystem | cross-cutting
   reversibility: trivial | branch-revert | hard
   silent_wrongness_cost: low | medium | high   # would a mistake be DETECTED? auth/storage/public = high
-  property_at_risk: string | null              # named invariant, if any (e.g. "no field outside grant scope")
+  property_at_risk: string | null              # named invariant (e.g. "no field outside grant scope")
+
+# ---- evidence ----
+authoring_evidence:             # evidence gathered WHEN WRITING the packet (e.g. delete packets carry
+  - {kind: string, detail: string, result: string}   # their liveness-root sweep here: root_type/search/result)
+evidence_required:              # execution-time proof obligations — LITERAL runnable commands, not prose
+  - rung: string                #   from proof_class ladder, e.g. "direct-test"
+    command: string             #   exact invocation incl. env, e.g. "PDPP_TEST_POSTGRES_URL=... node --test test/x.test.js"
+    expect: string              #   pass criterion, e.g. "19/19 pass, 0 skipped"
+not_allowed: [string]           # e.g. [public-shape-change, new-dependency, behavior-change]
 
 # ---- execution contract ----
-evidence_required: [string]     # rungs from SPEC evidence ladder, e.g. [differential-probes, independent-judge]
-not_allowed: [string]           # e.g. [public-shape-change, new-dependency, behavior-change]
-model_tier: cheap | standard | strong
+maker_tier: cheap | standard | strong
+judge_tier: standard | strong   # scales with risk.silent_wrongness_cost, independently of maker_tier
 maker_provider: string | null   # filled at execution; MUST differ from judge_provider
 judge_provider: string | null
-batch_key: string               # workflow × proof-class × subsystem; batching unit
+batch_key: string               # workflow × proof_class × subsystem; batching unit
 touchset: [string]              # files this WILL modify — lane scheduler serializes overlaps
+estimates:                      # ranking inputs (priors; cost ledger recalibrates over time)
+  tokens: int
+  evidence_cost: low | medium | high
+depends_on: [candidate_id]      # packets that must land first
+unlocks: [candidate_id]         # packets this enables (evidence-generation packets name their payoff)
 
 # ---- outcome (terminal; the durable knowledge) ----
 status: pending | in_progress | landed | reverted | skipped | blocked
@@ -48,4 +79,4 @@ outcome:
   judge_verdict: string | null  # verbatim gist
   evidence_receipts: [string]   # commands run + results, pasted not narrated
   tokens_actual: int | null
-  lesson: string | null         # anything that should update priors/rules
+  lesson: string | null         # anything that should update priors/rules (incl. upstream collector bugs)

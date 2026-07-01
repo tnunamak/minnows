@@ -62,9 +62,14 @@ convention.
 ## Candidate packet
 
 The unit of work and the main token-efficiency move: expensive reasoning produces durable packets; cheap
-contexts execute them. Schema: `schemas/candidate-packet.yaml`. Core fields: behavior_status, ownership,
-action, evidence_required, not_allowed, touchset (for lane scheduling), model_tier, batch_key, terminal
-status incl. skipped(reason)/blocked(oracle).
+contexts execute them. Schema: `schemas/candidate-packet.yaml` (v1.1 — amended after reality-validation on
+5 hand-authored packets, 1 executed; packet-alone sufficiency ~95%). Core fields: behavior_status, ownership,
+action, **proof_class** (first-class), **execution_gate** (autonomous|owner_ratify — `work`/`run` refuse
+owner_ratify and ungated packets, fail-closed), **plan** (the WHAT: transform_class + instruction),
+evidence_required (literal runnable commands + expected results, not prose), authoring_evidence (e.g.
+liveness-root sweeps carried by delete packets), not_allowed, touchset (lane scheduling), maker_tier +
+judge_tier (judge scales with silent_wrongness_cost), batch_key, depends_on/unlocks, terminal status incl.
+skipped(reason)/blocked(oracle).
 
 ### Behavior status (classify BEFORE working — prevents both over-preserving AI sediment and casual rewrites)
 ```
