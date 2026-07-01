@@ -1,0 +1,113 @@
+[
+  {
+    "provider": "claude",
+    "model": "sonnet",
+    "case": "good",
+    "expected": "PASS",
+    "verdict": "PASS",
+    "ok": true,
+    "confidence": 0.92,
+    "reasoning": "Line-by-line comparison confirms the extracted enrollmentShellExpired predicate is byte-for-byte identical in logic to the original inline filter callback, with nowMs correctly threaded as an explicit parameter instead of a closure capture. This is genuine decomplection (policy isolated from traversal, cc 8->5 on the new predicate, sub-threshold on the caller) not mere relocation, and the existing unit test suite pins the exact filtered output across all the branch conditions that matter for the at-risk property.",
+    "wallMs": 14171,
+    "attempts": 1,
+    "costUsd": 0.146004,
+    "tokens": {
+      "input": 17388,
+      "output": 1013,
+      "cacheCreation": 12034,
+      "cacheRead": 21470
+    },
+    "errors": []
+  },
+  {
+    "provider": "claude",
+    "model": "sonnet",
+    "case": "bad-behavior",
+    "expected": "REJECT|REVISE",
+    "verdict": "REJECT",
+    "ok": true,
+    "confidence": 0.95,
+    "reasoning": "The refactor silently changed the expiry boundary condition from `expiresMs <= nowMs` (old, inclusive of exact-now) to `expiresMs < nowMs` (new, exclusive) — a shell expiring exactly at `now` is no longer retired. This directly violates the packet's stated property_at_risk ('at or before now — no more, no fewer') and its own not_allowed rule against operator/boundary changes in a preserve_refactor. The passing typecheck and 16 unit tests are not evidence against this: neither exercises the exact-equality boundary, so the regression is invisible to the supplied evidence.",
+    "wallMs": 15971,
+    "attempts": 1,
+    "costUsd": 0.2571432,
+    "tokens": {
+      "input": 17333,
+      "output": 868,
+      "cacheCreation": 29281,
+      "cacheRead": 54794
+    },
+    "errors": []
+  },
+  {
+    "provider": "claude",
+    "model": "sonnet",
+    "case": "bad-relocation",
+    "expected": "REJECT|REVISE",
+    "verdict": "REJECT",
+    "ok": true,
+    "confidence": 0.9,
+    "reasoning": "The diff is a pure relocation: the predicate body is copied verbatim into a named nested function that still closes over `nowMs` implicitly rather than taking it as an explicit parameter, so it does not deliver the decomplection the packet claims (hidden state -> explicit) and does not reduce the enclosing function's real complexity. This matches the packet's own definition of relocation-without-decomplection, which is explicitly listed in not_allowed.",
+    "wallMs": 14341,
+    "attempts": 1,
+    "costUsd": 0.14235,
+    "tokens": {
+      "input": 17331,
+      "output": 966,
+      "cacheCreation": 11571,
+      "cacheRead": 21470
+    },
+    "errors": []
+  },
+  {
+    "provider": "codex",
+    "model": "gpt-5.5",
+    "case": "good",
+    "expected": "PASS",
+    "verdict": "PASS",
+    "ok": true,
+    "confidence": 0.9,
+    "reasoning": "This is a behavior-preserving extraction: the predicate logic is unchanged line by line, and the captured cutoff is made explicit as `nowMs`. The helper is private, adds no dependency or public shape change, and reduces the caller to traversal plus projection rather than merely hiding a blob with implicit context. The supplied evidence includes typecheck plus a direct mixed-fixture unit test covering the packet's expiry membership property.",
+    "wallMs": 67487,
+    "attempts": 1,
+    "costUsd": null,
+    "tokens": {
+      "total": 25895
+    },
+    "errors": []
+  },
+  {
+    "provider": "codex",
+    "model": "gpt-5.5",
+    "case": "bad-behavior",
+    "expected": "REJECT|REVISE",
+    "verdict": "REJECT",
+    "ok": true,
+    "confidence": 0.99,
+    "reasoning": "The diff changes expiry-set membership at the exact cutoff: previously a parseable TTL equal to now was expired via `expiresMs <= nowMs`, but the new helper returns false via `expiresMs < nowMs`. The work packet is a preserve_refactor and explicitly defines the at-risk property as shells expiring at or before `now`, with behavior-change listed as not_allowed. The provided typecheck and route test evidence do not override the line-by-line semantic change and apparently did not cover this boundary.",
+    "wallMs": 48750,
+    "attempts": 1,
+    "costUsd": null,
+    "tokens": {
+      "total": 25967
+    },
+    "errors": []
+  },
+  {
+    "provider": "codex",
+    "model": "gpt-5.5",
+    "case": "bad-relocation",
+    "expected": "REJECT|REVISE",
+    "verdict": "REJECT",
+    "ok": true,
+    "confidence": 0.93,
+    "reasoning": "The diff preserves the predicate's apparent behavior, but it does not perform the contracted refactor: the cutoff remains hidden via closure capture instead of being made explicit. The inline callback body was moved almost verbatim into a nested function, which is relocation without real decomplection. That violates the packet's not_allowed constraint, so green typecheck and route tests are insufficient to certify it.",
+    "wallMs": 24330,
+    "attempts": 1,
+    "costUsd": null,
+    "tokens": {
+      "total": 15332
+    },
+    "errors": []
+  }
+]
