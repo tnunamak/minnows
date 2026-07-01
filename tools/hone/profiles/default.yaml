@@ -1,0 +1,44 @@
+# hone repo profile — GENERIC JS/TS defaults.
+# Per-repo overrides live at <repo>/quality/hone.yaml and deep-merge over this file
+# (maps merge key-by-key, arrays and scalars replace). Format docs: tools/hone/README.md.
+# See profiles/example-pdpp.yaml for a fully specified real-world profile.
+version: 1
+
+commands:
+  biome: npx biome          # how to invoke biome inside the target repo (cwd = --repo)
+  test: null                # oracle commands — used by `work` (wave 2), recorded now
+  typecheck: null
+
+analysis:
+  owned_dirs: []            # dirs to analyze, relative to --repo; [] = auto-detect top-level dirs containing JS/TS
+  scan_depth: 2             # find -maxdepth for the churn-ranking file walk (per owned dir)
+  exclude_names: ["*.test.*", "*.spec.*", "*.d.ts", "*.min.js"]
+  cog_threshold: 5          # biome cognitive-complexity gate; only fns with cc > this are "flagged"
+  seam_cc: 12               # cc at/above which a named fn's split is concept work (T1-seam), not a tidy (T0)
+  churn_window: 6 months ago
+  recent_window: 14 days ago
+
+markers:
+  # literal, case-insensitive substrings scanned over a flagged function's body.
+  # security markers force the strongest proof class (T2-property).
+  security: [oauth, bearer, jwt, csrf, password, secret, credential, api_key, apiKey, private_key,
+    permission, authorize, authenticate, "signToken", "verifyToken", "session_token",
+    "CREATE TABLE", "ALTER TABLE", "DROP TABLE", "CREATE INDEX"]
+  # storage markers are informational (raise silent-wrongness cost).
+  storage: ["INSERT INTO", "UPDATE ", "DELETE FROM", "db.prepare", "db.exec", "pool.query",
+    "client.query", "transaction(", BEGIN, COMMIT, ROLLBACK, sqlite, postgres]
+  # public-contract nouns — things a CALLER's contract depends on. Keep these SPECIFIC:
+  # generic 'request'/'response' fire on every handler and drown the signal.
+  public_contract: [openapi, swagger, "error_code", errorCode, "problem+json", pagination,
+    nextCursor, "next_cursor", "api_version", apiVersion, webhook]
+  # path regex: files that ARE essential security complexity — ranked, flagged, never auto-targeted.
+  nogo_path_pattern: auth|grant|consent|token|bearer|session|csrf|crypto|billing|payment
+
+classification:
+  behavior_status_default: likely_intended
+  public_surface_globs: []      # repo-relative globs whose files classify behavior_status: contract
+  generated_globs: ["**/*.generated.*", "**/generated/**"]   # ownership GENERATED — never packetized
+  freeze_globs: []              # ownership FREEZE — never packetized
+
+policy:
+  autonomy: autonomous_branch   # autonomous_branch | autonomous_preprod (SPEC §owner interface)

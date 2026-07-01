@@ -1,0 +1,39 @@
+# hone repo profile — EXAMPLE: the PDPP reference-implementation.
+# This is the config that made the original PDPP code-quality instruments repo-independent:
+# every hardcoded PDPP-ism (owned dirs, grant/OAuth security markers, MCP/pagination public
+# nouns, no-go paths) became data here. Copy to <repo>/quality/hone.yaml and adjust.
+version: 1
+
+commands:
+  biome: npx biome
+  test: pnpm test
+  typecheck: pnpm typecheck
+
+analysis:
+  owned_dirs: [server, runtime, lib]
+  scan_depth: 2
+  cog_threshold: 5
+  seam_cc: 12
+  churn_window: 6 months ago
+
+markers:
+  security: ["grant.streams", grant_stream_not_allowed, streamGrant, requireGrant, field_not_granted,
+    "access_mode", bearer, introspect, oauth, "redirect_uri", forbiddenIp, isForbiddenIp, issueToken,
+    signToken, consent, "scope_enforce", "ai_training", "CREATE TABLE", "ALTER TABLE", "DROP TABLE",
+    "CREATE INDEX", "authorization_details", pkce, "code_verifier"]
+  storage: ["INSERT INTO", "UPDATE ", "DELETE FROM", "db.prepare", "db.exec", "pool.query",
+    "client.query", "transaction(", BEGIN, COMMIT, ROLLBACK, sqlite, postgres, better-sqlite3]
+  public_contract: [openapi, "mcp_", mcpTool, toolResult, structuredContent, pagination, paginate,
+    nextCursor, "next_cursor", projection, "error_code", errorCode, "problem+json", problemJson,
+    "grant_model", grantModel, "content_ladder", contentLadder, "authorization_details",
+    "resource_indicator", "scope_enforce", well-known, openid-configuration]
+  nogo_path_pattern: auth|grant|consent|token|bearer|owner-session|csrf|scoping|spine-security|manifest-resolution
+
+classification:
+  behavior_status_default: likely_intended
+  public_surface_globs: ["server/routes/**", "server/openapi*", "server/mcp*", "lib/errors*"]
+  generated_globs: []
+  freeze_globs: []
+
+policy:
+  autonomy: autonomous_branch

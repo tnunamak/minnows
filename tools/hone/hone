@@ -1,0 +1,60 @@
+#!/usr/bin/env node
+// hone — the repo-quality engine CLI (spec: tools/hone/SPEC.md, FROZEN 2026-07-01).
+// v1 wave 1 implements `inventory` and `plan`; `work`/`report`/`run` land in wave 2.
+// ESM without extension: requires Node >= 22.7 (module-syntax detection). Node 25 tested.
+import { parseArgs } from './lib/util.mjs';
+
+const USAGE = `hone — repo-quality engine (v1)
+
+usage: hone <command> [--repo PATH] [options]
+
+commands:
+  inventory   run collectors → <repo>/quality/inventory/*.json
+              [--repo .] [--cog N] [--window '6 months ago']
+  plan        inventory → ranked candidate packets → <repo>/quality/packets/*.yaml
+              [--repo .] [--top 20]
+  work <id>   execute one packet (maker ≠ judge)         — not implemented in v1 wave 1
+  report      compile claim-ledger report                — not implemented in v1 wave 1
+  run         plan→work loop, conflict-aware lanes       — not implemented in v1 wave 1
+
+Per-repo config: <repo>/quality/hone.yaml (falls back to generic JS/TS defaults).
+Docs: tools/hone/README.md · spec: tools/hone/SPEC.md
+`;
+
+const [cmd, ...rest] = process.argv.slice(2);
+const flags = parseArgs(rest);
+
+try {
+  switch (cmd) {
+    case 'inventory': {
+      const { runInventory } = await import('./lib/inventory.mjs');
+      await runInventory(flags);
+      break;
+    }
+    case 'plan': {
+      const { runPlan } = await import('./lib/plan.mjs');
+      await runPlan(flags);
+      break;
+    }
+    case 'work':
+    case 'report':
+    case 'run':
+      console.error(`hone ${cmd}: not implemented in v1 wave 1`);
+      process.exit(1);
+      break;
+    case 'help':
+    case '--help':
+    case undefined:
+      process.stdout.write(USAGE);
+      process.exit(cmd ? 0 : 2);
+      break;
+    default:
+      console.error(`hone: unknown command '${cmd}'\n`);
+      process.stdout.write(USAGE);
+      process.exit(2);
+  }
+} catch (e) {
+  console.error(`hone ${cmd}: FATAL: ${e.message}`);
+  if (process.env.HONE_DEBUG) console.error(e.stack);
+  process.exit(1);
+}
