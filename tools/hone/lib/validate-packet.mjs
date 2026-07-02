@@ -5,6 +5,17 @@
 // Strict by design: unknown keys reject, enums reject, missing execution_gate rejects
 // (fail-closed — SPEC acceptance test #4: malformed packets crash loudly, they never land
 // half-valid in the packet stream).
+//
+// Engine-iteration-3 lints (run-1 defect classes):
+// - generate_evidence guard lint (structural, always on): an evidence command that
+//   references a touchset file with no existence guard executes a file the packet has
+//   not created yet — GREEN BASELINE goes red and the packet blocks for $0.
+// - touchset path lint (best-effort, only with ctx.repoRoot — validation often runs
+//   where --repo is unknown): duplicated repo-dir prefixes and paths resolving nowhere
+//   are caught BEFORE they corrupt touchset enforcement on a land.
+
+import { existsSync } from 'node:fs';
+import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 
 const ENUMS = {
   behavior_status: ['contract', 'likely_intended', 'provisional', 'accidental', 'unknown'],
@@ -44,8 +55,28 @@ const isStrOrNull = (v) => v === null || isStr(v);
 const isInt = (v) => Number.isInteger(v);
 const isMap = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
-/** @returns string[] — empty when valid. */
-export function validatePacket(p) {
+// an existence guard / explicit fallback that makes a rung green while the file the
+// packet will CREATE is still absent: `[ -f`/`[[ -f`/`test -f` (or -e), or a `||` fallback.
+const EXISTENCE_GUARD_RE = /\[{1,2}\s+-[fe]\s|\btest\s+-[fe]\s|\|\|/;
+
+/** nearest ancestor of `start` containing .git, or null (no git spawn — validator stays cheap). */
+function findGitRoot(start) {
+  let dir = start;
+  for (;;) {
+    if (existsSync(join(dir, '.git'))) return dir;
+    const up = dirname(dir);
+    if (up === dir) return null;
+    dir = up;
+  }
+}
+
+/**
+ * @param p the packet
+ * @param ctx optional context: {repoRoot} enables the touchset path lint (plan/work pass
+ *   it; bare validation stays structural — best-effort by design).
+ * @returns string[] — empty when valid.
+ */
+export function validatePacket(p, ctx = {}) {
   const errs = [];
   const err = (m) => errs.push(m);
   if (!isMap(p)) return ['packet is not a map'];
@@ -171,6 +202,53 @@ export function validatePacket(p) {
   if (!isNonEmptyStr(p.batch_key)) err('batch_key: non-empty string required');
   if (!Array.isArray(p.touchset) || !p.touchset.length || !p.touchset.every(isNonEmptyStr)) err('touchset: non-empty [string] required');
 
+  // ---- generate_evidence guard lint (run-1 $0-block class) ----
+  // A generate_evidence packet's touchset IS the oracle file(s) it will create. A rung
+  // command that references one of them WITHOUT an existence guard executes a file that
+  // does not exist at GREEN BASELINE → red baseline → blocked for $0 before any work
+  // (run 1 blocked t1b-streaming-input-telemetry-evidence-0012,
+  // rt-verdict-stream-rollups-oracle-0004 and df-evidence-package-schema-merge-oracle-0004
+  // exactly this way). The hm- packets show the correct pattern:
+  //   sh -c 'if [ -f <new-file> ]; then <cmd with new file>; else <fallback>; fi'
+  if (p.action === 'generate_evidence' && Array.isArray(p.evidence_required) && Array.isArray(p.touchset)) {
+    for (const [i, e] of p.evidence_required.entries()) {
+      if (!isMap(e) || !isNonEmptyStr(e.command) || EXISTENCE_GUARD_RE.test(e.command)) continue;
+      const hits = p.touchset.filter((t) => isNonEmptyStr(t) &&
+        (e.command.includes(t) || e.command.includes(basename(t))));
+      if (hits.length) {
+        err(`evidence_required[${i}] (rung '${e.rung}'): command references touchset file(s) [${hits.join(', ')}] with no existence guard — generate_evidence packets CREATE their touchset files, so this rung executes a not-yet-existing file at GREEN BASELINE and blocks for $0 (the run-1 red-baseline class). Guard it like the hm- packets: sh -c 'if [ -f <file> ]; then <command>; else <fallback without the new file>; fi'`);
+      }
+    }
+  }
+
+  // ---- touchset path lint (best-effort; only when ctx.repoRoot is known) ----
+  // Mirrors work.mjs normalizeTouchEntry: an entry existing under --repo or the git root
+  // is fine; a NOT-YET-EXISTING entry that starts with the repo dir's basename is the
+  // duplicated-prefix corruption (rt-verdict-stream-rollups-oracle-0004: touchset
+  // 'reference-implementation/test/…' while --repo already ends in reference-implementation
+  // → work normalizes it to reference-implementation/reference-implementation/… →
+  // guaranteed false touchset violation reverting honest maker work).
+  if (isNonEmptyStr(ctx?.repoRoot) && Array.isArray(p.touchset)) {
+    const repoRoot = resolve(ctx.repoRoot);
+    const repoBase = basename(repoRoot);
+    const gitRoot = findGitRoot(repoRoot);
+    for (const [i, t] of p.touchset.entries()) {
+      if (!isNonEmptyStr(t)) continue;
+      if (isAbsolute(t)) { err(`touchset[${i}]: '${t}' is absolute — entries must be --repo-relative (or git-root-relative)`); continue; }
+      if (existsSync(join(repoRoot, t))) continue; // --repo-relative, exists
+      if (gitRoot && gitRoot !== repoRoot && existsSync(join(gitRoot, t))) continue; // git-root-relative, exists
+      // exists nowhere: either a file the packet will create (fine) or a corrupted path
+      if (t.startsWith(repoBase + '/')) {
+        err(`touchset[${i}]: '${t}' carries a duplicated repo-dir prefix ('${repoBase}/') and exists at neither --repo nor the git root — hone work would normalize it to '${repoBase}/${t}' and revert honest maker work as a false touchset violation. Corrected path: '${t.slice(repoBase.length + 1)}'`);
+        continue;
+      }
+      const parent = dirname(t);
+      if (parent !== '.' && !existsSync(join(repoRoot, parent)) && !(gitRoot && existsSync(join(gitRoot, parent)))) {
+        err(`touchset[${i}]: '${t}' resolves under neither --repo (${repoRoot}) nor the git root${gitRoot ? ` (${gitRoot})` : ''} — not even its parent directory exists; fix the path before this packet is worked`);
+      }
+    }
+  }
+
   if (!isMap(p.estimates)) err('estimates: map {tokens, evidence_cost} required');
   else {
     for (const k of Object.keys(p.estimates)) if (!['tokens', 'evidence_cost'].includes(k)) err(`estimates: unknown key ${k}`);
@@ -200,8 +278,8 @@ export function validatePacket(p) {
 }
 
 /** crash loudly on a malformed packet (SPEC acceptance test #4). */
-export function assertValidPacket(p, context = '') {
-  const errs = validatePacket(p);
+export function assertValidPacket(p, context = '', ctx = {}) {
+  const errs = validatePacket(p, ctx);
   if (errs.length) {
     throw new Error(`MALFORMED PACKET${context ? ` (${context})` : ''} — refusing to emit:\n  - ${errs.join('\n  - ')}`);
   }
