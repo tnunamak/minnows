@@ -58,6 +58,7 @@ to an installed package until an *external* consumer needs versioning — pure c
 | tool | CLI | skill | what it does |
 |------|-----|-------|--------------|
 | **convo** | ✓ | ✓ | Read past agent conversation history across Claude Code / Codex / Gemini. Signature view: each user prompt + the agent's final reply, tool noise stripped. Cross-harness search. |
+| **hone** | ✓ | — (not yet) | Repo-quality engine: turns sparse owner intent into evidence-backed repo improvements. Builds durable inventory in the target repo, emits compact ranked candidate packets (classify → OWN/RENT/DELETE/FREEZE before decomposing), executes them with structural maker≠judge and cheapest-sufficient evidence, and compiles reports from a claim ledger — no self-grading, negative results persisted as first-class knowledge. Refactoring is one workflow among delete, document, rent, freeze, and evidence-generation. Design frozen in `tools/hone/SPEC.md`. |
 | **uncompact** | ✓ | ✓ | Recover a Claude Code session lost to context compaction — writes a new resumable session truncated to before a chosen compaction boundary. *Claude-only by nature, not omission:* Codex rollouts are append-only (no on-disk history loss) and Gemini stores a full `messages[]` array; both ship native resume/fork. Claude is the only harness that replaces live history with a lossy summary on auto-compact, so it's the only one with something to recover. |
 
 ## Install

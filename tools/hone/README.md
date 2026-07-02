@@ -111,6 +111,11 @@ enum scores don't saturate and degenerate the plan to only-cheap tiers), and emi
 - **behavior_status** defaults from the profile; `public_surface_globs` matches become `contract`.
 - **confidence is honest:** `why_this_matters` carries the numeric confidence and the
   `metrics nominate; they never decide` caveat until wave-2 semantic validation.
+- **priority is persisted:** each packet carries an optional `priority` block
+  (`{score, computed, inputs: {mass, churn}}`) — the plan-time ranking PRIOR, recalibrated by
+  cost-ledger actuals over time and never a quality claim. `run` prefers `priority.score` for
+  ordering and falls back to a coarse enum-derived rank when the block is absent, so
+  hand-authored packets stay executable without it.
 - Every packet is schema-validated (`lib/validate-packet.mjs`, strict — unknown keys reject,
   missing execution_gate rejects) and YAML round-trip-verified before it is written; a
   malformed packet crashes the plan. Terminal packets (landed/reverted/skipped/blocked) are
