@@ -10,10 +10,36 @@
 //
 // `hone work` (wave 2) consumes this; until then it is runnable standalone:
 //   node collectors/scope-fn.mjs --repo <path> --target 'server/records.js::queryRecords' [--cog 5]
+//   node collectors/scope-fn.mjs --repo <path> --file 'runtime/scheduler.ts' [--cog 5]
 import { existsSync, readFileSync, writeFileSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { markerHits } from '../lib/util.mjs';
+
+/** per-file biome run, maxAllowedComplexity=1 so EVERY function reports its real score. */
+function biomeFnScores(ctx, absFile) {
+  const cfg = join(tmpdir(), `hone-scope-fn-${process.pid}.json`);
+  writeFileSync(cfg, JSON.stringify({
+    linter: { rules: { complexity: { noExcessiveCognitiveComplexity: { level: 'warn', options: { maxAllowedComplexity: 1 } } } } },
+  }));
+  const biome = ctx.profile.commands?.biome || 'npx biome';
+  const out = ctx.sh(`${biome} lint --config-path=${cfg} --only=complexity/noExcessiveCognitiveComplexity --max-diagnostics=none --reporter=json '${absFile}' 2>/dev/null`);
+  let diags = [];
+  try { diags = JSON.parse(out).diagnostics || []; } catch {}
+  return diags.map((d) => {
+    const m = (d.message || '').match(/complexity of (\d+)/);
+    const line = d.location?.start?.line, col = d.location?.start?.column;
+    return m && line ? { line, col, cc: Number(m[1]) } : null;
+  }).filter(Boolean);
+}
+
+/** map a biome (line,col) name-anchor to the identifier at that exact token. */
+function nameAtTokenIn(src, line, col) {
+  const ln = src.split('\n')[line - 1] || '';
+  const m = ln.slice(Math.max(0, col - 1)).match(/[A-Za-z_$][\w$]*/);
+  return m ? m[0] : null;
+}
 
 /** @returns ground-truth recon JSON for one file::fn in the target repo. */
 export function scopeFn(ctx, ownedDirs, target) {
@@ -23,28 +49,8 @@ export function scopeFn(ctx, ownedDirs, target) {
   const absFile = join(ctx.repoRoot, file);
   if (!existsSync(absFile)) return { error: `file not found: ${file}` };
   const src = readFileSync(absFile, 'utf8');
-
-  // per-file biome run, maxAllowedComplexity=1 so EVERY function reports its real score.
-  const cfg = join(tmpdir(), `hone-scope-fn-${process.pid}.json`);
-  writeFileSync(cfg, JSON.stringify({
-    linter: { rules: { complexity: { noExcessiveCognitiveComplexity: { level: 'warn', options: { maxAllowedComplexity: 1 } } } } },
-  }));
-  const biome = ctx.profile.commands?.biome || 'npx biome';
-  const out = ctx.sh(`${biome} lint --config-path=${cfg} --only=complexity/noExcessiveCognitiveComplexity --max-diagnostics=none --reporter=json '${absFile}' 2>/dev/null`);
-  let diags = [];
-  try { diags = JSON.parse(out).diagnostics || []; } catch {}
-  const flagged = diags.map((d) => {
-    const m = (d.message || '').match(/complexity of (\d+)/);
-    const line = d.location?.start?.line, col = d.location?.start?.column;
-    return m && line ? { line, col, cc: Number(m[1]) } : null;
-  }).filter(Boolean);
-
-  // map a biome (line,col) name-anchor to the identifier at that exact token.
-  const nameAtToken = (line, col) => {
-    const ln = src.split('\n')[line - 1] || '';
-    const m = ln.slice(Math.max(0, col - 1)).match(/[A-Za-z_$][\w$]*/);
-    return m ? m[0] : null;
-  };
+  const flagged = biomeFnScores(ctx, absFile);
+  const nameAtToken = (line, col) => nameAtTokenIn(src, line, col);
 
   let hit = flagged.find((f) => nameAtToken(f.line, f.col) === fnName);
   if (!hit) {
@@ -96,6 +102,38 @@ export function scopeFn(ctx, ownedDirs, target) {
   };
 }
 
+/**
+ * WHOLE-FILE recon: every function's cognitive complexity in one file, plus the file's
+ * Σ excess-cc over the cog threshold. This is the T0 evidence target — the per-function
+ * cc rung on a low-cc function created a metric-gaming gradient toward shallow helper
+ * extraction (the runtime-scheduler-t0-5ee375f5 judge-revert); the whole-file Σ makes
+ * relocation self-defeating: moving complexity into a new helper cannot decrease the sum,
+ * and a new flagged function is detected by name against the baseline.
+ * @returns {file, found, cog_threshold, fn_count, flagged_count, file_excess, flagged[], red_scan}
+ */
+export function scopeFile(ctx, file, cogOverride) {
+  if (!file) throw new Error("need --file 'path/file.ts'");
+  const cog = Number(cogOverride ?? ctx.profile.analysis?.cog_threshold ?? 5);
+  const absFile = join(ctx.repoRoot, file);
+  if (!existsSync(absFile)) return { file, found: false, error: `file not found: ${file}` };
+  const src = readFileSync(absFile, 'utf8');
+  const scores = biomeFnScores(ctx, absFile);
+  const flagged = scores
+    .filter((s) => s.cc > cog)
+    .map((s) => ({ fn: nameAtTokenIn(src, s.line, s.col) || '<anon>', line: s.line, cc: s.cc, excess: s.cc - cog }))
+    .sort((a, b) => a.line - b.line || b.cc - a.cc);
+  return {
+    file,
+    found: true,
+    cog_threshold: cog,
+    fn_count: scores.length,
+    flagged_count: flagged.length,
+    file_excess: flagged.reduce((s, f) => s + f.excess, 0),
+    flagged,
+    red_scan: markerHits(src, ctx.profile.markers?.security || []),
+  };
+}
+
 // standalone CLI (wave-2 `work` will call scopeFn() directly)
 let isMain = false;
 try { isMain = !!process.argv[1] && fileURLToPath(import.meta.url) === realpathSync(process.argv[1]); } catch {}
@@ -105,5 +143,8 @@ if (isMain) {
   const { resolveOwnedDirs } = await import('./biome.mjs');
   const flags = parseArgs(process.argv.slice(2));
   const ctx = buildContext(flags.repo);
-  console.log(JSON.stringify(scopeFn(ctx, resolveOwnedDirs(ctx), flags.target), null, 2));
+  const result = flags.file
+    ? scopeFile(ctx, flags.file, flags.cog)
+    : scopeFn(ctx, resolveOwnedDirs(ctx), flags.target);
+  console.log(JSON.stringify(result, null, 2));
 }
