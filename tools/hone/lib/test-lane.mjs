@@ -209,6 +209,22 @@ export async function laneSelfTest({ verbose = false } = {}) {
     check('main branch refused', r2.exitCode === 2 && /'main'/.test(r2.json.reason), r2.json.reason);
   });
 
+  await scenario('emit refuse: depends_on not landed (shared rule with the run scheduler — wf_67898fff)', async (check) => {
+    const root = fixtureRepo({ packetOverrides: { depends_on: [ID2] }, secondPacket: {} }); // ID2 pending
+    const r = await emit(root);
+    check('unlanded dep refused, names the dep', r.exitCode === 2 && /depends_on not landed/.test(r.json.reason) && r.json.reason.includes(ID2), r.json.reason);
+    check('refusal side-effect-free (packet pending, no lane state)', packetOnDisk(root).status === 'pending' && !existsSync(stateDir(root)));
+    const root2 = fixtureRepo({ packetOverrides: { depends_on: [ID2] }, secondPacket: { status: 'in_progress' } });
+    check('in_progress dep still unmet', (await emit(root2)).exitCode === 2);
+    const root3 = fixtureRepo({ packetOverrides: { depends_on: ['ghost-packet-00000000'] } });
+    const r3 = await emit(root3);
+    check('MISSING dep packet counts as unlanded (fail-closed)', r3.exitCode === 2 && /ghost-packet-00000000/.test(r3.json.reason), r3.json.reason);
+    const root4 = fixtureRepo({ packetOverrides: { depends_on: [ID2] }, secondPacket: { status: 'landed' } });
+    const r4 = await emit(root4);
+    check('landed dep → emit proceeds to green baseline', r4.exitCode === 0 && packetOnDisk(root4).status === 'in_progress', JSON.stringify(r4.json).slice(0, 200));
+    check('dry-run also enforces the dep gate', (await emit(root, { dryRun: true })).exitCode === 2);
+  });
+
   await scenario('emit dry-run: brief emitted, zero side effects', async (check) => {
     const root = fixtureRepo();
     const before = read(root, `quality/packets/${ID}.yaml`);

@@ -35,6 +35,7 @@ import { validatePacket } from './validate-packet.mjs';
 import { loadPacket, writePacket } from './packet-io.mjs';
 import { validateStageEntry } from './ledger.mjs';
 import { loadRouting, resolveRouting, isBatchEligible } from './routing.mjs';
+import { unmetDependencies } from './run.mjs';
 import {
   gitContext, dirtyEntries, flatPaths, normalizeTouchEntry, revertAll,
   checkExpect, runShellCmd, isCompareVsHead, makerBrief, revisionBrief,
@@ -205,6 +206,17 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
   }
   if (packet.judge_provider !== null && packet.judge_provider !== judgeProvider) {
     return refuse(id, 'emit', `packet pins judge_provider='${packet.judge_provider}' but lane judge is '${judgeProvider}' — route this packet through hone work`);
+  }
+  // dependency ordering — the SAME rule the run scheduler applies (run.mjs
+  // unmetDependencies, shared not forked): a packet whose deps have not LANDED can
+  // produce clean-looking work whose promised artifacts (e.g. test pins) don't exist
+  // yet; rungs cannot verify prose claims about absent pins, so only the judge would
+  // catch it (live run wf_67898fff). Emit is the right gate: refuse before any spend.
+  const unmetDeps = unmetDependencies(packet, (d) => {
+    try { return loadPacket(repoRoot, d).packet.status; } catch { return null; }
+  });
+  if (unmetDeps.length) {
+    return refuse(id, 'emit', `depends_on not landed: ${unmetDeps.join(', ')} — dependencies must land before this packet is workable (a missing dep packet counts as unlanded, fail-closed)`);
   }
 
   const g = gitContext(repoRoot);

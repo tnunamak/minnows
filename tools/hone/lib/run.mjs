@@ -59,6 +59,17 @@ export function packetsConflict(a, b) {
   return false;
 }
 
+/**
+ * ids in depends_on that are NOT landed under `statusOf(id)` — a missing packet counts
+ * as unmet (fail-closed). THE dependency-ordering rule, shared verbatim by this
+ * scheduler and the lane emit gate (live run wf_67898fff: an emitted packet with an
+ * unlanded dep produced work whose promised pins did not exist; only the judge caught it).
+ */
+export function unmetDependencies(packet, statusOf) {
+  const deps = Array.isArray(packet.depends_on) ? packet.depends_on : [];
+  return deps.filter((d) => statusOf(d) !== 'landed');
+}
+
 function selectExecutable(packets, warn) {
   const byId = new Map(packets.map((p) => [p.candidate_id, p]));
   const executable = [];
@@ -68,8 +79,7 @@ function selectExecutable(packets, warn) {
       warn(`not executable: ${p.candidate_id} — execution_gate=${JSON.stringify(p.execution_gate ?? null)} (run refuses owner_ratify and ungated packets, fail-closed)`);
       continue;
     }
-    const deps = Array.isArray(p.depends_on) ? p.depends_on : [];
-    const unmet = deps.filter((d) => byId.get(d)?.status !== 'landed');
+    const unmet = unmetDependencies(p, (d) => byId.get(d)?.status);
     if (unmet.length) {
       warn(`not executable: ${p.candidate_id} — depends_on not landed: ${unmet.join(', ')}`);
       continue;

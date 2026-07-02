@@ -57,12 +57,28 @@ Agent claims are NEVER trusted. Concretely:
   `quality/.lane/<id>/judge-context.json` ({packet_yaml, evidence, diff}) built by the same
   `buildJudgeEvidence` budget machinery as `hone work`. No agent relays the record of
   judgment.
-- **The dumb pipe**: Workflow scripts cannot import/require, so engine commands run through
-  a minimal haiku agent that executes one command and echoes its JSON stdout verbatim
-  (prior art: refactor-loop.js's scope-fn preflight pipe). A garbled relay is detected by
-  JSON-parse failure and closes the lane via `land --abort` (honest `skipped(lane-abort)`),
-  or at worst strands an `in_progress` packet that `hone reset` reopens. If the harness
-  exposes a native shell primitive later, the pipe collapses to it with no design change.
+- **The dumb pipe — and the <1KB transport rule (learned live)**: Workflow scripts cannot
+  import/require, so engine commands run through a minimal haiku agent that executes one
+  command and echoes its JSON stdout verbatim (prior art: refactor-loop.js's scope-fn
+  preflight pipe). A garbled relay is detected by JSON-parse failure and closes the lane
+  via `land --abort` (honest `skipped(lane-abort)`), or at worst strands an `in_progress`
+  packet that `hone reset` reopens. **Run wf_cdc171e4 proved multi-KB verbatim relay
+  through a model is unreliable** (haiku re-typed a ~20KB emit JSON and silently dropped
+  `brief_path`; the driver fail-closed as designed — wrong transport, not wrong engine):
+  engine stdout consumed by the driver MUST stay under ~1KB, so every driver-facing lane
+  command pipes through `workflows/project-lane-json.mjs`, which projects output onto the
+  exact field contract the driver reads; large artifacts (briefs, revision briefs, judge
+  contexts, receipts) stay on disk where maker/judge agents read them directly. Any NEW
+  lane subcommand output the driver must see extends the projector's field contract — an
+  unprojected field never reaches the driver. If the harness exposes a native shell
+  primitive later, the pipe AND the size constraint collapse away with no design change.
+- **Dependency ordering at emit**: `lane emit` refuses when any `depends_on` packet is not
+  `landed` (a missing packet counts as unlanded, fail-closed) — the SAME rule the
+  `hone run` scheduler applies, shared via run.mjs `unmetDependencies`, not forked.
+  Learned live (wf_67898fff): an emitted packet with an unlanded evidence-dependency
+  produced clean maker work whose promised test pins did not exist; rungs cannot verify
+  prose claims about absent pins, and only the judge caught it. Defense-in-depth held;
+  the cheap gate is at emit, before any spend.
 
 ## Books identical — with one honest identity note
 
@@ -82,6 +98,15 @@ non-negotiable #1's provider form, with compensating controls:
 - packets that PIN a provider (e.g. `judge_provider: codex`) are REFUSED by `lane emit`
   and route through `hone work` unchanged;
 - cross-provider retries stay available (below).
+
+**Single-lineage limitation, stated as policy**: the in-harness lane can only host
+Anthropic-family agents, so a routing class whose `judge_constraint` requires
+`different_lineage` — today `hard-ambiguous` (and `async-order-oracle`'s GPT-5.5-led
+ladder) — CANNOT fully satisfy its judge constraint in-lane. Policy: those classes ride
+`hone work` with a codex judge (the driver already skips no-claude-tier ladders as
+`routed-to-subprocess`); if the owner deliberately runs one in-lane anyway, that is an
+OWNER OVERRIDE and must be recorded in the books (a claim noting the waived lineage
+constraint) — never a silent default.
 
 ## What stays subprocess
 
@@ -108,11 +133,14 @@ per stage is L4's measurement), `quota_pts` (the owner's real currency, honest-n
 report compiler tolerates both. Ledger semantics preserved: engine-only terminals record a
 KNOWN 0; provider-ran-but-unmetered records honest nulls, never fabricated numbers.
 
-Known limitation, stated plainly: the Workflow runtime does not expose per-agent token
-usage to the script, so v1 pilot entries carry `tokens_* = null` with model identities and
-stage labels. The orchestrator can post-annotate real quota deltas from harness telemetry
-into the run report (NOT into cost.jsonl — no invented numbers in the ledger). If/when
-`agent()` returns usage metadata, the script passes it through with zero CLI changes.
+Known limitation, stated plainly — OPEN INSTRUMENTATION ITEM: the Workflow runtime does
+not expose per-agent token usage to the script, so lane entries carry
+`cost_usd = null` and `tokens_* = null` (honest nulls) with model identities and stage
+labels. Current procedure: per-run post-annotation from the workflow journal — the
+orchestrator reads the run's journal/telemetry after the lane completes and records real
+quota deltas in the run report next to the baseline memo (NOT into cost.jsonl — no
+invented numbers in the ledger). If/when `agent()` returns usage metadata, the script
+passes it through with zero CLI changes and the item closes.
 
 ## Model selection (L1): registry + policy + one deterministic chooser
 
