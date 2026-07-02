@@ -48,7 +48,7 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve, dirname } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { parseYaml, stringifyYaml } from './yaml.mjs';
 import { validatePacket, assertValidPacket } from './validate-packet.mjs';
 import { deepEqual, djb2, slug } from './util.mjs';
@@ -434,7 +434,33 @@ export function buildJudgeEvidence(receiptLines, receiptSlices, maxBytes = JUDGE
 
 // ---------------------------------------------------------------- prompts
 
+/**
+ * bounded PRIOR-ATTEMPT section (fix 4, engine-iteration-3): a reopened packet
+ * (non-empty `resets` + a preserved prior outcome — reset.mjs keeps the outcome block
+ * until the next terminal write) surfaces the judge's exact demands to the maker
+ * instead of leaving them buried in the packet YAML. Returns null when there is
+ * nothing to thread. Hard-bounded ~2KB.
+ */
+function priorAttemptSection(packet) {
+  if (!Array.isArray(packet.resets) || !packet.resets.length) return null;
+  const o = packet.outcome ?? {};
+  const fields = [
+    ['judge_verdict', o.judge_verdict],
+    ['lesson', o.lesson],
+    ['skip_reason', o.skip_reason],
+    ['blocked_on', o.blocked_on],
+  ].filter(([, v]) => typeof v === 'string' && v.trim());
+  if (!fields.length) return null;
+  const last = packet.resets[packet.resets.length - 1];
+  return headClip([
+    "== PRIOR ATTEMPT — the judge's exact demands ==",
+    `This packet was attempted before and deliberately reopened (reset #${packet.resets.length}, from ${last.from_status}: ${last.reason}). The prior outcome below is the exact bar the previous attempt failed to clear — address it directly; do not repeat the failed approach.`,
+    ...fields.map(([k, v]) => `- ${k}: ${v}`),
+  ].join('\n'), 2048);
+}
+
 function makerBrief(rawPacketYaml, packet) {
+  const prior = priorAttemptSection(packet);
   return [
     'You are the MAKER in a repo-quality engine, executing exactly ONE work packet in this repository (your current working directory). The packet below is the entire contract.',
     'Binding rules:',
@@ -446,6 +472,7 @@ function makerBrief(rawPacketYaml, packet) {
     '- When done, reply with a short summary: which functions changed, what transform you applied, and why behavior is preserved.',
     '- If you conclude the code is ALREADY CORRECT and the packet premise is a non-defect, make NO edits and end your reply with one line exactly of the form: HONE-VERDICT: validated-non-defect — <one-line rationale>',
     '- If you CANNOT act on plan.instruction as written (target missing, contradiction with the actual code, instruction not executable), make NO edits and end your reply with one line exactly of the form: HONE-VERDICT: unactionable — <one-line reason>',
+    ...(prior ? [prior] : []),
     '== WORK PACKET (YAML) ==',
     rawPacketYaml,
   ].join('\n');
@@ -479,9 +506,89 @@ function revisionBrief(base, failureNote, diffText) {
   ].join('\n\n');
 }
 
+// ---------------------------------------------------------------- packet lock
+// engine-iteration-3 fix (batch-2a race): two `hone work` processes ran the SAME packet
+// concurrently — land-time git atomicity defused it, but only by luck and $0.56 of waste.
+// One O_EXCL lockfile per packet closes the window between "read status pending" and
+// "write status in_progress". A live holder (pid alive) refuses; a stale lock (pid dead,
+// e.g. the earlier SIGKILLed-work incident) is broken with a logged note.
+
+function pidAlive(pid) {
+  try { process.kill(pid, 0); return true; }
+  catch (e) { return e.code === 'EPERM'; } // EPERM = exists but not ours = alive
+}
+
+function acquireWorkLock(repoRoot, id, log) {
+  // no quality/packets → nothing to race on; loadPacket will refuse. Skipping avoids
+  // creating directories inside an arbitrary --repo path on a refusal.
+  if (!existsSync(join(repoRoot, 'quality', 'packets'))) return { ok: true, release: () => {} };
+  const dir = join(repoRoot, 'quality', '.locks');
+  const path = join(dir, `${id}.lock`);
+  mkdirSync(dir, { recursive: true });
+  const take = () => writeFileSync(path, JSON.stringify({ pid: process.pid, started: new Date().toISOString() }) + '\n', { flag: 'wx' });
+  const release = () => {
+    try { if (JSON.parse(readFileSync(path, 'utf8')).pid === process.pid) rmSync(path, { force: true }); }
+    catch { /* already gone or foreign — never remove another holder's lock */ }
+  };
+  try { take(); return { ok: true, release, path }; }
+  catch (e) {
+    if (e.code !== 'EEXIST') throw e;
+    let holder = null;
+    try { holder = JSON.parse(readFileSync(path, 'utf8')); } catch { /* unparseable = stale */ }
+    if (Number.isInteger(holder?.pid) && pidAlive(holder.pid)) {
+      return { ok: false, reason: `packet is LOCKED by a live hone work process (pid ${holder.pid}, since ${holder.started ?? 'unknown'}) — concurrent execution of the same packet is refused (lock: ${path})` };
+    }
+    log?.(`hone work — ${id}: breaking STALE lock (pid ${holder?.pid ?? 'unparseable'} not alive; lock: ${path})`);
+    rmSync(path, { force: true });
+    try { take(); return { ok: true, release, path, brokeStale: true }; }
+    catch { return { ok: false, reason: `lost the race re-taking a broken stale lock: ${path}` }; }
+  }
+}
+
 // ---------------------------------------------------------------- the executor
 
 export async function executeWork(opts, deps) {
+  const { id, repoRoot, makerName, judgeName } = opts;
+  const refuse = (reason) => ({
+    outcome: 'refused', exitCode: 2,
+    summary: `hone work — ${id}: REFUSED (no side effects)\n  ${reason}`,
+  });
+  // pure gates first (no lock, no filesystem writes)
+  if (!PROVIDERS.includes(makerName)) return refuse(`unknown maker provider '${makerName}' (known: ${PROVIDERS.join(', ')})`);
+  if (!PROVIDERS.includes(judgeName)) return refuse(`unknown judge provider '${judgeName}' (known: ${PROVIDERS.join(', ')})`);
+  if (makerName === judgeName) return refuse(`maker == judge ('${makerName}') — non-negotiable #1: the producer of a change cannot certify it`);
+
+  let lock;
+  try { lock = acquireWorkLock(repoRoot, id, deps.log); }
+  catch (e) { return refuse(`cannot acquire packet lock: ${e.message}`); }
+  if (!lock.ok) return refuse(lock.reason);
+
+  // engine-iteration-3 fix (killed-work incident): a SIGTERM/SIGINT mid-run must not
+  // strand maker residue + an in_progress packet. `signal.arm` is installed by the
+  // attempt once revert/terminalize machinery exists; before that there is nothing to
+  // clean (refusals are side-effect-free), so teardown is just lock release + exit.
+  const signal = { arm: null };
+  const onSignal = (sig) => {
+    try { deps.log(`hone work — ${id}: caught ${sig} — best-effort revert + blocked + ledger, then exit`); } catch { /* ignore */ }
+    try { signal.arm?.(sig); }
+    catch (e) { try { deps.log(`signal teardown failed: ${e.message} — manual cleanup may be required`); } catch { /* ignore */ } }
+    lock.release();
+    process.exit(1);
+  };
+  const onTerm = () => onSignal('SIGTERM');
+  const onInt = () => onSignal('SIGINT');
+  process.on('SIGTERM', onTerm);
+  process.on('SIGINT', onInt);
+  try {
+    return await executeWorkAttempt(opts, deps, signal);
+  } finally {
+    process.off('SIGTERM', onTerm);
+    process.off('SIGINT', onInt);
+    lock.release();
+  }
+}
+
+async function executeWorkAttempt(opts, deps, signal) {
   const { id, repoRoot, makerName, judgeName, dryRun } = opts;
   const startedAt = Date.now();
   const log = deps.log;
@@ -491,16 +598,12 @@ export async function executeWork(opts, deps) {
   });
 
   // ---- 1. load + gate (fail-closed; refusals have NO side effects) ----
-  if (!PROVIDERS.includes(makerName)) return refuse(`unknown maker provider '${makerName}' (known: ${PROVIDERS.join(', ')})`);
-  if (!PROVIDERS.includes(judgeName)) return refuse(`unknown judge provider '${judgeName}' (known: ${PROVIDERS.join(', ')})`);
-  if (makerName === judgeName) return refuse(`maker == judge ('${makerName}') — non-negotiable #1: the producer of a change cannot certify it`);
-
   let loaded;
   try { loaded = loadPacket(repoRoot, id); }
   catch (e) { return refuse(e.message); }
   const { packet, path: packetPath, rawText } = loaded;
 
-  const schemaErrs = validatePacket(packet);
+  const schemaErrs = validatePacket(packet, { repoRoot }); // repoRoot enables the touchset path lint
   if (schemaErrs.length) return refuse(`malformed packet (schema v1.1):\n  - ${schemaErrs.join('\n  - ')}`);
   if (packet.execution_gate !== 'autonomous') {
     return refuse(`execution_gate is '${packet.execution_gate}' — work executes ONLY autonomous packets (owner_ratify goes to the owner, fail-closed)`);
@@ -641,6 +744,22 @@ export async function executeWork(opts, deps) {
         `  cost:   job-${id}-${attempt} → ${costPath(repoRoot)}`,
       ].join('\n'),
     };
+  };
+
+  // arm the signal teardown NOW — from the in_progress write onward a kill would
+  // otherwise strand maker residue + a stuck in_progress packet (fix 3).
+  signal.arm = (sig) => {
+    try { revertAll(g); } catch { /* best-effort — tree may be mid-write */ }
+    terminalize({
+      status: 'blocked',
+      blockedOn: `terminated by signal (${sig}) — engine teardown, not a packet fact`,
+      lesson: 'work process terminated by signal; changes (if any) reverted best-effort; reset status to pending to retry',
+      claims: [
+        { type: 'uncertainty', statement: `hone work ${id} terminated by ${sig} before a terminal gate decision; working tree reverted best-effort` },
+        { type: 'remaining_work', statement: `packet ${id} blocked on signal termination; reset to pending to retry` },
+      ],
+      headline: `terminated by signal ${sig} — reverted (best-effort) + blocked`,
+    });
   };
 
   // ---- 3. mark in_progress, then GREEN BASELINE ----
@@ -1048,19 +1167,21 @@ function stRepo(id, { branch = 'quality-sweep', packetOverrides = {}, subdir = n
 function stMockDeps(script, log) {
   let m = 0;
   let j = 0;
-  const state = { makerCalls: 0, judgeCalls: 0, judgeArgs: [] };
+  const state = { makerCalls: 0, judgeCalls: 0, judgeArgs: [], makerPrompts: [] };
   return {
     state,
     deps: {
-      // a scripted maker is a function(cwd), the string 'ERROR', or {run, text} when the
-      // scenario needs to control the maker's reply text (HONE-VERDICT parsing).
-      maker: async (name, _prompt, { cwd }) => {
+      // a scripted maker is a function(cwd) (may be async — e.g. the lock test's slow
+      // maker), the string 'ERROR', or {run, text} when the scenario needs to control
+      // the maker's reply text (HONE-VERDICT parsing).
+      maker: async (name, prompt, { cwd }) => {
         state.makerCalls++;
+        state.makerPrompts.push(prompt);
         const entry = script.makers?.[m++];
         if (!entry) throw Object.assign(new Error('mock maker: no scripted call left'), { kind: 'mock-exhausted' });
         if (entry === 'ERROR') throw Object.assign(new Error('scripted maker failure'), { kind: 'timeout' });
         const fn = typeof entry === 'function' ? entry : entry.run;
-        fn(cwd);
+        await fn(cwd);
         const text = typeof entry === 'function' ? 'mock maker done' : (entry.text ?? 'mock maker done');
         return { text, meta: { provider: name, model: 'mock', durationMs: 1, costUsd: 0.01, tokens: { input: 100, output: 50 } } };
       },
@@ -1641,6 +1762,166 @@ async function selfTest({ verbose = false } = {}) {
     const rr4 = executeReset({ id: ID, repoRoot: root, reason: 'second reopen' });
     const p = packetOnDisk(root);
     check('resets appended, order preserved', rr4.outcome === 'reset' && p.resets?.length === 2 && p.resets[0].reason === 'first reopen' && p.resets[1].reason === 'second reopen', JSON.stringify(p.resets));
+  });
+
+  // ---- validator lint: generate_evidence guard + touchset path (engine-iteration-3 fix 1) ----
+  await scenario('validator lint: unguarded generate_evidence touchset reference REJECTED; hm- guard pattern passes', async (check) => {
+    const ge = (evidence, touchset = ['test/new-oracle.test.js']) => stBasePacket(ID, {
+      action: 'generate_evidence', proof_class: 'judgment_first', touchset, evidence_required: evidence,
+    });
+    const unguarded = ge([{ rung: 'direct-test', command: 'node --test test/new-oracle.test.js test/existing.test.js', expect: 'new file green; existing pass' }]);
+    const errs = validatePacket(unguarded);
+    check('unguarded rung rejected', errs.some((e) => /existence guard/.test(e)), errs.join(' | '));
+    check('message cites the run-1 $0-block class + the guard pattern', errs.some((e) => /\$0/.test(e) && /if \[ -f/.test(e)));
+    const guarded = ge([{ rung: 'direct-test', command: "sh -c 'if [ -f test/new-oracle.test.js ]; then node --test test/new-oracle.test.js test/existing.test.js; else node --test test/existing.test.js; fi'", expect: 'baseline (new file absent): existing green; post: new file green' }]);
+    check('hm- guard pattern passes', validatePacket(guarded).length === 0, validatePacket(guarded).join(' | '));
+    const fallback = ge([{ rung: 'direct-test', command: 'node --test test/new-oracle.test.js || echo oracle-not-yet-authored', expect: 'green or explicit fallback' }]);
+    check('explicit || fallback passes', validatePacket(fallback).length === 0, validatePacket(fallback).join(' | '));
+    const unrelated = ge([{ rung: 'typecheck', command: 'npx tsc --noEmit', expect: 'exit 0' }]);
+    check('rung not referencing the touchset unaffected', validatePacket(unrelated).length === 0);
+    const notGE = stBasePacket(ID, { evidence_required: [{ rung: 'direct-test', command: 'node --test src/util.js', expect: 'exit 0' }] });
+    check('non-generate_evidence action not linted', validatePacket(notGE).length === 0, validatePacket(notGE).join(' | '));
+    const crossCoord = ge(
+      [{ rung: 'red-green-seeded-regression', command: 'cd /x && node --test test/connector-verdict-input.test.js', expect: 'red then green' }],
+      ['reference-implementation/test/connector-verdict-input.test.js'],
+    );
+    check('basename match catches prefix-carrying touchset vs repo-relative command (rt-verdict shape)', validatePacket(crossCoord).some((e) => /existence guard/.test(e)));
+  });
+
+  await scenario('validator lint: duplicated repo-dir prefix touchset rejected with corrected path (--repo ctx)', async (check) => {
+    const root = stRepo(ID, { subdir: SUB });
+    const repoRoot = join(root, SUB);
+    const withTouch = (touchset) => stBasePacket(ID, { touchset });
+    const dup = withTouch([`${SUB}/src/new-oracle.test.js`]); // exists nowhere + repo-basename prefix
+    const errs = validatePacket(dup, { repoRoot });
+    check('duplicated prefix rejected', errs.some((e) => /duplicated repo-dir prefix/.test(e)), errs.join(' | '));
+    check('corrected path suggested', errs.some((e) => /Corrected path: 'src\/new-oracle\.test\.js'/.test(e)));
+    check('same packet WITHOUT ctx passes (best-effort: --repo unknown at bare validation)', validatePacket(dup).length === 0, validatePacket(dup).join(' | '));
+    check('repo-relative existing entry passes', validatePacket(withTouch(['src/util.js']), { repoRoot }).length === 0);
+    check('git-root-relative EXISTING entry passes (legit cross-coordinate, packet-8 class)', validatePacket(withTouch([`${SUB}/src/util.js`]), { repoRoot }).length === 0);
+    check('to-be-created file in an existing dir passes', validatePacket(withTouch(['src/new-oracle.test.js']), { repoRoot }).length === 0);
+    check('path resolving nowhere rejected', validatePacket(withTouch(['no-such-dir/deep/file.js']), { repoRoot }).some((e) => /neither --repo/.test(e)));
+    check('absolute entry rejected', validatePacket(withTouch(['/abs/path.js']), { repoRoot }).some((e) => /absolute/.test(e)));
+    // the work gate threads --repo: a corrupted-touchset packet is REFUSED before any side effect
+    const root2 = stRepo(ID, { subdir: SUB, packetOverrides: { touchset: [`${SUB}/src/new-oracle.test.js`] } });
+    const r = await subExec(root2, stMockDeps({}, log).deps);
+    check('work gate refuses the corrupted touchset with the corrected path', r.outcome === 'refused' && /duplicated repo-dir prefix/.test(r.summary), r.summary);
+    check('refusal suggests the corrected path', /Corrected path: 'src\/new-oracle\.test\.js'/.test(r.summary));
+  });
+
+  // ---- per-packet lockfile (engine-iteration-3 fix 2: the batch-2a race) ----
+  await scenario('work lock: second concurrent invocation refused (live lock); first unaffected; lock released', async (check) => {
+    const root = stRepo(ID);
+    let releaseMaker; const gate = new Promise((r) => { releaseMaker = r; });
+    let makerStarted; const started = new Promise((r) => { makerStarted = r; });
+    const slow = async (cwd) => { makerStarted(); await gate; writeFileSync(join(cwd, 'src/util.js'), ST_GOOD); };
+    const { deps } = stMockDeps({ makers: [slow], judges: [{ verdict: 'PASS', reasoning: 'clean', confidence: 0.9 }] }, log);
+    const p1 = exec(root, deps); // in flight — holds the lock
+    await started;
+    check('lock file exists while running', existsSync(join(root, 'quality/.locks', `${ID}.lock`)));
+    const r2 = await exec(root, stMockDeps({}, log).deps);
+    check('second concurrent invocation refused exit 2', r2.outcome === 'refused' && r2.exitCode === 2, r2.summary);
+    check('refusal names the live lock holder pid', /LOCKED by a live/.test(r2.summary) && r2.summary.includes(String(process.pid)), r2.summary);
+    releaseMaker();
+    const r1 = await p1;
+    check('first invocation unaffected — landed', r1.outcome === 'landed', r1.summary);
+    check('lock released after completion', !existsSync(join(root, 'quality/.locks', `${ID}.lock`)));
+  });
+
+  await scenario('work lock: stale lock (dead pid / unparseable) broken with a logged note', async (check) => {
+    const root = stRepo(ID);
+    const lockPath = join(root, 'quality', '.locks', `${ID}.lock`);
+    mkdirSync(dirname(lockPath), { recursive: true });
+    const deadPid = spawnSync(process.execPath, ['-e', '']).pid; // exited → dead
+    writeFileSync(lockPath, JSON.stringify({ pid: deadPid, started: '2026-01-01T00:00:00Z' }) + '\n');
+    const logs = [];
+    const { deps } = stMockDeps({ makers: [stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'clean', confidence: 0.9 }] }, (s) => logs.push(s));
+    const r = await exec(root, deps);
+    check('stale lock broken — run proceeds to landed', r.outcome === 'landed', r.summary);
+    check('break logged with the dead pid', logs.some((l) => /STALE lock/.test(l) && l.includes(String(deadPid))), logs.join(' | '));
+    check('lock released after completion', !existsSync(lockPath));
+    writeFileSync(lockPath, 'not json at all\n'); // unparseable = stale too
+    const logs2 = [];
+    const r2 = await exec(root, stMockDeps({}, (s) => logs2.push(s)).deps);
+    check('unparseable lock broken (then refused on terminal status, lock-independent)', r2.outcome === 'refused' && /terminal/.test(r2.summary), r2.summary);
+    check('unparseable break logged', logs2.some((l) => /STALE lock/.test(l) && /unparseable/.test(l)), logs2.join(' | '));
+    check('lock released after refusal', !existsSync(lockPath));
+  });
+
+  // ---- SIGTERM trap (engine-iteration-3 fix 3: the killed-work incident) ----
+  await scenario('SIGTERM mid-maker → best-effort revert + blocked(terminated by signal) + ledger + lock released', async (check) => {
+    const root = stRepo(ID);
+    const dir = mkdtempSync(join(tmpdir(), 'hone-sigterm-'));
+    const driver = join(dir, 'driver.mjs');
+    writeFileSync(driver, [
+      `import { executeWork } from ${JSON.stringify(import.meta.url)};`,
+      "import { writeFileSync } from 'node:fs';",
+      "import { join } from 'node:path';",
+      'const deps = {',
+      '  maker: async (name, prompt, { cwd }) => {',
+      `    writeFileSync(join(cwd, 'src/util.js'), ${JSON.stringify(ST_GOOD)});`,
+      "    process.stdout.write('MAKER-STARTED\\n');",
+      '    await new Promise((r) => setTimeout(r, 60000)); // slow mode: hold mid-maker',
+      "    return { text: 'mock maker done', meta: { provider: name, model: 'mock', durationMs: 1, costUsd: 0.01, tokens: { input: 1, output: 1 } } };",
+      '  },',
+      "  judge: async (name) => ({ judge: async () => ({ verdict: 'PASS', reasoning: 'n/a', confidence: 1, raw: { attempts: [] } }) }),",
+      '  log: () => {},',
+      '};',
+      `const r = await executeWork({ id: ${JSON.stringify(ID)}, repoRoot: ${JSON.stringify(root)}, makerName: 'claude', judgeName: 'codex', dryRun: false }, deps);`,
+      'process.exit(r.exitCode);',
+    ].join('\n'));
+    const child = spawn(process.execPath, [driver], { stdio: ['ignore', 'pipe', 'pipe'] });
+    let out = '';
+    child.stdout.on('data', (d) => { out += d; });
+    child.stderr.on('data', (d) => { out += d; });
+    await new Promise((resolveP, rejectP) => {
+      const t = setTimeout(() => rejectP(new Error(`maker never started; output: ${out.slice(0, 400)}`)), 20000);
+      child.stdout.on('data', () => { if (out.includes('MAKER-STARTED')) { clearTimeout(t); resolveP(); } });
+      child.once('exit', (code) => { clearTimeout(t); rejectP(new Error(`child exited early (${code}); output: ${out.slice(0, 400)}`)); });
+    });
+    check('maker residue exists pre-signal (the incident precondition)', read(root, 'src/util.js') === ST_GOOD);
+    child.kill('SIGTERM');
+    const exitCode = await new Promise((resolveP, rejectP) => {
+      const t = setTimeout(() => { child.kill('SIGKILL'); rejectP(new Error('child did not exit after SIGTERM')); }, 20000);
+      child.removeAllListeners('exit');
+      child.once('exit', (code) => { clearTimeout(t); resolveP(code); });
+    });
+    const p = packetOnDisk(root);
+    check('child exited 1 (terminal non-landed)', exitCode === 1, `exit=${exitCode}; output: ${out.slice(0, 400)}`);
+    check('maker residue reverted — util.js restored byte-identical', read(root, 'src/util.js') === ST_ORIG);
+    check('whole tree clean', treeClean(root));
+    check('packet blocked, NOT stranded in_progress', p.status === 'blocked', p.status);
+    check('blocked_on names the signal', /terminated by signal \(SIGTERM\)/.test(p.outcome.blocked_on ?? ''), p.outcome.blocked_on ?? '');
+    check('ledger cost line written outcome=blocked', costs(root).length === 1 && costs(root)[0].outcome === 'blocked', JSON.stringify(costs(root)));
+    check('ledger claim names the termination', claims(root).some((c) => /terminated by SIGTERM/.test(c.statement)), JSON.stringify(claims(root).map((c) => c.statement)));
+    check('lock released by the signal path', !existsSync(join(root, 'quality/.locks', `${ID}.lock`)));
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  // ---- retry-context threading (engine-iteration-3 fix 4) ----
+  await scenario('retry context: resets + prior outcome → maker brief carries the PRIOR ATTEMPT section (bounded)', async (check) => {
+    const resets = [{ at: new Date().toISOString(), from_status: 'reverted', reason: 'retry with judge feedback' }];
+    const outcome = {
+      commit: null, skip_reason: null, blocked_on: null,
+      judge_verdict: 'codex REVISE (confidence 0.6): name the guard intent explicitly in a comment',
+      evidence_receipts: [], tokens_actual: 1234, lesson: 'transform failed its own evidence ladder',
+    };
+    const brief = makerBrief('yaml: here', stBasePacket(ID, { resets, outcome }));
+    check('section present', brief.includes("== PRIOR ATTEMPT — the judge's exact demands =="), brief.slice(0, 200));
+    check('judge_verdict threaded', brief.includes('name the guard intent explicitly'));
+    check('lesson threaded', brief.includes('transform failed its own evidence ladder'));
+    check('reset reason + from_status threaded', brief.includes('retry with judge feedback') && brief.includes('from reverted'));
+    check('no resets → no section', !/PRIOR ATTEMPT/.test(makerBrief('yaml: here', stBasePacket(ID))));
+    check('resets but empty prior outcome → no section', !/PRIOR ATTEMPT/.test(makerBrief('yaml: here', stBasePacket(ID, { resets }))));
+    const huge = makerBrief('y', stBasePacket(ID, { resets, outcome: { ...outcome, judge_verdict: 'x'.repeat(5000) } }));
+    const secLen = huge.indexOf('== WORK PACKET') - huge.indexOf('== PRIOR ATTEMPT');
+    check('section hard-bounded ~2KB', secLen > 0 && secLen <= 2048 + 16, `len=${secLen}`);
+    // end-to-end: a reopened packet's REAL maker prompt carries the section
+    const root = stRepo(ID, { packetOverrides: { resets, outcome } });
+    const { deps, state } = stMockDeps({ makers: [stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'clean', confidence: 0.9 }] }, log);
+    const r = await exec(root, deps);
+    check('reopened packet lands', r.outcome === 'landed', r.summary);
+    check('maker PROMPT carries the section end-to-end', (state.makerPrompts[0] ?? '').includes('PRIOR ATTEMPT') && (state.makerPrompts[0] ?? '').includes('name the guard intent explicitly'));
   });
 
   // ---- report ----
