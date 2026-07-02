@@ -52,11 +52,13 @@ const CAPS = {
   'sensor:tier-mass': 7000,
   'sensor:hotspots': 2600,
   'sensor:callback-smells': 3200,
+  'sensor:test-signals': 2800,
   'packet-pool': 6000,
   'cost-actuals': 2600,
   'b-inventory': 5200,
   'ratification-queue': 3000,
   doctrine: 12800,
+  'doctrine:named-targets': 2400,
   'prior-agenda': 3600,
   'selection-ledger': 1600,
   'not-chosen-aging': 1400,
@@ -109,6 +111,45 @@ function digestCallbacks(inv) {
   const rows = [...(cb.callbacks ?? [])].sort((a, b) => b.excess - a.excess).slice(0, 15);
   for (const r of rows) {
     L.push(`  ${r.file} · ${r.parent_fn} · ${r.callback_kind} · cc=${r.cc} · excess=${r.excess} · ${(r.captured_vars || []).length}(${(r.captured_mutable_vars || []).length}) · ${r.recommended_class} · ${String(r.why ?? '').slice(0, 90)}`);
+  }
+  return L.join('\n');
+}
+
+function digestTestSignals(inv) {
+  const ts = readJson(join(inv, 'test-signals.json'));
+  if (!ts) return null;
+  const L = [];
+  L.push(`static skip markers: ${ts.skips?.total ?? 0} across ${(ts.skips?.files ?? []).length} test files (${ts.skips?.pattern ?? 'static count'})`);
+  if ((ts.skips?.files ?? []).length) {
+    L.push('top skip files — file · skips:');
+    for (const f of ts.skips.files.slice(0, 10)) L.push(`  ${f.file} · ${f.skips}`);
+  }
+  const zb = ts.zero_by_name ?? {};
+  L.push(`owned files whose exports have ZERO by-name test references: ${(zb.files ?? []).length}`);
+  L.push('KNOWN-WEAK signal (by_name_only: true): dynamic call patterns make 0-by-name ≠ untested —');
+  L.push('treat as a lead for evidence-generation, never as a coverage verdict.');
+  if ((zb.files ?? []).length) {
+    L.push('top zero-by-name files — file · exports (sample names):');
+    for (const f of zb.files.slice(0, 12)) {
+      L.push(`  ${f.file} · ${f.exports} (${(f.unreferenced ?? []).slice(0, 6).join(', ')})`);
+    }
+  }
+  return L.join('\n');
+}
+
+/** the machine-readable doctrine projection (profile agenda.named_targets) — HUMAN-FIXED anchors. */
+function digestNamedTargets(profileAgenda) {
+  const targets = Array.isArray(profileAgenda?.named_targets) ? profileAgenda.named_targets : [];
+  if (!targets.length) return null;
+  const L = [
+    'HUMAN-FIXED doctrine anchors (machine-readable projection from quality/hone.yaml — the agenda',
+    'call never edits these). Every named target below MUST be either ranked as an item/campaign or',
+    'listed in not_chosen with the reason; demoting or declining one is an ESCALATION → it must also',
+    'appear in human_decisions_needed.',
+  ];
+  for (const t of targets) {
+    L.push(`- ${t.id}${t.description ? `: ${t.description}` : ''}`);
+    if (t.evidence_hint) L.push(`    evidence hint: ${t.evidence_hint}`);
   }
   return L.join('\n');
 }
@@ -209,8 +250,9 @@ function digestNotChosen(repoRoot) {
   ].join('\n');
 }
 
-/** assemble every digest section; blind (challenge) excludes the incumbent's artifacts. */
-export function assembleAgendaContext({ repoRoot, gitRoot, doctrinePath, blind = false }) {
+/** assemble every digest section; blind (challenge) excludes the incumbent's artifacts.
+ * profileAgenda (quality/hone.yaml `agenda:`) is doctrine — human-fixed, so BLIND KEEPS IT. */
+export function assembleAgendaContext({ repoRoot, gitRoot, doctrinePath, profileAgenda = null, blind = false }) {
   const inv = join(repoRoot, 'quality', 'inventory');
   const meta = readJson(join(inv, 'meta.json'));
   const raw = [
@@ -218,11 +260,13 @@ export function assembleAgendaContext({ repoRoot, gitRoot, doctrinePath, blind =
     ['sensor:tier-mass', digestTierMass(inv)],
     ['sensor:hotspots', digestHotspots(inv)],
     ['sensor:callback-smells', digestCallbacks(inv)],
+    ['sensor:test-signals', digestTestSignals(inv)],
     ['packet-pool', digestPackets(repoRoot)],
     ['cost-actuals', digestCost(repoRoot)],
     ['b-inventory', digestBInventory(repoRoot, gitRoot)],
     ['ratification-queue', digestQueue(repoRoot, gitRoot)],
     ['doctrine', doctrinePath && existsSync(doctrinePath) ? readFileSync(doctrinePath, 'utf8') : null],
+    ['doctrine:named-targets', digestNamedTargets(profileAgenda)],
   ];
   if (!blind) {
     raw.push(['prior-agenda', digestPriorAgenda(repoRoot)]);
@@ -246,6 +290,8 @@ const CITATION_GRAMMAR = `Sensor-citation grammar (machine-verified after you an
   <file>:cc[<fn>]=<int>        cognitive complexity of one fn   (tier-mass universe / top functions)
   <file>:excess[<fn>]=<int>    excess-cc of one fn
   <subsystem>:mass=<int> | fns=<int> | files=<int>              (tier-mass by_subsystem)
+  <test-file>:skips=<int>      static skip markers in one test file          (test-signals)
+  <file>:untested_exports=<int> exports with zero by-name test refs          (test-signals — weak, by_name_only)
 A sensor citation that fails to reproduce marks the WHOLE item UNVERIFIED and demotes it below
 every verified item in the consumable ranking. Other evidence types (corpus, b-inventory,
 test-gap, incident) are recorded as-is and checkable by reference — cite the document/section/
@@ -404,15 +450,18 @@ export function loadSensorIndex(repoRoot) {
   const inv = join(repoRoot, 'quality', 'inventory');
   const tm = readJson(join(inv, 'tier-mass.json')) ?? {};
   const hs = readJson(join(inv, 'hotspots.json')) ?? {};
+  const ts = readJson(join(inv, 'test-signals.json')) ?? {};
   const byFile = new Map((tm.by_file ?? []).map((f) => [f.file, f]));
   const bySub = new Map((tm.by_subsystem ?? []).map((s) => [s.subsystem, s]));
   const hotspots = new Map((hs.files ?? []).map((f) => [f.file, f]));
+  const skipsByFile = new Map((ts.skips?.files ?? []).map((f) => [f.file, f.skips]));
+  const untestedByFile = new Map((ts.zero_by_name?.files ?? []).map((f) => [f.file, f.exports]));
   const fnRows = new Map();
   for (const u of tm.universe ?? []) {
     if (!fnRows.has(u.file)) fnRows.set(u.file, []);
     fnRows.get(u.file).push(u);
   }
-  return { byFile, bySub, hotspots, fnRows };
+  return { byFile, bySub, hotspots, fnRows, skipsByFile, untestedByFile };
 }
 
 const CITE_RE = /^(.+?):([a-z_]+)(?:\[(.+?)\])?=(-?\d+(?:\.\d+)?)$/;
@@ -440,6 +489,8 @@ export function verifySensorCitation(citation, idx) {
       case 'fns': if (file) candidates.push(file.fns); if (sub) candidates.push(sub.fns); break;
       case 'files': if (sub) candidates.push(sub.files); break;
       case 'loc': case 'cog': case 'coupling': case 'score': if (hot) candidates.push(hot[metric]); break;
+      case 'skips': if (idx.skipsByFile.has(name)) candidates.push(idx.skipsByFile.get(name)); break;
+      case 'untested_exports': if (idx.untestedByFile.has(name)) candidates.push(idx.untestedByFile.get(name)); break;
       default: return { ok: false, detail: `metric '${metric}' not in the grammar` };
     }
     if (!candidates.length) return { ok: false, detail: `'${name}' not found in the inventory for metric '${metric}'` };
@@ -671,11 +722,11 @@ function realDeps() {
 // ---------------------------------------------------------------- the executor
 
 export async function executeAgenda(opts, deps) {
-  const { repoRoot, gitRoot, repoSha, doctrinePath, challenge = false, dryRun = false } = opts;
+  const { repoRoot, gitRoot, repoSha, doctrinePath, profileAgenda = null, challenge = false, dryRun = false } = opts;
   const log = deps.log;
   const provider = challenge ? 'codex' : 'claude'; // challenger uses the OTHER family (amendment 4)
 
-  const { sections, totalBytes } = assembleAgendaContext({ repoRoot, gitRoot, doctrinePath, blind: challenge });
+  const { sections, totalBytes } = assembleAgendaContext({ repoRoot, gitRoot, doctrinePath, profileAgenda, blind: challenge });
   if (!sections.some((s) => s.label === 'sensor:tier-mass')) {
     throw new Error(`no sensor inventory at ${join(repoRoot, 'quality/inventory')} — run \`hone inventory\` first (the agenda cites sensors; without them nothing is verifiable)`);
   }
@@ -808,6 +859,7 @@ export async function runAgenda(flags) {
     gitRoot: ctx.git.gitRoot,
     repoSha: ctx.git.sha,
     doctrinePath,
+    profileAgenda: profAgenda,
     challenge: !!flags.challenge,
     dryRun: !!flags['dry-run'],
   }, realDeps());

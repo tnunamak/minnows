@@ -77,6 +77,11 @@ function seedInventory(root) {
     generated_from: {}, by_class: { T1b: 1 }, mass_by_class: { T1b: 9 }, by_kind: { iterator: 1 }, b_flagged: 0,
     callbacks: [{ file: 'srva/a.mjs', parent_fn: 'bigFn', callback_anchor: '.map', callback_kind: 'iterator', cc: 9, excess: 4, captured_vars: ['x'], captured_mutable_vars: [], recommended_class: 'T1b', why: 'captures x' }],
   }));
+  writeFileSync(join(inv, 'test-signals.json'), JSON.stringify({
+    generated_from: { repo_sha: 'fixture', test_files: 2 },
+    skips: { total: 4, pattern: 'static', files: [{ file: 'test/slow.test.mjs', skips: 3 }, { file: 'test/old.test.mjs', skips: 1 }] },
+    zero_by_name: { by_name_only: true, note: 'weak', files: [{ file: 'srva/dark.mjs', exports: 5, unreferenced: ['darkOne', 'darkTwo'], by_name_only: true }] },
+  }));
 }
 
 function seedDoctrine(root) {
@@ -286,6 +291,10 @@ const MODEL_AGENDA = {
   ok('citation: wrong value fails', !verifySensorCitation('srva/a.mjs:mass=31', idx).ok);
   ok('citation: unknown file fails closed', !verifySensorCitation('nope.mjs:mass=30', idx).ok);
   ok('citation: unknown metric fails closed', !verifySensorCitation('srva/a.mjs:vibes=30', idx).ok);
+  ok('citation: test-signals skips metric reproduces', verifySensorCitation('test/slow.test.mjs:skips=3', idx).ok);
+  ok('citation: test-signals skips wrong value fails', !verifySensorCitation('test/slow.test.mjs:skips=4', idx).ok);
+  ok('citation: untested_exports metric reproduces', verifySensorCitation('srva/dark.mjs:untested_exports=5', idx).ok);
+  ok('citation: untested_exports unknown file fails closed', !verifySensorCitation('srva/a.mjs:untested_exports=5', idx).ok);
   ok('citation: malformed grammar fails closed', !verifySensorCitation('just a claim', idx).ok);
   const items = normalizeModelAgenda(MODEL_AGENDA).doc.items;
   const { items: ranked, stats } = verifyAndRank(items, idx);
@@ -461,8 +470,34 @@ const MODEL_AGENDA = {
   const { sections, totalBytes } = assembleAgendaContext({ repoRoot: root, gitRoot: root, doctrinePath: doctrine, blind: false });
   const labels = sections.map((s) => s.label);
   ok('context: sensor + pool + cost + doctrine sections assembled',
-    ['sensor:meta', 'sensor:tier-mass', 'sensor:hotspots', 'sensor:callback-smells', 'packet-pool', 'doctrine'].every((l) => labels.includes(l)), labels.join(','));
+    ['sensor:meta', 'sensor:tier-mass', 'sensor:hotspots', 'sensor:callback-smells', 'sensor:test-signals', 'packet-pool', 'doctrine'].every((l) => labels.includes(l)), labels.join(','));
   ok('context: bounded total', totalBytes < 45000, String(totalBytes));
+  const tsSection = sections.find((s) => s.label === 'sensor:test-signals');
+  ok('context: test-signals digest carries skip ranking + the weak-signal label',
+    /test\/slow\.test\.mjs · 3/.test(tsSection?.text ?? '') && /by_name_only/.test(tsSection?.text ?? '') && /srva\/dark\.mjs · 5/.test(tsSection?.text ?? ''), tsSection?.text?.slice(0, 200));
+
+  // named_targets from the profile projection: FIRST-CLASS doctrine anchors, present even BLIND
+  const profileAgenda = {
+    named_targets: [
+      { id: 'storage-unification', description: 'one storage seam', evidence_hint: 'hotspots srva/a.mjs', keywords: ['storage'] },
+      { id: 'skipped-test-audit', description: 'audit every skip' },
+    ],
+    budget_bands: { B: [40, 50] },
+  };
+  const withTargets = assembleAgendaContext({ repoRoot: root, gitRoot: root, doctrinePath: doctrine, profileAgenda, blind: false });
+  const ntSection = withTargets.sections.find((s) => s.label === 'doctrine:named-targets');
+  ok('context: named-targets section rendered from the profile projection',
+    !!ntSection && /storage-unification: one storage seam/.test(ntSection.text) && /evidence hint: hotspots/.test(ntSection.text) && /skipped-test-audit/.test(ntSection.text), ntSection?.text?.slice(0, 200));
+  ok('context: named-targets section states the demotion-is-escalation rule',
+    /ESCALATION/.test(ntSection?.text ?? '') && /human_decisions_needed/.test(ntSection?.text ?? ''));
+  const blindTargets = assembleAgendaContext({ repoRoot: root, gitRoot: root, doctrinePath: doctrine, profileAgenda, blind: true });
+  ok('context: named-targets survive BLIND mode (doctrine, not incumbent state)',
+    blindTargets.sections.some((s) => s.label === 'doctrine:named-targets'));
+  ok('context: no named-targets section without a projection',
+    !sections.some((s) => s.label === 'doctrine:named-targets'));
+  const ntPrompt = buildAgendaPrompt(withTargets.sections, { blind: false });
+  ok('prompt: named targets land in the model prompt as a doctrine section',
+    /== DOCTRINE:NAMED-TARGETS ==/.test(ntPrompt) && /storage-unification/.test(ntPrompt));
   writeFileSync(join(root, 'quality', 'AGENDA.json'), JSON.stringify({ version: 1, agenda_id: 'a-1', created: 'x', items: [{ id: 'zz', rank: 1, what: 'w', workflow_class: 'T0', packet_ids: [] }], not_chosen: [], campaigns: [] }));
   const blind = assembleAgendaContext({ repoRoot: root, gitRoot: root, doctrinePath: doctrine, blind: true });
   const open = assembleAgendaContext({ repoRoot: root, gitRoot: root, doctrinePath: doctrine, blind: false });
