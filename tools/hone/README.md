@@ -122,3 +122,24 @@ enum scores don't saturate and degenerate the plan to only-cheap tiers), and emi
   missing execution_gate rejects) and YAML round-trip-verified before it is written; a
   malformed packet crashes the plan. Terminal packets (landed/reverted/skipped/blocked) are
   never overwritten; candidate ids are content-derived and stable across reruns.
+
+## Authoring evidence rungs (packet authors, read this)
+
+Evidence commands run in the maker's DIRTY working tree, before anything is committed.
+Every rung must therefore be satisfiable pre-commit:
+
+- **Rungs that compare the working tree against HEAD are invalid as pre-land evidence.**
+  `git diff --exit-code`, a `check:generated`-style regenerate-then-compare-to-HEAD script,
+  or anything that fails when tracked files differ from HEAD is structurally unwinnable:
+  the maker's uncommitted edit is precisely what it flags. (Dogfood packet
+  `df-surface-mcp-token-kinds-enum-0001` burned $6.83 and a full revision cycle against
+  such a rung.) `work` emits a WARNING when a rung command matches known compare-vs-HEAD
+  patterns (`git diff … --exit-code`, `check:generated`) — warning only, behavior unchanged.
+- HEAD-comparisons are fine as *baseline preconditions inside a rung* (e.g. the
+  red-then-green shape `git diff --quiet -- <file> && mutate && test && restore`), never as
+  post-change pass criteria on their own.
+- Touchset paths are `--repo`-relative by convention; `work` normalizes entries to
+  git-root-relative (an entry that exists under `--repo` resolves there, otherwise it is
+  tried relative to the git root), so a touchset may legitimately name files outside the
+  `--repo` subtree of a monorepo. All touchset/revert/no-diff checks run against the FULL
+  git root — a maker edit anywhere in the repository is seen.
