@@ -51,6 +51,9 @@ const ST_GOOD = `function clamp(n, lo, hi) {
 module.exports = { clamp };
 `;
 const ST_BAD = ST_GOOD.replace('if (n > hi) return hi;', 'if (n > hi) return lo;');
+// a SECOND behavior-identical form: different BYTES than ST_GOOD (tree hash changes)
+// while every rung stays green — the wf_e69fe54b judge-revision shape.
+const ST_GOOD_V2 = ST_GOOD.replace('module.exports', '// clamp: guard-clause form (judge-revision notation)\nmodule.exports');
 const ST_TEST = `const { clamp } = require('./src/util.js');
 const ok = clamp(5, 0, 10) === 5 && clamp(-1, 0, 10) === 0 && clamp(11, 0, 10) === 10;
 if (!ok) { console.error('FAIL clamp'); process.exit(1); }
@@ -347,7 +350,39 @@ export async function laneSelfTest({ verbose = false } = {}) {
     check('judge context ON DISK: evidence carries REAL rung output (PASS 3/3)', jc.evidence.includes('PASS 3/3'));
     check('judge context ON DISK: diff shows the actual edit + packet yaml present', /diff --git/.test(jc.diff) && /return lo;/.test(jc.diff) && /candidate_id/.test(jc.packet_yaml));
     check('re-gate refused while green', (await gate(root)).exitCode === 2);
+    check('re-gate refusal is TREE-MATCHED, not blind (message asserts this tree state honestly)', /already green for this tree state/.test((await gate(root)).json.reason));
     check('packet still in_progress until land', packetOnDisk(root).status === 'in_progress');
+  });
+
+  await scenario('gate after green: tree CHANGED → receipt void, rungs re-run fresh (wf_e69fe54b bug)', async (check) => {
+    const root = fixtureRepo();
+    await emit(root);
+    editUtil(root, ST_GOOD);
+    const g1 = await gate(root);
+    check('first gate green', g1.exitCode === 0 && g1.json.green === true);
+    editUtil(root, ST_GOOD_V2); // judge-revision shape: real byte change, rungs still green
+    const g2 = await gate(root);
+    check('re-gate on the CHANGED tree RUNS (no false already-green refusal)', g2.exitCode === 0 && g2.json.green === true, JSON.stringify(g2.json).slice(0, 300));
+    check('new receipt carries a NEW tree hash', g2.json.tree_hash !== g1.json.tree_hash, `${g1.json.tree_hash} vs ${g2.json.tree_hash}`);
+    check('re-gate consumed the next attempt (post-r1 receipt, work post-r2 semantics)', g2.json.attempts_used === 2 && existsSync(join(root, `quality/receipts/${ID}/post-r1-1-direct-test.txt`)));
+    const l = await land(root, { verdictRaw: verdictJson('PASS', 'revision verified on the fresh receipt'), usageRaw: USAGE_OK });
+    check('land accepts the FRESH receipt; revision accounted', l.exitCode === 0 && costs(root)[0]?.revision_count === 1);
+    check('landed tree carries the revised bytes', spawnSync('git', ['show', 'HEAD:src/util.js'], { cwd: root, encoding: 'utf8' }).stdout === ST_GOOD_V2);
+  });
+
+  await scenario('gate after green: tree changed so a rung now FAILS → void receipt, normal red path + ceiling', async (check) => {
+    const root = fixtureRepo();
+    await emit(root);
+    editUtil(root, ST_GOOD);
+    const g1 = await gate(root);
+    check('first gate green', g1.exitCode === 0);
+    editUtil(root, ST_BAD); // post-green change that breaks the oracle
+    const g2 = await gate(root);
+    check('re-gate red, non-terminal, tree preserved (attempt 2)', g2.exitCode === 1 && !g2.json.terminal && g2.json.green === false && g2.json.attempts_used === 2 && read(root, 'src/util.js') === ST_BAD, JSON.stringify(g2.json).slice(0, 200));
+    const l = await land(root, { verdictRaw: verdictJson('PASS', 'stale claim'), usageRaw: USAGE_OK });
+    check('land refused meanwhile — the voided receipt cannot be resurrected', l.exitCode === 2 && /no green gate receipt/.test(l.json.reason), l.json.reason);
+    const g3 = await gate(root); // attempt 3 = ceiling: red → revert + terminalize
+    check('ceiling semantics unchanged: reverted terminal, tree restored', g3.exitCode === 1 && g3.json.terminal === 'reverted' && read(root, 'src/util.js') === ST_ORIG && treeClean(root), JSON.stringify(g3.json).slice(0, 200));
   });
 
   // ---- land: refusals (fail-closed) ----
@@ -838,6 +873,38 @@ export async function laneSelfTest({ verbose = false } = {}) {
     check('workflow tally: 1 reverted', res?.tally?.reverted === 1, JSON.stringify(res?.tally));
     check('packet reverted, judge_verdict recorded', packetOnDisk(root).status === 'reverted' && /REJECT/.test(packetOnDisk(root).outcome.judge_verdict ?? ''));
     check('tree restored, no commit', read(root, 'src/util.js') === ST_ORIG && headInfo(root).startsWith('init fixture'));
+  });
+
+  await scenario('workflow hone-lane.js e2e: judge REVISE with a REAL revision → fresh re-gate → landed (wf_e69fe54b shape)', async (check) => {
+    const root = fixtureRepo();
+    const { agent, calls } = mockAgents(root, {
+      makerEdits: [ST_GOOD, ST_GOOD_V2], // revision actually changes bytes; rungs stay green
+      judgeVerdicts: [
+        { verdict: 'REVISE', reasoning: 'note the guard-clause intent inline', confidence: 0.6 },
+        { verdict: 'PASS', reasoning: 'revision addressed the demand; behavior preserved', confidence: 0.9 },
+      ],
+    });
+    const res = await loadWorkflow()({ packets: [ID], repo: root, honeDir }, agent, () => {}, () => {});
+    check('landed after judge-REVISE with a real change (no false already-green strand)', res?.tally?.landed === 1, JSON.stringify(res?.results));
+    check('two judge calls, two maker calls', calls.filter((c) => /judge:/.test(c.label ?? '')).length === 2 && calls.filter((c) => /make:|revise:/.test(c.label ?? '')).length === 2);
+    check('re-gate ran fresh (post-r1 receipt on disk) and revision accounted', existsSync(join(root, `quality/receipts/${ID}/post-r1-1-direct-test.txt`)) && costs(root)[0]?.revision_count === 1);
+    check('landed bytes are the REVISED form', spawnSync('git', ['show', 'HEAD:src/util.js'], { cwd: root, encoding: 'utf8' }).stdout === ST_GOOD_V2);
+  });
+
+  await scenario('workflow hone-lane.js e2e: judge REVISE with NO change → tree-matched refusal → greenGate reuse (7463c75) → landed', async (check) => {
+    const root = fixtureRepo();
+    const { agent, calls } = mockAgents(root, {
+      makerEdits: [ST_GOOD, (r) => { void r; }], // revision maker correctly declines to edit
+      judgeVerdicts: [
+        { verdict: 'REVISE', reasoning: 'demand outside the touchset — decline if not applicable', confidence: 0.5 },
+        { verdict: 'PASS', reasoning: 'original diff stands; demand was inapplicable', confidence: 0.85 },
+      ],
+    });
+    const res = await loadWorkflow()({ packets: [ID], repo: root, honeDir }, agent, () => {}, () => {});
+    check('landed via the reused TREE-MATCHED green receipt', res?.tally?.landed === 1, JSON.stringify(res?.results));
+    check('no post-r1 receipt (no fresh gate ran — receipt genuinely still valid)', !existsSync(join(root, `quality/receipts/${ID}/post-r1-1-direct-test.txt`)));
+    check('revision_count 0 (gate attempts unchanged by the no-op revision)', costs(root)[0]?.revision_count === 0, JSON.stringify(costs(root)[0]?.revision_count));
+    check('landed bytes are the ORIGINAL green form', spawnSync('git', ['show', 'HEAD:src/util.js'], { cwd: root, encoding: 'utf8' }).stdout === ST_GOOD);
   });
 
   await scenario('workflow hone-lane.js e2e: two-strike escalation walks the routed ladder (haiku→haiku→sonnet)', async (check) => {

@@ -397,7 +397,22 @@ export async function executeLaneGate({ id, repoRoot, makerSummary = null, revis
   }
 
   if (state.gate?.green) {
-    return refuse(id, 'gate', `gate is already green for this tree state (attempt ${state.gate.attempt}) — proceed to hone lane land`);
+    // The receipt certifies a TREE STATE, not the packet — recompute before refusing.
+    // (Run wf_e69fe54b: a judge-REVISE revision made real changes; this check refused
+    // "already green for this tree state" WITHOUT recomputing, while land correctly
+    // refused on the hash mismatch — stranding a legitimate re-gate. The refusal must
+    // only fire when the current tree actually matches the certified one.)
+    const currentHash = djb2(state.head_sha + '\0' + buildWorkingDiff(g, state.touchset_toplevel));
+    if (currentHash === state.gate.tree_hash) {
+      return refuse(id, 'gate', `gate is already green for this tree state (attempt ${state.gate.attempt}) — proceed to hone lane land`);
+    }
+    // Tree changed since the green receipt: the receipt is VOID and this is a fresh
+    // gate attempt against the new tree — the same semantics as work.mjs re-running
+    // the oracle (post-r2) after a judge-revision edit, under the same attempt
+    // ceiling. Void BEFORE running rungs so a crash can never resurrect a stale green.
+    log(`  green gate receipt VOID: tree changed since attempt ${state.gate.attempt} (receipt ${state.gate.tree_hash}, current ${currentHash}) — re-gating the new tree state`);
+    state.gate = null;
+    saveState(repoRoot, id, state);
   }
 
   const touchTop = state.touchset_toplevel;
