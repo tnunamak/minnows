@@ -13,6 +13,10 @@ commands:
               [--repo .] [--cog N] [--window '6 months ago']
   plan        inventory → ranked candidate packets → <repo>/quality/packets/*.yaml
               [--repo .] [--top 20]
+  agenda      one strong-model selection call over sensor/ledger/doctrine digests →
+              <repo>/quality/AGENDA.{md,json} (+ history, not-chosen aging, selection ledger);
+              citations machine-verified, UNVERIFIED items demoted
+              [--repo .] [--dry-run] [--challenge] [--doctrine PATH]
   work <id>   execute one packet (maker ≠ judge)
               [--repo .] [--maker claude|codex] [--judge codex|claude] [--dry-run]
   reset <id>  deliberately reopen a terminal packet → status pending (recorded in packet.resets)
@@ -38,6 +42,11 @@ try {
     case 'plan': {
       const { runPlan } = await import('./lib/plan.mjs');
       await runPlan(flags);
+      break;
+    }
+    case 'agenda': {
+      const { runAgenda } = await import('./lib/agenda.mjs');
+      await runAgenda(flags);
       break;
     }
     case 'work': {
