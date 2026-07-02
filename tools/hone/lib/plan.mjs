@@ -230,9 +230,10 @@ function buildPacket(g, ctx, meta) {
     }
   }
 
+  const now = new Date().toISOString();
   return {
     candidate_id: `${slug(subsystem)}-${slug(base)}-${exec.short}-${djb2(`${g.file}|${g.tier}|${rows.map((r) => r.line).join(',')}`)}`,
-    created: new Date().toISOString(),
+    created: now,
     repo_sha: meta.repo_sha,
     subsystem,
     files: [g.file],
@@ -251,6 +252,8 @@ function buildPacket(g, ctx, meta) {
     expected_quality_gain: g.gain,
     owner_attention_reduction: g.attn,
     product_impact: g.impact,
+    // ranking PRIOR persisted for `run` ordering (recalibrated by cost actuals; never a quality claim)
+    priority: { score: g.priority, computed: now, inputs: { mass: g.mass, churn: g.churn } },
     risk: {
       blast_radius: g.coupling < 5 ? 'local' : g.coupling < 15 ? 'subsystem' : 'cross-cutting',
       reversibility: 'branch-revert',

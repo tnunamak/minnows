@@ -31,6 +31,9 @@ const TOP_KEYS = [
   'estimates', 'depends_on', 'unlocks', 'status', 'outcome',
 ];
 
+// OPTIONAL top-level keys: may be absent (hand-authored packets), strict when present.
+const OPTIONAL_KEYS = ['priority'];
+
 const isStr = (v) => typeof v === 'string';
 const isNonEmptyStr = (v) => isStr(v) && v.trim().length > 0;
 const isStrOrNull = (v) => v === null || isStr(v);
@@ -43,7 +46,7 @@ export function validatePacket(p) {
   const err = (m) => errs.push(m);
   if (!isMap(p)) return ['packet is not a map'];
 
-  for (const k of Object.keys(p)) if (!TOP_KEYS.includes(k)) err(`unknown top-level key: ${k}`);
+  for (const k of Object.keys(p)) if (!TOP_KEYS.includes(k) && !OPTIONAL_KEYS.includes(k)) err(`unknown top-level key: ${k}`);
   for (const k of TOP_KEYS) if (!(k in p)) err(`missing required key: ${k}`);
   if (errs.length) return errs; // shape is wrong — field checks below would just cascade
 
@@ -77,6 +80,21 @@ export function validatePacket(p) {
     for (const k of Object.keys(p.plan)) if (!['transform_class', 'instruction'].includes(k)) err(`plan: unknown key ${k}`);
     if (!isNonEmptyStr(p.plan.transform_class)) err('plan.transform_class: non-empty string required');
     if (!isNonEmptyStr(p.plan.instruction)) err('plan.instruction: non-empty string required');
+  }
+
+  if ('priority' in p) { // optional ranking PRIOR (ordering only, never a quality claim)
+    if (!isMap(p.priority)) err('priority: map {score, computed, inputs} required when present');
+    else {
+      for (const k of Object.keys(p.priority)) if (!['score', 'computed', 'inputs'].includes(k)) err(`priority: unknown key ${k}`);
+      if (typeof p.priority.score !== 'number' || !Number.isFinite(p.priority.score)) err('priority.score: finite number required');
+      if (!isStr(p.priority.computed) || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(p.priority.computed)) err(`priority.computed: iso-timestamp required, got ${JSON.stringify(p.priority.computed)}`);
+      if (!isMap(p.priority.inputs)) err('priority.inputs: map {mass, churn} required');
+      else {
+        for (const k of Object.keys(p.priority.inputs)) if (!['mass', 'churn'].includes(k)) err(`priority.inputs: unknown key ${k}`);
+        if (!isInt(p.priority.inputs.mass)) err('priority.inputs.mass: int required');
+        if (!isInt(p.priority.inputs.churn)) err('priority.inputs.churn: int required');
+      }
+    }
   }
 
   if (!isMap(p.risk)) err('risk: map required');

@@ -40,6 +40,15 @@ plan:                           # WHAT to do (why_this_matters is the why; this 
 expected_quality_gain: low | medium | high
 owner_attention_reduction: low | medium | high
 product_impact: none | low | medium | high
+priority:                       # OPTIONAL (added 2026-07-01, additive) — plan's persisted ranking
+                                # PRIOR, for ORDERING only. Recalibrated by cost-ledger actuals as
+                                # they accumulate; NEVER a quality claim about the code or outcome.
+                                # Absent on hand-authored packets — run falls back to enum-derived rank.
+  score: number                 #   SPEC ranking-formula value at plan time (higher = sooner)
+  computed: iso-timestamp       #   when the score was computed
+  inputs:                       #   the continuous inputs behind the score
+    mass: int                   #     Σ excess cognitive complexity in the group
+    churn: int                  #     commits touching the file in the churn window
 
 # ---- risk (drives evidence + judge tier; scrutiny ∝ cost of silent wrongness) ----
 risk:
