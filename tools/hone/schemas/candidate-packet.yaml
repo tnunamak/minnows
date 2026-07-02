@@ -67,13 +67,18 @@ evidence_required:              # execution-time proof obligations — LITERAL r
     expect_check:               #   OPTIONAL (added engine-iteration-1, additive) — the MACHINE-checkable
                                 #   half of expect; `work` enforces it deterministically, fail-closed.
                                 #   Prose expect stays; this removes the "engine trusts prose" gap.
-      type: exit_code | stdout_includes | stdout_regex | scope_fn_lt | file_excess_lt
+      type: exit_code | stdout_includes | stdout_regex | scope_fn_lt | file_excess_lt | failing_test_named
                                 #   exit_code: process exit == value (int)
                                 #   stdout_includes / stdout_regex: stdout contains / matches value (string)
                                 #   scope_fn_lt: scope-fn JSON found=true && cognitive_before < value (post only)
                                 #   file_excess_lt: file-collector JSON found=true && whole-file Σ excess-cc
                                 #     < value AND strictly < measured baseline AND no NEW flagged function
                                 #     vs baseline (post only — the anti-relocation whole-file target)
+                                #   failing_test_named: a TAP/spec FAILURE line (`not ok` / ✖ ✗ ✕ / mocha `1)`)
+                                #     must NAME value (substring) — for mutation rungs: the RIGHT test fails,
+                                #     not just any test (run-3 t1b-0012: kind-swap exited 0 on setup 409s).
+                                #     Post only (generate_evidence guards print a fallback at baseline);
+                                #     the rung must still exit 0 overall (seed → run → restore).
       value: int | string
 not_allowed: [string]           # e.g. [public-shape-change, new-dependency, behavior-change]
 

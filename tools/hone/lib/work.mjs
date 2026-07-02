@@ -34,8 +34,8 @@
 // engine deterministically enforces (a) exit code 0 on every rung, (b) `prints TOKEN`,
 // (c) scope-fn `found=true` / `cognitive_before < N` / `red_scan unchanged` (parsed from
 // the collector's JSON), (d) the optional machine-checkable `expect_check` spec
-// ({type: exit_code|stdout_includes|stdout_regex|scope_fn_lt|file_excess_lt, value} —
-// enforced deterministically, fail-closed), and (e) NO NEW SKIPS on test rungs: skip
+// ({type: exit_code|stdout_includes|stdout_regex|scope_fn_lt|file_excess_lt|failing_test_named,
+// value} — enforced deterministically, fail-closed), and (e) NO NEW SKIPS on test rungs: skip
 // counts parsed from test output at baseline and post; post > baseline is oracle RED
 // (the skip-mask trap — a change that newly skips tests must never pass on exit 0).
 // Skip-count parsing is defensive telemetry: unparseable output is noted, never fatal;
@@ -49,6 +49,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync, mkdirSync
 import { tmpdir } from 'node:os';
 import { join, relative, resolve, dirname } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { parseYaml, stringifyYaml } from './yaml.mjs';
 import { validatePacket, assertValidPacket } from './validate-packet.mjs';
 import { deepEqual, djb2, slug } from './util.mjs';
@@ -223,19 +224,45 @@ function revertAll(g) {
 
 // ---------------------------------------------------------------- evidence + oracle
 
-function runShellCmd(cmd, cwd, timeoutMs = EVIDENCE_TIMEOUT_MS) {
-  const startedAt = Date.now();
-  const r = spawnSync('/bin/bash', ['-c', cmd], {
-    cwd, encoding: 'utf8', timeout: timeoutMs, maxBuffer: MAX_BUFFER, killSignal: 'SIGKILL',
+/**
+ * run one evidence rung in its OWN process group; on timeout the whole group gets
+ * SIGKILL (negative pid), not just the direct bash child. (Engine-iteration-4 fix 3,
+ * run-2 finding: spawnSync's timeout killed bash but left a `node --test` grandchild
+ * alive for minutes after "SIGKILL". Mirrors providers/runCli.)
+ */
+export function runShellCmd(cmd, cwd, timeoutMs = EVIDENCE_TIMEOUT_MS) {
+  return new Promise((resolvePromise) => {
+    const startedAt = Date.now();
+    const child = spawn('/bin/bash', ['-c', cmd], {
+      cwd, stdio: ['ignore', 'pipe', 'pipe'], detached: true, // own process group
+    });
+    let stdout = '', stderr = '', total = 0, truncated = false, timedOut = false;
+    const append = (cur, d) => {
+      if (truncated) return cur;
+      total += d.length;
+      if (total > MAX_BUFFER) { truncated = true; return cur + '\n…[output truncated at 64MB]…'; }
+      return cur + d;
+    };
+    const killGroup = () => {
+      try { process.kill(-child.pid, 'SIGKILL'); } // whole process group
+      catch { try { child.kill('SIGKILL'); } catch { /* already gone */ } }
+    };
+    const timer = setTimeout(() => { timedOut = true; killGroup(); }, timeoutMs);
+    child.stdout.on('data', (d) => { stdout = append(stdout, String(d)); });
+    child.stderr.on('data', (d) => { stderr = append(stderr, String(d)); });
+    const settle = (code) => {
+      clearTimeout(timer);
+      resolvePromise({
+        code: timedOut ? null : code,
+        timedOut,
+        stdout,
+        output: stdout + stderr,
+        durationMs: Date.now() - startedAt,
+      });
+    };
+    child.on('error', (err) => { stderr += `spawn error: ${err.message}`; settle(null); });
+    child.on('close', (code) => settle(code));
   });
-  const timedOut = r.error?.code === 'ETIMEDOUT';
-  return {
-    code: timedOut ? null : (r.status ?? null),
-    timedOut,
-    stdout: r.stdout || '',
-    output: (r.stdout || '') + (r.stderr || ''),
-    durationMs: Date.now() - startedAt,
-  };
 }
 
 function lastJson(stdout) {
@@ -262,7 +289,15 @@ export function parseSkipCount(output) {
   return null;
 }
 
-const EXPECT_CHECK_TYPES = ['exit_code', 'stdout_includes', 'stdout_regex', 'scope_fn_lt', 'file_excess_lt'];
+const EXPECT_CHECK_TYPES = ['exit_code', 'stdout_includes', 'stdout_regex', 'scope_fn_lt', 'file_excess_lt', 'failing_test_named'];
+
+/**
+ * a TAP/spec-reporter line that REPORTS A FAILURE: TAP `not ok …`, node spec / jest
+ * `✖ ✗ ✕ …`, mocha's numbered failure list `  1) …`. Used by failing_test_named to
+ * assert the RIGHT test failed — run-3 t1b-0012's kind-swap rung exited 0 while the
+ * wrong tests (setup 409s) were the ones failing; only the judge caught it.
+ */
+const isFailureLine = (l) => /(^|\s)not ok\b/.test(l) || /[✖✗✕]/.test(l) || /^\s*\d+\)\s/.test(l);
 
 // known compare-vs-HEAD evidence patterns: structurally unwinnable BEFORE a commit (the
 // maker's uncommitted diff is exactly what they flag). Warning only, no behavior change —
@@ -286,7 +321,8 @@ function isSubMultiset(post, base) {
  * the machine-checkable half of a rung: `expect_check` {type, value} enforced
  * deterministically (fail-closed — the whole point is that the maker cannot talk past it).
  * Identity types (exit_code / stdout_includes / stdout_regex) apply at BOTH phases;
- * improvement types (scope_fn_lt / file_excess_lt) are post-change goals only.
+ * improvement/goal types (scope_fn_lt / file_excess_lt / failing_test_named) are
+ * post-change only.
  */
 function checkExpectCheck(ec, res, phase, baselineRes) {
   const fail = (reason) => ({ pass: false, reason: `expect_check[${ec.type}]: ${reason}` });
@@ -329,6 +365,16 @@ function checkExpectCheck(ec, res, phase, baselineRes) {
         return fail(`NEW function above the cog threshold post-change (baseline flagged=[${names(b).join(',')}] post=[${names(j).join(',')}]) — complexity moved, not reduced`);
       }
       return null;
+    }
+    case 'failing_test_named': {
+      // POST-ONLY by construction: generate_evidence packets legitimately print the
+      // guard fallback (e.g. `oracle-not-yet-authored`) at baseline while the oracle
+      // file does not exist yet — enforcing here at baseline would recreate the run-1
+      // $0-block class. The rung must exit 0 overall (mutation-seed → test → restore).
+      if (phase !== 'post') return null;
+      const name = String(ec.value);
+      const hit = String(res.output).split('\n').some((l) => isFailureLine(l) && l.includes(name));
+      return hit ? null : fail(`no TAP/spec failure line naming '${name}' — a failure of the WRONG test (or no failure at all) is not the seeded red (run-3 t1b-0012: kind-swap rung exited 0 on setup 409s)`);
     }
     default:
       return fail(`unknown expect_check type — fail-closed (known: ${EXPECT_CHECK_TYPES.join(', ')})`);
@@ -405,7 +451,7 @@ function headClip(s, n) {
 // codes + digests, so the judge REVISEd honest work for not SHOWING red/green output)
 const RUNG_SLICE_MAX_LINES = 40;
 const RUNG_SLICE_MAX_BYTES = 2048;
-const JUDGE_EVIDENCE_MAX_BYTES = 8192;
+const JUDGE_EVIDENCE_MAX_BYTES = 16384;
 
 /** last ≤maxLines lines of a rung's combined output, additionally byte-bounded (tail wins). */
 export function outputSlice(output, maxLines = RUNG_SLICE_MAX_LINES, maxBytes = RUNG_SLICE_MAX_BYTES) {
@@ -418,15 +464,44 @@ export function outputSlice(output, maxLines = RUNG_SLICE_MAX_LINES, maxBytes = 
 
 /**
  * judge-facing evidence: every receipt digest line PLUS a bounded tail of that rung's
- * REAL output. Total is hard-capped; truncation drops the OLDEST content first (the
- * newest rungs — post-change, revisions — are the ones under judgment).
+ * REAL output. (Engine-iteration-4 fix 1 — run-4 hm-0003: the old single head-truncated
+ * global cap silently dropped the BASELINE receipts first, so the judge REVISEd honest
+ * work "no baseline receipt reached it", burning a $1+ revision round.)
+ *
+ * Guarantees, in priority order under the total byte cap:
+ *   1. every receipt digest LINE is always present (baseline receipts at minimum as
+ *      summary lines — they are never truncated away);
+ *   2. every FAILING run's output slice is kept (the defect under judgment);
+ *   3. the FINAL green run's slice is kept (the state under judgment);
+ *   4. remaining green slices are dropped verbose-first (post-phase greens before
+ *      baseline greens) until the total fits; dropped slices leave an explicit marker.
+ * Per-rung slices are already bounded by outputSlice (≤40 lines / ≤2KB each).
+ *
+ * `entries`: [{line, slice, phase, pass}] in receipt order.
  */
-export function buildJudgeEvidence(receiptLines, receiptSlices, maxBytes = JUDGE_EVIDENCE_MAX_BYTES) {
-  const blocks = receiptLines.map((line, i) => (receiptSlices[i]
-    ? `${line}\n  --- rung output tail ---\n${receiptSlices[i]}\n  --- end tail ---`
-    : line));
-  let text = blocks.join('\n');
+export function buildJudgeEvidence(entries, maxBytes = JUDGE_EVIDENCE_MAX_BYTES) {
+  const lastGreen = entries.reduce((acc, e, i) => (e.pass ? i : acc), -1);
+  const included = entries.map((e) => Boolean(e.slice));
+  const mustKeep = entries.map((e, i) => Boolean(e.slice) && (!e.pass || i === lastGreen));
+  const render = () => entries.map((e, i) => {
+    if (!e.slice) return e.line;
+    if (!included[i]) return `${e.line}\n  [rung output tail omitted — evidence budget; full receipt on disk]`;
+    return `${e.line}\n  --- rung output tail ---\n${e.slice}\n  --- end tail ---`;
+  }).join('\n');
+  // droppable greens: post-phase (non-final) first, then baseline; verbose first within each
+  const droppable = entries
+    .map((e, i) => ({ i, size: e.slice ? e.slice.length : 0, isBaseline: e.phase === 'baseline' }))
+    .filter(({ i }) => included[i] && !mustKeep[i])
+    .sort((a, b) => (Number(a.isBaseline) - Number(b.isBaseline)) || (b.size - a.size));
+  let text = render();
+  for (const d of droppable) {
+    if (text.length <= maxBytes) break;
+    included[d.i] = false;
+    text = render();
+  }
   if (text.length > maxBytes) {
+    // safety valve (must-keep content alone exceeds the cap — pathological): hard head
+    // truncation, newest (failing/final) content survives at the tail.
     text = `…[${text.length - maxBytes} bytes truncated from head; newest rungs retained]…\n` + text.slice(-maxBytes);
   }
   return text;
@@ -603,7 +678,7 @@ async function executeWorkAttempt(opts, deps, signal) {
   catch (e) { return refuse(e.message); }
   const { packet, path: packetPath, rawText } = loaded;
 
-  const schemaErrs = validatePacket(packet, { repoRoot }); // repoRoot enables the touchset path lint
+  const schemaErrs = validatePacket(packet, { repoDir: repoRoot, warn: (m) => log(`  WARNING (validator): ${m}`) }); // repoDir enables the touchset-path + shared-DB lints
   if (schemaErrs.length) return refuse(`malformed packet (schema v1.1):\n  - ${schemaErrs.join('\n  - ')}`);
   if (packet.execution_gate !== 'autonomous') {
     return refuse(`execution_gate is '${packet.execution_gate}' — work executes ONLY autonomous packets (owner_ratify goes to the owner, fail-closed)`);
@@ -657,6 +732,7 @@ async function executeWorkAttempt(opts, deps, signal) {
   const receiptsDirRel = join('quality', 'receipts', id);
   const receiptLines = [];       // single-line receipt strings for packet.outcome.evidence_receipts
   const receiptSlices = [];      // parallel bounded output tails — judge context only, never the packet
+  const receiptMeta = [];        // parallel {phase, pass} — drives the judge-evidence slice budget
   const makerMetas = [];
   const judgeMetas = [];
   let revisionCount = 0;
@@ -670,7 +746,25 @@ async function executeWorkAttempt(opts, deps, signal) {
     const digest = `exit=${res.timedOut ? 'TIMEOUT' : res.code} djb2=${djb2(res.output)} bytes=${res.output.length} receipt=${rel}`;
     receiptLines.push(`[${phase}] ${rung.rung}: ${rung.command} -> ${res.timedOut ? 'TIMEOUT' : `exit ${res.code}`} (${Math.round(res.durationMs / 1000)}s) ${verdict.pass ? 'PASS' : `FAIL: ${verdict.reason}`}; ${digest}`);
     receiptSlices.push(outputSlice(res.output));
+    receiptMeta.push({ phase, pass: verdict.pass });
     return digest;
+  };
+
+  let makerBriefCount = 0;
+  /**
+   * engine-iteration-4 fix 2 (run-2 finding: maker briefs were never persisted, so
+   * retry-context claims were unverifiable on disk): per maker invocation, write
+   * quality/receipts/<id>/maker-brief-<attempt>.digest.txt with the first ~4KB plus
+   * the sha256 of the FULL brief — auditability without huge files. Written BEFORE
+   * the maker runs so even a crashed/timed-out attempt leaves its brief on disk.
+   */
+  const persistBriefDigest = (briefText) => {
+    const attempt = ++makerBriefCount;
+    const rel = join(receiptsDirRel, `maker-brief-${attempt}.digest.txt`);
+    const abs = join(repoRoot, rel);
+    mkdirSync(dirname(abs), { recursive: true });
+    const sha = createHash('sha256').update(briefText, 'utf8').digest('hex');
+    writeFileSync(abs, `# hone work ${id} — maker brief digest (attempt ${attempt})\n# sha256(full brief)=${sha} bytes=${Buffer.byteLength(briefText, 'utf8')}\n# first 4096 chars follow\n\n${briefText.slice(0, 4096)}`);
   };
 
   const tokensOf = () => {
@@ -776,7 +870,7 @@ async function executeWorkAttempt(opts, deps, signal) {
     }
     for (const [i, rung] of packet.evidence_required.entries()) {
       log(`  [baseline] ${rung.rung}: ${rung.command}`);
-      const res = runShellCmd(rung.command, repoRoot);
+      const res = await runShellCmd(rung.command, repoRoot);
       const verdict = checkExpect(rung, res, 'baseline');
       const digest = writeReceipt('baseline', i, rung, res, verdict);
       baselineRes.push(res);
@@ -797,6 +891,7 @@ async function executeWorkAttempt(opts, deps, signal) {
     // ---- 4. maker ----
     const brief = makerBrief(rawText, packet);
     log(`  maker: ${makerName} (timeout ${Math.round(MAKER_TIMEOUT_MS / 60000)}m)`);
+    persistBriefDigest(brief);
     let makerRun;
     try {
       makerRun = await deps.maker(makerName, brief, { cwd: repoRoot, timeoutMs: MAKER_TIMEOUT_MS });
@@ -876,10 +971,10 @@ async function executeWorkAttempt(opts, deps, signal) {
     }
 
     // ---- 6. deterministic oracle (≤1 maker revision cycle) ----
-    const runOracle = (phase) => {
+    const runOracle = async (phase) => {
       for (const [i, rung] of packet.evidence_required.entries()) {
         log(`  [${phase}] ${rung.rung}: ${rung.command}`);
-        const res = runShellCmd(rung.command, repoRoot);
+        const res = await runShellCmd(rung.command, repoRoot);
         const verdict = checkExpect(rung, res, 'post', baselineRes[i]);
         const digest = writeReceipt(phase, i, rung, res, verdict);
         if (!verdict.pass) return { green: false, rung, verdict, res, digest };
@@ -892,13 +987,15 @@ async function executeWorkAttempt(opts, deps, signal) {
       return terminalize({ status: 'reverted', lesson, claims, headline, judgeVerdict: failNote.judgeVerdict ?? null });
     };
 
-    let oracle = runOracle('post');
+    let oracle = await runOracle('post');
     if (!oracle.green) {
       revisionCount++;
       log(`  oracle RED at '${oracle.rung.rung}' — one maker revision cycle`);
       const failureNote = `deterministic oracle rung '${oracle.rung.rung}' FAILED: ${oracle.verdict.reason}\ncommand: ${oracle.rung.command}\nexpect: ${oracle.rung.expect}\noutput tail:\n${tailClip(oracle.res.output, 4000)}`;
       try {
-        const rev = await deps.maker(makerName, revisionBrief(brief, failureNote, g.git(['diff', '--', ...touchTop])), { cwd: repoRoot, timeoutMs: MAKER_TIMEOUT_MS });
+        const revBrief = revisionBrief(brief, failureNote, g.git(['diff', '--', ...touchTop]));
+        persistBriefDigest(revBrief);
+        const rev = await deps.maker(makerName, revBrief, { cwd: repoRoot, timeoutMs: MAKER_TIMEOUT_MS });
         makerMetas.push(rev.meta);
       } catch (e) {
         return reverted({}, [
@@ -920,7 +1017,7 @@ async function executeWorkAttempt(opts, deps, signal) {
           headline: `touchset violation in revision — reverted`,
         });
       }
-      oracle = runOracle('post-r1');
+      oracle = await runOracle('post-r1');
       if (!oracle.green) {
         return reverted({}, [
           { type: 'verified_fact', statement: `evidence rung '${oracle.rung.rung}' still failing after 1 maker revision (${oracle.verdict.reason}); all changes reverted, nothing landed`, evidence: [{ command: oracle.rung.command, output_digest: oracle.digest }] },
@@ -942,7 +1039,7 @@ async function executeWorkAttempt(opts, deps, signal) {
       }
       return diff;
     };
-    const evidenceText = () => buildJudgeEvidence(receiptLines, receiptSlices);
+    const evidenceText = () => buildJudgeEvidence(receiptLines.map((line, i) => ({ line, slice: receiptSlices[i], ...receiptMeta[i] })));
     const judgeProvider = await deps.judge(judgeName);
     const judgeOnce = async () => {
       log(`  judge: ${judgeName}`);
@@ -959,7 +1056,9 @@ async function executeWorkAttempt(opts, deps, signal) {
       revisionCount++;
       log(`  judge REVISE — one maker revision + one re-judge`);
       try {
-        const rev = await deps.maker(makerName, revisionBrief(brief, `independent judge (${judgeName}) verdict REVISE: ${verdict.reasoning}`, buildDiff()), { cwd: repoRoot, timeoutMs: MAKER_TIMEOUT_MS });
+        const revBrief = revisionBrief(brief, `independent judge (${judgeName}) verdict REVISE: ${verdict.reasoning}`, buildDiff());
+        persistBriefDigest(revBrief);
+        const rev = await deps.maker(makerName, revBrief, { cwd: repoRoot, timeoutMs: MAKER_TIMEOUT_MS });
         makerMetas.push(rev.meta);
       } catch (e) {
         return reverted({ judgeVerdict: verdictLine(verdict) }, [
@@ -981,7 +1080,7 @@ async function executeWorkAttempt(opts, deps, signal) {
           headline: 'touchset violation in judge-revision — reverted',
         });
       }
-      oracle = runOracle('post-r2');
+      oracle = await runOracle('post-r2');
       if (!oracle.green) {
         return reverted({ judgeVerdict: verdictLine(verdict) }, [
           { type: 'verified_fact', statement: `judge-requested revision broke evidence rung '${oracle.rung.rung}' (${oracle.verdict.reason}); all changes reverted`, evidence: [{ command: oracle.rung.command, output_digest: oracle.digest }] },
@@ -1680,23 +1779,61 @@ async function selfTest({ verbose = false } = {}) {
     const ev = state.judgeArgs[0]?.evidence ?? '';
     check('evidence includes REAL rung output (PASS 3/3), not just digests', ev.includes('PASS 3/3'), ev.slice(0, 400));
     check('evidence keeps the digest lines', /djb2=/.test(ev));
-    check('evidence within the hard cap', ev.length <= 8192 + 128, `len=${ev.length}`);
+    check('evidence within the hard cap', ev.length <= 16384 + 128, `len=${ev.length}`);
   });
 
-  await scenario('judge evidence builder: 40-line slice bound, byte bound, 8KB head-truncation', async (check) => {
+  await scenario('judge evidence builder: slice bounds + priority-preserving budget (never drop baseline lines / failing slices / final green)', async (check) => {
     const many = Array.from({ length: 100 }, (_, i) => `line-${i}`).join('\n');
     const s = outputSlice(many);
     check('keeps the LAST 40 lines', s.includes('line-99') && s.includes('line-60') && !s.includes('line-59\n'), s.slice(0, 80));
     check('omission marker for dropped lines', /omitted/.test(s));
     check('per-slice byte bound (tail wins)', outputSlice('x'.repeat(5000)).length <= 2048 + 32);
-    const ev1 = buildJudgeEvidence(['[post] t: cmd -> exit 0 PASS; djb2=abc'], ['tail-output-here']);
+    const e = (line, slice, phase, pass) => ({ line, slice, phase, pass });
+    const ev1 = buildJudgeEvidence([e('[post] t: cmd -> exit 0 PASS; djb2=abc', 'tail-output-here', 'post', true)]);
     check('slice attached under its digest line', ev1.includes('djb2=abc') && ev1.includes('tail-output-here'));
-    const evBig = buildJudgeEvidence(
-      Array.from({ length: 10 }, (_, i) => `[post] rung${i}: digest${i}`),
-      Array.from({ length: 10 }, (_, i) => `slice${i} `.repeat(250)),
-    );
-    check('total hard-capped ~8KB', evBig.length <= 8192 + 128, `len=${evBig.length}`);
-    check('truncated from the HEAD — newest rung retained, oldest dropped', /truncated from head/.test(evBig) && evBig.includes('digest9') && !evBig.includes('digest0'));
+    check('entry without slice renders the line alone', buildJudgeEvidence([e('[post] t: digest-only', null, 'post', true)]) === '[post] t: digest-only');
+    // the run-4 hm-0003 shape: many rungs, big green outputs, one failing post run —
+    // 8 baseline greens + 1 post FAIL + 8 post-r1 greens at ~2KB each (~34KB raw)
+    const pad = (m) => `${m} ${'x'.repeat(2000 - m.length - 1)}`;
+    const entries = [
+      ...Array.from({ length: 8 }, (_, i) => e(`[baseline] rung${i}: cmd -> exit 0 PASS; digest-base${i}`, pad(`BASE${i}`), 'baseline', true)),
+      e('[post] rung0: cmd -> exit 1 FAIL: boom; digest-postfail', pad('FAILCONTENT'), 'post', false),
+      ...Array.from({ length: 8 }, (_, i) => e(`[post-r1] rung${i}: cmd -> exit 0 PASS; digest-postr1-${i}`, pad(`R1GREEN${i}`), 'post-r1', true)),
+    ];
+    const evBig = buildJudgeEvidence(entries);
+    check('total hard-capped ~16KB', evBig.length <= 16384 + 128, `len=${evBig.length}`);
+    check('EVERY digest line survives (baseline receipts at minimum as summaries)', entries.every((x) => evBig.includes(x.line.slice(0, 40))), evBig.slice(0, 200));
+    check('failing run content kept', evBig.includes('FAILCONTENT'));
+    check('final green run content kept', evBig.includes('R1GREEN7'));
+    check('some green slices dropped with an explicit marker', /omitted — evidence budget/.test(evBig));
+    check('post-phase greens dropped BEFORE baseline greens (non-final post-r1 slices all gone)', Array.from({ length: 7 }, (_, i) => `R1GREEN${i}`).every((m) => !evBig.includes(m)));
+    check('at least one baseline slice retained under the freed budget', entries.slice(0, 8).some((x, i) => evBig.includes(`BASE${i} `)));
+    check('no head-truncation marker (budget met by slice-dropping, not lossy truncation)', !/truncated from head/.test(evBig));
+    // safety valve: must-keep content alone above the cap still hard-caps
+    const pathological = buildJudgeEvidence([e('[post] r: FAIL; d', 'y'.repeat(3000), 'post', false)], 1024);
+    check('pathological must-keep overflow → head-truncated to the cap (valve)', pathological.length <= 1024 + 128 && /truncated from head/.test(pathological));
+  });
+
+  await scenario('judge evidence e2e: many-rung packet — baseline + failing + final-green all reach the judge (run-4 hm-0003 class)', async (check) => {
+    const bigGreen = (n) => `node -e "console.log('PAD'.repeat(1500)); console.log('GREEN-RUNG-${n}')"`;
+    const gate = `node -e "console.log('z'.repeat(3000)); const {clamp}=require('./src/util.js'); if(clamp(11,0,10)!==10){console.error('FAIL-MARKER-CLAMP-UPPER'); process.exit(1)} console.log('FINAL-GREEN-MARKER')"`;
+    const root = stRepo(ID, {
+      packetOverrides: {
+        evidence_required: [
+          ...Array.from({ length: 4 }, (_, i) => ({ rung: `pad-${i}`, command: bigGreen(i), expect: `prints GREEN-RUNG-${i}` })),
+          { rung: 'direct-test', command: gate, expect: 'prints FINAL-GREEN-MARKER — clamp upper bound holds' },
+        ],
+      },
+    });
+    const { deps, state } = stMockDeps({ makers: [stEditUtil(ST_BAD), stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'saw baseline, red and green', confidence: 0.9 }] }, log);
+    const r = await exec(root, deps);
+    check('landed after one oracle-red revision', r.outcome === 'landed' && costs(root)[0]?.revision_count === 1, r.summary);
+    const ev = state.judgeArgs[0]?.evidence ?? '';
+    check('ALL 5 baseline receipt lines reached the judge', (ev.match(/\[baseline\]/g) ?? []).length === 5, `found ${(ev.match(/\[baseline\]/g) ?? []).length}`);
+    check('failing run content reached the judge', ev.includes('FAIL-MARKER-CLAMP-UPPER'), ev.slice(0, 300));
+    check('final green run content reached the judge', ev.includes('FINAL-GREEN-MARKER'));
+    check('evidence within the 16KB cap', ev.length <= 16384 + 128, `len=${ev.length}`);
+    check('budget pressure was real (some slices omitted)', /omitted — evidence budget/.test(ev), `len=${ev.length}`);
   });
 
   // ---- compare-vs-HEAD rung warning (dogfood packet 9's check:generated trap) ----
@@ -1790,18 +1927,18 @@ async function selfTest({ verbose = false } = {}) {
 
   await scenario('validator lint: duplicated repo-dir prefix touchset rejected with corrected path (--repo ctx)', async (check) => {
     const root = stRepo(ID, { subdir: SUB });
-    const repoRoot = join(root, SUB);
+    const repoDir = join(root, SUB);
     const withTouch = (touchset) => stBasePacket(ID, { touchset });
     const dup = withTouch([`${SUB}/src/new-oracle.test.js`]); // exists nowhere + repo-basename prefix
-    const errs = validatePacket(dup, { repoRoot });
+    const errs = validatePacket(dup, { repoDir });
     check('duplicated prefix rejected', errs.some((e) => /duplicated repo-dir prefix/.test(e)), errs.join(' | '));
     check('corrected path suggested', errs.some((e) => /Corrected path: 'src\/new-oracle\.test\.js'/.test(e)));
     check('same packet WITHOUT ctx passes (best-effort: --repo unknown at bare validation)', validatePacket(dup).length === 0, validatePacket(dup).join(' | '));
-    check('repo-relative existing entry passes', validatePacket(withTouch(['src/util.js']), { repoRoot }).length === 0);
-    check('git-root-relative EXISTING entry passes (legit cross-coordinate, packet-8 class)', validatePacket(withTouch([`${SUB}/src/util.js`]), { repoRoot }).length === 0);
-    check('to-be-created file in an existing dir passes', validatePacket(withTouch(['src/new-oracle.test.js']), { repoRoot }).length === 0);
-    check('path resolving nowhere rejected', validatePacket(withTouch(['no-such-dir/deep/file.js']), { repoRoot }).some((e) => /neither --repo/.test(e)));
-    check('absolute entry rejected', validatePacket(withTouch(['/abs/path.js']), { repoRoot }).some((e) => /absolute/.test(e)));
+    check('repo-relative existing entry passes', validatePacket(withTouch(['src/util.js']), { repoDir }).length === 0);
+    check('git-root-relative EXISTING entry passes (legit cross-coordinate, packet-8 class)', validatePacket(withTouch([`${SUB}/src/util.js`]), { repoDir }).length === 0);
+    check('to-be-created file in an existing dir passes', validatePacket(withTouch(['src/new-oracle.test.js']), { repoDir }).length === 0);
+    check('path resolving nowhere rejected', validatePacket(withTouch(['no-such-dir/deep/file.js']), { repoDir }).some((e) => /neither --repo/.test(e)));
+    check('absolute entry rejected', validatePacket(withTouch(['/abs/path.js']), { repoDir }).some((e) => /absolute/.test(e)));
     // the work gate threads --repo: a corrupted-touchset packet is REFUSED before any side effect
     const root2 = stRepo(ID, { subdir: SUB, packetOverrides: { touchset: [`${SUB}/src/new-oracle.test.js`] } });
     const r = await subExec(root2, stMockDeps({}, log).deps);
@@ -1922,6 +2059,131 @@ async function selfTest({ verbose = false } = {}) {
     const r = await exec(root, deps);
     check('reopened packet lands', r.outcome === 'landed', r.summary);
     check('maker PROMPT carries the section end-to-end', (state.makerPrompts[0] ?? '').includes('PRIOR ATTEMPT') && (state.makerPrompts[0] ?? '').includes('name the guard intent explicitly'));
+  });
+
+  // ---- brief-digest persistence (engine-iteration-4 fix 2) ----
+  await scenario('maker brief digests: one per attempt on disk — first 4KB + sha256 of the full brief', async (check) => {
+    const root = stRepo(ID);
+    const { deps, state } = stMockDeps({ makers: [stEditUtil(ST_BAD), stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'clean', confidence: 0.9 }] }, log);
+    const r = await exec(root, deps);
+    check('landed after one revision', r.outcome === 'landed' && costs(root)[0]?.revision_count === 1, r.summary);
+    const d1 = read(root, `quality/receipts/${ID}/maker-brief-1.digest.txt`);
+    const d2 = read(root, `quality/receipts/${ID}/maker-brief-2.digest.txt`);
+    check('digest file per maker attempt', d1 !== null && d2 !== null);
+    check('no third attempt, no third file', read(root, `quality/receipts/${ID}/maker-brief-3.digest.txt`) === null);
+    const sha = (s) => createHash('sha256').update(s, 'utf8').digest('hex');
+    check('attempt 1 sha256 matches the FULL brief actually sent', d1?.includes(`sha256(full brief)=${sha(state.makerPrompts[0])}`), (d1 ?? '').split('\n')[1]);
+    check('attempt 2 sha256 matches the revision brief actually sent', d2?.includes(`sha256(full brief)=${sha(state.makerPrompts[1])}`));
+    check('attempt 1 head content is the brief head', d1?.includes(state.makerPrompts[0].slice(0, 200)));
+    check('attempt 2 is the REVISION brief (retry context verifiable on disk)', d2?.includes('REVISION REQUIRED'));
+    check('digest file bounded (~4KB head, not the whole brief)', (d1?.length ?? 0) < 4096 + 512, `len=${d1?.length}`);
+  });
+
+  // ---- rung-timeout process-group kill (engine-iteration-4 fix 3) ----
+  await scenario('rung timeout: process-group SIGKILL — no grandchild survivors (run-2: node --test outlived spawnSync SIGKILL)', async (check) => {
+    const dir = mkdtempSync(join(tmpdir(), 'hone-pgkill-'));
+    const pidFile = join(dir, 'grandchild.pid');
+    const cmd = `node -e "const {spawn}=require('child_process');const c=spawn('sleep',['300']);require('fs').writeFileSync('${pidFile}',String(c.pid));console.log('SPAWNED');setInterval(()=>{},1000)"`;
+    const res = await runShellCmd(cmd, dir, 1500);
+    check('timed out, fail-closed code null', res.timedOut === true && res.code === null, JSON.stringify({ code: res.code, timedOut: res.timedOut }));
+    check('pre-kill output captured', /SPAWNED/.test(res.output), res.output.slice(0, 120));
+    check('grandchild pid recorded before the kill', existsSync(pidFile));
+    const gpid = Number(readFileSync(pidFile, 'utf8'));
+    let alive = Number.isInteger(gpid) && gpid > 0;
+    for (let i = 0; i < 40 && alive; i++) { alive = pidAlive(gpid); if (alive) await new Promise((rs) => setTimeout(rs, 50)); }
+    check('grandchild DEAD after group kill (negative-pid SIGKILL)', !alive, `pid ${gpid} still alive after 2s`);
+    check('normal completion unaffected', (await runShellCmd('echo fine', dir)).code === 0);
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  // ---- failing_test_named expect_check (engine-iteration-4 fix 5, run-3 t1b-0012) ----
+  await scenario('expect_check failing_test_named: the RIGHT test must fail, post-only', async (check) => {
+    const mk = (code, stdout, output = stdout) => ({ code, timedOut: false, stdout, output, durationMs: 10 });
+    const rg = (value) => ({ rung: 'red-then-green-kind-swap', expect: 'seeded run fails naming the telemetry test', expect_check: { type: 'failing_test_named', value } });
+    const name = 'clamp respects upper bound';
+    check('TAP not-ok line naming the test → pass', checkExpect(rg(name), mk(0, `not ok 1 - ${name}\n# fail 1`), 'post').pass);
+    check('node spec reporter ✖ line → pass', checkExpect(rg('dispatched input records'), mk(0, '✖ dispatched input records wire.input.received then wire.input.dispatched (273ms)'), 'post').pass);
+    check('jest ✕ line → pass', checkExpect(rg('renders header'), mk(0, '✕ renders header (12 ms)'), 'post').pass);
+    check('mocha numbered failure → pass', checkExpect(rg('renders header'), mk(0, '  1) app renders header:\n     AssertionError'), 'post').pass);
+    check('failure line on stderr still seen (combined output)', checkExpect(rg(name), mk(0, '', `not ok 1 - ${name}`), 'post').pass);
+    check('WRONG failing test → RED (the t1b-0012 setup-409 class)', !checkExpect(rg(name), mk(0, 'not ok 1 - setup returns 409\nnot ok 2 - setup returns 409 again'), 'post').pass);
+    check('RED reason names the trap', /WRONG test/.test(checkExpect(rg(name), mk(0, 'not ok 1 - setup returns 409'), 'post').reason));
+    check('no failure at all → RED', !checkExpect(rg(name), mk(0, `✔ ${name}\nall green`), 'post').pass);
+    check('passing ✔ line naming the test does NOT count as a failure', !checkExpect(rg(name), mk(0, `✔ ${name} (3ms)`), 'post').pass);
+    check('NOT enforced at baseline (generate_evidence guards print the fallback there)', checkExpect(rg(name), mk(0, 'oracle-not-yet-authored'), 'baseline').pass);
+    check('schema accepts the type', validatePacket(stBasePacket(ID, { evidence_required: [{ rung: 'x', command: 'true', expect: 'red', expect_check: { type: 'failing_test_named', value: 'n' } }] })).length === 0);
+    check('schema rejects empty value', validatePacket(stBasePacket(ID, { evidence_required: [{ rung: 'x', command: 'true', expect: 'red', expect_check: { type: 'failing_test_named', value: '' } }] })).some((e) => /non-empty string required/.test(e)));
+  });
+
+  await scenario('failing_test_named e2e: wrong-test failure exits 0 → oracle RED → reverted; named failure → lands', async (check) => {
+    const ec = { type: 'failing_test_named', value: 'clamp upper bound' };
+    const wrong = stRepo(ID, {
+      packetOverrides: {
+        evidence_required: [{
+          rung: 'kind-swap', command: `node -e "console.log('not ok 1 - setup returns 409')"`,
+          expect: 'seeded mutation fails the clamp upper bound test', expect_check: ec,
+        }],
+      },
+    });
+    const { deps: dw, state: sw } = stMockDeps({ makers: [stEditUtil(ST_GOOD), stEditUtil(ST_GOOD)] }, log);
+    const rw = await exec(wrong, dw);
+    const pw = packetOnDisk(wrong);
+    check('exit-0-with-wrong-failure no longer launders: reverted', rw.outcome === 'reverted' && rw.exitCode === 1, rw.summary);
+    check('receipt names expect_check[failing_test_named]', pw.outcome.evidence_receipts.some((l) => /expect_check\[failing_test_named\]/.test(l)), JSON.stringify(pw.outcome.evidence_receipts.slice(-1)));
+    check('judge never called (deterministic catch, not judgment)', sw.judgeCalls === 0);
+    check('tree clean', treeClean(wrong));
+    const right = stRepo(ID, {
+      packetOverrides: {
+        evidence_required: [{
+          rung: 'kind-swap', command: `node -e "console.log('not ok 1 - clamp upper bound catches seeded mutation')"`,
+          expect: 'seeded mutation fails the clamp upper bound test', expect_check: ec,
+        }],
+      },
+    });
+    const { deps: dr } = stMockDeps({ makers: [stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'named red observed', confidence: 0.9 }] }, log);
+    const rr = await exec(right, dr);
+    check('named failing test at post → landed (baseline unaffected: post-only goal)', rr.outcome === 'landed', rr.summary);
+  });
+
+  // ---- validator ctx rename + shared-DB lint (engine-iteration-4 fixes 4 + 6) ----
+  await scenario('validator ctx: repoDir is the name; repoRoot accepted as deprecated alias with a warning', async (check) => {
+    const root = stRepo(ID, { subdir: SUB });
+    const repoDir = join(root, SUB);
+    const dup = stBasePacket(ID, { touchset: [`${SUB}/src/new-oracle.test.js`] });
+    check('repoDir ctx drives the path lint', validatePacket(dup, { repoDir }).some((e) => /duplicated repo-dir prefix/.test(e)));
+    const warns = [];
+    const errsAlias = validatePacket(dup, { repoRoot: repoDir, warn: (m) => warns.push(m) });
+    check('repoRoot alias still drives the lint (accept both)', errsAlias.some((e) => /duplicated repo-dir prefix/.test(e)));
+    check('alias use warns with the misuse rationale', warns.some((m) => /repoRoot is deprecated/.test(m) && /repoDir/.test(m)), warns.join(' | '));
+    const warns2 = [];
+    validatePacket(dup, { repoDir, warn: (m) => warns2.push(m) });
+    check('repoDir use does NOT warn', warns2.length === 0, warns2.join(' | '));
+    check('repoDir wins when both are passed (no warning)', (() => { const w = []; validatePacket(dup, { repoDir, repoRoot: '/nonexistent', warn: (m) => w.push(m) }); return w.length === 0; })());
+  });
+
+  await scenario('validator lint: node --test at the SHARED Postgres DB rejected; ephemeral-DB exemplar passes; missing --test-force-exit warns', async (check) => {
+    const root = stRepo(ID);
+    const withCmd = (command) => stBasePacket(ID, { evidence_required: [{ rung: 'direct-test', command, expect: 'green' }] });
+    const shared = withCmd("cd /x && PDPP_TEST_POSTGRES_URL=postgres://pdpp:pdpp@localhost:55432/pdpp node --test --test-force-exit test/foo.test.js");
+    const errs = validatePacket(shared, { repoDir: root });
+    check('shared-DB rung rejected', errs.some((e) => /SHARED Postgres DB/.test(e)), errs.join(' | '));
+    check('rejection cites the spine-0003 per-file-ephemeral pattern + --test-force-exit', errs.some((e) => /spine-0003/.test(e) && /createdb \$db/.test(e) && /--test-force-exit/.test(e)));
+    const exemplar = withCmd("sh -c 'db=pdpp_hone_t1b_x; dropdb --if-exists $db; createdb $db; PDPP_TEST_POSTGRES_URL=postgres://pdpp:pdpp@localhost:55432/$db node --test --test-force-exit test/foo.test.js; dropdb --if-exists $db'");
+    const warnsEx = [];
+    check('spine-0003 exemplar (ephemeral $db + force-exit) passes clean', validatePacket(exemplar, { repoDir: root, warn: (m) => warnsEx.push(m) }).length === 0 && warnsEx.length === 0, warnsEx.join(' | '));
+    check('pdpp_hone-prefixed DB name is NOT the shared DB (\\b boundary)', validatePacket(withCmd('PDPP_TEST_POSTGRES_URL=postgres://u:p@h:5/pdpp_hone_x node --test --test-force-exit t.js'), { repoDir: root }).length === 0);
+    const warns = [];
+    const noForce = withCmd('db=x; createdb $db; PDPP_TEST_POSTGRES_URL=postgres://u:p@h:5/$db node --test test/foo.test.js');
+    check('DB-backed node --test without --test-force-exit: no error…', validatePacket(noForce, { repoDir: root, warn: (m) => warns.push(m) }).length === 0);
+    check('…but a warning citing the idle-hang (best-effort half)', warns.some((m) => /--test-force-exit/.test(m) && /idle-hang/.test(m)), warns.join(' | '));
+    check('non-test shared-DB command (psql) not linted', validatePacket(withCmd('PDPP_TEST_POSTGRES_URL=postgres://u:p@h:5/pdpp psql -c "select 1"'), { repoDir: root }).length === 0);
+    check('without ctx.repoDir the lint is off (best-effort by design)', validatePacket(shared).length === 0);
+    // the work gate threads repoDir: a shared-DB packet is REFUSED before any side effect
+    const root2 = stRepo(ID, { packetOverrides: shared });
+    const before = read(root2, `quality/packets/${ID}.yaml`);
+    const r = await exec(root2, stMockDeps({}, log).deps);
+    check('work gate refuses the shared-DB rung packet', r.outcome === 'refused' && /SHARED Postgres DB/.test(r.summary), r.summary);
+    check('refusal side-effect-free', read(root2, `quality/packets/${ID}.yaml`) === before && !existsSync(claimsPath(root2)));
   });
 
   // ---- report ----

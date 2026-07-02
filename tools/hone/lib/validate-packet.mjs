@@ -10,9 +10,20 @@
 // - generate_evidence guard lint (structural, always on): an evidence command that
 //   references a touchset file with no existence guard executes a file the packet has
 //   not created yet — GREEN BASELINE goes red and the packet blocks for $0.
-// - touchset path lint (best-effort, only with ctx.repoRoot — validation often runs
+// - touchset path lint (best-effort, only with ctx.repoDir — validation often runs
 //   where --repo is unknown): duplicated repo-dir prefixes and paths resolving nowhere
 //   are caught BEFORE they corrupt touchset enforcement on a land.
+//
+// Engine-iteration-4 lint (run-2/3 defect class, only with ctx.repoDir):
+// - shared-DB rung lint: `node --test` pointed at the SHARED Postgres DB
+//   (PDPP_TEST_POSTGRES_URL=postgres://…/pdpp) rejects — dirty shared state reddens
+//   unrelated tests and concurrent schema bootstrap races block packets; the repaired
+//   spine-0003 rung (per-file ephemeral DB + --test-force-exit) is the exemplar.
+//   The --test-force-exit half is best-effort: WARN (via ctx.warn), never reject.
+//
+// ctx naming (engine-iteration-4 fix): the context key is `repoDir` — it is the --repo
+// directory, NOT necessarily the git root (the old name `repoRoot` was misread twice as
+// git-root). `repoRoot` is still accepted as a deprecated alias, with a warning.
 
 import { existsSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
@@ -47,7 +58,7 @@ const OPTIONAL_KEYS = ['priority', 'resets'];
 
 // machine-checkable half of an evidence rung (optional, additive; prose `expect` stays
 // for humans/judges). `hone work` enforces these deterministically, fail-closed.
-const EXPECT_CHECK_TYPES = ['exit_code', 'stdout_includes', 'stdout_regex', 'scope_fn_lt', 'file_excess_lt'];
+const EXPECT_CHECK_TYPES = ['exit_code', 'stdout_includes', 'stdout_regex', 'scope_fn_lt', 'file_excess_lt', 'failing_test_named'];
 
 const isStr = (v) => typeof v === 'string';
 const isNonEmptyStr = (v) => isStr(v) && v.trim().length > 0;
@@ -72,13 +83,22 @@ function findGitRoot(start) {
 
 /**
  * @param p the packet
- * @param ctx optional context: {repoRoot} enables the touchset path lint (plan/work pass
- *   it; bare validation stays structural — best-effort by design).
+ * @param ctx optional context: {repoDir} (the --repo directory) enables the touchset
+ *   path lint + shared-DB rung lint (plan/work pass it; bare validation stays
+ *   structural — best-effort by design). {repoRoot} is a deprecated alias for repoDir
+ *   (it never meant the git root); accepted with a warning. {warn} is an optional
+ *   callback for non-fatal lints; defaults to stderr.
  * @returns string[] — empty when valid.
  */
 export function validatePacket(p, ctx = {}) {
   const errs = [];
   const err = (m) => errs.push(m);
+  const warn = typeof ctx?.warn === 'function' ? ctx.warn : (m) => process.stderr.write(`hone validate WARNING: ${m}\n`);
+  let repoDir = isNonEmptyStr(ctx?.repoDir) ? ctx.repoDir : null;
+  if (!repoDir && isNonEmptyStr(ctx?.repoRoot)) {
+    repoDir = ctx.repoRoot;
+    warn("ctx.repoRoot is deprecated — it means the --repo dir, not the git root (misread twice); pass ctx.repoDir");
+  }
   if (!isMap(p)) return ['packet is not a map'];
 
   for (const k of Object.keys(p)) if (!TOP_KEYS.includes(k) && !OPTIONAL_KEYS.includes(k)) err(`unknown top-level key: ${k}`);
@@ -185,7 +205,7 @@ export function validatePacket(p, ctx = {}) {
         err(`evidence_required[${i}].expect_check.value: int required for exit_code`);
       } else if ((c.type === 'scope_fn_lt' || c.type === 'file_excess_lt') && !isInt(c.value)) {
         err(`evidence_required[${i}].expect_check.value: int required for ${c.type}`);
-      } else if ((c.type === 'stdout_includes' || c.type === 'stdout_regex') && !isNonEmptyStr(c.value)) {
+      } else if ((c.type === 'stdout_includes' || c.type === 'stdout_regex' || c.type === 'failing_test_named') && !isNonEmptyStr(c.value)) {
         err(`evidence_required[${i}].expect_check.value: non-empty string required for ${c.type}`);
       } else if (c.type === 'stdout_regex') {
         try { new RegExp(c.value); } catch (ex) { err(`evidence_required[${i}].expect_check.value: invalid regex (${ex.message})`); }
@@ -221,30 +241,53 @@ export function validatePacket(p, ctx = {}) {
     }
   }
 
-  // ---- touchset path lint (best-effort; only when ctx.repoRoot is known) ----
+  // ---- touchset path lint (best-effort; only when ctx.repoDir is known) ----
   // Mirrors work.mjs normalizeTouchEntry: an entry existing under --repo or the git root
   // is fine; a NOT-YET-EXISTING entry that starts with the repo dir's basename is the
   // duplicated-prefix corruption (rt-verdict-stream-rollups-oracle-0004: touchset
   // 'reference-implementation/test/…' while --repo already ends in reference-implementation
   // → work normalizes it to reference-implementation/reference-implementation/… →
   // guaranteed false touchset violation reverting honest maker work).
-  if (isNonEmptyStr(ctx?.repoRoot) && Array.isArray(p.touchset)) {
-    const repoRoot = resolve(ctx.repoRoot);
-    const repoBase = basename(repoRoot);
-    const gitRoot = findGitRoot(repoRoot);
+  if (repoDir && Array.isArray(p.touchset)) {
+    const repoAbs = resolve(repoDir);
+    const repoBase = basename(repoAbs);
+    const gitRoot = findGitRoot(repoAbs);
     for (const [i, t] of p.touchset.entries()) {
       if (!isNonEmptyStr(t)) continue;
       if (isAbsolute(t)) { err(`touchset[${i}]: '${t}' is absolute — entries must be --repo-relative (or git-root-relative)`); continue; }
-      if (existsSync(join(repoRoot, t))) continue; // --repo-relative, exists
-      if (gitRoot && gitRoot !== repoRoot && existsSync(join(gitRoot, t))) continue; // git-root-relative, exists
+      if (existsSync(join(repoAbs, t))) continue; // --repo-relative, exists
+      if (gitRoot && gitRoot !== repoAbs && existsSync(join(gitRoot, t))) continue; // git-root-relative, exists
       // exists nowhere: either a file the packet will create (fine) or a corrupted path
       if (t.startsWith(repoBase + '/')) {
         err(`touchset[${i}]: '${t}' carries a duplicated repo-dir prefix ('${repoBase}/') and exists at neither --repo nor the git root — hone work would normalize it to '${repoBase}/${t}' and revert honest maker work as a false touchset violation. Corrected path: '${t.slice(repoBase.length + 1)}'`);
         continue;
       }
       const parent = dirname(t);
-      if (parent !== '.' && !existsSync(join(repoRoot, parent)) && !(gitRoot && existsSync(join(gitRoot, parent)))) {
-        err(`touchset[${i}]: '${t}' resolves under neither --repo (${repoRoot}) nor the git root${gitRoot ? ` (${gitRoot})` : ''} — not even its parent directory exists; fix the path before this packet is worked`);
+      if (parent !== '.' && !existsSync(join(repoAbs, parent)) && !(gitRoot && existsSync(join(gitRoot, parent)))) {
+        err(`touchset[${i}]: '${t}' resolves under neither --repo (${repoAbs}) nor the git root${gitRoot ? ` (${gitRoot})` : ''} — not even its parent directory exists; fix the path before this packet is worked`);
+      }
+    }
+  }
+
+  // ---- shared-DB rung lint (engine-iteration-4; only when ctx.repoDir is known) ----
+  // A `node --test` rung pointed at the SHARED Postgres DB (…/pdpp) is the run-2/3
+  // hang-and-redden class: dirty shared state fails unrelated tests (t1b-0012's setup
+  // 409s) and concurrent schema bootstrap races block packets. spine-0003's repaired
+  // rung is the exemplar: per-file ephemeral DB + --test-force-exit. The force-exit
+  // half is best-effort (server-ish tests keep the runner alive — spine-0003's 2700s
+  // idle-hang): WARN, never reject.
+  if (repoDir && Array.isArray(p.evidence_required)) {
+    const SHARED_DB_RE = /PDPP_TEST_POSTGRES_URL=postgres:\/\/[^ ]*\/pdpp\b/;
+    const NODE_TEST_RE = /\bnode\s+(?:[^|;&\n]*\s)?--test\b/;
+    for (const [i, e] of p.evidence_required.entries()) {
+      if (!isMap(e) || !isNonEmptyStr(e.command)) continue;
+      const cmd = e.command;
+      if (NODE_TEST_RE.test(cmd) && SHARED_DB_RE.test(cmd)) {
+        err(`evidence_required[${i}] (rung '${e.rung}'): command points node --test at the SHARED Postgres DB (PDPP_TEST_POSTGRES_URL=…/pdpp) — shared/dirty-DB state reddens unrelated tests and concurrent schema-bootstrap races block packets (the run-2/3 class). Use the spine-0003 repaired pattern (per-file ephemeral DB + --test-force-exit): db=pdpp_hone_<packet>_<file>; dropdb --if-exists $db; createdb $db; PDPP_TEST_POSTGRES_URL=postgres://…/$db node --test --test-force-exit <file>; dropdb --if-exists $db`);
+        continue;
+      }
+      if (NODE_TEST_RE.test(cmd) && /PDPP_TEST_POSTGRES_URL=/.test(cmd) && !/--test-force-exit\b/.test(cmd)) {
+        warn(`evidence_required[${i}] (rung '${e.rung}'): DB-backed node --test without --test-force-exit — a server-ish test can keep the runner alive after tests finish (spine-0003's 2700s idle-hang); add --test-force-exit (best-effort lint, not a rejection)`);
       }
     }
   }

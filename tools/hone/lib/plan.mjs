@@ -145,7 +145,7 @@ export async function runPlan(flags) {
   const emitted = [], preserved = [];
   for (const g of chosen) {
     const packet = buildPacket(g, ctx, meta);
-    assertValidPacket(packet, packet.candidate_id);
+    assertValidPacket(packet, packet.candidate_id, { repoDir: ctx.repoRoot }); // repoDir enables the touchset-path + shared-DB lints at authoring time
     const yaml = stringifyYaml(packet);
     const back = parseYaml(yaml);
     if (!deepEqual(packet, back)) {
