@@ -250,6 +250,12 @@ function tailClip(s, n) {
   return t.length <= n ? t : `…[${t.length - n} bytes clipped]…\n` + t.slice(-n);
 }
 
+/** for prose (judge reasoning in lessons/claims): keep the head, clip the tail. */
+function headClip(s, n) {
+  const t = String(s);
+  return t.length <= n ? t : t.slice(0, n) + '…';
+}
+
 // ---------------------------------------------------------------- packet io
 
 function loadPacket(repoRoot, id) {
@@ -659,7 +665,7 @@ export async function executeWork(opts, deps) {
       if (!oracle.green) {
         return reverted({ judgeVerdict: verdictLine(verdict) }, [
           { type: 'verified_fact', statement: `judge-requested revision broke evidence rung '${oracle.rung.rung}' (${oracle.verdict.reason}); all changes reverted`, evidence: [{ command: oracle.rung.command, output_digest: oracle.digest }] },
-          { type: 'remaining_work', statement: `packet ${id} reverted; judge concern (${tailClip(verdict.reasoning, 200)}) still open` },
+          { type: 'remaining_work', statement: `packet ${id} reverted; judge concern (${headClip(verdict.reasoning, 240)}) still open` },
         ], `revision broke the oracle at '${oracle.rung.rung}' — reverted`, 'judge-driven revision regressed the oracle; REVISE cycles need the oracle re-gate (it held)');
       }
       const second = await judgeOnce();
@@ -667,15 +673,15 @@ export async function executeWork(opts, deps) {
       if (second.verdict !== 'PASS') {
         return reverted({ judgeVerdict: `${verdictLine(verdict)} || after revision: ${verdictLine(second)}` }, [
           { type: 'judged_design_claim', statement: `independent judge refused the change after one revision cycle: ${second.reasoning}`, judge: { provider: judgeName, verdict: second.verdict } },
-          { type: 'remaining_work', statement: `packet ${id} reverted on judge ${second.verdict}; address: ${tailClip(second.reasoning, 200)}` },
+          { type: 'remaining_work', statement: `packet ${id} reverted on judge ${second.verdict}; address: ${headClip(second.reasoning, 240)}` },
         ], `judge ${second.verdict} after revision — reverted (never land without PASS)`, `judge refused twice (REVISE→${second.verdict}); packet bar not reachable by this maker`);
       }
       verdict = second;
     } else if (verdict.verdict === 'REJECT') {
       return reverted({ judgeVerdict: verdictLine(verdict) }, [
         { type: 'judged_design_claim', statement: `independent judge REJECTED the change: ${verdict.reasoning}`, judge: { provider: judgeName, verdict: 'REJECT' } },
-        { type: 'remaining_work', statement: `packet ${id} reverted on judge REJECT; address: ${tailClip(verdict.reasoning, 200)}` },
-      ], 'judge REJECT — reverted (never land without PASS)', `judge rejected: ${tailClip(verdict.reasoning, 200)}`);
+        { type: 'remaining_work', statement: `packet ${id} reverted on judge REJECT; address: ${headClip(verdict.reasoning, 240)}` },
+      ], 'judge REJECT — reverted (never land without PASS)', `judge rejected: ${headClip(verdict.reasoning, 240)}`);
     }
 
     // ---- 8. land ----
