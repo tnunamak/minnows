@@ -63,7 +63,18 @@ authoring_evidence:             # evidence gathered WHEN WRITING the packet (e.g
 evidence_required:              # execution-time proof obligations — LITERAL runnable commands, not prose
   - rung: string                #   from proof_class ladder, e.g. "direct-test"
     command: string             #   exact invocation incl. env, e.g. "PDPP_TEST_POSTGRES_URL=... node --test test/x.test.js"
-    expect: string              #   pass criterion, e.g. "19/19 pass, 0 skipped"
+    expect: string              #   pass criterion for humans + judge, e.g. "19/19 pass, 0 skipped"
+    expect_check:               #   OPTIONAL (added engine-iteration-1, additive) — the MACHINE-checkable
+                                #   half of expect; `work` enforces it deterministically, fail-closed.
+                                #   Prose expect stays; this removes the "engine trusts prose" gap.
+      type: exit_code | stdout_includes | stdout_regex | scope_fn_lt | file_excess_lt
+                                #   exit_code: process exit == value (int)
+                                #   stdout_includes / stdout_regex: stdout contains / matches value (string)
+                                #   scope_fn_lt: scope-fn JSON found=true && cognitive_before < value (post only)
+                                #   file_excess_lt: file-collector JSON found=true && whole-file Σ excess-cc
+                                #     < value AND strictly < measured baseline AND no NEW flagged function
+                                #     vs baseline (post only — the anti-relocation whole-file target)
+      value: int | string
 not_allowed: [string]           # e.g. [public-shape-change, new-dependency, behavior-change]
 
 # ---- execution contract ----
@@ -81,6 +92,10 @@ unlocks: [candidate_id]         # packets this enables (evidence-generation pack
 
 # ---- outcome (terminal; the durable knowledge) ----
 status: pending | in_progress | landed | reverted | skipped | blocked
+resets:                         # OPTIONAL (added engine-iteration-1, additive) — owner reopenings via
+                                # `hone reset`; each entry records that a terminal status was deliberately
+                                # returned to pending (landed requires --force). Never removed once appended.
+  - {at: iso-timestamp, from_status: status-enum, reason: string}
 outcome:
   commit: string | null
   skip_reason: string | null    # REQUIRED if skipped — e.g. "T1c: capture crosses txn boundary"

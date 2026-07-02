@@ -32,7 +32,11 @@ const TOP_KEYS = [
 ];
 
 // OPTIONAL top-level keys: may be absent (hand-authored packets), strict when present.
-const OPTIONAL_KEYS = ['priority'];
+const OPTIONAL_KEYS = ['priority', 'resets'];
+
+// machine-checkable half of an evidence rung (optional, additive; prose `expect` stays
+// for humans/judges). `hone work` enforces these deterministically, fail-closed.
+const EXPECT_CHECK_TYPES = ['exit_code', 'stdout_includes', 'stdout_regex', 'scope_fn_lt', 'file_excess_lt'];
 
 const isStr = (v) => typeof v === 'string';
 const isNonEmptyStr = (v) => isStr(v) && v.trim().length > 0;
@@ -97,6 +101,19 @@ export function validatePacket(p) {
     }
   }
 
+  if ('resets' in p) { // optional (added engine-iteration-1, additive) — owner reopenings of a terminal packet
+    if (!Array.isArray(p.resets)) err('resets: array required when present');
+    else for (const [i, r] of p.resets.entries()) {
+      if (!isMap(r) || Object.keys(r).sort().join(',') !== 'at,from_status,reason') {
+        err(`resets[${i}]: map with exactly {at, from_status, reason} required`);
+        continue;
+      }
+      if (!isStr(r.at) || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(r.at)) err(`resets[${i}].at: iso-timestamp required`);
+      if (!ENUMS.status.includes(r.from_status)) err(`resets[${i}].from_status: must be one of [${ENUMS.status.join(' | ')}], got ${JSON.stringify(r.from_status)}`);
+      if (!isNonEmptyStr(r.reason)) err(`resets[${i}].reason: non-empty string required`);
+    }
+  }
+
   if (!isMap(p.risk)) err('risk: map required');
   else {
     const RISK = {
@@ -121,9 +138,27 @@ export function validatePacket(p) {
 
   if (!Array.isArray(p.evidence_required) || !p.evidence_required.length) err('evidence_required: non-empty array required');
   else for (const [i, e] of p.evidence_required.entries()) {
-    if (!isMap(e) || Object.keys(e).sort().join(',') !== 'command,expect,rung' ||
+    const keys = isMap(e) ? Object.keys(e).sort().join(',') : '';
+    if ((keys !== 'command,expect,rung' && keys !== 'command,expect,expect_check,rung') ||
       !isNonEmptyStr(e.rung) || !isNonEmptyStr(e.command) || !isNonEmptyStr(e.expect)) {
-      err(`evidence_required[${i}]: {rung, command, expect} (all non-empty strings — LITERAL runnable command, not prose) required`);
+      err(`evidence_required[${i}]: {rung, command, expect} (all non-empty strings — LITERAL runnable command, not prose) + optional expect_check required`);
+      continue;
+    }
+    if ('expect_check' in e) {
+      const c = e.expect_check;
+      if (!isMap(c) || Object.keys(c).sort().join(',') !== 'type,value') {
+        err(`evidence_required[${i}].expect_check: map with exactly {type, value} required`);
+      } else if (!EXPECT_CHECK_TYPES.includes(c.type)) {
+        err(`evidence_required[${i}].expect_check.type: must be one of [${EXPECT_CHECK_TYPES.join(' | ')}], got ${JSON.stringify(c.type)}`);
+      } else if (c.type === 'exit_code' && !isInt(c.value)) {
+        err(`evidence_required[${i}].expect_check.value: int required for exit_code`);
+      } else if ((c.type === 'scope_fn_lt' || c.type === 'file_excess_lt') && !isInt(c.value)) {
+        err(`evidence_required[${i}].expect_check.value: int required for ${c.type}`);
+      } else if ((c.type === 'stdout_includes' || c.type === 'stdout_regex') && !isNonEmptyStr(c.value)) {
+        err(`evidence_required[${i}].expect_check.value: non-empty string required for ${c.type}`);
+      } else if (c.type === 'stdout_regex') {
+        try { new RegExp(c.value); } catch (ex) { err(`evidence_required[${i}].expect_check.value: invalid regex (${ex.message})`); }
+      }
     }
   }
   if (!Array.isArray(p.not_allowed) || !p.not_allowed.every(isNonEmptyStr)) err('not_allowed: [string] required');
