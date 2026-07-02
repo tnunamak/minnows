@@ -42,3 +42,15 @@ classification:
 
 policy:
   autonomy: autonomous_branch   # autonomous_branch | autonomous_preprod (SPEC §owner interface)
+
+agenda:
+  # The machine-readable DOCTRINE PROJECTION (AGENDA-DESIGN.md): human-fixed, read-only input to
+  # `hone agenda`; the report's divergence flags consume named_targets + budget_bands.
+  doctrine_path: null       # the doctrine document fed verbatim to the agenda model (or pass --doctrine)
+  # First-class chooser anchors: [{id, description, evidence_hint, keywords: [..]}]. Every named
+  # target must be ranked or explicitly NOT-chosen; demoting one is an escalation. `keywords`
+  # drive realized-spend attribution in batch records (agenda-consume targetHits).
+  named_targets: []
+  # Doctrine budget bands: doctrine class → [min%, max%] of realized batch spend. Classes are the
+  # normalized set B · A2 · T1 · T0 (prevention folds into T0). Example: B: [40, 50]
+  budget_bands: {}

@@ -19,9 +19,46 @@ export function loadProfile(repoRoot) {
   const repoProfilePath = join(repoRoot, 'quality', 'hone.yaml');
   if (existsSync(repoProfilePath)) {
     const over = parseYaml(readFileSync(repoProfilePath, 'utf8'));
-    return { profile: deepMerge(def, over), source: repoProfilePath };
+    const profile = deepMerge(def, over);
+    validateAgendaProjection(profile.agenda, repoProfilePath);
+    return { profile, source: repoProfilePath };
   }
+  validateAgendaProjection(def.agenda, defPath);
   return { profile: def, source: `${defPath} (no quality/hone.yaml in repo — generic defaults)` };
+}
+
+/**
+ * `agenda:` is the machine-readable DOCTRINE PROJECTION (AGENDA-DESIGN.md): named_targets are
+ * first-class chooser anchors and the report's divergence flags consume named_targets +
+ * budget_bands. A malformed projection silently disables those flags, so it fails LOUD here.
+ *   agenda.doctrine_path   string|null — the human-fixed doctrine document
+ *   agenda.named_targets   [{id, description?, evidence_hint?, keywords?: [..]}]
+ *   agenda.budget_bands    { <doctrine-class>: [min%, max%] }
+ */
+export function validateAgendaProjection(agenda, source) {
+  if (agenda == null) return;
+  const bad = (msg) => { throw new Error(`${source}: ${msg}`); };
+  if (typeof agenda !== 'object' || Array.isArray(agenda)) bad('agenda: must be a map');
+  const nt = agenda.named_targets;
+  if (nt != null) {
+    if (!Array.isArray(nt)) bad('agenda.named_targets: must be a list');
+    nt.forEach((t, i) => {
+      if (!t || typeof t !== 'object' || Array.isArray(t)) bad(`agenda.named_targets[${i}]: must be a map with an id`);
+      if (typeof t.id !== 'string' || !t.id.trim()) bad(`agenda.named_targets[${i}].id: non-empty string required`);
+      if (t.keywords != null && (!Array.isArray(t.keywords) || !t.keywords.every((k) => typeof k === 'string'))) {
+        bad(`agenda.named_targets[${i}].keywords: must be a list of strings`);
+      }
+    });
+  }
+  const bb = agenda.budget_bands;
+  if (bb != null) {
+    if (typeof bb !== 'object' || Array.isArray(bb)) bad('agenda.budget_bands: must be a map of class → [min%, max%]');
+    for (const [cls, band] of Object.entries(bb)) {
+      if (!Array.isArray(band) || band.length !== 2 || !band.every((x) => Number.isFinite(x)) || band[0] > band[1]) {
+        bad(`agenda.budget_bands.${cls}: must be [min%, max%] with min ≤ max`);
+      }
+    }
+  }
 }
 
 export function gitFacts(repoRoot) {
