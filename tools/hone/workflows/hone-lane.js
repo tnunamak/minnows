@@ -347,7 +347,9 @@ for (const id of PACKETS) {
         const rev = await makerCall(`judge-revise:${id}`, `An INDEPENDENT judge reviewed your applied diff and returned REVISE. You MUST address this exact demand while keeping every rule in your brief (${emit.brief_path}) — do not weaken or edit tests or evidence commands:\n\nJUDGE REVISE: ${verdict.reasoning}`);
         if (!rev.collided) {
           lastTier = rev.tier;
+          const greenGate = gate; // keep the green receipt: a no-change revision leaves the tree state (and its receipt) valid
           gate = await engine(`gate:${id}#j`, 'Gate', laneCmd('gate', pkt(id), `--revision-note-b64 ${b64(`judge REVISE: ${String(verdict.reasoning).slice(0, 400)}`)}`));
+          if (gate.refused && /already green/i.test(gate.reason || '')) gate = greenGate; // engine: "proceed to land" — run wf_67898fff misread this as red
           if (gate.terminal) { record(id, gate.terminal, { reason: gate.summary }); continue; } // revision broke the oracle at the ceiling — reverted+recorded
           if (gate.green !== true) {
             await abortPacket(id, 'post-judge-revision gate not green');
