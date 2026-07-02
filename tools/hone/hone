@@ -15,6 +15,8 @@ commands:
               [--repo .] [--top 20]
   work <id>   execute one packet (maker ≠ judge)
               [--repo .] [--maker claude|codex] [--judge codex|claude] [--dry-run]
+  reset <id>  deliberately reopen a terminal packet → status pending (recorded in packet.resets)
+              [--repo .] [--to pending] [--force] [--reason TEXT]   (landed requires --force)
   report      compile claim-ledger report → <repo>/quality/reports/
   run         plan→work loop, conflict-aware lanes
               [--repo .] [--n K] [--lanes L]
@@ -40,7 +42,12 @@ try {
     }
     case 'work': {
       const { runWork } = await import('./lib/work.mjs');
-      await runWork(flags, rest);
+      await runWork(flags);
+      break;
+    }
+    case 'reset': {
+      const { runReset } = await import('./lib/reset.mjs');
+      await runReset(flags);
       break;
     }
     case 'report': {

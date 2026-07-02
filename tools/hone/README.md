@@ -15,6 +15,8 @@ label, never presented as validated.
 ```bash
 hone inventory --repo /path/to/repo            # collectors → <repo>/quality/inventory/*.json
 hone plan      --repo /path/to/repo --top 20   # packets    → <repo>/quality/packets/*.yaml
+hone work <id> --repo /path/to/repo            # execute one packet (maker ≠ judge, evidence-gated)
+hone reset <id> --repo /path/to/repo           # deliberately reopen a terminal packet (landed needs --force)
 ```
 
 Requirements: Node >= 22.7; `biome` runnable inside the target repo (default `npx biome`);

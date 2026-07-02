@@ -30,18 +30,27 @@
 // Deterministic-oracle honesty note: `expect` strings are prose for humans + judge; the
 // engine deterministically enforces (a) exit code 0 on every rung, (b) `prints TOKEN`,
 // (c) scope-fn `found=true` / `cognitive_before < N` / `red_scan unchanged` (parsed from
-// the collector's JSON). Unrecognized expect clauses are NOT silently trusted: the full
-// receipt goes to the independent judge, which is instructed that insufficient evidence
-// alone justifies REVISE/REJECT. Baseline enforces only (a)+(b) — improvement clauses
-// like `cognitive_before < N` are post-change goals by construction.
+// the collector's JSON), (d) the optional machine-checkable `expect_check` spec
+// ({type: exit_code|stdout_includes|stdout_regex|scope_fn_lt|file_excess_lt, value} —
+// enforced deterministically, fail-closed), and (e) NO NEW SKIPS on test rungs: skip
+// counts parsed from test output at baseline and post; post > baseline is oracle RED
+// (the skip-mask trap — a change that newly skips tests must never pass on exit 0).
+// Skip-count parsing is defensive telemetry: unparseable output is noted, never fatal;
+// enforcement applies only when BOTH phases parsed. Unrecognized expect clauses are NOT
+// silently trusted: the full receipt goes to the independent judge, which is instructed
+// that insufficient evidence alone justifies REVISE/REJECT. Baseline enforces only
+// (a)+(b) + the identity expect_check types — improvement clauses like
+// `cognitive_before < N` / `file_excess_lt` are post-change goals by construction.
 
-import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve, dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { parseYaml, stringifyYaml } from './yaml.mjs';
 import { validatePacket, assertValidPacket } from './validate-packet.mjs';
 import { deepEqual, djb2, slug } from './util.mjs';
+import { loadPacket, writePacket } from './packet-io.mjs';
+import { executeReset } from './reset.mjs';
 import { appendClaim, appendCostEntry, nextClaimSeq, nextJobAttempt, readJsonl, claimsPath, costPath } from './ledger.mjs';
 import { runCli } from '../providers/provider.mjs';
 
@@ -55,7 +64,7 @@ const MAX_BUFFER = 64 * 1024 * 1024;
 
 // ---------------------------------------------------------------- entry point
 
-export async function runWork(flags, rest) {
+export async function runWork(flags) {
   if (flags['self-test']) {
     process.exitCode = await selfTest({ verbose: !!flags.verbose });
     return;
@@ -213,17 +222,110 @@ function lastJson(stdout) {
 }
 
 /**
- * deterministic expect check. `phase`='baseline' enforces runnability (exit 0 + prints);
- * 'post' additionally enforces the recognized improvement/identity clauses.
+ * skip count from test-runner output, best-effort across formats: node --test TAP
+ * (`# skipped 3`) / spec reporter (`ℹ skipped 3`), vitest (`2 skipped`), jest
+ * (`Tests: 1 skipped, …`), mocha (`3 pending`). Returns null when unparseable —
+ * callers treat null as "telemetry unavailable", never as a verdict.
+ */
+export function parseSkipCount(output) {
+  const s = String(output);
+  let m = s.match(/^\s*[#ℹ]\s*skip(?:ped)?[:\s]+(\d+)\b/mi);
+  if (m) return Number(m[1]);
+  m = s.match(/(\d+)\s+skip(?:ped|s)?\b/i);
+  if (m) return Number(m[1]);
+  m = s.match(/(\d+)\s+pending\b/i);
+  if (m) return Number(m[1]);
+  return null;
+}
+
+const EXPECT_CHECK_TYPES = ['exit_code', 'stdout_includes', 'stdout_regex', 'scope_fn_lt', 'file_excess_lt'];
+
+/** multiset subset: every name in `post` appears at least as often in `base`. */
+function isSubMultiset(post, base) {
+  const tally = new Map();
+  for (const n of base) tally.set(n, (tally.get(n) || 0) + 1);
+  for (const n of post) {
+    const left = (tally.get(n) || 0) - 1;
+    if (left < 0) return false;
+    tally.set(n, left);
+  }
+  return true;
+}
+
+/**
+ * the machine-checkable half of a rung: `expect_check` {type, value} enforced
+ * deterministically (fail-closed — the whole point is that the maker cannot talk past it).
+ * Identity types (exit_code / stdout_includes / stdout_regex) apply at BOTH phases;
+ * improvement types (scope_fn_lt / file_excess_lt) are post-change goals only.
+ */
+function checkExpectCheck(ec, res, phase, baselineRes) {
+  const fail = (reason) => ({ pass: false, reason: `expect_check[${ec.type}]: ${reason}` });
+  switch (ec.type) {
+    case 'exit_code':
+      return res.code === ec.value ? null : fail(`exit ${res.code}, expected ${ec.value}`);
+    case 'stdout_includes':
+      return res.stdout.includes(String(ec.value)) ? null : fail(`stdout does not contain '${ec.value}'`);
+    case 'stdout_regex': {
+      let re;
+      try { re = new RegExp(String(ec.value)); }
+      catch (e) { return fail(`invalid regex '${ec.value}' (${e.message}) — fail-closed`); }
+      return re.test(res.stdout) ? null : fail(`stdout does not match /${ec.value}/`);
+    }
+    case 'scope_fn_lt': {
+      if (phase !== 'post') return null; // improvement goal, not a baseline precondition
+      const j = lastJson(res.stdout);
+      if (!j) return fail('output has no parseable JSON');
+      if (j.found !== true) return fail(`scope-fn found=${JSON.stringify(j.found)} — target function missing post-change (renamed or deleted?)`);
+      if (!(typeof j.cognitive_before === 'number' && j.cognitive_before < Number(ec.value))) {
+        return fail(`cognitive_before=${j.cognitive_before}, expected < ${ec.value} — no measured complexity reduction`);
+      }
+      return null;
+    }
+    case 'file_excess_lt': {
+      if (phase !== 'post') return null; // improvement goal, not a baseline precondition
+      const j = lastJson(res.stdout);
+      if (!j) return fail('output has no parseable JSON');
+      if (j.found !== true) return fail(`file collector found=${JSON.stringify(j.found)} — touchset file missing post-change?`);
+      if (!(typeof j.file_excess === 'number' && j.file_excess < Number(ec.value))) {
+        return fail(`file_excess=${j.file_excess}, expected < ${ec.value} (packet baseline) — whole-file Σ excess-cc did not decrease`);
+      }
+      const b = baselineRes ? lastJson(baselineRes.stdout) : null;
+      if (!b || typeof b.file_excess !== 'number') return fail('baseline collector JSON unavailable — cannot prove strict decrease (fail-closed)');
+      if (!(j.file_excess < b.file_excess)) {
+        return fail(`file_excess ${b.file_excess} → ${j.file_excess} — no strict decrease vs measured baseline`);
+      }
+      const names = (r) => (Array.isArray(r.flagged) ? r.flagged.map((f) => f.fn ?? '<anon>') : []);
+      if (!isSubMultiset(names(j), names(b))) {
+        return fail(`NEW function above the cog threshold post-change (baseline flagged=[${names(b).join(',')}] post=[${names(j).join(',')}]) — complexity moved, not reduced`);
+      }
+      return null;
+    }
+    default:
+      return fail(`unknown expect_check type — fail-closed (known: ${EXPECT_CHECK_TYPES.join(', ')})`);
+  }
+}
+
+/**
+ * deterministic expect check. `phase`='baseline' enforces runnability (exit 0 + prints +
+ * identity expect_check types); 'post' additionally enforces the recognized
+ * improvement/identity clauses and the no-new-skips rule on test rungs.
  */
 function checkExpect(rung, res, phase, baselineRes = null) {
   if (res.timedOut) return { pass: false, reason: `TIMEOUT after ${Math.round(res.durationMs / 1000)}s (fail-closed)` };
-  if (res.code !== 0) return { pass: false, reason: `exit ${res.code} (expected 0)` };
+  const ec = (rung.expect_check && typeof rung.expect_check === 'object') ? rung.expect_check : null;
+  const expectedExit = ec?.type === 'exit_code' && Number.isInteger(ec.value) ? ec.value : 0;
+  if (res.code !== expectedExit) return { pass: false, reason: `exit ${res.code} (expected ${expectedExit})` };
   const expect = String(rung.expect);
+  const notes = [];
 
   const prints = expect.match(/prints\s+([A-Z][A-Z0-9_-]{2,})/);
   if (prints && !res.output.includes(prints[1])) {
     return { pass: false, reason: `output does not contain '${prints[1]}'` };
+  }
+
+  if (ec) {
+    const bad = checkExpectCheck(ec, res, phase, baselineRes);
+    if (bad) return bad;
   }
 
   const cc = expect.match(/cognitive_before\s*<\s*(\d+)/);
@@ -234,15 +336,28 @@ function checkExpect(rung, res, phase, baselineRes = null) {
     if (!(typeof j.cognitive_before === 'number' && j.cognitive_before < Number(cc[1]))) {
       return { pass: false, reason: `cognitive_before=${j.cognitive_before}, expected < ${cc[1]} — no measured complexity reduction` };
     }
-    if (/red_scan unchanged/.test(expect)) {
-      const b = baselineRes ? lastJson(baselineRes.stdout) : null;
-      if (!b) return { pass: false, reason: 'red_scan-unchanged required but baseline JSON unavailable' };
-      if (!deepEqual(j.red_scan, b.red_scan)) {
-        return { pass: false, reason: `red_scan changed: ${JSON.stringify(b.red_scan)} → ${JSON.stringify(j.red_scan)}` };
-      }
+  }
+  if ((cc || ec?.type === 'scope_fn_lt' || ec?.type === 'file_excess_lt') && phase === 'post' && /red_scan unchanged/.test(expect)) {
+    const j = lastJson(res.stdout);
+    const b = baselineRes ? lastJson(baselineRes.stdout) : null;
+    if (!j || !b) return { pass: false, reason: 'red_scan-unchanged required but collector JSON unavailable' };
+    if (!deepEqual(j.red_scan, b.red_scan)) {
+      return { pass: false, reason: `red_scan changed: ${JSON.stringify(b.red_scan)} → ${JSON.stringify(j.red_scan)}` };
     }
   }
-  return { pass: true, reason: 'exit 0; deterministic expect clauses satisfied' };
+
+  // no-new-skips (the skip-mask trap): a post-edit run that newly SKIPS tests must not
+  // pass on exit 0 alone. Strict when parsed at both phases; telemetry note otherwise.
+  if (phase === 'post' && baselineRes && /test/i.test(String(rung.rung))) {
+    const before = parseSkipCount(baselineRes.output);
+    const after = parseSkipCount(res.output);
+    if (before != null && after != null && after > before) {
+      return { pass: false, reason: `new skips: baseline skipped=${before}, post skipped=${after} — skipping tests is not passing them` };
+    }
+    notes.push(before != null && after != null ? `skips ${before}→${after} OK` : 'skip-count unparsed (telemetry only, not enforced)');
+  }
+
+  return { pass: true, reason: `exit ${expectedExit}; deterministic expect clauses satisfied${notes.length ? ` (${notes.join('; ')})` : ''}` };
 }
 
 function tailClip(s, n) {
@@ -254,37 +369,6 @@ function tailClip(s, n) {
 function headClip(s, n) {
   const t = String(s);
   return t.length <= n ? t : t.slice(0, n) + '…';
-}
-
-// ---------------------------------------------------------------- packet io
-
-function loadPacket(repoRoot, id) {
-  const dir = join(repoRoot, 'quality', 'packets');
-  let path = join(dir, `${id}.yaml`);
-  if (!existsSync(path)) {
-    path = null;
-    if (existsSync(dir)) {
-      for (const f of readdirSync(dir)) {
-        if (!f.endsWith('.yaml')) continue;
-        try {
-          if (parseYaml(readFileSync(join(dir, f), 'utf8'))?.candidate_id === id) { path = join(dir, f); break; }
-        } catch { /* foreign yaml */ }
-      }
-    }
-    if (!path) throw new Error(`packet not found: ${id} (looked in ${dir})`);
-  }
-  const rawText = readFileSync(path, 'utf8');
-  return { packet: parseYaml(rawText), path, rawText };
-}
-
-function writePacket(path, packet) {
-  assertValidPacket(packet, packet.candidate_id);
-  const yaml = stringifyYaml(packet);
-  const back = parseYaml(yaml);
-  if (!deepEqual(packet, back)) {
-    throw new Error(`YAML round-trip mismatch for ${packet.candidate_id} — refusing to corrupt the packet stream`);
-  }
-  writeFileSync(path, yaml);
 }
 
 // ---------------------------------------------------------------- prompts
@@ -380,7 +464,7 @@ export async function executeWork(opts, deps) {
         `  touchset: ${packet.touchset.join(', ')}`,
         `  not_allowed: ${packet.not_allowed.join(', ')}`,
         `  evidence rungs (baseline, then post-change oracle):`,
-        ...packet.evidence_required.map((r, i) => `    ${i + 1}. [${r.rung}] ${r.command}\n       expect: ${r.expect}`),
+        ...packet.evidence_required.map((r, i) => `    ${i + 1}. [${r.rung}] ${r.command}\n       expect: ${r.expect}${r.expect_check ? `\n       expect_check (machine-enforced): ${r.expect_check.type} ${JSON.stringify(r.expect_check.value)}` : ''}`),
         `  plan.instruction: ${packet.plan.instruction}`,
         `  would: mark in_progress → GREEN BASELINE → maker → touchset gate → oracle (≤1 revision) → judge (≤1 revise) → land/revert`,
       ].join('\n'),
@@ -390,7 +474,6 @@ export async function executeWork(opts, deps) {
   // ---- everything below has side effects; terminal paths write packet + ledgers ----
   const receiptsDirRel = join('quality', 'receipts', id);
   const receiptLines = [];       // single-line receipt strings for packet.outcome.evidence_receipts
-  const receiptEvidence = [];    // {command, output_digest} for claims
   const makerMetas = [];
   const judgeMetas = [];
   let revisionCount = 0;
@@ -701,7 +784,7 @@ export async function executeWork(opts, deps) {
       {
         type: 'behavior_preserved',
         statement: `all ${packet.evidence_required.length} evidence_required rung(s) for ${id} green at baseline and post-change (${packet.evidence_required.map((r) => r.rung).join(', ')})`,
-        evidence: packet.evidence_required.map((r, i) => ({ command: r.command, output_digest: receiptLines.filter((l) => l.includes(`] ${r.rung}:`)).pop() ?? `see ${receiptsDirRel}/` })),
+        evidence: packet.evidence_required.map((r) => ({ command: r.command, output_digest: receiptLines.filter((l) => l.includes(`] ${r.rung}:`)).pop() ?? `see ${receiptsDirRel}/` })),
       },
       {
         type: 'judged_design_claim',
@@ -709,7 +792,8 @@ export async function executeWork(opts, deps) {
         judge: { provider: judgeName, verdict: 'PASS' },
       },
     ];
-    const ccRung = packet.evidence_required.find((r) => /cognitive_before\s*</.test(String(r.expect)));
+    const ccRung = packet.evidence_required.find((r) =>
+      /cognitive_before\s*</.test(String(r.expect)) || ['scope_fn_lt', 'file_excess_lt'].includes(r.expect_check?.type));
     if (ccRung) {
       claims.push({
         type: 'verified_fact',
@@ -841,7 +925,7 @@ function stMockDeps(script, log) {
   return {
     state,
     deps: {
-      maker: async (name, prompt, { cwd }) => {
+      maker: async (name, _prompt, { cwd }) => {
         state.makerCalls++;
         const fn = script.makers?.[m++];
         if (!fn) throw Object.assign(new Error('mock maker: no scripted call left'), { kind: 'mock-exhausted' });
@@ -1009,7 +1093,6 @@ async function selfTest({ verbose = false } = {}) {
     const root = stRepo(ID);
     const { deps, state } = stMockDeps({ makers: [stEditUtil(ST_BAD), stEditUtil(ST_BAD)] }, log);
     const r = await exec(root, deps);
-    const p = packetOnDisk(root);
     check('reverted', r.outcome === 'reverted' && r.exitCode === 1, r.summary);
     check('util.js restored', read(root, 'src/util.js') === ST_ORIG);
     check('revision_count=1 in cost', costs(root)[0]?.revision_count === 1 && costs(root)[0]?.judge_result === null);
@@ -1101,6 +1184,157 @@ async function selfTest({ verbose = false } = {}) {
     check('red_scan changed fail', !checkExpect(ccExpect, mk(0, JSON.stringify({ found: true, cognitive_before: 4, red_scan: ['bearer'] })), 'post', base).pass);
     check('cc clause NOT enforced at baseline (goal, not precondition)', checkExpect(ccExpect, base, 'baseline').pass);
     check('unparseable JSON fail-closed', !checkExpect(ccExpect, mk(0, 'not json'), 'post', base).pass);
+  });
+
+  // ---- no-new-skips: parser + deterministic enforcement (the skip-mask trap) ----
+  await scenario('no-new-skips: parseSkipCount formats + checkExpect enforcement', async (check) => {
+    const mk = (code, stdout, output = stdout) => ({ code, timedOut: false, stdout, output, durationMs: 10 });
+    check('node --test TAP', parseSkipCount('# tests 5\n# pass 3\n# skipped 2\n') === 2);
+    check('node --test spec reporter', parseSkipCount('ℹ pass 40\nℹ skipped 3\n') === 3);
+    check('vitest', parseSkipCount('      Tests  2 skipped | 38 passed (40)') === 2);
+    check('jest', parseSkipCount('Tests:       1 skipped, 39 passed, 40 total') === 1);
+    check('mocha pending', parseSkipCount('  39 passing\n  3 pending\n') === 3);
+    check('unparseable → null (telemetry, never a verdict)', parseSkipCount('all good, no summary line') === null);
+    const rung = { rung: 'direct-test', expect: 'all tests pass; 0 fail; no new skips' };
+    const b1 = mk(0, '# tests 5\n# skipped 1\n');
+    check('post > baseline → RED', !checkExpect(rung, mk(0, '# tests 5\n# skipped 2\n'), 'post', b1).pass);
+    check('RED reason names the trap', /new skips/.test(checkExpect(rung, mk(0, '# skipped 2\n'), 'post', b1).reason));
+    check('post == baseline → pass', checkExpect(rung, mk(0, '# tests 5\n# skipped 1\n'), 'post', b1).pass);
+    check('post < baseline → pass', checkExpect(rung, mk(0, '# tests 5\n# skipped 0\n'), 'post', b1).pass);
+    const unparsed = checkExpect(rung, mk(0, 'no summary at all'), 'post', b1);
+    check('unparseable post → warn-and-continue, not a failure', unparsed.pass && /unparsed/.test(unparsed.reason));
+    check('non-test rung NOT skip-enforced', checkExpect({ rung: 'collector', expect: 'exit 0' }, mk(0, '# skipped 9\n'), 'post', mk(0, '# skipped 0\n')).pass);
+  });
+
+  await scenario('no-new-skips: post-edit skip regression → oracle red → reverted', async (check) => {
+    // the evidence command emulates a test runner whose skip count depends on the source:
+    // baseline (ST_ORIG) has no SKIP_ME marker → skipped 0; the maker's edit adds one → skipped 1.
+    const skipCmd = `node -e "const fs=require('fs');const n=/SKIP_ME/.test(fs.readFileSync('src/util.js','utf8'))?1:0;console.log('# tests 3');console.log('# pass '+(3-n));console.log('# fail 0');console.log('# skipped '+n);"`;
+    const root = stRepo(ID, {
+      packetOverrides: { evidence_required: [{ rung: 'direct-test', command: skipCmd, expect: 'all tests pass; 0 fail; no new skips' }] },
+    });
+    const skipMasked = ST_GOOD + '// SKIP_ME: flaky, disabled\n';
+    const { deps, state } = stMockDeps({ makers: [stEditUtil(skipMasked), stEditUtil(skipMasked)] }, log);
+    const r = await exec(root, deps);
+    const p = packetOnDisk(root);
+    check('reverted (exit 0 alone did not launder the skip)', r.outcome === 'reverted' && r.exitCode === 1, r.summary);
+    check('util.js restored byte-identical', read(root, 'src/util.js') === ST_ORIG);
+    check('receipt names new skips', p.outcome.evidence_receipts.some((l) => /new skips: baseline skipped=0, post skipped=1/.test(l)), JSON.stringify(p.outcome.evidence_receipts));
+    check('judge never called', state.judgeCalls === 0);
+    check('tree clean', treeClean(root));
+  });
+
+  // ---- expect_check: the machine-checkable half of a rung ----
+  await scenario('expect_check: deterministic enforcement per type', async (check) => {
+    const mk = (code, stdout, output = stdout) => ({ code, timedOut: false, stdout, output, durationMs: 10 });
+    const rg = (ec) => ({ rung: 'x', expect: 'machine-checked', expect_check: ec });
+    check('exit_code 0 pass', checkExpect(rg({ type: 'exit_code', value: 0 }), mk(0, ''), 'post').pass);
+    check('exit_code 0 fail on 2', !checkExpect(rg({ type: 'exit_code', value: 0 }), mk(2, ''), 'post').pass);
+    check('exit_code 1 expected: 1 passes (overrides the default exit-0 gate)', checkExpect(rg({ type: 'exit_code', value: 1 }), mk(1, ''), 'post').pass);
+    check('exit_code 1 expected: 0 fails', !checkExpect(rg({ type: 'exit_code', value: 1 }), mk(0, ''), 'post').pass);
+    check('stdout_includes pass', checkExpect(rg({ type: 'stdout_includes', value: 'module.exports' }), mk(0, 'x\nmodule.exports = {};\n'), 'post').pass);
+    check('stdout_includes fail', !checkExpect(rg({ type: 'stdout_includes', value: 'module.exports' }), mk(0, 'nothing here'), 'post').pass);
+    check('stdout_includes enforced at baseline too (identity, not goal)', !checkExpect(rg({ type: 'stdout_includes', value: 'TOKEN' }), mk(0, 'nope'), 'baseline').pass);
+    check('stdout_regex pass', checkExpect(rg({ type: 'stdout_regex', value: '\\b3 passed\\b' }), mk(0, 'ok — 3 passed'), 'post').pass);
+    check('stdout_regex fail', !checkExpect(rg({ type: 'stdout_regex', value: '^PASS$' }), mk(0, 'FAIL'), 'post').pass);
+    check('stdout_regex invalid pattern fail-closed', !checkExpect(rg({ type: 'stdout_regex', value: '(' }), mk(0, 'anything'), 'post').pass);
+    const sf = (cc, found = true) => mk(0, JSON.stringify({ found, cognitive_before: cc, red_scan: [] }));
+    check('scope_fn_lt improved pass', checkExpect(rg({ type: 'scope_fn_lt', value: 9 }), sf(4), 'post', sf(9)).pass);
+    check('scope_fn_lt unimproved fail', !checkExpect(rg({ type: 'scope_fn_lt', value: 9 }), sf(9), 'post', sf(9)).pass);
+    check('scope_fn_lt fn missing fail', !checkExpect(rg({ type: 'scope_fn_lt', value: 9 }), sf(null, false), 'post', sf(9)).pass);
+    check('scope_fn_lt NOT enforced at baseline (goal)', checkExpect(rg({ type: 'scope_fn_lt', value: 9 }), sf(9), 'baseline').pass);
+    const ff = (excess, flagged) => mk(0, JSON.stringify({ found: true, file_excess: excess, flagged, red_scan: [] }));
+    const fBase = ff(11, [{ fn: 'a', cc: 9 }, { fn: 'b', cc: 7 }]);
+    const fe = rg({ type: 'file_excess_lt', value: 11 });
+    check('file_excess_lt decreased pass', checkExpect(fe, ff(8, [{ fn: 'a', cc: 9 }]), 'post', fBase).pass);
+    check('file_excess_lt unimproved fail', !checkExpect(fe, ff(11, [{ fn: 'a', cc: 9 }, { fn: 'b', cc: 7 }]), 'post', fBase).pass);
+    check('file_excess_lt below packet value but not below measured baseline fail', !checkExpect(fe, ff(10, [{ fn: 'a', cc: 9 }]), 'post', ff(9, [{ fn: 'a', cc: 9 }])).pass);
+    check('file_excess_lt NEW flagged fn fail (relocation self-defeating)', !checkExpect(fe, ff(8, [{ fn: 'a', cc: 9 }, { fn: 'helperC', cc: 7 }]), 'post', fBase).pass);
+    check('file_excess_lt duplicate-name multiset fail', !checkExpect(fe, ff(8, [{ fn: 'a', cc: 7 }, { fn: 'a', cc: 6 }]), 'post', fBase).pass);
+    check('file_excess_lt baseline JSON missing fail-closed', !checkExpect(fe, ff(8, [{ fn: 'a', cc: 9 }]), 'post', mk(0, 'not json')).pass);
+    check('file_excess_lt NOT enforced at baseline (goal)', checkExpect(fe, fBase, 'baseline').pass);
+  });
+
+  await scenario('expect_check: violated end-to-end → oracle red → reverted', async (check) => {
+    const root = stRepo(ID, {
+      packetOverrides: {
+        evidence_required: [{
+          rung: 'export-marker', command: 'cat src/util.js',
+          expect: 'file still exports clamp (machine-checked via expect_check)',
+          expect_check: { type: 'stdout_includes', value: 'module.exports' },
+        }],
+      },
+    });
+    const noExport = ST_GOOD.replace('module.exports = { clamp };\n', '');
+    const { deps, state } = stMockDeps({ makers: [stEditUtil(noExport), stEditUtil(noExport)] }, log);
+    const r = await exec(root, deps);
+    const p = packetOnDisk(root);
+    check('reverted', r.outcome === 'reverted' && r.exitCode === 1, r.summary);
+    check('receipt names expect_check failure', p.outcome.evidence_receipts.some((l) => /expect_check\[stdout_includes\]/.test(l)), JSON.stringify(p.outcome.evidence_receipts));
+    check('util.js restored', read(root, 'src/util.js') === ST_ORIG);
+    check('judge never called', state.judgeCalls === 0);
+  });
+
+  await scenario('schema: expect_check + resets validation (additive, strict when present)', async (check) => {
+    const withEv = (ec) => stBasePacket(ID, { evidence_required: [{ rung: 'x', command: 'true', expect: 'exit 0', ...(ec !== undefined ? { expect_check: ec } : {}) }] });
+    check('rung without expect_check still valid', validatePacket(withEv(undefined)).length === 0);
+    check('valid expect_check accepted', validatePacket(withEv({ type: 'stdout_includes', value: 'OK' })).length === 0);
+    check('unknown type rejected', validatePacket(withEv({ type: 'bogus', value: 1 })).some((e) => /expect_check\.type/.test(e)));
+    check('exit_code non-int value rejected', validatePacket(withEv({ type: 'exit_code', value: '0' })).some((e) => /int required/.test(e)));
+    check('file_excess_lt non-int value rejected', validatePacket(withEv({ type: 'file_excess_lt', value: 'low' })).some((e) => /int required/.test(e)));
+    check('invalid regex rejected', validatePacket(withEv({ type: 'stdout_regex', value: '(' })).some((e) => /invalid regex/.test(e)));
+    check('extra key rejected', validatePacket(withEv({ type: 'exit_code', value: 0, note: 'x' })).some((e) => /exactly \{type, value\}/.test(e)));
+    const withResets = (resets) => stBasePacket(ID, { resets });
+    check('valid resets accepted', validatePacket(withResets([{ at: new Date().toISOString(), from_status: 'reverted', reason: 'retry with better instruction' }])).length === 0);
+    check('resets missing reason rejected', validatePacket(withResets([{ at: new Date().toISOString(), from_status: 'reverted' }])).some((e) => /resets\[0\]/.test(e)));
+    check('resets bad from_status rejected', validatePacket(withResets([{ at: new Date().toISOString(), from_status: 'nope', reason: 'x' }])).some((e) => /from_status/.test(e)));
+    check('resets non-array rejected', validatePacket(withResets({ at: 'x' })).some((e) => /resets: array/.test(e)));
+  });
+
+  // ---- reset verb: deliberately reopen a terminal packet ----
+  await scenario('reset: reverted → pending, recorded, then workable end-to-end', async (check) => {
+    const root = stRepo(ID, { packetOverrides: { status: 'reverted', maker_provider: 'claude', judge_provider: 'codex' } });
+    const rr = executeReset({ id: ID, repoRoot: root });
+    const p1 = packetOnDisk(root);
+    check('reset exit 0', rr.outcome === 'reset' && rr.exitCode === 0, rr.summary);
+    check('status pending', p1.status === 'pending');
+    check('reset recorded {at, from_status, reason}', p1.resets?.length === 1 && p1.resets[0].from_status === 'reverted' && typeof p1.resets[0].at === 'string' && p1.resets[0].reason.length > 0, JSON.stringify(p1.resets));
+    check('provider pins cleared', p1.maker_provider === null && p1.judge_provider === null);
+    const { deps } = stMockDeps({ makers: [stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'clean', confidence: 0.9 }] }, log);
+    const r = await exec(root, deps);
+    const p2 = packetOnDisk(root);
+    check('reopened packet lands', r.outcome === 'landed', r.summary);
+    check('resets survive the terminal write', p2.resets?.length === 1 && p2.resets[0].from_status === 'reverted', JSON.stringify(p2.resets));
+  });
+
+  await scenario('reset: refuses landed without --force', async (check) => {
+    const root = stRepo(ID, { packetOverrides: { status: 'landed', outcome: { commit: 'a'.repeat(40), skip_reason: null, blocked_on: null, judge_verdict: null, evidence_receipts: [], tokens_actual: null, lesson: null } } });
+    const before = read(root, `quality/packets/${ID}.yaml`);
+    const rr = executeReset({ id: ID, repoRoot: root });
+    check('refused exit 2', rr.outcome === 'refused' && rr.exitCode === 2, rr.summary);
+    check('refusal names the landed commit risk', /landed/.test(rr.summary) && /--force/.test(rr.summary));
+    check('packet byte-unchanged', read(root, `quality/packets/${ID}.yaml`) === before);
+    const forced = executeReset({ id: ID, repoRoot: root, force: true });
+    const p = packetOnDisk(root);
+    check('--force resets landed', forced.outcome === 'reset' && p.status === 'pending' && p.resets?.[0]?.from_status === 'landed', forced.summary);
+  });
+
+  await scenario('reset: refusals (already pending, unknown id, unsupported --to) + append-on-repeat', async (check) => {
+    const root = stRepo(ID);
+    const rr1 = executeReset({ id: ID, repoRoot: root });
+    check('already pending refused', rr1.outcome === 'refused' && /already pending/.test(rr1.summary), rr1.summary);
+    const rr2 = executeReset({ id: 'no-such-packet', repoRoot: root });
+    check('unknown id refused', rr2.outcome === 'refused' && /not found/.test(rr2.summary), rr2.summary);
+    const rr3 = executeReset({ id: ID, repoRoot: root, to: 'landed' });
+    check("--to != 'pending' refused", rr3.outcome === 'refused' && /unsupported/.test(rr3.summary), rr3.summary);
+    // two consecutive reopenings APPEND (the reset history is never overwritten)
+    const blocked = { status: 'blocked', outcome: { commit: null, skip_reason: null, blocked_on: 'missing oracle', judge_verdict: null, evidence_receipts: [], tokens_actual: null, lesson: null } };
+    writePacket(join(root, 'quality/packets', `${ID}.yaml`), { ...packetOnDisk(root), ...blocked });
+    executeReset({ id: ID, repoRoot: root, reason: 'first reopen' });
+    writePacket(join(root, 'quality/packets', `${ID}.yaml`), { ...packetOnDisk(root), ...blocked });
+    const rr4 = executeReset({ id: ID, repoRoot: root, reason: 'second reopen' });
+    const p = packetOnDisk(root);
+    check('resets appended, order preserved', rr4.outcome === 'reset' && p.resets?.length === 2 && p.resets[0].reason === 'first reopen' && p.resets[1].reason === 'second reopen', JSON.stringify(p.resets));
   });
 
   // ---- report ----
