@@ -67,6 +67,9 @@ export async function runPlan(flags) {
   const nogoRe = ctx.profile.markers?.nogo_path_pattern ? new RegExp(ctx.profile.markers.nogo_path_pattern, 'i') : null;
   const hotspotByFile = new Map(hotspots.files.map((h) => [h.file, h]));
   const churnOf = (f) => tierMass.by_file.find((x) => x.file === f)?.churn ?? hotspotByFile.get(f)?.churn ?? 0;
+  // whole-file Σ excess-cc across ALL tiers (the T0 evidence target measures the FILE,
+  // so its baseline must be the file total, not just this group's tier slice).
+  const fileMassOf = new Map(tierMass.by_file.map((x) => [x.file, x.mass]));
 
   // ---- 1. group the flagged universe by (file × tier) — the packet grain ----
   let skippedGenerated = 0;
@@ -97,7 +100,7 @@ export async function runPlan(flags) {
     const impact = (publicHeavy || contractGlob) ? 'medium' : 'none';
     const swc = (sec.length || g.tier === 'T2-property' || g.tier === 'DELETE') ? 'high'
       : (storage.length || g.tier.startsWith('T2') || contractGlob || publicHeavy) ? 'medium' : 'low';
-    const out = { ...g, mass, churn, coupling, sec, storage, pub, publicHeavy, contractGlob, nogo, exec, gain, attn, impact, swc, attention: churn * mass };
+    const out = { ...g, mass, fileMass: fileMassOf.get(g.file) ?? mass, churn, coupling, sec, storage, pub, publicHeavy, contractGlob, nogo, exec, gain, attn, impact, swc, attention: churn * mass };
     out.priority = priorityOf(out);
     return out;
   }).sort((a, b) => b.priority - a.priority || b.attention - a.attention || a.file.localeCompare(b.file) || a.tier.localeCompare(b.tier));
@@ -312,8 +315,8 @@ function evidenceFor(g, namedSyms, ctx, meta) {
   const repo = ctx.repoRoot;
   const typecheck = ctx.profile.commands?.typecheck;
   const test = ctx.profile.commands?.test;
-  if (typecheck) ev.push({ rung: 'typecheck', command: `cd ${repo} && ${typecheck}`, expect: 'exit 0' });
-  if (test) ev.push({ rung: 'direct-test', command: `cd ${repo} && ${test}`, expect: 'all tests pass; 0 fail; no new skips' });
+  if (typecheck) ev.push({ rung: 'typecheck', command: `cd ${repo} && ${typecheck}`, expect: 'exit 0', expect_check: { type: 'exit_code', value: 0 } });
+  if (test) ev.push({ rung: 'direct-test', command: `cd ${repo} && ${test}`, expect: 'all tests pass; 0 fail; no new skips (skip counts compared baseline vs post)', expect_check: { type: 'exit_code', value: 0 } });
   if (g.tier === 'T1-extractable-callback') {
     ev.push({
       rung: 'whitespace-normalized-body-move',
@@ -327,6 +330,7 @@ function evidenceFor(g, namedSyms, ctx, meta) {
       rung: 'guard-byte-identity',
       command: `cd ${repo} && git diff -U0 -- ${g.file} | grep -inE '(${pat})' || echo GUARDS-UNTOUCHED`,
       expect: 'prints GUARDS-UNTOUCHED — no security-marker line added/removed/modified by the diff',
+      expect_check: { type: 'stdout_includes', value: 'GUARDS-UNTOUCHED' },
     });
   }
   if (g.tier === 'DELETE' && namedSyms.length) {
@@ -336,11 +340,28 @@ function evidenceFor(g, namedSyms, ctx, meta) {
       expect: 'no references outside the defining file before deletion; repo-wide grep empty after',
     });
   }
-  if (namedSyms.length && g.tier !== 'DELETE') {
+  if (g.tier === 'T0') {
+    // WHOLE-FILE target, deliberately NOT per-function: pairing `cognitive_before < N` on a
+    // low-cc function with not_allowed relocation-without-decomplecting is near-contradictory
+    // (the cheapest way to force one function's cc down is to extract a helper — exactly what
+    // the judge must reject; runtime-scheduler-t0-5ee375f5 followed that gradient and reverted,
+    // $2.93/31min). The file's Σ excess-cc must strictly DECREASE and no NEW function may
+    // exceed the threshold, so relocation is self-defeating instead of incentivized.
+    ev.push({
+      rung: 'file-complexity-remeasure',
+      command: `node ${HONE_ROOT}/collectors/scope-fn.mjs --repo ${repo} --file '${g.file}' --cog ${meta.cog_threshold}`,
+      expect: `found=true and file_excess < ${g.fileMass} (packet baseline: whole-file Σ excess-cc) and strictly below the measured baseline; no NEW function above the cog-${meta.cog_threshold} threshold vs baseline; red_scan unchanged`,
+      expect_check: { type: 'file_excess_lt', value: g.fileMass },
+    });
+  } else if (namedSyms.length && g.tier !== 'DELETE') {
+    // per-function rung stays right for T1a/T1b/seam/T2 packets, where the packet names ONE
+    // target function/callback and the transform is scoped to it.
+    const cc = g.rows.find((r) => r.fn === namedSyms[0])?.cc ?? g.rows[0].cc;
     ev.push({
       rung: 'complexity-remeasure',
       command: `node ${HONE_ROOT}/collectors/scope-fn.mjs --repo ${repo} --target '${g.file}::${namedSyms[0]}'`,
-      expect: `found=true and cognitive_before < ${g.rows.find((r) => r.fn === namedSyms[0])?.cc ?? g.rows[0].cc} (packet baseline); red_scan unchanged`,
+      expect: `found=true and cognitive_before < ${cc} (packet baseline); red_scan unchanged`,
+      expect_check: { type: 'scope_fn_lt', value: cc },
     });
   }
   if (!ev.length) {
