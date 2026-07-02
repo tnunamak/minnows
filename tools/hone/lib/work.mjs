@@ -685,7 +685,7 @@ export function parseMakerVerdict(text) {
   return { kind: last[1].toLowerCase(), rationale: last[2].trim() || '(no rationale given)' };
 }
 
-function revisionBrief(base, failureNote, diffText) {
+export function revisionBrief(base, failureNote, diffText) {
   return [
     base,
     '== REVISION REQUIRED ==',

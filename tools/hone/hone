@@ -19,6 +19,15 @@ commands:
               [--repo .] [--dry-run] [--challenge] [--doctrine PATH]
   work <id>   execute one packet (maker ≠ judge)
               [--repo .] [--maker claude|codex] [--judge codex|claude] [--dry-run]
+  lane        deterministic spine for EXTERNAL (Workflow-substrate) makers/judges;
+              engine-run receipts/gates/ledgers only — agent claims never trusted
+              (design: SUBSTRATE.md; driver: workflows/hone-lane.js)
+    lane emit --packet <id>   gates + in_progress + GREEN BASELINE → maker brief JSON
+              [--repo .] [--maker P] [--judge P] [--dry-run]
+    lane gate --packet <id>   rungs + touchset gate vs the CURRENT tree → receipts;
+              exit 0 only on full green [--repo .] [--maker-summary(-b64)] [--usage(-b64)]
+    lane land --packet <id>   green-gate-receipt-bound commit or revert; verdict+usage → ledgers
+              [--repo .] (--judge-verdict(-b64) --usage(-b64)) | (--abort --reason TEXT)
   reset <id>  deliberately reopen a terminal packet → status pending (recorded in packet.resets)
               [--repo .] [--to pending] [--force] [--reason TEXT]   (landed requires --force)
   report      compile claim-ledger report → <repo>/quality/reports/
@@ -52,6 +61,11 @@ try {
     case 'work': {
       const { runWork } = await import('./lib/work.mjs');
       await runWork(flags);
+      break;
+    }
+    case 'lane': {
+      const { runLane } = await import('./lib/lane.mjs');
+      await runLane(flags);
       break;
     }
     case 'reset': {
