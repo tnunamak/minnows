@@ -452,6 +452,88 @@ function headClip(s, n) {
 const RUNG_SLICE_MAX_LINES = 40;
 const RUNG_SLICE_MAX_BYTES = 2048;
 const JUDGE_EVIDENCE_MAX_BYTES = 16384;
+// budget floor for protected slices in buildJudgeEvidence (engine-iteration-5 fix 3)
+const SHRUNK_SLICE_TAIL_LINES = 10;
+
+/**
+ * remeasure-class rungs (scope-fn / file-excess / complexity remeasures) carry decisive
+ * NUMBERS the judge must be able to verify. (Engine-iteration-5 fix 3 — run-5 hm-0003
+ * second REVISE: "file-excess evidence is clipped before the values needed to verify that
+ * rung" — the collector prints its scalars at the HEAD of a ~400-line JSON, so the
+ * tail-keeping per-rung slice lost them.)
+ */
+const REMEASURE_RUNG_RE = /remeasure|excess/i;
+
+/**
+ * drop lines that reference the ENGINE'S OWN quality/ state dir from judge-facing rung
+ * output. (Engine-iteration-5 fix 1 — run-5 docs-query-cookbook-expand-advisory-0003:
+ * a packet's own `git diff --stat` rung listed 25 changed files, 24 of them the engine's
+ * tracked quality/ writes (agenda artifacts, ledgers, packet YAMLs, receipts); the judge
+ * twice called the maker's change "semantically aligned" and still refused on the
+ * diff-scope gate — a false negative that burned two judge rounds. The engine's OWN scope
+ * gates already exclude quality/ (dirtyEntries); the judge-facing slices did not.)
+ *
+ * Matched line classes (best-effort textual; the disk receipt keeps the RAW output):
+ *  - a path under the git-root-relative engine state dir (`<prefix>/quality/…`);
+ *  - a `quality/…` path at a token boundary, including git-stat's `…/quality/…` abbreviation;
+ *  - the engine's own receipt/brief basenames (`baseline-1-….txt`, `post-r2-….txt`,
+ *    `maker-brief-N.digest.txt`) — long receipt paths abbreviate to bare basenames in
+ *    `git diff --stat` output and lose the `quality/` marker entirely;
+ *  - the candidate's own packet YAML basename (rewritten by the engine at in_progress);
+ *  - abbreviated engine packet paths (`…/packets/<id>.yaml` — OTHER candidates' packets
+ *    rewritten by concurrent agenda/plan activity abbreviate past the quality/ marker;
+ *    observed in the run-5 receipt) and the engine ledger/agenda basenames
+ *    (AGENDA.json/.md, claims.jsonl, cost.jsonl, selection-ledger.jsonl, not-chosen.json).
+ * When lines are dropped an explicit note is APPENDED (tail-safe under outputSlice) so
+ * changed-file COUNT lines (`N files changed, …`) that still include engine files are
+ * self-explaining to the judge.
+ */
+export function stripEngineQualityLines(output, { qualityRel = 'quality', candidateId = null } = {}) {
+  const esc = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const bound = `(?:^|[\\s"'(=:]|\\.{3}/)`;
+  const res = [
+    new RegExp(`${bound}${esc(qualityRel)}/`),
+    new RegExp(`${bound}quality/`),
+    /(^|[\s/("'=:])(?:(?:baseline|post(?:-r\d+)?)-\d+-[A-Za-z0-9_-]+\.txt|maker-brief-\d+\.digest\.txt)\b/,
+    /\.{3}\/packets\/[^/\s]+\.yaml\b/,
+    /(^|[\s/("'=:])(?:AGENDA\.(?:json|md)|claims\.jsonl|cost\.jsonl|selection-ledger\.jsonl|not-chosen\.json)\b/,
+  ];
+  if (candidateId) res.push(new RegExp(`(^|[\\s/("'=:])${esc(candidateId)}\\.yaml\\b`));
+  const lines = String(output).split('\n');
+  const kept = lines.filter((l) => !res.some((re) => re.test(l)));
+  const dropped = lines.length - kept.length;
+  if (!dropped) return { text: String(output), dropped: 0 };
+  const note = `[engine] ${dropped} line(s) referencing the engine \`quality/\` state dir omitted — that dir is engine bookkeeping (packets, receipts, ledgers, agenda), written by the engine itself, never maker work; any changed-file COUNTS remaining in this output may still include those engine files`;
+  return { text: [...kept, note].join('\n'), dropped };
+}
+
+/**
+ * the judge-facing slice of one rung's output: engine quality/-state lines stripped
+ * (fix 1), tail-bounded by outputSlice, and — for remeasure-class rungs — prefixed with
+ * a compact clip-proof summary of the collector JSON's scalars (fix 3: the decisive
+ * numbers print at the HEAD of the collector's long JSON; a tail slice loses them).
+ * Judge context only; the on-disk receipt keeps the raw output.
+ */
+function judgeSlice(rungName, res, stripCtx) {
+  const { text } = stripEngineQualityLines(res.output, stripCtx);
+  let s = outputSlice(text);
+  if (REMEASURE_RUNG_RE.test(String(rungName))) {
+    const j = lastJson(res.stdout);
+    if (j && typeof j === 'object' && !Array.isArray(j)) {
+      const compact = {};
+      for (const [k, v] of Object.entries(j)) {
+        if (v === null || ['number', 'string', 'boolean'].includes(typeof v)) compact[k] = v;
+        else if (Array.isArray(v)) {
+          const json = JSON.stringify(v);
+          if (json.length <= 256) compact[k] = v;
+          else compact[`${k}_count`] = v.length;
+        }
+      }
+      s = `[engine] remeasure summary (scalars parsed from this rung's JSON output; immune to slice clipping): ${JSON.stringify(compact)}\n` + s;
+    }
+  }
+  return s;
+}
 
 /** last ≤maxLines lines of a rung's combined output, additionally byte-bounded (tail wins). */
 export function outputSlice(output, maxLines = RUNG_SLICE_MAX_LINES, maxBytes = RUNG_SLICE_MAX_BYTES) {
@@ -473,31 +555,61 @@ export function outputSlice(output, maxLines = RUNG_SLICE_MAX_LINES, maxBytes = 
  *      summary lines — they are never truncated away);
  *   2. every FAILING run's output slice is kept (the defect under judgment);
  *   3. the FINAL green run's slice is kept (the state under judgment);
- *   4. remaining green slices are dropped verbose-first (post-phase greens before
+ *   4. remeasure-class rungs (name matches remeasure|excess — decisive numbers the
+ *      judge must verify) are never dropped: under budget pressure they SHRINK to a
+ *      floor — any leading [engine] summary line(s) plus the last ~10 tail lines —
+ *      never below it (engine-iteration-5 fix 3, run-5 hm-0003 clip);
+ *   5. remaining green slices are dropped verbose-first (post-phase greens before
  *      baseline greens) until the total fits; dropped slices leave an explicit marker.
  * Per-rung slices are already bounded by outputSlice (≤40 lines / ≤2KB each).
  *
- * `entries`: [{line, slice, phase, pass}] in receipt order.
+ * `entries`: [{line, slice, phase, pass, rung}] in receipt order.
  */
 export function buildJudgeEvidence(entries, maxBytes = JUDGE_EVIDENCE_MAX_BYTES) {
   const lastGreen = entries.reduce((acc, e, i) => (e.pass ? i : acc), -1);
   const included = entries.map((e) => Boolean(e.slice));
   const mustKeep = entries.map((e, i) => Boolean(e.slice) && (!e.pass || i === lastGreen));
+  // remeasure-class slices are shrinkable-not-droppable (guarantee 4)
+  const protectedRemeasure = entries.map((e, i) =>
+    Boolean(e.slice) && !mustKeep[i] && REMEASURE_RUNG_RE.test(String(e.rung ?? '')));
+  const shrunk = entries.map(() => false);
+  const shrinkSlice = (slice) => {
+    const lines = String(slice).split('\n');
+    const head = [];
+    while (lines.length && lines[0].startsWith('[engine] ')) head.push(lines.shift());
+    const tail = lines.slice(-SHRUNK_SLICE_TAIL_LINES);
+    const omitted = lines.length - tail.length;
+    if (omitted > 0) head.push(`…[${omitted} line(s) shrunk away — evidence budget; full receipt on disk]…`);
+    return [...head, ...tail].join('\n');
+  };
   const render = () => entries.map((e, i) => {
     if (!e.slice) return e.line;
     if (!included[i]) return `${e.line}\n  [rung output tail omitted — evidence budget; full receipt on disk]`;
-    return `${e.line}\n  --- rung output tail ---\n${e.slice}\n  --- end tail ---`;
+    return `${e.line}\n  --- rung output tail ---\n${shrunk[i] ? shrinkSlice(e.slice) : e.slice}\n  --- end tail ---`;
   }).join('\n');
   // droppable greens: post-phase (non-final) first, then baseline; verbose first within each
   const droppable = entries
     .map((e, i) => ({ i, size: e.slice ? e.slice.length : 0, isBaseline: e.phase === 'baseline' }))
-    .filter(({ i }) => included[i] && !mustKeep[i])
+    .filter(({ i }) => included[i] && !mustKeep[i] && !protectedRemeasure[i])
     .sort((a, b) => (Number(a.isBaseline) - Number(b.isBaseline)) || (b.size - a.size));
   let text = render();
   for (const d of droppable) {
     if (text.length <= maxBytes) break;
     included[d.i] = false;
     text = render();
+  }
+  if (text.length > maxBytes) {
+    // still over: shrink protected remeasure slices to the floor, verbose first —
+    // never drop them, never cut below the [engine] head + last-10-lines tail
+    const shrinkable = entries
+      .map((e, i) => ({ i, size: e.slice ? e.slice.length : 0 }))
+      .filter(({ i }) => protectedRemeasure[i] && !shrunk[i])
+      .sort((a, b) => b.size - a.size);
+    for (const d of shrinkable) {
+      if (text.length <= maxBytes) break;
+      shrunk[d.i] = true;
+      text = render();
+    }
   }
   if (text.length > maxBytes) {
     // safety valve (must-keep content alone exceeds the cap — pathological): hard head
@@ -738,6 +850,9 @@ async function executeWorkAttempt(opts, deps, signal) {
   let revisionCount = 0;
   let judgeResult = null;
 
+  // judge-facing slices exclude the engine's own quality/ state (fix 1); receipts on
+  // disk keep the RAW output — the filter shapes judge context, never the record
+  const stripCtx = { qualityRel: g.topRel('quality'), candidateId: id };
   const writeReceipt = (phase, i, rung, res, verdict) => {
     const rel = join(receiptsDirRel, `${phase}-${i + 1}-${slug(rung.rung)}.txt`);
     const abs = join(repoRoot, rel);
@@ -745,8 +860,8 @@ async function executeWorkAttempt(opts, deps, signal) {
     writeFileSync(abs, `# hone work ${id} — ${phase} rung '${rung.rung}'\n# command: ${rung.command}\n# expect: ${rung.expect}\n# exit: ${res.timedOut ? 'TIMEOUT' : res.code}  duration: ${Math.round(res.durationMs / 1000)}s  verdict: ${verdict.pass ? 'PASS' : `FAIL (${verdict.reason})`}\n\n${res.output}`);
     const digest = `exit=${res.timedOut ? 'TIMEOUT' : res.code} djb2=${djb2(res.output)} bytes=${res.output.length} receipt=${rel}`;
     receiptLines.push(`[${phase}] ${rung.rung}: ${rung.command} -> ${res.timedOut ? 'TIMEOUT' : `exit ${res.code}`} (${Math.round(res.durationMs / 1000)}s) ${verdict.pass ? 'PASS' : `FAIL: ${verdict.reason}`}; ${digest}`);
-    receiptSlices.push(outputSlice(res.output));
-    receiptMeta.push({ phase, pass: verdict.pass });
+    receiptSlices.push(judgeSlice(rung.rung, res, stripCtx));
+    receiptMeta.push({ phase, pass: verdict.pass, rung: rung.rung });
     return digest;
   };
 
@@ -1836,6 +1951,120 @@ async function selfTest({ verbose = false } = {}) {
     check('budget pressure was real (some slices omitted)', /omitted — evidence budget/.test(ev), `len=${ev.length}`);
   });
 
+  // ---- engine quality/-state exclusion from judge scope evidence (engine-iteration-5 fix 1) ----
+  await scenario('stripEngineQualityLines: run-5 diff-scope receipt shapes dropped, maker lines kept', async (check) => {
+    const ctx = { qualityRel: 'reference-implementation/quality', candidateId: 'docs-q-0003' };
+    const stat = [
+      ' .../docs/generated/query-cookbook.md               |   2 +',
+      ' reference-implementation/quality/AGENDA.json       | 622 ++--',
+      ' .../quality/agendas/not-chosen.json                |  70 +--',
+      ' .../baseline-1-fact-crosscheck.txt                 | 132 ++---',
+      ' .../post-r2-2-diff-scope.txt                       |  64 +--',
+      ' .../maker-brief-2.digest.txt                       |  12 +',
+      ' .../docs-q-0003.yaml                               |  17 +-',
+      ' .../packets/hm-awaited-order-oracle-0002.yaml      |  30 +-',
+      ' .../claims.jsonl                                   |   6 +',
+      ' 25 files changed, 1547 insertions(+), 1486 deletions(-)',
+    ].join('\n');
+    const { text, dropped } = stripEngineQualityLines(stat, ctx);
+    check('maker file kept', text.includes('query-cookbook.md'));
+    check('git-root-relative quality/ line dropped', !text.includes('AGENDA.json'));
+    check('abbreviated .../quality/ line dropped', !text.includes('not-chosen.json'));
+    check('fully-abbreviated receipt basenames dropped (no quality/ marker left on the line)', !/baseline-1-fact-crosscheck|post-r2-2-diff-scope|maker-brief-2/.test(text));
+    check("candidate's own packet yaml dropped", !text.includes('docs-q-0003.yaml'));
+    check("OTHER candidate's abbreviated packet yaml dropped (run-5 leak)", !text.includes('hm-awaited-order-oracle-0002.yaml'));
+    check('abbreviated engine ledger basename dropped', !text.includes('claims.jsonl'));
+    check('dropped count = 8', dropped === 8, `dropped=${dropped}`);
+    check('note appended naming engine bookkeeping + count caveat', /engine bookkeeping/.test(text) && /8 line\(s\)/.test(text) && /COUNTS/.test(text));
+    check('summary count line kept (honest — the note explains it)', text.includes('25 files changed'));
+    check('maker path with quality/ mid-path NOT dropped', stripEngineQualityLines(' src/quality/util.js | 2 +', ctx).dropped === 0);
+    check('porcelain quality/ line dropped (repoRoot == git root)', stripEngineQualityLines('?? quality/receipts/x/y.txt', { qualityRel: 'quality' }).dropped === 1);
+    check('no engine lines → text byte-unchanged, no note', stripEngineQualityLines('all clean\nsrc/a.js | 2 +', ctx).text === 'all clean\nsrc/a.js | 2 +');
+  });
+
+  await scenario('e2e: engine quality/ writes invisible to judge scope evidence; raw receipt on disk; touchset gate unaffected (run-5 false-negative class)', async (check) => {
+    const root = stRepo(ID, {
+      packetOverrides: {
+        evidence_required: [
+          { rung: 'direct-test', command: 'node test.js', expect: 'exit 0' },
+          { rung: 'diff-scope', command: 'git diff --stat', expect: 'ONLY src/util.js changed' },
+        ],
+      },
+    });
+    // make the engine's quality/ state TRACKED, like the real sweep: the in_progress
+    // packet rewrite + receipt overwrites become tracked modifications that a packet's
+    // own `git diff --stat` rung lists alongside the maker's work
+    const stale = (p) => { mkdirSync(join(root, dirname(p)), { recursive: true }); writeFileSync(join(root, p), 'stale engine receipt\n'); };
+    stale(`quality/receipts/${ID}/baseline-1-direct-test.txt`);
+    stale(`quality/receipts/${ID}/baseline-2-diff-scope.txt`);
+    stale(`quality/receipts/${ID}/post-1-direct-test.txt`);
+    spawnSync('git', ['add', 'quality'], { cwd: root, encoding: 'utf8' });
+    spawnSync('git', ['-c', 'user.email=selftest@example.com', '-c', 'user.name=Self Test', 'commit', '-q', '-m', 'track engine state'], { cwd: root, encoding: 'utf8' });
+    const { deps, state } = stMockDeps({ makers: [stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'scope clean', confidence: 0.9 }] }, log);
+    const r = await exec(root, deps);
+    check('landed — engine quality/ writes never trip the touchset gate', r.outcome === 'landed', r.summary);
+    const ev = state.judgeArgs[0]?.evidence ?? '';
+    check("judge evidence lists the maker's file in the diff-stat slice", /src\/util\.js\s[^\n]*\|/.test(ev), ev.slice(0, 400));
+    check('no quality/ stat line reached the judge', !/quality\/[^\n]*\|/.test(ev));
+    check('no abbreviated engine-receipt stat line reached the judge', !/direct-test\.txt[^\n]*\|/.test(ev) && !/diff-scope\.txt[^\n]*\|/.test(ev));
+    check('omission note reached the judge', ev.includes('engine bookkeeping'));
+    const rawReceipt = read(root, `quality/receipts/${ID}/post-2-diff-scope.txt`) ?? '';
+    check('on-disk receipt keeps the RAW output (quality/ paths intact)', /quality\//.test(rawReceipt), rawReceipt.slice(0, 300));
+  });
+
+  // ---- remeasure-slice protection (engine-iteration-5 fix 3, run-5 hm-0003 clip) ----
+  await scenario('judge evidence: remeasure-class slices shrink to an [engine]-head + 10-tail-line floor, never dropped', async (check) => {
+    const e = (line, slice, phase, pass, rung) => ({ line, slice, phase, pass, rung });
+    const pad = (m) => `${m} ${'x'.repeat(2000 - m.length - 1)}`;
+    const remBody = Array.from({ length: 30 }, (_, i) => `flagged-${i} ${'y'.repeat(90)}`);
+    const remSlice = ['[engine] remeasure summary (scalars…): {"file_excess":689}', ...remBody, 'TAIL-EXCESS-VALUE 689'].join('\n');
+    const entries = [
+      ...Array.from({ length: 6 }, (_, i) => e(`[baseline] pad${i}: cmd -> exit 0 PASS; dg-b${i}`, pad(`BASEG${i}`), 'baseline', true)),
+      e('[post] file-excess-remeasure: cmd -> exit 0 PASS; dg-rem', remSlice, 'post', true, 'file-excess-remeasure'),
+      ...Array.from({ length: 5 }, (_, i) => e(`[post] pad${i}: cmd -> exit 0 PASS; dg-p${i}`, pad(`POSTG${i}`), 'post', true, `pad${i}`)),
+      e('[post] direct-test: cmd -> exit 0 PASS; dg-final', pad('FINALGREEN'), 'post', true, 'direct-test'),
+    ];
+    const ev = buildJudgeEvidence(entries, 4608);
+    check('cap respected', ev.length <= 4608 + 128, `len=${ev.length}`);
+    check('shrink sufficed — no pathological head truncation', !/truncated from head/.test(ev));
+    check('remeasure slice NOT dropped under pressure that dropped all plain greens', !/dg-rem\n\s*\[rung output tail omitted/.test(ev) && Array.from({ length: 5 }, (_, i) => `POSTG${i}`).every((m) => !ev.includes(m)));
+    check('decisive tail values present', ev.includes('TAIL-EXCESS-VALUE 689'));
+    check('[engine] summary head survives the shrink', ev.includes('{"file_excess":689}'));
+    check('shrunk marker present', /shrunk away — evidence budget/.test(ev));
+    check('floor holds: last 10 body lines kept', ev.includes('flagged-21'), ev.slice(-600));
+    check('lines above the floor gone', !ev.includes('flagged-20'));
+    check('final green still kept in full', ev.includes('FINALGREEN'));
+    // no budget pressure → remeasure slice intact, no shrink
+    const evLoose = buildJudgeEvidence(entries, 64 * 1024);
+    check('no pressure → remeasure slice intact', evLoose.includes('flagged-0') && !/shrunk away/.test(evLoose));
+  });
+
+  await scenario('e2e: remeasure rung decisive HEAD scalars reach the judge via the clip-proof summary under budget pressure', async (check) => {
+    // the real hm-0003 shape: scope-fn prints its scalars (file_excess) at the HEAD of a
+    // ~330-line pretty JSON; the tail-keeping 40-line slice alone loses them
+    const collectorCmd = `node -e "const flagged=Array.from({length:80},(_,i)=>({fn:'f'+i,excess:4}));console.log(JSON.stringify({file:'x.js',found:true,fn_count:100,flagged_count:80,file_excess:689,flagged,red_scan:['bearer']},null,2))"`;
+    const bigGreen = (n) => `node -e "console.log('PAD'.repeat(1500)); console.log('GREEN-RUNG-${n}')"`;
+    const root = stRepo(ID, {
+      packetOverrides: {
+        evidence_required: [
+          ...Array.from({ length: 4 }, (_, i) => ({ rung: `pad-${i}`, command: bigGreen(i), expect: `prints GREEN-RUNG-${i}` })),
+          { rung: 'file-excess-remeasure', command: collectorCmd, expect: 'collector JSON emitted; judge verifies file_excess against the packet baseline' },
+          { rung: 'direct-test', command: 'node test.js', expect: 'exit 0' },
+        ],
+      },
+    });
+    const { deps, state } = stMockDeps({ makers: [stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'saw the numbers', confidence: 0.9 }] }, log);
+    const r = await exec(root, deps);
+    check('landed', r.outcome === 'landed', r.summary);
+    const ev = state.judgeArgs[0]?.evidence ?? '';
+    check('budget pressure was real (slices omitted)', /omitted — evidence budget/.test(ev), `len=${ev.length}`);
+    check('clip-proof remeasure summary reached the judge', ev.includes('[engine] remeasure summary'), ev.slice(0, 300));
+    check('decisive head scalar visible to the judge', ev.includes('"file_excess":689'));
+    check('short arrays kept in the summary', ev.includes('"red_scan":["bearer"]'));
+    check('huge array reduced to a count', ev.includes('"flagged_count":80') && !ev.includes(`"fn":"f79"`));
+    check('evidence within the 16KB cap', ev.length <= 16384 + 128, `len=${ev.length}`);
+  });
+
   // ---- compare-vs-HEAD rung warning (dogfood packet 9's check:generated trap) ----
   await scenario('compare-vs-HEAD rung → WARNING logged, behavior unchanged (structurally unwinnable → reverted)', async (check) => {
     const root = stRepo(ID, {
@@ -2184,6 +2413,39 @@ async function selfTest({ verbose = false } = {}) {
     const r = await exec(root2, stMockDeps({}, log).deps);
     check('work gate refuses the shared-DB rung packet', r.outcome === 'refused' && /SHARED Postgres DB/.test(r.summary), r.summary);
     check('refusal side-effect-free', read(root2, `quality/packets/${ID}.yaml`) === before && !existsSync(claimsPath(root2)));
+  });
+
+  // ---- restore-masks-rc lint (engine-iteration-5 fix 2, run-3/5 red-then-green class) ----
+  await scenario('validator lint: mutate→test→restore without rc capture WARNs; canonical rc shape silent', async (check) => {
+    const root = stRepo(ID);
+    const withCmd = (command) => stBasePacket(ID, { evidence_required: [{ rung: 'red-then-green', command, expect: 'seeded red observed by exit code' }] });
+    const masked = withCmd("cd /x && git diff --quiet -- server/auth.js && sed -i 's/a/b/' server/auth.js && node --test test/auth.test.js; git checkout -- server/auth.js");
+    const warns = [];
+    check('warn-only, never an error', validatePacket(masked, { repoDir: root, warn: (m) => warns.push(m) }).length === 0);
+    check('WARN names the masked exit code', warns.some((m) => /ALWAYS the checkout's/.test(m) && /NEVER fail by exit code/.test(m)), warns.join(' | '));
+    check('WARN carries the canonical rc-capture shape', warns.some((m) => m.includes('rc=0; <test cmd> || rc=1; git checkout -- <file>; exit $rc')));
+    check('WARN suggests exit_code expect_check for seeded red', warns.some((m) => /expect_check \{type: exit_code, value: 1\}/.test(m)));
+    const canonical = withCmd("cd /x && git diff --quiet -- server/auth.js && sed -i 's/a/b/' server/auth.js; rc=0; node --test test/auth.test.js || rc=1; git checkout -- server/auth.js; exit $rc");
+    const w2 = [];
+    validatePacket(canonical, { repoDir: root, warn: (m) => w2.push(m) });
+    check('canonical rc-capture shape silent', w2.length === 0, w2.join(' | '));
+    const statusVar = withCmd("node --test t.js; st=$?; git checkout -- f; exit $st");
+    const w3 = [];
+    validatePacket(statusVar, { repoDir: root, warn: (m) => w3.push(m) });
+    check('$?-capture variant silent', w3.length === 0, w3.join(' | '));
+    const guardedMasked = withCmd("cd /x && if [ -f test/o.test.js ]; then git diff --quiet -- s.js && sed -i 's/a/b/' s.js && node --test test/o.test.js; git checkout -- s.js; else echo oracle-not-yet-authored; fi");
+    const w4 = [];
+    validatePacket(guardedMasked, { repoDir: root, warn: (m) => w4.push(m) });
+    check('guarded (if [ -f ]) masked shape still WARNs — the guard does not capture rc', w4.some((m) => /ALWAYS the checkout's/.test(m)), w4.join(' | '));
+    const w5 = [];
+    validatePacket(withCmd("sed -i 's/a/b/' f.js; git checkout -- f.js"), { repoDir: root, warn: (m) => w5.push(m) });
+    check('restore without a test invocation not linted', w5.length === 0);
+    const w6 = [];
+    validatePacket(withCmd('node --test t.js && echo done'), { repoDir: root, warn: (m) => w6.push(m) });
+    check('test without a restore not linted', w6.length === 0);
+    const w7 = [];
+    validatePacket(masked, { warn: (m) => w7.push(m) });
+    check('without ctx.repoDir the lint is off (best-effort by design)', w7.length === 0, w7.join(' | '));
   });
 
   // ---- report ----

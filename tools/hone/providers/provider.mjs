@@ -126,6 +126,7 @@ Rules of judgment:
 - Behavior preservation: for preserve_refactor packets, ANY observable behavior change (including boundary/edge conditions and operator changes) means REJECT, unless the packet explicitly allows it.
 - Reject relocation: moving a code blob behind a new function name WITHOUT making captured context explicit or reducing the enclosing function's real complexity is not decomplecting, even when types and tests are green.
 - Compare the removed code to the added code line by line before trusting any summary, commit message, or comment inside the diff.
+- Scope judgments: the engine's own \`quality/\` state dir (packets, receipts, ledgers, agenda artifacts) is engine bookkeeping written by the engine itself, never maker work — when judging diff scope or an "ONLY <file> changed" expectation, ignore \`quality/\` paths and any changed-file lists or counts that include them; only the maker's files count against a scope gate.
 
 Verdict semantics:
 - PASS: the diff does what the packet says, violates nothing in not_allowed, and the evidence is sufficient for the change class.

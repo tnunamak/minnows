@@ -139,9 +139,20 @@ Every rung must therefore be satisfiable pre-commit:
   `df-surface-mcp-token-kinds-enum-0001` burned $6.83 and a full revision cycle against
   such a rung.) `work` emits a WARNING when a rung command matches known compare-vs-HEAD
   patterns (`git diff … --exit-code`, `check:generated`) — warning only, behavior unchanged.
-- HEAD-comparisons are fine as *baseline preconditions inside a rung* (e.g. the
-  red-then-green shape `git diff --quiet -- <file> && mutate && test && restore`), never as
-  post-change pass criteria on their own.
+- HEAD-comparisons are fine as *baseline preconditions inside a rung*, never as post-change
+  pass criteria on their own. The canonical mutate→test→restore (red-then-green) shape is:
+
+  ```
+  git diff --quiet -- <file> && sed -i '<mutation>' <file>; rc=0; <test cmd> || rc=1; git checkout -- <file>; exit $rc
+  ```
+
+- **Capture the test's exit code BEFORE the restore.** A rung ending
+  `… && <test cmd>; git checkout -- <file>` records the CHECKOUT's exit code, always 0 —
+  the mutation rung can never fail by exit code and the receipt PASS column lies (run-5
+  finding: every red-then-green rung in the sweep had this shape; judges compensated by
+  reading output, the exit code did not). With `exit $rc` the inner result is observable;
+  pair the rung with `expect_check: {type: exit_code, value: 1}` when the seeded run is
+  EXPECTED red. The validator WARNs on `<test>; git checkout` without rc capture.
 - Touchset paths are `--repo`-relative by convention; `work` normalizes entries to
   git-root-relative (an entry that exists under `--repo` resolves there, otherwise it is
   tried relative to the git root), so a touchset may legitimately name files outside the

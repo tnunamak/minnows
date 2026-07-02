@@ -21,6 +21,11 @@
 //   spine-0003 rung (per-file ephemeral DB + --test-force-exit) is the exemplar.
 //   The --test-force-exit half is best-effort: WARN (via ctx.warn), never reject.
 //
+// Engine-iteration-5 lint (run-3/5 defect class, only with ctx.repoDir):
+// - restore-masks-rc lint: a mutate→test→restore rung ending `; git checkout -- <file>`
+//   records the CHECKOUT's exit code, never the test's — the rung can never fail by exit
+//   code and its PASS column lies. WARN with the canonical rc-capture shape.
+//
 // ctx naming (engine-iteration-4 fix): the context key is `repoDir` — it is the --repo
 // directory, NOT necessarily the git root (the old name `repoRoot` was misread twice as
 // git-root). `repoRoot` is still accepted as a deprecated alias, with a warning.
@@ -288,6 +293,29 @@ export function validatePacket(p, ctx = {}) {
       }
       if (NODE_TEST_RE.test(cmd) && /PDPP_TEST_POSTGRES_URL=/.test(cmd) && !/--test-force-exit\b/.test(cmd)) {
         warn(`evidence_required[${i}] (rung '${e.rung}'): DB-backed node --test without --test-force-exit — a server-ish test can keep the runner alive after tests finish (spine-0003's 2700s idle-hang); add --test-force-exit (best-effort lint, not a rejection)`);
+      }
+    }
+  }
+
+  // ---- restore-masks-rc lint (engine-iteration-5; only when ctx.repoDir is known) ----
+  // Run-3/5 finding: mutate→test→restore rungs authored as
+  //   … && sed -i '<mutation>' <file> && node --test <test>; git checkout -- <file>
+  // end with the restore, so the rung's recorded exit code is ALWAYS the checkout's —
+  // the seeded test result is invisible to the exit code, mutation rungs can NEVER fail
+  // by exit code, and the receipt PASS column lies (judges compensated by reading output).
+  // The engine cannot infer the inner rc after the fact, so this is authoring truth:
+  // WARN (never reject) with the canonical rc-capture shape —
+  //   rc=0; <test cmd> || rc=1; git checkout -- <file>; exit $rc
+  // (pair with expect_check {type: exit_code, value: 1} when the seeded run is EXPECTED red).
+  if (repoDir && Array.isArray(p.evidence_required)) {
+    const TEST_INVOCATION_RE = /\bnode\s+(?:[^|;&\n]*\s)?--test\b|\bnpm\s+(?:run\s+)?test\b|\bnpx\s+(?:vitest|jest|mocha|tap)\b|\byarn\s+test\b/;
+    const RC_CAPTURE_RE = /\brc=|\$\?/;
+    for (const [i, e] of p.evidence_required.entries()) {
+      if (!isMap(e) || !isNonEmptyStr(e.command)) continue;
+      const m = e.command.match(/;\s*git checkout\b/);
+      if (!m) continue;
+      if (TEST_INVOCATION_RE.test(e.command.slice(0, m.index)) && !RC_CAPTURE_RE.test(e.command)) {
+        warn(`evidence_required[${i}] (rung '${e.rung}'): test invocation followed by '; git checkout' without rc capture — the rung's exit code is ALWAYS the checkout's, so this mutate→test→restore rung can NEVER fail by exit code and its PASS column lies (the run-5 red-then-green class; judges compensate by reading output, the exit code does not). Capture before restoring: rc=0; <test cmd> || rc=1; git checkout -- <file>; exit $rc — and pair with expect_check {type: exit_code, value: 1} when the seeded run is EXPECTED red (best-effort lint, not a rejection)`);
       }
     }
   }
