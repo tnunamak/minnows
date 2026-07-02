@@ -10,7 +10,10 @@
 //                          (red baseline → status blocked; never work on a red baseline)
 //   maker                  subprocess agent (claude -p / codex exec), edit-enabled, cwd=repo,
 //                          prompt = packet YAML + binding brief; afterwards changed-files ⊆
-//                          touchset or EVERYTHING reverts (skipped: touchset-violation)
+//                          touchset or EVERYTHING reverts (skipped: touchset-violation).
+//                          ALL working-tree checks run against the FULL GIT ROOT (not the
+//                          --repo subtree); touchset entries + observed paths are both
+//                          normalized to git-root-relative before comparison
 //   deterministic oracle   re-run every rung; expect checked (exit 0 + recognized patterns);
 //                          one maker revision cycle on failure, then revert
 //   independent judge      providers/ layer, judge ≠ maker (structural); PASS lands,
@@ -163,9 +166,15 @@ function gitContext(repoRoot) {
 
 const unquotePath = (p) => (p.startsWith('"') ? JSON.parse(p) : p);
 
-/** porcelain-v1 entries scoped to the --repo subtree; paths are toplevel-relative. */
+/**
+ * porcelain-v1 entries for the FULL git root, never just the --repo subtree: the maker can
+ * write anywhere in the repository, so every working-tree check (dirty preflight, touchset
+ * enforcement, no-diff detection, revert, post-land cleanliness) must see the whole tree.
+ * Paths are toplevel-relative. (Dogfood packet 9: subtree-scoped status let an
+ * out-of-subtree edit survive a "revert" and produced a FALSE all-reverted ledger claim.)
+ */
 function statusEntries(g) {
-  const out = g.git(['status', '--porcelain=v1', '-uall', '--', g.prefix || '.']);
+  const out = g.git(['status', '--porcelain=v1', '-uall']);
   return out.split('\n').filter(Boolean).map((line) => ({
     x: line[0], y: line[1],
     paths: line.slice(3).split(' -> ').map(unquotePath),
@@ -179,6 +188,21 @@ function dirtyEntries(g) {
 }
 
 const flatPaths = (entries) => [...new Set(entries.flatMap((e) => e.paths))];
+
+/**
+ * normalize ONE touchset entry to a git-root-relative path (the coordinate system of
+ * statusEntries): an entry that exists under --repo resolves there; otherwise an entry
+ * that exists relative to the git root is taken as already git-root-relative; a path that
+ * exists at neither (e.g. a file the packet expects the maker to create) defaults to
+ * --repo-relative. Rule documented in schemas/candidate-packet.yaml (touchset). (Dogfood
+ * packet 8: a git-root-relative entry was compared unnormalized against a --repo-relative
+ * observed path — the violation message printed the identical string on both sides.)
+ */
+function normalizeTouchEntry(g, repoRoot, entry) {
+  if (existsSync(join(repoRoot, entry))) return g.topRel(entry);
+  if (g.prefix && existsSync(join(g.gitRoot, entry))) return entry;
+  return g.topRel(entry);
+}
 
 /** restore the worktree to HEAD for everything dirty outside quality/. Throws if it can't. */
 function revertAll(g) {
@@ -239,6 +263,12 @@ export function parseSkipCount(output) {
 }
 
 const EXPECT_CHECK_TYPES = ['exit_code', 'stdout_includes', 'stdout_regex', 'scope_fn_lt', 'file_excess_lt'];
+
+// known compare-vs-HEAD evidence patterns: structurally unwinnable BEFORE a commit (the
+// maker's uncommitted diff is exactly what they flag). Warning only, no behavior change —
+// see README "Authoring evidence rungs". (Dogfood packet 9: check:generated burned $6.83.)
+const COMPARE_VS_HEAD_PATTERNS = [/git\s+diff\b[^|;&\n]*--exit-code/, /\bcheck:generated\b/];
+const isCompareVsHead = (cmd) => COMPARE_VS_HEAD_PATTERNS.some((re) => re.test(String(cmd)));
 
 /** multiset subset: every name in `post` appears at least as often in `base`. */
 function isSubMultiset(post, base) {
@@ -371,6 +401,37 @@ function headClip(s, n) {
   return t.length <= n ? t : t.slice(0, n) + '…';
 }
 
+// judge-context evidence bounds (fix for dogfood packet 1: receipts carried only exit
+// codes + digests, so the judge REVISEd honest work for not SHOWING red/green output)
+const RUNG_SLICE_MAX_LINES = 40;
+const RUNG_SLICE_MAX_BYTES = 2048;
+const JUDGE_EVIDENCE_MAX_BYTES = 8192;
+
+/** last ≤maxLines lines of a rung's combined output, additionally byte-bounded (tail wins). */
+export function outputSlice(output, maxLines = RUNG_SLICE_MAX_LINES, maxBytes = RUNG_SLICE_MAX_BYTES) {
+  const lines = String(output).replace(/\n+$/, '').split('\n');
+  let s = lines.slice(-maxLines).join('\n');
+  if (lines.length > maxLines) s = `…[${lines.length - maxLines} earlier line(s) omitted]…\n` + s;
+  if (s.length > maxBytes) s = `…[clipped]…` + s.slice(-maxBytes);
+  return s;
+}
+
+/**
+ * judge-facing evidence: every receipt digest line PLUS a bounded tail of that rung's
+ * REAL output. Total is hard-capped; truncation drops the OLDEST content first (the
+ * newest rungs — post-change, revisions — are the ones under judgment).
+ */
+export function buildJudgeEvidence(receiptLines, receiptSlices, maxBytes = JUDGE_EVIDENCE_MAX_BYTES) {
+  const blocks = receiptLines.map((line, i) => (receiptSlices[i]
+    ? `${line}\n  --- rung output tail ---\n${receiptSlices[i]}\n  --- end tail ---`
+    : line));
+  let text = blocks.join('\n');
+  if (text.length > maxBytes) {
+    text = `…[${text.length - maxBytes} bytes truncated from head; newest rungs retained]…\n` + text.slice(-maxBytes);
+  }
+  return text;
+}
+
 // ---------------------------------------------------------------- prompts
 
 function makerBrief(rawPacketYaml, packet) {
@@ -383,9 +444,27 @@ function makerBrief(rawPacketYaml, packet) {
     '- Do NOT commit, stage, branch, or run any git write operation. Do NOT add dependencies. Do NOT touch anything under quality/.',
     "- Do NOT run the test suite; the engine runs the packet's evidence_required commands itself after you finish.",
     '- When done, reply with a short summary: which functions changed, what transform you applied, and why behavior is preserved.',
+    '- If you conclude the code is ALREADY CORRECT and the packet premise is a non-defect, make NO edits and end your reply with one line exactly of the form: HONE-VERDICT: validated-non-defect — <one-line rationale>',
+    '- If you CANNOT act on plan.instruction as written (target missing, contradiction with the actual code, instruction not executable), make NO edits and end your reply with one line exactly of the form: HONE-VERDICT: unactionable — <one-line reason>',
     '== WORK PACKET (YAML) ==',
     rawPacketYaml,
   ].join('\n');
+}
+
+/**
+ * parse the maker's explicit no-change verdict from its final output text (bounded scan,
+ * LAST match wins). Returns {kind: 'validated-non-defect'|'unactionable', rationale} or
+ * null — unparseable keeps the generic maker-no-diff behavior (fail-safe). Fix for the
+ * dogfood negative control: a correct "nothing to fix" and an unactionable instruction
+ * were indistinguishable, and the correct close got a "reset to pending to retry" claim.
+ */
+export function parseMakerVerdict(text) {
+  const bounded = String(text ?? '').slice(-8000);
+  const re = /^[ \t]*HONE-VERDICT:[ \t]*(validated-non-defect|unactionable)[ \t]*(?:[—–:-]+)?[ \t]*(.*)$/gim;
+  let last = null;
+  for (const m of bounded.matchAll(re)) last = m;
+  if (!last) return null;
+  return { kind: last[1].toLowerCase(), rationale: last[2].trim() || '(no rationale given)' };
 }
 
 function revisionBrief(base, failureNote, diffText) {
@@ -442,15 +521,15 @@ export async function executeWork(opts, deps) {
   if (g.branch === 'main' || g.branch === 'master') {
     return refuse(`target repo is on '${g.branch}' — work lands commits and never works on the default branch`);
   }
+  // touchset entries normalized to git-root-relative — used by every comparison below
+  const touchTop = packet.touchset.map((p) => normalizeTouchEntry(g, repoRoot, p));
+
   const dirty = dirtyEntries(g);
   if (dirty.length) {
-    const touchTop = packet.touchset.map(g.topRel);
     const inTouch = flatPaths(dirty).filter((p) => touchTop.includes(p));
-    return refuse(`target tree is dirty (${flatPaths(dirty).length} path(s)): ${flatPaths(dirty).slice(0, 10).join(', ')}` +
+    return refuse(`target git tree is dirty (${flatPaths(dirty).length} path(s), full git-root scope): ${flatPaths(dirty).slice(0, 10).join(', ')}` +
       (inTouch.length ? `\n  DIRTY TOUCHSET FILES: ${inTouch.join(', ')} — refusing: baseline would be unattributable` : ''));
   }
-
-  const touchTop = packet.touchset.map(g.topRel);
 
   if (dryRun) {
     return {
@@ -474,6 +553,7 @@ export async function executeWork(opts, deps) {
   // ---- everything below has side effects; terminal paths write packet + ledgers ----
   const receiptsDirRel = join('quality', 'receipts', id);
   const receiptLines = [];       // single-line receipt strings for packet.outcome.evidence_receipts
+  const receiptSlices = [];      // parallel bounded output tails — judge context only, never the packet
   const makerMetas = [];
   const judgeMetas = [];
   let revisionCount = 0;
@@ -486,6 +566,7 @@ export async function executeWork(opts, deps) {
     writeFileSync(abs, `# hone work ${id} — ${phase} rung '${rung.rung}'\n# command: ${rung.command}\n# expect: ${rung.expect}\n# exit: ${res.timedOut ? 'TIMEOUT' : res.code}  duration: ${Math.round(res.durationMs / 1000)}s  verdict: ${verdict.pass ? 'PASS' : `FAIL (${verdict.reason})`}\n\n${res.output}`);
     const digest = `exit=${res.timedOut ? 'TIMEOUT' : res.code} djb2=${djb2(res.output)} bytes=${res.output.length} receipt=${rel}`;
     receiptLines.push(`[${phase}] ${rung.rung}: ${rung.command} -> ${res.timedOut ? 'TIMEOUT' : `exit ${res.code}`} (${Math.round(res.durationMs / 1000)}s) ${verdict.pass ? 'PASS' : `FAIL: ${verdict.reason}`}; ${digest}`);
+    receiptSlices.push(outputSlice(res.output));
     return digest;
   };
 
@@ -527,6 +608,10 @@ export async function executeWork(opts, deps) {
       });
     }
     const attempt = nextJobAttempt(repoRoot, id);
+    // wall_time_s is ALWAYS real engine wall; when NO provider call ran (e.g. blocked at a
+    // red baseline), cost/tokens are a known 0, not an unknown null (dogfood packet 5:
+    // 270s of engine wall logged cost_usd null).
+    const providerRan = makerMetas.length + judgeMetas.length > 0;
     appendCostEntry(repoRoot, {
       job_id: `job-${id}-${attempt}`,
       created: new Date().toISOString(),
@@ -534,8 +619,9 @@ export async function executeWork(opts, deps) {
       workflow: packet.action,
       maker: { provider: makerName, tier: packet.maker_tier },
       judge: { provider: judgeName, tier: packet.judge_tier },
-      tokens_in: inTok, tokens_out: outTok,
-      cost_usd: usd == null ? null : Math.round(usd * 10000) / 10000,
+      tokens_in: providerRan ? inTok : 0,
+      tokens_out: providerRan ? outTok : 0,
+      cost_usd: providerRan ? (usd == null ? null : Math.round(usd * 10000) / 10000) : 0,
       wall_time_s: Math.round((Date.now() - startedAt) / 100) / 10,
       landed: status === 'landed',
       revision_count: revisionCount,
@@ -564,6 +650,11 @@ export async function executeWork(opts, deps) {
 
   const baselineRes = [];
   try {
+    for (const rung of packet.evidence_required) {
+      if (isCompareVsHead(rung.command)) {
+        log(`  WARNING [${rung.rung}]: command matches a compare-vs-HEAD pattern (git diff --exit-code / check:generated) — pre-land evidence must be satisfiable in a dirty working tree; this rung is structurally unwinnable before commit (warning only; see README "Authoring evidence rungs")`);
+      }
+    }
     for (const [i, rung] of packet.evidence_required.entries()) {
       log(`  [baseline] ${rung.rung}: ${rung.command}`);
       const res = runShellCmd(rung.command, repoRoot);
@@ -613,12 +704,39 @@ export async function executeWork(opts, deps) {
     };
     let { changed, violations } = enforceTouchset();
     if (!changed.length) {
+      const noDiffEvidence = [{ command: 'git status --porcelain=v1 -uall', output_digest: '(empty — no changes anywhere in the git root outside quality/)' }];
+      const mv = parseMakerVerdict(makerRun.text);
+      if (mv?.kind === 'validated-non-defect') {
+        const why = headClip(mv.rationale, 240);
+        return terminalize({
+          status: 'skipped',
+          skipReason: `validated-non-defect(${why})`,
+          lesson: `maker (${makerName}) validated the packet premise as a non-defect — a correct, permanent close, not a retry candidate`,
+          claims: [
+            { type: 'verified_fact', statement: `maker (${makerName}) produced no working-tree change for ${id} and explicitly validated the code as already correct (HONE-VERDICT: validated-non-defect — ${why}); baseline evidence was green with no change required`, evidence: noDiffEvidence },
+          ],
+          headline: `validated non-defect — no change needed (${headClip(why, 120)})`,
+        });
+      }
+      if (mv?.kind === 'unactionable') {
+        const why = headClip(mv.rationale, 240);
+        return terminalize({
+          status: 'skipped',
+          skipReason: `unactionable(${why})`,
+          lesson: `maker (${makerName}) could not act on plan.instruction as written — rewrite the instruction before retrying`,
+          claims: [
+            { type: 'verified_fact', statement: `maker (${makerName}) produced no working-tree change for ${id}: instruction declared unactionable (HONE-VERDICT: unactionable — ${why})`, evidence: noDiffEvidence },
+            { type: 'remaining_work', statement: `packet ${id} unexecuted (unactionable: ${why}); rewrite plan.instruction, reset to pending to retry` },
+          ],
+          headline: `maker declared instruction unactionable (${headClip(why, 120)})`,
+        });
+      }
       return terminalize({
         status: 'skipped',
-        skipReason: 'maker-no-diff: maker completed but modified nothing',
-        lesson: `maker (${makerName}) replied without editing; packet instruction may be unactionable as written`,
+        skipReason: 'maker-no-diff: maker completed but modified nothing (no parseable HONE-VERDICT line)',
+        lesson: `maker (${makerName}) replied without editing and without an explicit HONE-VERDICT; packet instruction may be unactionable as written`,
         claims: [
-          { type: 'verified_fact', statement: `maker (${makerName}) produced no working-tree change for ${id}`, evidence: [{ command: `git status --porcelain=v1 -uall -- ${g.prefix || '.'}`, output_digest: '(empty — no changes outside quality/)' }] },
+          { type: 'verified_fact', statement: `maker (${makerName}) produced no working-tree change for ${id}`, evidence: noDiffEvidence },
           { type: 'remaining_work', statement: `packet ${id} unexecuted; review plan.instruction actionability, reset to pending to retry` },
         ],
         headline: 'maker made no changes',
@@ -628,10 +746,10 @@ export async function executeWork(opts, deps) {
       revertAll(g);
       return terminalize({
         status: 'skipped',
-        skipReason: `touchset-violation: maker modified ${violations.join(', ')} outside touchset [${packet.touchset.join(', ')}]; ALL changes reverted`,
+        skipReason: `touchset-violation: maker modified ${violations.join(', ')} outside touchset [${touchTop.join(', ')}] (both git-root-relative); ALL changes reverted`,
         lesson: `maker (${makerName}) violated the touchset; brief forbids it explicitly — treat as provider reliability signal`,
         claims: [
-          { type: 'verified_fact', statement: `maker (${makerName}) modified files outside the packet touchset: ${violations.join(', ')}; everything reverted, nothing landed`, evidence: [{ command: `git status --porcelain=v1 -uall -- ${g.prefix || '.'}`, output_digest: `changed=[${changed.join(', ')}] touchset=[${touchTop.join(', ')}]` }] },
+          { type: 'verified_fact', statement: `maker (${makerName}) modified files outside the packet touchset: ${violations.join(', ')}; everything reverted, nothing landed`, evidence: [{ command: 'git status --porcelain=v1 -uall', output_digest: `changed=[${changed.join(', ')}] touchset=[${touchTop.join(', ')}]` }] },
           { type: 'remaining_work', statement: `packet ${id} unexecuted after touchset violation; reset to pending to retry` },
         ],
         headline: `touchset violation: ${violations.join(', ')} — reverted`,
@@ -677,7 +795,7 @@ export async function executeWork(opts, deps) {
           skipReason: `touchset-violation (revision cycle): ${violations.join(', ')}; ALL changes reverted`,
           lesson: `maker (${makerName}) violated the touchset during revision`,
           claims: [
-            { type: 'verified_fact', statement: `revision maker call modified files outside touchset: ${violations.join(', ')}; everything reverted`, evidence: [{ command: `git status --porcelain=v1 -uall -- ${g.prefix || '.'}`, output_digest: `changed=[${changed.join(', ')}]` }] },
+            { type: 'verified_fact', statement: `revision maker call modified files outside touchset: ${violations.join(', ')}; everything reverted`, evidence: [{ command: 'git status --porcelain=v1 -uall', output_digest: `changed=[${changed.join(', ')}]` }] },
             { type: 'remaining_work', statement: `packet ${id} unexecuted after revision touchset violation` },
           ],
           headline: `touchset violation in revision — reverted`,
@@ -705,7 +823,7 @@ export async function executeWork(opts, deps) {
       }
       return diff;
     };
-    const evidenceText = () => receiptLines.map((l) => l).join('\n');
+    const evidenceText = () => buildJudgeEvidence(receiptLines, receiptSlices);
     const judgeProvider = await deps.judge(judgeName);
     const judgeOnce = async () => {
       log(`  judge: ${judgeName}`);
@@ -738,7 +856,7 @@ export async function executeWork(opts, deps) {
           skipReason: `touchset-violation (judge-revision cycle): ${violations.join(', ')}; ALL changes reverted`,
           lesson: `maker (${makerName}) violated the touchset while addressing judge feedback`,
           claims: [
-            { type: 'verified_fact', statement: `judge-revision maker call modified files outside touchset: ${violations.join(', ')}; everything reverted`, evidence: [{ command: `git status --porcelain=v1 -uall -- ${g.prefix || '.'}`, output_digest: `changed=[${changed.join(', ')}]` }] },
+            { type: 'verified_fact', statement: `judge-revision maker call modified files outside touchset: ${violations.join(', ')}; everything reverted`, evidence: [{ command: 'git status --porcelain=v1 -uall', output_digest: `changed=[${changed.join(', ')}]` }] },
             { type: 'remaining_work', statement: `packet ${id} unexecuted after judge-revision touchset violation` },
           ],
           headline: 'touchset violation in judge-revision — reverted',
@@ -895,7 +1013,11 @@ function stBasePacket(id, overrides = {}) {
   };
 }
 
-function stRepo(id, { branch = 'quality-sweep', packetOverrides = {} } = {}) {
+const ST_OUTSIDE = 'export const KINDS = ["owner", "client"];\n'; // out-of-subtree fixture content
+
+/** with `subdir`, the fixture becomes a monorepo: --repo = <root>/<subdir>, plus a tracked
+ * file OUTSIDE that subtree (packages/contract/index.ts) — the packet-9 shape. */
+function stRepo(id, { branch = 'quality-sweep', packetOverrides = {}, subdir = null } = {}) {
   const root = mkdtempSync(join(tmpdir(), 'hone-selftest-'));
   const run = (args) => {
     const r = spawnSync('git', args, { cwd: root, encoding: 'utf8' });
@@ -905,38 +1027,48 @@ function stRepo(id, { branch = 'quality-sweep', packetOverrides = {} } = {}) {
   run(['symbolic-ref', 'HEAD', `refs/heads/${branch}`]);
   run(['config', 'user.email', 'selftest@example.com']);
   run(['config', 'user.name', 'Self Test']);
-  mkdirSync(join(root, 'src'), { recursive: true });
-  writeFileSync(join(root, 'src/util.js'), ST_ORIG);
-  writeFileSync(join(root, 'test.js'), ST_TEST);
-  writeFileSync(join(root, 'README.md'), '# selftest fixture\n');
+  const repoRoot = subdir ? join(root, subdir) : root;
+  mkdirSync(join(repoRoot, 'src'), { recursive: true });
+  writeFileSync(join(repoRoot, 'src/util.js'), ST_ORIG);
+  writeFileSync(join(repoRoot, 'test.js'), ST_TEST);
+  writeFileSync(join(repoRoot, 'README.md'), '# selftest fixture\n');
+  if (subdir) {
+    mkdirSync(join(root, 'packages/contract'), { recursive: true });
+    writeFileSync(join(root, 'packages/contract/index.ts'), ST_OUTSIDE);
+  }
   run(['add', '-A']);
   run(['commit', '-q', '-m', 'init fixture']);
   const packet = stBasePacket(id, packetOverrides);
   assertValidPacket(packet, `selftest fixture ${id}`);
-  mkdirSync(join(root, 'quality/packets'), { recursive: true });
-  writeFileSync(join(root, 'quality/packets', `${id}.yaml`), stringifyYaml(packet));
+  mkdirSync(join(repoRoot, 'quality/packets'), { recursive: true });
+  writeFileSync(join(repoRoot, 'quality/packets', `${id}.yaml`), stringifyYaml(packet));
   return root;
 }
 
 function stMockDeps(script, log) {
   let m = 0;
   let j = 0;
-  const state = { makerCalls: 0, judgeCalls: 0 };
+  const state = { makerCalls: 0, judgeCalls: 0, judgeArgs: [] };
   return {
     state,
     deps: {
+      // a scripted maker is a function(cwd), the string 'ERROR', or {run, text} when the
+      // scenario needs to control the maker's reply text (HONE-VERDICT parsing).
       maker: async (name, _prompt, { cwd }) => {
         state.makerCalls++;
-        const fn = script.makers?.[m++];
-        if (!fn) throw Object.assign(new Error('mock maker: no scripted call left'), { kind: 'mock-exhausted' });
-        if (fn === 'ERROR') throw Object.assign(new Error('scripted maker failure'), { kind: 'timeout' });
+        const entry = script.makers?.[m++];
+        if (!entry) throw Object.assign(new Error('mock maker: no scripted call left'), { kind: 'mock-exhausted' });
+        if (entry === 'ERROR') throw Object.assign(new Error('scripted maker failure'), { kind: 'timeout' });
+        const fn = typeof entry === 'function' ? entry : entry.run;
         fn(cwd);
-        return { text: 'mock maker done', meta: { provider: name, model: 'mock', durationMs: 1, costUsd: 0.01, tokens: { input: 100, output: 50 } } };
+        const text = typeof entry === 'function' ? 'mock maker done' : (entry.text ?? 'mock maker done');
+        return { text, meta: { provider: name, model: 'mock', durationMs: 1, costUsd: 0.01, tokens: { input: 100, output: 50 } } };
       },
       judge: async (name) => ({
         name,
-        judge: async () => {
+        judge: async (args) => {
           state.judgeCalls++;
+          state.judgeArgs.push(args);
           const v = script.judges?.[j++];
           if (!v) return { verdict: 'REVISE', reasoning: 'mock judge: no scripted verdict left', confidence: 0, raw: { provider: name, attempts: [] } };
           return { ...v, raw: { provider: name, attempts: [{ meta: { provider: name, tokens: { total: 500 } } }] } };
@@ -964,7 +1096,7 @@ async function selfTest({ verbose = false } = {}) {
   const costs = (root) => readJsonl(costPath(root));
   const treeClean = (root) => {
     const r = spawnSync('git', ['status', '--porcelain=v1', '-uall'], { cwd: root, encoding: 'utf8' });
-    return r.stdout.split('\n').filter((l) => l && !l.slice(3).startsWith('quality/')).length === 0;
+    return r.stdout.split('\n').filter((l) => l && !/(^|\/)quality\//.test(l.slice(3))).length === 0;
   };
   const headSubject = (root) => spawnSync('git', ['log', '-1', '--format=%s|%ae|%H'], { cwd: root, encoding: 'utf8' }).stdout.trim();
 
@@ -1052,6 +1184,10 @@ async function selfTest({ verbose = false } = {}) {
     check('receipts recorded', p.outcome.evidence_receipts.length === 1 && /FAIL/.test(p.outcome.evidence_receipts[0]));
     check('claims written (verified_fact + remaining_work)', claims(root).map((c) => c.type).join(',') === 'verified_fact,remaining_work', JSON.stringify(claims(root)));
     check('cost written outcome=blocked', costs(root).length === 1 && costs(root)[0].outcome === 'blocked' && costs(root)[0].landed === false);
+    const c0 = costs(root)[0];
+    check('blocked cost: cost_usd 0 (not null) when no provider ran', c0.cost_usd === 0, JSON.stringify(c0));
+    check('blocked cost: tokens 0 (not null) when no provider ran', c0.tokens_in === 0 && c0.tokens_out === 0);
+    check('blocked cost: wall_time_s recorded', typeof c0.wall_time_s === 'number' && c0.wall_time_s >= 0);
     check('maker never ran on red baseline', state.makerCalls === 0);
     check('tree clean', treeClean(root));
   });
@@ -1070,13 +1206,53 @@ async function selfTest({ verbose = false } = {}) {
     check('judge never called', state.judgeCalls === 0);
   });
 
-  await scenario('maker no-diff → skipped', async (check) => {
+  await scenario('maker no-diff, no HONE-VERDICT → generic skip (fail-safe fallback)', async (check) => {
     const root = stRepo(ID);
     const { deps } = stMockDeps({ makers: [() => {}] }, log);
     const r = await exec(root, deps);
     const p = packetOnDisk(root);
     check('skipped(maker-no-diff)', r.outcome === 'skipped' && /maker-no-diff/.test(p.outcome.skip_reason ?? ''), r.summary);
+    check('retry remaining_work claim kept (fallback behavior)', claims(root).some((c) => c.type === 'remaining_work' && /reset to pending/.test(c.statement)));
     check('ledgers written', claims(root).length >= 1 && costs(root).length === 1);
+    check('cost reflects the maker call that DID run', costs(root)[0]?.cost_usd === 0.01 && costs(root)[0]?.tokens_in === 100);
+  });
+
+  await scenario('maker no-diff + HONE-VERDICT validated-non-defect → honest permanent close, NO retry claim', async (check) => {
+    const root = stRepo(ID);
+    const text = 'Checked the enum at the named site.\nHONE-VERDICT: validated-non-defect — union enum already includes the value; packet premise is a non-defect';
+    const { deps } = stMockDeps({ makers: [{ run: () => {}, text }] }, log);
+    const r = await exec(root, deps);
+    const p = packetOnDisk(root);
+    check('skipped', r.outcome === 'skipped' && r.exitCode === 1, r.summary);
+    check('skip_reason = validated-non-defect(rationale)', /^validated-non-defect\(union enum already includes/.test(p.outcome.skip_reason ?? ''), p.outcome.skip_reason ?? '');
+    check('closing verified_fact carries the verdict + rationale', claims(root).some((c) => c.type === 'verified_fact' && /validated-non-defect/.test(c.statement) && /union enum already includes/.test(c.statement)), JSON.stringify(claims(root)));
+    check('NO remaining_work retry claim (permanent close, not a retry)', !claims(root).some((c) => c.type === 'remaining_work'), JSON.stringify(claims(root).map((c) => c.type)));
+    check('cost written', costs(root)[0]?.outcome === 'skipped');
+  });
+
+  await scenario('maker no-diff + HONE-VERDICT unactionable → retry claim carries the why', async (check) => {
+    const root = stRepo(ID);
+    const text = 'I could not do this.\nHONE-VERDICT: unactionable — plan.instruction names a function that does not exist in src/util.js';
+    const { deps } = stMockDeps({ makers: [{ run: () => {}, text }] }, log);
+    const r = await exec(root, deps);
+    const p = packetOnDisk(root);
+    check('skipped', r.outcome === 'skipped', r.summary);
+    check('skip_reason = unactionable(why)', /^unactionable\(plan\.instruction names a function/.test(p.outcome.skip_reason ?? ''), p.outcome.skip_reason ?? '');
+    check('remaining_work retry claim present with the why', claims(root).some((c) => c.type === 'remaining_work' && /unactionable/.test(c.statement) && /reset to pending/.test(c.statement)), JSON.stringify(claims(root)));
+  });
+
+  await scenario('HONE-VERDICT parsing: forms, separators, last-wins, unparseable → null', async (check) => {
+    check('validated-non-defect em-dash', deepEqual(parseMakerVerdict('analysis…\nHONE-VERDICT: validated-non-defect — enum already contains mcp_package'), { kind: 'validated-non-defect', rationale: 'enum already contains mcp_package' }));
+    check('unactionable double-hyphen', parseMakerVerdict('HONE-VERDICT: unactionable -- file does not exist')?.kind === 'unactionable');
+    check('single-hyphen rationale captured', parseMakerVerdict('HONE-VERDICT: unactionable - file does not exist')?.rationale === 'file does not exist');
+    check('colon separator ok', parseMakerVerdict('HONE-VERDICT: validated-non-defect: already correct')?.rationale === 'already correct');
+    check('last match wins', parseMakerVerdict('HONE-VERDICT: unactionable — first take\nmore analysis\nHONE-VERDICT: validated-non-defect — actually correct')?.kind === 'validated-non-defect');
+    check('no verdict line → null (generic fallback)', parseMakerVerdict('I made no changes because reasons.') === null);
+    check('unknown verdict kind → null', parseMakerVerdict('HONE-VERDICT: wontfix — nah') === null);
+    check('missing rationale → placeholder, still parsed', parseMakerVerdict('HONE-VERDICT: unactionable')?.rationale === '(no rationale given)');
+    check('null-safe', parseMakerVerdict(null) === null && parseMakerVerdict(undefined) === null);
+    const brief = makerBrief('yaml: here', stBasePacket(ID));
+    check('maker brief instructs BOTH verdict lines', /HONE-VERDICT: validated-non-defect/.test(brief) && /HONE-VERDICT: unactionable/.test(brief));
   });
 
   await scenario('maker subprocess error → revert + skipped', async (check) => {
@@ -1289,6 +1465,136 @@ async function selfTest({ verbose = false } = {}) {
     check('resets missing reason rejected', validatePacket(withResets([{ at: new Date().toISOString(), from_status: 'reverted' }])).some((e) => /resets\[0\]/.test(e)));
     check('resets bad from_status rejected', validatePacket(withResets([{ at: new Date().toISOString(), from_status: 'nope', reason: 'x' }])).some((e) => /from_status/.test(e)));
     check('resets non-array rejected', validatePacket(withResets({ at: 'x' })).some((e) => /resets: array/.test(e)));
+  });
+
+  // ---- git-root scoping + touchset normalization (dogfood packets 8 + 9) ----
+  const SUB = 'reference-impl';
+  const subExec = (root, deps, extra = {}) => exec(root, deps, { repoRoot: join(root, SUB), ...extra });
+
+  await scenario('git-root scope: out-of-subtree-ONLY edit → violation caught + fully reverted, NOT maker-no-diff', async (check) => {
+    const root = stRepo(ID, { subdir: SUB });
+    const editOutside = () => writeFileSync(join(root, 'packages/contract/index.ts'), ST_OUTSIDE.replace('"client"', '"client", "mcp_package"'));
+    const { deps, state } = stMockDeps({ makers: [editOutside] }, log);
+    const r = await subExec(root, deps);
+    const p = packetOnDisk(join(root, SUB));
+    check('skipped as touchset-violation, not maker-no-diff', r.outcome === 'skipped' && /touchset-violation/.test(p.outcome.skip_reason ?? '') && !/maker-no-diff/.test(p.outcome.skip_reason ?? ''), p.outcome.skip_reason ?? r.summary);
+    check('violation names the out-of-subtree path', /packages\/contract\/index\.ts/.test(p.outcome.skip_reason ?? ''), p.outcome.skip_reason ?? '');
+    check('out-of-subtree residue REVERTED byte-identical (the packet-9 false-claim gap)', read(root, 'packages/contract/index.ts') === ST_OUTSIDE);
+    check('whole git root clean after revert', treeClean(root));
+    check('judge never called', state.judgeCalls === 0);
+  });
+
+  await scenario('git-root scope: touchset edit + out-of-subtree edit → EVERYTHING reverted', async (check) => {
+    const root = stRepo(ID, { subdir: SUB });
+    const editBoth = (cwd) => {
+      writeFileSync(join(cwd, 'src/util.js'), ST_GOOD);
+      writeFileSync(join(root, 'packages/contract/index.ts'), 'export const KINDS = ["tampered"];\n');
+    };
+    const { deps } = stMockDeps({ makers: [editBoth] }, log);
+    const r = await subExec(root, deps);
+    check('skipped(touchset-violation)', r.outcome === 'skipped' && /touchset-violation/.test(packetOnDisk(join(root, SUB)).outcome.skip_reason ?? ''), r.summary);
+    check('in-touchset file reverted', read(root, `${SUB}/src/util.js`) === ST_ORIG);
+    check('out-of-subtree file reverted', read(root, 'packages/contract/index.ts') === ST_OUTSIDE);
+    check('whole git root clean', treeClean(root));
+  });
+
+  await scenario('git-root scope: pre-existing dirt OUTSIDE the --repo subtree → preflight refuses', async (check) => {
+    const root = stRepo(ID, { subdir: SUB });
+    writeFileSync(join(root, 'packages/contract/index.ts'), ST_OUTSIDE + '// local mod\n');
+    const r = await subExec(root, stMockDeps({}, log).deps);
+    check('refused dirty (full git-root scope)', r.outcome === 'refused' && /dirty/.test(r.summary), r.summary);
+    check('no ledgers', !existsSync(claimsPath(join(root, SUB))));
+  });
+
+  await scenario('touchset normalization: git-root-relative entry lands (packet-8 false-violation case)', async (check) => {
+    const root = stRepo(ID, { subdir: SUB, packetOverrides: { touchset: [`${SUB}/src/util.js`] } });
+    const { deps } = stMockDeps({ makers: [stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'clean flattening', confidence: 0.9 }] }, log);
+    const r = await subExec(root, deps);
+    check('landed — identical path in two coordinate systems no longer a violation', r.outcome === 'landed', r.summary);
+    check('edit committed', read(root, `${SUB}/src/util.js`) === ST_GOOD);
+    check('tree clean after land', treeClean(root));
+  });
+
+  await scenario('touchset normalization: repo-relative entry still lands in a subtree repo', async (check) => {
+    const root = stRepo(ID, { subdir: SUB }); // default touchset: ['src/util.js']
+    const { deps } = stMockDeps({ makers: [stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'clean', confidence: 0.9 }] }, log);
+    const r = await subExec(root, deps);
+    check('landed', r.outcome === 'landed', r.summary);
+    check('tree clean', treeClean(root));
+  });
+
+  await scenario('touchset normalization: legit out-of-subtree touchset entry is editable + landable', async (check) => {
+    const root = stRepo(ID, { subdir: SUB, packetOverrides: { touchset: ['src/util.js', 'packages/contract/index.ts'] } });
+    const contractV2 = ST_OUTSIDE.replace('"client"', '"client", "mcp_package"');
+    const editBoth = (cwd) => {
+      writeFileSync(join(cwd, 'src/util.js'), ST_GOOD);
+      writeFileSync(join(root, 'packages/contract/index.ts'), contractV2);
+    };
+    const { deps } = stMockDeps({ makers: [editBoth], judges: [{ verdict: 'PASS', reasoning: 'both files in contract', confidence: 0.9 }] }, log);
+    const r = await subExec(root, deps);
+    check('landed with cross-subtree touchset', r.outcome === 'landed', r.summary);
+    check('out-of-subtree edit committed', read(root, 'packages/contract/index.ts') === contractV2 && treeClean(root));
+  });
+
+  await scenario('touchset normalization: real violation still caught with git-root-relative entries', async (check) => {
+    const root = stRepo(ID, { subdir: SUB, packetOverrides: { touchset: [`${SUB}/src/util.js`] } });
+    const editUtilAndReadme = (cwd) => {
+      writeFileSync(join(cwd, 'src/util.js'), ST_GOOD);
+      writeFileSync(join(cwd, 'README.md'), '# selftest fixture\ntouched by maker\n');
+    };
+    const { deps, state } = stMockDeps({ makers: [editUtilAndReadme] }, log);
+    const r = await subExec(root, deps);
+    check('skipped(touchset-violation)', r.outcome === 'skipped' && /touchset-violation/.test(packetOnDisk(join(root, SUB)).outcome.skip_reason ?? ''), r.summary);
+    check('violation names README, git-root-relative', new RegExp(`${SUB}/README\\.md`).test(packetOnDisk(join(root, SUB)).outcome.skip_reason ?? ''));
+    check('both files reverted', read(root, `${SUB}/src/util.js`) === ST_ORIG && read(root, `${SUB}/README.md`) === '# selftest fixture\n');
+    check('judge never called', state.judgeCalls === 0);
+  });
+
+  // ---- judge context: rung output slices (dogfood packet 1) ----
+  await scenario('judge context: bounded rung output slices included alongside digests', async (check) => {
+    const root = stRepo(ID);
+    const { deps, state } = stMockDeps({ makers: [stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'saw the output', confidence: 0.9 }] }, log);
+    const r = await exec(root, deps);
+    check('landed', r.outcome === 'landed', r.summary);
+    const ev = state.judgeArgs[0]?.evidence ?? '';
+    check('evidence includes REAL rung output (PASS 3/3), not just digests', ev.includes('PASS 3/3'), ev.slice(0, 400));
+    check('evidence keeps the digest lines', /djb2=/.test(ev));
+    check('evidence within the hard cap', ev.length <= 8192 + 128, `len=${ev.length}`);
+  });
+
+  await scenario('judge evidence builder: 40-line slice bound, byte bound, 8KB head-truncation', async (check) => {
+    const many = Array.from({ length: 100 }, (_, i) => `line-${i}`).join('\n');
+    const s = outputSlice(many);
+    check('keeps the LAST 40 lines', s.includes('line-99') && s.includes('line-60') && !s.includes('line-59\n'), s.slice(0, 80));
+    check('omission marker for dropped lines', /omitted/.test(s));
+    check('per-slice byte bound (tail wins)', outputSlice('x'.repeat(5000)).length <= 2048 + 32);
+    const ev1 = buildJudgeEvidence(['[post] t: cmd -> exit 0 PASS; djb2=abc'], ['tail-output-here']);
+    check('slice attached under its digest line', ev1.includes('djb2=abc') && ev1.includes('tail-output-here'));
+    const evBig = buildJudgeEvidence(
+      Array.from({ length: 10 }, (_, i) => `[post] rung${i}: digest${i}`),
+      Array.from({ length: 10 }, (_, i) => `slice${i} `.repeat(250)),
+    );
+    check('total hard-capped ~8KB', evBig.length <= 8192 + 128, `len=${evBig.length}`);
+    check('truncated from the HEAD — newest rung retained, oldest dropped', /truncated from head/.test(evBig) && evBig.includes('digest9') && !evBig.includes('digest0'));
+  });
+
+  // ---- compare-vs-HEAD rung warning (dogfood packet 9's check:generated trap) ----
+  await scenario('compare-vs-HEAD rung → WARNING logged, behavior unchanged (structurally unwinnable → reverted)', async (check) => {
+    const root = stRepo(ID, {
+      packetOverrides: {
+        evidence_required: [
+          { rung: 'direct-test', command: 'node test.js', expect: 'exit 0' },
+          { rung: 'generated-check', command: 'git diff --exit-code -- src/util.js', expect: 'exit 0' },
+        ],
+      },
+    });
+    const logs = [];
+    const { deps } = stMockDeps({ makers: [stEditUtil(ST_GOOD), stEditUtil(ST_GOOD)] }, (s) => logs.push(s));
+    const r = await exec(root, deps);
+    check('WARNING names the compare-vs-HEAD pattern', logs.some((l) => /WARNING/.test(l) && /compare-vs-HEAD/.test(l) && /generated-check/.test(l)), logs.filter((l) => /WARN/.test(l)).join(' | '));
+    check('no WARNING for the honest rung', !logs.some((l) => /WARNING/.test(l) && /\[direct-test\]/.test(l)));
+    check('behavior unchanged: rung red post-edit → reverted', r.outcome === 'reverted', r.summary);
+    check('util.js restored', read(root, 'src/util.js') === ST_ORIG);
   });
 
   // ---- reset verb: deliberately reopen a terminal packet ----

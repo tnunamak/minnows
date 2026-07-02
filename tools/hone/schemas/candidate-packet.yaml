@@ -83,7 +83,12 @@ judge_tier: standard | strong   # scales with risk.silent_wrongness_cost, indepe
 maker_provider: string | null   # filled at execution; MUST differ from judge_provider
 judge_provider: string | null
 batch_key: string               # workflow × proof_class × subsystem; batching unit
-touchset: [string]              # files this WILL modify — lane scheduler serializes overlaps
+touchset: [string]              # files this WILL modify — lane scheduler serializes overlaps.
+                                # Paths are --repo-relative by convention; `work` normalizes every
+                                # entry to git-root-relative before comparing against observed
+                                # changes (an entry that exists under --repo resolves there;
+                                # otherwise it is tried relative to the git root), so a touchset
+                                # may legitimately name files outside the --repo subtree.
 estimates:                      # ranking inputs (priors; cost ledger recalibrates over time)
   tokens: int
   evidence_cost: low | medium | high
