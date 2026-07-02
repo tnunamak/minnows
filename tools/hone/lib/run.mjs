@@ -23,15 +23,19 @@
 // spawned executable so the loop is provable offline before the real `hone work`
 // lands. The override is split on whitespace — no spaces in the override path.
 import { spawn } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { buildContext, HONE_ROOT } from './profile.mjs';
 import { parseYaml } from './yaml.mjs';
 import { readPacketPool, runReport } from './report.mjs';
+import { costPath } from './ledger.mjs';
+import {
+  packetPriority, readAgendaArtifacts, agedNotChosenIds, orderExecutableByAgenda,
+  applyAgendaFloor, appendBatchRecord,
+} from './agenda-consume.mjs';
 
-const LMH = { low: 1, medium: 2, high: 3 };
-const PROD = { none: 1, low: 2, medium: 3, high: 4 };
-const MAKER_COST = { cheap: 1, standard: 2, strong: 3 };
+export { packetPriority }; // moved to agenda-consume.mjs (report renders formula-vs-agenda rank); re-exported for compat
+
 const TERMINAL_NONLANDED = new Set(['reverted', 'skipped', 'blocked']);
 const MAX_CONSECUTIVE_INFRA = 2; // per lane
 
@@ -53,21 +57,6 @@ export function packetsConflict(a, b) {
   if (ta.some((f) => under(f, b.subsystem))) return true;
   if (tb.some((f) => under(f, a.subsystem))) return true;
   return false;
-}
-
-/**
- * rank for ordering: prefer the persisted plan-time prior (packet.priority.score — schema
- * v1.1 optional block; recalibrated by cost actuals, never a quality claim). Packets without
- * it (hand-authored) fall back to the coarse enum-derived rank below. The two scales differ
- * (the persisted log2-based prior usually exceeds the enum ratio), which is accepted: the
- * richer prior deliberately wins, and a hand-authored packet can carry its own priority block.
- */
-export function packetPriority(p) {
-  const persisted = p.priority?.score;
-  if (typeof persisted === 'number' && Number.isFinite(persisted)) return persisted;
-  const num = (LMH[p.expected_quality_gain] || 1) * (LMH[p.owner_attention_reduction] || 1) * (PROD[p.product_impact] || 1);
-  const den = (LMH[p.risk?.silent_wrongness_cost] || 3) * (LMH[p.estimates?.evidence_cost] || 3) * (MAKER_COST[p.maker_tier] || 3);
-  return num / den; // unknown enums price as worst-case (fail-closed ranking)
 }
 
 function selectExecutable(packets, warn) {
@@ -197,8 +186,28 @@ export async function runLoop(flags) {
 
   const pool = readPacketPool(ctx.repoRoot);
   for (const e of pool.errors) warn(`malformed packet excluded from pool: ${e}`);
-  const executable = selectExecutable(pool.packets, warn);
-  const queue = executable.slice(0, n);
+  let executable = selectExecutable(pool.packets, warn);
+
+  // AGENDA consumption (AGENDA-DESIGN.md v2): when quality/AGENDA.json exists, selection
+  // order = agenda rank (verified-first by construction) behind the deterministic floor the
+  // agenda CANNOT displace — (a) negative controls/seeded traps, (b) in-flight campaigns
+  // before new ones, (c) aged NOT-chosen minimum. No AGENDA.json → behavior unchanged.
+  const agendaArts = readAgendaArtifacts(ctx.repoRoot);
+  for (const e of agendaArts.errors) warn(`agenda artifact problem: ${e}`);
+  const agenda = agendaArts.agenda;
+  let queue;
+  if (agenda) {
+    executable = orderExecutableByAgenda(executable, pool.packets, agenda);
+    queue = executable.slice(0, n);
+    const { queue: floored, notes } = applyAgendaFloor(queue, executable, { n, agedIds: agedNotChosenIds(agendaArts.notChosen) });
+    queue = floored;
+    out(`agenda: ${agenda.agenda_id} governs selection order (verified-first); deterministic floor applied${notes.length ? '' : ' (no floor insertions needed)'}`);
+    for (const note of notes) out(`  floor: ${note}`);
+  } else {
+    queue = executable.slice(0, n);
+  }
+  const costLinesBefore = existsSync(costPath(ctx.repoRoot))
+    ? readFileSync(costPath(ctx.repoRoot), 'utf8').split('\n').filter((l) => l.trim()).length : 0;
   out(`hone run — repo ${ctx.repoRoot}`);
   out(`pool: ${pool.packets.length} packets · ${executable.length} executable · selected ${queue.length} (n=${n}) · lanes=${lanes}${workCmd ? ` · work-cmd override: ${workCmd}` : ''}`);
   for (const [i, p] of queue.entries()) {
@@ -254,6 +263,20 @@ export async function runLoop(flags) {
     out(`unexecuted (all lanes stopped before the queue drained): ${queue.map((p) => p.candidate_id).join(', ')}`);
   }
   out(`hone run — done: landed ${summary.landed} · reverted ${summary.reverted} · skipped ${summary.skipped} · blocked ${summary.blocked} · infra-failures ${summary.infra} · unexecuted ${summary.unexecuted}`);
+
+  // batch record (agenda runs only): the input for the report's fail-loud divergence
+  // thresholds (named-target starvation / class allocation outside the doctrine band).
+  if (agenda) {
+    const costRows = existsSync(costPath(ctx.repoRoot))
+      ? readFileSync(costPath(ctx.repoRoot), 'utf8').split('\n').filter((l) => l.trim()).slice(costLinesBefore)
+        .map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean)
+      : [];
+    const record = appendBatchRecord(ctx.repoRoot, {
+      agenda, profileAgenda: ctx.profile.agenda ?? {}, poolPackets: pool.packets,
+      executed: summary.executed, costRows,
+    });
+    out(`batch record: ${record.batch_id} → quality/agendas/batches.jsonl (spend $${record.spend_usd} · by class ${JSON.stringify(record.spend_by_class)})`);
+  }
 
   // finish by compiling the report — the ledgers, not this loop's printout, are the record
   summary.reportPath = await runReport({ repo: ctx.repoRoot, out: flags.out });
