@@ -84,7 +84,7 @@ function b64(s) {
 // (the books live on disk; land re-verifies everything itself).
 async function engine(label, phaseName, cmd) {
   const raw = await agent(
-    `Run exactly this ONE command with Bash and then output the command's stdout VERBATIM as your ENTIRE final message — no commentary, no code fences, no reformatting, even if the command exits non-zero (lane commands print their result JSON on failure too):\n\n${cmd}\n\nIf stdout is empty, output the single word EMPTY.`,
+    `Run exactly this ONE command with Bash and then output the command's stdout VERBATIM as your ENTIRE final message — no commentary, no code fences, no reformatting, even if the command exits non-zero (lane commands print their result JSON on failure too). The output is a single compact JSON line under 1KB; copy it exactly:\n\n${cmd}\n\nIf stdout is empty, output the single word EMPTY.`,
     { phase: phaseName, label, model: 'haiku' }
   );
   const s = String(raw || '');
@@ -94,8 +94,12 @@ async function engine(label, phaseName, cmd) {
   catch (e) { return { __pipeError: `unparseable pipe JSON (${String(e).split('\n')[0]}): ${s.slice(0, 200)}` }; }
 }
 
+// Full lane output (inline briefs + packet YAML) exceeds what a relay agent can copy
+// verbatim (run wf_cdc171e4: haiku re-typed 20KB and silently dropped brief_path —
+// fail-closed as designed, wrong transport). The projector shrinks stdout to the exact
+// field contract this driver reads; artifacts stay on disk where maker/judge read them.
 const laneCmd = (sub, sel, extra = '') =>
-  `cd ${REPO} && node ${HONE} lane ${sub} ${sel} --repo ${REPO} ${extra} 2>/dev/null`;
+  `cd ${REPO} && node ${HONE} lane ${sub} ${sel} --repo ${REPO} ${extra} 2>/dev/null | node ${HONE_DIR}/workflows/project-lane-json.mjs`;
 const pkt = (id) => `--packet ${id}`;
 
 // L1 tier ladder for THIS lane: the claude-family CALIBRATED candidates of the emitted
