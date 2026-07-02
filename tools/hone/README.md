@@ -16,6 +16,10 @@ label, never presented as validated.
 hone inventory --repo /path/to/repo            # collectors → <repo>/quality/inventory/*.json
 hone plan      --repo /path/to/repo --top 20   # packets    → <repo>/quality/packets/*.yaml
 hone work <id> --repo /path/to/repo            # execute one packet (maker ≠ judge, evidence-gated)
+hone lane emit|gate|land --packet <id> --repo /path/to/repo
+                                               # deterministic spine for EXTERNAL (Workflow-substrate)
+                                               # makers/judges — books identical, engine-run receipts only
+                                               # (design: SUBSTRATE.md; driver: workflows/hone-lane.js)
 hone reset <id> --repo /path/to/repo           # deliberately reopen a terminal packet (landed needs --force)
 ```
 

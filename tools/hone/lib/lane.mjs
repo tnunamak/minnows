@@ -271,6 +271,9 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
     persistMakerBriefDigest({ repoRoot, receiptsDirRel, id, via: 'lane', attempt: 1, briefText: brief });
     state.maker_ran = true; // from here on a maker is presumed dispatched by the orchestrator
     saveState(repoRoot, id, state);
+    // full brief on disk too: in-harness makers can Read it instead of a giant prompt relay
+    const briefPath = join(laneDir(repoRoot, id), 'maker-brief.txt');
+    writeFileSync(briefPath, brief);
 
     return {
       exitCode: 0,
@@ -282,7 +285,7 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
         touchset_toplevel: touchTop, not_allowed: packet.not_allowed, plan: packet.plan,
         evidence: packet.evidence_required.map((r) => ({ rung: r.rung, command: r.command, expect: r.expect, expect_check: r.expect_check ?? null })),
         baseline: state.receiptLines.slice(),
-        brief, packet_yaml: rawText,
+        brief, brief_path: briefPath, packet_yaml: rawText,
         next: `run the maker (apply the brief), then: hone lane gate --packet ${id} --repo ${repoRoot}`,
       },
     };
@@ -444,14 +447,18 @@ export async function executeLaneGate({ id, repoRoot, makerSummary = null, revis
     state.brief_count += 1;
     persistMakerBriefDigest({ repoRoot, receiptsDirRel, id, via: 'lane', attempt: state.brief_count, briefText: revBrief });
     saveState(repoRoot, id, state);
+    // full revision brief on disk: the orchestrator points the maker at the file instead
+    // of relaying a 60KB-diff prompt through an agent pipe
+    const revBriefPath = join(laneDir(repoRoot, id), `revision-brief-${attempt}.txt`);
+    writeFileSync(revBriefPath, revBrief);
     return {
       exitCode: 1,
       json: {
         ok: false, green: false, candidate_id: id,
         red: { rung: red.rung.rung, command: red.rung.command, expect: red.rung.expect, reason: red.verdict.reason, output_tail: tailClip(red.res.output, 4000) },
         attempts_used: attempt, attempts_left: MAX_GATE_ATTEMPTS - attempt,
-        revision_brief: revBrief,
-        summary: `hone lane gate — ${id}: RED at '${red.rung.rung}' (attempt ${attempt}/${MAX_GATE_ATTEMPTS}) — tree preserved; run the maker on revision_brief, then re-gate. Next red at the ceiling reverts + terminalizes.`,
+        revision_brief_path: revBriefPath,
+        summary: `hone lane gate — ${id}: RED at '${red.rung.rung}' (attempt ${attempt}/${MAX_GATE_ATTEMPTS}) — tree preserved; run the maker on the revision brief at ${revBriefPath}, then re-gate. Next red at the ceiling reverts + terminalizes.`,
       },
     };
   }
@@ -462,15 +469,21 @@ export async function executeLaneGate({ id, repoRoot, makerSummary = null, revis
   state.gate = { green: true, tree_hash: treeHash, at: new Date().toISOString(), attempt };
   saveState(repoRoot, id, state);
   const evidence = buildJudgeEvidence(state.receiptLines.map((line, i) => ({ line, slice: state.receiptSlices[i], ...state.receiptMeta[i] })));
+  // judge context on disk (engine-written, so the judge reads trusted bytes directly —
+  // no giant prompt relay): {packet_yaml, evidence, diff (150KB-clipped, work parity)}
+  const judgeContextPath = join(laneDir(repoRoot, id), 'judge-context.json');
+  writeFileSync(judgeContextPath, JSON.stringify({
+    candidate_id: id, tree_hash: treeHash,
+    packet_yaml: loaded.rawText, evidence, diff: tailClip(diff, 150000),
+    receipts: state.receiptLines.slice(),
+  }, null, 2));
   return {
     exitCode: 0,
     json: {
       ok: true, green: true, candidate_id: id, attempts_used: attempt, tree_hash: treeHash,
       receipts: state.receiptLines.slice(),
-      evidence,
-      diff: tailClip(diff, 150000),
-      packet_yaml: loaded.rawText,
-      next: `independent judge (different model, fresh context) over {packet_yaml, evidence, diff}, then: hone lane land --packet ${id} --repo ${repoRoot} --judge-verdict-b64 <b64> --usage-b64 <b64>`,
+      judge_context_path: judgeContextPath,
+      next: `independent judge (different model, fresh context) over ${judgeContextPath}, then: hone lane land --packet ${id} --repo ${repoRoot} --judge-verdict-b64 <b64> --usage-b64 <b64>`,
       summary: `hone lane gate — ${id}: GREEN (attempt ${attempt}; ${packet.evidence_required.length} rung(s); tree_hash ${treeHash})`,
     },
   };

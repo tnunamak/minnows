@@ -269,7 +269,8 @@ export async function laneSelfTest({ verbose = false } = {}) {
     check('red names the rung + attempts left', r.json.red.rung === 'direct-test' && r.json.attempts_used === 1 && r.json.attempts_left === 2);
     check('tree preserved for revision (maker diff still applied)', read(root, 'src/util.js') === ST_BAD);
     check('packet still in_progress (no terminal write)', packetOnDisk(root).status === 'in_progress' && !existsSync(claimsPath(root)));
-    check('revision brief carries failure + diff + rules', /REVISION REQUIRED/.test(r.json.revision_brief) && /FAILED/.test(r.json.revision_brief) && /diff --git/.test(r.json.revision_brief));
+    const revBrief = readFileSync(r.json.revision_brief_path, 'utf8');
+    check('revision brief ON DISK carries failure + diff + rules', /REVISION REQUIRED/.test(revBrief) && /FAILED/.test(revBrief) && /diff --git/.test(revBrief));
     check('post receipt on disk (phase post)', existsSync(join(root, `quality/receipts/${ID}/post-1-direct-test.txt`)));
     check('revision brief digest persisted (attempt 2)', /REVISION REQUIRED/.test(read(root, `quality/receipts/${ID}/maker-brief-2.digest.txt`) ?? ''));
   });
@@ -299,8 +300,9 @@ export async function laneSelfTest({ verbose = false } = {}) {
     check('exit 0 green', r.exitCode === 0 && r.json.green === true, JSON.stringify(r.json).slice(0, 200));
     check('tree_hash present', /^[0-9a-f]{8}$/.test(r.json.tree_hash));
     check('receipts include baseline AND post lines with digests', r.json.receipts.some((l) => l.startsWith('[baseline]')) && r.json.receipts.some((l) => l.startsWith('[post]')) && r.json.receipts.every((l) => /djb2=/.test(l)));
-    check('evidence carries REAL rung output (PASS 3/3)', r.json.evidence.includes('PASS 3/3'));
-    check('diff shows the actual edit', /guard|return lo;/.test(r.json.diff) && /diff --git/.test(r.json.diff));
+    const jc = JSON.parse(readFileSync(r.json.judge_context_path, 'utf8'));
+    check('judge context ON DISK: evidence carries REAL rung output (PASS 3/3)', jc.evidence.includes('PASS 3/3'));
+    check('judge context ON DISK: diff shows the actual edit + packet yaml present', /diff --git/.test(jc.diff) && /return lo;/.test(jc.diff) && /candidate_id/.test(jc.packet_yaml));
     check('re-gate refused while green', (await gate(root)).exitCode === 2);
     check('packet still in_progress until land', packetOnDisk(root).status === 'in_progress');
   });
@@ -465,6 +467,81 @@ export async function laneSelfTest({ verbose = false } = {}) {
     const b64 = Buffer.from('HONE-VERDICT: validated-non-defect — already guard clauses').toString('base64');
     const gt = cli(['gate', '--packet', ID, '--maker-summary-b64', b64]);
     check('dispatcher: gate with b64 maker summary → skipped(validated-non-defect)', gt.status === 1 && /validated-non-defect/.test(packetOnDisk(root).outcome.skip_reason ?? ''), gt.stdout.slice(0, 300));
+  });
+
+  // ---- workflows/hone-lane.js: the REAL script, mocked agents, real engine ----
+  // The workflow body is executed exactly as the harness would (async function with
+  // args/agent/phase/log): the mock agent plays a PERFECT dumb pipe (actually runs the
+  // engine command), a scripted maker (applies edits), and a scripted judge (schema
+  // verdicts). Everything below the agent boundary — emit/gate/land, receipts, ledgers,
+  // commits — is the real engine on a real fixture repo.
+  const honeDir = join(dirname(fileURLToPath(import.meta.url)), '..');
+  const loadWorkflow = () => {
+    const src = readFileSync(join(honeDir, 'workflows', 'hone-lane.js'), 'utf8').replace('export const meta', 'const meta');
+    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+    return new AsyncFunction('args', 'agent', 'phase', 'log', src);
+  };
+  const mockAgents = (root, { makerEdits, judgeVerdicts }) => {
+    const calls = [];
+    let m = 0, j = 0;
+    const agent = async (prompt, opts = {}) => {
+      calls.push({ label: opts.label ?? null, model: opts.model ?? null, prompt });
+      if (/Run exactly this ONE command/.test(prompt)) {
+        const cm = prompt.match(/\n\n(cd [^\n]+)\n\n/);
+        const r = spawnSync('/bin/bash', ['-c', cm ? cm[1] : 'false'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+        return r.stdout || 'EMPTY';
+      }
+      if (opts.schema) {
+        const v = judgeVerdicts[j++];
+        return v ?? { verdict: 'REVISE', reasoning: 'no scripted verdict left', confidence: 0 };
+      }
+      const edit = makerEdits[m++];
+      if (typeof edit === 'string') writeFileSync(join(root, 'src/util.js'), edit);
+      return 'Flattened clamp into guard clauses. Behavior preserved: same boundaries, same returns.';
+    };
+    return { agent, calls };
+  };
+
+  await scenario('workflow hone-lane.js e2e: happy path → landed via the real engine', async (check) => {
+    const root = fixtureRepo();
+    const { agent, calls } = mockAgents(root, { makerEdits: [ST_GOOD], judgeVerdicts: [{ verdict: 'PASS', reasoning: 'behavior preserved, genuine simplification', confidence: 0.9 }] });
+    const res = await loadWorkflow()({ packets: [ID], repo: root, honeDir }, agent, () => {}, () => {});
+    check('workflow tally: 1 landed', res?.tally?.landed === 1, JSON.stringify(res?.tally));
+    const p = packetOnDisk(root);
+    check('packet landed on disk', p.status === 'landed');
+    const body = spawnSync('git', ['log', '-1', '--format=%B'], { cwd: root, encoding: 'utf8' }).stdout;
+    check('commit names the lane substrate + model-qualified pair', /hone lane: maker=claude:sonnet judge=claude:opus/.test(body), body.slice(0, 200));
+    check('model tiers used: haiku pipe, sonnet maker, opus judge', calls.some((c) => c.model === 'haiku') && calls.some((c) => c.model === 'sonnet' && /make:/.test(c.label)) && calls.some((c) => c.model === 'opus' && /judge:/.test(c.label)));
+    check('judge read the engine-written context file, not agent relay', calls.find((c) => /judge:/.test(c.label ?? ''))?.prompt.includes('judge-context.json'));
+    check('cost ledger written with explicit (null-token) usage', costs(root)[0]?.landed === true && costs(root)[0]?.tokens_in === null);
+    check('tree clean after workflow', treeClean(root));
+  });
+
+  await scenario('workflow hone-lane.js e2e: oracle red → engine revision brief → fix → landed (revisions=1)', async (check) => {
+    const root = fixtureRepo();
+    const { agent, calls } = mockAgents(root, { makerEdits: [ST_BAD, ST_GOOD], judgeVerdicts: [{ verdict: 'PASS', reasoning: 'revised acceptably', confidence: 0.85 }] });
+    const res = await loadWorkflow()({ packets: [ID], repo: root, honeDir }, agent, () => {}, () => {});
+    check('landed after one oracle revision', res?.tally?.landed === 1 && costs(root)[0]?.revision_count === 1, JSON.stringify(res?.results));
+    const revise = calls.find((c) => /revise:/.test(c.label ?? ''));
+    check('revision maker pointed at the on-disk revision brief', revise != null && /revision-brief-1\.txt/.test(revise.prompt), revise?.prompt.slice(0, 200));
+    check('post + post-r1 receipts on disk', ['post', 'post-r1'].every((ph) => existsSync(join(root, `quality/receipts/${ID}/${ph}-1-direct-test.txt`))));
+  });
+
+  await scenario('workflow hone-lane.js e2e: judge REJECT → reverted books, no commit', async (check) => {
+    const root = fixtureRepo();
+    const { agent } = mockAgents(root, { makerEdits: [ST_GOOD], judgeVerdicts: [{ verdict: 'REJECT', reasoning: 'relocation dressed as refactoring', confidence: 0.95 }] });
+    const res = await loadWorkflow()({ packets: [ID], repo: root, honeDir }, agent, () => {}, () => {});
+    check('workflow tally: 1 reverted', res?.tally?.reverted === 1, JSON.stringify(res?.tally));
+    check('packet reverted, judge_verdict recorded', packetOnDisk(root).status === 'reverted' && /REJECT/.test(packetOnDisk(root).outcome.judge_verdict ?? ''));
+    check('tree restored, no commit', read(root, 'src/util.js') === ST_ORIG && headInfo(root).startsWith('init fixture'));
+  });
+
+  await scenario('workflow hone-lane.js: refuses makerModel == judgeModel before any work', async (check) => {
+    const root = fixtureRepo();
+    const { agent, calls } = mockAgents(root, { makerEdits: [], judgeVerdicts: [] });
+    const res = await loadWorkflow()({ packets: [ID], repo: root, honeDir, makerModel: 'sonnet', judgeModel: 'sonnet' }, agent, () => {}, () => {});
+    check('refused with maker-eq-judge, zero agent calls', res?.error === 'maker-eq-judge' && calls.length === 0, JSON.stringify(res));
+    check('packet untouched (still pending)', packetOnDisk(root).status === 'pending');
   });
 
   // ---- report ----
