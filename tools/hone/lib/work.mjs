@@ -59,9 +59,9 @@ import { appendClaim, appendCostEntry, nextClaimSeq, nextJobAttempt, readJsonl, 
 import { runCli } from '../providers/provider.mjs';
 
 const PROVIDERS = ['claude', 'codex'];
-const TERMINAL = ['landed', 'reverted', 'skipped', 'blocked'];
-const AUTHOR_NAME = 'Tim Nunamaker';
-const AUTHOR_EMAIL = 'tnunamak@gmail.com';
+export const TERMINAL = ['landed', 'reverted', 'skipped', 'blocked'];
+export const AUTHOR_NAME = 'Tim Nunamaker';
+export const AUTHOR_EMAIL = 'tnunamak@gmail.com';
 const MAKER_TIMEOUT_MS = Number(process.env.HONE_MAKER_TIMEOUT_MS ?? 20 * 60 * 1000);
 const EVIDENCE_TIMEOUT_MS = Number(process.env.HONE_EVIDENCE_TIMEOUT_MS ?? 45 * 60 * 1000);
 const MAX_BUFFER = 64 * 1024 * 1024;
@@ -152,7 +152,7 @@ async function codexMaker(prompt, { cwd, timeoutMs = MAKER_TIMEOUT_MS } = {}) {
 
 // ---------------------------------------------------------------- git plumbing
 
-function gitContext(repoRoot) {
+export function gitContext(repoRoot) {
   const boot = spawnSync('git', ['rev-parse', '--show-toplevel'], { cwd: repoRoot, encoding: 'utf8' });
   if (boot.status !== 0) throw new Error(`--repo is not inside a git repository: ${repoRoot}`);
   const gitRoot = boot.stdout.trim();
@@ -187,12 +187,12 @@ function statusEntries(g) {
 }
 
 /** dirty entries EXCLUDING quality/ engine state (packets, ledgers, receipts are ours). */
-function dirtyEntries(g) {
+export function dirtyEntries(g) {
   const q = g.topRel('quality');
   return statusEntries(g).filter((e) => !e.paths.every((p) => p === q || p.startsWith(q + '/')));
 }
 
-const flatPaths = (entries) => [...new Set(entries.flatMap((e) => e.paths))];
+export const flatPaths = (entries) => [...new Set(entries.flatMap((e) => e.paths))];
 
 /**
  * normalize ONE touchset entry to a git-root-relative path (the coordinate system of
@@ -203,14 +203,14 @@ const flatPaths = (entries) => [...new Set(entries.flatMap((e) => e.paths))];
  * packet 8: a git-root-relative entry was compared unnormalized against a --repo-relative
  * observed path — the violation message printed the identical string on both sides.)
  */
-function normalizeTouchEntry(g, repoRoot, entry) {
+export function normalizeTouchEntry(g, repoRoot, entry) {
   if (existsSync(join(repoRoot, entry))) return g.topRel(entry);
   if (g.prefix && existsSync(join(g.gitRoot, entry))) return entry;
   return g.topRel(entry);
 }
 
 /** restore the worktree to HEAD for everything dirty outside quality/. Throws if it can't. */
-function revertAll(g) {
+export function revertAll(g) {
   let entries = dirtyEntries(g);
   if (!entries.length) return;
   g.git(['reset', '-q', '--', ...flatPaths(entries)], { allowFail: true }); // unstage anything the maker staged
@@ -307,7 +307,7 @@ const isFailureLine = (l) => /(^|\s)not ok\b/.test(l) || /[✖✗✕]/.test(l) |
 // maker's uncommitted diff is exactly what they flag). Warning only, no behavior change —
 // see README "Authoring evidence rungs". (Dogfood packet 9: check:generated burned $6.83.)
 const COMPARE_VS_HEAD_PATTERNS = [/git\s+diff\b[^|;&\n]*--exit-code/, /\bcheck:generated\b/];
-const isCompareVsHead = (cmd) => COMPARE_VS_HEAD_PATTERNS.some((re) => re.test(String(cmd)));
+export const isCompareVsHead = (cmd) => COMPARE_VS_HEAD_PATTERNS.some((re) => re.test(String(cmd)));
 
 /** multiset subset: every name in `post` appears at least as often in `base`. */
 function isSubMultiset(post, base) {
@@ -390,7 +390,7 @@ function checkExpectCheck(ec, res, phase, baselineRes) {
  * identity expect_check types); 'post' additionally enforces the recognized
  * improvement/identity clauses and the no-new-skips rule on test rungs.
  */
-function checkExpect(rung, res, phase, baselineRes = null) {
+export function checkExpect(rung, res, phase, baselineRes = null) {
   if (res.timedOut) return { pass: false, reason: `TIMEOUT after ${Math.round(res.durationMs / 1000)}s (fail-closed)` };
   const ec = (rung.expect_check && typeof rung.expect_check === 'object') ? rung.expect_check : null;
   const expectedExit = ec?.type === 'exit_code' && Number.isInteger(ec.value) ? ec.value : 0;
@@ -440,13 +440,13 @@ function checkExpect(rung, res, phase, baselineRes = null) {
   return { pass: true, reason: `exit ${expectedExit}; deterministic expect clauses satisfied${notes.length ? ` (${notes.join('; ')})` : ''}` };
 }
 
-function tailClip(s, n) {
+export function tailClip(s, n) {
   const t = String(s);
   return t.length <= n ? t : `…[${t.length - n} bytes clipped]…\n` + t.slice(-n);
 }
 
 /** for prose (judge reasoning in lessons/claims): keep the head, clip the tail. */
-function headClip(s, n) {
+export function headClip(s, n) {
   const t = String(s);
   return t.length <= n ? t : t.slice(0, n) + '…';
 }
@@ -518,7 +518,7 @@ export function stripEngineQualityLines(output, { qualityRel = 'quality', candid
  * numbers print at the HEAD of the collector's long JSON; a tail slice loses them).
  * Judge context only; the on-disk receipt keeps the raw output.
  */
-function judgeSlice(rungName, res, stripCtx) {
+export function judgeSlice(rungName, res, stripCtx) {
   const { text } = stripEngineQualityLines(res.output, stripCtx);
   let s = outputSlice(text);
   if (REMEASURE_RUNG_RE.test(String(rungName))) {
@@ -650,7 +650,7 @@ function priorAttemptSection(packet) {
   ].join('\n'), 2048);
 }
 
-function makerBrief(rawPacketYaml, packet) {
+export function makerBrief(rawPacketYaml, packet) {
   const prior = priorAttemptSection(packet);
   return [
     'You are the MAKER in a repo-quality engine, executing exactly ONE work packet in this repository (your current working directory). The packet below is the entire contract.',
@@ -709,7 +709,7 @@ function pidAlive(pid) {
   catch (e) { return e.code === 'EPERM'; } // EPERM = exists but not ours = alive
 }
 
-function acquireWorkLock(repoRoot, id, log) {
+export function acquireWorkLock(repoRoot, id, log) {
   // no quality/packets → nothing to race on; loadPacket will refuse. Skipping avoids
   // creating directories inside an arbitrary --repo path on a refusal.
   if (!existsSync(join(repoRoot, 'quality', 'packets'))) return { ok: true, release: () => {} };
@@ -734,6 +734,177 @@ function acquireWorkLock(repoRoot, id, log) {
     try { take(); return { ok: true, release, path, brokeStale: true }; }
     catch { return { ok: false, reason: `lost the race re-taking a broken stale lock: ${path}` }; }
   }
+}
+
+// ---------------------------------------------------------------- shared engine spine
+// These are the deterministic, books-writing pieces shared verbatim between the
+// subprocess pipeline (`hone work`, this file) and the Workflow-substrate lane CLI
+// (`hone lane`, lane.mjs). Extraction, not fork: both hosts MUST produce identical
+// receipt/packet/claim/cost shapes — the ledgers are the product, the substrate is
+// an implementation detail. Behavior gate: `hone work --self-test` covers every
+// terminal path through these functions.
+
+/**
+ * write one evidence-rung receipt file + return the bookkeeping strings the caller
+ * accumulates ({digest, line, slice, meta}). File + digest + line formats are the
+ * ledger-visible receipt contract — identical for every execution substrate.
+ */
+export function writeRungReceipt({ repoRoot, receiptsDirRel, id, via = 'work', phase, index, rung, res, verdict, stripCtx }) {
+  const rel = join(receiptsDirRel, `${phase}-${index + 1}-${slug(rung.rung)}.txt`);
+  const abs = join(repoRoot, rel);
+  mkdirSync(dirname(abs), { recursive: true });
+  writeFileSync(abs, `# hone ${via} ${id} — ${phase} rung '${rung.rung}'\n# command: ${rung.command}\n# expect: ${rung.expect}\n# exit: ${res.timedOut ? 'TIMEOUT' : res.code}  duration: ${Math.round(res.durationMs / 1000)}s  verdict: ${verdict.pass ? 'PASS' : `FAIL (${verdict.reason})`}\n\n${res.output}`);
+  const digest = `exit=${res.timedOut ? 'TIMEOUT' : res.code} djb2=${djb2(res.output)} bytes=${res.output.length} receipt=${rel}`;
+  return {
+    digest,
+    line: `[${phase}] ${rung.rung}: ${rung.command} -> ${res.timedOut ? 'TIMEOUT' : `exit ${res.code}`} (${Math.round(res.durationMs / 1000)}s) ${verdict.pass ? 'PASS' : `FAIL: ${verdict.reason}`}; ${digest}`,
+    slice: judgeSlice(rung.rung, res, stripCtx),
+    meta: { phase, pass: verdict.pass, rung: rung.rung },
+  };
+}
+
+/**
+ * persist a maker-brief digest receipt (first ~4KB + sha256 of the FULL brief) —
+ * auditability without huge files; written BEFORE the maker runs so even a crashed
+ * attempt leaves its brief on disk (engine-iteration-4 fix 2).
+ */
+export function persistMakerBriefDigest({ repoRoot, receiptsDirRel, id, via = 'work', attempt, briefText }) {
+  const rel = join(receiptsDirRel, `maker-brief-${attempt}.digest.txt`);
+  const abs = join(repoRoot, rel);
+  mkdirSync(dirname(abs), { recursive: true });
+  const sha = createHash('sha256').update(briefText, 'utf8').digest('hex');
+  writeFileSync(abs, `# hone ${via} ${id} — maker brief digest (attempt ${attempt})\n# sha256(full brief)=${sha} bytes=${Buffer.byteLength(briefText, 'utf8')}\n# first 4096 chars follow\n\n${briefText.slice(0, 4096)}`);
+  return rel;
+}
+
+/** the maker's working-tree diff: tracked touchset paths + untracked touchset files via --no-index. */
+export function buildWorkingDiff(g, touchTop) {
+  let diff = g.git(['diff', '--', ...touchTop]);
+  for (const e of dirtyEntries(g)) {
+    if (e.x !== '?') continue;
+    for (const p of e.paths) {
+      if (!touchTop.includes(p)) continue;
+      const r = spawnSync('git', ['diff', '--no-index', '--', '/dev/null', p], { cwd: g.gitRoot, encoding: 'utf8', maxBuffer: MAX_BUFFER });
+      diff += '\n' + (r.stdout || ''); // exit 1 is expected for --no-index with differences
+    }
+  }
+  return diff;
+}
+
+/**
+ * THE single terminal writer, every path, every substrate, no exceptions: rewrite the
+ * packet outcome, append claims.jsonl + cost.jsonl, return the result envelope.
+ * `tokens` = {inTok, outTok, total, usd}; when NO provider call ran (makerRan and
+ * judgeRan both false, e.g. blocked at a red baseline) cost/tokens are a known 0,
+ * not an unknown null (dogfood packet 5).
+ */
+export function writeTerminal({
+  repoRoot, id, packet, packetPath, startedAt, via = 'work',
+  makerName, judgeName, makerRan, judgeRan, tokens, revisionCount, judgeResult, receiptLines,
+  status, commit = null, skipReason = null, blockedOn = null, judgeVerdict = null, lesson = null,
+  claims, headline,
+}) {
+  const { inTok, outTok, total, usd } = tokens;
+  packet.status = status;
+  packet.maker_provider = makerRan ? makerName : null;
+  packet.judge_provider = judgeRan ? judgeName : null;
+  packet.outcome = {
+    commit, skip_reason: skipReason, blocked_on: blockedOn, judge_verdict: judgeVerdict,
+    evidence_receipts: [...receiptLines], tokens_actual: total, lesson,
+  };
+  writePacket(packetPath, packet);
+
+  let seq = nextClaimSeq(repoRoot, id);
+  for (const c of claims) {
+    appendClaim(repoRoot, {
+      claim_id: `clm-${id}-${seq++}`,
+      created: new Date().toISOString(),
+      candidate_id: id,
+      type: c.type,
+      statement: c.statement,
+      evidence: c.evidence ?? [],
+      judge: c.judge ?? null,
+    });
+  }
+  const attempt = nextJobAttempt(repoRoot, id);
+  const providerRan = makerRan || judgeRan;
+  appendCostEntry(repoRoot, {
+    job_id: `job-${id}-${attempt}`,
+    created: new Date().toISOString(),
+    candidate_id: id,
+    workflow: packet.action,
+    maker: { provider: makerName, tier: packet.maker_tier },
+    judge: { provider: judgeName, tier: packet.judge_tier },
+    tokens_in: providerRan ? inTok : 0,
+    tokens_out: providerRan ? outTok : 0,
+    cost_usd: providerRan ? (usd == null ? null : Math.round(usd * 10000) / 10000) : 0,
+    wall_time_s: Math.round((Date.now() - startedAt) / 100) / 10,
+    landed: status === 'landed',
+    revision_count: revisionCount,
+    judge_result: judgeResult,
+    outcome: status,
+    followup_created: [],
+  });
+  const exitCode = status === 'landed' ? 0 : 1;
+  return {
+    outcome: status, exitCode, commit,
+    summary: [
+      `hone ${via} — ${id}: ${status.toUpperCase()}`,
+      `  ${headline}`,
+      `  maker=${makerName} judge=${judgeName} revisions=${revisionCount} judge_result=${judgeResult ?? 'n/a'} wall=${Math.round((Date.now() - startedAt) / 100) / 10}s`,
+      `  packet: ${packetPath}`,
+      `  claims: +${claims.length} → ${claimsPath(repoRoot)}`,
+      `  cost:   job-${id}-${attempt} → ${costPath(repoRoot)}`,
+    ].join('\n'),
+  };
+}
+
+/**
+ * the one-commit-per-land discipline: stage ONLY the touchset, refuse rogue staged
+ * paths, commit as Tim Nunamaker <tnunamak@gmail.com>, verify the tree is clean
+ * after. Throws on any violation (callers fail-closed to blocked). Returns the sha.
+ * `pipelineLabel` names the executing substrate honestly (e.g. `hone work: maker=claude
+ * judge=codex`); everything else is byte-identical across substrates.
+ */
+export function landCommit(g, { packet, id, touchTop, receiptsDirRel, pipelineLabel, confidence, revisionCount }) {
+  g.git(['add', '--', ...touchTop]);
+  const staged = g.git(['diff', '--cached', '--name-only']).split('\n').filter(Boolean);
+  const rogue = staged.filter((p) => !touchTop.includes(p));
+  if (rogue.length) throw new Error(`staged paths outside touchset at commit time: ${rogue.join(', ')} — refusing to commit`);
+  const commitType = packet.action === 'preserve_refactor' || packet.action === 'idealize_rewrite' ? 'refactor' : 'chore';
+  const msg = `${commitType}(${packet.subsystem}): ${packet.plan.transform_class} [hone ${id}]\n\n${pipelineLabel} verdict=PASS${confidence != null ? ` (confidence ${confidence})` : ''}, revisions=${revisionCount}.\nEvidence: ${packet.evidence_required.length} rung(s) green at baseline and post-change (receipts: ${receiptsDirRel}/).`;
+  g.git(['-c', `user.name=${AUTHOR_NAME}`, '-c', `user.email=${AUTHOR_EMAIL}`, 'commit', '-q',
+    `--author=${AUTHOR_NAME} <${AUTHOR_EMAIL}>`, '-m', msg]);
+  const commit = g.git(['rev-parse', 'HEAD']);
+  const leftover = dirtyEntries(g);
+  if (leftover.length) throw new Error(`tree not clean after landing commit: ${flatPaths(leftover).join(', ')}`);
+  return commit;
+}
+
+/** the landed-path claim set: behavior_preserved + judged_design_claim (+ measured-cc verified_fact). */
+export function buildLandClaims({ packet, id, reasoning, judgeProvider, receiptLines, receiptsDirRel }) {
+  const claims = [
+    {
+      type: 'behavior_preserved',
+      statement: `all ${packet.evidence_required.length} evidence_required rung(s) for ${id} green at baseline and post-change (${packet.evidence_required.map((r) => r.rung).join(', ')})`,
+      evidence: packet.evidence_required.map((r) => ({ command: r.command, output_digest: receiptLines.filter((l) => l.includes(`] ${r.rung}:`)).pop() ?? `see ${receiptsDirRel}/` })),
+    },
+    {
+      type: 'judged_design_claim',
+      statement: `independent judge PASS: ${reasoning}`,
+      judge: { provider: judgeProvider, verdict: 'PASS' },
+    },
+  ];
+  const ccRung = packet.evidence_required.find((r) =>
+    /cognitive_before\s*</.test(String(r.expect)) || ['scope_fn_lt', 'file_excess_lt'].includes(r.expect_check?.type));
+  if (ccRung) {
+    claims.push({
+      type: 'verified_fact',
+      statement: `measured cognitive-complexity reduction for ${id}: '${ccRung.expect}' satisfied post-change`,
+      evidence: [{ command: ccRung.command, output_digest: receiptLines.filter((l) => l.includes(`] ${ccRung.rung}:`)).pop() ?? `see ${receiptsDirRel}/` }],
+    });
+  }
+  return claims;
 }
 
 // ---------------------------------------------------------------- the executor
@@ -858,15 +1029,11 @@ async function executeWorkAttempt(opts, deps, signal) {
   // disk keep the RAW output — the filter shapes judge context, never the record
   const stripCtx = { qualityRel: g.topRel('quality'), candidateId: id };
   const writeReceipt = (phase, i, rung, res, verdict) => {
-    const rel = join(receiptsDirRel, `${phase}-${i + 1}-${slug(rung.rung)}.txt`);
-    const abs = join(repoRoot, rel);
-    mkdirSync(dirname(abs), { recursive: true });
-    writeFileSync(abs, `# hone work ${id} — ${phase} rung '${rung.rung}'\n# command: ${rung.command}\n# expect: ${rung.expect}\n# exit: ${res.timedOut ? 'TIMEOUT' : res.code}  duration: ${Math.round(res.durationMs / 1000)}s  verdict: ${verdict.pass ? 'PASS' : `FAIL (${verdict.reason})`}\n\n${res.output}`);
-    const digest = `exit=${res.timedOut ? 'TIMEOUT' : res.code} djb2=${djb2(res.output)} bytes=${res.output.length} receipt=${rel}`;
-    receiptLines.push(`[${phase}] ${rung.rung}: ${rung.command} -> ${res.timedOut ? 'TIMEOUT' : `exit ${res.code}`} (${Math.round(res.durationMs / 1000)}s) ${verdict.pass ? 'PASS' : `FAIL: ${verdict.reason}`}; ${digest}`);
-    receiptSlices.push(judgeSlice(rung.rung, res, stripCtx));
-    receiptMeta.push({ phase, pass: verdict.pass, rung: rung.rung });
-    return digest;
+    const r = writeRungReceipt({ repoRoot, receiptsDirRel, id, phase, index: i, rung, res, verdict, stripCtx });
+    receiptLines.push(r.line);
+    receiptSlices.push(r.slice);
+    receiptMeta.push(r.meta);
+    return r.digest;
   };
 
   let makerBriefCount = 0;
@@ -878,12 +1045,7 @@ async function executeWorkAttempt(opts, deps, signal) {
    * the maker runs so even a crashed/timed-out attempt leaves its brief on disk.
    */
   const persistBriefDigest = (briefText) => {
-    const attempt = ++makerBriefCount;
-    const rel = join(receiptsDirRel, `maker-brief-${attempt}.digest.txt`);
-    const abs = join(repoRoot, rel);
-    mkdirSync(dirname(abs), { recursive: true });
-    const sha = createHash('sha256').update(briefText, 'utf8').digest('hex');
-    writeFileSync(abs, `# hone work ${id} — maker brief digest (attempt ${attempt})\n# sha256(full brief)=${sha} bytes=${Buffer.byteLength(briefText, 'utf8')}\n# first 4096 chars follow\n\n${briefText.slice(0, 4096)}`);
+    persistMakerBriefDigest({ repoRoot, receiptsDirRel, id, attempt: ++makerBriefCount, briefText });
   };
 
   const tokensOf = () => {
@@ -899,65 +1061,16 @@ async function executeWorkAttempt(opts, deps, signal) {
     return { inTok, outTok, total, usd };
   };
 
-  /** the single terminal writer: packet outcome + claims + cost, every path, no exceptions. */
-  const terminalize = ({ status, commit = null, skipReason = null, blockedOn = null, judgeVerdict = null, lesson = null, claims, headline }) => {
-    const { inTok, outTok, total, usd } = tokensOf();
-    packet.status = status;
-    packet.maker_provider = makerMetas.length ? makerName : null;
-    packet.judge_provider = judgeMetas.length ? judgeName : null;
-    packet.outcome = {
-      commit, skip_reason: skipReason, blocked_on: blockedOn, judge_verdict: judgeVerdict,
-      evidence_receipts: [...receiptLines], tokens_actual: total, lesson,
-    };
-    writePacket(packetPath, packet);
-
-    let seq = nextClaimSeq(repoRoot, id);
-    for (const c of claims) {
-      appendClaim(repoRoot, {
-        claim_id: `clm-${id}-${seq++}`,
-        created: new Date().toISOString(),
-        candidate_id: id,
-        type: c.type,
-        statement: c.statement,
-        evidence: c.evidence ?? [],
-        judge: c.judge ?? null,
-      });
-    }
-    const attempt = nextJobAttempt(repoRoot, id);
-    // wall_time_s is ALWAYS real engine wall; when NO provider call ran (e.g. blocked at a
-    // red baseline), cost/tokens are a known 0, not an unknown null (dogfood packet 5:
-    // 270s of engine wall logged cost_usd null).
-    const providerRan = makerMetas.length + judgeMetas.length > 0;
-    appendCostEntry(repoRoot, {
-      job_id: `job-${id}-${attempt}`,
-      created: new Date().toISOString(),
-      candidate_id: id,
-      workflow: packet.action,
-      maker: { provider: makerName, tier: packet.maker_tier },
-      judge: { provider: judgeName, tier: packet.judge_tier },
-      tokens_in: providerRan ? inTok : 0,
-      tokens_out: providerRan ? outTok : 0,
-      cost_usd: providerRan ? (usd == null ? null : Math.round(usd * 10000) / 10000) : 0,
-      wall_time_s: Math.round((Date.now() - startedAt) / 100) / 10,
-      landed: status === 'landed',
-      revision_count: revisionCount,
-      judge_result: judgeResult,
-      outcome: status,
-      followup_created: [],
+  /** the single terminal writer: packet outcome + claims + cost, every path, no exceptions
+   * (shared spine: writeTerminal — wall_time_s is ALWAYS real engine wall; provider-never-ran
+   * cost/tokens are a known 0, not an unknown null — dogfood packet 5). */
+  const terminalize = ({ status, commit = null, skipReason = null, blockedOn = null, judgeVerdict = null, lesson = null, claims, headline }) =>
+    writeTerminal({
+      repoRoot, id, packet, packetPath, startedAt,
+      makerName, judgeName, makerRan: makerMetas.length > 0, judgeRan: judgeMetas.length > 0,
+      tokens: tokensOf(), revisionCount, judgeResult, receiptLines,
+      status, commit, skipReason, blockedOn, judgeVerdict, lesson, claims, headline,
     });
-    const exitCode = status === 'landed' ? 0 : 1;
-    return {
-      outcome: status, exitCode, commit,
-      summary: [
-        `hone work — ${id}: ${status.toUpperCase()}`,
-        `  ${headline}`,
-        `  maker=${makerName} judge=${judgeName} revisions=${revisionCount} judge_result=${judgeResult ?? 'n/a'} wall=${Math.round((Date.now() - startedAt) / 100) / 10}s`,
-        `  packet: ${packetPath}`,
-        `  claims: +${claims.length} → ${claimsPath(repoRoot)}`,
-        `  cost:   job-${id}-${attempt} → ${costPath(repoRoot)}`,
-      ].join('\n'),
-    };
-  };
 
   // arm the signal teardown NOW — from the in_progress write onward a kill would
   // otherwise strand maker residue + a stuck in_progress packet (fix 3).
@@ -1146,18 +1259,7 @@ async function executeWorkAttempt(opts, deps, signal) {
     }
 
     // ---- 7. independent judge (maker ≠ judge; ≤1 REVISE cycle) ----
-    const buildDiff = () => {
-      let diff = g.git(['diff', '--', ...touchTop]);
-      for (const e of dirtyEntries(g)) {
-        if (e.x !== '?') continue;
-        for (const p of e.paths) {
-          if (!touchTop.includes(p)) continue;
-          const r = spawnSync('git', ['diff', '--no-index', '--', '/dev/null', p], { cwd: g.gitRoot, encoding: 'utf8', maxBuffer: MAX_BUFFER });
-          diff += '\n' + (r.stdout || ''); // exit 1 is expected for --no-index with differences
-        }
-      }
-      return diff;
-    };
+    const buildDiff = () => buildWorkingDiff(g, touchTop);
     const evidenceText = () => buildJudgeEvidence(receiptLines.map((line, i) => ({ line, slice: receiptSlices[i], ...receiptMeta[i] })));
     const judgeProvider = await deps.judge(judgeName);
     const judgeOnce = async () => {
@@ -1223,39 +1325,12 @@ async function executeWorkAttempt(opts, deps, signal) {
     }
 
     // ---- 8. land ----
-    g.git(['add', '--', ...touchTop]);
-    const staged = g.git(['diff', '--cached', '--name-only']).split('\n').filter(Boolean);
-    const rogue = staged.filter((p) => !touchTop.includes(p));
-    if (rogue.length) throw new Error(`staged paths outside touchset at commit time: ${rogue.join(', ')} — refusing to commit`);
-    const commitType = packet.action === 'preserve_refactor' || packet.action === 'idealize_rewrite' ? 'refactor' : 'chore';
-    const msg = `${commitType}(${packet.subsystem}): ${packet.plan.transform_class} [hone ${id}]\n\nhone work: maker=${makerName} judge=${judgeName} verdict=PASS${verdict.confidence != null ? ` (confidence ${verdict.confidence})` : ''}, revisions=${revisionCount}.\nEvidence: ${packet.evidence_required.length} rung(s) green at baseline and post-change (receipts: ${receiptsDirRel}/).`;
-    g.git(['-c', `user.name=${AUTHOR_NAME}`, '-c', `user.email=${AUTHOR_EMAIL}`, 'commit', '-q',
-      `--author=${AUTHOR_NAME} <${AUTHOR_EMAIL}>`, '-m', msg]);
-    const commit = g.git(['rev-parse', 'HEAD']);
-    const leftover = dirtyEntries(g);
-    if (leftover.length) throw new Error(`tree not clean after landing commit: ${flatPaths(leftover).join(', ')}`);
-
-    const claims = [
-      {
-        type: 'behavior_preserved',
-        statement: `all ${packet.evidence_required.length} evidence_required rung(s) for ${id} green at baseline and post-change (${packet.evidence_required.map((r) => r.rung).join(', ')})`,
-        evidence: packet.evidence_required.map((r) => ({ command: r.command, output_digest: receiptLines.filter((l) => l.includes(`] ${r.rung}:`)).pop() ?? `see ${receiptsDirRel}/` })),
-      },
-      {
-        type: 'judged_design_claim',
-        statement: `independent judge PASS: ${verdict.reasoning}`,
-        judge: { provider: judgeName, verdict: 'PASS' },
-      },
-    ];
-    const ccRung = packet.evidence_required.find((r) =>
-      /cognitive_before\s*</.test(String(r.expect)) || ['scope_fn_lt', 'file_excess_lt'].includes(r.expect_check?.type));
-    if (ccRung) {
-      claims.push({
-        type: 'verified_fact',
-        statement: `measured cognitive-complexity reduction for ${id}: '${ccRung.expect}' satisfied post-change`,
-        evidence: [{ command: ccRung.command, output_digest: receiptLines.filter((l) => l.includes(`] ${ccRung.rung}:`)).pop() ?? `see ${receiptsDirRel}/` }],
-      });
-    }
+    const commit = landCommit(g, {
+      packet, id, touchTop, receiptsDirRel,
+      pipelineLabel: `hone work: maker=${makerName} judge=${judgeName}`,
+      confidence: verdict.confidence, revisionCount,
+    });
+    const claims = buildLandClaims({ packet, id, reasoning: verdict.reasoning, judgeProvider: judgeName, receiptLines, receiptsDirRel });
     return terminalize({
       status: 'landed', commit,
       judgeVerdict: verdictLine(verdict),
