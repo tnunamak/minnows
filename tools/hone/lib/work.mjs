@@ -57,6 +57,7 @@ import { loadPacket, writePacket } from './packet-io.mjs';
 import { executeReset } from './reset.mjs';
 import { appendClaim, appendCostEntry, nextClaimSeq, nextJobAttempt, readJsonl, claimsPath, costPath } from './ledger.mjs';
 import { loadRegistry, loadRouting, resolveRoutingClass, selectAgent } from './routing.mjs';
+import { HONE_ROOT } from './profile.mjs';
 import { runCli } from '../providers/provider.mjs';
 
 const PROVIDERS = ['claude', 'codex'];
@@ -241,11 +242,12 @@ export function revertAll(g) {
  * run-2 finding: spawnSync's timeout killed bash but left a `node --test` grandchild
  * alive for minutes after "SIGKILL". Mirrors providers/runCli.)
  */
-export function runShellCmd(cmd, cwd, timeoutMs = EVIDENCE_TIMEOUT_MS) {
+export function runShellCmd(cmd, cwd, timeoutMs = EVIDENCE_TIMEOUT_MS, extraEnv = null) {
   return new Promise((resolvePromise) => {
     const startedAt = Date.now();
     const child = spawn('/bin/bash', ['-c', cmd], {
       cwd, stdio: ['ignore', 'pipe', 'pipe'], detached: true, // own process group
+      ...(extraEnv ? { env: { ...process.env, ...extraEnv } } : {}),
     });
     let stdout = '', stderr = '', total = 0, truncated = false, timedOut = false;
     const append = (cur, d) => {
@@ -751,20 +753,155 @@ export function acquireWorkLock(repoRoot, id, log) {
 // an implementation detail. Behavior gate: `hone work --self-test` covers every
 // terminal path through these functions.
 
+// ---------------------------------------------------------------- portable rung commands
+// Live finding (pilot run, packet t1b-retained-size-top-row-values-0010): rung commands
+// carry ABSOLUTE paths baked from the worktree they were AUTHORED on (`cd /…/pdpp-cq-sweep
+// /… && pnpm test`, collector calls under a different engine checkout). Executed verbatim
+// against a DIFFERENT --repo worktree, the maker's diff lands in one tree while every rung
+// measures the OTHER: gates go vacuously green (or guaranteed red for `hone work`).
+// THE RULE: a rung must never measure outside the current repo. Foreign paths are either
+// structurally REWRITTEN into the current tree / running engine, or the rung is REFUSED
+// (fail-closed). Same-tree commands are untouched (identity). Rung shells additionally get
+// REPO_ROOT / GIT_ROOT / HONE_ROOT so future packets can be authored portably.
+
+// pseudo-filesystems that can never be "another repo" (skip the .git-walk stat churn)
+const NEVER_REPO_PREFIXES = ['/dev/', '/proc/', '/sys/'];
+// absolute path tokens with >= 2 segments (single-segment tokens like `cd /x` fixtures or
+// sed deletions are ignored); the lookbehind keeps URL slashes (postgres://…) unmatched
+const ABS_PATH_RE = /(?<=^|[\s"'=(:])\/(?:[A-Za-z0-9._-]+\/)+[A-Za-z0-9._-]+/g;
+const ENGINE_PATH_RE = /(?<=^|[\s"'=(:])(\/(?:[A-Za-z0-9._-]+\/)*tools\/hone)(?=\/)/g;
+
+/**
+ * is this absolute token inside SOME git checkout? — the precise structural test for
+ * "another repo" (a blanket /tmp-style allowlist is a hole: worktrees live there too).
+ * Walk to the deepest EXISTING ancestor, then up, looking for a .git marker (dir for
+ * clones, FILE for linked worktrees). Non-repo tool/scratch/system paths return false.
+ */
+function insideGitCheckout(tok) {
+  let p = tok;
+  while (p.length > 1 && !existsSync(p)) p = p.slice(0, Math.max(1, p.lastIndexOf('/')));
+  while (p.length > 1) {
+    if (existsSync(join(p, '.git'))) return true;
+    p = p.slice(0, Math.max(1, p.lastIndexOf('/')));
+  }
+  return false;
+}
+
+/**
+ * make a rung command safe to execute against the CURRENT tree:
+ *   1. engine-layout paths (`…/tools/hone/…`) -> the RUNNING engine's own dir;
+ *   2. a leading `cd <foreign-abs> &&` -> the current tree by longest-suffix match
+ *      (`…/reference-implementation` -> <git_root>/reference-implementation; a bare
+ *      authoring root -> <git_root>) — worst case a rung goes red HERE, never green THERE;
+ *   3. any OTHER foreign absolute path: mapped into the current repo when it carries the
+ *      repo-root suffix (`…/<prefix>[/rest]` -> <repo_root>[/rest], e.g. collector --repo
+ *      args), otherwise the rung is REFUSED — never run a rung that measures outside the
+ *      current repo. System prefixes (/dev, /tmp, /usr, …) are always allowed.
+ * Returns {command, rewritten, notes, refused}. Same-tree commands: identity.
+ */
+export function portableRungCommand(command, { gitRoot, repoRoot, prefix }) {
+  const notes = [];
+  let cmd = String(command);
+  const inside = (p, root) => p === root || p.startsWith(root + '/');
+
+  // 1. engine paths -> the running engine
+  cmd = cmd.replace(ENGINE_PATH_RE, (m) => {
+    if (m === HONE_ROOT) return m;
+    notes.push(`engine path ${m} -> ${HONE_ROOT} (the running engine)`);
+    return HONE_ROOT;
+  });
+
+  // 2. leading cd
+  const mCd = cmd.match(/^(\s*cd\s+)("([^"]+)"|'([^']+)'|([^\s;&|]+))(\s*(?:&&|;))/);
+  if (mCd) {
+    const raw = mCd[3] ?? mCd[4] ?? mCd[5];
+    if (raw.startsWith('/') && !inside(raw, gitRoot)) {
+      const segs = raw.split('/').filter(Boolean);
+      let mapped = gitRoot; // bare/unknown authoring root -> the current git root
+      for (let take = Math.min(segs.length, 6); take >= 1; take--) {
+        const tail = segs.slice(-take).join('/');
+        if (existsSync(join(gitRoot, tail))) { mapped = join(gitRoot, tail); break; }
+      }
+      notes.push(`leading cd ${raw} -> ${mapped} (authored-worktree path mapped into the current tree)`);
+      cmd = `${mCd[1]}"${mapped}"${mCd[6]}${cmd.slice(mCd[0].length)}`;
+    }
+  }
+
+  // 3. remaining absolute tokens: in-tree/engine paths pass; repo-suffix maps (collector
+  // --repo args); then the structural repo test — a token inside ANOTHER git checkout
+  // refuses the rung; everything else passes: non-repo tool/scratch/system paths cannot
+  // vacuously green a gate, and a token that exists nowhere (incl. shell/JS literals the
+  // scanner over-matches, e.g. `/RE/.test(...)`) at worst goes honestly red.
+  let refused = null;
+  cmd = cmd.replace(ABS_PATH_RE, (tok) => {
+    if (inside(tok, gitRoot) || inside(tok, HONE_ROOT)) return tok;
+    if (NEVER_REPO_PREFIXES.some((a) => tok.startsWith(a))) return tok;
+    if (prefix) {
+      const marker = '/' + prefix;
+      if (tok.endsWith(marker)) { notes.push(`${tok} -> ${repoRoot}`); return repoRoot; }
+      const at = tok.indexOf(marker + '/');
+      if (at !== -1) {
+        const mapped = repoRoot + tok.slice(at + marker.length);
+        notes.push(`${tok} -> ${mapped}`);
+        return mapped;
+      }
+    }
+    if (!insideGitCheckout(tok)) return tok;
+    refused = refused ?? `foreign absolute path '${tok}' — inside another git checkout, not the current git root (${gitRoot}), not the running engine, and no repo-suffix mapping applies. A rung must never measure outside the current repo: rewrite the packet command repo-relative or use $REPO_ROOT/$GIT_ROOT (exported to rung shells)`;
+    return tok;
+  });
+  if (refused) return { command: String(command), rewritten: false, notes, refused };
+  return { command: cmd, rewritten: cmd !== String(command), notes, refused: null };
+}
+
+/**
+ * the ONE way both substrates execute an evidence rung: portable-path rewrite (or
+ * fail-closed refusal, rendered as a failing verdict with an unexecuted-receipt), the
+ * REPO_ROOT/GIT_ROOT/HONE_ROOT env contract, then the deterministic expect check.
+ * Returns {res, verdict, executedCommand} — executedCommand !== rung.command marks a
+ * rewrite for the receipt record; null means the rung was refused and never ran.
+ */
+export function makeRungExecutor({ gitRoot, repoRoot, prefix, log = () => {} }) {
+  const ctx = { gitRoot, repoRoot, prefix };
+  const env = { REPO_ROOT: repoRoot, GIT_ROOT: gitRoot, HONE_ROOT };
+  return async function execRung(rung, phase, baselineRes = null) {
+    const port = portableRungCommand(rung.command, ctx);
+    if (port.refused) {
+      log(`  [portable-path] ${rung.rung}: REFUSED — ${port.refused}`);
+      return {
+        res: { code: null, timedOut: false, stdout: '', output: `[engine] rung NOT EXECUTED — ${port.refused}`, durationMs: 0 },
+        verdict: { pass: false, reason: `portable-path refusal: ${port.refused}` },
+        executedCommand: null,
+      };
+    }
+    if (port.rewritten) log(`  [portable-path] ${rung.rung}: ${port.notes.join('; ')}`);
+    const res = await runShellCmd(port.command, repoRoot, undefined, env);
+    return { res, verdict: checkExpect(rung, res, phase, baselineRes), executedCommand: port.command };
+  };
+}
+
 /**
  * write one evidence-rung receipt file + return the bookkeeping strings the caller
  * accumulates ({digest, line, slice, meta}). File + digest + line formats are the
- * ledger-visible receipt contract — identical for every execution substrate.
+ * ledger-visible receipt contract — identical for every execution substrate. When the
+ * executed command differs from the authored one (portable-path rewrite, or a refusal
+ * that never ran), the receipt records BOTH — the books never hide a rewrite.
  */
-export function writeRungReceipt({ repoRoot, receiptsDirRel, id, via = 'work', phase, index, rung, res, verdict, stripCtx }) {
+export function writeRungReceipt({ repoRoot, receiptsDirRel, id, via = 'work', phase, index, rung, res, verdict, stripCtx, executedCommand = undefined }) {
   const rel = join(receiptsDirRel, `${phase}-${index + 1}-${slug(rung.rung)}.txt`);
   const abs = join(repoRoot, rel);
   mkdirSync(dirname(abs), { recursive: true });
-  writeFileSync(abs, `# hone ${via} ${id} — ${phase} rung '${rung.rung}'\n# command: ${rung.command}\n# expect: ${rung.expect}\n# exit: ${res.timedOut ? 'TIMEOUT' : res.code}  duration: ${Math.round(res.durationMs / 1000)}s  verdict: ${verdict.pass ? 'PASS' : `FAIL (${verdict.reason})`}\n\n${res.output}`);
+  const rewritten = executedCommand !== undefined && executedCommand !== rung.command;
+  const execLine = rewritten
+    ? (executedCommand === null
+      ? `# executed-command: (NOT EXECUTED — portable-path refusal)\n`
+      : `# executed-command (portable-path rewrite): ${executedCommand}\n`)
+    : '';
+  writeFileSync(abs, `# hone ${via} ${id} — ${phase} rung '${rung.rung}'\n# command: ${rung.command}\n${execLine}# expect: ${rung.expect}\n# exit: ${res.timedOut ? 'TIMEOUT' : res.code}  duration: ${Math.round(res.durationMs / 1000)}s  verdict: ${verdict.pass ? 'PASS' : `FAIL (${verdict.reason})`}\n\n${res.output}`);
   const digest = `exit=${res.timedOut ? 'TIMEOUT' : res.code} djb2=${djb2(res.output)} bytes=${res.output.length} receipt=${rel}`;
   return {
     digest,
-    line: `[${phase}] ${rung.rung}: ${rung.command} -> ${res.timedOut ? 'TIMEOUT' : `exit ${res.code}`} (${Math.round(res.durationMs / 1000)}s) ${verdict.pass ? 'PASS' : `FAIL: ${verdict.reason}`}; ${digest}`,
+    line: `[${phase}] ${rung.rung}: ${rung.command} -> ${res.timedOut ? 'TIMEOUT' : `exit ${res.code}`} (${Math.round(res.durationMs / 1000)}s) ${verdict.pass ? 'PASS' : `FAIL: ${verdict.reason}`}; ${digest}${!rewritten ? '' : executedCommand === null ? ' [NOT EXECUTED — portable-path refusal]' : ' [portable-path rewrite]'}`,
     slice: judgeSlice(rung.rung, res, stripCtx),
     meta: { phase, pass: verdict.pass, rung: rung.rung },
   };
@@ -1045,13 +1182,16 @@ async function executeWorkAttempt(opts, deps, signal) {
   // judge-facing slices exclude the engine's own quality/ state (fix 1); receipts on
   // disk keep the RAW output — the filter shapes judge context, never the record
   const stripCtx = { qualityRel: g.topRel('quality'), candidateId: id };
-  const writeReceipt = (phase, i, rung, res, verdict) => {
-    const r = writeRungReceipt({ repoRoot, receiptsDirRel, id, phase, index: i, rung, res, verdict, stripCtx });
+  const writeReceipt = (phase, i, rung, res, verdict, executedCommand = undefined) => {
+    const r = writeRungReceipt({ repoRoot, receiptsDirRel, id, phase, index: i, rung, res, verdict, stripCtx, executedCommand });
     receiptLines.push(r.line);
     receiptSlices.push(r.slice);
     receiptMeta.push(r.meta);
     return r.digest;
   };
+  // portable rung execution: authored-worktree absolute paths are rewritten into THIS
+  // tree (or the rung is refused fail-closed) — a rung must never measure another repo
+  const execRung = makeRungExecutor({ gitRoot: g.gitRoot, repoRoot, prefix: g.prefix, log });
 
   let makerBriefCount = 0;
   /**
@@ -1119,9 +1259,8 @@ async function executeWorkAttempt(opts, deps, signal) {
     }
     for (const [i, rung] of packet.evidence_required.entries()) {
       log(`  [baseline] ${rung.rung}: ${rung.command}`);
-      const res = await runShellCmd(rung.command, repoRoot);
-      const verdict = checkExpect(rung, res, 'baseline');
-      const digest = writeReceipt('baseline', i, rung, res, verdict);
+      const { res, verdict, executedCommand } = await execRung(rung, 'baseline');
+      const digest = writeReceipt('baseline', i, rung, res, verdict, executedCommand);
       baselineRes.push(res);
       if (!verdict.pass) {
         return terminalize({
@@ -1248,9 +1387,8 @@ async function executeWorkAttempt(opts, deps, signal) {
     const runOracle = async (phase) => {
       for (const [i, rung] of packet.evidence_required.entries()) {
         log(`  [${phase}] ${rung.rung}: ${rung.command}`);
-        const res = await runShellCmd(rung.command, repoRoot);
-        const verdict = checkExpect(rung, res, 'post', baselineRes[i]);
-        const digest = writeReceipt(phase, i, rung, res, verdict);
+        const { res, verdict, executedCommand } = await execRung(rung, 'post', baselineRes[i]);
+        const digest = writeReceipt(phase, i, rung, res, verdict, executedCommand);
         if (!verdict.pass) return { green: false, rung, verdict, res, digest };
       }
       return { green: true };

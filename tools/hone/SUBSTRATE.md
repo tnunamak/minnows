@@ -79,6 +79,24 @@ Agent claims are NEVER trusted. Concretely:
   produced clean maker work whose promised test pins did not exist; rungs cannot verify
   prose claims about absent pins, and only the judge caught it. Defense-in-depth held;
   the cheap gate is at emit, before any spend.
+- **Portable rung execution — a rung must never measure outside the current repo**
+  (learned live, HIGHEST severity: rung commands carried absolute paths baked from the
+  worktree they were AUTHORED on; executed verbatim against a different `--repo`, the
+  maker's diff landed in one tree while every rung measured the other — two lands shipped
+  with vacuously green gates before this closed). Both substrates execute rungs through
+  ONE shared executor (work.mjs `portableRungCommand`/`makeRungExecutor`): engine-layout
+  paths (`…/tools/hone/…`) rewrite to the RUNNING engine; a leading foreign `cd` maps
+  into the current tree by longest-suffix match (`…/reference-implementation` → the repo
+  root, a bare authoring root → the git root); other foreign absolute paths map via the
+  repo-suffix rule (collector `--repo` args) or — when they sit inside ANOTHER git
+  checkout (the precise structural test: a `.git` marker on the existing ancestor chain;
+  no /tmp-style allowlist, worktrees live there too) — the rung is REFUSED outright and
+  the gate fails closed. Non-repo tool/system/scratch paths and nonexistent tokens pass
+  (they cannot vacuously green anything; worst case an honest red). Receipts record BOTH
+  the authored and the executed command (`[portable-path rewrite]` / `NOT EXECUTED`
+  markers) — the books never hide a rewrite. Rung shells get `$REPO_ROOT` / `$GIT_ROOT` /
+  `$HONE_ROOT` so future packets are authored portably (the validator warns on absolute
+  paths at authoring time); same-tree commands are byte-identical (identity rewrite).
 
 ## Books identical — with one honest identity note
 

@@ -807,6 +807,111 @@ export async function laneSelfTest({ verbose = false } = {}) {
     check('scratch worktrees cleaned up', wt.length === 1, wt.join(' | '));
   });
 
+  // ---- portable rung commands (live pilot: authored-worktree absolute paths made two
+  // gates vacuously green — rungs measured the AUTHORING tree, not --repo) ----
+  const makeAuthoringTree = () => {
+    const dir = mkdtempSync(join(tmpdir(), 'hone-authoring-'));
+    mkdirSync(join(dir, 'src'), { recursive: true });
+    writeFileSync(join(dir, 'src/util.js'), ST_BAD); // the authoring tree is RED
+    writeFileSync(join(dir, 'test.js'), ST_TEST);
+    return dir;
+  };
+
+  await scenario('portableRungCommand: rewrite/refuse matrix (units)', async (check) => {
+    const { portableRungCommand } = await import('./work.mjs');
+    const { HONE_ROOT } = await import('./profile.mjs');
+    const root = fixtureRepo();
+    const sub = join(root, 'reference-implementation');
+    mkdirSync(sub, { recursive: true });
+    const ctx = { gitRoot: root, repoRoot: sub, prefix: 'reference-implementation' };
+    const same = portableRungCommand('node test.js && cat src/util.js', ctx);
+    check('same-tree command is IDENTITY', same.command === 'node test.js && cat src/util.js' && !same.rewritten && !same.refused);
+    check('cd inside the current git root untouched', !portableRungCommand(`cd ${root} && node test.js`, ctx).rewritten);
+    const authoring = makeAuthoringTree();
+    const cdBare = portableRungCommand(`cd ${authoring} && node test.js`, ctx);
+    check('foreign bare cd → the current git root', cdBare.command === `cd "${root}" && node test.js` && cdBare.rewritten, cdBare.command);
+    const cdSuffix = portableRungCommand(`cd ${authoring}/reference-implementation && pnpm test`, ctx);
+    check('foreign cd with the repo-suffix tail → the current repo root', cdSuffix.command === `cd "${sub}" && pnpm test`, cdSuffix.command);
+    const eng = portableRungCommand(`node /some/other/checkout/tools/hone/collectors/scope-fn.mjs --repo ${authoring}/reference-implementation --cog 5`, ctx);
+    check('engine path → the RUNNING engine; foreign --repo arg → the current repo (suffix map)', eng.command === `node ${HONE_ROOT}/collectors/scope-fn.mjs --repo ${sub} --cog 5`, eng.command);
+    const foreignRepo = fixtureRepo(); // a REAL git checkout elsewhere (worktrees under /tmp are repos too — no allowlist hole)
+    const ref = portableRungCommand(`node ${foreignRepo}/test.js`, ctx);
+    check('existing path inside ANOTHER git checkout → REFUSED, command untouched', ref.refused != null && /another git checkout/.test(ref.refused) && ref.command === `node ${foreignRepo}/test.js`, ref.refused ?? '');
+    check('nonexistent token left alone (JS regex literals like /RE/.test survive the scanner)', !portableRungCommand(`node -e "const n=/SKIP_ME/.test('x')?1:0; process.exit(0)"`, ctx).refused);
+    check('system/tool paths pass and stay byte-identical', (() => { const r = portableRungCommand('node test.js > /dev/null 2>&1 && /usr/bin/env true', ctx); return !r.refused && !r.rewritten; })());
+    check('postgres URL slashes never match', !portableRungCommand('PDPP_TEST_POSTGRES_URL=postgres://pdpp:pdpp@localhost:55432/pdpp_hone_x node --test --test-force-exit t.js', ctx).rewritten);
+  });
+
+  await scenario('e2e lane: authored-worktree cd measures the --repo tree (the vacuous-gate class, closed)', async (check) => {
+    const authoring = makeAuthoringTree();
+    check('control: the authoring tree itself is RED (verbatim execution would have measured it)', spawnSync('/bin/bash', ['-c', `cd ${authoring} && node test.js`], { encoding: 'utf8' }).status === 1);
+    const root = fixtureRepo({ packetOverrides: { evidence_required: [{ rung: 'direct-test', command: `cd ${authoring} && node test.js`, expect: 'exit 0' }] } });
+    const r = await emit(root);
+    check('emit GREEN — the baseline measured --repo, not the red authoring tree', r.exitCode === 0, JSON.stringify(r.json).slice(0, 200));
+    const receipt = read(root, `quality/receipts/${ID}/baseline-1-direct-test.txt`) ?? '';
+    check('receipt records BOTH commands (authored + executed)', receipt.includes(`# command: cd ${authoring} && node test.js`) && receipt.includes(`# executed-command (portable-path rewrite): cd "${root}" && node test.js`), receipt.slice(0, 400));
+    editUtil(root, ST_GOOD);
+    const g = await gate(root);
+    check('gate green on --repo; receipt line carries the rewrite marker', g.exitCode === 0 && g.json.receipts.some((l) => /\[portable-path rewrite\]$/.test(l)));
+    const l = await land(root, { verdictRaw: verdictJson('PASS', 'measured the right tree'), usageRaw: USAGE_OK });
+    check('lands; authoring tree untouched throughout', l.exitCode === 0 && read(authoring, 'src/util.js') === ST_BAD);
+  });
+
+  await scenario('e2e hone work: same authored-foreign cd — the split-brain class closed on the subprocess path too', async (check) => {
+    const { executeWork } = await import('./work.mjs');
+    const authoring = makeAuthoringTree();
+    const root = fixtureRepo({ packetOverrides: { evidence_required: [{ rung: 'direct-test', command: `cd ${authoring} && node test.js`, expect: 'exit 0' }] } });
+    const deps = {
+      maker: async (name, prompt, opts) => { editUtil(root, ST_GOOD); return { text: 'mock maker done', meta: { provider: name, model: opts.model ?? 'mock', durationMs: 1, costUsd: 0.01, tokens: { input: 1, output: 1 } } }; },
+      judge: async (name) => ({ judge: async () => ({ verdict: 'PASS', reasoning: 'right tree measured', confidence: 0.9, raw: { provider: name, attempts: [] } }) }),
+      log: () => {},
+    };
+    const r = await executeWork({ id: ID, repoRoot: root, makerName: 'claude', judgeName: 'codex', dryRun: false }, deps);
+    check('landed — the work path shares the rewrite (verbatim = red-baseline block / revision burn)', r.outcome === 'landed', r.summary);
+    check('every receipt line carries the rewrite marker', packetOnDisk(root).outcome.evidence_receipts.every((l) => /\[portable-path rewrite\]$/.test(l)), JSON.stringify(packetOnDisk(root).outcome.evidence_receipts));
+  });
+
+  await scenario('e2e: rung pointing into ANOTHER git checkout → refused, never executed, fail-closed', async (check) => {
+    const foreignRepo = fixtureRepo();
+    const root = fixtureRepo({ packetOverrides: { evidence_required: [{ rung: 'direct-test', command: `node ${foreignRepo}/test.js`, expect: 'exit 0' }] } });
+    const r = await emit(root);
+    const p = packetOnDisk(root);
+    check('emit blocked at baseline (the rung never ran)', r.exitCode === 1 && r.json.terminal === 'blocked', JSON.stringify(r.json).slice(0, 200));
+    check('blocked_on names the portable-path refusal', /portable-path refusal/.test(p.outcome.blocked_on ?? ''), p.outcome.blocked_on ?? '');
+    check('receipt marks NOT EXECUTED', (read(root, `quality/receipts/${ID}/baseline-1-direct-test.txt`) ?? '').includes('# executed-command: (NOT EXECUTED — portable-path refusal)'));
+    check('current tree clean; foreign repo untouched', treeClean(root) && read(foreignRepo, 'src/util.js') === ST_ORIG);
+  });
+
+  await scenario('e2e: engine collector path → the RUNNING engine; REPO_ROOT/GIT_ROOT/HONE_ROOT exported to rung shells', async (check) => {
+    const { HONE_ROOT } = await import('./profile.mjs');
+    const root = fixtureRepo({
+      packetOverrides: {
+        evidence_required: [
+          { rung: 'collector', command: 'node /some/other/checkout/tools/hone/lib/util.mjs', expect: 'exit 0' },
+          { rung: 'env-contract', command: 'node -e "process.exit(process.env.REPO_ROOT && process.env.GIT_ROOT === process.env.REPO_ROOT && process.env.HONE_ROOT ? 0 : 1)"', expect: 'exit 0' },
+        ],
+      },
+    });
+    const r = await emit(root);
+    check('emit green — collector resolved against the running engine, env contract satisfied', r.exitCode === 0, JSON.stringify(r.json.baseline ?? r.json).slice(0, 400));
+    const receipt = read(root, `quality/receipts/${ID}/baseline-1-collector.txt`) ?? '';
+    check('receipt executed-command names the running engine', receipt.includes(`# executed-command (portable-path rewrite): node ${HONE_ROOT}/lib/util.mjs`), receipt.slice(0, 300));
+  });
+
+  await scenario('validator lint: absolute rung paths WARN toward the portable $REPO_ROOT form', async (check) => {
+    const { validatePacket } = await import('./validate-packet.mjs');
+    const w = [];
+    const pkt = basePacket({ evidence_required: [{ rung: 'x', command: 'cd /home/someone/.tmp/sweep-checkout && pnpm test', expect: 'exit 0' }] });
+    check('packet still validates (warn-only lint)', validatePacket(pkt, { warn: (m) => w.push(m) }).length === 0);
+    check('warning names the path + recommends $REPO_ROOT/$GIT_ROOT', w.some((m) => /absolute path/.test(m) && /\$REPO_ROOT/.test(m) && /sweep-checkout/.test(m)), w.join(' | '));
+    const w2 = [];
+    validatePacket(basePacket(), { warn: (m) => w2.push(m) });
+    check('relative commands stay silent', w2.length === 0, w2.join(' | '));
+    const w3 = [];
+    validatePacket(basePacket({ evidence_required: [{ rung: 'x', command: 'cd /x && node test.js > /dev/null', expect: 'exit 0' }] }), { warn: (m) => w3.push(m) });
+    check('single-segment /x and /dev/null stay silent', w3.length === 0, w3.join(' | '));
+  });
+
   // ---- workflows/hone-lane.js: the REAL script, mocked agents, real engine ----
   // The workflow body is executed exactly as the harness would (async function with
   // args/agent/phase/log): the mock agent plays a PERFECT dumb pipe (actually runs the

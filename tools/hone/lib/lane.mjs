@@ -38,10 +38,10 @@ import { loadRouting, resolveRouting, isBatchEligible } from './routing.mjs';
 import { unmetDependencies } from './run.mjs';
 import {
   gitContext, dirtyEntries, flatPaths, normalizeTouchEntry, revertAll,
-  checkExpect, runShellCmd, isCompareVsHead, makerBrief, revisionBrief,
+  checkExpect, isCompareVsHead, makerBrief, revisionBrief,
   parseMakerVerdict, tailClip, headClip, buildJudgeEvidence, buildWorkingDiff,
   writeRungReceipt, persistMakerBriefDigest, writeTerminal, landCommit, buildLandClaims,
-  acquireWorkLock,
+  acquireWorkLock, portableRungCommand, makeRungExecutor,
 } from './work.mjs';
 
 const PROVIDERS = ['claude', 'codex'];
@@ -283,30 +283,37 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
         log(`  WARNING [${rung.rung}]: command matches a compare-vs-HEAD pattern — structurally unwinnable before commit (warning only; see README "Authoring evidence rungs")`);
       }
     }
-    // baseline cache: identical command at the SAME HEAD on a guaranteed-clean tree ⇒
-    // identical result — batch members share one engine-run baseline instead of N suite
-    // runs ("never pay for the same context twice"). Green results only; keyed by
-    // (head_sha, command); receipts are byte-identical to a fresh run's.
+    // baseline cache: identical EXECUTED command at the SAME HEAD on a guaranteed-clean
+    // tree ⇒ identical result — batch members share one engine-run baseline instead of
+    // N suite runs ("never pay for the same context twice"). Green results only; keyed
+    // by (head_sha, executed command) so authored variants that portably rewrite to the
+    // same command share too; receipts are byte-identical to a fresh run's.
+    const portCtx = { gitRoot: g.gitRoot, repoRoot, prefix: g.prefix };
+    const execRung = makeRungExecutor({ ...portCtx, log });
     const cacheDir = join(repoRoot, 'quality', '.lane', '.baseline-cache', head);
     const cachePath = (cmd) => join(cacheDir, `${djb2(cmd)}.json`);
     for (const [i, rung] of packet.evidence_required.entries()) {
-      let res = null;
-      if (existsSync(cachePath(rung.command))) {
+      const port = portableRungCommand(rung.command, portCtx);
+      const cacheKey = port.refused ? null : cachePath(port.command);
+      let res = null, verdict, executedCommand;
+      if (cacheKey && existsSync(cacheKey)) {
         try {
-          res = JSON.parse(readFileSync(cachePath(rung.command), 'utf8'));
+          res = JSON.parse(readFileSync(cacheKey, 'utf8'));
           log(`  [baseline] ${rung.rung}: ${rung.command} (shared: engine-run result reused from this HEAD)`);
         } catch { res = null; }
       }
-      if (!res) {
+      if (res) {
+        verdict = checkExpect(rung, res, 'baseline');
+        executedCommand = port.command;
+      } else {
         log(`  [baseline] ${rung.rung}: ${rung.command}`);
-        res = await runShellCmd(rung.command, repoRoot);
+        ({ res, verdict, executedCommand } = await execRung(rung, 'baseline'));
+        if (verdict.pass && cacheKey && !existsSync(cacheKey)) {
+          mkdirSync(cacheDir, { recursive: true });
+          writeFileSync(cacheKey, JSON.stringify({ code: res.code, timedOut: res.timedOut, stdout: res.stdout, output: res.output, durationMs: res.durationMs }));
+        }
       }
-      const verdict = checkExpect(rung, res, 'baseline');
-      if (verdict.pass && !existsSync(cachePath(rung.command))) {
-        mkdirSync(cacheDir, { recursive: true });
-        writeFileSync(cachePath(rung.command), JSON.stringify({ code: res.code, timedOut: res.timedOut, stdout: res.stdout, output: res.output, durationMs: res.durationMs }));
-      }
-      const r = writeRungReceipt({ repoRoot, receiptsDirRel, id, via: 'lane', phase: 'baseline', index: i, rung, res, verdict, stripCtx });
+      const r = writeRungReceipt({ repoRoot, receiptsDirRel, id, via: 'lane', phase: 'baseline', index: i, rung, res, verdict, stripCtx, executedCommand });
       state.receiptLines.push(r.line); state.receiptSlices.push(r.slice); state.receiptMeta.push(r.meta);
       state.baseline.push({ code: res.code, timedOut: res.timedOut, stdout: res.stdout, output: res.output, durationMs: res.durationMs });
       if (!verdict.pass) {
@@ -489,12 +496,12 @@ export async function executeLaneGate({ id, repoRoot, makerSummary = null, revis
   }
   saveState(repoRoot, id, state); // attempt counted BEFORE running — crash-conservative
 
+  const execRung = makeRungExecutor({ gitRoot: g.gitRoot, repoRoot, prefix: g.prefix, log });
   let red = null;
   for (const [i, rung] of packet.evidence_required.entries()) {
     log(`  [${phase}] ${rung.rung}: ${rung.command}`);
-    const res = await runShellCmd(rung.command, repoRoot);
-    const verdict = checkExpect(rung, res, 'post', state.baseline[i]);
-    const r = writeRungReceipt({ repoRoot, receiptsDirRel, id, via: 'lane', phase, index: i, rung, res, verdict, stripCtx });
+    const { res, verdict, executedCommand } = await execRung(rung, 'post', state.baseline[i]);
+    const r = writeRungReceipt({ repoRoot, receiptsDirRel, id, via: 'lane', phase, index: i, rung, res, verdict, stripCtx, executedCommand });
     state.receiptLines.push(r.line); state.receiptSlices.push(r.slice); state.receiptMeta.push(r.meta);
     if (!verdict.pass) { red = { rung, verdict, res, digest: r.digest }; break; }
   }
@@ -877,13 +884,13 @@ export async function executeLaneBatchGate({ ids, repoRoot, log = () => {} }) {
   };
   /** run a rung plan; stop at first red. Receipts under the batch dir, phase-labelled. */
   let probeSeq = 0;
+  const execRung = makeRungExecutor({ gitRoot: g.gitRoot, repoRoot, prefix: g.prefix, log });
   const runPlan = async (plan, phase) => {
     const entries = [];
     for (const [i, p] of plan.entries()) {
       log(`  [${phase}] ${p.rung.rung}: ${p.rung.command}`);
-      const res = await runShellCmd(p.rung.command, repoRoot);
-      const verdict = checkExpect(p.rung, res, 'post', p.baseline);
-      const r = writeRungReceipt({ repoRoot, receiptsDirRel, id: batchId, via: 'lane', phase, index: i, rung: p.rung, res, verdict, stripCtx });
+      const { res, verdict, executedCommand } = await execRung(p.rung, 'post', p.baseline);
+      const r = writeRungReceipt({ repoRoot, receiptsDirRel, id: batchId, via: 'lane', phase, index: i, rung: p.rung, res, verdict, stripCtx, executedCommand });
       entries.push({ key: p.key, ...r });
       if (!verdict.pass) return { green: false, red: { plan: p, verdict, res, receipt: r }, entries };
     }

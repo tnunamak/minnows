@@ -230,6 +230,18 @@ export function validatePacket(p, ctx = {}) {
         try { new RegExp(c.value); } catch (ex) { err(`evidence_required[${i}].expect_check.value: invalid regex (${ex.message})`); }
       }
     }
+    // ---- portability lint (live pilot finding, warn-only) ----
+    // Absolute paths bake the AUTHORING worktree into the rung: executed on a different
+    // --repo, the gate measures the wrong tree (two vacuously-green lands shipped this
+    // way before the runtime rewrite closed it). The engine rewrites/refuses at
+    // execution time; this lint pushes authors to the portable form up front. System
+    // prefixes are exempt; only >=2-segment paths flag (single-segment `/x` fixtures
+    // and sed/regex literals stay quiet).
+    const absTokens = (e.command.match(/(?<=^|[\s"'=(:])\/(?:[A-Za-z0-9._-]+\/)+[A-Za-z0-9._-]+/g) ?? [])
+      .filter((t) => !['/dev/', '/tmp/', '/proc/', '/sys/', '/usr/', '/bin/', '/sbin/', '/lib/', '/lib64/', '/opt/', '/etc/', '/var/'].some((a) => t.startsWith(a)));
+    if (absTokens.length) {
+      warn(`evidence_required[${i}] (${e.rung}): absolute path(s) in the rung command (${absTokens.slice(0, 3).join(', ')}) — authored-worktree paths break portability across worktrees (the engine rewrites or fail-closed-refuses them at run time). Author portably instead: paths relative to the repo root, or $REPO_ROOT / $GIT_ROOT / $HONE_ROOT (exported to every rung shell)`);
+    }
   }
   if (!Array.isArray(p.not_allowed) || !p.not_allowed.every(isNonEmptyStr)) err('not_allowed: [string] required');
 
