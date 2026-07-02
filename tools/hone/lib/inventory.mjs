@@ -10,6 +10,7 @@ import { resolveOwnedDirs, biomeFlaggedUniverse } from '../collectors/biome.mjs'
 import { collectTierMass } from '../collectors/tier-mass.mjs';
 import { collectCallbackSmells } from '../collectors/callback-smells.mjs';
 import { collectHotspots } from '../collectors/hotspots.mjs';
+import { collectTestSignals } from '../collectors/test-signals.mjs';
 
 /** shared plumbing every collector consumes (built once per inventory run). */
 export async function buildInventoryContext(ctx, flags = {}) {
@@ -80,6 +81,7 @@ export async function runInventory(flags) {
   inv.universe = tierMass.universe; // hotspots derives per-file cog counts from the shared universe
   const smells = collectCallbackSmells(inv);
   const hotspots = collectHotspots(inv);
+  const testSignals = collectTestSignals(inv);
 
   const outDir = join(ctx.repoRoot, 'quality', 'inventory');
   mkdirSync(outDir, { recursive: true });
@@ -87,6 +89,7 @@ export async function runInventory(flags) {
   write('tier-mass.json', tierMass);
   write('callback-smells.json', smells);
   write('hotspots.json', hotspots);
+  write('test-signals.json', testSignals);
   write('meta.json', {
     repo_sha: ctx.git.sha,
     repo_root: ctx.repoRoot,
@@ -104,6 +107,9 @@ export async function runInventory(flags) {
       total_excess_mass: tierMass.generated_from.total_excess_mass,
       callbacks: smells.callbacks.length,
       hotspot_files: hotspots.files.length,
+      test_files: testSignals.generated_from.test_files,
+      static_skips: testSignals.skips.total,
+      zero_by_name_files: testSignals.zero_by_name.files.length,
     },
   });
 
@@ -125,5 +131,7 @@ export async function runInventory(flags) {
   for (const e of hotspots.files.slice(0, 10)) {
     w(`  ${String(e.score).padStart(5)} | ${String(e.churn).padStart(5)} | ${String(e.cog).padStart(3)} | ${String(e.coupling).padStart(3)} | ${String(e.loc).padStart(5)} | ${e.file}${e.nogo ? '  [NO-GO/classify]' : ''}`);
   }
-  w(`\nwrote quality/inventory/{tier-mass,callback-smells,hotspots,meta}.json (repo_sha ${ctx.git.sha.slice(0, 12)}, ${Date.now() - started}ms)`);
+  w(`TEST SIGNALS (static): ${testSignals.skips.total} skip markers across ${testSignals.skips.files.length} test files; ` +
+    `${testSignals.zero_by_name.files.length} owned files with ZERO by-name test refs (weak signal, by_name_only)`);
+  w(`\nwrote quality/inventory/{tier-mass,callback-smells,hotspots,test-signals,meta}.json (repo_sha ${ctx.git.sha.slice(0, 12)}, ${Date.now() - started}ms)`);
 }
