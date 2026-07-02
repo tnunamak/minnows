@@ -97,18 +97,78 @@ non-negotiable #1's provider form, with compensating controls:
 
 ## Cost accounting
 
-`lane land` (and optionally `gate`) takes an explicit `--usage(-b64)` JSON array:
-`[{role: maker|judge, provider, model?, tokens_in?, tokens_out?, tokens_total?, cost_usd?}]`
-— validated fail-closed, aggregated with the same null-aware semantics as work.mjs
-`tokensOf`, written to the same cost.jsonl fields. Ledger semantics preserved: engine-only
-terminals (red baseline) record a KNOWN 0; provider-ran-but-unmetered records honest nulls,
-never fabricated numbers.
+`lane land` takes an explicit `--usage(-b64)` JSON: an ARRAY of per-STAGE records
+`{role: maker|judge|engine|planner, provider, model?, stage?: recon|edit|test|judge|plan,
+tokens_in?, tokens_out?, tokens_total?, cache_read_tokens?, cost_usd?, wall_s?, quota_pts?}`
+(back-compat: a bare object = one unattributed stage) — validated fail-closed, aggregated
+with the same null-aware semantics as work.mjs `tokensOf`, written to cost.jsonl with the
+original fields PLUS optional additive `stages` (per-stage attribution; cache-read ratio
+per stage is L4's measurement), `quota_pts` (the owner's real currency, honest-null), and
+`batch` (below). The subprocess path writes none of these — old entries stay valid and the
+report compiler tolerates both. Ledger semantics preserved: engine-only terminals record a
+KNOWN 0; provider-ran-but-unmetered records honest nulls, never fabricated numbers.
 
 Known limitation, stated plainly: the Workflow runtime does not expose per-agent token
-usage to the script, so v1 pilot entries carry `tokens_* = null` with model identities.
-The orchestrator can post-annotate real quota deltas from harness telemetry into the run
-report (NOT into cost.jsonl — no invented numbers in the ledger). If/when `agent()` returns
-usage metadata, the script passes it through with zero CLI changes.
+usage to the script, so v1 pilot entries carry `tokens_* = null` with model identities and
+stage labels. The orchestrator can post-annotate real quota deltas from harness telemetry
+into the run report (NOT into cost.jsonl — no invented numbers in the ledger). If/when
+`agent()` returns usage metadata, the script passes it through with zero CLI changes.
+
+## Model selection (L1): registry + policy + one deterministic chooser
+
+Data / policy / mechanism are split so each evolves independently (L1 amendment,
+token-economics-levers-2026-07-02):
+
+- **`models.json` (registry, data)** — one entry per model: provider, exact id, short
+  harness alias, lineage, pricing {in, out, cache_read}, quota_pool, supported efforts,
+  capability tier_rank, status, and **calibration provenance**. `calibration: null` =
+  routing-INELIGIBLE (fail-closed). Initial entries digitized from waspflow
+  `docs/model-economics.md` (2026-06-30), provenance recorded in the file.
+- **`routing.json` (policy, data)** — class → ORDERED candidates {registry name, effort} +
+  two-strike escalation rule + judge constraint (different lineage, tier_rank ≥ maker) +
+  quota pressure threshold + batch eligibility rules + the policy's own provenance.
+  Policy authorship is judgment on a slow cadence (the agenda proposes diffs from the
+  measured per-class×tier pass-rate table); application is deterministic.
+- **`selectAgent(class, attemptNo, quotaState, registry, policy, opts?)`** (lib/routing.mjs)
+  — THE runtime chooser; nothing with a context window picks a model at call time; packets
+  pin `routing_class` only (the validator rejects model-shaped pins with the doctrine
+  message). attemptNo = strikes (failed gates + judge REVISEs); every 2 strikes walks one
+  candidate down, clamped. quotaState is an optional injected input ({pools: {pool:
+  utilization}}, honest-null): a pressured pool shifts to a same-or-higher-tier candidate
+  on another pool, else proceeds with a ledger-visible note. Wired into `hone work`
+  (`HONE_QUOTA_STATE` env carries quotaState; subprocess makers AND judges get explicit
+  `--model` and `--effort` / `model_reasoning_effort` — never a CLI default again) and
+  into `hone lane emit`, whose JSON carries the materialized candidate ladder that the
+  Workflow script consumes.
+- **`hone calibrate --model X --replay N`** — onboards/refreshes a model by replaying
+  already-LANDED orders from this repo's own ledger (ground truth = landed diff + green
+  gates) in a scratch worktree, emitting a calibration report under quality/reports/.
+  v1 is a seam-proving stub: real ledger→ground-truth→worktree mechanics, zero model
+  calls, `measured` fields honest-null, report explicitly marked NOT eligibility
+  evidence. The selectAgent registry gate is live regardless.
+
+## Batch verification (L2): one gate + one judge over N routine orders
+
+`hone lane gate --batch id1,id2,...` then `hone lane land --batch <green-members> ...`:
+
+- Members are emitted individually (emits keep the tree clean; the **baseline cache**
+  reuses identical engine-run rung results at the same HEAD, so N members don't pay N
+  identical suite runs). The batch REFUSES fail-closed: risky classes per routing.json
+  `batch` rules (non-preserve_refactor, non-certified proof classes, silent_wrongness
+  above low, behavior-visible status, named property_at_risk), overlapping touchsets,
+  unemitted members, mixed emit-HEADs.
+- Gate runs the UNION of evidence rungs ONCE (deduped by command+expect), enforces union
+  touchset containment, and binds the green receipt to the combined tree hash. On red it
+  **auto-bisects**: group-testing over captured per-member changes (log₂N probes),
+  offenders terminalize `reverted` with isolation evidence ("with ONLY this member's
+  change applied, rung X fails"), the green remainder is restored and re-gated as the
+  authoritative landing state (interaction-red after green probes reverts everything).
+- Land takes ONE judge verdict over the combined diff and lands each member as its OWN
+  commit (per-order revertability; batch-aware leftover containment in the shared
+  landCommit). Usage is recorded ONCE on the anchor (first member); non-anchor entries
+  carry null tokens plus `batch: {batch_id, size, anchor}`, so naive ledger sums never
+  overcount. A batch collapsed to one member books as a plain land. Non-PASS reverts
+  every member — per-order retries follow.
 
 ## Semantic deltas vs `hone work` (complete, honest list)
 
@@ -158,7 +218,19 @@ branch's checkout: `HONE_DIR=/home/tnunamak/.tmp/minnows-substrate/tools/hone` (
 4. The one-command pilot invocation (orchestrator, in a Claude Code session):
    run the **Workflow tool** with script `$HONE_DIR/workflows/hone-lane.js` and
    `args = {"packets": ["<id>"], "repo": "<pilot-repo>", "honeDir": "$HONE_DIR"}`.
-   Defaults: Sonnet maker, Opus judge. Never end the session's turn mid-lane.
+   Defaults: maker from the routing ladder (extraction → Sonnet@high), Opus judge.
+   Never end the session's turn mid-lane.
+
+   The pilot is a MEASUREMENT MATRIX, not a demo (levers doc): the same args accept the
+   arm knobs —
+   - maker tier arm: `"makerModel": "sonnet"` (pins the ladder; omit = routed tiering
+     with two-strike escalation); the GPT-5.5 arm runs via `hone work --maker codex`;
+   - verification arm: `"batch": true` with `"packets": [<N routine ids>]` (one
+     engine gate + one judge, auto-bisect, per-order commits) vs the per-change default.
+   Record per arm from the books: $/land + quota_pts/land (cost.jsonl `stages`/`quota_pts`
+   with harness quota deltas post-annotated in the run report), wall/land, quality
+   (revert rate, judge-overturn). Winning settings become routing.json defaults —
+   committed, owner-visible, provenance updated.
 5. Verify the books (the pilot's pass bar):
    - packet terminal on disk; if landed: `git -C <pilot-repo-git-root> show --stat HEAD`
      shows ONLY touchset files, author `tnunamak@gmail.com`, subject `[hone <id>]`;

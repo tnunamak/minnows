@@ -18,6 +18,9 @@ import { join } from "node:path";
 import { createProvider, runCli, DEFAULT_TIMEOUT_MS } from "./provider.mjs";
 
 const MODEL = process.env.HONE_CODEX_MODEL || "gpt-5.5";
+// reasoning effort is FIRST-CLASS and always explicit (L1 amendment) — codex takes it
+// as a config override; value is TOML, hence the embedded quotes.
+const EFFORT = process.env.HONE_CODEX_JUDGE_EFFORT || "high";
 
 function parseTokensUsed(streams) {
   // codex prints "tokens used\n<n,nnn>" at the end of its event stream.
@@ -35,6 +38,7 @@ async function exec(prompt, { timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
     "-s", "read-only",
     "--color", "never",
     "-m", MODEL,
+    "-c", `model_reasoning_effort="${EFFORT}"`,
     "-o", outFile,
     "-",
   ];

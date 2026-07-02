@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "note": "Model REGISTRY (data, drop-in extensible) — L1 amendment, token-economics-levers-2026-07-02. One entry per model: adding a model/version = one entry here + a calibration report (hone calibrate), nothing else. Pricing per 1M tokens, standard API tier. tier_rank is the capability rank the judge constraint compares (judge tier_rank >= maker, different lineage). quota_pool names the subscription pool the owner's real currency draws from. calibration: null = INELIGIBLE for routing (fail-closed) until `hone calibrate --model <name>` produces a report; initial entries are grandfathered on digitized external evals.",
+  "models": {
+    "haiku-4.5": {
+      "provider": "claude",
+      "id": "claude-haiku-4-5",
+      "short": "haiku",
+      "lineage": "anthropic",
+      "pricing": { "in": 1.0, "out": 5.0, "cache_read": 0.1 },
+      "quota_pool": "claude-sub",
+      "efforts": ["low", "medium", "high"],
+      "tier_rank": 1,
+      "status": "active",
+      "calibration": {
+        "type": "external-eval-digitization",
+        "source": "waspflow docs/model-economics.md (Anthropic Sonnet-5 announcement charts 2026-06-30)",
+        "date": "2026-06-30",
+        "note": "fastest, near-frontier; certified-mechanical tier"
+      }
+    },
+    "sonnet-5": {
+      "provider": "claude",
+      "id": "claude-sonnet-5",
+      "short": "sonnet",
+      "lineage": "anthropic",
+      "pricing": { "in": 3.0, "out": 15.0, "cache_read": 0.3 },
+      "quota_pool": "claude-sub",
+      "efforts": ["low", "medium", "high", "xhigh", "max"],
+      "tier_rank": 3,
+      "status": "active",
+      "calibration": {
+        "type": "external-eval-digitization",
+        "source": "waspflow docs/model-economics.md — BrowseComp: high=79.5%@~$7 (value knee; xhigh marginal 0.38%/$ = poor)",
+        "date": "2026-06-30",
+        "note": "the bulk-maker value knee at effort=high; ~= Opus 4.8 high at ~60% cost"
+      }
+    },
+    "opus-4.8": {
+      "provider": "claude",
+      "id": "claude-opus-4-8",
+      "short": "opus",
+      "lineage": "anthropic",
+      "pricing": { "in": 5.0, "out": 25.0, "cache_read": 0.5 },
+      "quota_pool": "claude-sub",
+      "efforts": ["low", "medium", "high", "xhigh", "max"],
+      "tier_rank": 4,
+      "status": "active",
+      "calibration": {
+        "type": "external-eval-digitization",
+        "source": "waspflow docs/model-economics.md — BrowseComp: high=82%@~$15; med is a TRAP (0.25%/$) — never route opus below high",
+        "date": "2026-06-30",
+        "note": "hard/ambiguous tier + default lane judge; effort=high only"
+      }
+    },
+    "gpt-5.5": {
+      "provider": "codex",
+      "id": "gpt-5.5",
+      "short": "gpt-5.5",
+      "lineage": "openai",
+      "pricing": { "in": 5.0, "out": 30.0, "cache_read": 0.5 },
+      "quota_pool": "openai-sub",
+      "efforts": ["low", "medium", "high"],
+      "tier_rank": 4,
+      "status": "active",
+      "calibration": {
+        "type": "external-eval-digitization",
+        "source": "waspflow docs/model-economics.md — SWE-Bench Pro 58.6%, Terminal-Bench 2.0 82.7% (SoTA); hone run-history: 4/6 zero-revision on async-order oracles",
+        "date": "2026-06-30",
+        "note": "strongest agentic coder; different-lineage judge/maker for cross-provider pairs"
+      }
+    }
+  }
+}

@@ -56,6 +56,7 @@ import { deepEqual, djb2, slug } from './util.mjs';
 import { loadPacket, writePacket } from './packet-io.mjs';
 import { executeReset } from './reset.mjs';
 import { appendClaim, appendCostEntry, nextClaimSeq, nextJobAttempt, readJsonl, claimsPath, costPath } from './ledger.mjs';
+import { loadRegistry, loadRouting, resolveRoutingClass, selectAgent } from './routing.mjs';
 import { runCli } from '../providers/provider.mjs';
 
 const PROVIDERS = ['claude', 'codex'];
@@ -101,12 +102,16 @@ function realDeps() {
 // A maker is the OPPOSITE contract — edit-enabled, cwd = the target repo — so its two
 // adapters live here. Both reuse providers/runCli (process-group kill on timeout).
 
-async function claudeMaker(prompt, { cwd, timeoutMs = MAKER_TIMEOUT_MS } = {}) {
-  const model = process.env.HONE_CLAUDE_MODEL || 'sonnet';
+async function claudeMaker(prompt, { cwd, timeoutMs = MAKER_TIMEOUT_MS, model: routedModel, effort: routedEffort } = {}) {
+  // model + effort precedence: owner env override > selectAgent routing (L1) > explicit
+  // default. BOTH always passed explicitly — never the CLI's silent default (the
+  // Opus-default oversight the levers doc flags; effort is first-class per the amendment).
+  const model = process.env.HONE_CLAUDE_MODEL || routedModel || 'sonnet';
+  const effort = process.env.HONE_CLAUDE_EFFORT || routedEffort || 'high';
   // claude 2.1.198 print mode has no --permission-mode; --allowedTools grants edit
   // permission non-interactively. Bash is deliberately NOT allowed: evidence commands
   // are the engine's job, and a maker that can't run git can't commit or stage.
-  const args = ['-p', '--model', model, '--output-format', 'json', '--no-session-persistence',
+  const args = ['-p', '--model', model, '--effort', effort, '--output-format', 'json', '--no-session-persistence',
     '--allowedTools', 'Read,Glob,Grep,Edit,Write'];
   const { stdout, durationMs } = await runCli('claude', args, { input: prompt, timeoutMs, cwd });
   let envelope;
@@ -127,8 +132,9 @@ async function claudeMaker(prompt, { cwd, timeoutMs = MAKER_TIMEOUT_MS } = {}) {
   };
 }
 
-async function codexMaker(prompt, { cwd, timeoutMs = MAKER_TIMEOUT_MS } = {}) {
-  const model = process.env.HONE_CODEX_MODEL || 'gpt-5.5';
+async function codexMaker(prompt, { cwd, timeoutMs = MAKER_TIMEOUT_MS, model: routedModel, effort: routedEffort } = {}) {
+  const model = process.env.HONE_CODEX_MODEL || routedModel || 'gpt-5.5';
+  const effort = process.env.HONE_CODEX_EFFORT || routedEffort || 'high';
   const dir = mkdtempSync(join(tmpdir(), 'hone-maker-'));
   const outFile = join(dir, 'last-message.txt');
   // network_access: codex's workspace-write sandbox blocks localhost binding by default, which blinds
@@ -136,6 +142,7 @@ async function codexMaker(prompt, { cwd, timeoutMs = MAKER_TIMEOUT_MS } = {}) {
   // by no-model probe, campaign-rescue 2026-07-02: `listen EPERM 127.0.0.1` without the flag).
   const args = ['exec', '--ephemeral', '--skip-git-repo-check', '-s', 'workspace-write',
     '-c', 'sandbox_workspace_write.network_access=true',
+    '-c', `model_reasoning_effort="${effort}"`,
     '--color', 'never', '-m', model, '-o', outFile, '-'];
   const { stdout, stderr, durationMs } = await runCli('codex', args, { input: prompt, timeoutMs, cwd });
   let text = '';
@@ -803,6 +810,10 @@ export function writeTerminal({
   makerName, judgeName, makerRan, judgeRan, tokens, revisionCount, judgeResult, receiptLines,
   status, commit = null, skipReason = null, blockedOn = null, judgeVerdict = null, lesson = null,
   claims, headline,
+  // OPTIONAL instrumentation (lane substrate): per-stage attribution, quota points,
+  // batch-amortization marker. undefined = keys omitted — the subprocess path's cost
+  // entries stay byte-identical.
+  stages = undefined, quotaPts = undefined, batch = undefined,
 }) {
   const { inTok, outTok, total, usd } = tokens;
   packet.status = status;
@@ -844,6 +855,9 @@ export function writeTerminal({
     judge_result: judgeResult,
     outcome: status,
     followup_created: [],
+    ...(stages !== undefined ? { stages } : {}),
+    ...(quotaPts !== undefined ? { quota_pts: quotaPts } : {}),
+    ...(batch !== undefined ? { batch } : {}),
   });
   const exitCode = status === 'landed' ? 0 : 1;
   return {
@@ -866,7 +880,7 @@ export function writeTerminal({
  * `pipelineLabel` names the executing substrate honestly (e.g. `hone work: maker=claude
  * judge=codex`); everything else is byte-identical across substrates.
  */
-export function landCommit(g, { packet, id, touchTop, receiptsDirRel, pipelineLabel, confidence, revisionCount }) {
+export function landCommit(g, { packet, id, touchTop, receiptsDirRel, pipelineLabel, confidence, revisionCount, allowedLeftover = [] }) {
   g.git(['add', '--', ...touchTop]);
   const staged = g.git(['diff', '--cached', '--name-only']).split('\n').filter(Boolean);
   const rogue = staged.filter((p) => !touchTop.includes(p));
@@ -876,8 +890,11 @@ export function landCommit(g, { packet, id, touchTop, receiptsDirRel, pipelineLa
   g.git(['-c', `user.name=${AUTHOR_NAME}`, '-c', `user.email=${AUTHOR_EMAIL}`, 'commit', '-q',
     `--author=${AUTHOR_NAME} <${AUTHOR_EMAIL}>`, '-m', msg]);
   const commit = g.git(['rev-parse', 'HEAD']);
-  const leftover = dirtyEntries(g);
-  if (leftover.length) throw new Error(`tree not clean after landing commit: ${flatPaths(leftover).join(', ')}`);
+  // allowedLeftover: batch lands commit one order at a time — the OTHER orders' not-yet-
+  // committed touchset files may legitimately remain dirty. Default [] = any leftover
+  // throws (single-order discipline unchanged).
+  const leftover = flatPaths(dirtyEntries(g)).filter((p) => !allowedLeftover.includes(p));
+  if (leftover.length) throw new Error(`tree not clean after landing commit: ${leftover.join(', ')}`);
   return commit;
 }
 
@@ -1121,12 +1138,37 @@ async function executeWorkAttempt(opts, deps, signal) {
     }
 
     // ---- 4. maker ----
+    // L1 model selection: registry (models.json) + policy (routing.json) resolved once;
+    // selectAgent is THE deterministic runtime chooser (two-strike escalation rides
+    // revisionCount; quota state is an optional env input, honest-null otherwise).
+    // Routing failure falls back to the provider's explicit defaults (routing is an
+    // economics lever, not a safety gate — today's behavior is the safe floor).
+    let routingCtx = null;
+    try {
+      const registry = loadRegistry();
+      const policy = loadRouting(undefined, registry);
+      routingCtx = { cls: resolveRoutingClass(packet, policy), registry, policy };
+    } catch (e) { log(`  WARNING (routing): ${e.message} — provider default model/effort will be used`); }
+    const makerOpts = () => {
+      const base = { cwd: repoRoot, timeoutMs: MAKER_TIMEOUT_MS };
+      if (!routingCtx) return base;
+      try {
+        const quotaState = process.env.HONE_QUOTA_STATE ? JSON.parse(process.env.HONE_QUOTA_STATE) : null;
+        const sel = selectAgent(routingCtx.cls, revisionCount, quotaState, routingCtx.registry, routingCtx.policy, { providerFilter: makerName });
+        for (const n of sel.notes) log(`  routing note: ${n}`);
+        log(`  maker selection (class=${routingCtx.cls}, strikes=${revisionCount}): ${sel.provider}:${sel.model}@${sel.effort}`);
+        return { ...base, model: sel.model, effort: sel.effort };
+      } catch (e) {
+        log(`  WARNING (selectAgent): ${e.message} — provider default model/effort will be used`);
+        return base;
+      }
+    };
     const brief = makerBrief(rawText, packet);
     log(`  maker: ${makerName} (timeout ${Math.round(MAKER_TIMEOUT_MS / 60000)}m)`);
     persistBriefDigest(brief);
     let makerRun;
     try {
-      makerRun = await deps.maker(makerName, brief, { cwd: repoRoot, timeoutMs: MAKER_TIMEOUT_MS });
+      makerRun = await deps.maker(makerName, brief, makerOpts());
       makerMetas.push(makerRun.meta);
     } catch (e) {
       revertAll(g); // fail-closed: whatever half-state the maker left, remove it
@@ -1227,7 +1269,7 @@ async function executeWorkAttempt(opts, deps, signal) {
       try {
         const revBrief = revisionBrief(brief, failureNote, g.git(['diff', '--', ...touchTop]));
         persistBriefDigest(revBrief);
-        const rev = await deps.maker(makerName, revBrief, { cwd: repoRoot, timeoutMs: MAKER_TIMEOUT_MS });
+        const rev = await deps.maker(makerName, revBrief, makerOpts());
         makerMetas.push(rev.meta);
       } catch (e) {
         return reverted({}, [
@@ -1279,7 +1321,7 @@ async function executeWorkAttempt(opts, deps, signal) {
       try {
         const revBrief = revisionBrief(brief, `independent judge (${judgeName}) verdict REVISE: ${verdict.reasoning}`, buildDiff());
         persistBriefDigest(revBrief);
-        const rev = await deps.maker(makerName, revBrief, { cwd: repoRoot, timeoutMs: MAKER_TIMEOUT_MS });
+        const rev = await deps.maker(makerName, revBrief, makerOpts());
         makerMetas.push(rev.meta);
       } catch (e) {
         return reverted({ judgeVerdict: verdictLine(verdict) }, [
@@ -2001,7 +2043,7 @@ async function selfTest({ verbose = false } = {}) {
     check('final green run content kept', evBig.includes('R1GREEN7'));
     check('some green slices dropped with an explicit marker', /omitted — evidence budget/.test(evBig));
     check('post-phase greens dropped BEFORE baseline greens (non-final post-r1 slices all gone)', Array.from({ length: 7 }, (_, i) => `R1GREEN${i}`).every((m) => !evBig.includes(m)));
-    check('at least one baseline slice retained under the freed budget', entries.slice(0, 8).some((x, i) => evBig.includes(`BASE${i} `)));
+    check('at least one baseline slice retained under the freed budget', entries.slice(0, 8).some((_, i) => evBig.includes(`BASE${i} `)));
     check('no head-truncation marker (budget met by slice-dropping, not lossy truncation)', !/truncated from head/.test(evBig));
     // safety valve: must-keep content alone above the cap still hard-caps
     const pathological = buildJudgeEvidence([e('[post] r: FAIL; d', 'y'.repeat(3000), 'post', false)], 1024);

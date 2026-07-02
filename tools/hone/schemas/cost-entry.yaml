@@ -17,3 +17,22 @@ revision_count: int             # maker REVISE cycles before land/abandon
 judge_result: PASS | REVISE | REJECT | null
 outcome: landed | reverted | skipped | blocked
 followup_created: [candidate_id]   # packets spawned by this job (lessons → new candidates)
+
+# OPTIONAL additive fields (v1.1, 2026-07-02 — lane instrumentation per
+# token-economics-levers; absent on the subprocess path, old lines stay valid):
+quota_pts: number | null        # subscription quota points (the owner's real currency); honest-null
+stages:                          # per-stage token/cost attribution (levers unoptimizable without it)
+  - role: maker | judge | engine | planner
+    provider: string
+    model: string | null
+    stage: recon | edit | test | judge | plan | null   # null = single unattributed stage
+    tokens_in: int | null
+    tokens_out: int | null
+    tokens_total: int | null
+    cache_read_tokens: int | null   # cache-read ratio per stage = L4's measurement
+    cost_usd: number | null
+    wall_s: number | null
+    quota_pts: number | null
+batch: {batch_id: string, size: int>=2, anchor: candidate_id}
+  # batch-verification amortization marker: the batch's usage is recorded ONCE on the
+  # anchor member's entry; other members carry null tokens — naive ledger sums stay honest.

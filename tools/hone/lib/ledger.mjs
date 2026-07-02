@@ -13,6 +13,10 @@ export const CLAIM_TYPES = ['verified_fact', 'judged_design_claim', 'behavior_pr
   'behavior_changed', 'hypothesis', 'uncertainty', 'remaining_work'];
 export const OUTCOMES = ['landed', 'reverted', 'skipped', 'blocked'];
 export const JUDGE_RESULTS = ['PASS', 'REVISE', 'REJECT'];
+// stage-level token attribution (token-economics instrumentation): a cost entry MAY
+// carry per-stage records — the efficiency levers are unoptimizable without them.
+export const USAGE_STAGES = ['recon', 'edit', 'test', 'judge', 'plan'];
+export const USAGE_ROLES = ['maker', 'judge', 'engine', 'planner'];
 const EVIDENCE_REQUIRED_TYPES = ['verified_fact', 'behavior_preserved', 'behavior_changed'];
 
 const isStr = (v) => typeof v === 'string';
@@ -63,7 +67,30 @@ export function validateClaim(c) {
   return errs;
 }
 
-/** @returns string[] — empty when valid (schema: schemas/cost-entry.yaml). */
+/** one per-stage usage record inside a cost entry's optional `stages` array. */
+export function validateStageEntry(s, i) {
+  const errs = [];
+  const err = (m) => errs.push(`stages[${i}]${m}`);
+  if (!isMap(s)) return [`stages[${i}]: not a map`];
+  const KEYS = ['role', 'provider', 'model', 'stage', 'tokens_in', 'tokens_out', 'tokens_total',
+    'cache_read_tokens', 'cost_usd', 'wall_s', 'quota_pts'];
+  for (const k of Object.keys(s)) if (!KEYS.includes(k)) err(`: unknown key '${k}'`);
+  if (!USAGE_ROLES.includes(s.role)) err(`.role: one of [${USAGE_ROLES.join('|')}] required`);
+  if (!isNonEmptyStr(s.provider)) err('.provider: non-empty string required');
+  if (s.model != null && !isNonEmptyStr(s.model)) err('.model: non-empty string|null required');
+  if (s.stage != null && !USAGE_STAGES.includes(s.stage)) err(`.stage: one of [${USAGE_STAGES.join('|')}]|null required (null = unattributed)`);
+  for (const k of ['tokens_in', 'tokens_out', 'tokens_total', 'cache_read_tokens']) {
+    if (s[k] != null && !Number.isInteger(s[k])) err(`.${k}: int|null required`);
+  }
+  for (const k of ['cost_usd', 'wall_s', 'quota_pts']) {
+    if (s[k] != null && !(typeof s[k] === 'number' && Number.isFinite(s[k]))) err(`.${k}: number|null required`);
+  }
+  return errs;
+}
+
+/** @returns string[] — empty when valid (schema: schemas/cost-entry.yaml).
+ * `stages` / `quota_pts` / `batch` are OPTIONAL additive fields (lane instrumentation +
+ * batch amortization); the subprocess path never writes them — old entries stay valid. */
 export function validateCostEntry(e) {
   const errs = [];
   const err = (m) => errs.push(m);
@@ -71,8 +98,24 @@ export function validateCostEntry(e) {
   const KEYS = ['job_id', 'created', 'candidate_id', 'workflow', 'maker', 'judge', 'tokens_in',
     'tokens_out', 'cost_usd', 'wall_time_s', 'landed', 'revision_count', 'judge_result',
     'outcome', 'followup_created'];
-  for (const k of Object.keys(e)) if (!KEYS.includes(k)) err(`unknown key: ${k}`);
+  const OPTIONAL_KEYS = ['stages', 'quota_pts', 'batch'];
+  for (const k of Object.keys(e)) if (!KEYS.includes(k) && !OPTIONAL_KEYS.includes(k)) err(`unknown key: ${k}`);
   for (const k of KEYS) if (!(k in e)) err(`missing key: ${k}`);
+  if (errs.length) return errs;
+
+  if ('quota_pts' in e && e.quota_pts !== null && !(typeof e.quota_pts === 'number' && Number.isFinite(e.quota_pts))) {
+    err('quota_pts: number|null required (honest-null when the harness cannot meter — never fabricated)');
+  }
+  if ('stages' in e) {
+    if (!Array.isArray(e.stages) || !e.stages.length) err('stages: non-empty array required when present');
+    else for (const [i, s] of e.stages.entries()) errs.push(...validateStageEntry(s, i));
+  }
+  if ('batch' in e) {
+    if (!isMap(e.batch) || !isNonEmptyStr(e.batch.batch_id) || !Number.isInteger(e.batch.size) || e.batch.size < 2 ||
+      !isNonEmptyStr(e.batch.anchor) || Object.keys(e.batch).some((k) => !['batch_id', 'size', 'anchor'].includes(k))) {
+      err('batch: {batch_id, size>=2, anchor} required when present (batch usage lives ONCE on the anchor member; non-anchor members carry null tokens so ledger sums stay honest)');
+    }
+  }
   if (errs.length) return errs;
 
   for (const k of ['job_id', 'created', 'candidate_id', 'workflow']) {

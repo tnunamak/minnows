@@ -59,7 +59,13 @@ const TOP_KEYS = [
 ];
 
 // OPTIONAL top-level keys: may be absent (hand-authored packets), strict when present.
-const OPTIONAL_KEYS = ['priority', 'resets'];
+const OPTIONAL_KEYS = ['priority', 'resets', 'routing_class'];
+
+// routing.json class names (kept in lockstep with lib/routing.mjs ROUTING_CLASSES —
+// no import so bare packet validation never depends on the routing table file).
+const ROUTING_CLASS_NAMES = ['certified-mechanical', 'extraction', 'async-order-oracle', 'hard-ambiguous'];
+// model-name shapes a packet author might try to pin — tier choice stays OUT of maker hands
+const MODEL_PIN_RE = /^(haiku|sonnet|opus|fable|gpt-|o[0-9]|claude-|codex)/i;
 
 // machine-checkable half of an evidence rung (optional, additive; prose `expect` stays
 // for humans/judges). `hone work` enforces these deterministically, fail-closed.
@@ -140,6 +146,14 @@ export function validatePacket(p, ctx = {}) {
     for (const k of Object.keys(p.plan)) if (!['transform_class', 'instruction'].includes(k)) err(`plan: unknown key ${k}`);
     if (!isNonEmptyStr(p.plan.transform_class)) err('plan.transform_class: non-empty string required');
     if (!isNonEmptyStr(p.plan.instruction)) err('plan.instruction: non-empty string required');
+  }
+
+  if ('routing_class' in p) { // optional L1 routing pin: a CLASS, never a model
+    if (!isNonEmptyStr(p.routing_class) || !ROUTING_CLASS_NAMES.includes(p.routing_class)) {
+      const looksLikeModel = isStr(p.routing_class) && MODEL_PIN_RE.test(p.routing_class.trim());
+      err(`routing_class: must be one of [${ROUTING_CLASS_NAMES.join(' | ')}], got ${JSON.stringify(p.routing_class)}` +
+        (looksLikeModel ? ' — packets pin a CLASS, never a specific model (tier choice stays out of maker hands; routing.json owns the class→tier table)' : ''));
+    }
   }
 
   if ('priority' in p) { // optional ranking PRIOR (ordering only, never a quality claim)

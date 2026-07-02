@@ -28,10 +28,13 @@
 // stdout is ALWAYS one JSON object (machine interface); logs go to stderr.
 
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, resolve, dirname } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { djb2 } from './util.mjs';
 import { validatePacket } from './validate-packet.mjs';
 import { loadPacket, writePacket } from './packet-io.mjs';
+import { validateStageEntry } from './ledger.mjs';
+import { loadRouting, resolveRouting, isBatchEligible } from './routing.mjs';
 import {
   gitContext, dirtyEntries, flatPaths, normalizeTouchEntry, revertAll,
   checkExpect, runShellCmd, isCompareVsHead, makerBrief, revisionBrief,
@@ -42,7 +45,6 @@ import {
 
 const PROVIDERS = ['claude', 'codex'];
 const VERDICTS = ['PASS', 'REVISE', 'REJECT'];
-const USAGE_ROLES = ['maker', 'judge'];
 // post-gate attempt ceiling: post, post-r1, post-r2 — mirrors work.mjs's maximum path
 // (oracle revision + judge revision). The workflow enforces the ≤1-oracle-revision /
 // ≤1-judge-revision interleaving; the engine enforces this hard ceiling fail-closed.
@@ -58,31 +60,43 @@ export async function runLane(flags) {
   }
   const sub = flags._?.[0];
   const id = typeof flags.packet === 'string' ? flags.packet : null;
-  const usage = `usage: hone lane <emit|gate|land> --packet <candidate-id> --repo PATH
-  emit  [--maker claude|codex] [--judge claude|codex] [--dry-run]
+  const batchIds = typeof flags.batch === 'string'
+    ? flags.batch.split(',').map((s) => s.trim()).filter(Boolean)
+    : null;
+  const usage = `usage: hone lane <emit|gate|land> (--packet <candidate-id> | --batch <id1,id2,...>) --repo PATH
+  emit  --packet <id> [--maker claude|codex] [--judge claude|codex] [--dry-run]
+        (batch members are emitted individually — emits keep the tree clean)
   gate  [--maker-summary FILE | --maker-summary-b64 B64] [--revision-note-b64 B64] [--usage FILE | --usage-b64 B64]
+        --batch: combined tree, union touchset, ONE suite-level rung run; red auto-bisects
   land  (--judge-verdict FILE | --judge-verdict-b64 B64) (--usage FILE | --usage-b64 B64)
-        | --abort --reason TEXT [--usage FILE | --usage-b64 B64]`;
-  if (!['emit', 'gate', 'land'].includes(sub) || !id) throw new Error(usage);
-  const common = { id, repoRoot: resolve(flags.repo || '.'), log: (s) => process.stderr.write(s + '\n') };
+        | --abort --reason TEXT [--usage FILE | --usage-b64 B64]
+        --batch: one judge amortized; each order lands as its OWN commit (per-order revertability)`;
+  if (!['emit', 'gate', 'land'].includes(sub) || (!id && !batchIds)) throw new Error(usage);
+  if (batchIds && sub === 'emit') throw new Error(`hone lane emit has no --batch: emit each member individually (emits never dirty the tree; identical baseline rungs are shared via the baseline cache)\n${usage}`);
+  const repoRoot = resolve(flags.repo || '.');
+  const log = (s) => process.stderr.write(s + '\n');
   let res;
-  if (sub === 'emit') {
+  if (batchIds) {
+    res = sub === 'gate'
+      ? await executeLaneBatchGate({ ids: batchIds, repoRoot, log })
+      : await executeLaneBatchLand({ ids: batchIds, repoRoot, verdictRaw: readInput(flags, 'judge-verdict'), usageRaw: readInput(flags, 'usage'), log });
+  } else if (sub === 'emit') {
     res = await executeLaneEmit({
-      ...common,
+      id, repoRoot, log,
       makerProvider: String(flags.maker || 'claude'),
       judgeProvider: String(flags.judge || 'claude'),
       dryRun: !!flags['dry-run'],
     });
   } else if (sub === 'gate') {
     res = await executeLaneGate({
-      ...common,
+      id, repoRoot, log,
       makerSummary: readInput(flags, 'maker-summary'),
       revisionNote: readInput(flags, 'revision-note'),
       usageRaw: readInput(flags, 'usage'),
     });
   } else {
     res = await executeLaneLand({
-      ...common,
+      id, repoRoot,
       verdictRaw: readInput(flags, 'judge-verdict'),
       usageRaw: readInput(flags, 'usage'),
       abort: !!flags.abort,
@@ -146,7 +160,7 @@ const refuse = (id, sub, reason) => ({
  * makerName/judgeName are MODEL-QUALIFIED identities (e.g. claude:sonnet / claude:opus) —
  * the packet schema's structural must-differ rule then enforces the lane's identity form
  * of non-negotiable #1 in the books themselves. */
-function laneTerminal({ repoRoot, id, state, packet, packetPath, tokens, judgeRan, makerName, judgeName, judgeResult, extras }, fields) {
+function laneTerminal({ repoRoot, id, state, packet, packetPath, tokens, judgeRan, makerName, judgeName, judgeResult, stages, quotaPts, batch, extras }, fields) {
   const res = writeTerminal({
     repoRoot, id, packet, packetPath, via: 'lane',
     startedAt: state?.started_at_ms ?? Date.now(),
@@ -158,6 +172,7 @@ function laneTerminal({ repoRoot, id, state, packet, packetPath, tokens, judgeRa
     revisionCount: Math.max(0, (state?.gate_attempts ?? 0) - 1),
     judgeResult: judgeResult ?? null,
     receiptLines: state?.receiptLines ?? [],
+    stages, quotaPts, batch,
     ...fields,
   });
   clearState(repoRoot, id);
@@ -204,6 +219,15 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
       (inTouch.length ? ` — DIRTY TOUCHSET FILES: ${inTouch.join(', ')} (baseline would be unattributable)` : ''));
   }
 
+  // L1 routing: class -> ordered maker tier list (+ L2 batch eligibility) — the script
+  // consumes this; the engine never lets a maker choose its own tier. Routing failure is
+  // a warning + null (economics lever, not a safety gate; callers fall back to defaults).
+  let routing = null;
+  try {
+    const table = loadRouting();
+    routing = { ...resolveRouting(packet, table), batch_eligible: isBatchEligible(packet, table) };
+  } catch (e) { log(`  WARNING (routing): ${e.message} — no routing emitted`); }
+
   const brief = makerBrief(rawText, packet);
   if (dryRun) {
     return {
@@ -211,6 +235,7 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
       json: {
         ok: true, dry_run: true, candidate_id: id,
         packet_path: packetPath, action: packet.action, proof_class: packet.proof_class,
+        routing,
         touchset_toplevel: touchTop, not_allowed: packet.not_allowed,
         evidence: packet.evidence_required.map((r) => ({ rung: r.rung, command: r.command, expect: r.expect, expect_check: r.expect_check ?? null })),
         brief,
@@ -246,10 +271,29 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
         log(`  WARNING [${rung.rung}]: command matches a compare-vs-HEAD pattern — structurally unwinnable before commit (warning only; see README "Authoring evidence rungs")`);
       }
     }
+    // baseline cache: identical command at the SAME HEAD on a guaranteed-clean tree ⇒
+    // identical result — batch members share one engine-run baseline instead of N suite
+    // runs ("never pay for the same context twice"). Green results only; keyed by
+    // (head_sha, command); receipts are byte-identical to a fresh run's.
+    const cacheDir = join(repoRoot, 'quality', '.lane', '.baseline-cache', head);
+    const cachePath = (cmd) => join(cacheDir, `${djb2(cmd)}.json`);
     for (const [i, rung] of packet.evidence_required.entries()) {
-      log(`  [baseline] ${rung.rung}: ${rung.command}`);
-      const res = await runShellCmd(rung.command, repoRoot);
+      let res = null;
+      if (existsSync(cachePath(rung.command))) {
+        try {
+          res = JSON.parse(readFileSync(cachePath(rung.command), 'utf8'));
+          log(`  [baseline] ${rung.rung}: ${rung.command} (shared: engine-run result reused from this HEAD)`);
+        } catch { res = null; }
+      }
+      if (!res) {
+        log(`  [baseline] ${rung.rung}: ${rung.command}`);
+        res = await runShellCmd(rung.command, repoRoot);
+      }
       const verdict = checkExpect(rung, res, 'baseline');
+      if (verdict.pass && !existsSync(cachePath(rung.command))) {
+        mkdirSync(cacheDir, { recursive: true });
+        writeFileSync(cachePath(rung.command), JSON.stringify({ code: res.code, timedOut: res.timedOut, stdout: res.stdout, output: res.output, durationMs: res.durationMs }));
+      }
       const r = writeRungReceipt({ repoRoot, receiptsDirRel, id, via: 'lane', phase: 'baseline', index: i, rung, res, verdict, stripCtx });
       state.receiptLines.push(r.line); state.receiptSlices.push(r.slice); state.receiptMeta.push(r.meta);
       state.baseline.push({ code: res.code, timedOut: res.timedOut, stdout: res.stdout, output: res.output, durationMs: res.durationMs });
@@ -281,6 +325,7 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
         ok: true, candidate_id: id, packet_path: packetPath,
         repo: { git_root: g.gitRoot, repo_root: repoRoot, branch: g.branch, head_sha: head },
         action: packet.action, proof_class: packet.proof_class, behavior_status: packet.behavior_status,
+        routing,
         maker_tier: packet.maker_tier, judge_tier: packet.judge_tier,
         touchset_toplevel: touchTop, not_allowed: packet.not_allowed, plan: packet.plan,
         evidence: packet.evidence_required.map((r) => ({ rung: r.rung, command: r.command, expect: r.expect, expect_check: r.expect_check ?? null })),
@@ -316,9 +361,10 @@ export async function executeLaneGate({ id, repoRoot, makerSummary = null, revis
   }
 
   const g = gitContext(repoRoot);
+  const agg = usage ? aggregateUsage(usage) : null;
   const term = (fields, extras) => laneTerminal({
     repoRoot, id, state, packet, packetPath,
-    tokens: usage ? aggregateUsage(usage) : undefined, extras,
+    tokens: agg ?? undefined, stages: usage ?? undefined, quotaPts: agg ? agg.quotaPts : undefined, extras,
   }, fields);
 
   // foreign-commit guard: an in-harness maker HAS Bash (unlike the subprocess maker) —
@@ -491,7 +537,7 @@ export async function executeLaneGate({ id, repoRoot, makerSummary = null, revis
 
 // ---------------------------------------------------------------- land
 
-export async function executeLaneLand({ id, repoRoot, verdictRaw = null, usageRaw = null, abort = false, abortReason = null, log = () => {} }) {
+export async function executeLaneLand({ id, repoRoot, verdictRaw = null, usageRaw = null, abort = false, abortReason = null }) {
   let loaded;
   try { loaded = loadPacket(repoRoot, id); }
   catch (e) { return refuse(id, 'land', e.message); }
@@ -511,11 +557,13 @@ export async function executeLaneLand({ id, repoRoot, verdictRaw = null, usageRa
     usage = u.entries;
   }
   const tokens = usage ? aggregateUsage(usage) : { inTok: null, outTok: null, total: null, usd: null };
+  const stages = usage ?? undefined;
+  const quotaPts = usage ? tokens.quotaPts : undefined;
 
   const g = gitContext(repoRoot);
   const head = g.git(['rev-parse', 'HEAD']);
   if (head !== state.head_sha) {
-    return laneTerminal({ repoRoot, id, state, packet, packetPath, tokens, extras: { manual_cleanup_required: true } }, {
+    return laneTerminal({ repoRoot, id, state, packet, packetPath, tokens, stages, quotaPts, extras: { manual_cleanup_required: true } }, {
       status: 'blocked',
       blockedOn: `foreign-commit: HEAD moved ${state.head_sha.slice(0, 12)} → ${head.slice(0, 12)} between lane emit and land — engine revert/land guarantees void`,
       lesson: 'a lane maker must never run git write operations; manual cleanup required (tree NOT auto-reverted against a foreign HEAD)',
@@ -531,7 +579,7 @@ export async function executeLaneLand({ id, repoRoot, verdictRaw = null, usageRa
   if (abort) {
     if (!abortReason || !abortReason.trim()) return refuse(id, 'land', `--abort requires --reason TEXT (negative results are recorded knowledge, never silent)`);
     revertAll(g);
-    return laneTerminal({ repoRoot, id, state, packet, packetPath, tokens }, {
+    return laneTerminal({ repoRoot, id, state, packet, packetPath, tokens, stages, quotaPts }, {
       status: 'skipped',
       skipReason: `lane-abort(${headClip(abortReason, 240)})`,
       lesson: 'lane aborted by the orchestrator before a judge verdict; changes (if any) reverted; reset to pending to retry',
@@ -578,7 +626,7 @@ export async function executeLaneLand({ id, repoRoot, verdictRaw = null, usageRa
   const makerLabel = `${makers[0].provider}${makers[0].model ? `:${makers[0].model}` : ''}`;
   const verdictLine = `${judgeLabel} ${verdict.verdict}${verdict.confidence != null ? ` (confidence ${verdict.confidence})` : ''}: ${verdict.reasoning}`;
   const revisionCount = Math.max(0, state.gate_attempts - 1);
-  const base = { repoRoot, id, state, packet, packetPath, tokens, judgeRan: true, makerName: makerLabel, judgeName: judgeLabel, judgeResult: verdict.verdict };
+  const base = { repoRoot, id, state, packet, packetPath, tokens, stages, quotaPts, judgeRan: true, makerName: makerLabel, judgeName: judgeLabel, judgeResult: verdict.verdict };
 
   if (verdict.verdict !== 'PASS') {
     revertAll(g);
@@ -625,47 +673,526 @@ export async function executeLaneLand({ id, repoRoot, verdictRaw = null, usageRa
   }
 }
 
+// ---------------------------------------------------------------- batch mode (L2)
+// N routine orders verified under ONE gate + ONE judge amortization: combined working
+// tree, union touchset containment, one suite-level rung run; on red an automatic
+// BISECT (group-testing over per-order changes) isolates offenders, reverts ONLY them,
+// and the green remainder proceeds. Each order still lands as its OWN commit (per-order
+// revertability). RISKY classes (auth/storage/behavior-visible — routing.json `batch`
+// rules) are REFUSED: they stay per-order. Fail-closed everywhere.
+
+const batchIdOf = (ids) => `b-${djb2([...ids].sort().join(','))}`;
+const batchDir = (repoRoot, batchId) => join(repoRoot, 'quality', '.lane', '.batch', batchId);
+const rungKey = (r) => JSON.stringify({ c: r.command, e: r.expect, x: r.expect_check ?? null });
+
+const refuseBatch = (batchId, sub, reason) => ({
+  exitCode: 2,
+  json: { ok: false, refused: true, batch_id: batchId, reason, summary: `hone lane ${sub} --batch — ${batchId}: REFUSED\n  ${reason}` },
+});
+
+/** capture one member's working-tree change: tracked patch + untracked file contents. */
+function captureMemberChange(g, touchTop) {
+  const patch = g.git(['diff', '--', ...touchTop]);
+  const untracked = [];
+  for (const e of dirtyEntries(g)) {
+    if (e.x !== '?') continue;
+    for (const p of e.paths) {
+      if (!touchTop.includes(p)) continue;
+      untracked.push({ path: p, content_b64: readFileSync(join(g.gitRoot, p)).toString('base64') });
+    }
+  }
+  return { patch, untracked };
+}
+
+/** restore the tree to HEAD, then apply exactly `changes` (used by bisect probes + remainder restore). */
+function applyMemberChanges(g, changes) {
+  revertAll(g);
+  for (const ch of changes) {
+    if (ch.patch && ch.patch.trim()) {
+      const r = spawnSync('git', ['apply', '--whitespace=nowarn'], { cwd: g.gitRoot, input: ch.patch.endsWith('\n') ? ch.patch : ch.patch + '\n', encoding: 'utf8' });
+      if (r.status !== 0) throw new Error(`bisect: git apply failed (${(r.stderr || '').slice(0, 300)}) — fail-closed`);
+    }
+    for (const u of ch.untracked) {
+      mkdirSync(dirname(join(g.gitRoot, u.path)), { recursive: true });
+      writeFileSync(join(g.gitRoot, u.path), Buffer.from(u.content_b64, 'base64'));
+    }
+  }
+}
+
+// batch gate takes NO usage: token accounting happens ONCE, at batch land, anchored on
+// the first member (naive ledger sums stay honest). Gate-time terminals record null
+// tokens — an honest unknown, never a divided fabrication.
+export async function executeLaneBatchGate({ ids, repoRoot, log = () => {} }) {
+  const uniq = [...new Set(ids)];
+  const batchId = batchIdOf(uniq);
+  if (uniq.length < 2) return refuseBatch(batchId, 'gate', `--batch needs >= 2 distinct packet ids (got ${uniq.length}) — a batch of one is just hone lane gate --packet`);
+
+  // ---- load every member fail-closed (refusals have NO side effects) ----
+  const members = [];
+  for (const id of uniq) {
+    let loaded;
+    try { loaded = loadPacket(repoRoot, id); }
+    catch (e) { return refuseBatch(batchId, 'gate', `[${id}] ${e.message}`); }
+    if (loaded.packet.status !== 'in_progress') return refuseBatch(batchId, 'gate', `[${id}] status '${loaded.packet.status}' — every batch member must be emitted (in_progress) first`);
+    let state;
+    try { state = loadState(repoRoot, id); }
+    catch (e) { return refuseBatch(batchId, 'gate', `[${id}] ${e.message}`); }
+    if (!state) return refuseBatch(batchId, 'gate', `[${id}] no lane state — run hone lane emit first`);
+    if (state.gate?.green) return refuseBatch(batchId, 'gate', `[${id}] already gate-green — land it (or reset) before batching`);
+    members.push({ id, packet: loaded.packet, path: loaded.path, rawText: loaded.rawText, state });
+  }
+
+  // ---- RISKY-CLASS refusal (deterministic, data-driven; auth/storage/behavior-visible stay per-order) ----
+  let routingTable;
+  try { routingTable = loadRouting(); }
+  catch (e) { return refuseBatch(batchId, 'gate', `routing.json unavailable (${e.message}) — batch eligibility cannot be proven, refusing (fail-closed)`); }
+  const risky = members
+    .map((m) => ({ id: m.id, ...isBatchEligible(m.packet, routingTable) }))
+    .filter((r) => !r.eligible);
+  if (risky.length) {
+    return refuseBatch(batchId, 'gate', `risky-class members refuse batching (per-order only):\n  - ${risky.map((r) => `${r.id}: ${r.reason}`).join('\n  - ')}`);
+  }
+
+  // ---- disjoint touchsets (per-order commits are impossible over shared files) ----
+  const seen = new Map();
+  for (const m of members) {
+    for (const p of m.state.touchset_toplevel) {
+      if (seen.has(p)) return refuseBatch(batchId, 'gate', `touchset overlap on '${p}' (${seen.get(p)} and ${m.id}) — overlapping orders cannot land as separate commits; run them per-order`);
+      seen.set(p, m.id);
+    }
+  }
+
+  // ---- git state: one emit-head for the whole batch, HEAD unmoved ----
+  const g = gitContext(repoRoot);
+  const heads = [...new Set(members.map((m) => m.state.head_sha))];
+  if (heads.length > 1) return refuseBatch(batchId, 'gate', `members were emitted at different HEADs (${heads.map((h) => h.slice(0, 12)).join(', ')}) — re-emit on one HEAD`);
+  const head = g.git(['rev-parse', 'HEAD']);
+  const memberTerm = (m, fields, extras) => laneTerminal({
+    repoRoot, id: m.id, state: m.state, packet: m.packet, packetPath: m.path, extras,
+  }, fields);
+  if (head !== heads[0]) {
+    const results = members.map((m) => memberTerm(m, {
+      status: 'blocked',
+      blockedOn: `foreign-commit: HEAD moved ${heads[0].slice(0, 12)} → ${head.slice(0, 12)} during batch ${batchId} — engine revert guarantees void`,
+      lesson: 'a lane maker must never run git write operations; manual cleanup required (tree NOT auto-reverted against a foreign HEAD)',
+      claims: [
+        { type: 'uncertainty', statement: `batch ${batchId} gate found HEAD moved from ${heads[0]} to ${head}; working tree left untouched for manual review` },
+        { type: 'remaining_work', statement: `packet ${m.id} blocked on foreign commit during batch; clean up manually, reset to pending to retry` },
+      ],
+      headline: 'foreign commit during batch — blocked, tree left for manual cleanup',
+    }, { manual_cleanup_required: true }));
+    return { exitCode: 1, json: { ok: false, terminal: 'blocked', batch_id: batchId, members: uniq, summary: results[0].json.summary } };
+  }
+
+  // ---- union containment + per-member no-diff ----
+  const unionTouch = (ms) => ms.flatMap((m) => m.state.touchset_toplevel);
+  const changed = flatPaths(dirtyEntries(g));
+  const union = unionTouch(members);
+  const violations = changed.filter((p) => !union.includes(p));
+  if (violations.length) {
+    revertAll(g);
+    const results = members.map((m) => memberTerm(m, {
+      status: 'skipped',
+      skipReason: `touchset-violation (batch ${batchId}): changed paths outside the batch union: ${violations.join(', ')}; ALL changes reverted (unattributable to one member)`,
+      lesson: 'a batch maker violated the union touchset; violation is unattributable — everything reverted',
+      claims: [
+        { type: 'verified_fact', statement: `batch ${batchId} contained changes outside the union touchset: ${violations.join(', ')}; everything reverted, nothing landed`, evidence: [{ command: 'git status --porcelain=v1 -uall', output_digest: `changed=[${changed.join(', ')}] union=[${union.join(', ')}]` }] },
+        { type: 'remaining_work', statement: `packet ${m.id} unexecuted after batch touchset violation; reset to pending to retry` },
+      ],
+      headline: `batch touchset violation: ${violations.join(', ')} — everything reverted`,
+    }));
+    return { exitCode: 1, json: { ok: false, terminal: 'skipped', batch_id: batchId, members: uniq, summary: results[0].json.summary } };
+  }
+  let active = [];
+  const noDiff = [];
+  for (const m of members) {
+    const mine = changed.filter((p) => m.state.touchset_toplevel.includes(p));
+    if (mine.length) active.push(m);
+    else noDiff.push(m);
+  }
+  const results = [];
+  for (const m of noDiff) {
+    results.push({ id: m.id, terminal: 'skipped', reason: 'maker-no-diff (batch)' });
+    memberTerm(m, {
+      status: 'skipped',
+      skipReason: `maker-no-diff (batch ${batchId}): no change inside this member's touchset`,
+      lesson: 'batch member arrived at gate with no diff; HONE-VERDICT closes are per-order — replay/validated-non-defect candidates must not ride a batch',
+      claims: [
+        { type: 'verified_fact', statement: `no working-tree change for ${m.id} inside its touchset at batch ${batchId} gate`, evidence: [{ command: 'git status --porcelain=v1 -uall', output_digest: `member touchset [${m.state.touchset_toplevel.join(', ')}] untouched` }] },
+        { type: 'remaining_work', statement: `packet ${m.id} unexecuted; run it per-order (reset to pending)` },
+      ],
+      headline: 'maker made no changes for this batch member',
+    });
+  }
+  if (!active.length) {
+    return { exitCode: 1, json: { ok: false, terminal: 'skipped', batch_id: batchId, members: uniq, results, summary: `hone lane gate --batch — ${batchId}: every member had no diff; all skipped` } };
+  }
+
+  // ---- capture per-member changes (bisect fuel), then ONE union rung run ----
+  for (const m of active) m.change = captureMemberChange(g, m.state.touchset_toplevel);
+  mkdirSync(batchDir(repoRoot, batchId), { recursive: true });
+  const receiptsDirRel = join('quality', 'receipts', batchId);
+  const stripCtx = { qualityRel: g.topRel('quality'), candidateId: batchId };
+
+  /** deduped union rung plan over `ms`, each rung bound to its first owner's baseline. */
+  const rungPlan = (ms) => {
+    const plan = [];
+    const have = new Set();
+    for (const m of ms) {
+      for (const [i, rung] of m.packet.evidence_required.entries()) {
+        const k = rungKey(rung);
+        if (have.has(k)) continue;
+        have.add(k);
+        plan.push({ rung, key: k, baseline: m.state.baseline[i], ownerId: m.id });
+      }
+    }
+    return plan;
+  };
+  /** run a rung plan; stop at first red. Receipts under the batch dir, phase-labelled. */
+  let probeSeq = 0;
+  const runPlan = async (plan, phase) => {
+    const entries = [];
+    for (const [i, p] of plan.entries()) {
+      log(`  [${phase}] ${p.rung.rung}: ${p.rung.command}`);
+      const res = await runShellCmd(p.rung.command, repoRoot);
+      const verdict = checkExpect(p.rung, res, 'post', p.baseline);
+      const r = writeRungReceipt({ repoRoot, receiptsDirRel, id: batchId, via: 'lane', phase, index: i, rung: p.rung, res, verdict, stripCtx });
+      entries.push({ key: p.key, ...r });
+      if (!verdict.pass) return { green: false, red: { plan: p, verdict, res, receipt: r }, entries };
+    }
+    return { green: true, entries };
+  };
+  /** append a run's receipt lines to every member of `ms` whose ladder contains the rung. */
+  const bookkeep = (runRes, ms) => {
+    for (const e of runRes.entries) {
+      for (const m of ms) {
+        if (!m.packet.evidence_required.some((r) => rungKey(r) === e.key)) continue;
+        m.state.receiptLines.push(e.line);
+        m.state.receiptSlices.push(e.slice);
+        m.state.receiptMeta.push(e.meta);
+      }
+    }
+  };
+  const bindGreen = (ms, attemptNote) => {
+    const diff = buildWorkingDiff(g, unionTouch(ms));
+    const treeHash = djb2(head + '\0' + diff);
+    const memberIds = ms.map((m) => m.id).sort();
+    for (const m of ms) {
+      m.state.gate_attempts = Math.max(1, m.state.gate_attempts + 1);
+      m.state.gate = { green: true, tree_hash: treeHash, at: new Date().toISOString(), attempt: m.state.gate_attempts, batch: { id: batchId, ids: memberIds, note: attemptNote } };
+      saveState(repoRoot, m.id, m.state);
+    }
+    // evidence: every member's baselines, then all post-phase lines deduped across
+    // members (batch receipt lines were bookkept into every owning member's state)
+    const evidenceEntries = [];
+    const seenLines = new Set();
+    for (const m of ms) {
+      m.state.receiptMeta.forEach((meta, i) => {
+        if (meta.phase === 'baseline') evidenceEntries.push({ line: m.state.receiptLines[i], slice: m.state.receiptSlices[i], ...meta });
+      });
+    }
+    for (const m of ms) {
+      m.state.receiptMeta.forEach((meta, i) => {
+        if (meta.phase === 'baseline' || seenLines.has(m.state.receiptLines[i])) return;
+        seenLines.add(m.state.receiptLines[i]);
+        evidenceEntries.push({ line: m.state.receiptLines[i], slice: m.state.receiptSlices[i], ...meta });
+      });
+    }
+    const judgeContextPath = join(batchDir(repoRoot, batchId), 'judge-context.json');
+    writeFileSync(judgeContextPath, JSON.stringify({
+      batch_id: batchId, members: memberIds, tree_hash: treeHash,
+      packet_yamls: Object.fromEntries(ms.map((m) => [m.id, m.rawText])),
+      evidence: buildJudgeEvidence(evidenceEntries),
+      diff: tailClip(diff, 150000),
+    }, null, 2));
+    return { treeHash, judgeContextPath, memberIds };
+  };
+
+  let run = await runPlan(rungPlan(active), 'post');
+  bookkeep(run, active);
+  if (!run.green) {
+    // ---- BISECT: group-test per-member changes to isolate offenders (log₂N probes) ----
+    log(`  batch RED at '${run.red.plan.rung.rung}' — bisecting ${active.length} member(s)`);
+    const offenders = []; // [{m, red}] — red = the SINGLETON probe's failure (the isolation evidence)
+    const probe = async (subset) => {
+      applyMemberChanges(g, subset.map((m) => m.change));
+      return runPlan(rungPlan(subset), `bisect-${++probeSeq}-${subset.map((m) => m.id).join('+').slice(0, 40)}`);
+    };
+    const search = async (subset) => {
+      if (!subset.length) return;
+      const r = await probe(subset);
+      if (r.green) return; // this whole subset is green
+      if (subset.length === 1) { offenders.push({ m: subset[0], red: r.red }); return; }
+      const mid = Math.ceil(subset.length / 2);
+      await search(subset.slice(0, mid));
+      await search(subset.slice(mid));
+    };
+    await search(active);
+    for (const { m, red } of offenders) {
+      writeFileSync(join(batchDir(repoRoot, batchId), `offender-${m.id}.diff`), m.change.patch + m.change.untracked.map((u) => `\n[untracked ${u.path}: ${u.content_b64.length} b64 bytes]`).join(''));
+      m.state.receiptLines.push(`[bisect] batch ${batchId}: isolated as an offender — with ONLY this member's change applied, rung '${red.plan.rung.rung}' fails (${red.verdict.reason}); change reverted, saved to ${join('quality', '.lane', '.batch', batchId, `offender-${m.id}.diff`)}`);
+      results.push({ id: m.id, terminal: 'reverted', reason: `bisect offender at '${red.plan.rung.rung}'` });
+      memberTerm(m, {
+        status: 'reverted',
+        lesson: `batch bisect isolated this change as an offender at '${red.plan.rung.rung}' — prior for ${m.packet.batch_key} down`,
+        claims: [
+          { type: 'verified_fact', statement: `batch ${batchId} bisect: with ONLY ${m.id}'s change applied, rung '${red.plan.rung.rung}' fails (${red.verdict.reason}); change reverted, nothing landed`, evidence: [{ command: red.plan.rung.command, output_digest: red.receipt.digest }] },
+          { type: 'remaining_work', statement: `packet ${m.id} reverted as a batch-bisect offender; retry per-order with a better instruction` },
+        ],
+        headline: `bisect offender at '${red.plan.rung.rung}' — reverted`,
+      });
+    }
+    const offenderMembers = offenders.map((o) => o.m);
+    const remainder = active.filter((m) => !offenderMembers.includes(m));
+    if (!remainder.length) {
+      revertAll(g);
+      return { exitCode: 1, json: { ok: false, terminal: 'reverted', batch_id: batchId, members: uniq, results, summary: `hone lane gate --batch — ${batchId}: every member isolated as an offender; all reverted` } };
+    }
+    // restore the green remainder, then the AUTHORITATIVE final gate on the exact landing tree
+    applyMemberChanges(g, remainder.map((m) => m.change));
+    const final = await runPlan(rungPlan(remainder), 'post-bisect');
+    bookkeep(final, remainder);
+    if (!final.green) {
+      // interaction effect: members green in isolation, red combined — fail-closed
+      revertAll(g);
+      for (const m of remainder) {
+        results.push({ id: m.id, terminal: 'reverted', reason: 'batch-interaction' });
+        memberTerm(m, {
+          status: 'reverted',
+          lesson: `batch ${batchId} interaction: remainder green in isolation but red combined at '${final.red.plan.rung.rung}' — batch these orders separately`,
+          claims: [
+            { type: 'verified_fact', statement: `batch ${batchId} remainder failed combined at rung '${final.red.plan.rung.rung}' (${final.red.verdict.reason}) after individual probes were green; all remaining changes reverted`, evidence: [{ command: final.red.plan.rung.command, output_digest: final.red.receipt.digest }] },
+            { type: 'remaining_work', statement: `packet ${m.id} reverted on batch interaction; retry per-order` },
+          ],
+          headline: `batch interaction red at '${final.red.plan.rung.rung}' — remainder reverted`,
+        });
+      }
+      return { exitCode: 1, json: { ok: false, terminal: 'reverted', batch_id: batchId, members: uniq, results, summary: `hone lane gate --batch — ${batchId}: interaction red after bisect; everything reverted` } };
+    }
+    const bound = bindGreen(remainder, `green after bisect (offenders: ${offenderMembers.map((o) => o.id).join(', ') || 'none'})`);
+    return {
+      exitCode: 0,
+      json: {
+        ok: true, green: true, batch_id: batchId, members: bound.memberIds, offenders: offenderMembers.map((o) => o.id),
+        results, tree_hash: bound.treeHash, judge_context_path: bound.judgeContextPath,
+        next: `judge over ${bound.judgeContextPath}, then: hone lane land --batch ${bound.memberIds.join(',')} --repo ${repoRoot} --judge-verdict-b64 <b64> --usage-b64 <b64>`,
+        summary: `hone lane gate --batch — ${batchId}: GREEN remainder of ${bound.memberIds.length}/${active.length} after bisect (${offenders.length} offender(s) reverted)`,
+      },
+    };
+  }
+
+  const bound = bindGreen(active, 'green first pass');
+  return {
+    exitCode: 0,
+    json: {
+      ok: true, green: true, batch_id: batchId, members: bound.memberIds, offenders: [],
+      results, tree_hash: bound.treeHash, judge_context_path: bound.judgeContextPath,
+      next: `judge over ${bound.judgeContextPath}, then: hone lane land --batch ${bound.memberIds.join(',')} --repo ${repoRoot} --judge-verdict-b64 <b64> --usage-b64 <b64>`,
+      summary: `hone lane gate --batch — ${batchId}: GREEN (${bound.memberIds.length} member(s), one suite-level run; tree_hash ${bound.treeHash})`,
+    },
+  };
+}
+
+export async function executeLaneBatchLand({ ids, repoRoot, verdictRaw = null, usageRaw = null, log = () => {} }) {
+  const uniq = [...new Set(ids)].sort();
+  const batchId = batchIdOf(uniq);
+  // NOTE: land must be invoked with the GREEN membership from gate (post-bisect
+  // remainder). Each member's gate receipt names that membership; mismatches refuse.
+  const members = [];
+  for (const id of uniq) {
+    let loaded;
+    try { loaded = loadPacket(repoRoot, id); }
+    catch (e) { return refuseBatch(batchId, 'land', `[${id}] ${e.message}`); }
+    if (loaded.packet.status !== 'in_progress') return refuseBatch(batchId, 'land', `[${id}] status '${loaded.packet.status}' — not landable`);
+    let state;
+    try { state = loadState(repoRoot, id); }
+    catch (e) { return refuseBatch(batchId, 'land', `[${id}] ${e.message}`); }
+    if (!state) return refuseBatch(batchId, 'land', `[${id}] no lane state — nothing to land (fail-closed)`);
+    if (!state.gate?.green) return refuseBatch(batchId, 'land', `[${id}] no green gate receipt — run hone lane gate --batch first (agent claims of green are never trusted)`);
+    if (!state.gate.batch || state.gate.batch.ids.join(',') !== uniq.join(',')) {
+      return refuseBatch(batchId, 'land', `[${id}] gate receipt binds batch [${state.gate.batch?.ids?.join(',') ?? '(none — single-order gate)'}] but land was invoked for [${uniq.join(',')}] — land the exact green membership`);
+    }
+    members.push({ id, packet: loaded.packet, path: loaded.path, state });
+  }
+  if (verdictRaw == null) return refuseBatch(batchId, 'land', 'missing --judge-verdict — land never proceeds on an agent\'s say-so');
+  if (usageRaw == null) return refuseBatch(batchId, 'land', 'missing --usage — token usage is recorded explicitly (null tokens allowed, absent usage is not)');
+  const u = parseUsageInput(usageRaw);
+  if (u.errors.length) return refuseBatch(batchId, 'land', `malformed --usage:\n  - ${u.errors.join('\n  - ')}`);
+  const usage = u.entries;
+  const v = parseVerdictInput(verdictRaw);
+  if (v.errors.length) return refuseBatch(batchId, 'land', `malformed --judge-verdict:\n  - ${v.errors.join('\n  - ')}`);
+  const verdict = v.verdict;
+
+  const makers = usage.filter((e) => e.role === 'maker');
+  const judges = usage.filter((e) => e.role === 'judge');
+  if (!makers.length || !judges.length) return refuseBatch(batchId, 'land', '--usage must contain at least one maker entry and one judge entry');
+  const identity = (e) => `${e.provider}:${e.model ?? ''}`;
+  const clash = makers.find((m) => judges.some((j) => identity(j) === identity(m)));
+  if (clash) return refuseBatch(batchId, 'land', `maker == judge identity ('${identity(clash)}') — non-negotiable #1`);
+  for (const m of members) {
+    if (makers.some((mk) => mk.provider !== m.state.maker_provider)) {
+      return refuseBatch(batchId, 'land', `[${m.id}] usage maker provider disagrees with lane state (emitted maker_provider='${m.state.maker_provider}')`);
+    }
+    if (m.packet.judge_provider !== null && m.packet.judge_provider !== verdict.judge.provider) {
+      return refuseBatch(batchId, 'land', `[${m.id}] packet pins judge_provider='${m.packet.judge_provider}' but verdict judge is '${verdict.judge.provider}'`);
+    }
+  }
+
+  const g = gitContext(repoRoot);
+  const head = g.git(['rev-parse', 'HEAD']);
+  const emitHead = members[0].state.head_sha;
+  const agg = aggregateUsage(usage);
+  // usage lives ONCE on the anchor (first member): naive ledger sums stay honest;
+  // non-anchor entries carry null tokens + the batch marker for report-side amortization.
+  // A batch that bisect collapsed to ONE member is just a single land — no marker
+  // (the ledger schema requires size >= 2 for a marker, deliberately).
+  const batchMarker = members.length >= 2 ? { batch_id: batchId, size: members.length, anchor: members[0].id } : undefined;
+  const termFor = (m, isAnchor, judgeMeta, fields) => laneTerminal({
+    repoRoot, id: m.id, state: m.state, packet: m.packet, packetPath: m.path,
+    tokens: isAnchor ? agg : undefined,
+    stages: isAnchor ? usage : undefined,
+    quotaPts: isAnchor ? agg.quotaPts : undefined,
+    batch: batchMarker,
+    ...judgeMeta,
+  }, fields);
+
+  if (head !== emitHead) {
+    const rs = members.map((m, i) => termFor(m, i === 0, {}, {
+      status: 'blocked',
+      blockedOn: `foreign-commit: HEAD moved ${emitHead.slice(0, 12)} → ${head.slice(0, 12)} before batch land — engine guarantees void`,
+      lesson: 'a lane maker must never run git write operations; manual cleanup required',
+      claims: [
+        { type: 'uncertainty', statement: `batch ${batchId} land found HEAD moved from ${emitHead} to ${head}; nothing landed; tree left for manual review` },
+        { type: 'remaining_work', statement: `packet ${m.id} blocked on foreign commit; clean up manually, reset to pending to retry` },
+      ],
+      headline: 'foreign commit before batch land — blocked',
+    }));
+    return { exitCode: 1, json: { ok: false, terminal: 'blocked', batch_id: batchId, members: uniq, summary: rs[0].json.summary, manual_cleanup_required: true } };
+  }
+  const unionTouch = members.flatMap((m) => m.state.touchset_toplevel);
+  const treeHash = djb2(emitHead + '\0' + buildWorkingDiff(g, unionTouch));
+  if (members.some((m) => m.state.gate.tree_hash !== treeHash)) {
+    return refuseBatch(batchId, 'land', `tree state changed since the green batch gate (gate ${members[0].state.gate.tree_hash}, current ${treeHash}) — re-run hone lane gate --batch (fail-closed)`);
+  }
+
+  const judgeLabel = `${verdict.judge.provider}${verdict.judge.model ? `:${verdict.judge.model}` : ''}`;
+  const makerLabel = `${makers[0].provider}${makers[0].model ? `:${makers[0].model}` : ''}`;
+  const verdictLine = `${judgeLabel} ${verdict.verdict}${verdict.confidence != null ? ` (confidence ${verdict.confidence})` : ''}: ${verdict.reasoning} [batch ${batchId}, ${members.length} order(s)]`;
+  const judgeMeta = { judgeRan: true, makerName: makerLabel, judgeName: judgeLabel, judgeResult: verdict.verdict };
+
+  if (verdict.verdict !== 'PASS') {
+    revertAll(g);
+    const kind = verdict.verdict === 'REJECT' ? 'REJECTED the combined change' : 'refused the combined change (final REVISE)';
+    const rs = members.map((m, i) => termFor(m, i === 0, judgeMeta, {
+      status: 'reverted',
+      judgeVerdict: verdictLine,
+      lesson: `judge refused the batch (${verdict.verdict}): ${headClip(verdict.reasoning, 240)} — retry per-order for attribution`,
+      claims: [
+        { type: 'judged_design_claim', statement: `independent judge ${kind} of batch ${batchId}: ${verdict.reasoning}`, judge: { provider: judgeLabel, verdict: verdict.verdict } },
+        { type: 'remaining_work', statement: `packet ${m.id} reverted on batch judge ${verdict.verdict}; address: ${headClip(verdict.reasoning, 240)}` },
+      ],
+      headline: `judge ${verdict.verdict} on batch — reverted (never land without PASS)`,
+    }));
+    rmSync(batchDir(repoRoot, batchId), { recursive: true, force: true });
+    return { exitCode: 1, json: { ok: false, terminal: 'reverted', batch_id: batchId, members: uniq, summary: rs[0].json.summary } };
+  }
+
+  // ---- PASS: land each order as its OWN commit (per-order revertability preserved) ----
+  const landedResults = [];
+  for (const [i, m] of members.entries()) {
+    const remainingTouch = members.slice(i + 1).flatMap((x) => x.state.touchset_toplevel);
+    log(`  [land] batch ${batchId} order ${i + 1}/${members.length}: ${m.id}`);
+    try {
+      const commit = landCommit(g, {
+        packet: m.packet, id: m.id, touchTop: m.state.touchset_toplevel, receiptsDirRel: m.state.receipts_dir_rel,
+        pipelineLabel: `hone lane batch ${batchId} (${members.length} orders): maker=${makerLabel} judge=${judgeLabel}`,
+        confidence: verdict.confidence, revisionCount: 0, allowedLeftover: remainingTouch,
+      });
+      const claims = buildLandClaims({ packet: m.packet, id: m.id, reasoning: verdict.reasoning, judgeProvider: judgeLabel, receiptLines: m.state.receiptLines, receiptsDirRel: m.state.receipts_dir_rel });
+      const r = termFor(m, i === 0, judgeMeta, {
+        status: 'landed', commit, judgeVerdict: verdictLine, lesson: null, claims,
+        headline: `landed ${commit.slice(0, 12)} on ${g.branch} (batch ${batchId}, order ${i + 1}/${members.length})`,
+      });
+      landedResults.push({ id: m.id, terminal: 'landed', commit, summary: r.json.summary });
+    } catch (e) {
+      // fail-CLOSED mid-sequence: earlier commits stand (their books are written);
+      // everything not yet committed reverts, remaining members block.
+      try { revertAll(g); } catch (e2) { e.message += ` [AND REVERT FAILED: ${e2.message}]`; }
+      for (const rest of members.slice(i)) {
+        termFor(rest, false, judgeMeta, {
+          status: 'blocked',
+          blockedOn: `internal-error during batch land: ${e.message.slice(0, 300)}`,
+          lesson: 'engine fault mid-batch-land; earlier members landed, this one reverted — fix, reset to pending',
+          claims: [
+            { type: 'uncertainty', statement: `batch ${batchId} land aborted at ${rest.id}: ${e.message.slice(0, 200)}` },
+            { type: 'remaining_work', statement: `packet ${rest.id} blocked mid-batch-land; changes reverted; reset to pending after fixing` },
+          ],
+          headline: `internal error mid-batch-land (fail-closed): ${e.message.slice(0, 120)}`,
+        });
+        landedResults.push({ id: rest.id, terminal: 'blocked', reason: e.message.slice(0, 160) });
+      }
+      rmSync(batchDir(repoRoot, batchId), { recursive: true, force: true });
+      return { exitCode: 1, json: { ok: false, terminal: 'blocked', batch_id: batchId, members: uniq, results: landedResults, summary: `hone lane land --batch — ${batchId}: internal error mid-sequence; ${i} landed, rest blocked` } };
+    }
+  }
+  rmSync(batchDir(repoRoot, batchId), { recursive: true, force: true });
+  return {
+    exitCode: 0,
+    json: {
+      ok: true, terminal: 'landed', batch_id: batchId, members: uniq, results: landedResults,
+      commits: landedResults.map((r) => r.commit),
+      summary: `hone lane land --batch — ${batchId}: LANDED ${landedResults.length} order(s), one commit each${batchMarker ? `; usage anchored on ${batchMarker.anchor}` : ' (single member — plain land accounting)'}`,
+    },
+  };
+}
+
 // ---------------------------------------------------------------- input schemas (fail-closed)
 
 /**
- * usage entries: explicit token/cost accounting for the ledger. JSON array of
- * {role: maker|judge, provider, model?, tokens_in?, tokens_out?, tokens_total?, cost_usd?}.
- * Unknown keys and wrong types are refused — a malformed usage line must never reach
- * the cost ledger half-parsed.
+ * usage entries: explicit token/cost accounting for the ledger — an ARRAY of per-STAGE
+ * records {role: maker|judge|engine|planner, provider, model?, stage?: recon|edit|test|
+ * judge|plan, tokens_in?, tokens_out?, tokens_total?, cache_read_tokens?, cost_usd?,
+ * wall_s?, quota_pts?}. Back-compat: a bare JSON OBJECT is one single unattributed stage
+ * (stage null), so pre-stage callers keep working. Unknown keys and wrong types are
+ * refused — a malformed usage line must never reach the cost ledger half-parsed.
  */
 export function parseUsageInput(raw) {
   const errors = [];
   let arr;
   try { arr = JSON.parse(raw); }
   catch (e) { return { entries: null, errors: [`not valid JSON: ${e.message}`] }; }
-  if (!Array.isArray(arr) || !arr.length) return { entries: null, errors: ['usage must be a non-empty JSON array'] };
-  const KEYS = ['role', 'provider', 'model', 'tokens_in', 'tokens_out', 'tokens_total', 'cost_usd'];
+  if (arr !== null && typeof arr === 'object' && !Array.isArray(arr)) arr = [arr]; // bare object = single unattributed stage
+  if (!Array.isArray(arr) || !arr.length) return { entries: null, errors: ['usage must be a non-empty JSON array (or a single stage object)'] };
   const entries = arr.map((e, i) => {
     if (e === null || typeof e !== 'object' || Array.isArray(e)) { errors.push(`[${i}]: not a map`); return null; }
-    for (const k of Object.keys(e)) if (!KEYS.includes(k)) errors.push(`[${i}]: unknown key '${k}'`);
-    if (!USAGE_ROLES.includes(e.role)) errors.push(`[${i}].role: must be one of [${USAGE_ROLES.join(' | ')}]`);
-    if (typeof e.provider !== 'string' || !e.provider.trim()) errors.push(`[${i}].provider: non-empty string required`);
-    if (e.model != null && (typeof e.model !== 'string' || !e.model.trim())) errors.push(`[${i}].model: string|null required`);
-    for (const k of ['tokens_in', 'tokens_out', 'tokens_total']) {
-      if (e[k] != null && !Number.isInteger(e[k])) errors.push(`[${i}].${k}: int|null required`);
+    const normalized = {
+      role: e.role, provider: e.provider, model: e.model ?? null, stage: e.stage ?? null,
+      tokens_in: e.tokens_in ?? null, tokens_out: e.tokens_out ?? null, tokens_total: e.tokens_total ?? null,
+      cache_read_tokens: e.cache_read_tokens ?? null, cost_usd: e.cost_usd ?? null,
+      wall_s: e.wall_s ?? null, quota_pts: e.quota_pts ?? null,
+    };
+    const stageErrs = validateStageEntry({ ...normalized }, i); // the ledger's stage schema IS the input schema
+    for (const k of Object.keys(e)) {
+      if (!(k in normalized)) errors.push(`[${i}]: unknown key '${k}'`);
     }
-    if (e.cost_usd != null && !(typeof e.cost_usd === 'number' && Number.isFinite(e.cost_usd))) errors.push(`[${i}].cost_usd: number|null required`);
-    return { role: e.role, provider: e.provider, model: e.model ?? null, tokens_in: e.tokens_in ?? null, tokens_out: e.tokens_out ?? null, tokens_total: e.tokens_total ?? null, cost_usd: e.cost_usd ?? null };
+    errors.push(...stageErrs.map((m) => m.replace(/^stages\[/, '[')));
+    return normalized;
   });
   return errors.length ? { entries: null, errors } : { entries, errors: [] };
 }
 
-/** null-aware aggregation with the same semantics as work.mjs tokensOf(). */
+/** null-aware aggregation with the same semantics as work.mjs tokensOf() (+ quota_pts). */
 export function aggregateUsage(entries) {
-  let inTok = null, outTok = null, total = null, usd = null;
+  let inTok = null, outTok = null, total = null, usd = null, quotaPts = null;
   const add = (cur, v) => (v == null ? cur : (cur ?? 0) + v);
   for (const e of entries) {
     inTok = add(inTok, e.tokens_in);
     outTok = add(outTok, e.tokens_out);
     total = add(total, e.tokens_total ?? (e.tokens_in != null && e.tokens_out != null ? e.tokens_in + e.tokens_out : null));
     usd = add(usd, e.cost_usd);
+    quotaPts = add(quotaPts, e.quota_pts);
   }
-  return { inTok, outTok, total, usd };
+  return { inTok, outTok, total, usd, quotaPts };
 }
 
 /** judge verdict: {verdict: PASS|REVISE|REJECT, reasoning, confidence?, judge:{provider, model?}}. */

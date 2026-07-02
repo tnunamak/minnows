@@ -1,0 +1,59 @@
+{
+  "version": 2,
+  "note": "Routing POLICY (data) — L1 amendment, token-economics-levers-2026-07-02. class -> ORDERED candidate list of {model: <models.json registry name>, effort}; two-strike escalation walks down the list; judge constraint = different lineage at tier_rank >= maker. Packets may pin routing_class, NEVER a model (validator-enforced). Policy authorship is judgment on a slow cadence: the agenda/chooser PROPOSES diffs to this file from the measured per-(class x tier) pass-rate table; application is deterministic (lib/routing.mjs selectAgent).",
+  "provenance": {
+    "source": "waspflow docs/model-economics.md (2026-06-30 snapshot) + fable-workflow-baseline-2026-07-02 + hone run-history (gpt-5.5 4/6 zero-revision on async-order oracles)",
+    "date": "2026-07-02",
+    "rationale": "Sonnet 5 @ high is the bulk value knee; Opus med is a trap (never routed); Haiku leads only the certified-mechanical class; GPT-5.5 leads async-order oracles"
+  },
+  "default_class": "extraction",
+  "proof_class_map": {
+    "type_only": "certified-mechanical",
+    "exact_move": "certified-mechanical",
+    "certified_transform": "extraction",
+    "pure_logic": "extraction",
+    "effectful": "hard-ambiguous",
+    "property_at_risk": "hard-ambiguous",
+    "judgment_first": "hard-ambiguous",
+    "liveness_roots": "hard-ambiguous",
+    "proposal": "hard-ambiguous"
+  },
+  "action_overrides": {
+    "generate_evidence": "async-order-oracle"
+  },
+  "escalation": { "rule": "two-strike", "strikes_per_step": 2 },
+  "judge_constraint": { "different_lineage": true, "tier_rank_at_least_maker": true },
+  "quota": { "pressure_threshold": 0.9 },
+  "classes": {
+    "certified-mechanical": {
+      "maker": [
+        { "model": "haiku-4.5", "effort": "medium" },
+        { "model": "sonnet-5", "effort": "high" },
+        { "model": "opus-4.8", "effort": "high" }
+      ]
+    },
+    "extraction": {
+      "maker": [
+        { "model": "sonnet-5", "effort": "high" },
+        { "model": "opus-4.8", "effort": "high" }
+      ]
+    },
+    "async-order-oracle": {
+      "maker": [
+        { "model": "gpt-5.5", "effort": "high" },
+        { "model": "opus-4.8", "effort": "high" }
+      ]
+    },
+    "hard-ambiguous": {
+      "maker": [
+        { "model": "opus-4.8", "effort": "high" }
+      ]
+    }
+  },
+  "batch": {
+    "eligible_actions": ["preserve_refactor"],
+    "eligible_proof_classes": ["type_only", "exact_move", "certified_transform", "pure_logic"],
+    "max_silent_wrongness": "low",
+    "eligible_behavior_status": ["contract", "likely_intended"]
+  }
+}

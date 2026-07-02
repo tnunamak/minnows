@@ -28,6 +28,11 @@ commands:
               exit 0 only on full green [--repo .] [--maker-summary(-b64)] [--usage(-b64)]
     lane land --packet <id>   green-gate-receipt-bound commit or revert; verdict+usage → ledgers
               [--repo .] (--judge-verdict(-b64) --usage(-b64)) | (--abort --reason TEXT)
+    lane gate|land --batch <id1,id2,...>   L2 batch: union touchset, ONE suite-level run +
+              auto-bisect on red; land = one judge amortized, one commit PER order
+  calibrate   replay already-landed orders as a model benchmark (the ledger IS the eval);
+              a models.json entry without calibration is routing-INELIGIBLE (fail-closed)
+              --model <models.json name> --replay N [--repo .]   (v1: seam-proving stub report)
   reset <id>  deliberately reopen a terminal packet → status pending (recorded in packet.resets)
               [--repo .] [--to pending] [--force] [--reason TEXT]   (landed requires --force)
   report      compile claim-ledger report → <repo>/quality/reports/
@@ -66,6 +71,11 @@ try {
     case 'lane': {
       const { runLane } = await import('./lib/lane.mjs');
       await runLane(flags);
+      break;
+    }
+    case 'calibrate': {
+      const { runCalibrate } = await import('./lib/calibrate.mjs');
+      await runCalibrate(flags);
       break;
     }
     case 'reset': {

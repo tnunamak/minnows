@@ -15,10 +15,14 @@ import { join } from "node:path";
 import { createProvider, runCli, DEFAULT_TIMEOUT_MS } from "./provider.mjs";
 
 const MODEL = process.env.HONE_CLAUDE_MODEL || "sonnet";
+// effort is FIRST-CLASS and always explicit — never the CLI's silent default (L1
+// amendment: every invocation is intentional about provider, model, AND effort).
+// Judge posture defaults high (judge tier >= maker per the routing doctrine).
+const EFFORT = process.env.HONE_CLAUDE_JUDGE_EFFORT || "high";
 
 async function exec(prompt, { timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
   const cwd = mkdtempSync(join(tmpdir(), "hone-claude-"));
-  const args = ["-p", "--model", MODEL, "--output-format", "json", "--no-session-persistence"];
+  const args = ["-p", "--model", MODEL, "--effort", EFFORT, "--output-format", "json", "--no-session-persistence"];
   const { stdout, durationMs } = await runCli("claude", args, { input: prompt, timeoutMs, cwd });
 
   let envelope;
