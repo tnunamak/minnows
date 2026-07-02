@@ -131,7 +131,11 @@ async function codexMaker(prompt, { cwd, timeoutMs = MAKER_TIMEOUT_MS } = {}) {
   const model = process.env.HONE_CODEX_MODEL || 'gpt-5.5';
   const dir = mkdtempSync(join(tmpdir(), 'hone-maker-'));
   const outFile = join(dir, 'last-message.txt');
+  // network_access: codex's workspace-write sandbox blocks localhost binding by default, which blinds
+  // the maker to any test that starts a local server — it sees red where the engine sees green (proven
+  // by no-model probe, campaign-rescue 2026-07-02: `listen EPERM 127.0.0.1` without the flag).
   const args = ['exec', '--ephemeral', '--skip-git-repo-check', '-s', 'workspace-write',
+    '-c', 'sandbox_workspace_write.network_access=true',
     '--color', 'never', '-m', model, '-o', outFile, '-'];
   const { stdout, stderr, durationMs } = await runCli('codex', args, { input: prompt, timeoutMs, cwd });
   let text = '';
