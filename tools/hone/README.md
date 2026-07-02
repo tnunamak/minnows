@@ -35,6 +35,7 @@ Engine code lives here (repo-independent). Per-repo state lives **in the target 
     tier-mass.json       # flagged-fn universe w/ tier routing + mass by file & subsystem
     callback-smells.json # high-complexity callback/closure smells (T1a/T1b/T2 + B flags)
     hotspots.json        # churn × cognitive-complexity × coupling file ranking
+    test-signals.json    # static test-suite signals: skip counts + zero-by-name exports (weak, by_name_only)
   packets/           # candidate packets (*.yaml, schema-validated at emit time)
 ```
 
@@ -65,6 +66,9 @@ scalars replace). A fully specified real profile: [profiles/example-pdpp.yaml](p
 | `classification.generated_globs` | `**/*.generated.*`, `**/generated/**` | ownership GENERATED — excluded from packets |
 | `classification.freeze_globs` | `[]` | ownership FREEZE — excluded from packets |
 | `policy.autonomy` | `autonomous_branch` | owner policy knob (SPEC §owner interface) |
+| `agenda.doctrine_path` | `null` | the human-fixed doctrine document `hone agenda` feeds the model verbatim |
+| `agenda.named_targets` | `[]` | doctrine anchors `[{id, description, evidence_hint, keywords}]` — fed to the chooser first-class; demotion = escalation; `keywords` attribute realized spend |
+| `agenda.budget_bands` | `{}` | doctrine class → `[min%, max%]` of realized batch spend (report divergence flags); classes normalize to B · A2 · T1 · T0 |
 
 YAML support is a deliberate stdlib-only subset (block maps/lists, inline arrays, quoted
 scalars, comments — **no** anchors, multi-line block scalars, or inline maps); `lib/yaml.mjs`
