@@ -19,9 +19,13 @@
 // "Ledger errors" section and warned to stderr — never skipped silently.
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
-import { buildContext } from './profile.mjs';
+import { buildContext, loadProfile } from './profile.mjs';
 import { parseYaml } from './yaml.mjs';
 import { djb2 } from './util.mjs';
+import {
+  readAgendaArtifacts, packetPriority, doctrineClassOf, normalizeDoctrineClass,
+  agendaRankMap, divergenceFlags,
+} from './agenda-consume.mjs';
 
 export const CLAIM_TYPES = ['verified_fact', 'judged_design_claim', 'behavior_preserved',
   'behavior_changed', 'hypothesis', 'uncertainty', 'remaining_work'];
@@ -150,11 +154,15 @@ export function compileReport(repoRoot) {
   const claims = readJsonl(join(qdir, 'claims.jsonl'), 'quality/claims.jsonl', validateClaim);
   const cost = readJsonl(join(qdir, 'cost.jsonl'), 'quality/cost.jsonl', validateCostEntry);
   const pool = readPacketPool(repoRoot);
-  const ledgerErrors = [...claims.errors, ...cost.errors, ...pool.errors];
+  const agendaArts = readAgendaArtifacts(repoRoot);
+  const profileAgenda = loadProfile(repoRoot).profile.agenda ?? {};
+  const ledgerErrors = [...claims.errors, ...cost.errors, ...pool.errors, ...agendaArts.errors];
 
   const packetsCanonical = JSON.stringify(
     [...pool.packets].sort((a, b) => a.candidate_id.localeCompare(b.candidate_id)));
-  const digest = djb2(`${claims.raw}\u0000${cost.raw}\u0000${packetsCanonical}`);
+  const digest = djb2([claims.raw, cost.raw, packetsCanonical, agendaArts.raws.agenda,
+    agendaArts.raws.notChosen, agendaArts.raws.batches, agendaArts.raws.ledger,
+    JSON.stringify(profileAgenda)].join("\\u0000"));
 
   // ---- group by candidate (union of packet ids, claim ids, cost ids) ----
   const byCand = new Map();
@@ -204,6 +212,20 @@ export function compileReport(repoRoot) {
   if (ledgerErrors.length) w(`**${ledgerErrors.length} malformed ledger input(s)** — see "Ledger errors" below.`);
   w();
 
+  // fail-loud divergence thresholds (AGENDA-DESIGN.md amendment 3): a FLAG requiring owner
+  // acknowledgment, never a halt — computed from batch records vs the doctrine projection.
+  const flags = divergenceFlags(agendaArts.batches, profileAgenda);
+  if (flags.length) {
+    w('## ⚠ DIVERGENCE — OWNER ACK REQUIRED');
+    w();
+    w('Threshold-crossing divergence, computed from `quality/agendas/batches.jsonl` against the');
+    w('doctrine projection in `quality/hone.yaml` (`agenda.named_targets` / `agenda.budget_bands`).');
+    w('This is a flag, not a re-weighting opportunity and not a halt:');
+    w();
+    for (const f of flags) w(`- ⚠ ${f}`);
+    w();
+  }
+
   w('## Outcomes');
   w();
   const statusKeys = [...PACKET_STATUS_ORDER.filter((s) => statusCounts[s]),
@@ -230,6 +252,34 @@ export function compileReport(repoRoot) {
     w(`- revisions: ${totalRevisions} across ${jobs.length} job(s) (${(totalRevisions / jobs.length).toFixed(2)}/job)`);
     w(`- judge results: ${judgeDist.map(([k, n]) => `${k} ${n}`).join(' · ')}`);
     w();
+  }
+
+  // agenda & chooser sections — rendered ONLY when agenda artifacts exist (repos without an
+  // agenda compile exactly as before, minus digest widening).
+  if (agendaArts.agenda || agendaArts.ledger.length || Object.keys(agendaArts.notChosen).length) {
+    w('## Agenda & chooser (computed from AGENDA.json + ledgers — never model-asserted)');
+    w();
+    if (agendaArts.agenda) {
+      const a = agendaArts.agenda;
+      w(`- incumbent: ${a.agenda_id} (${a.created}) · ${(a.items ?? []).length} item(s) · ${a.verification?.verified ?? 0}/${a.verification?.sensor_citations ?? 0} sensor citation(s) reproduced${a.verification?.failed ? ` · ${a.verification.failed} FAILED (items demoted)` : ''}`);
+      w(`- budget composition (computed): ${budgetComposition(a, jobs, pool)}`);
+      w(`- ${formulaVsAgenda(a, pool)}`);
+    }
+    const ncKeys = Object.keys(agendaArts.notChosen).sort();
+    if (ncKeys.length) {
+      w('- NOT-chosen aging (age counts consecutive agendas not chosen; ≥3 triggers the run floor):');
+      for (const k of ncKeys) {
+        const e = agendaArts.notChosen[k];
+        w(`  - \`${k}\` · age ${e.age_count} · ${e.reason_latest ?? '(no reason recorded)'}`);
+      }
+    }
+    w();
+    if (agendaArts.ledger.length) {
+      w('### Chooser calibration (selection ledger — predicted vs realized, per class)');
+      w();
+      for (const line of chooserCalibration(agendaArts.ledger, pool, jobs)) w(line);
+      w();
+    }
   }
 
   w('## Claims by type');
@@ -281,6 +331,84 @@ export function compileReport(repoRoot) {
     ledgerErrors,
     counts: { claims: claims.rows.length, jobs: jobs.length, packets: pool.packets.length, statusCounts },
   };
+}
+
+// ---------------------------------------------------------------- agenda & chooser (computed)
+
+/** predicted (AGENDA.json est_cost by doctrine class) vs realized (cost ledger joined via
+ * packets) — the budget-composition line is COMPUTED here, never asserted by the model. */
+function budgetComposition(agenda, costRows, pool) {
+  const byId = new Map(pool.packets.map((p) => [p.candidate_id, p]));
+  const predicted = {};
+  let predTotal = 0;
+  for (const it of agenda.items ?? []) {
+    const cls = normalizeDoctrineClass(it.workflow_class);
+    const usd = Number.isFinite(it.est_cost?.usd) ? it.est_cost.usd : 0;
+    predicted[cls] = (predicted[cls] || 0) + usd;
+    predTotal += usd;
+  }
+  const realized = {};
+  let realTotal = 0;
+  for (const r of costRows) {
+    const p = byId.get(r.candidate_id);
+    const cls = p ? doctrineClassOf(p, agenda) : 'other';
+    const usd = Number.isFinite(r.cost_usd) ? r.cost_usd : 0;
+    realized[cls] = (realized[cls] || 0) + usd;
+    realTotal += usd;
+  }
+  const fmt = (o, total) => Object.entries(o).sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([k, v]) => `${k} $${v.toFixed(2)}${total > 0 ? ` (${((v / total) * 100).toFixed(0)}%)` : ''}`).join(' · ') || '(none)';
+  return `predicted — ${fmt(predicted, predTotal)} | realized — ${fmt(realized, realTotal)}`;
+}
+
+/** the free streetlight-bias sensor (design amendment 7): how far the agenda's judgment
+ * diverges from the deterministic churn×complexity formula over agenda-ranked pending packets. */
+function formulaVsAgenda(agenda, pool) {
+  const pending = pool.packets.filter((p) => p.status === 'pending');
+  const rank = agendaRankMap(agenda);
+  const ranked = pending.filter((p) => rank.has(p.candidate_id));
+  if (!ranked.length) return `formula-rank vs agenda-rank (streetlight-bias sensor): no pending packet is agenda-ranked (${pending.length} pending)`;
+  const formulaOrder = [...ranked].sort((a, b) => packetPriority(b) - packetPriority(a) || a.candidate_id.localeCompare(b.candidate_id));
+  const agendaOrder = [...ranked].sort((a, b) => rank.get(a.candidate_id) - rank.get(b.candidate_id) || a.candidate_id.localeCompare(b.candidate_id));
+  const posF = new Map(formulaOrder.map((p, i) => [p.candidate_id, i]));
+  let maxD = 0, maxNote = null;
+  agendaOrder.forEach((p, i) => {
+    const d = Math.abs(posF.get(p.candidate_id) - i);
+    if (d > maxD) { maxD = d; maxNote = `${p.candidate_id}: formula #${posF.get(p.candidate_id) + 1} → agenda #${i + 1}`; }
+  });
+  const k = Math.min(10, ranked.length);
+  const topF = new Set(formulaOrder.slice(0, k).map((p) => p.candidate_id));
+  const overlap = agendaOrder.slice(0, k).filter((p) => topF.has(p.candidate_id)).length;
+  return `formula-rank vs agenda-rank (streetlight-bias sensor): top-${k} overlap ${overlap}/${k} · max displacement ${maxD}${maxNote ? ` (${maxNote})` : ''} · ${pending.length - ranked.length} pending packet(s) unranked by the agenda`;
+}
+
+/** join the selection ledger (predicted gain/cost/class) against realized packet outcomes +
+ * cost actuals — scores the CHOOSER, not the code (design amendment 6). */
+function chooserCalibration(ledger, pool, costRows) {
+  const byId = new Map(pool.packets.map((p) => [p.candidate_id, p]));
+  const usdByCand = new Map();
+  for (const r of costRows) usdByCand.set(r.candidate_id, (usdByCand.get(r.candidate_id) || 0) + (Number.isFinite(r.cost_usd) ? r.cost_usd : 0));
+  const byClass = new Map();
+  for (const row of ledger) {
+    const cls = row.predicted?.class ?? '(unclassified)';
+    if (!byClass.has(cls)) byClass.set(cls, { items: 0, est: 0, estKnown: 0, statuses: {}, usd: 0, linked: 0 });
+    const g = byClass.get(cls);
+    g.items++;
+    if (Number.isFinite(row.predicted?.est_cost_usd)) { g.est += row.predicted.est_cost_usd; g.estKnown++; }
+    let linked = false;
+    for (const c of new Set([...(Array.isArray(row.packet_ids) ? row.packet_ids : []), row.item_id])) {
+      const p = byId.get(c);
+      if (!p) continue;
+      linked = true;
+      g.statuses[p.status] = (g.statuses[p.status] || 0) + 1;
+      g.usd += usdByCand.get(c) || 0;
+    }
+    if (linked) g.linked++;
+  }
+  return [...byClass.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([cls, g]) => {
+    const st = Object.entries(g.statuses).sort((a, b) => a[0].localeCompare(b[0])).map(([k, v]) => `${k} ${v}`).join(', ') || 'no packets yet';
+    return `- ${cls}: predicted ${g.items} item(s), est $${g.est.toFixed(2)}${g.estKnown < g.items ? ` (${g.items - g.estKnown} without $)` : ''} → realized: ${st}${g.usd ? ` · spent $${g.usd.toFixed(2)}` : ''}${g.linked < g.items ? ` · ${g.items - g.linked} item(s) not packet-linked` : ''}`;
+  });
 }
 
 function countBy(arr, keyFn) {
