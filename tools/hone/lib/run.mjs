@@ -55,8 +55,16 @@ export function packetsConflict(a, b) {
   return false;
 }
 
-/** deterministic rank from packet enums (the SPEC formula's packet-resident factors). */
+/**
+ * rank for ordering: prefer the persisted plan-time prior (packet.priority.score — schema
+ * v1.1 optional block; recalibrated by cost actuals, never a quality claim). Packets without
+ * it (hand-authored) fall back to the coarse enum-derived rank below. The two scales differ
+ * (the persisted log2-based prior usually exceeds the enum ratio), which is accepted: the
+ * richer prior deliberately wins, and a hand-authored packet can carry its own priority block.
+ */
 export function packetPriority(p) {
+  const persisted = p.priority?.score;
+  if (typeof persisted === 'number' && Number.isFinite(persisted)) return persisted;
   const num = (LMH[p.expected_quality_gain] || 1) * (LMH[p.owner_attention_reduction] || 1) * (PROD[p.product_impact] || 1);
   const den = (LMH[p.risk?.silent_wrongness_cost] || 3) * (LMH[p.estimates?.evidence_cost] || 3) * (MAKER_COST[p.maker_tier] || 3);
   return num / den; // unknown enums price as worst-case (fail-closed ranking)

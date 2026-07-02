@@ -16,6 +16,7 @@
 //   6. honest terminals (reverted/skipped/blocked) do NOT stop the lane
 //   7. gating — owner_ratify / missing gate / unmet depends_on are never executed
 //   8. refusals — --budget unimplemented, maker==judge
+//   9. ordering — a persisted priority.score outranks the enum-derived fallback
 //
 // Exit 0 iff every check passes.
 import { execSync } from 'node:child_process';
@@ -26,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 import { stringifyYaml, parseYaml } from './yaml.mjs';
 import { assertValidPacket } from './validate-packet.mjs';
 import { compileReport, runReport, gateStatement, effectiveClaimType } from './report.mjs';
-import { runLoop, packetsConflict } from './run.mjs';
+import { runLoop, packetsConflict, packetPriority } from './run.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const STUB = join(HERE, 'test-report-run-stub.mjs');
@@ -310,6 +311,31 @@ const overlaps = (x, y) => x.start_ms < y.end_ms && y.start_ms < x.end_ms;
   try { await runLoop({ repo: root, maker: 'claude', judge: 'claude' }); } catch (e) { mjErr = e.message; }
   ok('refusal: --budget is not implemented in v1', /--budget is not implemented/.test(budgetErr || ''));
   ok('refusal: maker==judge rejected structurally', /maker and judge MUST differ/.test(mjErr || ''));
+  rmSync(root, { recursive: true, force: true });
+}
+
+// ---------------------------------------------------------------- 9. persisted priority beats enum fallback
+
+{
+  const root = newRepo('prio');
+  // rr-pa: WORST enums (fallback rank 1*1*1/(1*1*2) = 0.5) but carries a persisted plan prior.
+  const withPrior = makePacket('rr-pa', { subsystem: 'srva', file: 'srva/a.mjs' });
+  withPrior.expected_quality_gain = 'low';
+  withPrior.owner_attention_reduction = 'low';
+  withPrior.priority = { score: 9.9, computed: '2026-07-01T00:00:00.000Z', inputs: { mass: 40, churn: 12 } };
+  writePacket(root, withPrior); // validate:true — proves the validator accepts the optional block
+  // rr-pb: better enums (fallback rank 2*2*1/(1*1*2) = 2), NO persisted priority (hand-authored shape).
+  writePacket(root, makePacket('rr-pb', { subsystem: 'srvb', file: 'srvb/b.mjs' }));
+  ok('priority: persisted score preferred, enum fallback when absent',
+    packetPriority(withPrior) === 9.9 && packetPriority(makePacket('rr-pb', { subsystem: 'srvb', file: 'srvb/b.mjs' })) === 2);
+  writeStubPlan(root, {
+    'rr-pa': { result: 'landed', sleep_ms: 50 },
+    'rr-pb': { result: 'landed', sleep_ms: 50 },
+  });
+  const summary = await runLoop({ repo: root, n: '2', lanes: '1', 'work-cmd': WORK_CMD });
+  const order = readTrace(root).sort((a, b) => a.start_ms - b.start_ms).map((x) => x.candidate_id).join(',');
+  ok('priority: persisted-prior packet executes BEFORE the higher-enum fallback packet',
+    summary.landed === 2 && order === 'rr-pa,rr-pb', `execution order: ${order}`);
   rmSync(root, { recursive: true, force: true });
 }
 
