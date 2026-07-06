@@ -89,6 +89,8 @@ async function collectFreshMeasurements({ repoRoot, max, targetDirs }) {
   };
 }
 
+const PLAN_ORDERS_TIMEOUT_MS = Number(process.env.HONE_PLAN_TIMEOUT_MS ?? 20 * 60 * 1000);
+
 export async function executePlanOrders({ repoRoot, max = 10, classFilter = 'both', targetDirs = [] }, deps) {
   const repoAbs = buildContext(repoRoot).repoRoot;
   const measurements = await deps.collect({ repoRoot: repoAbs, max, targetDirs });
@@ -97,7 +99,7 @@ export async function executePlanOrders({ repoRoot, max = 10, classFilter = 'bot
   const attempts = [];
   let clean = [], invalid = [];
   for (let round = 0; round < 3; round++) {
-    const reply = await deps.provider.complete(prompt);
+    const reply = await deps.provider.complete(prompt, { timeoutMs: PLAN_ORDERS_TIMEOUT_MS });
     const parsed = parseOrdersReply(reply.text);
     const result = validateOrders(parsed.orders, repoAbs);
     attempts.push({ round, parse_error: parsed.error, valid: result.clean.length, invalid: result.invalid.length });
