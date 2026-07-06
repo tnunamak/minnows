@@ -25,7 +25,7 @@ Requested class: `{{CLASS_FILTER}}` (`tst` = test/evidence orders, `pl` = produc
 - Fresh measurements below are the only metrics you may cite. Metrics nominate; they do not decide.
 - For two-phase mutation ladders, include both the red-seed proof and the green-restored proof, with machine-checkable `expect_check` where possible.
 - For review-free `exact_move` or `type_only` packets, include a deterministic equivalence rung named `byte-identity`, `ast-equivalence`, or `certified-equivalence`, or set `certified_equivalence_rung` to the exact rung name.
-- Do not author packets requiring owner intent unless `execution_gate: owner_ratify` and the packet explains why.
+- ALWAYS set `execution_gate: autonomous`. The safe-pool classes you author here (behavior-preserving extractions, mutation-test coverage, certified moves) run unattended through the deterministic gates + cross-provider judge — that is the point. `owner_ratify` is reserved for judgment-tail campaigns (auth/grant/token/consent/scope-enforcement/boot/storage-unification), which you HARD-SKIP and never author. If an order would touch those, omit it entirely rather than gate it.
 - If a good packet cannot be made self-sufficient from these measurements, omit it.
 
 ## Packet Shaping
