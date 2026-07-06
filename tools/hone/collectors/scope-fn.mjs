@@ -11,7 +11,7 @@
 // `hone work` (wave 2) consumes this; until then it is runnable standalone:
 //   node collectors/scope-fn.mjs --repo <path> --target 'server/records.js::queryRecords' [--cog 5]
 //   node collectors/scope-fn.mjs --repo <path> --file 'runtime/scheduler.ts' [--cog 5]
-import { existsSync, readFileSync, writeFileSync, realpathSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -24,7 +24,12 @@ function biomeFnScores(ctx, absFile) {
     linter: { rules: { complexity: { noExcessiveCognitiveComplexity: { level: 'warn', options: { maxAllowedComplexity: 1 } } } } },
   }));
   const biome = ctx.profile.commands?.biome || 'npx biome';
-  const out = ctx.sh(`${biome} lint --config-path=${cfg} --only=complexity/noExcessiveCognitiveComplexity --max-diagnostics=none --reporter=json '${absFile}' 2>/dev/null`);
+  let out = '';
+  try {
+    out = ctx.sh(`${biome} lint --config-path=${cfg} --only=complexity/noExcessiveCognitiveComplexity --max-diagnostics=none --reporter=json '${absFile}' 2>/dev/null`);
+  } finally {
+    rmSync(cfg, { force: true });
+  }
   let diags = [];
   try { diags = JSON.parse(out).diagnostics || []; } catch {}
   return diags.map((d) => {

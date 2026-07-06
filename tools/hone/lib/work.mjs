@@ -1775,11 +1775,13 @@ function stBasePacket(id, overrides = {}) {
 }
 
 const ST_OUTSIDE = 'export const KINDS = ["owner", "client"];\n'; // out-of-subtree fixture content
+const stRepos = [];
 
 /** with `subdir`, the fixture becomes a monorepo: --repo = <root>/<subdir>, plus a tracked
  * file OUTSIDE that subtree (packages/contract/index.ts) — the packet-9 shape. */
 function stRepo(id, { branch = 'quality-sweep', packetOverrides = {}, subdir = null } = {}) {
   const root = mkdtempSync(join(tmpdir(), 'hone-selftest-'));
+  stRepos.push(root);
   const run = (args) => {
     const r = spawnSync('git', args, { cwd: root, encoding: 'utf8' });
     if (r.status !== 0) throw new Error(`selftest git ${args.join(' ')}: ${r.stderr}`);
@@ -1850,14 +1852,15 @@ const stEditUtilAndReadme = (cwd) => {
 };
 
 async function selfTest({ verbose = false } = {}) {
-  const results = [];
-  const w = (s) => process.stdout.write(s + '\n');
-  const log = verbose ? (s) => process.stderr.write('    ' + s + '\n') : () => {};
-  const ID = 'selftest-util-t0-00000001';
-  const read = (root, p) => (existsSync(join(root, p)) ? readFileSync(join(root, p), 'utf8') : null);
-  const packetOnDisk = (root) => parseYaml(read(root, `quality/packets/${ID}.yaml`));
-  const claims = (root) => readJsonl(claimsPath(root));
-  const costs = (root) => readJsonl(costPath(root));
+  try {
+    const results = [];
+    const w = (s) => process.stdout.write(s + '\n');
+    const log = verbose ? (s) => process.stderr.write('    ' + s + '\n') : () => {};
+    const ID = 'selftest-util-t0-00000001';
+    const read = (root, p) => (existsSync(join(root, p)) ? readFileSync(join(root, p), 'utf8') : null);
+    const packetOnDisk = (root) => parseYaml(read(root, `quality/packets/${ID}.yaml`));
+    const claims = (root) => readJsonl(claimsPath(root));
+    const costs = (root) => readJsonl(costPath(root));
   const treeClean = (root) => {
     const r = spawnSync('git', ['status', '--porcelain=v1', '-uall'], { cwd: root, encoding: 'utf8' });
     return r.stdout.split('\n').filter((l) => l && !/(^|\/)quality\//.test(l.slice(3))).length === 0;
@@ -3128,5 +3131,10 @@ async function selfTest({ verbose = false } = {}) {
     }
   }
   w(`\nhone work --self-test: ${pass} checks passed, ${fail} failed, ${results.length} scenarios (no LLM calls)`);
-  return fail === 0 ? 0 : 1;
+    return fail === 0 ? 0 : 1;
+  } finally {
+    for (const root of stRepos.splice(0).reverse()) {
+      rmSync(root, { recursive: true, force: true });
+    }
+  }
 }
