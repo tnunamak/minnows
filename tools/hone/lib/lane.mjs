@@ -41,7 +41,7 @@ import {
   checkExpect, isCompareVsHead, makerBrief, revisionBrief,
   parseMakerVerdict, tailClip, headClip, buildJudgeEvidence, buildCurrentJudgeEvidence, currentJudgeEvidenceEntries, buildWorkingDiff,
   writeRungReceipt, persistMakerBriefDigest, writeTerminal, landCommit, buildLandClaims,
-  acquireWorkLock, portableRungCommand, makeRungExecutor,
+  acquireWorkLock, portableRungCommand, makeRungExecutor, resolveRungTimeout,
 } from './work.mjs';
 
 const PROVIDERS = ['claude', 'codex'];
@@ -289,12 +289,13 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
     // by (head_sha, executed command) so authored variants that portably rewrite to the
     // same command share too; receipts are byte-identical to a fresh run's.
     const portCtx = { gitRoot: g.gitRoot, repoRoot, prefix: g.prefix };
-    const execRung = makeRungExecutor({ ...portCtx, log });
+    const execRung = makeRungExecutor({ ...portCtx, log, packetDefaultTimeoutS: packet.rung_timeout_s ?? null });
     const cacheDir = join(repoRoot, 'quality', '.lane', '.baseline-cache', head);
-    const cachePath = (cmd) => join(cacheDir, `${djb2(cmd)}.json`);
+    const cachePath = (cmd, timeoutMs) => join(cacheDir, `${djb2(`${cmd}\0timeout=${timeoutMs}`)}.json`);
     for (const [i, rung] of packet.evidence_required.entries()) {
       const port = portableRungCommand(rung.command, portCtx);
-      const cacheKey = port.refused ? null : cachePath(port.command);
+      const timeout = resolveRungTimeout(rung, packet.rung_timeout_s ?? null);
+      const cacheKey = port.refused || timeout.error ? null : cachePath(port.command, timeout.timeoutMs);
       let res = null, verdict, executedCommand;
       if (cacheKey && existsSync(cacheKey)) {
         try {
@@ -310,12 +311,12 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
         ({ res, verdict, executedCommand } = await execRung(rung, 'baseline'));
         if (verdict.pass && cacheKey && !existsSync(cacheKey)) {
           mkdirSync(cacheDir, { recursive: true });
-          writeFileSync(cacheKey, JSON.stringify({ code: res.code, timedOut: res.timedOut, stdout: res.stdout, output: res.output, durationMs: res.durationMs }));
+          writeFileSync(cacheKey, JSON.stringify({ code: res.code, timedOut: res.timedOut, stdout: res.stdout, output: res.output, durationMs: res.durationMs, timeoutMs: res.timeoutMs, timeoutSource: res.timeoutSource, timeoutRequestedS: res.timeoutRequestedS, timeoutCapped: res.timeoutCapped }));
         }
       }
       const r = writeRungReceipt({ repoRoot, receiptsDirRel, id, via: 'lane', phase: 'baseline', index: i, rung, res, verdict, stripCtx, executedCommand });
       state.receiptLines.push(r.line); state.receiptSlices.push(r.slice); state.receiptMeta.push(r.meta);
-      state.baseline.push({ code: res.code, timedOut: res.timedOut, stdout: res.stdout, output: res.output, durationMs: res.durationMs });
+      state.baseline.push({ code: res.code, timedOut: res.timedOut, stdout: res.stdout, output: res.output, durationMs: res.durationMs, timeoutMs: res.timeoutMs });
       if (!verdict.pass) {
         return laneTerminal({ repoRoot, id, state, packet, packetPath }, {
           status: 'blocked',
@@ -496,7 +497,7 @@ export async function executeLaneGate({ id, repoRoot, makerSummary = null, revis
   }
   saveState(repoRoot, id, state); // attempt counted BEFORE running — crash-conservative
 
-  const execRung = makeRungExecutor({ gitRoot: g.gitRoot, repoRoot, prefix: g.prefix, log });
+  const execRung = makeRungExecutor({ gitRoot: g.gitRoot, repoRoot, prefix: g.prefix, log, packetDefaultTimeoutS: packet.rung_timeout_s ?? null });
   let red = null;
   for (const [i, rung] of packet.evidence_required.entries()) {
     log(`  [${phase}] ${rung.rung}: ${rung.command}`);
@@ -775,7 +776,6 @@ export async function executeLaneBatchGate({ ids, repoRoot, log = () => {} }) {
     try { state = loadState(repoRoot, id); }
     catch (e) { return refuseBatch(batchId, 'gate', `[${id}] ${e.message}`); }
     if (!state) return refuseBatch(batchId, 'gate', `[${id}] no lane state — run hone lane emit first`);
-    if (state.gate?.green) return refuseBatch(batchId, 'gate', `[${id}] already gate-green — land it (or reset) before batching`);
     members.push({ id, packet: loaded.packet, path: loaded.path, rawText: loaded.rawText, state });
   }
 
@@ -804,6 +804,18 @@ export async function executeLaneBatchGate({ ids, repoRoot, log = () => {} }) {
   const heads = [...new Set(members.map((m) => m.state.head_sha))];
   if (heads.length > 1) return refuseBatch(batchId, 'gate', `members were emitted at different HEADs (${heads.map((h) => h.slice(0, 12)).join(', ')}) — re-emit on one HEAD`);
   const head = g.git(['rev-parse', 'HEAD']);
+  const unionTouch = (ms) => ms.flatMap((m) => m.state.touchset_toplevel);
+  const currentBatchHash = () => djb2(head + '\0' + buildWorkingDiff(g, unionTouch(members)));
+  for (const m of members) {
+    if (!m.state.gate?.green) continue;
+    const currentHash = currentBatchHash();
+    if (currentHash === m.state.gate.tree_hash) {
+      return refuseBatch(batchId, 'gate', `[${m.id}] already gate-green for this tree state (attempt ${m.state.gate.attempt}) — land the exact green membership`);
+    }
+    log(`  [${m.id}] green batch gate receipt VOID: tree changed since attempt ${m.state.gate.attempt} (receipt ${m.state.gate.tree_hash}, current ${currentHash}) — re-gating the new batch tree state`);
+    m.state.gate = null;
+    saveState(repoRoot, m.id, m.state);
+  }
   const memberTerm = (m, fields, extras) => laneTerminal({
     repoRoot, id: m.id, state: m.state, packet: m.packet, packetPath: m.path, extras,
   }, fields);
@@ -822,7 +834,6 @@ export async function executeLaneBatchGate({ ids, repoRoot, log = () => {} }) {
   }
 
   // ---- union containment + per-member no-diff ----
-  const unionTouch = (ms) => ms.flatMap((m) => m.state.touchset_toplevel);
   const changed = flatPaths(dirtyEntries(g));
   const union = unionTouch(members);
   const violations = changed.filter((p) => !union.includes(p));
@@ -872,15 +883,19 @@ export async function executeLaneBatchGate({ ids, repoRoot, log = () => {} }) {
   const stripCtx = { qualityRel: g.topRel('quality'), candidateId: batchId };
 
   /** deduped union rung plan over `ms`, each rung bound to its first owner's baseline. */
+  const rungPlanKey = (m, rung) => {
+    const timeout = resolveRungTimeout(rung, m.packet.rung_timeout_s ?? null);
+    return JSON.stringify({ base: rungKey(rung), timeout: timeout.error ?? timeout.timeoutMs });
+  };
   const rungPlan = (ms) => {
     const plan = [];
     const have = new Set();
     for (const m of ms) {
       for (const [i, rung] of m.packet.evidence_required.entries()) {
-        const k = rungKey(rung);
+        const k = rungPlanKey(m, rung);
         if (have.has(k)) continue;
         have.add(k);
-        plan.push({ rung, key: k, baseline: m.state.baseline[i], ownerId: m.id });
+        plan.push({ rung, key: k, baseline: m.state.baseline[i], ownerId: m.id, packetDefaultTimeoutS: m.packet.rung_timeout_s ?? null });
       }
     }
     return plan;
@@ -892,7 +907,7 @@ export async function executeLaneBatchGate({ ids, repoRoot, log = () => {} }) {
     const entries = [];
     for (const [i, p] of plan.entries()) {
       log(`  [${phase}] ${p.rung.rung}: ${p.rung.command}`);
-      const { res, verdict, executedCommand } = await execRung(p.rung, 'post', p.baseline);
+      const { res, verdict, executedCommand } = await execRung(p.rung, 'post', p.baseline, { packetDefaultTimeoutS: p.packetDefaultTimeoutS });
       const r = writeRungReceipt({ repoRoot, receiptsDirRel, id: batchId, via: 'lane', phase, index: i, rung: p.rung, res, verdict, stripCtx, executedCommand });
       entries.push({ key: p.key, ...r });
       if (!verdict.pass) return { green: false, red: { plan: p, verdict, res, receipt: r }, entries };
@@ -903,7 +918,7 @@ export async function executeLaneBatchGate({ ids, repoRoot, log = () => {} }) {
   const bookkeep = (runRes, ms) => {
     for (const e of runRes.entries) {
       for (const m of ms) {
-        if (!m.packet.evidence_required.some((r) => rungKey(r) === e.key)) continue;
+        if (!m.packet.evidence_required.some((r) => rungPlanKey(m, r) === e.key)) continue;
         m.state.receiptLines.push(e.line);
         m.state.receiptSlices.push(e.slice);
         m.state.receiptMeta.push(e.meta);

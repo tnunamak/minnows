@@ -13,6 +13,8 @@ commands:
               [--repo .] [--cog N] [--window '6 months ago']
   plan        inventory → ranked candidate packets → <repo>/quality/packets/*.yaml
               [--repo .] [--top 20]
+  validate    strict packet validation with --repo-aware lints; exits nonzero on errors
+              validate <packet-id>|--all --repo PATH
   agenda      one strong-model selection call over sensor/ledger/doctrine digests →
               <repo>/quality/AGENDA.{md,json} (+ history, not-chosen aging, selection ledger);
               citations machine-verified, UNVERIFIED items demoted
@@ -56,6 +58,11 @@ try {
     case 'plan': {
       const { runPlan } = await import('./lib/plan.mjs');
       await runPlan(flags);
+      break;
+    }
+    case 'validate': {
+      const { runValidate } = await import('./lib/validate.mjs');
+      await runValidate(flags);
       break;
     }
     case 'agenda': {

@@ -59,7 +59,7 @@ const TOP_KEYS = [
 ];
 
 // OPTIONAL top-level keys: may be absent (hand-authored packets), strict when present.
-const OPTIONAL_KEYS = ['priority', 'resets', 'routing_class'];
+const OPTIONAL_KEYS = ['priority', 'resets', 'routing_class', 'rung_timeout_s'];
 
 // routing.json class names (kept in lockstep with lib/routing.mjs ROUTING_CLASSES —
 // no import so bare packet validation never depends on the routing table file).
@@ -76,6 +76,7 @@ const isNonEmptyStr = (v) => isStr(v) && v.trim().length > 0;
 const isStrOrNull = (v) => v === null || isStr(v);
 const isInt = (v) => Number.isInteger(v);
 const isMap = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const validTimeoutS = (v) => isInt(v) && v > 0;
 
 // an existence guard / explicit fallback that makes a rung green while the file the
 // packet will CREATE is still absent: `[ -f`/`[[ -f`/`test -f` (or -e), or a `||` fallback.
@@ -155,6 +156,9 @@ export function validatePacket(p, ctx = {}) {
         (looksLikeModel ? ' — packets pin a CLASS, never a specific model (tier choice stays out of maker hands; routing.json owns the class→tier table)' : ''));
     }
   }
+  if ('rung_timeout_s' in p && !validTimeoutS(p.rung_timeout_s)) {
+    err('rung_timeout_s: positive integer seconds required when present');
+  }
 
   if ('priority' in p) { // optional ranking PRIOR (ordering only, never a quality claim)
     if (!isMap(p.priority)) err('priority: map {score, computed, inputs} required when present');
@@ -209,10 +213,14 @@ export function validatePacket(p, ctx = {}) {
   if (!Array.isArray(p.evidence_required) || !p.evidence_required.length) err('evidence_required: non-empty array required');
   else for (const [i, e] of p.evidence_required.entries()) {
     const keys = isMap(e) ? Object.keys(e).sort().join(',') : '';
-    if ((keys !== 'command,expect,rung' && keys !== 'command,expect,expect_check,rung') ||
+    const allowed = ['command', 'expect', 'expect_check', 'rung', 'timeout_s'];
+    if (!isMap(e) || Object.keys(e).some((k) => !allowed.includes(k)) ||
       !isNonEmptyStr(e.rung) || !isNonEmptyStr(e.command) || !isNonEmptyStr(e.expect)) {
       err(`evidence_required[${i}]: {rung, command, expect} (all non-empty strings — LITERAL runnable command, not prose) + optional expect_check required`);
       continue;
+    }
+    if ('timeout_s' in e && !validTimeoutS(e.timeout_s)) {
+      err(`evidence_required[${i}].timeout_s: positive integer seconds required when present`);
     }
     if ('expect_check' in e) {
       const c = e.expect_check;

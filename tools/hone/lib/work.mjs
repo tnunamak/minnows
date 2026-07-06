@@ -65,7 +65,9 @@ export const TERMINAL = ['landed', 'reverted', 'skipped', 'blocked'];
 export const AUTHOR_NAME = 'Tim Nunamaker';
 export const AUTHOR_EMAIL = 'tnunamak@gmail.com';
 const MAKER_TIMEOUT_MS = Number(process.env.HONE_MAKER_TIMEOUT_MS ?? 20 * 60 * 1000);
-const EVIDENCE_TIMEOUT_MS = Number(process.env.HONE_EVIDENCE_TIMEOUT_MS ?? 45 * 60 * 1000);
+const EVIDENCE_HARD_TIMEOUT_MS = 45 * 60 * 1000;
+const EVIDENCE_TIMEOUT_MS = Math.min(Number(process.env.HONE_EVIDENCE_TIMEOUT_MS ?? EVIDENCE_HARD_TIMEOUT_MS), EVIDENCE_HARD_TIMEOUT_MS);
+const DEFAULT_RUNG_TIMEOUT_S = 30 * 60;
 const MAX_BUFFER = 64 * 1024 * 1024;
 
 // ---------------------------------------------------------------- entry point
@@ -283,11 +285,46 @@ export function runShellCmd(cmd, cwd, timeoutMs = EVIDENCE_TIMEOUT_MS, extraEnv 
         stdout,
         output: stdout + stderr,
         durationMs: Date.now() - startedAt,
+        timeoutMs,
       });
     };
     child.on('error', (err) => { stderr += `spawn error: ${err.message}`; settle(null); });
     child.on('close', (code) => settle(code));
   });
+}
+
+function positiveIntSeconds(value, source) {
+  if (value == null) return { ok: true, seconds: null, source };
+  const n = Number(value);
+  if (!Number.isInteger(n) || n <= 0) {
+    return { ok: false, error: `${source}: positive integer seconds required, got ${JSON.stringify(value)}` };
+  }
+  return { ok: true, seconds: n, source };
+}
+
+export function resolveRungTimeout(rung = {}, packetDefaultTimeoutS = null) {
+  const candidates = [
+    ['rung.timeout_s', rung?.timeout_s],
+    ['packet.rung_timeout_s', packetDefaultTimeoutS],
+    ['HONE_RUNG_TIMEOUT_S', process.env.HONE_RUNG_TIMEOUT_S],
+    ['engine-default', DEFAULT_RUNG_TIMEOUT_S],
+  ];
+  for (const [source, value] of candidates) {
+    const parsed = positiveIntSeconds(value, source);
+    if (!parsed.ok) return { error: parsed.error, source };
+    if (parsed.seconds == null) continue;
+    const requestedMs = parsed.seconds * 1000;
+    const timeoutMs = Math.min(requestedMs, EVIDENCE_TIMEOUT_MS);
+    return {
+      timeoutMs,
+      timeoutS: Math.round(timeoutMs / 1000),
+      requestedS: parsed.seconds,
+      source,
+      capped: timeoutMs !== requestedMs,
+      hardCapS: Math.round(EVIDENCE_TIMEOUT_MS / 1000),
+    };
+  }
+  throw new Error('unreachable: engine-default rung timeout missing');
 }
 
 function lastJson(stdout) {
@@ -891,21 +928,36 @@ export function portableRungCommand(command, { gitRoot, repoRoot, prefix }) {
  * Returns {res, verdict, executedCommand} — executedCommand !== rung.command marks a
  * rewrite for the receipt record; null means the rung was refused and never ran.
  */
-export function makeRungExecutor({ gitRoot, repoRoot, prefix, log = () => {} }) {
+export function makeRungExecutor({ gitRoot, repoRoot, prefix, log = () => {}, packetDefaultTimeoutS = null }) {
   const ctx = { gitRoot, repoRoot, prefix };
   const env = { REPO_ROOT: repoRoot, GIT_ROOT: gitRoot, HONE_ROOT };
-  return async function execRung(rung, phase, baselineRes = null) {
+  return async function execRung(rung, phase, baselineRes = null, opts = {}) {
     const port = portableRungCommand(rung.command, ctx);
     if (port.refused) {
       log(`  [portable-path] ${rung.rung}: REFUSED — ${port.refused}`);
       return {
-        res: { code: null, timedOut: false, stdout: '', output: `[engine] rung NOT EXECUTED — ${port.refused}`, durationMs: 0 },
+        res: { code: null, timedOut: false, stdout: '', output: `[engine] rung NOT EXECUTED — ${port.refused}`, durationMs: 0, timeoutMs: 0 },
         verdict: { pass: false, reason: `portable-path refusal: ${port.refused}` },
         executedCommand: null,
       };
     }
     if (port.rewritten) log(`  [portable-path] ${rung.rung}: ${port.notes.join('; ')}`);
-    const res = await runShellCmd(port.command, repoRoot, undefined, env);
+    const timeout = resolveRungTimeout(rung, opts.packetDefaultTimeoutS ?? packetDefaultTimeoutS);
+    if (timeout.error) {
+      log(`  [timeout] ${rung.rung}: REFUSED — ${timeout.error}`);
+      return {
+        res: { code: null, timedOut: false, stdout: '', output: `[engine] rung NOT EXECUTED — invalid timeout: ${timeout.error}`, durationMs: 0, timeoutMs: 0 },
+        verdict: { pass: false, reason: `invalid timeout: ${timeout.error}` },
+        executedCommand: null,
+      };
+    }
+    if (timeout.capped) {
+      log(`  [timeout] ${rung.rung}: ${timeout.source}=${timeout.requestedS}s capped to hard outer bound ${timeout.hardCapS}s`);
+    }
+    const res = await runShellCmd(port.command, repoRoot, timeout.timeoutMs, env);
+    res.timeoutSource = timeout.source;
+    res.timeoutRequestedS = timeout.requestedS;
+    res.timeoutCapped = timeout.capped;
     return { res, verdict: checkExpect(rung, res, phase, baselineRes), executedCommand: port.command };
   };
 }
@@ -927,11 +979,13 @@ export function writeRungReceipt({ repoRoot, receiptsDirRel, id, via = 'work', p
       ? `# executed-command: (NOT EXECUTED — portable-path refusal)\n`
       : `# executed-command (portable-path rewrite): ${executedCommand}\n`)
     : '';
-  writeFileSync(abs, `# hone ${via} ${id} — ${phase} rung '${rung.rung}'\n# command: ${rung.command}\n${execLine}# expect: ${rung.expect}\n# exit: ${res.timedOut ? 'TIMEOUT' : res.code}  duration: ${Math.round(res.durationMs / 1000)}s  verdict: ${verdict.pass ? 'PASS' : `FAIL (${verdict.reason})`}\n\n${res.output}`);
-  const digest = `exit=${res.timedOut ? 'TIMEOUT' : res.code} djb2=${djb2(res.output)} bytes=${res.output.length} receipt=${rel}`;
+  const timeoutS = Math.round((res.timeoutMs ?? EVIDENCE_TIMEOUT_MS) / 1000);
+  const timeoutLine = `# timeout: ${timeoutS}s${res.timeoutSource ? ` (${res.timeoutSource}${res.timeoutRequestedS && res.timeoutRequestedS !== timeoutS ? ` requested ${res.timeoutRequestedS}s` : ''}${res.timeoutCapped ? ', capped' : ''})` : ''}\n`;
+  writeFileSync(abs, `# hone ${via} ${id} — ${phase} rung '${rung.rung}'\n# command: ${rung.command}\n${execLine}# expect: ${rung.expect}\n${timeoutLine}# exit: ${res.timedOut ? 'TIMEOUT' : res.code}  duration: ${Math.round(res.durationMs / 1000)}s  verdict: ${verdict.pass ? 'PASS' : `FAIL (${verdict.reason})`}\n\n${res.output}`);
+  const digest = `exit=${res.timedOut ? 'TIMEOUT' : res.code} timeout=${timeoutS}s djb2=${djb2(res.output)} bytes=${res.output.length} receipt=${rel}`;
   return {
     digest,
-    line: `[${phase}] ${rung.rung}: ${rung.command} -> ${res.timedOut ? 'TIMEOUT' : `exit ${res.code}`} (${Math.round(res.durationMs / 1000)}s) ${verdict.pass ? 'PASS' : `FAIL: ${verdict.reason}`}; ${digest}${!rewritten ? '' : executedCommand === null ? ' [NOT EXECUTED — portable-path refusal]' : ' [portable-path rewrite]'}`,
+    line: `[${phase}] ${rung.rung}: ${rung.command} -> ${res.timedOut ? 'TIMEOUT' : `exit ${res.code}`} (${Math.round(res.durationMs / 1000)}s, timeout ${timeoutS}s) ${verdict.pass ? 'PASS' : `FAIL: ${verdict.reason}`}; ${digest}${!rewritten ? '' : executedCommand === null ? ' [NOT EXECUTED — portable-path refusal]' : ' [portable-path rewrite]'}`,
     slice: judgeSlice(rung.rung, res, stripCtx),
     meta: { phase, pass: verdict.pass, rung: rung.rung },
   };
@@ -1221,7 +1275,7 @@ async function executeWorkAttempt(opts, deps, signal) {
   };
   // portable rung execution: authored-worktree absolute paths are rewritten into THIS
   // tree (or the rung is refused fail-closed) — a rung must never measure another repo
-  const execRung = makeRungExecutor({ gitRoot: g.gitRoot, repoRoot, prefix: g.prefix, log });
+  const execRung = makeRungExecutor({ gitRoot: g.gitRoot, repoRoot, prefix: g.prefix, log, packetDefaultTimeoutS: packet.rung_timeout_s ?? null });
 
   let makerBriefCount = 0;
   /**
@@ -2098,6 +2152,22 @@ async function selfTest({ verbose = false } = {}) {
     check('resets missing reason rejected', validatePacket(withResets([{ at: new Date().toISOString(), from_status: 'reverted' }])).some((e) => /resets\[0\]/.test(e)));
     check('resets bad from_status rejected', validatePacket(withResets([{ at: new Date().toISOString(), from_status: 'nope', reason: 'x' }])).some((e) => /from_status/.test(e)));
     check('resets non-array rejected', validatePacket(withResets({ at: 'x' })).some((e) => /resets: array/.test(e)));
+    check('timeout fields pass when positive ints', validatePacket(stBasePacket(ID, { rung_timeout_s: 3, evidence_required: [{ rung: 'direct-test', command: 'node test.js', expect: 'exit 0', timeout_s: 2 }] })).length === 0);
+    check('bad timeout fields reject', validatePacket(stBasePacket(ID, { rung_timeout_s: 0, evidence_required: [{ rung: 'direct-test', command: 'node test.js', expect: 'exit 0', timeout_s: -1 }] })).filter((e) => /timeout_s/.test(e)).length === 2);
+  });
+
+  await scenario('validate command: one/all packets use --repo context and summarize failures', async (check) => {
+    const { executeValidate } = await import('./validate.mjs');
+    const root = stRepo(ID);
+    const one = executeValidate({ id: ID, repoRoot: root });
+    check('single packet validates green with summary', one.exitCode === 0 && one.results.length === 1 && /1 valid, 0 invalid/.test(one.summary), one.summary);
+    const bad = stBasePacket('bad-duplicated-touchset-00000002', { touchset: [`${root.split('/').pop()}/src/util.js`] });
+    writeFileSync(join(root, 'quality/packets/bad-duplicated-touchset-00000002.yaml'), stringifyYaml(bad));
+    const all = executeValidate({ all: true, repoRoot: root });
+    check('--all exits nonzero when any packet has validator errors', all.exitCode === 1 && /1 invalid/.test(all.summary), all.summary);
+    check('repo-aware touchset lint ran with repoDir context', all.results.find((r) => r.id === bad.candidate_id)?.errors.some((e) => /duplicated repo-dir prefix/.test(e)));
+    const missing = executeValidate({ id: 'missing-packet', repoRoot: root });
+    check('missing single packet is a per-packet failure, not a thrown harness error', missing.exitCode === 1 && /could not load packet/.test(missing.results[0].errors[0]), JSON.stringify(missing.results[0]));
   });
 
   // ---- git-root scoping + touchset normalization (dogfood packets 8 + 9) ----
@@ -2677,6 +2747,37 @@ async function selfTest({ verbose = false } = {}) {
     check('grandchild DEAD after group kill (negative-pid SIGKILL)', !alive, `pid ${gpid} still alive after 2s`);
     check('normal completion unaffected', (await runShellCmd('echo fine', dir)).code === 0);
     rmSync(dir, { recursive: true, force: true });
+  });
+
+  await scenario('rung timeout: per-rung > packet > env > 1800s default, receipt records timeout', async (check) => {
+    const oldEnv = process.env.HONE_RUNG_TIMEOUT_S;
+    try {
+      delete process.env.HONE_RUNG_TIMEOUT_S;
+      check('engine default is 1800s', resolveRungTimeout({}).timeoutS === 1800);
+      process.env.HONE_RUNG_TIMEOUT_S = '7';
+      check('env default applies when packet/rung absent', resolveRungTimeout({}).timeoutS === 7);
+      check('packet default beats env', resolveRungTimeout({}, 5).timeoutS === 5);
+      check('per-rung timeout beats packet', resolveRungTimeout({ timeout_s: 2 }, 5).timeoutS === 2);
+      process.env.HONE_RUNG_TIMEOUT_S = 'bad';
+      check('bad env fails closed in resolver', /HONE_RUNG_TIMEOUT_S/.test(resolveRungTimeout({}).error ?? ''));
+    } finally {
+      if (oldEnv === undefined) delete process.env.HONE_RUNG_TIMEOUT_S;
+      else process.env.HONE_RUNG_TIMEOUT_S = oldEnv;
+    }
+
+    const root = stRepo(ID, {
+      packetOverrides: {
+        rung_timeout_s: 1,
+        evidence_required: [{ rung: 'slow-baseline', command: 'node -e "setTimeout(()=>{},5000)"', expect: 'exit 0' }],
+      },
+    });
+    const { deps, state } = stMockDeps({}, log);
+    const r = await exec(root, deps);
+    const p = packetOnDisk(root);
+    const receipt = read(root, `quality/receipts/${ID}/baseline-1-slow-baseline.txt`) ?? '';
+    check('slow baseline times out fail-closed before maker', r.outcome === 'blocked' && p.status === 'blocked' && state.makerCalls === 0, r.summary);
+    check('receipt records TIMEOUT and the 1s packet timeout', /# timeout: 1s \(packet\.rung_timeout_s/.test(receipt) && /# exit: TIMEOUT/.test(receipt), receipt.split('\n').slice(0, 8).join('\n'));
+    check('packet outcome receipt line records timeout', p.outcome.evidence_receipts.some((l) => /TIMEOUT/.test(l) && /timeout=1s/.test(l)), JSON.stringify(p.outcome.evidence_receipts));
   });
 
   // ---- failing_test_named expect_check (engine-iteration-4 fix 5, run-3 t1b-0012) ----

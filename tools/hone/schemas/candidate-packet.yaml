@@ -64,6 +64,9 @@ evidence_required:              # execution-time proof obligations — LITERAL r
   - rung: string                #   from proof_class ladder, e.g. "direct-test"
     command: string             #   exact invocation incl. env, e.g. "PDPP_TEST_POSTGRES_URL=... node --test test/x.test.js"
     expect: string              #   pass criterion for humans + judge, e.g. "19/19 pass, 0 skipped"
+    timeout_s: int              #   OPTIONAL per-rung wall-clock ceiling. If absent, the engine uses
+                                #   packet.rung_timeout_s, then HONE_RUNG_TIMEOUT_S, then 1800s.
+                                #   The legacy 45m hard kill remains an outer cap.
     expect_check:               #   OPTIONAL (added engine-iteration-1, additive) — the MACHINE-checkable
                                 #   half of expect; `work` enforces it deterministically, fail-closed.
                                 #   Prose expect stays; this removes the "engine trusts prose" gap.
@@ -88,6 +91,8 @@ judge_tier: standard | strong   # scales with risk.silent_wrongness_cost, indepe
 maker_provider: string | null   # filled at execution; MUST differ from judge_provider
 judge_provider: string | null
 batch_key: string               # workflow × proof_class × subsystem; batching unit
+rung_timeout_s: int             # OPTIONAL packet default for evidence_required rungs (seconds).
+                                # Per-rung timeout_s wins; env HONE_RUNG_TIMEOUT_S wins when this is absent.
 touchset: [string]              # files this WILL modify — lane scheduler serializes overlaps.
                                 # Paths are --repo-relative by convention; `work` normalizes every
                                 # entry to git-root-relative before comparing against observed

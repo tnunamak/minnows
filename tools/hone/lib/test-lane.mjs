@@ -780,6 +780,26 @@ export async function laneSelfTest({ verbose = false } = {}) {
     check('tree clean; lane + batch state cleaned', treeClean(root) && !existsSync(stateDir(root)) && !existsSync(join(root, `quality/.lane/.batch/${g.json.batch_id}`)));
   });
 
+  await scenario('batch gate after green: unchanged tree refuses, changed tree voids stale receipts and re-gates', async (check) => {
+    const root = fixtureRepo({ secondPacket: {} });
+    await emit(root); await emit2(root);
+    editUtil(root, ST_GOOD);
+    writeFileSync(join(root, 'src/util2.js'), ST_GOOD2);
+    const g1 = await bgate(root, [ID, ID2]);
+    check('first batch gate green', g1.exitCode === 0 && g1.json.green === true, JSON.stringify(g1.json).slice(0, 240));
+    const same = await bgate(root, [ID, ID2]);
+    check('unchanged green tree still refuses as already green', same.exitCode === 2 && /already gate-green for this tree state/.test(same.json.reason), same.json.reason);
+    editUtil(root, ST_GOOD_V2);
+    const g2 = await bgate(root, [ID, ID2]);
+    check('changed tree re-gates instead of refusing stale batch membership', g2.exitCode === 0 && g2.json.green === true, JSON.stringify(g2.json).slice(0, 240));
+    check('new tree hash differs from stale receipt', g2.json.tree_hash !== g1.json.tree_hash, `${g1.json.tree_hash} vs ${g2.json.tree_hash}`);
+    const s1 = JSON.parse(read(root, `quality/.lane/${ID}/state.json`));
+    const s2 = JSON.parse(read(root, `quality/.lane/${ID2}/state.json`));
+    check('both member receipts rebound at attempt 2', s1.gate.attempt === 2 && s2.gate.attempt === 2);
+    const l = await bland(root, [ID, ID2], { verdictRaw: verdictJson('PASS', 'fresh batch receipt after judge revision'), usageRaw: USAGE_STAGED });
+    check('batch land accepts the fresh receipt', l.exitCode === 0 && packetOnDisk(root).status === 'landed' && packetOnDisk(root, ID2).status === 'landed', JSON.stringify(l.json).slice(0, 240));
+  });
+
   await scenario('batch bisect: seeded offender isolated + reverted; green remainder lands', async (check) => {
     const root = fixtureRepo({ secondPacket: {} });
     await emit(root); await emit2(root);
