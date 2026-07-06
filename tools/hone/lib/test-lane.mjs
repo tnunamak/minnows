@@ -59,6 +59,7 @@ const ok = clamp(5, 0, 10) === 5 && clamp(-1, 0, 10) === 0 && clamp(11, 0, 10) =
 if (!ok) { console.error('FAIL clamp'); process.exit(1); }
 console.log('PASS 3/3');
 `;
+const ST_OUTSIDE = 'export const KINDS = ["owner", "client"];\n';
 
 const ID = 'lanetest-util-t0-00000001';
 
@@ -109,7 +110,7 @@ function basePacket(overrides = {}) {
   };
 }
 
-function fixtureRepo({ branch = 'quality-sweep', packetOverrides = {}, secondPacket = null } = {}) {
+function fixtureRepo({ branch = 'quality-sweep', packetOverrides = {}, secondPacket = null, subdir = null } = {}) {
   const root = mkdtempSync(join(tmpdir(), 'hone-lanetest-'));
   const run = (args) => {
     const r = spawnSync('git', args, { cwd: root, encoding: 'utf8' });
@@ -119,14 +120,19 @@ function fixtureRepo({ branch = 'quality-sweep', packetOverrides = {}, secondPac
   run(['symbolic-ref', 'HEAD', `refs/heads/${branch}`]);
   run(['config', 'user.email', 'lanetest@example.com']);
   run(['config', 'user.name', 'Lane Test']);
-  mkdirSync(join(root, 'src'), { recursive: true });
-  writeFileSync(join(root, 'src/util.js'), ST_ORIG);
-  writeFileSync(join(root, 'test.js'), ST_TEST);
-  writeFileSync(join(root, 'README.md'), '# lane fixture\n');
-  mkdirSync(join(root, 'quality/packets'), { recursive: true });
+  const repoRoot = subdir ? join(root, subdir) : root;
+  mkdirSync(join(repoRoot, 'src'), { recursive: true });
+  writeFileSync(join(repoRoot, 'src/util.js'), ST_ORIG);
+  writeFileSync(join(repoRoot, 'test.js'), ST_TEST);
+  writeFileSync(join(repoRoot, 'README.md'), '# lane fixture\n');
+  mkdirSync(join(repoRoot, 'quality/packets'), { recursive: true });
+  if (subdir) {
+    mkdirSync(join(root, 'packages/contract'), { recursive: true });
+    writeFileSync(join(root, 'packages/contract/index.ts'), ST_OUTSIDE);
+  }
   if (secondPacket) {
-    writeFileSync(join(root, 'src/util2.js'), ST_ORIG2);
-    writeFileSync(join(root, 'test2.js'), ST_TEST2);
+    writeFileSync(join(repoRoot, 'src/util2.js'), ST_ORIG2);
+    writeFileSync(join(repoRoot, 'test2.js'), ST_TEST2);
     const p2 = basePacket({
       candidate_id: ID2,
       files: ['src/util2.js'],
@@ -141,13 +147,13 @@ function fixtureRepo({ branch = 'quality-sweep', packetOverrides = {}, secondPac
       ...secondPacket,
     });
     assertValidPacket(p2, `lane fixture ${ID2}`);
-    writeFileSync(join(root, 'quality/packets', `${ID2}.yaml`), stringifyYaml(p2));
+    writeFileSync(join(repoRoot, 'quality/packets', `${ID2}.yaml`), stringifyYaml(p2));
   }
   run(['add', '-A']);
   run(['commit', '-q', '-m', 'init fixture']);
   const packet = basePacket(packetOverrides);
   assertValidPacket(packet, `lane fixture ${ID}`);
-  writeFileSync(join(root, 'quality/packets', `${ID}.yaml`), stringifyYaml(packet));
+  writeFileSync(join(repoRoot, 'quality/packets', `${ID}.yaml`), stringifyYaml(packet));
   return root;
 }
 
@@ -236,6 +242,32 @@ export async function laneSelfTest({ verbose = false } = {}) {
     check('brief carries binding rules + both HONE-VERDICT forms', /MAKER in a repo-quality engine/.test(r.json.brief) && /HONE-VERDICT: validated-non-defect/.test(r.json.brief) && /HONE-VERDICT: unactionable/.test(r.json.brief));
     check('touchset normalized to git-root-relative', JSON.stringify(r.json.touchset_toplevel) === '["src/util.js"]');
     check('packet byte-unchanged, no state, no ledgers', read(root, `quality/packets/${ID}.yaml`) === before && !existsSync(stateDir(root)) && !existsSync(claimsPath(root)));
+  });
+
+  await scenario('touchset normalization: ../ cross-package entries are git-root-relative in emit+gate', async (check) => {
+    const SUB = 'reference-impl';
+    const root = fixtureRepo({ subdir: SUB, packetOverrides: { touchset: ['src/util.js', '../packages/contract/index.ts'] } });
+    const repo = join(root, SUB);
+    const dry = await emit(repo, { dryRun: true });
+    check('dry-run normalizes both entries to git-root-relative paths', JSON.stringify(dry.json.touchset_toplevel) === JSON.stringify([`${SUB}/src/util.js`, 'packages/contract/index.ts']), JSON.stringify(dry.json.touchset_toplevel));
+    const e = await emit(repo);
+    check('emit succeeds with normalized touchset in state', e.exitCode === 0 && JSON.parse(read(repo, `quality/.lane/${ID}/state.json`)).touchset_toplevel[1] === 'packages/contract/index.ts');
+    writeFileSync(join(repo, 'src/util.js'), ST_GOOD);
+    writeFileSync(join(root, 'packages/contract/index.ts'), ST_OUTSIDE.replace('"client"', '"client", "mcp_package"'));
+    const g = await gate(repo);
+    check('gate green accepts matching cross-package diff path', g.exitCode === 0 && g.json.green === true, JSON.stringify(g.json).slice(0, 200));
+    const jc = JSON.parse(read(repo, `quality/.lane/${ID}/judge-context.json`));
+    check('judge diff includes the normalized cross-package path', /packages\/contract\/index\.ts/.test(jc.diff), jc.diff.slice(0, 300));
+
+    const root2 = fixtureRepo({ subdir: SUB, packetOverrides: { touchset: ['src/util.js', '../packages/contract/index.ts'] } });
+    const repo2 = join(root2, SUB);
+    await emit(repo2);
+    writeFileSync(join(root2, 'packages/contract/index.ts'), ST_OUTSIDE.replace('"client"', '"client", "mcp_package"'));
+    writeFileSync(join(repo2, 'README.md'), '# lane fixture\ntouched by maker\n');
+    const bad = await gate(repo2);
+    const p = packetOnDisk(repo2);
+    check('unrelated write still rejected', bad.json.terminal === 'skipped' && /touchset-violation/.test(p.outcome.skip_reason ?? '') && new RegExp(`${SUB}/README\\.md`).test(p.outcome.skip_reason ?? ''), p.outcome.skip_reason ?? '');
+    check('violation reverted allowed and stray files', read(root2, 'packages/contract/index.ts') === ST_OUTSIDE && read(repo2, 'README.md') === '# lane fixture\n' && treeClean(root2));
   });
 
   // ---- emit: terminal + green paths ----
@@ -480,6 +512,10 @@ export async function laneSelfTest({ verbose = false } = {}) {
     const g2 = await gate(root, { revisionNote: 'fixed the upper-bound return per the red rung' });
     check('second gate green (phase post-r1)', g2.exitCode === 0 && existsSync(join(root, `quality/receipts/${ID}/post-r1-1-direct-test.txt`)));
     check('revision note receipt persisted', /fixed the upper-bound/.test(read(root, `quality/receipts/${ID}/revision-note-2.txt`) ?? ''));
+    const jc = JSON.parse(read(root, `quality/.lane/${ID}/judge-context.json`));
+    check('judge context current evidence excludes first-attempt red output', !jc.evidence.includes('FAIL clamp') && !/\[post\] direct-test:/.test(jc.evidence), jc.evidence.slice(0, 400));
+    check('judge context current evidence includes retry rung output', jc.evidence.includes('PASS 3/3') && /\[post-r1\] direct-test:/.test(jc.evidence));
+    check('prior red receipt is history, not current receipts', jc.receipt_history.some((l) => l.startsWith('[post]')) && !jc.receipts.some((l) => l.startsWith('[post]')));
     const r = await land(root, { verdictRaw: verdictJson('PASS', 'revised acceptably'), usageRaw: USAGE_OK });
     const p = packetOnDisk(root);
     check('landed', r.exitCode === 0 && p.status === 'landed');

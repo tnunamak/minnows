@@ -178,6 +178,11 @@ export function gitContext(repoRoot) {
 }
 
 const unquotePath = (p) => (p.startsWith('"') ? JSON.parse(p) : p);
+const slashRel = (p) => p.split('\\').join('/');
+const isInsidePath = (parent, child) => {
+  const rel = slashRel(relative(parent, child));
+  return rel === '' || (rel !== '..' && !rel.startsWith('../'));
+};
 
 /**
  * porcelain-v1 entries for the FULL git root, never just the --repo subtree: the maker can
@@ -212,9 +217,16 @@ export const flatPaths = (entries) => [...new Set(entries.flatMap((e) => e.paths
  * observed path — the violation message printed the identical string on both sides.)
  */
 export function normalizeTouchEntry(g, repoRoot, entry) {
-  if (existsSync(join(repoRoot, entry))) return g.topRel(entry);
-  if (g.prefix && existsSync(join(g.gitRoot, entry))) return entry;
-  return g.topRel(entry);
+  if (g.prefix && existsSync(join(g.gitRoot, entry))) return slashRel(relative(g.gitRoot, resolve(g.gitRoot, entry)));
+  const repoAbs = resolve(repoRoot, entry);
+  if (isInsidePath(g.gitRoot, repoAbs)) return slashRel(relative(g.gitRoot, repoAbs));
+  return slashRel(g.topRel(entry));
+}
+
+export function touchsetLeavesRepoRoot(g, touchTop) {
+  if (!g.prefix) return false;
+  const prefix = `${g.prefix}/`;
+  return touchTop.some((p) => p !== g.prefix && !p.startsWith(prefix));
 }
 
 /** restore the worktree to HEAD for everything dirty outside quality/. Throws if it can't. */
@@ -632,6 +644,23 @@ export function buildJudgeEvidence(entries, maxBytes = JUDGE_EVIDENCE_MAX_BYTES)
   return text;
 }
 
+export function currentJudgeEvidenceEntries(entries) {
+  const baseline = [];
+  const latestPostByRung = new Map();
+  for (const e of entries) {
+    if (e.phase === 'baseline') {
+      baseline.push(e);
+    } else {
+      latestPostByRung.set(e.rung, e);
+    }
+  }
+  return [...baseline, ...latestPostByRung.values()];
+}
+
+export function buildCurrentJudgeEvidence(entries, maxBytes = JUDGE_EVIDENCE_MAX_BYTES) {
+  return buildJudgeEvidence(currentJudgeEvidenceEntries(entries), maxBytes);
+}
+
 // ---------------------------------------------------------------- prompts
 
 /**
@@ -659,10 +688,11 @@ function priorAttemptSection(packet) {
   ].join('\n'), 2048);
 }
 
-export function makerBrief(rawPacketYaml, packet) {
+export function makerBrief(rawPacketYaml, packet, { cwdNote = null } = {}) {
   const prior = priorAttemptSection(packet);
   return [
     'You are the MAKER in a repo-quality engine, executing exactly ONE work packet in this repository (your current working directory). The packet below is the entire contract.',
+    ...(cwdNote ? [cwdNote] : []),
     'Binding rules:',
     `- Modify ONLY these files (the touchset): ${packet.touchset.join(', ')}. Creating, editing, deleting, or renaming ANY other file voids the whole run — the engine reverts everything.`,
     `- Obey every not_allowed item: ${packet.not_allowed.join(', ')}.`,
@@ -1288,8 +1318,16 @@ async function executeWorkAttempt(opts, deps, signal) {
       const policy = loadRouting(undefined, registry);
       routingCtx = { cls: resolveRoutingClass(packet, policy), registry, policy };
     } catch (e) { log(`  WARNING (routing): ${e.message} — provider default model/effort will be used`); }
+    const makerCwd = makerName === 'codex' && touchsetLeavesRepoRoot(g, touchTop) ? g.gitRoot : repoRoot;
+    const makerPacket = makerCwd === g.gitRoot
+      ? { ...parseYaml(rawText), touchset: touchTop }
+      : packet;
+    const makerRawText = makerCwd === g.gitRoot ? stringifyYaml(makerPacket) : rawText;
+    const makerCwdNote = makerCwd === g.gitRoot
+      ? 'Path-coordinate note: Codex is running from the git root so its workspace-write sandbox covers the whole repository. The touchset in this brief has been rewritten to git-root-relative paths; follow the Binding rules touchset over any stale relative path prose in plan.instruction.'
+      : null;
     const makerOpts = () => {
-      const base = { cwd: repoRoot, timeoutMs: MAKER_TIMEOUT_MS };
+      const base = { cwd: makerCwd, timeoutMs: MAKER_TIMEOUT_MS };
       if (!routingCtx) return base;
       try {
         const quotaState = process.env.HONE_QUOTA_STATE ? JSON.parse(process.env.HONE_QUOTA_STATE) : null;
@@ -1302,7 +1340,7 @@ async function executeWorkAttempt(opts, deps, signal) {
         return base;
       }
     };
-    const brief = makerBrief(rawText, packet);
+    const brief = makerBrief(makerRawText, makerPacket, { cwdNote: makerCwdNote });
     log(`  maker: ${makerName} (timeout ${Math.round(MAKER_TIMEOUT_MS / 60000)}m)`);
     persistBriefDigest(brief);
     let makerRun;
@@ -1440,7 +1478,7 @@ async function executeWorkAttempt(opts, deps, signal) {
 
     // ---- 7. independent judge (maker ≠ judge; ≤1 REVISE cycle) ----
     const buildDiff = () => buildWorkingDiff(g, touchTop);
-    const evidenceText = () => buildJudgeEvidence(receiptLines.map((line, i) => ({ line, slice: receiptSlices[i], ...receiptMeta[i] })));
+    const evidenceText = () => buildCurrentJudgeEvidence(receiptLines.map((line, i) => ({ line, slice: receiptSlices[i], ...receiptMeta[i] })));
     const judgeProvider = await deps.judge(judgeName);
     const judgeOnce = async () => {
       log(`  judge: ${judgeName}`);
@@ -1640,7 +1678,7 @@ function stRepo(id, { branch = 'quality-sweep', packetOverrides = {}, subdir = n
 function stMockDeps(script, log) {
   let m = 0;
   let j = 0;
-  const state = { makerCalls: 0, judgeCalls: 0, judgeArgs: [], makerPrompts: [] };
+  const state = { makerCalls: 0, judgeCalls: 0, judgeArgs: [], makerPrompts: [], makerOpts: [] };
   return {
     state,
     deps: {
@@ -1650,6 +1688,7 @@ function stMockDeps(script, log) {
       maker: async (name, prompt, { cwd }) => {
         state.makerCalls++;
         state.makerPrompts.push(prompt);
+        state.makerOpts.push({ cwd });
         const entry = script.makers?.[m++];
         if (!entry) throw Object.assign(new Error('mock maker: no scripted call left'), { kind: 'mock-exhausted' });
         if (entry === 'ERROR') throw Object.assign(new Error('scripted maker failure'), { kind: 'timeout' });
@@ -2130,6 +2169,56 @@ async function selfTest({ verbose = false } = {}) {
     check('out-of-subtree edit committed', read(root, 'packages/contract/index.ts') === contractV2 && treeClean(root));
   });
 
+  await scenario('touchset normalization: ../ cross-package entry lands when diff path matches', async (check) => {
+    const root = stRepo(ID, { subdir: SUB, packetOverrides: { touchset: ['src/util.js', '../packages/contract/index.ts'] } });
+    const contractV2 = ST_OUTSIDE.replace('"client"', '"client", "mcp_package"');
+    const editBoth = (cwd) => {
+      writeFileSync(join(cwd, 'src/util.js'), ST_GOOD);
+      writeFileSync(join(root, 'packages/contract/index.ts'), contractV2);
+    };
+    const { deps } = stMockDeps({ makers: [editBoth], judges: [{ verdict: 'PASS', reasoning: '../ touchset normalized', confidence: 0.9 }] }, log);
+    const r = await subExec(root, deps);
+    check('landed with ../ cross-package touchset', r.outcome === 'landed', r.summary);
+    check('cross-package edit committed', read(root, 'packages/contract/index.ts') === contractV2);
+    check('tree clean', treeClean(root));
+  });
+
+  await scenario('touchset normalization: ../ cross-package entry still rejects unrelated writes', async (check) => {
+    const root = stRepo(ID, { subdir: SUB, packetOverrides: { touchset: ['src/util.js', '../packages/contract/index.ts'] } });
+    const editAllowedAndStray = (cwd) => {
+      writeFileSync(join(cwd, 'src/util.js'), ST_GOOD);
+      writeFileSync(join(root, 'packages/contract/index.ts'), ST_OUTSIDE.replace('"client"', '"client", "mcp_package"'));
+      writeFileSync(join(cwd, 'README.md'), '# selftest fixture\ntouched by maker\n');
+    };
+    const { deps, state } = stMockDeps({ makers: [editAllowedAndStray] }, log);
+    const r = await subExec(root, deps);
+    const p = packetOnDisk(join(root, SUB));
+    check('skipped(touchset-violation)', r.outcome === 'skipped' && /touchset-violation/.test(p.outcome.skip_reason ?? ''), r.summary);
+    check('violation names only the unrelated README path', new RegExp(`${SUB}/README\\.md`).test(p.outcome.skip_reason ?? '') && !/packages\/contract\/index\.ts outside/.test(p.outcome.skip_reason ?? ''), p.outcome.skip_reason ?? '');
+    check('all maker residue reverted', read(root, `${SUB}/src/util.js`) === ST_ORIG && read(root, 'packages/contract/index.ts') === ST_OUTSIDE && treeClean(root));
+    check('judge never called', state.judgeCalls === 0);
+  });
+
+  await scenario('codex maker cwd: cross-package touchset runs at git root; same-package stays at --repo', async (check) => {
+    const crossRoot = stRepo(ID, { subdir: SUB, packetOverrides: { touchset: ['src/util.js', '../packages/contract/index.ts'] } });
+    const contractV2 = ST_OUTSIDE.replace('"client"', '"client", "mcp_package"');
+    const editFromGitRoot = (cwd) => {
+      writeFileSync(join(cwd, `${SUB}/src/util.js`), ST_GOOD);
+      writeFileSync(join(cwd, 'packages/contract/index.ts'), contractV2);
+    };
+    const cross = stMockDeps({ makers: [editFromGitRoot], judges: [{ verdict: 'PASS', reasoning: 'codex root cwd ok', confidence: 0.9 }] }, log);
+    const r1 = await subExec(crossRoot, cross.deps, { makerName: 'codex', judgeName: 'claude' });
+    check('cross-package codex run landed', r1.outcome === 'landed', r1.summary);
+    check('codex cwd switched to git root', cross.state.makerOpts[0]?.cwd === crossRoot, JSON.stringify(cross.state.makerOpts));
+    check('brief touchset rewritten to git-root-relative paths', /Modify ONLY these files \(the touchset\): reference-impl\/src\/util\.js, packages\/contract\/index\.ts/.test(cross.state.makerPrompts[0] ?? ''), (cross.state.makerPrompts[0] ?? '').slice(0, 500));
+
+    const sameRoot = stRepo(ID, { subdir: SUB });
+    const same = stMockDeps({ makers: [stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'same package', confidence: 0.9 }] }, log);
+    const r2 = await subExec(sameRoot, same.deps, { makerName: 'codex', judgeName: 'claude' });
+    check('same-package codex run landed', r2.outcome === 'landed', r2.summary);
+    check('same-package codex cwd remains --repo', same.state.makerOpts[0]?.cwd === join(sameRoot, SUB), JSON.stringify(same.state.makerOpts));
+  });
+
   await scenario('touchset normalization: real violation still caught with git-root-relative entries', async (check) => {
     const root = stRepo(ID, { subdir: SUB, packetOverrides: { touchset: [`${SUB}/src/util.js`] } });
     const editUtilAndReadme = (cwd) => {
@@ -2166,6 +2255,12 @@ async function selfTest({ verbose = false } = {}) {
     const ev1 = buildJudgeEvidence([e('[post] t: cmd -> exit 0 PASS; djb2=abc', 'tail-output-here', 'post', true)]);
     check('slice attached under its digest line', ev1.includes('djb2=abc') && ev1.includes('tail-output-here'));
     check('entry without slice renders the line alone', buildJudgeEvidence([e('[post] t: digest-only', null, 'post', true)]) === '[post] t: digest-only');
+    const current = currentJudgeEvidenceEntries([
+      e('[baseline] t: base', 'BASE', 'baseline', true),
+      e('[post] t: stale red', 'STALE-RED', 'post', false),
+      e('[post-r1] t: retry green', 'RETRY-GREEN', 'post-r1', true),
+    ]);
+    check('current evidence entries keep baseline + latest post attempt only', current.map((x) => x.line).join('|') === '[baseline] t: base|[post-r1] t: retry green');
     // the run-4 hm-0003 shape: many rungs, big green outputs, one failing post run —
     // 8 baseline greens + 1 post FAIL + 8 post-r1 greens at ~2KB each (~34KB raw)
     const pad = (m) => `${m} ${'x'.repeat(2000 - m.length - 1)}`;
@@ -2188,9 +2283,9 @@ async function selfTest({ verbose = false } = {}) {
     check('pathological must-keep overflow → head-truncated to the cap (valve)', pathological.length <= 1024 + 128 && /truncated from head/.test(pathological));
   });
 
-  await scenario('judge evidence e2e: many-rung packet — baseline + failing + final-green all reach the judge (run-4 hm-0003 class)', async (check) => {
+  await scenario('judge evidence e2e: two attempts → judge current evidence uses retry, not stale red attempt', async (check) => {
     const bigGreen = (n) => `node -e "console.log('PAD'.repeat(1500)); console.log('GREEN-RUNG-${n}')"`;
-    const gate = `node -e "console.log('z'.repeat(3000)); const {clamp}=require('./src/util.js'); if(clamp(11,0,10)!==10){console.error('FAIL-MARKER-CLAMP-UPPER'); process.exit(1)} console.log('FINAL-GREEN-MARKER')"`;
+    const gate = `node -e "console.log('z'.repeat(3000)); const {clamp}=require('./src/util.js'); if(clamp(11,0,10)!==10){console.error('STALE-' + 'ATTEMPT-1-CLAMP-UPPER'); process.exit(1)} console.log('FINAL-GREEN-MARKER')"`;
     const root = stRepo(ID, {
       packetOverrides: {
         evidence_required: [
@@ -2199,13 +2294,13 @@ async function selfTest({ verbose = false } = {}) {
         ],
       },
     });
-    const { deps, state } = stMockDeps({ makers: [stEditUtil(ST_BAD), stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'saw baseline, red and green', confidence: 0.9 }] }, log);
+    const { deps, state } = stMockDeps({ makers: [stEditUtil(ST_BAD), stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'saw baseline and latest retry', confidence: 0.9 }] }, log);
     const r = await exec(root, deps);
     check('landed after one oracle-red revision', r.outcome === 'landed' && costs(root)[0]?.revision_count === 1, r.summary);
     const ev = state.judgeArgs[0]?.evidence ?? '';
     check('ALL 5 baseline receipt lines reached the judge', (ev.match(/\[baseline\]/g) ?? []).length === 5, `found ${(ev.match(/\[baseline\]/g) ?? []).length}`);
-    check('failing run content reached the judge', ev.includes('FAIL-MARKER-CLAMP-UPPER'), ev.slice(0, 300));
-    check('final green run content reached the judge', ev.includes('FINAL-GREEN-MARKER'));
+    check('stale first-attempt red output excluded from current evidence', !ev.includes('STALE-ATTEMPT-1-CLAMP-UPPER') && !/\[post\] direct-test:/.test(ev), ev.slice(0, 500));
+    check('retry green output reached the judge as current evidence', ev.includes('FINAL-GREEN-MARKER') && /\[post-r1\] direct-test:/.test(ev));
     check('evidence within the 16KB cap', ev.length <= 16384 + 128, `len=${ev.length}`);
     check('budget pressure was real (some slices omitted)', /omitted — evidence budget/.test(ev), `len=${ev.length}`);
   });

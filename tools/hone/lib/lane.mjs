@@ -39,7 +39,7 @@ import { unmetDependencies } from './run.mjs';
 import {
   gitContext, dirtyEntries, flatPaths, normalizeTouchEntry, revertAll,
   checkExpect, isCompareVsHead, makerBrief, revisionBrief,
-  parseMakerVerdict, tailClip, headClip, buildJudgeEvidence, buildWorkingDiff,
+  parseMakerVerdict, tailClip, headClip, buildJudgeEvidence, buildCurrentJudgeEvidence, currentJudgeEvidenceEntries, buildWorkingDiff,
   writeRungReceipt, persistMakerBriefDigest, writeTerminal, landCommit, buildLandClaims,
   acquireWorkLock, portableRungCommand, makeRungExecutor,
 } from './work.mjs';
@@ -548,20 +548,23 @@ export async function executeLaneGate({ id, repoRoot, makerSummary = null, revis
   const treeHash = djb2(state.head_sha + '\0' + diff);
   state.gate = { green: true, tree_hash: treeHash, at: new Date().toISOString(), attempt };
   saveState(repoRoot, id, state);
-  const evidence = buildJudgeEvidence(state.receiptLines.map((line, i) => ({ line, slice: state.receiptSlices[i], ...state.receiptMeta[i] })));
+  const evidenceEntries = state.receiptLines.map((line, i) => ({ line, slice: state.receiptSlices[i], ...state.receiptMeta[i] }));
+  const currentEntries = currentJudgeEvidenceEntries(evidenceEntries);
+  const evidence = buildCurrentJudgeEvidence(evidenceEntries);
   // judge context on disk (engine-written, so the judge reads trusted bytes directly —
   // no giant prompt relay): {packet_yaml, evidence, diff (150KB-clipped, work parity)}
   const judgeContextPath = join(laneDir(repoRoot, id), 'judge-context.json');
   writeFileSync(judgeContextPath, JSON.stringify({
     candidate_id: id, tree_hash: treeHash,
     packet_yaml: loaded.rawText, evidence, diff: tailClip(diff, 150000),
-    receipts: state.receiptLines.slice(),
+    receipts: currentEntries.map((e) => e.line),
+    receipt_history: state.receiptLines.slice(),
   }, null, 2));
   return {
     exitCode: 0,
     json: {
       ok: true, green: true, candidate_id: id, attempts_used: attempt, tree_hash: treeHash,
-      receipts: state.receiptLines.slice(),
+      receipts: currentEntries.map((e) => e.line),
       judge_context_path: judgeContextPath,
       next: `independent judge (different model, fresh context) over ${judgeContextPath}, then: hone lane land --packet ${id} --repo ${repoRoot} --judge-verdict-b64 <b64> --usage-b64 <b64>`,
       summary: `hone lane gate — ${id}: GREEN (attempt ${attempt}; ${packet.evidence_required.length} rung(s); tree_hash ${treeHash})`,
