@@ -220,6 +220,13 @@ export function createProvider(adapter) {
   return {
     name,
 
+    async complete(prompt, opts = {}) {
+      const attempts = [];
+      const res = await attempt(String(prompt ?? ''), opts.timeoutMs ?? DEFAULT_TIMEOUT_MS, attempts);
+      if (res.error) throw res.error;
+      return { text: res.text, meta: res.meta, raw: { provider: name, attempts } };
+    },
+
     async judge({ diff, evidence, packet }, opts = {}) {
       if (!diff) throw new Error("judge: diff is required");
       const { parsed, attempts } = await structuredCall(buildJudgePrompt, { diff, evidence, packet }, opts);

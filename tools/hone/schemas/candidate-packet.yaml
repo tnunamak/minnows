@@ -83,6 +83,12 @@ evidence_required:              # execution-time proof obligations — LITERAL r
                                 #     Post only (generate_evidence guards print a fallback at baseline);
                                 #     the rung must still exit 0 overall (seed → run → restore).
       value: int | string
+certified_equivalence_rung: string
+                                # OPTIONAL. For review-free exact_move/type_only packets, names the
+                                # deterministic equivalence rung whose GREEN post-change receipt may
+                                # certify landing without a model judge. If absent, the engine only
+                                # infers a certified rung from an unambiguous byte-identity,
+                                # ast-equivalence, or certified-equivalence rung name.
 not_allowed: [string]           # e.g. [public-shape-change, new-dependency, behavior-change]
 
 # ---- execution contract ----

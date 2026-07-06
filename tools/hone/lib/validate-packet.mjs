@@ -59,7 +59,7 @@ const TOP_KEYS = [
 ];
 
 // OPTIONAL top-level keys: may be absent (hand-authored packets), strict when present.
-const OPTIONAL_KEYS = ['priority', 'resets', 'routing_class', 'rung_timeout_s'];
+const OPTIONAL_KEYS = ['priority', 'resets', 'routing_class', 'rung_timeout_s', 'certified_equivalence_rung'];
 
 // routing.json class names (kept in lockstep with lib/routing.mjs ROUTING_CLASSES —
 // no import so bare packet validation never depends on the routing table file).
@@ -159,6 +159,9 @@ export function validatePacket(p, ctx = {}) {
   if ('rung_timeout_s' in p && !validTimeoutS(p.rung_timeout_s)) {
     err('rung_timeout_s: positive integer seconds required when present');
   }
+  if ('certified_equivalence_rung' in p && !isNonEmptyStr(p.certified_equivalence_rung)) {
+    err('certified_equivalence_rung: non-empty rung name required when present');
+  }
 
   if ('priority' in p) { // optional ranking PRIOR (ordering only, never a quality claim)
     if (!isMap(p.priority)) err('priority: map {score, computed, inputs} required when present');
@@ -249,6 +252,14 @@ export function validatePacket(p, ctx = {}) {
       .filter((t) => !['/dev/', '/tmp/', '/proc/', '/sys/', '/usr/', '/bin/', '/sbin/', '/lib/', '/lib64/', '/opt/', '/etc/', '/var/'].some((a) => t.startsWith(a)));
     if (absTokens.length) {
       warn(`evidence_required[${i}] (${e.rung}): absolute path(s) in the rung command (${absTokens.slice(0, 3).join(', ')}) — authored-worktree paths break portability across worktrees (the engine rewrites or fail-closed-refuses them at run time). Author portably instead: paths relative to the repo root, or $REPO_ROOT / $GIT_ROOT / $HONE_ROOT (exported to every rung shell)`);
+    }
+  }
+  if (isNonEmptyStr(p.certified_equivalence_rung) && Array.isArray(p.evidence_required)) {
+    const names = p.evidence_required
+      .filter((e) => isMap(e) && isNonEmptyStr(e.rung))
+      .map((e) => e.rung);
+    if (!names.includes(p.certified_equivalence_rung)) {
+      err(`certified_equivalence_rung: named rung '${p.certified_equivalence_rung}' does not exist in evidence_required`);
     }
   }
   if (!Array.isArray(p.not_allowed) || !p.not_allowed.every(isNonEmptyStr)) err('not_allowed: [string] required');

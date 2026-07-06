@@ -13,6 +13,8 @@ commands:
               [--repo .] [--cog N] [--window '6 months ago']
   plan        inventory → ranked candidate packets → <repo>/quality/packets/*.yaml
               [--repo .] [--top 20]
+  plan-orders fresh collectors → Codex-authored packets → validate/repair → quality/packets/*.yaml
+              [--repo .] [--target-dirs a,b] [--max 10] [--class tst|pl|both]
   validate    strict packet validation with --repo-aware lints; exits nonzero on errors
               validate <packet-id>|--all --repo PATH
   agenda      one strong-model selection call over sensor/ledger/doctrine digests →
@@ -58,6 +60,11 @@ try {
     case 'plan': {
       const { runPlan } = await import('./lib/plan.mjs');
       await runPlan(flags);
+      break;
+    }
+    case 'plan-orders': {
+      const { runPlanOrders } = await import('./lib/plan-orders.mjs');
+      await runPlanOrders(flags);
       break;
     }
     case 'validate': {

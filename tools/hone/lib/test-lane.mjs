@@ -502,6 +502,37 @@ export async function laneSelfTest({ verbose = false } = {}) {
     check('tree clean, state cleaned', treeClean(root) && !existsSync(stateDir(root)));
   });
 
+  await scenario('land: certified exact_move skips model judge and records deterministic proof', async (check) => {
+    const evidence = [
+      { rung: 'direct-test', command: 'node test.js', expect: 'exit 0' },
+      { rung: 'certified-equivalence', command: 'node test.js', expect: 'exit 0', expect_check: { type: 'exit_code', value: 0 } },
+    ];
+    const root = fixtureRepo({ packetOverrides: { proof_class: 'exact_move', evidence_required: evidence, certified_equivalence_rung: 'certified-equivalence' } });
+    await emit(root);
+    editUtil(root, ST_GOOD);
+    await gate(root);
+    const r = await land(root); // no judge verdict, no judge usage: green equivalence receipt is the verdict
+    const p = packetOnDisk(root);
+    const c0 = costs(root)[0];
+    check('landed without judge verdict input', r.exitCode === 0 && r.json.terminal === 'landed', JSON.stringify(r.json).slice(0, 300));
+    check('packet records deterministic proof provider', p.judge_provider === 'deterministic-proof' && /deterministic-proof PASS/.test(p.outcome.judge_verdict ?? ''), p.outcome.judge_verdict ?? '');
+    check('verdict cites equivalence receipt digest', /certified-equivalence/.test(p.outcome.judge_verdict ?? '') && /djb2=/.test(p.outcome.judge_verdict ?? ''), p.outcome.judge_verdict ?? '');
+    check('cost records certified tier and no fabricated tokens', c0?.judge?.provider === 'deterministic-proof' && c0?.judge?.tier === 'certified' && c0?.tokens_in === null && c0?.judge_result === 'PASS', JSON.stringify(c0));
+    check('claims include deterministic judged_design_claim', claims(root).some((c) => c.type === 'judged_design_claim' && c.judge?.provider === 'deterministic-proof' && /tier certified/.test(c.statement)));
+  });
+
+  await scenario('land: exact_move without equivalence rung falls back to normal judge requirement', async (check) => {
+    const root = fixtureRepo({ packetOverrides: { proof_class: 'exact_move' } });
+    await emit(root);
+    editUtil(root, ST_GOOD);
+    await gate(root);
+    const missing = await land(root);
+    check('missing judge verdict refused', missing.exitCode === 2 && /missing --judge-verdict/.test(missing.json.reason), missing.json.reason);
+    const r = await land(root, { verdictRaw: verdictJson('PASS', 'normal judge path'), usageRaw: USAGE_OK });
+    const p = packetOnDisk(root);
+    check('normal judged land succeeds', r.exitCode === 0 && p.judge_provider === 'claude:opus' && /normal judge path/.test(p.outcome.judge_verdict ?? ''), p.outcome.judge_verdict ?? '');
+  });
+
   await scenario('land: PASS after one gate revision → revision_count=1', async (check) => {
     const root = fixtureRepo();
     await emit(root);

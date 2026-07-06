@@ -63,7 +63,7 @@ export function validateAgendaProjection(agenda, source) {
 
 export function gitFacts(repoRoot) {
   const run = (cmd) => {
-    try { return execSync(cmd, { cwd: repoRoot, encoding: 'utf8' }).trim(); } catch { return null; }
+    try { return execSync(cmd, { cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return null; }
   };
   const gitRoot = run('git rev-parse --show-toplevel') || repoRoot;
   const sha = run('git rev-parse HEAD') || 'no-git';

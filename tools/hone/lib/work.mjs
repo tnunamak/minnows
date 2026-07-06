@@ -59,6 +59,13 @@ import { appendClaim, appendCostEntry, nextClaimSeq, nextJobAttempt, readJsonl, 
 import { loadRegistry, loadRouting, resolveRoutingClass, selectAgent } from './routing.mjs';
 import { HONE_ROOT } from './profile.mjs';
 import { runCli } from '../providers/provider.mjs';
+import {
+  DETERMINISTIC_PROOF_PROVIDER,
+  DETERMINISTIC_PROOF_TIER,
+  certifiedEquivalenceVerdict,
+  deterministicProofClaims,
+  deterministicProofVerdictLine,
+} from './certified-equivalence.mjs';
 
 const PROVIDERS = ['claude', 'codex'];
 export const TERMINAL = ['landed', 'reverted', 'skipped', 'blocked'];
@@ -1034,7 +1041,7 @@ export function writeTerminal({
   // OPTIONAL instrumentation (lane substrate): per-stage attribution, quota points,
   // batch-amortization marker. undefined = keys omitted — the subprocess path's cost
   // entries stay byte-identical.
-  stages = undefined, quotaPts = undefined, batch = undefined,
+  stages = undefined, quotaPts = undefined, batch = undefined, judgeTier = undefined,
 }) {
   const { inTok, outTok, total, usd } = tokens;
   packet.status = status;
@@ -1066,7 +1073,7 @@ export function writeTerminal({
     candidate_id: id,
     workflow: packet.action,
     maker: { provider: makerName, tier: packet.maker_tier },
-    judge: { provider: judgeName, tier: packet.judge_tier },
+    judge: { provider: judgeName, tier: judgeTier ?? packet.judge_tier },
     tokens_in: providerRan ? inTok : 0,
     tokens_out: providerRan ? outTok : 0,
     cost_usd: providerRan ? (usd == null ? null : Math.round(usd * 10000) / 10000) : 0,
@@ -1305,12 +1312,15 @@ async function executeWorkAttempt(opts, deps, signal) {
   /** the single terminal writer: packet outcome + claims + cost, every path, no exceptions
    * (shared spine: writeTerminal — wall_time_s is ALWAYS real engine wall; provider-never-ran
    * cost/tokens are a known 0, not an unknown null — dogfood packet 5). */
-  const terminalize = ({ status, commit = null, skipReason = null, blockedOn = null, judgeVerdict = null, lesson = null, claims, headline }) =>
+  const terminalize = ({
+    status, commit = null, skipReason = null, blockedOn = null, judgeVerdict = null, lesson = null,
+    claims, headline, judgeTier = undefined, terminalJudgeName = judgeName, terminalJudgeRan = judgeMetas.length > 0,
+  }) =>
     writeTerminal({
       repoRoot, id, packet, packetPath, startedAt,
-      makerName, judgeName, makerRan: makerMetas.length > 0, judgeRan: judgeMetas.length > 0,
+      makerName, judgeName: terminalJudgeName, makerRan: makerMetas.length > 0, judgeRan: terminalJudgeRan,
       tokens: tokensOf(), revisionCount, judgeResult, receiptLines,
-      status, commit, skipReason, blockedOn, judgeVerdict, lesson, claims, headline,
+      status, commit, skipReason, blockedOn, judgeVerdict, lesson, claims, headline, judgeTier,
     });
 
   // arm the signal teardown NOW — from the in_progress write onward a kill would
@@ -1532,7 +1542,28 @@ async function executeWorkAttempt(opts, deps, signal) {
 
     // ---- 7. independent judge (maker ≠ judge; ≤1 REVISE cycle) ----
     const buildDiff = () => buildWorkingDiff(g, touchTop);
-    const evidenceText = () => buildCurrentJudgeEvidence(receiptLines.map((line, i) => ({ line, slice: receiptSlices[i], ...receiptMeta[i] })));
+    const evidenceEntries = () => receiptLines.map((line, i) => ({ line, slice: receiptSlices[i], ...receiptMeta[i] }));
+    const evidenceText = () => buildCurrentJudgeEvidence(evidenceEntries());
+    const certified = certifiedEquivalenceVerdict({ packet, entries: currentJudgeEvidenceEntries(evidenceEntries()) });
+    if (certified.certified) {
+      log(`  judge skipped: deterministic certified equivalence (${certified.rung})`);
+      judgeResult = 'PASS';
+      const commit = landCommit(g, {
+        packet, id, touchTop, receiptsDirRel,
+        pipelineLabel: `hone work: maker=${makerName} judge=${DETERMINISTIC_PROOF_PROVIDER}`,
+        confidence: certified.verdict.confidence, revisionCount,
+      });
+      return terminalize({
+        status: 'landed', commit,
+        terminalJudgeName: DETERMINISTIC_PROOF_PROVIDER,
+        terminalJudgeRan: true,
+        judgeTier: DETERMINISTIC_PROOF_TIER,
+        judgeVerdict: deterministicProofVerdictLine(certified),
+        lesson: revisionCount ? `landed after ${revisionCount} revision cycle(s) — deterministic equivalence certified the final tree` : null,
+        claims: deterministicProofClaims({ packet, id, cert: certified, receiptLines, receiptsDirRel }),
+        headline: `landed ${commit.slice(0, 12)} on ${g.branch}`,
+      });
+    }
     const judgeProvider = await deps.judge(judgeName);
     const judgeOnce = async () => {
       log(`  judge: ${judgeName}`);
@@ -1975,6 +2006,62 @@ async function selfTest({ verbose = false } = {}) {
     check('lesson notes the revision', /revision/.test(p.outcome.lesson ?? ''));
   });
 
+  await scenario('certified exact_move + equivalence rung → landed judge-free with proof receipt', async (check) => {
+    const evidence = [
+      { rung: 'direct-test', command: 'node test.js', expect: 'exit 0' },
+      { rung: 'certified-equivalence', command: 'node test.js', expect: 'exit 0', expect_check: { type: 'exit_code', value: 0 } },
+    ];
+    const root = stRepo(ID, { packetOverrides: { proof_class: 'exact_move', evidence_required: evidence, certified_equivalence_rung: 'certified-equivalence' } });
+    const { deps, state } = stMockDeps({ makers: [stEditUtil(ST_GOOD)], judges: [{ verdict: 'REJECT', reasoning: 'should not run', confidence: 1 }] }, log);
+    const r = await exec(root, deps);
+    const p = packetOnDisk(root);
+    const c0 = costs(root)[0];
+    check('landed', r.outcome === 'landed' && r.exitCode === 0, r.summary);
+    check('judge never called', state.judgeCalls === 0);
+    check('packet records deterministic proof provider', p.judge_provider === 'deterministic-proof' && /deterministic-proof PASS/.test(p.outcome.judge_verdict ?? ''), p.outcome.judge_verdict ?? '');
+    check('verdict evidence cites equivalence receipt digest', /certified-equivalence/.test(p.outcome.judge_verdict ?? '') && /djb2=/.test(p.outcome.judge_verdict ?? ''), p.outcome.judge_verdict ?? '');
+    check('cost records certified judge tier', c0?.judge?.provider === 'deterministic-proof' && c0?.judge?.tier === 'certified' && c0?.judge_result === 'PASS', JSON.stringify(c0?.judge));
+  });
+
+  await scenario('certified class without equivalence rung falls back to model judge', async (check) => {
+    const root = stRepo(ID, { packetOverrides: { proof_class: 'exact_move' } });
+    const { deps, state } = stMockDeps({ makers: [stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'normal judge path', confidence: 0.9 }] }, log);
+    const r = await exec(root, deps);
+    const p = packetOnDisk(root);
+    check('landed via normal judge', r.outcome === 'landed' && p.judge_provider === 'codex', p.outcome.judge_verdict ?? '');
+    check('judge called once', state.judgeCalls === 1);
+  });
+
+  await scenario('certified helper declines failed or ambiguous equivalence receipts', async (check) => {
+    const p = stBasePacket(ID, {
+      proof_class: 'exact_move',
+      evidence_required: [
+        { rung: 'byte-identity', command: 'true', expect: 'exit 0' },
+        { rung: 'ast-equivalence', command: 'true', expect: 'exit 0' },
+      ],
+    });
+    check('ambiguous inferred equivalence rungs do not certify', certifiedEquivalenceVerdict({ packet: p, entries: [] }).certified === false);
+    const named = stBasePacket(ID, {
+      proof_class: 'exact_move',
+      certified_equivalence_rung: 'byte-identity',
+      evidence_required: [{ rung: 'byte-identity', command: 'true', expect: 'exit 0' }],
+    });
+    const failed = certifiedEquivalenceVerdict({ packet: named, entries: [{ line: '[post] byte-identity: exit 1 FAIL; djb2=bad', phase: 'post', pass: false, rung: 'byte-identity' }] });
+    check('failed equivalence receipt does not certify', failed.certified === false && /no green/.test(failed.reason), JSON.stringify(failed));
+  });
+
+  await scenario('non-certified class with equivalence rung still uses model judge', async (check) => {
+    const evidence = [
+      { rung: 'certified-equivalence', command: 'node test.js', expect: 'exit 0', expect_check: { type: 'exit_code', value: 0 } },
+    ];
+    const root = stRepo(ID, { packetOverrides: { proof_class: 'pure_logic', evidence_required: evidence, certified_equivalence_rung: 'certified-equivalence' } });
+    const { deps, state } = stMockDeps({ makers: [stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'non-certified class reviewed', confidence: 0.9 }] }, log);
+    const r = await exec(root, deps);
+    const p = packetOnDisk(root);
+    check('landed via model judge', r.outcome === 'landed' && p.judge_provider === 'codex', p.outcome.judge_verdict ?? '');
+    check('judge called once', state.judgeCalls === 1);
+  });
+
   await scenario('judge REJECT → reverted', async (check) => {
     const root = stRepo(ID);
     const { deps } = stMockDeps({ makers: [stEditUtil(ST_GOOD)], judges: [{ verdict: 'REJECT', reasoning: 'relocation dressed as refactoring', confidence: 0.95 }] }, log);
@@ -2154,6 +2241,8 @@ async function selfTest({ verbose = false } = {}) {
     check('resets non-array rejected', validatePacket(withResets({ at: 'x' })).some((e) => /resets: array/.test(e)));
     check('timeout fields pass when positive ints', validatePacket(stBasePacket(ID, { rung_timeout_s: 3, evidence_required: [{ rung: 'direct-test', command: 'node test.js', expect: 'exit 0', timeout_s: 2 }] })).length === 0);
     check('bad timeout fields reject', validatePacket(stBasePacket(ID, { rung_timeout_s: 0, evidence_required: [{ rung: 'direct-test', command: 'node test.js', expect: 'exit 0', timeout_s: -1 }] })).filter((e) => /timeout_s/.test(e)).length === 2);
+    check('certified_equivalence_rung accepted when it names an evidence rung', validatePacket(stBasePacket(ID, { certified_equivalence_rung: 'byte-identity', evidence_required: [{ rung: 'byte-identity', command: 'node test.js', expect: 'exit 0' }] })).length === 0);
+    check('certified_equivalence_rung rejects missing rung', validatePacket(stBasePacket(ID, { certified_equivalence_rung: 'byte-identity', evidence_required: [{ rung: 'direct-test', command: 'node test.js', expect: 'exit 0' }] })).some((e) => /does not exist/.test(e)));
   });
 
   await scenario('validate command: one/all packets use --repo context and summarize failures', async (check) => {

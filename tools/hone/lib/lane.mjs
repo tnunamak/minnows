@@ -43,6 +43,13 @@ import {
   writeRungReceipt, persistMakerBriefDigest, writeTerminal, landCommit, buildLandClaims,
   acquireWorkLock, portableRungCommand, makeRungExecutor, resolveRungTimeout,
 } from './work.mjs';
+import {
+  DETERMINISTIC_PROOF_PROVIDER,
+  DETERMINISTIC_PROOF_TIER,
+  certifiedEquivalenceVerdict,
+  deterministicProofClaims,
+  deterministicProofVerdictLine,
+} from './certified-equivalence.mjs';
 
 const PROVIDERS = ['claude', 'codex'];
 const VERDICTS = ['PASS', 'REVISE', 'REJECT'];
@@ -161,7 +168,7 @@ const refuse = (id, sub, reason) => ({
  * makerName/judgeName are MODEL-QUALIFIED identities (e.g. claude:sonnet / claude:opus) —
  * the packet schema's structural must-differ rule then enforces the lane's identity form
  * of non-negotiable #1 in the books themselves. */
-function laneTerminal({ repoRoot, id, state, packet, packetPath, tokens, judgeRan, makerName, judgeName, judgeResult, stages, quotaPts, batch, extras }, fields) {
+function laneTerminal({ repoRoot, id, state, packet, packetPath, tokens, judgeRan, makerName, judgeName, judgeResult, judgeTier, stages, quotaPts, batch, extras }, fields) {
   const res = writeTerminal({
     repoRoot, id, packet, packetPath, via: 'lane',
     startedAt: state?.started_at_ms ?? Date.now(),
@@ -173,7 +180,7 @@ function laneTerminal({ repoRoot, id, state, packet, packetPath, tokens, judgeRa
     revisionCount: Math.max(0, (state?.gate_attempts ?? 0) - 1),
     judgeResult: judgeResult ?? null,
     receiptLines: state?.receiptLines ?? [],
-    stages, quotaPts, batch,
+    stages, quotaPts, batch, judgeTier,
     ...fields,
   });
   clearState(repoRoot, id);
@@ -629,7 +636,60 @@ export async function executeLaneLand({ id, repoRoot, verdictRaw = null, usageRa
     });
   }
 
-  // ---- verdict + usage are REQUIRED for a non-abort land (fail-closed) ----
+  // ---- the green-gate-receipt requirement, bound to THIS tree state ----
+  if (!state.gate?.green) {
+    return refuse(id, 'land', `no green gate receipt for ${id} — run hone lane gate to green before landing (agent claims of green are never trusted)`);
+  }
+  const treeHash = djb2(state.head_sha + '\0' + buildWorkingDiff(g, state.touchset_toplevel));
+  if (treeHash !== state.gate.tree_hash) {
+    return refuse(id, 'land', `tree state changed since the green gate (gate tree_hash ${state.gate.tree_hash}, current ${treeHash}) — re-run hone lane gate (fail-closed)`);
+  }
+
+  const evidenceEntries = currentJudgeEvidenceEntries(state.receiptLines.map((line, i) => ({ line, slice: state.receiptSlices[i], ...state.receiptMeta[i] })));
+  const certified = certifiedEquivalenceVerdict({ packet, entries: evidenceEntries });
+  if (certified.certified) {
+    const makers = usage ? usage.filter((e) => e.role === 'maker') : [];
+    if (makers.some((m) => m.provider !== state.maker_provider)) {
+      return refuse(id, 'land', `usage maker provider disagrees with lane state (emitted maker_provider='${state.maker_provider}')`);
+    }
+    const makerLabel = makers.length
+      ? `${makers[0].provider}${makers[0].model ? `:${makers[0].model}` : ''}`
+      : state.maker_provider;
+    const base = {
+      repoRoot, id, state, packet, packetPath, tokens, stages, quotaPts,
+      judgeRan: true, makerName: makerLabel, judgeName: DETERMINISTIC_PROOF_PROVIDER,
+      judgeResult: 'PASS', judgeTier: DETERMINISTIC_PROOF_TIER,
+    };
+    try {
+      const commit = landCommit(g, {
+        packet, id, touchTop: state.touchset_toplevel, receiptsDirRel: state.receipts_dir_rel,
+        pipelineLabel: `hone lane: maker=${makerLabel} judge=${DETERMINISTIC_PROOF_PROVIDER}`,
+        confidence: certified.verdict.confidence, revisionCount: Math.max(0, state.gate_attempts - 1),
+      });
+      const claims = deterministicProofClaims({ packet, id, cert: certified, receiptLines: state.receiptLines, receiptsDirRel: state.receipts_dir_rel });
+      return laneTerminal(base, {
+        status: 'landed', commit,
+        judgeVerdict: deterministicProofVerdictLine(certified),
+        lesson: state.gate_attempts > 1 ? `landed after ${state.gate_attempts - 1} revision cycle(s) — deterministic equivalence certified the final tree` : null,
+        claims,
+        headline: `landed ${commit.slice(0, 12)} on ${g.branch}`,
+      });
+    } catch (e) {
+      try { revertAll(g); } catch (e2) { e.message += ` [AND REVERT FAILED: ${e2.message} — manual cleanup required]`; }
+      return laneTerminal(base, {
+        status: 'blocked',
+        blockedOn: `internal-error: ${e.message.slice(0, 300)}`,
+        lesson: 'engine fault at certified land time, not a packet fact — fix the engine, reset status to pending',
+        claims: [
+          { type: 'uncertainty', statement: `hone lane certified land aborted on internal error before/at commit: ${e.message.slice(0, 200)}` },
+          { type: 'remaining_work', statement: `packet ${id} blocked on engine error; changes (if any) reverted; reset to pending after fixing` },
+        ],
+        headline: `internal error at certified land (fail-closed): ${e.message.slice(0, 120)}`,
+      });
+    }
+  }
+
+  // ---- verdict + usage are REQUIRED for a non-certified, non-abort land (fail-closed) ----
   if (verdictRaw == null) return refuse(id, 'land', 'missing --judge-verdict (or --judge-verdict-b64) — land never proceeds on an agent\'s say-so');
   if (usage == null) return refuse(id, 'land', 'missing --usage (or --usage-b64) — token usage is recorded explicitly; pass entries with null tokens if the harness cannot meter');
   const v = parseVerdictInput(verdictRaw);
@@ -649,15 +709,6 @@ export async function executeLaneLand({ id, repoRoot, verdictRaw = null, usageRa
   }
   if (packet.judge_provider !== null && packet.judge_provider !== verdict.judge.provider) {
     return refuse(id, 'land', `packet pins judge_provider='${packet.judge_provider}' but verdict judge is '${verdict.judge.provider}'`);
-  }
-
-  // ---- the green-gate-receipt requirement, bound to THIS tree state ----
-  if (!state.gate?.green) {
-    return refuse(id, 'land', `no green gate receipt for ${id} — run hone lane gate to green before landing (agent claims of green are never trusted)`);
-  }
-  const treeHash = djb2(state.head_sha + '\0' + buildWorkingDiff(g, state.touchset_toplevel));
-  if (treeHash !== state.gate.tree_hash) {
-    return refuse(id, 'land', `tree state changed since the green gate (gate tree_hash ${state.gate.tree_hash}, current ${treeHash}) — re-run hone lane gate (fail-closed)`);
   }
 
   const judgeLabel = `${verdict.judge.provider}${verdict.judge.model ? `:${verdict.judge.model}` : ''}`;
