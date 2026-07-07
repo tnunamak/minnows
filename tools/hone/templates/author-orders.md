@@ -18,6 +18,7 @@ Requested class: `{{CLASS_FILTER}}` (`tst` = test/evidence orders, `pl` = produc
 - Use disjoint `touchset` values across orders unless a dependency makes overlap unavoidable.
 - Touchset paths are repo-relative. Commands must be portable across worktrees.
 - Evidence commands should use `$REPO_ROOT`, `$GIT_ROOT`, or `$HONE_ROOT`; do not bake the authoring checkout path into a command.
+- Authored orders are preflighted for baseline-greenness, DB isolation, and rung hygiene; malformed orders are discarded, never softened or repaired by the engine.
 - Use the ephemeral DB pattern for DB-backed tests: create a unique DB, run with the unique URL, capture rc, drop DB, then `exit $rc`.
 - Capture rc before cleanup/restores: `rc=0; <check> || rc=1; <restore>; exit $rc`.
 - Do not use post-change rungs that compare the dirty working tree against HEAD as the only pass condition.
