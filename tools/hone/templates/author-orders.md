@@ -59,6 +59,16 @@ Extraction seam-pin (baseline-green — preserve-only markers, tolerant of pre/p
   expect_check: { type: exit_code, value: 0 }
 ```
 
+EXTRACTION orders (preserve_refactor) do NOT create a new test file — they reuse an EXISTING test as the behavior oracle. Their `direct-test` rung must therefore be UNCONDITIONAL (no `if [ ! -f ... ]` branch, because the test already exists) and green at baseline. Use this shape for an extraction's direct-test rung:
+```yaml
+- rung: direct-test
+  timeout_s: 600
+  command: "cd \"$REPO_ROOT\" && sh -c 'set -e; export PGHOST=localhost PGPORT=55432 PGUSER=pdpp PGPASSWORD=pdpp; db=pdpp_hone_<SLUG>; dropdb --if-exists -h localhost -p 55432 -U pdpp \"$db\" >/dev/null 2>&1; createdb -h localhost -p 55432 -U pdpp \"$db\" >/dev/null 2>&1; rc=0; PDPP_TEST_POSTGRES_URL=postgres://pdpp:pdpp@localhost:55432/$db timeout 540 node --test --test-force-exit test/<EXISTING-TEST>.test.js || rc=1; dropdb --if-exists -h localhost -p 55432 -U pdpp \"$db\" >/dev/null 2>&1; exit $rc'"
+  expect: "the existing behavior test passes fully — GREEN before the extraction (baseline) and after (post)."
+  expect_check: { type: exit_code, value: 0 }
+```
+Only COVERAGE orders (generate_evidence, authoring a NEW test) use the `if [ ! -f ... ]; then echo BASELINE ...` branch — because their test file is absent at baseline. Never put the BASELINE branch on an extraction rung; never omit it on a coverage rung.
+
 Rules for filling these in: `<TESTFILE-NO-EXT>` and `<SOURCEFILE>` are real paths relative to $REPO_ROOT; `<PRESERVED-MARKER-N>` are string literals that EXIST in the current source and MUST survive the change (never the post-extraction helper name); `<MUTATION-SED>` flips one real behavioral character. If you cannot express an order with these shapes, OMIT it — do not invent a rung the preflight will reject.
 - ALWAYS set `execution_gate: autonomous`. The safe-pool classes you author here (behavior-preserving extractions, mutation-test coverage, certified moves) run unattended through the deterministic gates + cross-provider judge — that is the point. `owner_ratify` is reserved for judgment-tail campaigns (auth/grant/token/consent/scope-enforcement/boot/storage-unification), which you HARD-SKIP and never author. If an order would touch those, omit it entirely rather than gate it.
 - If a good packet cannot be made self-sufficient from these measurements, omit it.
