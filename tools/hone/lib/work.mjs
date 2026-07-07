@@ -844,6 +844,7 @@ export function acquireWorkLock(repoRoot, id, log) {
 
 // pseudo-filesystems that can never be "another repo" (skip the .git-walk stat churn)
 const NEVER_REPO_PREFIXES = ['/dev/', '/proc/', '/sys/'];
+const SCRATCH_FILE_RE = /^\/tmp\/[A-Za-z0-9._-]+\.bak$/;
 // absolute path tokens with >= 2 segments (single-segment tokens like `cd /x` fixtures or
 // sed deletions are ignored); the lookbehind keeps URL slashes (postgres://…) unmatched
 const ABS_PATH_RE = /(?<=^|[\s"'=(:])\/(?:[A-Za-z0-9._-]+\/)+[A-Za-z0-9._-]+/g;
@@ -874,7 +875,8 @@ function insideGitCheckout(tok) {
  *   3. any OTHER foreign absolute path: mapped into the current repo when it carries the
  *      repo-root suffix (`…/<prefix>[/rest]` -> <repo_root>[/rest], e.g. collector --repo
  *      args), otherwise the rung is REFUSED — never run a rung that measures outside the
- *      current repo. System prefixes (/dev, /tmp, /usr, …) are always allowed.
+ *      current repo. Pseudo-filesystems and the canonical /tmp/<slug>.bak
+ *      scratch-file shape are allowed.
  * Returns {command, rewritten, notes, refused}. Same-tree commands: identity.
  */
 export function portableRungCommand(command, { gitRoot, repoRoot, prefix }) {
@@ -914,6 +916,7 @@ export function portableRungCommand(command, { gitRoot, repoRoot, prefix }) {
   cmd = cmd.replace(ABS_PATH_RE, (tok) => {
     if (inside(tok, gitRoot) || inside(tok, HONE_ROOT)) return tok;
     if (NEVER_REPO_PREFIXES.some((a) => tok.startsWith(a))) return tok;
+    if (SCRATCH_FILE_RE.test(tok)) return tok;
     if (prefix) {
       const marker = '/' + prefix;
       if (tok.endsWith(marker)) { notes.push(`${tok} -> ${repoRoot}`); return repoRoot; }

@@ -80,8 +80,8 @@ const isMap = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const validTimeoutS = (v) => isInt(v) && v > 0;
 
 // an existence guard / explicit fallback that makes a rung green while the file the
-// packet will CREATE is still absent: `[ -f`/`[[ -f`/`test -f` (or -e), or a `||` fallback.
-const EXISTENCE_GUARD_RE = /\[{1,2}\s+-[fe]\s|\btest\s+-[fe]\s|\|\|/;
+// packet will CREATE is still absent: `[ -f`/`[ ! -f`/`test -f` (or -e), or a `||` fallback.
+const EXISTENCE_GUARD_RE = /\[{1,2}\s+(?:!\s+)?-[fe]\s|\btest\s+(?:!\s+)?-[fe]\s|\|\|/;
 
 /** nearest ancestor of `start` containing .git, or null (no git spawn — validator stays cheap). */
 function findGitRoot(start) {

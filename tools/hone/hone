@@ -14,7 +14,7 @@ commands:
   plan        inventory → ranked candidate packets → <repo>/quality/packets/*.yaml
               [--repo .] [--top 20]
   plan-orders fresh collectors → Codex-authored packets → validate/repair → quality/packets/*.yaml
-              [--repo .] [--target-dirs a,b] [--max 10] [--class tst|pl|both]
+              [--repo .] [--target-dirs a,b] [--max 10] [--class tst|pl|both] [--freeform]
   validate    strict packet validation with --repo-aware lints; exits nonzero on errors
               validate <packet-id>|--all --repo PATH
   agenda      one strong-model selection call over sensor/ledger/doctrine digests →
