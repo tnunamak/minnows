@@ -14,7 +14,7 @@ cost_usd: number | null         # real when the provider reports it (claude enve
 wall_time_s: number
 landed: bool
 revision_count: int             # maker REVISE cycles before land/abandon
-judge_result: PASS | REVISE | REJECT | null
+judge_result: PASS | REVISE | REJECT | PENDING | null
 outcome: landed | reverted | skipped | blocked
 followup_created: [candidate_id]   # packets spawned by this job (lessons → new candidates)
 

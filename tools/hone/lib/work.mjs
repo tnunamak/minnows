@@ -67,10 +67,13 @@ import {
   deterministicProofVerdictLine,
 } from './certified-equivalence.mjs';
 
-const PROVIDERS = ['claude', 'codex'];
+export const PROVIDERS = ['claude', 'codex'];
 export const TERMINAL = ['landed', 'reverted', 'skipped', 'blocked'];
 export const AUTHOR_NAME = 'Tim Nunamaker';
 export const AUTHOR_EMAIL = 'tnunamak@gmail.com';
+export const DEFERRED_JUDGE_PROVIDER = 'deferred';
+export const DEFERRED_JUDGE_TIER = 'pending-review';
+export const DEFERRED_JUDGE_VERDICT = 'PENDING';
 const MAKER_TIMEOUT_MS = Number(process.env.HONE_MAKER_TIMEOUT_MS ?? 20 * 60 * 1000);
 const EVIDENCE_HARD_TIMEOUT_MS = 45 * 60 * 1000;
 const EVIDENCE_TIMEOUT_MS = Math.min(Number(process.env.HONE_EVIDENCE_TIMEOUT_MS ?? EVIDENCE_HARD_TIMEOUT_MS), EVIDENCE_HARD_TIMEOUT_MS);
@@ -94,6 +97,7 @@ export async function runWork(flags) {
     makerName: String(flags.maker || 'claude'),
     judgeName: String(flags.judge || 'codex'),
     dryRun: !!flags['dry-run'],
+    deferJudge: !!flags['defer-judge'],
   }, realDeps());
   process.stdout.write(res.summary + '\n');
   process.exitCode = res.exitCode;
@@ -1042,6 +1046,7 @@ export function writeTerminal({
   // batch-amortization marker. undefined = keys omitted — the subprocess path's cost
   // entries stay byte-identical.
   stages = undefined, quotaPts = undefined, batch = undefined, judgeTier = undefined,
+  reviewStatus = undefined,
 }) {
   const { inTok, outTok, total, usd } = tokens;
   packet.status = status;
@@ -1050,6 +1055,7 @@ export function writeTerminal({
   packet.outcome = {
     commit, skip_reason: skipReason, blocked_on: blockedOn, judge_verdict: judgeVerdict,
     evidence_receipts: [...receiptLines], tokens_actual: total, lesson,
+    review_status: reviewStatus ?? (status === 'landed' && judgeResult === 'PASS' ? 'reviewed-pass' : null),
   };
   writePacket(packetPath, packet);
 
@@ -1108,13 +1114,13 @@ export function writeTerminal({
  * `pipelineLabel` names the executing substrate honestly (e.g. `hone work: maker=claude
  * judge=codex`); everything else is byte-identical across substrates.
  */
-export function landCommit(g, { packet, id, touchTop, receiptsDirRel, pipelineLabel, confidence, revisionCount, allowedLeftover = [] }) {
+export function landCommit(g, { packet, id, touchTop, receiptsDirRel, pipelineLabel, confidence, revisionCount, allowedLeftover = [], verdictLabel = 'PASS' }) {
   g.git(['add', '--', ...touchTop]);
   const staged = g.git(['diff', '--cached', '--name-only']).split('\n').filter(Boolean);
   const rogue = staged.filter((p) => !touchTop.includes(p));
   if (rogue.length) throw new Error(`staged paths outside touchset at commit time: ${rogue.join(', ')} — refusing to commit`);
   const commitType = packet.action === 'preserve_refactor' || packet.action === 'idealize_rewrite' ? 'refactor' : 'chore';
-  const msg = `${commitType}(${packet.subsystem}): ${packet.plan.transform_class} [hone ${id}]\n\n${pipelineLabel} verdict=PASS${confidence != null ? ` (confidence ${confidence})` : ''}, revisions=${revisionCount}.\nEvidence: ${packet.evidence_required.length} rung(s) green at baseline and post-change (receipts: ${receiptsDirRel}/).`;
+  const msg = `${commitType}(${packet.subsystem}): ${packet.plan.transform_class} [hone ${id}]\n\n${pipelineLabel} verdict=${verdictLabel}${confidence != null ? ` (confidence ${confidence})` : ''}, revisions=${revisionCount}.\nEvidence: ${packet.evidence_required.length} rung(s) green at baseline and post-change (receipts: ${receiptsDirRel}/).`;
   g.git(['-c', `user.name=${AUTHOR_NAME}`, '-c', `user.email=${AUTHOR_EMAIL}`, 'commit', '-q',
     `--author=${AUTHOR_NAME} <${AUTHOR_EMAIL}>`, '-m', msg]);
   const commit = g.git(['rev-parse', 'HEAD']);
@@ -1155,15 +1161,15 @@ export function buildLandClaims({ packet, id, reasoning, judgeProvider, receiptL
 // ---------------------------------------------------------------- the executor
 
 export async function executeWork(opts, deps) {
-  const { id, repoRoot, makerName, judgeName } = opts;
+  const { id, repoRoot, makerName, judgeName, deferJudge = false } = opts;
   const refuse = (reason) => ({
     outcome: 'refused', exitCode: 2,
     summary: `hone work — ${id}: REFUSED (no side effects)\n  ${reason}`,
   });
   // pure gates first (no lock, no filesystem writes)
   if (!PROVIDERS.includes(makerName)) return refuse(`unknown maker provider '${makerName}' (known: ${PROVIDERS.join(', ')})`);
-  if (!PROVIDERS.includes(judgeName)) return refuse(`unknown judge provider '${judgeName}' (known: ${PROVIDERS.join(', ')})`);
-  if (makerName === judgeName) return refuse(`maker == judge ('${makerName}') — non-negotiable #1: the producer of a change cannot certify it`);
+  if (!deferJudge && !PROVIDERS.includes(judgeName)) return refuse(`unknown judge provider '${judgeName}' (known: ${PROVIDERS.join(', ')})`);
+  if (!deferJudge && makerName === judgeName) return refuse(`maker == judge ('${makerName}') — non-negotiable #1: the producer of a change cannot certify it`);
 
   let lock;
   try { lock = acquireWorkLock(repoRoot, id, deps.log); }
@@ -1196,7 +1202,7 @@ export async function executeWork(opts, deps) {
 }
 
 async function executeWorkAttempt(opts, deps, signal) {
-  const { id, repoRoot, makerName, judgeName, dryRun } = opts;
+  const { id, repoRoot, makerName, judgeName, dryRun, deferJudge = false } = opts;
   const startedAt = Date.now();
   const log = deps.log;
   const refuse = (reason) => ({
@@ -1222,7 +1228,10 @@ async function executeWorkAttempt(opts, deps, signal) {
   if (packet.maker_provider !== null && packet.maker_provider !== makerName) {
     return refuse(`packet pins maker_provider='${packet.maker_provider}' but --maker=${makerName}`);
   }
-  if (packet.judge_provider !== null && packet.judge_provider !== judgeName) {
+  if (deferJudge && packet.judge_provider !== null && packet.judge_provider !== DEFERRED_JUDGE_PROVIDER) {
+    return refuse(`packet pins judge_provider='${packet.judge_provider}' but --defer-judge records judge_provider='${DEFERRED_JUDGE_PROVIDER}' (fail-closed; reset or clear the pin before deferring)`);
+  }
+  if (!deferJudge && packet.judge_provider !== null && packet.judge_provider !== judgeName) {
     return refuse(`packet pins judge_provider='${packet.judge_provider}' but --judge=${judgeName}`);
   }
 
@@ -1248,14 +1257,14 @@ async function executeWorkAttempt(opts, deps, signal) {
         `hone work — DRY RUN — ${id} (no side effects)`,
         `  packet: ${packetPath} (status pending, gate autonomous)`,
         `  action=${packet.action} proof_class=${packet.proof_class} behavior_status=${packet.behavior_status}`,
-        `  maker=${makerName}(${packet.maker_tier}) judge=${judgeName}(${packet.judge_tier})  [maker ≠ judge OK]`,
+        `  maker=${makerName}(${packet.maker_tier}) judge=${deferJudge ? `${DEFERRED_JUDGE_PROVIDER}(${DEFERRED_JUDGE_TIER})` : `${judgeName}(${packet.judge_tier})  [maker ≠ judge OK]`}`,
         `  repo: ${repoRoot} (branch ${g.branch}, clean)`,
         `  touchset: ${packet.touchset.join(', ')}`,
         `  not_allowed: ${packet.not_allowed.join(', ')}`,
         `  evidence rungs (baseline, then post-change oracle):`,
         ...packet.evidence_required.map((r, i) => `    ${i + 1}. [${r.rung}] ${r.command}\n       expect: ${r.expect}${r.expect_check ? `\n       expect_check (machine-enforced): ${r.expect_check.type} ${JSON.stringify(r.expect_check.value)}` : ''}`),
         `  plan.instruction: ${packet.plan.instruction}`,
-        `  would: mark in_progress → GREEN BASELINE → maker → touchset gate → oracle (≤1 revision) → judge (≤1 revise) → land/revert`,
+        `  would: mark in_progress → GREEN BASELINE → maker → touchset gate → oracle (≤1 revision) → ${deferJudge ? 'land with review_status=pending (model judge deferred)' : 'judge (≤1 revise) → land/revert'}`,
       ].join('\n'),
     };
   }
@@ -1315,12 +1324,13 @@ async function executeWorkAttempt(opts, deps, signal) {
   const terminalize = ({
     status, commit = null, skipReason = null, blockedOn = null, judgeVerdict = null, lesson = null,
     claims, headline, judgeTier = undefined, terminalJudgeName = judgeName, terminalJudgeRan = judgeMetas.length > 0,
+    reviewStatus = undefined,
   }) =>
     writeTerminal({
       repoRoot, id, packet, packetPath, startedAt,
       makerName, judgeName: terminalJudgeName, makerRan: makerMetas.length > 0, judgeRan: terminalJudgeRan,
       tokens: tokensOf(), revisionCount, judgeResult, receiptLines,
-      status, commit, skipReason, blockedOn, judgeVerdict, lesson, claims, headline, judgeTier,
+      status, commit, skipReason, blockedOn, judgeVerdict, lesson, claims, headline, judgeTier, reviewStatus,
     });
 
   // arm the signal teardown NOW — from the in_progress write onward a kill would
@@ -1558,10 +1568,43 @@ async function executeWorkAttempt(opts, deps, signal) {
         terminalJudgeName: DETERMINISTIC_PROOF_PROVIDER,
         terminalJudgeRan: true,
         judgeTier: DETERMINISTIC_PROOF_TIER,
+        reviewStatus: 'certified',
         judgeVerdict: deterministicProofVerdictLine(certified),
         lesson: revisionCount ? `landed after ${revisionCount} revision cycle(s) — deterministic equivalence certified the final tree` : null,
         claims: deterministicProofClaims({ packet, id, cert: certified, receiptLines, receiptsDirRel }),
         headline: `landed ${commit.slice(0, 12)} on ${g.branch}`,
+      });
+    }
+    if (deferJudge) {
+      log(`  judge deferred: deterministic gates are green; landing with review_status=pending`);
+      judgeResult = DEFERRED_JUDGE_VERDICT;
+      const commit = landCommit(g, {
+        packet, id, touchTop, receiptsDirRel,
+        pipelineLabel: `hone work: maker=${makerName} judge=${DEFERRED_JUDGE_PROVIDER}`,
+        confidence: null, revisionCount,
+        verdictLabel: DEFERRED_JUDGE_VERDICT,
+      });
+      return terminalize({
+        status: 'landed', commit,
+        terminalJudgeName: DEFERRED_JUDGE_PROVIDER,
+        terminalJudgeRan: true,
+        judgeTier: DEFERRED_JUDGE_TIER,
+        reviewStatus: 'pending',
+        judgeVerdict: `${DEFERRED_JUDGE_PROVIDER} ${DEFERRED_JUDGE_VERDICT} (tier ${DEFERRED_JUDGE_TIER}): model judge deferred; run hone review-batch --repo ${repoRoot}`,
+        lesson: 'deferred-review: landed on deterministic gates only; model review is pending debt and must be cleared by hone review-batch',
+        claims: [
+          {
+            type: 'behavior_preserved',
+            statement: `all ${packet.evidence_required.length} deterministic evidence_required rung(s) for ${id} green at baseline and post-change; model judge deferred`,
+            evidence: packet.evidence_required.map((r) => ({ command: r.command, output_digest: receiptLines.filter((l) => l.includes(`] ${r.rung}:`)).pop() ?? `see ${receiptsDirRel}/` })),
+          },
+          {
+            type: 'remaining_work',
+            statement: `deferred-review: landed commit ${commit.slice(0, 12)} is PENDING model review; run hone review-batch --repo ${repoRoot} before treating the work as trustworthy`,
+            judge: { provider: DEFERRED_JUDGE_PROVIDER, verdict: DEFERRED_JUDGE_VERDICT },
+          },
+        ],
+        headline: `landed ${commit.slice(0, 12)} on ${g.branch}; deferred-review PENDING`,
       });
     }
     const judgeProvider = await deps.judge(judgeName);
@@ -1828,6 +1871,7 @@ async function selfTest({ verbose = false } = {}) {
 
   const exec = (root, deps, extra = {}) =>
     executeWork({ id: ID, repoRoot: root, makerName: 'claude', judgeName: 'codex', dryRun: false, ...extra }, deps);
+  const { executeReviewBatch } = await import('./review-batch.mjs');
 
   // ---- gate refusals (no side effects) ----
   await scenario('refuse: owner_ratify gate', async (check) => {
@@ -2021,6 +2065,84 @@ async function selfTest({ verbose = false } = {}) {
     check('packet records deterministic proof provider', p.judge_provider === 'deterministic-proof' && /deterministic-proof PASS/.test(p.outcome.judge_verdict ?? ''), p.outcome.judge_verdict ?? '');
     check('verdict evidence cites equivalence receipt digest', /certified-equivalence/.test(p.outcome.judge_verdict ?? '') && /djb2=/.test(p.outcome.judge_verdict ?? ''), p.outcome.judge_verdict ?? '');
     check('cost records certified judge tier', c0?.judge?.provider === 'deterministic-proof' && c0?.judge?.tier === 'certified' && c0?.judge_result === 'PASS', JSON.stringify(c0?.judge));
+  });
+
+  await scenario('--defer-judge green gates → landed review_status pending, no model judge call', async (check) => {
+    const root = stRepo(ID);
+    const { deps, state } = stMockDeps({ makers: [stEditUtil(ST_GOOD)], judges: [{ verdict: 'PASS', reasoning: 'must not be called', confidence: 1 }] }, log);
+    const r = await exec(root, deps, { makerName: 'codex', judgeName: 'codex', deferJudge: true });
+    const p = packetOnDisk(root);
+    const c0 = costs(root)[0];
+    check('landed despite maker==default-judge because judge is deferred', r.outcome === 'landed' && r.exitCode === 0, r.summary);
+    check('no model judge called', state.judgeCalls === 0);
+    check('packet marked review pending', p.status === 'landed' && p.outcome.review_status === 'pending' && p.judge_provider === 'deferred', JSON.stringify(p.outcome));
+    check('cost ledger records deferred pending judge', c0?.judge?.provider === 'deferred' && c0?.judge?.tier === 'pending-review' && c0?.judge_result === 'PENDING', JSON.stringify(c0));
+    check('claim carries deferred-review marker', claims(root).some((c) => /deferred-review/.test(c.statement) && c.judge?.provider === 'deferred' && c.judge?.verdict === 'PENDING'));
+  });
+
+  await scenario('--defer-judge with red deterministic gate reverts; gates are not deferred', async (check) => {
+    const root = stRepo(ID);
+    const { deps, state } = stMockDeps({ makers: [stEditUtil(ST_BAD), stEditUtil(ST_BAD)] }, log);
+    const r = await exec(root, deps, { makerName: 'codex', judgeName: 'codex', deferJudge: true });
+    const p = packetOnDisk(root);
+    check('reverted exactly like normal oracle red', r.outcome === 'reverted' && r.exitCode === 1, r.summary);
+    check('deterministic failure recorded, not pending review', p.status === 'reverted' && p.outcome.review_status === null && p.outcome.evidence_receipts.some((l) => /FAIL/.test(l)), JSON.stringify(p.outcome));
+    check('model judge never called', state.judgeCalls === 0);
+    check('tree clean after revert', treeClean(root));
+  });
+
+  await scenario('certified order + --defer-judge takes certified path, review_status certified', async (check) => {
+    const evidence = [
+      { rung: 'certified-equivalence', command: 'node test.js', expect: 'exit 0', expect_check: { type: 'exit_code', value: 0 } },
+    ];
+    const root = stRepo(ID, { packetOverrides: { proof_class: 'exact_move', evidence_required: evidence, certified_equivalence_rung: 'certified-equivalence' } });
+    const { deps, state } = stMockDeps({ makers: [stEditUtil(ST_GOOD)] }, log);
+    const r = await exec(root, deps, { makerName: 'codex', judgeName: 'codex', deferJudge: true });
+    const p = packetOnDisk(root);
+    const c0 = costs(root)[0];
+    check('landed certified', r.outcome === 'landed' && p.outcome.review_status === 'certified', r.summary);
+    check('no model judge called', state.judgeCalls === 0);
+    check('cost records deterministic proof, not deferred pending', c0?.judge?.provider === 'deterministic-proof' && c0?.judge_result === 'PASS', JSON.stringify(c0));
+  });
+
+  await scenario('review-batch PASS finds pending land and flips to reviewed-pass', async (check) => {
+    const root = stRepo(ID);
+    const { deps } = stMockDeps({ makers: [stEditUtil(ST_GOOD)] }, log);
+    const landed = await exec(root, deps, { makerName: 'codex', judgeName: 'codex', deferJudge: true });
+    check('setup landed pending', landed.outcome === 'landed' && packetOnDisk(root).outcome.review_status === 'pending', landed.summary);
+    const reviewDeps = {
+      judge: async (name) => ({
+        name,
+        judge: async (args) => ({ verdict: 'PASS', reasoning: `batch reviewed ${args.diff.includes('return n;') ? 'landed diff' : 'missing diff'}`, confidence: 0.91, raw: { provider: name, attempts: [{ meta: { provider: name, tokens: { input: 10, output: 5, total: 15 }, costUsd: 0.02 } }] } }),
+      }),
+      log,
+    };
+    const rr = await executeReviewBatch({ repoRoot: root, judgeName: 'claude' }, reviewDeps);
+    const p = packetOnDisk(root);
+    check('review batch exits 0 and reports pass', rr.exitCode === 0 && /pass 1, flagged 0/.test(rr.summary), rr.summary);
+    check('packet flipped to reviewed-pass with actual judge provider', p.outcome.review_status === 'reviewed-pass' && p.judge_provider === 'claude' && /claude PASS/.test(p.outcome.judge_verdict ?? ''), JSON.stringify(p.outcome));
+    check('review cost line appended for actual judge', costs(root).some((c) => c.workflow.endsWith(':review-batch') && c.judge.provider === 'claude' && c.judge_result === 'PASS'));
+  });
+
+  await scenario('review-batch REJECT flips reviewed-reject, prints loudly, never auto-reverts', async (check) => {
+    const root = stRepo(ID);
+    const { deps } = stMockDeps({ makers: [stEditUtil(ST_GOOD)] }, log);
+    const landed = await exec(root, deps, { makerName: 'codex', judgeName: 'codex', deferJudge: true });
+    const beforeHead = headSubject(root);
+    check('setup landed pending', landed.outcome === 'landed' && packetOnDisk(root).outcome.review_status === 'pending', landed.summary);
+    const reviewDeps = {
+      judge: async (name) => ({
+        name,
+        judge: async () => ({ verdict: 'REJECT', reasoning: 'behavior preservation evidence is insufficient for this landed change', confidence: 0.77, raw: { provider: name, attempts: [{ meta: { provider: name, tokens: { total: 20 } } }] } }),
+      }),
+      log,
+    };
+    const rr = await executeReviewBatch({ repoRoot: root, judgeName: 'claude' }, reviewDeps);
+    const p = packetOnDisk(root);
+    check('review batch exits 0 and reports flagged loudly', rr.exitCode === 0 && /!!! DEFERRED REVIEW FLAGGED LANDED COMMIT/.test(rr.summary) && /No landed commit was auto-reverted/.test(rr.summary), rr.summary);
+    check('packet remains landed but reviewed-reject', p.status === 'landed' && p.outcome.review_status === 'reviewed-reject' && /claude REJECT/.test(p.outcome.judge_verdict ?? ''), JSON.stringify(p.outcome));
+    check('HEAD unchanged; no auto-revert commit created', headSubject(root) === beforeHead);
+    check('remaining_work claim names owner decision', claims(root).some((c) => /owner must decide revert-commit or re-work/.test(c.statement)));
   });
 
   await scenario('certified class without equivalence rung falls back to model judge', async (check) => {

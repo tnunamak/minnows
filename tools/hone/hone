@@ -22,7 +22,9 @@ commands:
               citations machine-verified, UNVERIFIED items demoted
               [--repo .] [--dry-run] [--challenge] [--doctrine PATH]
   work <id>   execute one packet (maker ≠ judge)
-              [--repo .] [--maker claude|codex] [--judge codex|claude] [--dry-run]
+              [--repo .] [--maker claude|codex] [--judge codex|claude] [--dry-run] [--defer-judge]
+  review-batch  run deferred model review over landed packets with outcome.review_status=pending
+              [--repo .] [--limit N] [--judge claude|codex]
   lane        deterministic spine for EXTERNAL (Workflow-substrate) makers/judges;
               engine-run receipts/gates/ledgers only — agent claims never trusted
               (design: SUBSTRATE.md; driver: workflows/hone-lane.js)
@@ -80,6 +82,11 @@ try {
     case 'work': {
       const { runWork } = await import('./lib/work.mjs');
       await runWork(flags);
+      break;
+    }
+    case 'review-batch': {
+      const { runReviewBatch } = await import('./lib/review-batch.mjs');
+      await runReviewBatch(flags);
       break;
     }
     case 'lane': {

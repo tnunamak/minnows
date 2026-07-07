@@ -122,6 +122,10 @@ outcome:
   skip_reason: string | null    # REQUIRED if skipped — e.g. "T1c: capture crosses txn boundary"
   blocked_on: string | null     # REQUIRED if blocked — e.g. "no oracle: needs differential harness for X"
   judge_verdict: string | null  # verbatim gist
+  review_status: pending | reviewed-pass | reviewed-revise | reviewed-reject | certified | null
+                                # OPTIONAL/back-compat. `pending` means landed on deterministic gates
+                                # via --defer-judge and awaiting `hone review-batch`.
+                                # `certified` means deterministic equivalence was review-free.
   evidence_receipts: [string]   # commands run + results, pasted not narrated
   tokens_actual: int | null
   lesson: string | null         # anything that should update priors/rules (incl. upstream collector bugs)

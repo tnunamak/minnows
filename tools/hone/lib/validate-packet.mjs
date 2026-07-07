@@ -47,6 +47,7 @@ const ENUMS = {
   maker_tier: ['cheap', 'standard', 'strong'],
   judge_tier: ['standard', 'strong'],
   status: ['pending', 'in_progress', 'landed', 'reverted', 'skipped', 'blocked'],
+  review_status: ['pending', 'reviewed-pass', 'reviewed-revise', 'reviewed-reject', 'certified'],
 };
 
 const TOP_KEYS = [
@@ -376,11 +377,14 @@ export function validatePacket(p, ctx = {}) {
 
   if (!isMap(p.outcome)) err('outcome: map required');
   else {
-    const OUT_KEYS = ['commit', 'skip_reason', 'blocked_on', 'judge_verdict', 'evidence_receipts', 'tokens_actual', 'lesson'];
+    const OUT_KEYS = ['commit', 'skip_reason', 'blocked_on', 'judge_verdict', 'evidence_receipts', 'tokens_actual', 'lesson', 'review_status'];
     for (const k of Object.keys(p.outcome)) if (!OUT_KEYS.includes(k)) err(`outcome: unknown key ${k}`);
-    for (const k of OUT_KEYS) if (!(k in p.outcome)) err(`outcome: missing key ${k}`);
+    for (const k of OUT_KEYS.filter((k) => k !== 'review_status')) if (!(k in p.outcome)) err(`outcome: missing key ${k}`);
     for (const k of ['commit', 'skip_reason', 'blocked_on', 'judge_verdict', 'lesson']) {
       if (k in p.outcome && !isStrOrNull(p.outcome[k])) err(`outcome.${k}: string|null required`);
+    }
+    if ('review_status' in p.outcome && p.outcome.review_status !== null && !ENUMS.review_status.includes(p.outcome.review_status)) {
+      err(`outcome.review_status: must be one of [${ENUMS.review_status.join(' | ')}]|null, got ${JSON.stringify(p.outcome.review_status)}`);
     }
     if ('evidence_receipts' in p.outcome && (!Array.isArray(p.outcome.evidence_receipts) || !p.outcome.evidence_receipts.every(isNonEmptyStr))) {
       err('outcome.evidence_receipts: [string] required');

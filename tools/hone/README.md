@@ -16,6 +16,9 @@ label, never presented as validated.
 hone inventory --repo /path/to/repo            # collectors → <repo>/quality/inventory/*.json
 hone plan      --repo /path/to/repo --top 20   # packets    → <repo>/quality/packets/*.yaml
 hone work <id> --repo /path/to/repo            # execute one packet (maker ≠ judge, evidence-gated)
+hone work <id> --repo /path/to/repo --defer-judge
+                                               # land on deterministic gates, mark model review pending
+hone review-batch --repo /path/to/repo         # batch-review pending landed packets; never auto-reverts
 hone lane emit|gate|land --packet <id> --repo /path/to/repo
                                                # deterministic spine for EXTERNAL (Workflow-substrate)
                                                # makers/judges — books identical, engine-run receipts only
@@ -45,6 +48,18 @@ Engine code lives here (repo-independent). Per-repo state lives **in the target 
 
 Terminal packets (landed/reverted/skipped/blocked) are never overwritten by `plan` — they are
 the engine's memory. Pending packets regenerate freely.
+
+`--defer-judge` is a quota valve, not a weaker gate. `hone work <id> --defer-judge`
+still runs the maker and every deterministic gate (baseline, post-change rungs,
+touchset, oracle/scope/complexity checks). If those gates are green, it lands and
+records `outcome.review_status: pending`, `judge_provider: deferred`, and a
+`deferred-review` claim. Certified-equivalence packets still take the certified path
+and record `review_status: certified`.
+
+`hone review-batch --repo P [--limit N] [--judge claude|codex]` clears that debt by
+running the normal model judge over pending landed diffs and receipts. PASS flips to
+`reviewed-pass`; REVISE/REJECT flips to `reviewed-revise`/`reviewed-reject` and prints
+a loud flagged summary. It never auto-reverts a landed commit.
 
 ## Profile format (`<repo>/quality/hone.yaml`)
 

@@ -12,7 +12,7 @@ import { dirname, join } from 'node:path';
 export const CLAIM_TYPES = ['verified_fact', 'judged_design_claim', 'behavior_preserved',
   'behavior_changed', 'hypothesis', 'uncertainty', 'remaining_work'];
 export const OUTCOMES = ['landed', 'reverted', 'skipped', 'blocked'];
-export const JUDGE_RESULTS = ['PASS', 'REVISE', 'REJECT'];
+export const JUDGE_RESULTS = ['PASS', 'REVISE', 'REJECT', 'PENDING'];
 // stage-level token attribution (token-economics instrumentation): a cost entry MAY
 // carry per-stage records — the efficiency levers are unoptimizable without them.
 export const USAGE_STAGES = ['recon', 'edit', 'test', 'judge', 'plan'];
