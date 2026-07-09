@@ -5,13 +5,13 @@
   "repo": "tnunamak/minnows",
   "packs": {
     "model-catalog": {
-      "latest_tag": "data-model-catalog-v0.4.0",
+      "latest_tag": "data-model-catalog-v0.4.1",
       "description": "Model pricing + quality/effort scores + effort/mode capabilities (SOURCES provenance)",
       "readme": "https://github.com/tnunamak/minnows/blob/main/data/model-catalog/README.md",
       "releases": "https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true",
-      "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-model-catalog-v0.4.0/data/model-catalog/pack.json",
-      "tarball": "https://github.com/tnunamak/minnows/releases/download/data-model-catalog-v0.4.0/data-model-catalog-v0.4.0.tar.gz",
-      "tree": "https://github.com/tnunamak/minnows/tree/data-model-catalog-v0.4.0/data/model-catalog"
+      "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-model-catalog-v0.4.1/data/model-catalog/pack.json",
+      "tarball": "https://github.com/tnunamak/minnows/releases/download/data-model-catalog-v0.4.1/data-model-catalog-v0.4.1.tar.gz",
+      "tree": "https://github.com/tnunamak/minnows/tree/data-model-catalog-v0.4.1/data/model-catalog"
     },
     "model-choice-policy": {
       "latest_tag": "data-model-choice-policy-v0.1.0",
