@@ -112,7 +112,7 @@
     {
       "id": "openai-codex-pricing-2026-07-09",
       "url": "https://learn.chatgpt.com/docs/pricing",
-      "title": "Pricing – Codex",
+      "title": "Pricing \u2013 Codex",
       "publisher": "OpenAI",
       "published": null,
       "retrieved_at": "2026-07-09",
@@ -122,7 +122,7 @@
     {
       "id": "openai-codex-config-2026-07-09",
       "url": "https://developers.openai.com/codex/config-reference",
-      "title": "Configuration Reference – Codex",
+      "title": "Configuration Reference \u2013 Codex",
       "publisher": "OpenAI",
       "published": null,
       "retrieved_at": "2026-07-09",
@@ -159,7 +159,7 @@
     {
       "id": "arcprize-gpt-5-6-2026-07-09",
       "url": "https://arcprize.org/results/openai-gpt-5-6",
-      "title": "GPT-5.6 Series — ARC-AGI Results",
+      "title": "GPT-5.6 Series \u2014 ARC-AGI Results",
       "publisher": "ARC Prize",
       "published": "2026-07-09",
       "retrieved_at": "2026-07-09",
@@ -306,6 +306,16 @@
       "published": "2024-07-01",
       "retrieved_at": "2026-07-09",
       "kind": "academic"
+    },
+    {
+      "id": "anthropic-sonnet-5-digitized-2026-07-09",
+      "url": "https://www.anthropic.com/news/claude-sonnet-5",
+      "title": "Claude Sonnet 5 charts (digitized)",
+      "publisher": "Anthropic (digitized by minnows)",
+      "published": "2026-06-30",
+      "retrieved_at": "2026-07-09",
+      "kind": "vendor_blog",
+      "notes": "Numeric series extracted from official figure PNGs via density-peak digitization and labeled-value reads. Intermediate JSON under digitized/."
     }
   ]
 }

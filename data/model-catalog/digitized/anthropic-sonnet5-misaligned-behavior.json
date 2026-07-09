@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "kind": "digitized_chart",
+  "title": "Misaligned behavior scores (printed labels)",
+  "retrieved_at": "2026-07-09",
+  "page_url": "https://www.anthropic.com/news/claude-sonnet-5",
+  "asset": {
+    "path": "digitized/assets/anthropic-sonnet5-misaligned-behavior.png",
+    "source_url": "https://cdn.sanity.io/images/4zrzovbb/website/d018d76aa03c0ef18abc8a68de8f6fcd51c0a574-3840x2160.png",
+    "sha256": "9d357d038f4022f362a8eb60b2c9bc0cef51ad031f4cd689caf545b8f81b1d08",
+    "width": 3840,
+    "height": 2160
+  },
+  "digitization": {
+    "method": "labeled_value_read",
+    "axis": {
+      "notes": "values from printed labels on chart"
+    },
+    "error_estimate": {
+      "notes": "printed numbers; transcription error only"
+    },
+    "operator": "vision_assisted"
+  },
+  "points": [
+    {
+      "model": "claude-sonnet-4-6",
+      "y": 2.89,
+      "metric": "Misaligned behavior (1-10)"
+    },
+    {
+      "model": "claude-mythos-preview",
+      "y": 1.95,
+      "metric": "Misaligned behavior (1-10)"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "y": 2.1,
+      "metric": "Misaligned behavior (1-10)"
+    },
+    {
+      "model": "claude-sonnet-5",
+      "y": 2.53,
+      "metric": "Misaligned behavior (1-10)"
+    }
+  ],
+  "notes": "Bar chart with printed values; error bars not digitized.",
+  "source_type": "digitized_chart"
+}

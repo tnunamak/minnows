@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "kind": "digitized_chart",
+  "title": "Agentic search performance by effort level (BrowseComp)",
+  "retrieved_at": "2026-07-09",
+  "page_url": "https://www.anthropic.com/news/claude-sonnet-5",
+  "asset": {
+    "path": "digitized/assets/anthropic-sonnet5-browsecomp-effort.png",
+    "source_url": "https://cdn.sanity.io/images/4zrzovbb/website/cd0df787f39b6408dcba539fba93f817f2f3c0b4-3840x2160.png",
+    "sha256": "7a9fecfe189d0ea2eb3c34187538016a5d7afbc2283a91099c465a48e91905bb",
+    "width": 3840,
+    "height": 2160
+  },
+  "digitization": {
+    "method": "density_peak_marker_centroids",
+    "axis": {
+      "x": "cost_per_task_usd",
+      "y": "pass_rate_pct",
+      "x_scale": "log",
+      "y_scale": "linear",
+      "x_min": 2.0,
+      "x_max": 50.0,
+      "y_min": 60.0,
+      "y_max": 90.0,
+      "plot_box_px": [
+        430,
+        430,
+        3600,
+        1785
+      ]
+    },
+    "error_estimate": {
+      "x_abs_median_vs_vision_dual_read": 2.6395,
+      "y_abs_median_vs_vision_dual_read": 0.619,
+      "notes": "vision dual_read is independent approximate read of same image"
+    },
+    "operator": "automated"
+  },
+  "points": [
+    {
+      "model": "claude-sonnet-5",
+      "series_color": "orange",
+      "effort": "low",
+      "cost_per_task_usd": 2.4203,
+      "pass_rate_pct": 63.763,
+      "pixel": {
+        "x": 617.8,
+        "y": 1615.0,
+        "n": 2310
+      },
+      "x": 2.4203,
+      "y": 63.763
+    },
+    {
+      "model": "claude-sonnet-5",
+      "series_color": "orange",
+      "effort": "medium",
+      "cost_per_task_usd": 5.0611,
+      "pass_rate_pct": 73.442,
+      "pixel": {
+        "x": 1344.3,
+        "y": 1177.9,
+        "n": 2488
+      },
+      "x": 5.0611,
+      "y": 73.442
+    },
+    {
+      "model": "claude-sonnet-5",
+      "series_color": "orange",
+      "effort": "high",
+      "cost_per_task_usd": 9.199,
+      "pass_rate_pct": 80.247,
+      "pixel": {
+        "x": 1932.8,
+        "y": 870.5,
+        "n": 2592
+      },
+      "x": 9.199,
+      "y": 80.247
+    },
+    {
+      "model": "claude-sonnet-5",
+      "series_color": "orange",
+      "effort": "xhigh",
+      "cost_per_task_usd": 18.8477,
+      "pass_rate_pct": 82.948,
+      "pixel": {
+        "x": 2639.2,
+        "y": 748.5,
+        "n": 2545
+      },
+      "x": 18.8477,
+      "y": 82.948
+    },
+    {
+      "model": "claude-sonnet-5",
+      "series_color": "orange",
+      "effort": "max",
+      "cost_per_task_usd": 24.6208,
+      "pass_rate_pct": 84.704,
+      "pixel": {
+        "x": 2902.3,
+        "y": 669.2,
+        "n": 2192
+      },
+      "x": 24.6208,
+      "y": 84.704
+    },
+    {
+      "model": "claude-opus-4-8",
+      "series_color": "gold",
+      "effort": "low",
+      "cost_per_task_usd": 8.9251,
+      "pass_rate_pct": 78.596,
+      "pixel": {
+        "x": 1903.0,
+        "y": 945.1,
+        "n": 2467
+      },
+      "x": 8.9251,
+      "y": 78.596
+    },
+    {
+      "model": "claude-opus-4-8",
+      "series_color": "gold",
+      "effort": "medium",
+      "cost_per_task_usd": 14.8505,
+      "pass_rate_pct": 80.083,
+      "pixel": {
+        "x": 2404.4,
+        "y": 877.9,
+        "n": 2378
+      },
+      "x": 14.8505,
+      "y": 80.083
+    },
+    {
+      "model": "claude-opus-4-8",
+      "series_color": "gold",
+      "effort": "high",
+      "cost_per_task_usd": 17.1582,
+      "pass_rate_pct": 82.491,
+      "pixel": {
+        "x": 2546.7,
+        "y": 769.1,
+        "n": 1902
+      },
+      "x": 17.1582,
+      "y": 82.491
+    },
+    {
+      "model": "claude-opus-4-8",
+      "series_color": "gold",
+      "effort": "xhigh",
+      "cost_per_task_usd": 22.9702,
+      "pass_rate_pct": 84.209,
+      "pixel": {
+        "x": 2834.0,
+        "y": 691.5,
+        "n": 1920
+      },
+      "x": 22.9702,
+      "y": 84.209
+    },
+    {
+      "model": "claude-opus-4-8",
+      "series_color": "gold",
+      "effort": "max",
+      "cost_per_task_usd": 27.7124,
+      "pass_rate_pct": 84.491,
+      "pixel": {
+        "x": 3018.8,
+        "y": 678.8,
+        "n": 2262
+      },
+      "x": 27.7124,
+      "y": 84.491
+    }
+  ],
+  "dual_read": [
+    {
+      "model": "claude-sonnet-5",
+      "effort": "low",
+      "x": 1.8,
+      "y": 60.0
+    },
+    {
+      "model": "claude-sonnet-5",
+      "effort": "medium",
+      "x": 4.0,
+      "y": 71.5
+    },
+    {
+      "model": "claude-sonnet-5",
+      "effort": "high",
+      "x": 7.5,
+      "y": 79.5
+    },
+    {
+      "model": "claude-sonnet-5",
+      "effort": "xhigh",
+      "x": 15.0,
+      "y": 82.5
+    },
+    {
+      "model": "claude-sonnet-5",
+      "effort": "max",
+      "x": 22.0,
+      "y": 84.8
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "low",
+      "x": 7.2,
+      "y": 77.5
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "medium",
+      "x": 12.0,
+      "y": 79.0
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "high",
+      "x": 14.5,
+      "y": 82.0
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "xhigh",
+      "x": 20.0,
+      "y": 84.0
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "x": 25.0,
+      "y": 84.5
+    }
+  ],
+  "notes": "Geometric density-peak extraction of filled markers on official Sonnet 5 launch chart. Sonnet 4.6 series may be incomplete if marker color is too close to grid. Pass rate as %; convert to 0-1 for catalog scores.",
+  "source_type": "digitized_chart"
+}

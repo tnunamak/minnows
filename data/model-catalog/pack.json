@@ -2,9 +2,9 @@
   "$schema": "schemas/pack-v1.schema.json",
   "name": "model-catalog",
   "schema_version": 1,
-  "tag": "data-model-catalog-v0.4.0",
+  "tag": "data-model-catalog-v0.4.1",
   "generated_at": "2026-07-09",
-  "description": "Broad model economics + multi-source quality evidence with full SOURCES provenance. Pricing (Anthropic/OpenAI/Codex credits/xAI/Google), capabilities, vendor launch tables, and third-party boards (ARC, AA, Terminal-Bench, SWE, Arena).",
+  "description": "Broad model economics + multi-source quality evidence with full SOURCES provenance. Pricing (Anthropic/OpenAI/Codex credits/xAI/Google), capabilities, vendor launch tables, and third-party boards (ARC, AA, Terminal-Bench, SWE, Arena). Includes digitized Anthropic Sonnet 5 effort curves (v0.4.1).",
   "files": [
     "SCHEMA.md",
     "SOURCES.json",
@@ -28,7 +28,18 @@
     "performance/artificial-analysis-2026-07.json",
     "performance/swe-bench-2026-07.json",
     "performance/lmarena-text-2026-07.json",
-    "performance/browsecomp-2026-07.json"
+    "performance/browsecomp-2026-07.json",
+    "performance/anthropic-sonnet5-digitized-2026-07.json",
+    "digitized/anthropic-sonnet5-browsecomp-effort.json",
+    "digitized/anthropic-sonnet5-osworld-effort.json",
+    "digitized/anthropic-sonnet5-benchmark-table.json",
+    "digitized/anthropic-sonnet5-misaligned-behavior.json",
+    "digitized/anthropic-sonnet5-firefox147-exploit.json",
+    "digitized/assets/anthropic-sonnet5-browsecomp-effort.png",
+    "digitized/assets/anthropic-sonnet5-osworld-effort.png",
+    "digitized/assets/anthropic-sonnet5-benchmark-table.png",
+    "digitized/assets/anthropic-sonnet5-misaligned-behavior.png",
+    "digitized/assets/anthropic-sonnet5-firefox147-exploit.png"
   ],
   "schemas": {
     "pricing": "schemas/pricing-v1.schema.json",

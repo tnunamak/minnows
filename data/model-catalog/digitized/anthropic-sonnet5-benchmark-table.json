@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "kind": "digitized_chart",
+  "title": "Sonnet 5 vs Sonnet 4.6 vs Opus 4.8 benchmark table",
+  "retrieved_at": "2026-07-09",
+  "page_url": "https://www.anthropic.com/news/claude-sonnet-5",
+  "asset": {
+    "path": "digitized/assets/anthropic-sonnet5-benchmark-table.png",
+    "source_url": "https://cdn.sanity.io/images/4zrzovbb/website/9941d610909f28a504e16dd5af823df172ec6035-2600x1234.png",
+    "sha256": "849d6a908f0d46ac9afe7c5589da3e49242c41ebd44112e4ba70cdbdf7899b4d",
+    "width": 2600,
+    "height": 1234
+  },
+  "digitization": {
+    "method": "labeled_value_read",
+    "axis": {
+      "notes": "values from printed labels on chart"
+    },
+    "error_estimate": {
+      "notes": "printed numbers; transcription error only"
+    },
+    "operator": "vision_assisted"
+  },
+  "points": [
+    {
+      "model": "claude-sonnet-5",
+      "metric": "SWE-bench Pro",
+      "y": 63.2,
+      "unit": "pct"
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "metric": "SWE-bench Pro",
+      "y": 58.1,
+      "unit": "pct"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "SWE-bench Pro",
+      "y": 69.2,
+      "unit": "pct"
+    },
+    {
+      "model": "claude-sonnet-5",
+      "metric": "Terminal-Bench 2.1",
+      "y": 80.4,
+      "unit": "pct"
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "metric": "Terminal-Bench 2.1",
+      "y": 67.0,
+      "unit": "pct"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "Terminal-Bench 2.1",
+      "y": 82.7,
+      "unit": "pct"
+    },
+    {
+      "model": "claude-sonnet-5",
+      "metric": "Humanity's Last Exam (no tools)",
+      "y": 43.2,
+      "unit": "pct"
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "metric": "Humanity's Last Exam (no tools)",
+      "y": 34.6,
+      "unit": "pct"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "Humanity's Last Exam (no tools)",
+      "y": 49.8,
+      "unit": "pct"
+    },
+    {
+      "model": "claude-sonnet-5",
+      "metric": "Humanity's Last Exam (with tools)",
+      "y": 57.4,
+      "unit": "pct"
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "metric": "Humanity's Last Exam (with tools)",
+      "y": 46.8,
+      "unit": "pct"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "Humanity's Last Exam (with tools)",
+      "y": 57.9,
+      "unit": "pct"
+    },
+    {
+      "model": "claude-sonnet-5",
+      "metric": "OSWorld-Verified",
+      "y": 81.2,
+      "unit": "pct"
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "metric": "OSWorld-Verified",
+      "y": 78.5,
+      "unit": "pct"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "OSWorld-Verified",
+      "y": 83.4,
+      "unit": "pct"
+    },
+    {
+      "model": "claude-sonnet-5",
+      "metric": "GDPval-AA v2",
+      "y": 1618,
+      "unit": "elo"
+    },
+    {
+      "model": "claude-sonnet-4-6",
+      "metric": "GDPval-AA v2",
+      "y": 1395,
+      "unit": "elo"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "GDPval-AA v2",
+      "y": 1615,
+      "unit": "elo"
+    }
+  ],
+  "notes": "Printed table values from Sonnet 5 launch post figure.",
+  "source_type": "digitized_chart"
+}

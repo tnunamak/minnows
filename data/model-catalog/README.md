@@ -9,7 +9,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | Tag **`data-model-catalog-v0.4.0`** — [release](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.4.0) |
+| **This version** | Tag **`data-model-catalog-v0.4.1`** — [release](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.4.1) |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -18,7 +18,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.4.0
+TAG=data-model-catalog-v0.4.1
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -70,6 +70,12 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 5. **Validate before shipping:** `./scripts/validate_data_pack.py model-catalog`
 
 ## Changelog
+
+### v0.4.1 — 2026-07-09
+
+- **Chart digitization pipeline** (`scripts/digitize_chart.py`): density-peak marker extraction + labeled-value reads with asset hashes and dual-read error estimates.
+- **Sonnet 5 pilot:** BrowseComp & OSWorld-Verified effort×cost curves; printed benchmark table; misaligned-behavior and Firefox147 bar labels → `performance/anthropic-sonnet5-digitized-2026-07.json` + `digitized/`.
+
 
 ### v0.4.0 — 2026-07-09
 

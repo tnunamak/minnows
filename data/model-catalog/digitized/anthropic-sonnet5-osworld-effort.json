@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "kind": "digitized_chart",
+  "title": "Agentic computer use performance by effort level (OSWorld-Verified)",
+  "retrieved_at": "2026-07-09",
+  "page_url": "https://www.anthropic.com/news/claude-sonnet-5",
+  "asset": {
+    "path": "digitized/assets/anthropic-sonnet5-osworld-effort.png",
+    "source_url": "https://cdn.sanity.io/images/4zrzovbb/website/d5c761e88dc46d7f79990dc2c4ad7a7cbaebdf3b-3840x2160.png",
+    "sha256": "a16fed32489dd926d7ba3b34521b7dfa7f09d0755473098dc46330eedbb5b7e2",
+    "width": 3840,
+    "height": 2160
+  },
+  "digitization": {
+    "method": "density_peak_marker_centroids",
+    "axis": {
+      "x": "cost_per_task_usd",
+      "y": "pass_rate_pct",
+      "x_scale": "log",
+      "y_scale": "linear",
+      "x_min": 0.2,
+      "x_max": 1.5,
+      "y_min": 71.0,
+      "y_max": 84.0,
+      "plot_box_px": [
+        430,
+        430,
+        3600,
+        1785
+      ]
+    },
+    "error_estimate": {
+      "x_abs_median_vs_vision_dual_read": 0.0772,
+      "y_abs_median_vs_vision_dual_read": 0.1525,
+      "notes": "vision dual_read is independent approximate read of same image"
+    },
+    "operator": "automated"
+  },
+  "points": [
+    {
+      "model": "claude-sonnet-5",
+      "series_color": "orange",
+      "effort": "low",
+      "cost_per_task_usd": 0.3104,
+      "pass_rate_pct": 76.963,
+      "pixel": {
+        "x": 1121.8,
+        "y": 1163.4,
+        "n": 2478
+      },
+      "x": 0.3104,
+      "y": 76.963
+    },
+    {
+      "model": "claude-sonnet-5",
+      "series_color": "orange",
+      "effort": "medium",
+      "cost_per_task_usd": 0.3859,
+      "pass_rate_pct": 77.889,
+      "pixel": {
+        "x": 1464.1,
+        "y": 1067.0,
+        "n": 2477
+      },
+      "x": 0.3859,
+      "y": 77.889
+    },
+    {
+      "model": "claude-sonnet-5",
+      "series_color": "orange",
+      "effort": "high",
+      "cost_per_task_usd": 0.4596,
+      "pass_rate_pct": 78.562,
+      "pixel": {
+        "x": 1738.9,
+        "y": 996.8,
+        "n": 2571
+      },
+      "x": 0.4596,
+      "y": 78.562
+    },
+    {
+      "model": "claude-sonnet-5",
+      "series_color": "orange",
+      "effort": "xhigh",
+      "cost_per_task_usd": 0.5586,
+      "pass_rate_pct": 79.248,
+      "pixel": {
+        "x": 2045.9,
+        "y": 925.3,
+        "n": 2525
+      },
+      "x": 0.5586,
+      "y": 79.248
+    },
+    {
+      "model": "claude-sonnet-5",
+      "series_color": "orange",
+      "effort": "max",
+      "cost_per_task_usd": 0.7758,
+      "pass_rate_pct": 81.172,
+      "pixel": {
+        "x": 2562.6,
+        "y": 724.7,
+        "n": 2460
+      },
+      "x": 0.7758,
+      "y": 81.172
+    },
+    {
+      "model": "claude-opus-4-8",
+      "series_color": "gold",
+      "effort": "low",
+      "cost_per_task_usd": 0.4131,
+      "pass_rate_pct": 78.49,
+      "pixel": {
+        "x": 1571.2,
+        "y": 1004.3,
+        "n": 2178
+      },
+      "x": 0.4131,
+      "y": 78.49
+    },
+    {
+      "model": "claude-opus-4-8",
+      "series_color": "gold",
+      "effort": "medium",
+      "cost_per_task_usd": 0.5098,
+      "pass_rate_pct": 79.783,
+      "pixel": {
+        "x": 1902.1,
+        "y": 869.5,
+        "n": 2384
+      },
+      "x": 0.5098,
+      "y": 79.783
+    },
+    {
+      "model": "claude-opus-4-8",
+      "series_color": "gold",
+      "effort": "high",
+      "cost_per_task_usd": 0.5653,
+      "pass_rate_pct": 81.123,
+      "pixel": {
+        "x": 2064.7,
+        "y": 729.9,
+        "n": 2537
+      },
+      "x": 0.5653,
+      "y": 81.123
+    },
+    {
+      "model": "claude-opus-4-8",
+      "series_color": "gold",
+      "effort": "xhigh",
+      "cost_per_task_usd": 0.8611,
+      "pass_rate_pct": 82.689,
+      "pixel": {
+        "x": 2726.7,
+        "y": 566.7,
+        "n": 2684
+      },
+      "x": 0.8611,
+      "y": 82.689
+    },
+    {
+      "model": "claude-opus-4-8",
+      "series_color": "gold",
+      "effort": "max",
+      "cost_per_task_usd": 1.3938,
+      "pass_rate_pct": 83.164,
+      "pixel": {
+        "x": 3484.5,
+        "y": 517.1,
+        "n": 2411
+      },
+      "x": 1.3938,
+      "y": 83.164
+    }
+  ],
+  "dual_read": [
+    {
+      "model": "claude-sonnet-5",
+      "effort": "low",
+      "x": 0.22,
+      "y": 76.7
+    },
+    {
+      "model": "claude-sonnet-5",
+      "effort": "medium",
+      "x": 0.32,
+      "y": 77.8
+    },
+    {
+      "model": "claude-sonnet-5",
+      "effort": "high",
+      "x": 0.4,
+      "y": 78.5
+    },
+    {
+      "model": "claude-sonnet-5",
+      "effort": "xhigh",
+      "x": 0.48,
+      "y": 79.2
+    },
+    {
+      "model": "claude-sonnet-5",
+      "effort": "max",
+      "x": 0.7,
+      "y": 81.3
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "low",
+      "x": 0.35,
+      "y": 78.3
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "medium",
+      "x": 0.42,
+      "y": 79.8
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "high",
+      "x": 0.48,
+      "y": 81.3
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "xhigh",
+      "x": 0.85,
+      "y": 82.9
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "x": 1.3,
+      "y": 83.4
+    }
+  ],
+  "notes": "Geometric density-peak extraction on official Sonnet 5 OSWorld-Verified chart.",
+  "source_type": "digitized_chart"
+}

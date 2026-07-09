@@ -11,7 +11,7 @@
     "https://www.anthropic.com/news/claude-fable-5-mythos-5",
     "https://platform.claude.com/docs/en/build-with-claude/effort"
   ],
-  "notes": "Source-backed quality/cost framing from the Sonnet 5 launch post. Chart point series are images-only on the vendor page — listed under missing[]. Prefer cost-per-successful-task over sticker $/MTok.",
+  "notes": "Source-backed quality/cost framing from the Sonnet 5 launch post. Chart point series are images-only on the vendor page — listed under missing[]. Prefer cost-per-successful-task over sticker $/MTok. Digitised numeric curves now in anthropic-sonnet5-digitized-2026-07.json.",
   "claims": [
     {
       "models": [
@@ -111,8 +111,8 @@
     }
   ],
   "missing": [
-    "Numeric point series from BrowseComp/OSWorld cost-performance charts (images only)",
-    "Main multi-model Fable/Opus benchmark comparison tables (images on launch posts)"
+    "Sonnet 4.6 markers on effort curves still incomplete after digitization",
+    "See anthropic-sonnet5-digitized-2026-07.json for BrowseComp/OSWorld numeric curves"
   ],
   "source_ids": [
     "anthropic-sonnet-5-2026-06-30",
