@@ -19,7 +19,11 @@
       "score": 1509,
       "unit": "elo",
       "source_id": "lmarena-text-2026-07-01",
-      "caveat": "Rank 1; Jul 1 2026 board; ±9; votes=4350"
+      "caveat": "Rank 1; Jul 1 2026 board; \u00b19; votes=4350",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "metric_id": "chatbot-arena-text-elo"
     },
     {
       "model": "claude-opus-4-6-thinking",
@@ -27,7 +31,11 @@
       "score": 1504,
       "unit": "elo",
       "source_id": "lmarena-text-2026-07-01",
-      "caveat": "Rank 2; ±4; votes=55102"
+      "caveat": "Rank 2; \u00b14; votes=55102",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "metric_id": "chatbot-arena-text-elo"
     },
     {
       "model": "claude-opus-4-7-thinking",
@@ -35,7 +43,11 @@
       "score": 1502,
       "unit": "elo",
       "source_id": "lmarena-text-2026-07-01",
-      "caveat": "Rank 3; ±4; votes=41868"
+      "caveat": "Rank 3; \u00b14; votes=41868",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "metric_id": "chatbot-arena-text-elo"
     },
     {
       "model": "claude-opus-4-6",
@@ -43,7 +55,11 @@
       "score": 1499,
       "unit": "elo",
       "source_id": "lmarena-text-2026-07-01",
-      "caveat": "Rank 4; ±4; votes=58565"
+      "caveat": "Rank 4; \u00b14; votes=58565",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "metric_id": "chatbot-arena-text-elo"
     },
     {
       "model": "claude-opus-4-7",
@@ -51,7 +67,11 @@
       "score": 1494,
       "unit": "elo",
       "source_id": "lmarena-text-2026-07-01",
-      "caveat": "Rank 5; ±4; votes=43053"
+      "caveat": "Rank 5; \u00b14; votes=43053",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "metric_id": "chatbot-arena-text-elo"
     },
     {
       "model": "gemini-3.1-pro-preview",
@@ -59,7 +79,11 @@
       "score": 1486,
       "unit": "elo",
       "source_id": "lmarena-text-2026-07-01",
-      "caveat": "Rank 7; ±4; votes=73099"
+      "caveat": "Rank 7; \u00b14; votes=73099",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "metric_id": "chatbot-arena-text-elo"
     },
     {
       "model": "gemini-3-pro",
@@ -67,7 +91,11 @@
       "score": 1486,
       "unit": "elo",
       "source_id": "lmarena-text-2026-07-01",
-      "caveat": "Rank 8; ±4; votes=41306"
+      "caveat": "Rank 8; \u00b14; votes=41306",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "metric_id": "chatbot-arena-text-elo"
     },
     {
       "model": "claude-opus-4-8-thinking",
@@ -75,7 +103,11 @@
       "score": 1484,
       "unit": "elo",
       "source_id": "lmarena-text-2026-07-01",
-      "caveat": "Rank 9; ±5; votes=22340"
+      "caveat": "Rank 9; \u00b15; votes=22340",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "metric_id": "chatbot-arena-text-elo"
     },
     {
       "model": "gpt-5.5-high",
@@ -83,7 +115,11 @@
       "score": 1481,
       "unit": "elo",
       "source_id": "lmarena-text-2026-07-01",
-      "caveat": "Rank 10; effort high; ±5; votes=37260"
+      "caveat": "Rank 10; effort high; \u00b15; votes=37260",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "metric_id": "chatbot-arena-text-elo"
     },
     {
       "model": "gpt-5.5",
@@ -91,7 +127,11 @@
       "score": 1475,
       "unit": "elo",
       "source_id": "lmarena-text-2026-07-01",
-      "caveat": "Rank 16; ±5; votes=38470"
+      "caveat": "Rank 16; \u00b15; votes=38470",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "metric_id": "chatbot-arena-text-elo"
     },
     {
       "model": "grok-4.20-beta-0309-reasoning",
@@ -99,7 +139,11 @@
       "score": 1475,
       "unit": "elo",
       "source_id": "lmarena-text-2026-07-01",
-      "caveat": "SpaceXAI Rank 17; ±4; votes=51724"
+      "caveat": "SpaceXAI Rank 17; \u00b14; votes=51724",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "metric_id": "chatbot-arena-text-elo"
     },
     {
       "model": "claude-sonnet-5-high",
@@ -107,7 +151,11 @@
       "score": 1464,
       "unit": "elo",
       "source_id": "lmarena-text-2026-07-01",
-      "caveat": "Rank 32; ±9; votes=4385"
+      "caveat": "Rank 32; \u00b19; votes=4385",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "metric_id": "chatbot-arena-text-elo"
     },
     {
       "model": "grok-4.3",
@@ -115,7 +163,11 @@
       "score": 1444,
       "unit": "elo",
       "source_id": "lmarena-text-2026-07-01",
-      "caveat": "Rank 57; ±5; votes=37636"
+      "caveat": "Rank 57; \u00b15; votes=37636",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "metric_id": "chatbot-arena-text-elo"
     }
   ],
   "claims": [
@@ -129,7 +181,7 @@
       "axes": [
         "quality"
       ],
-      "statement": "Fable 5 leads Text Arena Elo at 1509 (±9) on 2026-07-01 board — preference signal, not SWE/terminal success.",
+      "statement": "Fable 5 leads Text Arena Elo at 1509 (\u00b19) on 2026-07-01 board \u2014 preference signal, not SWE/terminal success.",
       "implication": "Do not use Arena Elo as implement.standard ranking alone.",
       "source_id": "lmarena-text-2026-07-01"
     }

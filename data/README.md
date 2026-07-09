@@ -11,8 +11,8 @@ Minnows ships two product kinds:
 
 | Pack | What it is | Latest tag | Browse |
 |------|------------|------------|--------|
-| **model-catalog** | Model pricing + source-backed quality/effort scores + effort/mode **capabilities** + L0 `models.json` | `data-model-catalog-v0.4.2` | [README](model-catalog/README.md) · [SOURCES](model-catalog/SOURCES.json) · [SCHEMA](model-catalog/SCHEMA.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) |
-| **model-choice-policy** | Task-shaped **operating points** (policy only; pins a catalog version) | `data-model-choice-policy-v0.1.1` | [README](model-choice-policy/README.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
+| **model-catalog** | Model pricing + source-backed quality/effort scores + effort/mode **capabilities** + L0 `models.json` | `data-model-catalog-v0.5.0` | [README](model-catalog/README.md) · [SOURCES](model-catalog/SOURCES.json) · [SCHEMA](model-catalog/SCHEMA.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) |
+| **model-choice-policy** | Task-shaped **operating points** (policy only; pins a catalog version) | `data-model-choice-policy-v0.1.2` | [README](model-choice-policy/README.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 
 Machine-readable index (always on `main`): **[index.json](index.json)** — lists each pack’s `latest_tag` and ready-made URLs.
 

@@ -15,7 +15,7 @@
     "anthropic-models-overview-2026-07-09",
     "anthropic-sonnet-5-2026-06-30"
   ],
-  "notes": "USD per 1M tokens from Anthropic Pricing docs. cache_write_per_m = 5-minute cache write (1.25× base input). 1h cache write is 2× (not stored as separate field). cache_read = 0.1× base. Sonnet 5 intro through 2026-08-31 as claude-sonnet-5-intro. Fast mode Opus 4.8 is a mode not a separate model id ($10/$50) — see claims in capabilities.",
+  "notes": "USD per 1M tokens from Anthropic Pricing docs. cache_write_per_m = 5-minute cache write (1.25\u00d7 base input). 1h cache write is 2\u00d7 (not stored as separate field). cache_read = 0.1\u00d7 base. Sonnet 5 intro through 2026-08-31 as claude-sonnet-5-intro. Fast mode Opus 4.8 is a mode not a separate model id ($10/$50) \u2014 see claims in capabilities. model.claude-sonnet-5-intro.valid_until=2026-08-31 (machine field).",
   "models": {
     "claude-fable-5": {
       "fresh_input_per_m": 10,
@@ -57,7 +57,9 @@
       "fresh_input_per_m": 2,
       "cache_read_per_m": 0.2,
       "cache_write_per_m": 2.5,
-      "output_per_m": 10
+      "output_per_m": 10,
+      "valid_from": "2026-06-30",
+      "valid_until": "2026-08-31"
     },
     "claude-sonnet-4-6": {
       "fresh_input_per_m": 3,
@@ -85,7 +87,8 @@
     },
     {
       "pattern": "fable",
-      "model": "claude-fable-5"
+      "model": "claude-fable-5",
+      "family_default": true
     },
     {
       "pattern": "mythos-5",
@@ -93,7 +96,8 @@
     },
     {
       "pattern": "mythos",
-      "model": "claude-mythos-5"
+      "model": "claude-mythos-5",
+      "family_default": true
     },
     {
       "pattern": "opus-4-8",
@@ -133,11 +137,14 @@
     },
     {
       "pattern": "claude-opus",
-      "model": "claude-opus-4-8"
+      "model": "claude-opus-4-8",
+      "family_default": true
     },
     {
       "pattern": "claude-sonnet",
-      "model": "claude-sonnet-5"
+      "model": "claude-sonnet-5",
+      "family_default": true
     }
-  ]
+  ],
+  "role": "operational"
 }

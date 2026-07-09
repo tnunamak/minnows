@@ -11,7 +11,7 @@
   "source_ids": [
     "google-gemini-pricing-2026-07-09"
   ],
-  "notes": "Standard paid tier USD/1MTok for prompts \u2264200k where tiered. Long-context higher rates on source page not separate model ids. cache_write_per_m=0 (storage billed hourly, not write multiplier). Batch/Flex often ~50% off \u2014 not modeled here.",
+  "notes": "Standard paid tier USD/1MTok for prompts \u2264200k where tiered. Long-context higher rates on source page not separate model ids. cache_write_per_m=0 (storage billed hourly, not write multiplier). Batch/Flex often ~50% off \u2014 not modeled here. role=reference: priced for lookup only; no waspflow provider and no policy ops. Do not treat as integrated.",
   "models": {
     "gemini-3.1-pro-preview": {
       "fresh_input_per_m": 2.0,
@@ -87,7 +87,9 @@
     },
     {
       "pattern": "gemini",
-      "model": "gemini-3.1-pro-preview"
+      "model": "gemini-3.1-pro-preview",
+      "family_default": true
     }
-  ]
+  ],
+  "role": "reference"
 }

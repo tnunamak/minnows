@@ -16,6 +16,7 @@ import argparse
 import json
 import re
 import sys
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -156,7 +157,7 @@ def validate_pack_envelope(pack_dir: Path, errors: Errors) -> dict | None:
 
 
 SOURCE_KINDS = frozenset(
-    {"vendor_blog", "vendor_docs", "third_party_eval", "academic", "other"}
+    {"vendor_blog", "vendor_docs", "third_party_eval", "academic", "digitized_chart", "local_eval", "other"}
 )
 SOURCE_ID_RE = re.compile(r"^[a-z][a-z0-9-]+$")
 
@@ -289,9 +290,22 @@ def validate_pricing(
                 errors.add(rp, f"{f} must be a number")
             elif rates[f] < 0:
                 errors.add(rp, f"{f} must be >= 0")
-        extra = set(rates) - set(RATE_FIELDS)
+        allowed = set(RATE_FIELDS) | {"valid_from", "valid_until", "confidence"}
+        extra = set(rates) - allowed
         if extra:
             errors.add(rp, f"unknown fields: {sorted(extra)}")
+        for vk in ("valid_from", "valid_until"):
+            if vk in rates and not DATE_RE.match(str(rates[vk])):
+                errors.add(rp, f"{vk} must be YYYY-MM-DD")
+        if "confidence" in rates and rates["confidence"] not in ("high", "medium", "low"):
+            errors.add(rp, "confidence must be high|medium|low")
+        vu = rates.get("valid_until")
+        if isinstance(vu, str) and DATE_RE.match(vu):
+            try:
+                if date.fromisoformat(vu) < date.today():
+                    errors.add(rp, f"pricing expired valid_until={vu} (remove or update promo rates)")
+            except ValueError:
+                pass
     match = data.get("match")
     if not isinstance(match, list) or not match:
         errors.add(p, "match must be a non-empty array")
@@ -563,6 +577,17 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
             errors.add(str(pack_dir.relative_to(REPO)), f"missing schemas/{name}")
     if not (pack_dir / "SCHEMA.md").is_file() and not (pack_dir / "schemas" / "README.md").is_file():
         errors.add(str(pack_dir.relative_to(REPO)), "missing SCHEMA.md or schemas/README.md")
+    # metrics.json optional but if present must be well-formed
+    mpath = pack_dir / "metrics.json"
+    if mpath.is_file():
+        mdata = load_json(mpath, errors)
+        mp = str(mpath.relative_to(REPO))
+        if isinstance(mdata, dict):
+            require_keys(mdata, ("id", "schema_version", "generated_at", "metrics"), mp, errors)
+            if mdata.get("id") != "model-catalog-metrics":
+                errors.add(mp, "id must be 'model-catalog-metrics'")
+            if not isinstance(mdata.get("metrics"), list) or not mdata["metrics"]:
+                errors.add(mp, "metrics must be non-empty array")
 
 
 

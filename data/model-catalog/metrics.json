@@ -1,0 +1,636 @@
+{
+  "$schema": "schemas/metrics-v1.schema.json",
+  "id": "model-catalog-metrics",
+  "schema_version": 1,
+  "generated_at": "2026-07-09",
+  "notes": [
+    "Metric registry \u2014 distinct metric_ids are not comparable unless same id.",
+    "Official boards, re-runs, and vendor tables must not share an id."
+  ],
+  "metrics": [
+    {
+      "id": "aa-omniscience",
+      "name": "AA-Omniscience",
+      "direction": "context_dependent",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other"
+    },
+    {
+      "id": "agents-last-exam",
+      "name": "Agents' Last Exam",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "arc-agi-1",
+      "name": "ARC-AGI-1",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "arc-agi-1-verified",
+      "name": "ARC-AGI-1 (Verified)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "arc-agi-2",
+      "name": "ARC-AGI-2",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "arc-agi-2-verified",
+      "name": "ARC-AGI-2 (Verified)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "arc-agi-3",
+      "name": "ARC-AGI-3",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "artificial-analysis-coding-agent-index",
+      "name": "Artificial Analysis Coding Agent Index",
+      "direction": "context_dependent",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other"
+    },
+    {
+      "id": "artificial-analysis-coding-agent-index-v1-1",
+      "name": "Artificial Analysis Coding Agent Index v1.1",
+      "direction": "context_dependent",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other"
+    },
+    {
+      "id": "artificial-analysis-coding-index-model-level",
+      "name": "Artificial Analysis Coding Index (model-level)",
+      "direction": "context_dependent",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other"
+    },
+    {
+      "id": "artificial-analysis-intelligence-index",
+      "name": "Artificial Analysis Intelligence Index",
+      "direction": "context_dependent",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other"
+    },
+    {
+      "id": "artificial-analysis-intelligence-index-launch-article",
+      "name": "Artificial Analysis Intelligence Index (launch article)",
+      "direction": "context_dependent",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other"
+    },
+    {
+      "id": "artificial-analysis-intelligence-index-live-faq",
+      "name": "Artificial Analysis Intelligence Index (live FAQ)",
+      "direction": "context_dependent",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other"
+    },
+    {
+      "id": "artificial-analysis-intelligence-index-v4-1",
+      "name": "Artificial Analysis Intelligence Index v4.1",
+      "direction": "context_dependent",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other"
+    },
+    {
+      "id": "automationbench",
+      "name": "AutomationBench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "benchcad",
+      "name": "BenchCAD",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "benchcad-python-tool",
+      "name": "BenchCAD (python tool)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "big-finance-bench",
+      "name": "Big Finance Bench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "bixbench",
+      "name": "BixBench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "browsecomp",
+      "name": "BrowseComp",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "digitized_chart",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "capture-the-flag-challenges",
+      "name": "Capture-the-Flag Challenges",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "capture-the-flags-challenge-tasks-internal",
+      "name": "Capture-the-Flags challenge tasks (Internal)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "chatbot-arena-text-elo",
+      "name": "Chatbot Arena Text Elo",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "elo"
+    },
+    {
+      "id": "cybergym",
+      "name": "CyberGym",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "deepswe-v1-1",
+      "name": "DeepSWE v1.1",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "expert-swe-internal",
+      "name": "Expert-SWE (Internal)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "exploitbench",
+      "name": "ExploitBench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "exploitgym",
+      "name": "ExploitGym",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "financeagent-v1-1",
+      "name": "FinanceAgent v1.1",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "firefox147-register-control",
+      "name": "Firefox147-register_control",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "digitized_chart",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "firefox147-working-exploit",
+      "name": "Firefox147-working_exploit",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "digitized_chart",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "frontiermath-tier-1-3",
+      "name": "FrontierMath Tier 1\u20133",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "frontiermath-tier-1-3-v2",
+      "name": "FrontierMath Tier 1-3 (v2)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "frontiermath-tier-4",
+      "name": "FrontierMath Tier 4",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "frontiermath-tier-4-v2",
+      "name": "FrontierMath Tier 4 (v2)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "gdp-pdf",
+      "name": "gdp.pdf",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "gdpval-aa-elo",
+      "name": "GDPval-AA Elo",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "elo"
+    },
+    {
+      "id": "gdpval-aa-v2",
+      "name": "GDPval-AA v2",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "digitized_chart",
+      "unit_default": "elo"
+    },
+    {
+      "id": "gdpval-wins-or-ties",
+      "name": "GDPval (wins or ties)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "genebench",
+      "name": "GeneBench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "genebench-pro",
+      "name": "GeneBench Pro",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "gpqa-diamond",
+      "name": "GPQA Diamond",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "graphwalks-bfs-1mil-f1",
+      "name": "GraphWalks BFS 1mil f1",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "graphwalks-bfs-256k-f1",
+      "name": "GraphWalks BFS 256k f1",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "healthbench-professional",
+      "name": "HealthBench Professional",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "humanity-s-last-exam",
+      "name": "Humanity's Last Exam",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "humanity-s-last-exam-no-tools",
+      "name": "Humanity's Last Exam (no tools)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "digitized_chart",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "humanity-s-last-exam-with-tools",
+      "name": "Humanity's Last Exam (with tools)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "digitized_chart",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "internal-research-debugging-evaluation",
+      "name": "Internal Research Debugging Evaluation",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "investment-banking-modeling-tasks-internal",
+      "name": "Investment Banking Modeling Tasks (Internal)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "kernelgen-1p",
+      "name": "KernelGen 1P",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "lifescibench",
+      "name": "LifeSciBench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "management-consulting-tasks-internal",
+      "name": "Management Consulting Tasks (Internal)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "mcp-atlas",
+      "name": "MCP Atlas",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "medchembench-internal",
+      "name": "MedChemBench (Internal)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "misaligned-behavior-1-10",
+      "name": "Misaligned behavior (1-10)",
+      "direction": "context_dependent",
+      "harness": null,
+      "steward": "digitized_chart",
+      "unit_default": "other"
+    },
+    {
+      "id": "mmmu-pro-no-tools",
+      "name": "MMMU Pro (no tools)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "mmmu-pro-with-tools",
+      "name": "MMMU Pro (with tools)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "nanogpt",
+      "name": "NanoGPT",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "officeqa-pro",
+      "name": "OfficeQA Pro",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "openai-mrcr-v2-8-needle-256k-512k",
+      "name": "OpenAI MRCR v2 8-needle 256K-512K",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "openai-mrcr-v2-8-needle-512k-1m",
+      "name": "OpenAI MRCR v2 8-needle 512K-1M",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "osworld-2-0",
+      "name": "OSWorld 2.0",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "osworld-verified",
+      "name": "OSWorld-Verified",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "digitized_chart",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "posttrainbench-lite",
+      "name": "PostTrainBench Lite",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "rsi-index",
+      "name": "RSI Index",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "sec-bench-pro",
+      "name": "SEC-Bench Pro",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "swe-bench-pro",
+      "name": "SWE-bench Pro",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "digitized_chart",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "swe-bench-pro-public",
+      "name": "SWE-Bench Pro (Public)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "swe-bench-pro-public-seal-mini-swe-agent",
+      "name": "SWE-Bench Pro Public (SEAL mini-swe-agent)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "swe-bench-verified-official-mini-swe-agent-snapshot",
+      "name": "SWE-bench Verified (official mini-SWE-agent snapshot)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "swe-bench-verified-vals-ai-mini-swe-agent",
+      "name": "SWE-bench Verified (vals.ai Mini-SWE-agent)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "tau2-bench-telecom-original-prompts",
+      "name": "Tau2-bench Telecom (original prompts)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "tau3-banking",
+      "name": "Tau3-Banking",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "terminal-bench-2-0",
+      "name": "Terminal-Bench 2.0",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "terminal-bench-2-1",
+      "name": "Terminal-Bench 2.1",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "digitized_chart",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "terminal-bench-v2-1-aa-terminus-2",
+      "name": "Terminal-Bench v2.1 (AA Terminus 2)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "toolathlon",
+      "name": "Toolathlon",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    }
+  ]
+}

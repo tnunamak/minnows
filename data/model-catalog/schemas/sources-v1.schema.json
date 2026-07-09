@@ -79,7 +79,9 @@
               "vendor_docs",
               "third_party_eval",
               "academic",
-              "other"
+              "other",
+              "digitized_chart",
+              "local_eval"
             ]
           },
           "notes": {

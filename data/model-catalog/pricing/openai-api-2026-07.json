@@ -15,7 +15,7 @@
     "openai-gpt-5-6-2026-07-09",
     "openai-gpt-5-5-2026-04-23"
   ],
-  "notes": "Standard short-context rates USD/1MTok. GPT-5.6 cache_write = 1.25× fresh; cache_read = 0.1×. Long-context rates (higher) exist on pricing page but are not separate model ids here — see notes. GPT-5.5/5.4 cache_write left 0 when not published as write line.",
+  "notes": "Standard short-context rates USD/1MTok. GPT-5.6 cache_write = 1.25\u00d7 fresh; cache_read = 0.1\u00d7. Long-context rates (higher) exist on pricing page but are not separate model ids here \u2014 see notes. GPT-5.5/5.4 cache_write left 0 when not published as write line.",
   "models": {
     "gpt-5.6-sol": {
       "fresh_input_per_m": 5.0,
@@ -101,7 +101,8 @@
     },
     {
       "pattern": "gpt-5.6",
-      "model": "gpt-5.6-sol"
+      "model": "gpt-5.6-sol",
+      "family_default": true
     },
     {
       "pattern": "gpt-5.5-pro",
@@ -109,7 +110,8 @@
     },
     {
       "pattern": "gpt-5.5",
-      "model": "gpt-5.5"
+      "model": "gpt-5.5",
+      "family_default": true
     },
     {
       "pattern": "gpt-5.4-mini",
@@ -125,11 +127,13 @@
     },
     {
       "pattern": "gpt-5.4",
-      "model": "gpt-5.4"
+      "model": "gpt-5.4",
+      "family_default": true
     },
     {
       "pattern": "gpt-5.3-codex",
       "model": "gpt-5.3-codex"
     }
-  ]
+  ],
+  "role": "operational"
 }

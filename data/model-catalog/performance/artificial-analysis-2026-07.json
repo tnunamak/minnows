@@ -19,7 +19,7 @@
     "aa-fable-vs-grok-4-3-2026-07-09",
     "aa-coding-index-2026-07-09"
   ],
-  "notes": "Independent Artificial Analysis composites. Keep launch-article Index 64.9 separate from live FAQ 60 (index composition changed). Coding Index ≠ Coding Agent Index. GPT-5.6 vendor-reported Index scores live in openai-gpt-5-6-launch (not AA-published at retrieval).",
+  "notes": "Independent Artificial Analysis composites. Keep launch-article Index 64.9 separate from live FAQ 60 (index composition changed). Coding Index \u2260 Coding Agent Index. GPT-5.6 vendor-reported Index scores live in openai-gpt-5-6-launch (not AA-published at retrieval).",
   "scores": [
     {
       "model": "claude-fable-5",
@@ -28,7 +28,12 @@
       "unit": "other",
       "source_id": "aa-intelligence-index-2026-07-09",
       "effort": "max",
-      "caveat": "Live FAQ 2026-07-09; Adaptive Max + Opus 4.8 fallback. Index version sensitive."
+      "caveat": "Live FAQ 2026-07-09; Adaptive Max + Opus 4.8 fallback. Index version sensitive.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "metric_id": "artificial-analysis-intelligence-index-live-faq"
     },
     {
       "model": "claude-opus-4-8",
@@ -36,7 +41,12 @@
       "score": 56,
       "unit": "other",
       "source_id": "aa-intelligence-index-2026-07-09",
-      "effort": "max"
+      "effort": "max",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "metric_id": "artificial-analysis-intelligence-index-live-faq"
     },
     {
       "model": "gpt-5.5",
@@ -44,7 +54,12 @@
       "score": 55,
       "unit": "other",
       "source_id": "aa-intelligence-index-2026-07-09",
-      "effort": "xhigh"
+      "effort": "xhigh",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "metric_id": "artificial-analysis-intelligence-index-live-faq"
     },
     {
       "model": "grok-4.5",
@@ -53,7 +68,12 @@
       "unit": "other",
       "source_id": "aa-grok-4-5-2026-07-08",
       "effort": "high",
-      "caveat": "4th after Fable/GPT-5.5/Opus 4.8 per AA Grok 4.5 article"
+      "caveat": "4th after Fable/GPT-5.5/Opus 4.8 per AA Grok 4.5 article",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "metric_id": "artificial-analysis-intelligence-index"
     },
     {
       "model": "claude-fable-5",
@@ -62,7 +82,12 @@
       "unit": "other",
       "source_id": "aa-fable-5-launch-2026-06-09",
       "effort": "max",
-      "caveat": "2026-06-09 launch article — may predate index composition change; do not merge with live 60 without version field"
+      "caveat": "2026-06-09 launch article \u2014 may predate index composition change; do not merge with live 60 without version field",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "metric_id": "artificial-analysis-intelligence-index-launch-article"
     },
     {
       "model": "claude-fable-5",
@@ -71,7 +96,12 @@
       "unit": "other",
       "source_id": "aa-fable-5-launch-2026-06-09",
       "effort": "max",
-      "caveat": "Launch article; +7 vs Gemini 3.1 Pro Preview prior leader"
+      "caveat": "Launch article; +7 vs Gemini 3.1 Pro Preview prior leader",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "metric_id": "aa-omniscience"
     },
     {
       "model": "claude-fable-5",
@@ -80,7 +110,17 @@
       "unit": "elo",
       "source_id": "aa-fable-5-launch-2026-06-09",
       "effort": "max",
-      "caveat": "Launch article"
+      "caveat": "Launch article",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "metric_id": "gdpval-aa-elo",
+      "cost": {
+        "value": 7.7,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-fable-5",
@@ -89,7 +129,12 @@
       "unit": "accuracy",
       "source_id": "aa-fable-5-launch-2026-06-09",
       "effort": "max",
-      "caveat": "Launch article; fallback on 9% HLE tasks"
+      "caveat": "Launch article; fallback on 9% HLE tasks",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "metric_id": "humanity-s-last-exam"
     },
     {
       "model": "grok-4.5",
@@ -98,7 +143,13 @@
       "unit": "other",
       "source_id": "aa-grok-4-5-2026-07-08",
       "effort": "high",
-      "caveat": "Grok Build harness; on par with GPT-5.5 xhigh Codex; cost ~$2.49/task"
+      "caveat": "Grok Build harness; on par with GPT-5.5 xhigh Codex; cost ~$2.49/task",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "coding",
+      "metric_id": "artificial-analysis-coding-agent-index"
     },
     {
       "model": "gpt-5.5",
@@ -107,7 +158,13 @@
       "unit": "other",
       "source_id": "aa-grok-4-5-2026-07-08",
       "effort": "xhigh",
-      "caveat": "Codex harness; ~$5.07/task"
+      "caveat": "Codex harness; ~$5.07/task",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "coding",
+      "metric_id": "artificial-analysis-coding-agent-index"
     },
     {
       "model": "claude-fable-5",
@@ -116,7 +173,13 @@
       "unit": "other",
       "source_id": "aa-coding-index-2026-07-09",
       "effort": "max",
-      "caveat": "Model-level Coding Index FAQ (distinct from Coding Agent Index)"
+      "caveat": "Model-level Coding Index FAQ (distinct from Coding Agent Index)",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "coding",
+      "metric_id": "artificial-analysis-coding-index-model-level"
     },
     {
       "model": "gpt-5.5",
@@ -124,7 +187,13 @@
       "score": 75,
       "unit": "other",
       "source_id": "aa-coding-index-2026-07-09",
-      "effort": "xhigh"
+      "effort": "xhigh",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "coding",
+      "metric_id": "artificial-analysis-coding-index-model-level"
     },
     {
       "model": "claude-opus-4-8",
@@ -132,7 +201,13 @@
       "score": 74,
       "unit": "other",
       "source_id": "aa-coding-index-2026-07-09",
-      "effort": "max"
+      "effort": "max",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "coding",
+      "metric_id": "artificial-analysis-coding-index-model-level"
     },
     {
       "model": "grok-4.5",
@@ -141,7 +216,12 @@
       "unit": "elo",
       "source_id": "aa-grok-4-5-2026-07-08",
       "effort": "high",
-      "caveat": "Rank #4"
+      "caveat": "Rank #4",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "metric_id": "gdpval-aa-elo"
     },
     {
       "model": "grok-4.5",
@@ -150,16 +230,12 @@
       "unit": "accuracy",
       "source_id": "aa-grok-4-5-2026-07-08",
       "effort": "high",
-      "caveat": "Top score stated in article"
-    },
-    {
-      "model": "claude-fable-5",
-      "metric": "AA cost-per-intelligence-index-task-USD",
-      "score": 7.7,
-      "unit": "other",
-      "source_id": "aa-fable-vs-grok-4-3-2026-07-09",
-      "effort": "max",
-      "caveat": "From Fable vs Grok 4.3 comparison page"
+      "caveat": "Top score stated in article",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "metric_id": "tau3-banking"
     },
     {
       "model": "grok-4.3",
@@ -167,7 +243,12 @@
       "score": 38,
       "unit": "other",
       "source_id": "aa-fable-vs-grok-4-3-2026-07-09",
-      "effort": "high"
+      "effort": "high",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "metric_id": "artificial-analysis-intelligence-index"
     },
     {
       "model": "grok-4.3",
@@ -175,7 +256,16 @@
       "score": 0.64,
       "unit": "other",
       "source_id": "aa-fable-vs-grok-4-3-2026-07-09",
-      "effort": "high"
+      "effort": "high",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "cost": {
+        "value": 0.64,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "metric_id": "aa-cost-per-intelligence-index-task-usd"
     }
   ],
   "claims": [

@@ -22,7 +22,18 @@
       "unit": "accuracy",
       "effort": "max",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 1.44,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -31,7 +42,18 @@
       "unit": "accuracy",
       "effort": "max",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 1.44,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -40,7 +62,18 @@
       "unit": "accuracy",
       "effort": "max",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 1.44,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -49,7 +82,18 @@
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 1.04,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -58,7 +102,18 @@
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 1.04,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -67,7 +122,18 @@
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 1.04,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -76,7 +142,18 @@
       "unit": "accuracy",
       "effort": "high",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.74,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -85,7 +162,18 @@
       "unit": "accuracy",
       "effort": "high",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.74,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -94,7 +182,18 @@
       "unit": "accuracy",
       "effort": "high",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances. Cost/task (leaderboard, same date): $0.740 USD — source_id arcprize-leaderboard-2026-07-09."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances. Cost/task (leaderboard, same date): $0.740 USD \u2014 source_id arcprize-leaderboard-2026-07-09.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 0.74,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -103,7 +202,18 @@
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.47,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -112,7 +222,18 @@
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.47,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -121,7 +242,18 @@
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances. Cost/task (leaderboard, same date): $0.470 USD — source_id arcprize-leaderboard-2026-07-09."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances. Cost/task (leaderboard, same date): $0.470 USD \u2014 source_id arcprize-leaderboard-2026-07-09.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 0.47,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -130,7 +262,18 @@
       "unit": "accuracy",
       "effort": "low",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.32,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -139,7 +282,18 @@
       "unit": "accuracy",
       "effort": "low",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.32,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -148,7 +302,18 @@
       "unit": "accuracy",
       "effort": "low",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances. Cost/task (leaderboard, same date): $0.320 USD — source_id arcprize-leaderboard-2026-07-09."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances. Cost/task (leaderboard, same date): $0.320 USD \u2014 source_id arcprize-leaderboard-2026-07-09.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 0.32,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -157,7 +322,18 @@
       "unit": "accuracy",
       "effort": "max",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 1.09,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -166,7 +342,18 @@
       "unit": "accuracy",
       "effort": "max",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 1.09,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -175,7 +362,18 @@
       "unit": "accuracy",
       "effort": "max",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 1.09,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -184,7 +382,18 @@
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.69,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -193,7 +402,18 @@
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.69,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -202,7 +422,18 @@
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 0.69,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -211,7 +442,18 @@
       "unit": "accuracy",
       "effort": "high",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.55,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -220,7 +462,18 @@
       "unit": "accuracy",
       "effort": "high",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.55,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -229,7 +482,18 @@
       "unit": "accuracy",
       "effort": "high",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 0.55,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -238,7 +502,18 @@
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.27,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -247,7 +522,18 @@
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.27,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -256,7 +542,18 @@
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 0.27,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -265,7 +562,18 @@
       "unit": "accuracy",
       "effort": "low",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.17,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -274,7 +582,18 @@
       "unit": "accuracy",
       "effort": "low",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.17,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -283,7 +602,18 @@
       "unit": "accuracy",
       "effort": "low",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 0.17,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -292,7 +622,18 @@
       "unit": "accuracy",
       "effort": "max",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.67,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -301,7 +642,18 @@
       "unit": "accuracy",
       "effort": "max",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.67,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -310,7 +662,18 @@
       "unit": "accuracy",
       "effort": "max",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 0.67,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -319,7 +682,18 @@
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.54,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -328,7 +702,18 @@
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.54,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -337,7 +722,18 @@
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 0.54,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -346,7 +742,18 @@
       "unit": "accuracy",
       "effort": "high",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.29,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -355,7 +762,18 @@
       "unit": "accuracy",
       "effort": "high",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.29,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -364,7 +782,18 @@
       "unit": "accuracy",
       "effort": "high",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 0.29,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -373,7 +802,18 @@
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.11,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -382,7 +822,18 @@
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.11,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -391,7 +842,18 @@
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 0.11,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -400,7 +862,18 @@
       "unit": "accuracy",
       "effort": "low",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.07,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -409,7 +882,18 @@
       "unit": "accuracy",
       "effort": "low",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.07,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -418,142 +902,18 @@
       "unit": "accuracy",
       "effort": "low",
       "source_id": "arcprize-gpt-5-6-2026-07-09",
-      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
-    },
-    {
-      "model": "gpt-5.6-sol",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.32,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "low",
-      "caveat": "Leaderboard Cost/Task column; not a quality score."
-    },
-    {
-      "model": "gpt-5.6-sol",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.47,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "medium",
-      "caveat": "Leaderboard Cost/Task column; not a quality score."
-    },
-    {
-      "model": "gpt-5.6-sol",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.74,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "high",
-      "caveat": "Leaderboard Cost/Task column; not a quality score."
-    },
-    {
-      "model": "gpt-5.6-sol",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 1.04,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "xhigh",
-      "caveat": "Leaderboard Cost/Task column; not a quality score."
-    },
-    {
-      "model": "gpt-5.6-sol",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 1.44,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "max",
-      "caveat": "Leaderboard Cost/Task column; not a quality score."
-    },
-    {
-      "model": "gpt-5.6-terra",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.17,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "low",
-      "caveat": "Leaderboard Cost/Task column; not a quality score."
-    },
-    {
-      "model": "gpt-5.6-terra",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.27,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "medium",
-      "caveat": "Leaderboard Cost/Task column; not a quality score."
-    },
-    {
-      "model": "gpt-5.6-terra",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.55,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "high",
-      "caveat": "Leaderboard Cost/Task column; not a quality score."
-    },
-    {
-      "model": "gpt-5.6-terra",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.69,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "xhigh",
-      "caveat": "Leaderboard Cost/Task column; not a quality score."
-    },
-    {
-      "model": "gpt-5.6-terra",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 1.09,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "max",
-      "caveat": "Leaderboard Cost/Task column; not a quality score."
-    },
-    {
-      "model": "gpt-5.6-luna",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.07,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "low",
-      "caveat": "Leaderboard Cost/Task column; not a quality score."
-    },
-    {
-      "model": "gpt-5.6-luna",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.11,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "medium",
-      "caveat": "Leaderboard Cost/Task column; not a quality score."
-    },
-    {
-      "model": "gpt-5.6-luna",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.29,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "high",
-      "caveat": "Leaderboard Cost/Task column; not a quality score."
-    },
-    {
-      "model": "gpt-5.6-luna",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.54,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "xhigh",
-      "caveat": "Leaderboard Cost/Task column; not a quality score."
-    },
-    {
-      "model": "gpt-5.6-luna",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.67,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "max",
-      "caveat": "Leaderboard Cost/Task column; not a quality score."
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 0.07,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -562,7 +922,18 @@
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
       "effort": "low",
-      "caveat": "2026-06-01 CoT"
+      "caveat": "2026-06-01 CoT",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 1.68,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -570,7 +941,18 @@
       "score": 0.915,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "medium"
+      "effort": "medium",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 2.39,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -579,7 +961,18 @@
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
       "effort": "high",
-      "caveat": "ARC-AGI-3 1.5% same effort"
+      "caveat": "ARC-AGI-3 1.5% same effort",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 2.74,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -587,7 +980,18 @@
       "score": 0.622,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "low"
+      "effort": "low",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 1.68,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -595,7 +999,18 @@
       "score": 0.717,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "medium"
+      "effort": "medium",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 2.39,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -603,7 +1018,18 @@
       "score": 0.721,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "high"
+      "effort": "high",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 2.74,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -611,7 +1037,18 @@
       "score": 0.015,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "high"
+      "effort": "high",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 2.74,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.5",
@@ -620,7 +1057,18 @@
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
       "effort": "low",
-      "caveat": "2026-04-22"
+      "caveat": "2026-04-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.35,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.5",
@@ -628,7 +1076,18 @@
       "score": 0.922,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "medium"
+      "effort": "medium",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.86,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.5",
@@ -636,7 +1095,18 @@
       "score": 0.945,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "high"
+      "effort": "high",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 1.45,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.5",
@@ -644,7 +1114,18 @@
       "score": 0.95,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "xhigh"
+      "effort": "xhigh",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 1.87,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.5",
@@ -652,7 +1133,18 @@
       "score": 0.333,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "low"
+      "effort": "low",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.35,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.5",
@@ -660,7 +1152,18 @@
       "score": 0.704,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "medium"
+      "effort": "medium",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.86,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.5",
@@ -668,7 +1171,18 @@
       "score": 0.833,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "high"
+      "effort": "high",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 1.45,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.5",
@@ -676,7 +1190,18 @@
       "score": 0.85,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "xhigh"
+      "effort": "xhigh",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 1.87,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.5",
@@ -684,7 +1209,18 @@
       "score": 0.004,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "high"
+      "effort": "high",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 1.45,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.5-pro",
@@ -692,7 +1228,18 @@
       "score": 0.965,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "high"
+      "effort": "high",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 10.51,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.5-pro",
@@ -700,7 +1247,18 @@
       "score": 0.846,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "high"
+      "effort": "high",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 10.51,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gemini-3.1-pro-preview",
@@ -708,21 +1266,51 @@
       "score": 0.98,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "caveat": "2026-02-19 CoT"
+      "caveat": "2026-02-19 CoT",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.962,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gemini-3.1-pro-preview",
       "metric": "ARC-AGI-2",
       "score": 0.771,
       "unit": "accuracy",
-      "source_id": "arcprize-leaderboard-2026-07-09"
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.962,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gemini-3.1-pro-preview",
       "metric": "ARC-AGI-3",
       "score": 0.004,
       "unit": "accuracy",
-      "source_id": "arcprize-leaderboard-2026-07-09"
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-3",
+      "cost": {
+        "value": 0.962,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "grok-4.20",
@@ -731,7 +1319,18 @@
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
       "effort": "reasoning",
-      "caveat": "Original: Grok 4.20 Reasoning 2026-03-09"
+      "caveat": "Original: Grok 4.20 Reasoning 2026-03-09",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "reasoning",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.92,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "grok-4.20",
@@ -739,7 +1338,18 @@
       "score": 0.651,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "reasoning"
+      "effort": "reasoning",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "reasoning",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.92,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gemini-3.5-flash",
@@ -747,7 +1357,18 @@
       "score": 0.488,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "minimal"
+      "effort": "minimal",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "minimal",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.107,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gemini-3.5-flash",
@@ -755,7 +1376,18 @@
       "score": 0.925,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "high"
+      "effort": "high",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-1",
+      "cost": {
+        "value": 0.85,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gemini-3.5-flash",
@@ -763,7 +1395,18 @@
       "score": 0.089,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "minimal"
+      "effort": "minimal",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "minimal",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.107,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gemini-3.5-flash",
@@ -771,34 +1414,18 @@
       "score": 0.721,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "high"
-    },
-    {
-      "model": "claude-opus-4-8",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 1.68,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "low",
-      "caveat": "Leaderboard Cost/Task"
-    },
-    {
-      "model": "claude-opus-4-8",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 2.39,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "medium",
-      "caveat": "Leaderboard Cost/Task"
-    },
-    {
-      "model": "claude-opus-4-8",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 2.74,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
       "effort": "high",
-      "caveat": "Leaderboard Cost/Task"
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "reasoning",
+      "metric_id": "arc-agi-2",
+      "cost": {
+        "value": 0.85,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -807,52 +1434,16 @@
       "unit": "other",
       "source_id": "arcprize-leaderboard-2026-07-09",
       "effort": "max",
-      "caveat": "Leaderboard Cost/Task"
-    },
-    {
-      "model": "gpt-5.5",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.35,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "low",
-      "caveat": "Leaderboard Cost/Task"
-    },
-    {
-      "model": "gpt-5.5",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.86,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "medium",
-      "caveat": "Leaderboard Cost/Task"
-    },
-    {
-      "model": "gpt-5.5",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 1.45,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "high",
-      "caveat": "Leaderboard Cost/Task"
-    },
-    {
-      "model": "gpt-5.5",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 1.87,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "xhigh",
-      "caveat": "Leaderboard Cost/Task"
-    },
-    {
-      "model": "gpt-5.5-pro",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 10.51,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "high",
-      "caveat": "Leaderboard Cost/Task"
+      "caveat": "Leaderboard Cost/Task",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "cost": {
+        "value": 2.33,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "metric_id": "arc-agi-cost-per-task-usd"
     },
     {
       "model": "gpt-5.5-pro",
@@ -861,42 +1452,16 @@
       "unit": "other",
       "source_id": "arcprize-leaderboard-2026-07-09",
       "effort": "xhigh",
-      "caveat": "Leaderboard Cost/Task"
-    },
-    {
-      "model": "gemini-3.5-flash",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.107,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "minimal",
-      "caveat": "Leaderboard Cost/Task"
-    },
-    {
-      "model": "gemini-3.5-flash",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.85,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "high",
-      "caveat": "Leaderboard Cost/Task"
-    },
-    {
-      "model": "gemini-3.1-pro-preview",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.962,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "caveat": "Leaderboard Cost/Task"
-    },
-    {
-      "model": "grok-4.20",
-      "metric": "ARC-AGI-cost-per-task-USD",
-      "score": 0.92,
-      "unit": "other",
-      "source_id": "arcprize-leaderboard-2026-07-09",
-      "effort": "reasoning",
-      "caveat": "Leaderboard Cost/Task"
+      "caveat": "Leaderboard Cost/Task",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "cost": {
+        "value": 10.76,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "metric_id": "arc-agi-cost-per-task-usd"
     }
   ],
   "claims": [

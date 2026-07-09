@@ -159,6 +159,92 @@
             "type": "string",
             "pattern": "^[a-z][a-z0-9-]+$",
             "description": "Primary SOURCES.json id for this score row"
+          },
+          "harness": {
+            "type": "string",
+            "description": "Eval harness (e.g. claude-code, terminus-2, codex-cli, anthropic-internal)"
+          },
+          "mode": {
+            "type": "string",
+            "description": "standard | fast | ultra | multi_agent | \u2026"
+          },
+          "task_family": {
+            "type": "string",
+            "description": "Coarse task family for joining to policy ops"
+          },
+          "source_type": {
+            "type": "string",
+            "enum": [
+              "vendor_table",
+              "third_party_board",
+              "digitized_chart",
+              "local_eval",
+              "other"
+            ]
+          },
+          "evidence_grade": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "description": "A local/reproduced \u00b7 B independent third-party \u00b7 C vendor-reported \u00b7 D digitized/estimated"
+          },
+          "observed_at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "effort_verbatim": {
+            "type": "string",
+            "description": "Source's original effort label if normalized"
+          },
+          "cost": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "value",
+              "unit"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string",
+                "enum": [
+                  "usd_per_task",
+                  "usd_per_1m_tokens",
+                  "credits_per_task",
+                  "other"
+                ]
+              },
+              "basis": {
+                "type": "string",
+                "enum": [
+                  "api_usd",
+                  "codex_credits",
+                  "other"
+                ]
+              }
+            }
+          },
+          "confidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              }
+            }
+          },
+          "metric_id": {
+            "type": "string",
+            "description": "Stable id in metrics.json when present"
           }
         }
       }

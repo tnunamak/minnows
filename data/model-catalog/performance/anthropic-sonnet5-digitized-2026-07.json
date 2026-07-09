@@ -24,16 +24,18 @@
       "unit": "accuracy",
       "effort": "low",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$2.4203. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619"
-    },
-    {
-      "model": "claude-sonnet-5",
-      "metric": "BrowseComp-cost-per-task-USD",
-      "score": 2.4203,
-      "unit": "other",
-      "effort": "low",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$2.4203. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp",
+      "cost": {
+        "value": 2.4203,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-sonnet-5",
@@ -42,16 +44,18 @@
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$5.0611. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619"
-    },
-    {
-      "model": "claude-sonnet-5",
-      "metric": "BrowseComp-cost-per-task-USD",
-      "score": 5.0611,
-      "unit": "other",
-      "effort": "medium",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$5.0611. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp",
+      "cost": {
+        "value": 5.0611,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-sonnet-5",
@@ -60,16 +64,18 @@
       "unit": "accuracy",
       "effort": "high",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$9.199. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619"
-    },
-    {
-      "model": "claude-sonnet-5",
-      "metric": "BrowseComp-cost-per-task-USD",
-      "score": 9.199,
-      "unit": "other",
-      "effort": "high",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$9.199. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp",
+      "cost": {
+        "value": 9.199,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-sonnet-5",
@@ -78,16 +84,18 @@
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$18.8477. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619"
-    },
-    {
-      "model": "claude-sonnet-5",
-      "metric": "BrowseComp-cost-per-task-USD",
-      "score": 18.8477,
-      "unit": "other",
-      "effort": "xhigh",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$18.8477. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp",
+      "cost": {
+        "value": 18.8477,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-sonnet-5",
@@ -96,16 +104,18 @@
       "unit": "accuracy",
       "effort": "max",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$24.6208. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619"
-    },
-    {
-      "model": "claude-sonnet-5",
-      "metric": "BrowseComp-cost-per-task-USD",
-      "score": 24.6208,
-      "unit": "other",
-      "effort": "max",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$24.6208. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp",
+      "cost": {
+        "value": 24.6208,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -114,16 +124,18 @@
       "unit": "accuracy",
       "effort": "low",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$8.9251. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619"
-    },
-    {
-      "model": "claude-opus-4-8",
-      "metric": "BrowseComp-cost-per-task-USD",
-      "score": 8.9251,
-      "unit": "other",
-      "effort": "low",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$8.9251. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp",
+      "cost": {
+        "value": 8.9251,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -132,16 +144,18 @@
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$14.8505. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619"
-    },
-    {
-      "model": "claude-opus-4-8",
-      "metric": "BrowseComp-cost-per-task-USD",
-      "score": 14.8505,
-      "unit": "other",
-      "effort": "medium",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$14.8505. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp",
+      "cost": {
+        "value": 14.8505,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -150,16 +164,18 @@
       "unit": "accuracy",
       "effort": "high",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$17.1582. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619"
-    },
-    {
-      "model": "claude-opus-4-8",
-      "metric": "BrowseComp-cost-per-task-USD",
-      "score": 17.1582,
-      "unit": "other",
-      "effort": "high",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$17.1582. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp",
+      "cost": {
+        "value": 17.1582,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -168,16 +184,18 @@
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$22.9702. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619"
-    },
-    {
-      "model": "claude-opus-4-8",
-      "metric": "BrowseComp-cost-per-task-USD",
-      "score": 22.9702,
-      "unit": "other",
-      "effort": "xhigh",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$22.9702. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp",
+      "cost": {
+        "value": 22.9702,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -186,16 +204,18 @@
       "unit": "accuracy",
       "effort": "max",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$27.7124. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619"
-    },
-    {
-      "model": "claude-opus-4-8",
-      "metric": "BrowseComp-cost-per-task-USD",
-      "score": 27.7124,
-      "unit": "other",
-      "effort": "max",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$27.7124. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.619",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp",
+      "cost": {
+        "value": 27.7124,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-sonnet-5",
@@ -204,16 +224,18 @@
       "unit": "accuracy",
       "effort": "low",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$0.3104. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525"
-    },
-    {
-      "model": "claude-sonnet-5",
-      "metric": "OSWorld-Verified-cost-per-task-USD",
-      "score": 0.3104,
-      "unit": "other",
-      "effort": "low",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$0.3104. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "computer_use",
+      "metric_id": "osworld-verified",
+      "cost": {
+        "value": 0.3104,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-sonnet-5",
@@ -222,16 +244,18 @@
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$0.3859. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525"
-    },
-    {
-      "model": "claude-sonnet-5",
-      "metric": "OSWorld-Verified-cost-per-task-USD",
-      "score": 0.3859,
-      "unit": "other",
-      "effort": "medium",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$0.3859. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "computer_use",
+      "metric_id": "osworld-verified",
+      "cost": {
+        "value": 0.3859,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-sonnet-5",
@@ -240,16 +264,18 @@
       "unit": "accuracy",
       "effort": "high",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$0.4596. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525"
-    },
-    {
-      "model": "claude-sonnet-5",
-      "metric": "OSWorld-Verified-cost-per-task-USD",
-      "score": 0.4596,
-      "unit": "other",
-      "effort": "high",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$0.4596. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "computer_use",
+      "metric_id": "osworld-verified",
+      "cost": {
+        "value": 0.4596,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-sonnet-5",
@@ -258,16 +284,18 @@
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$0.5586. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525"
-    },
-    {
-      "model": "claude-sonnet-5",
-      "metric": "OSWorld-Verified-cost-per-task-USD",
-      "score": 0.5586,
-      "unit": "other",
-      "effort": "xhigh",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$0.5586. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "computer_use",
+      "metric_id": "osworld-verified",
+      "cost": {
+        "value": 0.5586,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-sonnet-5",
@@ -276,16 +304,18 @@
       "unit": "accuracy",
       "effort": "max",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$0.7758. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525"
-    },
-    {
-      "model": "claude-sonnet-5",
-      "metric": "OSWorld-Verified-cost-per-task-USD",
-      "score": 0.7758,
-      "unit": "other",
-      "effort": "max",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$0.7758. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "computer_use",
+      "metric_id": "osworld-verified",
+      "cost": {
+        "value": 0.7758,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -294,16 +324,18 @@
       "unit": "accuracy",
       "effort": "low",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$0.4131. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525"
-    },
-    {
-      "model": "claude-opus-4-8",
-      "metric": "OSWorld-Verified-cost-per-task-USD",
-      "score": 0.4131,
-      "unit": "other",
-      "effort": "low",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$0.4131. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "low",
+      "task_family": "computer_use",
+      "metric_id": "osworld-verified",
+      "cost": {
+        "value": 0.4131,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -312,16 +344,18 @@
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$0.5098. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525"
-    },
-    {
-      "model": "claude-opus-4-8",
-      "metric": "OSWorld-Verified-cost-per-task-USD",
-      "score": 0.5098,
-      "unit": "other",
-      "effort": "medium",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$0.5098. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "medium",
+      "task_family": "computer_use",
+      "metric_id": "osworld-verified",
+      "cost": {
+        "value": 0.5098,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -330,16 +364,18 @@
       "unit": "accuracy",
       "effort": "high",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$0.5653. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525"
-    },
-    {
-      "model": "claude-opus-4-8",
-      "metric": "OSWorld-Verified-cost-per-task-USD",
-      "score": 0.5653,
-      "unit": "other",
-      "effort": "high",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$0.5653. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "high",
+      "task_family": "computer_use",
+      "metric_id": "osworld-verified",
+      "cost": {
+        "value": 0.5653,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -348,16 +384,18 @@
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$0.8611. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525"
-    },
-    {
-      "model": "claude-opus-4-8",
-      "metric": "OSWorld-Verified-cost-per-task-USD",
-      "score": 0.8611,
-      "unit": "other",
-      "effort": "xhigh",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$0.8611. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "computer_use",
+      "metric_id": "osworld-verified",
+      "cost": {
+        "value": 0.8611,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-4-8",
@@ -366,16 +404,18 @@
       "unit": "accuracy",
       "effort": "max",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized chart; cost/task\u2248$1.3938. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525"
-    },
-    {
-      "model": "claude-opus-4-8",
-      "metric": "OSWorld-Verified-cost-per-task-USD",
-      "score": 1.3938,
-      "unit": "other",
-      "effort": "max",
-      "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Digitized x-axis (log USD/task); not a quality score"
+      "caveat": "Digitized chart; cost/task\u2248$1.3938. method=density_peak_marker_centroids; dual-read |\u0394%|med=0.1525",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "computer_use",
+      "metric_id": "osworld-verified",
+      "cost": {
+        "value": 1.3938,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-sonnet-5",
@@ -383,7 +423,12 @@
       "score": 0.632,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "swe-bench-pro"
     },
     {
       "model": "claude-sonnet-4-6",
@@ -391,7 +436,12 @@
       "score": 0.581,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "swe-bench-pro"
     },
     {
       "model": "claude-opus-4-8",
@@ -399,7 +449,12 @@
       "score": 0.692,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "swe-bench-pro"
     },
     {
       "model": "claude-sonnet-5",
@@ -407,7 +462,12 @@
       "score": 0.804,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
       "model": "claude-sonnet-4-6",
@@ -415,7 +475,12 @@
       "score": 0.67,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
       "model": "claude-opus-4-8",
@@ -423,7 +488,12 @@
       "score": 0.827,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
       "model": "claude-sonnet-5",
@@ -431,7 +501,11 @@
       "score": 0.432,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "humanity-s-last-exam-no-tools"
     },
     {
       "model": "claude-sonnet-4-6",
@@ -439,7 +513,11 @@
       "score": 0.346,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "humanity-s-last-exam-no-tools"
     },
     {
       "model": "claude-opus-4-8",
@@ -447,7 +525,11 @@
       "score": 0.498,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "humanity-s-last-exam-no-tools"
     },
     {
       "model": "claude-sonnet-5",
@@ -455,7 +537,11 @@
       "score": 0.574,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "humanity-s-last-exam-with-tools"
     },
     {
       "model": "claude-sonnet-4-6",
@@ -463,7 +549,11 @@
       "score": 0.468,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "humanity-s-last-exam-with-tools"
     },
     {
       "model": "claude-opus-4-8",
@@ -471,7 +561,11 @@
       "score": 0.579,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "humanity-s-last-exam-with-tools"
     },
     {
       "model": "claude-sonnet-5",
@@ -479,7 +573,12 @@
       "score": 0.812,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "task_family": "computer_use",
+      "metric_id": "osworld-verified"
     },
     {
       "model": "claude-sonnet-4-6",
@@ -487,7 +586,12 @@
       "score": 0.785,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "task_family": "computer_use",
+      "metric_id": "osworld-verified"
     },
     {
       "model": "claude-opus-4-8",
@@ -495,7 +599,12 @@
       "score": 0.834,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "task_family": "computer_use",
+      "metric_id": "osworld-verified"
     },
     {
       "model": "claude-sonnet-5",
@@ -503,7 +612,11 @@
       "score": 1618,
       "unit": "elo",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "gdpval-aa-v2"
     },
     {
       "model": "claude-sonnet-4-6",
@@ -511,7 +624,11 @@
       "score": 1395,
       "unit": "elo",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "gdpval-aa-v2"
     },
     {
       "model": "claude-opus-4-8",
@@ -519,7 +636,11 @@
       "score": 1615,
       "unit": "elo",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed table on launch figure (labeled_value_read)"
+      "caveat": "Printed table on launch figure (labeled_value_read)",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "gdpval-aa-v2"
     },
     {
       "model": "claude-sonnet-4-6",
@@ -527,7 +648,11 @@
       "score": 2.89,
       "unit": "other",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed bar labels; lower is better for misalignment"
+      "caveat": "Printed bar labels; lower is better for misalignment",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "misaligned-behavior-1-10"
     },
     {
       "model": "claude-mythos-preview",
@@ -535,7 +660,11 @@
       "score": 1.95,
       "unit": "other",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed bar labels; lower is better for misalignment"
+      "caveat": "Printed bar labels; lower is better for misalignment",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "misaligned-behavior-1-10"
     },
     {
       "model": "claude-opus-4-8",
@@ -543,7 +672,11 @@
       "score": 2.1,
       "unit": "other",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed bar labels; lower is better for misalignment"
+      "caveat": "Printed bar labels; lower is better for misalignment",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "misaligned-behavior-1-10"
     },
     {
       "model": "claude-sonnet-5",
@@ -551,7 +684,11 @@
       "score": 2.53,
       "unit": "other",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed bar labels; lower is better for misalignment"
+      "caveat": "Printed bar labels; lower is better for misalignment",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "misaligned-behavior-1-10"
     },
     {
       "model": "claude-sonnet-4-6",
@@ -559,7 +696,11 @@
       "score": 0.0,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed bar labels; pass@1 % of attempts"
+      "caveat": "Printed bar labels; pass@1 % of attempts",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "firefox147-working-exploit"
     },
     {
       "model": "claude-sonnet-4-6",
@@ -567,7 +708,11 @@
       "score": 0.088,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed bar labels; pass@1 % of attempts"
+      "caveat": "Printed bar labels; pass@1 % of attempts",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "firefox147-register-control"
     },
     {
       "model": "claude-opus-4-8",
@@ -575,7 +720,11 @@
       "score": 0.088,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed bar labels; pass@1 % of attempts"
+      "caveat": "Printed bar labels; pass@1 % of attempts",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "firefox147-working-exploit"
     },
     {
       "model": "claude-opus-4-8",
@@ -583,7 +732,11 @@
       "score": 0.688,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed bar labels; pass@1 % of attempts"
+      "caveat": "Printed bar labels; pass@1 % of attempts",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "firefox147-register-control"
     },
     {
       "model": "claude-mythos-5",
@@ -591,7 +744,11 @@
       "score": 0.884,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed bar labels; pass@1 % of attempts"
+      "caveat": "Printed bar labels; pass@1 % of attempts",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "firefox147-working-exploit"
     },
     {
       "model": "claude-mythos-5",
@@ -599,7 +756,11 @@
       "score": 0.9,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed bar labels; pass@1 % of attempts"
+      "caveat": "Printed bar labels; pass@1 % of attempts",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "firefox147-register-control"
     },
     {
       "model": "claude-sonnet-5",
@@ -607,7 +768,11 @@
       "score": 0.0,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed bar labels; pass@1 % of attempts"
+      "caveat": "Printed bar labels; pass@1 % of attempts",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "firefox147-working-exploit"
     },
     {
       "model": "claude-sonnet-5",
@@ -615,7 +780,11 @@
       "score": 0.132,
       "unit": "accuracy",
       "source_id": "anthropic-sonnet-5-digitized-2026-07-09",
-      "caveat": "Printed bar labels; pass@1 % of attempts"
+      "caveat": "Printed bar labels; pass@1 % of attempts",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-07-09",
+      "metric_id": "firefox147-register-control"
     }
   ],
   "claims": [

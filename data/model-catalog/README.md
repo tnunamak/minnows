@@ -9,7 +9,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | Tag **`data-model-catalog-v0.4.2`** — [release](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.4.2) |
+| **This version** | Tag **`data-model-catalog-v0.5.0`** — [release](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.0) |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -18,7 +18,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.4.2
+TAG=data-model-catalog-v0.5.0
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -42,6 +42,7 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 |---|---|
 | `pack.json` | Envelope (tag, file list, schema pointers) |
 | `models.json` | **L0 model registry** — canonical ids + aliases (join key) |
+| `metrics.json` | Metric registry (comparability boundary)
 | `SOURCES.json` | **Provenance registry** — id → URL / publisher / kind |
 | `SCHEMA.md` / `schemas/` | Contracts — pricing + performance + sources v1 |
 | `pricing/*.json` | USD/MTok or Codex credits (tokensmash-compatible) |
@@ -73,6 +74,14 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 5. **Validate before shipping:** `./scripts/validate_data_pack.py model-catalog`
 
 ## Changelog
+
+### v0.5.0 — 2026-07-09
+
+- **`metrics.json`** metric registry (78 metrics).
+- **Score enrichment:** `harness`, `source_type`, `evidence_grade`, `observed_at`, `cost{}`, `metric_id` (cost sibling rows folded into quality).
+- **Pricing:** `valid_until` on Sonnet 5 intro; `family_default` on match rules; `role: reference` for Google; Terra Codex credits **verified** vs official rate card.
+- **SOURCES:** `digitized_chart` kind for Sonnet 5 digitization entry.
+- **FRESHNESS.md** + `scripts/check_freshness.py`; `scripts/sync_tokensmash_pricing.sh`.
 
 ### v0.4.2 — 2026-07-09
 
@@ -115,3 +124,25 @@ Still **missing** (not invented): Anthropic chart digitization, official SWE Ver
 ### v0.1.0 — 2026-07-09
 
 - Initial pricing (Anthropic / OpenAI / Codex credits / xAI) + sparse quality notes.
+
+
+## Query cookbook
+
+Cheapest-ish operational models with grade ≥ B evidence on a coding metric (illustrative jq):
+
+```bash
+# models with at least one grade-B coding score
+jq -r '
+  .scores[]?
+  | select(.evidence_grade=="B" and .task_family=="coding")
+  | [.model, .metric, .score, .effort // "-", .harness // "-"] | @tsv
+' data/model-catalog/performance/*.json | sort -u
+```
+
+Join price (API USD) for a model id:
+
+```bash
+jq -r --arg m claude-sonnet-5 '
+  .models[$m] // empty
+' data/model-catalog/pricing/anthropic-api-2026-07.json
+```

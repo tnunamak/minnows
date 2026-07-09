@@ -22,7 +22,13 @@
       "unit": "accuracy",
       "source_id": "steel-browsecomp-2026-07-09",
       "effort": "xhigh",
-      "caveat": "OpenAI-reported"
+      "caveat": "OpenAI-reported",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp"
     },
     {
       "model": "gpt-5.4-pro",
@@ -30,7 +36,12 @@
       "score": 0.893,
       "unit": "accuracy",
       "source_id": "steel-browsecomp-2026-07-09",
-      "caveat": "OpenAI GPT-5.5 table"
+      "caveat": "OpenAI GPT-5.5 table",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp"
     },
     {
       "model": "claude-mythos-5",
@@ -39,7 +50,13 @@
       "unit": "accuracy",
       "source_id": "steel-browsecomp-2026-07-09",
       "effort": "max",
-      "caveat": "Anthropic system card via Steel"
+      "caveat": "Anthropic system card via Steel",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp"
     },
     {
       "model": "gemini-3.1-pro",
@@ -47,7 +64,12 @@
       "score": 0.859,
       "unit": "accuracy",
       "source_id": "steel-browsecomp-2026-07-09",
-      "caveat": "DeepMind via Steel"
+      "caveat": "DeepMind via Steel",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp"
     },
     {
       "model": "claude-sonnet-5",
@@ -55,7 +77,12 @@
       "score": 0.847,
       "unit": "accuracy",
       "source_id": "steel-browsecomp-2026-07-09",
-      "caveat": "Single-agent; multi-agent 86.6% noted"
+      "caveat": "Single-agent; multi-agent 86.6% noted",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp"
     },
     {
       "model": "gpt-5.5",
@@ -64,7 +91,13 @@
       "unit": "accuracy",
       "source_id": "steel-browsecomp-2026-07-09",
       "effort": "xhigh",
-      "caveat": "OpenAI"
+      "caveat": "OpenAI",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp"
     },
     {
       "model": "claude-opus-4-8",
@@ -73,7 +106,13 @@
       "unit": "accuracy",
       "source_id": "steel-browsecomp-2026-07-09",
       "effort": "max",
-      "caveat": "Single-agent; multi-agent 88.5%"
+      "caveat": "Single-agent; multi-agent 88.5%",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp"
     },
     {
       "model": "gpt-5.4",
@@ -81,14 +120,25 @@
       "score": 0.827,
       "unit": "accuracy",
       "source_id": "steel-browsecomp-2026-07-09",
-      "effort": "xhigh"
+      "effort": "xhigh",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp"
     },
     {
       "model": "claude-opus-4-7",
       "metric": "BrowseComp",
       "score": 0.793,
       "unit": "accuracy",
-      "source_id": "steel-browsecomp-2026-07-09"
+      "source_id": "steel-browsecomp-2026-07-09",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "agentic_search",
+      "metric_id": "browsecomp"
     }
   ],
   "claims": [],

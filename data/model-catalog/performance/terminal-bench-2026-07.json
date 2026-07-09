@@ -13,111 +13,189 @@
     "tbench-2-1-2026-07-09",
     "aa-terminalbench-v2-1-2026-07-09"
   ],
-  "notes": "Independent Terminal-Bench leaderboards. Official TB 2.1 rows encode agent@model because harness dominates. AA rows use AA's Terminus 2 protocol — not interchangeable with vendor-reported Terminal-Bench 2.1 on OpenAI launch posts.",
+  "notes": "Independent Terminal-Bench leaderboards. Official TB 2.1 rows encode agent@model because harness dominates. AA rows use AA's Terminus 2 protocol \u2014 not interchangeable with vendor-reported Terminal-Bench 2.1 on OpenAI launch posts.",
   "scores": [
     {
-      "model": "gpt-5.5@codex-cli",
+      "model": "gpt-5.5",
       "metric": "Terminal-Bench 2.1",
       "score": 0.834,
       "unit": "accuracy",
       "source_id": "tbench-2-1-2026-07-09",
-      "caveat": "Agent=Codex CLI; ±2.2; 2026-05-01"
+      "caveat": "Agent=Codex CLI; \u00b12.2; 2026-05-01",
+      "harness": "codex-cli",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
-      "model": "claude-fable-5@claude-code",
+      "model": "claude-fable-5",
       "metric": "Terminal-Bench 2.1",
       "score": 0.831,
       "unit": "accuracy",
       "source_id": "tbench-2-1-2026-07-09",
-      "caveat": "Agent=Claude Code; ±2.0; 2026-06-17"
+      "caveat": "Agent=Claude Code; \u00b12.0; 2026-06-17",
+      "harness": "claude-code",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
-      "model": "claude-fable-5@terminus-2",
+      "model": "claude-fable-5",
       "metric": "Terminal-Bench 2.1",
       "score": 0.804,
       "unit": "accuracy",
       "source_id": "tbench-2-1-2026-07-09",
-      "caveat": "Agent=Terminus 2; ±2.3"
+      "caveat": "Agent=Terminus 2; \u00b12.3",
+      "harness": "terminus-2",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
-      "model": "claude-opus-4-8@claude-code",
+      "model": "claude-opus-4-8",
       "metric": "Terminal-Bench 2.1",
       "score": 0.789,
       "unit": "accuracy",
       "source_id": "tbench-2-1-2026-07-09",
-      "caveat": "Agent=Claude Code; ±2.5"
+      "caveat": "Agent=Claude Code; \u00b12.5",
+      "harness": "claude-code",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
-      "model": "gpt-5.5@terminus-2",
+      "model": "gpt-5.5",
       "metric": "Terminal-Bench 2.1",
       "score": 0.782,
       "unit": "accuracy",
       "source_id": "tbench-2-1-2026-07-09",
-      "caveat": "Agent=Terminus 2; ±2.4"
+      "caveat": "Agent=Terminus 2; \u00b12.4",
+      "harness": "terminus-2",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
-      "model": "claude-opus-4-8@terminus-2",
+      "model": "claude-opus-4-8",
       "metric": "Terminal-Bench 2.1",
       "score": 0.746,
       "unit": "accuracy",
       "source_id": "tbench-2-1-2026-07-09",
-      "caveat": "Agent=Terminus 2"
+      "caveat": "Agent=Terminus 2",
+      "harness": "terminus-2",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
-      "model": "gemini-3-pro@terminus-2",
+      "model": "gemini-3-pro",
       "metric": "Terminal-Bench 2.1",
       "score": 0.744,
       "unit": "accuracy",
       "source_id": "tbench-2-1-2026-07-09",
-      "caveat": "Agent=Terminus 2"
+      "caveat": "Agent=Terminus 2",
+      "harness": "terminus-2",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
-      "model": "gemini-3.1-pro@gemini-cli",
+      "model": "gemini-3.1-pro",
       "metric": "Terminal-Bench 2.1",
       "score": 0.707,
       "unit": "accuracy",
       "source_id": "tbench-2-1-2026-07-09",
-      "caveat": "Agent=Gemini CLI"
+      "caveat": "Agent=Gemini CLI",
+      "harness": "gemini-cli",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
-      "model": "gemini-3.1-pro@terminus-2",
+      "model": "gemini-3.1-pro",
       "metric": "Terminal-Bench 2.1",
       "score": 0.703,
       "unit": "accuracy",
       "source_id": "tbench-2-1-2026-07-09",
-      "caveat": "Agent=Terminus 2"
+      "caveat": "Agent=Terminus 2",
+      "harness": "terminus-2",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
-      "model": "claude-opus-4-7@claude-code",
+      "model": "claude-opus-4-7",
       "metric": "Terminal-Bench 2.1",
       "score": 0.697,
       "unit": "accuracy",
       "source_id": "tbench-2-1-2026-07-09",
-      "caveat": "Agent=Claude Code"
+      "caveat": "Agent=Claude Code",
+      "harness": "claude-code",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
-      "model": "gemini-3-pro@gemini-cli",
+      "model": "gemini-3-pro",
       "metric": "Terminal-Bench 2.1",
       "score": 0.663,
       "unit": "accuracy",
       "source_id": "tbench-2-1-2026-07-09",
-      "caveat": "Agent=Gemini CLI"
+      "caveat": "Agent=Gemini CLI",
+      "harness": "gemini-cli",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
-      "model": "claude-opus-4-7@terminus-2",
+      "model": "claude-opus-4-7",
       "metric": "Terminal-Bench 2.1",
       "score": 0.661,
       "unit": "accuracy",
       "source_id": "tbench-2-1-2026-07-09",
-      "caveat": "Agent=Terminus 2"
+      "caveat": "Agent=Terminus 2",
+      "harness": "terminus-2",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
-      "model": "glm-5.1@claude-code",
+      "model": "glm-5.1",
       "metric": "Terminal-Bench 2.1",
       "score": 0.587,
       "unit": "accuracy",
       "source_id": "tbench-2-1-2026-07-09",
-      "caveat": "Agent=Claude Code; Model Org Z-AI"
+      "caveat": "Agent=Claude Code; Model Org Z-AI",
+      "harness": "claude-code",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1"
     },
     {
       "model": "claude-fable-5",
@@ -126,7 +204,13 @@
       "unit": "accuracy",
       "source_id": "aa-terminalbench-v2-1-2026-07-09",
       "effort": "max",
-      "caveat": "AA Terminus 2 harness pass@1 avg 3 repeats"
+      "caveat": "AA Terminus 2 harness pass@1 avg 3 repeats",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-v2-1-aa-terminus-2"
     },
     {
       "model": "claude-opus-4-8",
@@ -135,7 +219,13 @@
       "unit": "accuracy",
       "source_id": "aa-terminalbench-v2-1-2026-07-09",
       "effort": "max",
-      "caveat": "AA Terminus 2 harness"
+      "caveat": "AA Terminus 2 harness",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "max",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-v2-1-aa-terminus-2"
     },
     {
       "model": "gpt-5.5",
@@ -144,7 +234,13 @@
       "unit": "accuracy",
       "source_id": "aa-terminalbench-v2-1-2026-07-09",
       "effort": "xhigh",
-      "caveat": "AA Terminus 2 harness"
+      "caveat": "AA Terminus 2 harness",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-09",
+      "effort_verbatim": "xhigh",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-v2-1-aa-terminus-2"
     }
   ],
   "claims": [
@@ -160,7 +256,7 @@
       "axes": [
         "quality"
       ],
-      "statement": "On official TB 2.1, Codex CLI+GPT-5.5 leads at 83.4%±2.2; Claude Code+Fable 5 at 83.1%±2.0. Harness choice (Codex CLI vs Terminus 2 vs Claude Code) moves scores several points.",
+      "statement": "On official TB 2.1, Codex CLI+GPT-5.5 leads at 83.4%\u00b12.2; Claude Code+Fable 5 at 83.1%\u00b12.0. Harness choice (Codex CLI vs Terminus 2 vs Claude Code) moves scores several points.",
       "implication": "Never rank models without the agent/harness column.",
       "source_id": "tbench-2-1-2026-07-09"
     }

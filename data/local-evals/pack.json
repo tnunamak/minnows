@@ -1,0 +1,17 @@
+{
+  "name": "local-evals",
+  "schema_version": 1,
+  "tag": "data-local-evals-v0.0.1",
+  "generated_at": "2026-07-09",
+  "description": "Fixed-harness P(success)/cost rows for policy ops on Tim's machines. Emits performance-v2-shaped scores with source_type=local_eval. Scaffold only until first runs land.",
+  "files": [
+    "README.md",
+    "SCHEMA.md",
+    "tasks/README.md",
+    "results/.gitkeep"
+  ],
+  "related": {
+    "catalog": "data-model-catalog-v0.5.0",
+    "policy": "data-model-choice-policy-v0.1.2"
+  }
+}
