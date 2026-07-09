@@ -53,6 +53,8 @@ else
   INDEX="$(curl -fsSL "$INDEX_URL")"
   TAG="$(jq -r --arg p "$PACK" '.packs[$p].latest_tag // empty' <<<"$INDEX")"
   TARBALL="$(jq -r --arg p "$PACK" '.packs[$p].tarball // empty' <<<"$INDEX")"
+  # Tolerate accidental ".git" in repo path from older index generators.
+  TARBALL="$(sed 's|\.git/|/|g' <<<"$TARBALL")"
   if [[ -z "$TAG" || -z "$TARBALL" || "$TARBALL" == "null" ]]; then
     echo "Pack '$PACK' not found in $INDEX_URL" >&2
     echo "Known packs:" >&2
