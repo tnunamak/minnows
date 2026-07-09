@@ -1,27 +1,17 @@
 #!/usr/bin/env python3
-"""Digitize chart images into provenance-backed JSON for model-catalog.
+"""Case-by-case chart digitization for model-catalog (reliable, not scalable).
+
+Use when a vendor figure has the numbers you need and no table. Not a bulk
+scraper — tune one chart, spot-check by eye, file with provenance.
 
 Accuracy strategy (best → worst):
-  1. structured table / labeled bars (OCR or vision of printed numbers)
-  2. geometric: calibrate axis pixels → data units, detect markers
-  3. pure vision estimate (draft only; needs dual-read)
+  1. from-labels — printed table/bar numbers (preferred)
+  2. geometric — axis box + density-peak markers (workable; check plot-box)
+  3. vision dual-read alone — draft only
 
-Usage:
-  # geometric scatter (log-x cost, linear-y pass rate)
-  ./scripts/digitize_chart.py geometric \\
-    --image tmp/charts/assets/browsecomp.png \\
-    --source-url 'https://cdn.sanity.io/images/.../browsecomp.png' \\
-    --page-url 'https://www.anthropic.com/news/claude-sonnet-5' \\
-    --title 'BrowseComp effort curves' \\
-    --x-scale log --x-min 2 --x-max 50 --y-min 60 --y-max 90 \\
-    --plot-box 480,320,3400,1750 \\
-    --series orange:claude-sonnet-5 gold:claude-opus-4-8 gray:claude-sonnet-4-6 \\
-    --out data/model-catalog/digitized/browsecomp-sonnet5.json
+See data/model-catalog/digitized/README.md for the human workflow.
 
-  # hash + provenance wrapper only
-  ./scripts/digitize_chart.py asset --url URL --out path.json
-
-Stdlib + Pillow + numpy only (no OpenCV required).
+Stdlib + Pillow + numpy only.
 """
 
 from __future__ import annotations
