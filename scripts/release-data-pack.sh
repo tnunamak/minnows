@@ -61,7 +61,7 @@ sha256sum "$TAR"
 # Refresh data/index.json latest pointer
 if command -v jq >/dev/null 2>&1 && [[ -f "$REPO_ROOT/data/index.json" ]]; then
   tmp="$(mktemp)"
-  OWNER_REPO="$(git remote get-url origin 2>/dev/null | sed -E 's#.*[:/]([^/]+/[^/]+)(\.git)?$#\1#' || echo tnunamak/minnows)"
+  OWNER_REPO="$(git remote get-url origin 2>/dev/null | sed -E 's#\.git$##' | sed -E 's#.*[:/]([^/]+/[^/]+)$#\1#' || echo tnunamak/minnows)"
   jq --arg p "$PACK" --arg t "$TAG" --arg r "$OWNER_REPO" '
     .updated_at = (now | strftime("%Y-%m-%d")) |
     .repo = $r |

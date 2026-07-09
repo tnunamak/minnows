@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
   "updated_at": "2026-07-09",
-  "repo": "tnunamak/minnows.git",
+  "repo": "tnunamak/minnows",
   "packs": {
     "model-catalog": {
       "latest_tag": "data-model-catalog-v0.1.0",
       "description": "Model pricing + sparse quality/effort claims for coding agents",
-      "readme": "https://github.com/tnunamak/minnows.git/blob/main/data/model-catalog/README.md",
-      "releases": "https://github.com/tnunamak/minnows.git/releases?q=data-model-catalog&expanded=true",
-      "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows.git/data-model-catalog-v0.1.0/data/model-catalog/pack.json",
-      "tarball": "https://github.com/tnunamak/minnows.git/releases/download/data-model-catalog-v0.1.0/data-model-catalog-v0.1.0.tar.gz",
-      "tree": "https://github.com/tnunamak/minnows.git/tree/data-model-catalog-v0.1.0/data/model-catalog"
+      "readme": "https://github.com/tnunamak/minnows/blob/main/data/model-catalog/README.md",
+      "releases": "https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true",
+      "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-model-catalog-v0.1.0/data/model-catalog/pack.json",
+      "tarball": "https://github.com/tnunamak/minnows/releases/download/data-model-catalog-v0.1.0/data-model-catalog-v0.1.0.tar.gz",
+      "tree": "https://github.com/tnunamak/minnows/tree/data-model-catalog-v0.1.0/data/model-catalog"
     }
   }
 }
