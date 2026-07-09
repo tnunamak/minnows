@@ -8,82 +8,407 @@
   "source_urls": [
     "https://openai.com/index/introducing-gpt-5-5/"
   ],
-  "notes": "Vendor-reported eval numbers from the GPT-5.5 launch post. Harnesses and asterisks are OpenAI's. Cross-vendor comparison is not independent.",
+  "source_ids": [
+    "openai-gpt-5-5-2026-04-23"
+  ],
+  "notes": "Full vendor eval table from GPT-5.5 launch (effort xhigh for OpenAI rows). Cross-vendor columns are OpenAI's table, not independent re-runs.",
   "scores": [
     {
       "model": "gpt-5.5",
       "metric": "Terminal-Bench 2.0",
       "score": 0.827,
       "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
       "comparisons": {
         "gpt-5.4": 0.751,
         "claude-opus-4-7": 0.694,
         "gemini-3.1-pro": 0.685
-      },
-      "source_id": "openai-gpt-5-5-2026-04-23"
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "Expert-SWE (Internal)",
+      "score": 0.731,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.685
+      }
     },
     {
       "model": "gpt-5.5",
       "metric": "SWE-Bench Pro (Public)",
       "score": 0.586,
       "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
       "comparisons": {
         "gpt-5.4": 0.577,
         "claude-opus-4-7": 0.643,
         "gemini-3.1-pro": 0.542
       },
-      "caveat": "OpenAI notes labs have claimed memorization evidence on this eval.",
-      "source_id": "openai-gpt-5-5-2026-04-23"
+      "caveat": "OpenAI notes labs have claimed memorization evidence on this eval"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "GDPval (wins or ties)",
+      "score": 0.849,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.83,
+        "gpt-5.5-pro": 0.823,
+        "gpt-5.4-pro": 0.82,
+        "claude-opus-4-7": 0.803,
+        "gemini-3.1-pro": 0.673
+      }
     },
     {
       "model": "gpt-5.5",
       "metric": "OSWorld-Verified",
       "score": 0.787,
       "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
       "comparisons": {
         "gpt-5.4": 0.75,
         "claude-opus-4-7": 0.78
-      },
-      "source_id": "openai-gpt-5-5-2026-04-23"
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "Toolathlon",
+      "score": 0.556,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.546,
+        "gemini-3.1-pro": 0.488
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "BrowseComp",
+      "score": 0.844,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.827,
+        "gpt-5.5-pro": 0.901,
+        "gpt-5.4-pro": 0.893,
+        "claude-opus-4-7": 0.793,
+        "gemini-3.1-pro": 0.859
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "FrontierMath Tier 1–3",
+      "score": 0.517,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.476,
+        "gpt-5.5-pro": 0.524,
+        "gpt-5.4-pro": 0.5,
+        "claude-opus-4-7": 0.438,
+        "gemini-3.1-pro": 0.369
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "FrontierMath Tier 4",
+      "score": 0.354,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.271,
+        "gpt-5.5-pro": 0.396,
+        "gpt-5.4-pro": 0.38,
+        "claude-opus-4-7": 0.229,
+        "gemini-3.1-pro": 0.167
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "CyberGym",
+      "score": 0.818,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.79,
+        "claude-opus-4-7": 0.731
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "FinanceAgent v1.1",
+      "score": 0.6,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.56,
+        "gpt-5.4-pro": 0.615,
+        "claude-opus-4-7": 0.644,
+        "gemini-3.1-pro": 0.597
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "Investment Banking Modeling Tasks (Internal)",
+      "score": 0.885,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.873,
+        "gpt-5.5-pro": 0.886,
+        "gpt-5.4-pro": 0.836
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "OfficeQA Pro",
+      "score": 0.541,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.532,
+        "claude-opus-4-7": 0.436,
+        "gemini-3.1-pro": 0.181
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "MMMU Pro (no tools)",
+      "score": 0.812,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.812,
+        "gemini-3.1-pro": 0.805
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "MMMU Pro (with tools)",
+      "score": 0.832,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.821
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "MCP Atlas",
+      "score": 0.753,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.706,
+        "claude-opus-4-7": 0.791,
+        "gemini-3.1-pro": 0.782
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "Tau2-bench Telecom (original prompts)",
+      "score": 0.98,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.928
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "GeneBench",
+      "score": 0.25,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.19,
+        "gpt-5.5-pro": 0.332,
+        "gpt-5.4-pro": 0.256
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "BixBench",
+      "score": 0.805,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.74
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "GPQA Diamond",
+      "score": 0.936,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.928,
+        "gpt-5.4-pro": 0.944,
+        "claude-opus-4-7": 0.942,
+        "gemini-3.1-pro": 0.943
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "Humanity's Last Exam (no tools)",
+      "score": 0.414,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.398,
+        "gpt-5.5-pro": 0.431,
+        "gpt-5.4-pro": 0.427,
+        "claude-opus-4-7": 0.469,
+        "gemini-3.1-pro": 0.444
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "Humanity's Last Exam (with tools)",
+      "score": 0.522,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.521,
+        "gpt-5.5-pro": 0.572,
+        "gpt-5.4-pro": 0.587,
+        "claude-opus-4-7": 0.547,
+        "gemini-3.1-pro": 0.514
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "Capture-the-Flags challenge tasks (Internal)",
+      "score": 0.881,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.837
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "Graphwalks BFS 256k f1",
+      "score": 0.737,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.625,
+        "claude-opus-4-7": 0.769
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "Graphwalks BFS 1mil f1",
+      "score": 0.454,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.094,
+        "claude-opus-4-6": 0.412
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "OpenAI MRCR v2 8-needle 256K-512K",
+      "score": 0.815,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.575
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "OpenAI MRCR v2 8-needle 512K-1M",
+      "score": 0.74,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.366,
+        "claude-opus-4-7": 0.322
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "ARC-AGI-1 (Verified)",
+      "score": 0.95,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.937,
+        "gpt-5.4-pro": 0.945,
+        "claude-opus-4-7": 0.935,
+        "gemini-3.1-pro": 0.98
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "ARC-AGI-2 (Verified)",
+      "score": 0.85,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-5-2026-04-23",
+      "effort": "xhigh",
+      "comparisons": {
+        "gpt-5.4": 0.733,
+        "gpt-5.4-pro": 0.833,
+        "claude-opus-4-7": 0.758,
+        "gemini-3.1-pro": 0.771
+      }
     }
   ],
   "claims": [
     {
       "models": [
-        "gpt-5.5"
+        "gpt-5.5",
+        "gpt-5.5-pro"
       ],
       "task_families": [
-        "agentic_coding"
+        "coding",
+        "agentic"
       ],
       "axes": [
         "quality",
-        "tokens",
         "cost"
       ],
-      "statement": "OpenAI claims GPT-5.5 improves coding scores vs GPT-5.4 while using fewer tokens, and cites Artificial Analysis Coding Index for SOTA intelligence at half the cost of competitive frontier coding models.",
-      "implication": "Token efficiency can dominate sticker $/MTok; measure cost-per-successful-task.",
-      "source_id": "openai-gpt-5-5-2026-04-23"
-    },
-    {
-      "models": [
-        "gpt-5.5"
-      ],
-      "task_families": [
-        "codex"
-      ],
-      "axes": [
-        "speed",
-        "cost"
-      ],
-      "statement": "In Codex, Fast mode generates tokens 1.5× faster for 2.5× the cost.",
-      "implication": "Speed is an explicit cost multiplier, separate from model id.",
+      "statement": "API pricing GPT-5.5 $5/$30, Pro $30/$180; Fast mode 1.5× speed for 2.5× cost (separate from effort).",
+      "implication": "Do not conflate Fast mode with reasoning effort.",
       "source_id": "openai-gpt-5-5-2026-04-23"
     }
   ],
   "missing": [
-    "Effort-parameterized cost-performance curves comparable to Anthropic Sonnet 5 BrowseComp/OSWorld charts."
-  ],
-  "source_ids": [
-    "openai-gpt-5-5-2026-04-23"
+    "Effort ladders beyond xhigh for GPT-5.5 table rows"
   ]
 }

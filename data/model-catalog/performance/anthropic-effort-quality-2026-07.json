@@ -6,7 +6,10 @@
   "provider": "anthropic",
   "retrieved_at": "2026-07-09",
   "source_urls": [
-    "https://www.anthropic.com/news/claude-sonnet-5"
+    "https://www.anthropic.com/news/claude-sonnet-5",
+    "https://www.anthropic.com/news/claude-opus-4-8",
+    "https://www.anthropic.com/news/claude-fable-5-mythos-5",
+    "https://platform.claude.com/docs/en/build-with-claude/effort"
   ],
   "notes": "Source-backed quality/cost framing from the Sonnet 5 launch post. Chart point series are images-only on the vendor page — listed under missing[]. Prefer cost-per-successful-task over sticker $/MTok.",
   "claims": [
@@ -57,13 +60,64 @@
       "statement": "Charts price Sonnet 5 at $3/$15 per MTok (standard) and Opus 4.8 at $5/$25; intro Sonnet 5 is $2/$10 through 2026-08-31. Tokenizer change may map the same text to ~1.0–1.35× more tokens.",
       "implication": "Intro pricing is roughly migration cost-neutral despite denser tokenization; after intro, re-check effective task cost.",
       "source_id": "anthropic-sonnet-5-2026-06-30"
+    },
+    {
+      "models": [
+        "claude-fable-5",
+        "claude-mythos-5"
+      ],
+      "task_families": [
+        "coding",
+        "agentic"
+      ],
+      "axes": [
+        "quality",
+        "cost"
+      ],
+      "statement": "Fable 5 and Mythos 5 share underlying weights; Fable has safety fallbacks to Opus 4.8; both priced $10/$50 per MTok.",
+      "implication": "Mythos is access-tiered, not a free quality upgrade in the public API.",
+      "source_id": "anthropic-fable-mythos-2026-06-09"
+    },
+    {
+      "models": [
+        "claude-opus-4-8"
+      ],
+      "task_families": [
+        "api_billing"
+      ],
+      "axes": [
+        "cost",
+        "speed"
+      ],
+      "statement": "Opus 4.8 regular $5/$25; fast mode $10/$50 with up to 2.5× output speed.",
+      "implication": "Fast mode is a speed tier, not an effort level.",
+      "source_id": "anthropic-opus-4-8-2026-05-28"
+    },
+    {
+      "models": [
+        "claude-sonnet-5",
+        "claude-opus-4-8",
+        "claude-fable-5"
+      ],
+      "task_families": [
+        "agentic"
+      ],
+      "axes": [
+        "effort"
+      ],
+      "statement": "API effort levels include low|medium|high|xhigh|max for Sonnet 5 / Opus 4.8 / Fable 5; default high; xhigh recommended starting point for coding/agentic on Opus-class docs.",
+      "implication": "Effort is first-class; ultracode is Claude Code session mode not API effort.",
+      "source_id": "anthropic-effort-docs-2026-07-09"
     }
   ],
   "missing": [
-    "Numeric point series from the BrowseComp/OSWorld cost-performance charts (not published as a table).",
-    "Independent fixed-harness multi-vendor ranking."
+    "Numeric point series from BrowseComp/OSWorld cost-performance charts (images only)",
+    "Main multi-model Fable/Opus benchmark comparison tables (images on launch posts)"
   ],
   "source_ids": [
-    "anthropic-sonnet-5-2026-06-30"
+    "anthropic-sonnet-5-2026-06-30",
+    "anthropic-opus-4-8-2026-05-28",
+    "anthropic-fable-mythos-2026-06-09",
+    "anthropic-effort-docs-2026-07-09"
   ]
 }

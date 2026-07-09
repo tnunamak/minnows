@@ -13,7 +13,7 @@
     "arcprize-gpt-5-6-2026-07-09",
     "arcprize-leaderboard-2026-07-09"
   ],
-  "notes": "Third-party ARC Prize verified scores. Effort labels Max/Extra High/High/Medium/Low mapped to max/xhigh/high/medium/low. ARC-AGI-3 remains near-floor for most systems; do not treat ARC-AGI-1 saturation as coding-agent ranking. Cost/task only recorded where leaderboard listed Sol variants in the crawl (low/medium/high).",
+  "notes": "Third-party ARC Prize verified scores + leaderboard Cost/Task. Effort labels Max/Extra High/High/Medium/Low mapped to max/xhigh/high/medium/low. Includes multi-vendor peer rows from leaderboard for Pareto cost/quality context. Fable 5 not present on extracted board.",
   "scores": [
     {
       "model": "gpt-5.6-sol",
@@ -425,27 +425,478 @@
       "metric": "ARC-AGI-cost-per-task-USD",
       "score": 0.32,
       "unit": "other",
-      "effort": "low",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "caveat": "Leaderboard Cost/Task column for GPT-5.6 Sol; not a quality score."
+      "effort": "low",
+      "caveat": "Leaderboard Cost/Task column; not a quality score."
     },
     {
       "model": "gpt-5.6-sol",
       "metric": "ARC-AGI-cost-per-task-USD",
       "score": 0.47,
       "unit": "other",
-      "effort": "medium",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "caveat": "Leaderboard Cost/Task column for GPT-5.6 Sol; not a quality score."
+      "effort": "medium",
+      "caveat": "Leaderboard Cost/Task column; not a quality score."
     },
     {
       "model": "gpt-5.6-sol",
       "metric": "ARC-AGI-cost-per-task-USD",
       "score": 0.74,
       "unit": "other",
-      "effort": "high",
       "source_id": "arcprize-leaderboard-2026-07-09",
-      "caveat": "Leaderboard Cost/Task column for GPT-5.6 Sol; not a quality score."
+      "effort": "high",
+      "caveat": "Leaderboard Cost/Task column; not a quality score."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 1.04,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "xhigh",
+      "caveat": "Leaderboard Cost/Task column; not a quality score."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 1.44,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "max",
+      "caveat": "Leaderboard Cost/Task column; not a quality score."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.17,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "low",
+      "caveat": "Leaderboard Cost/Task column; not a quality score."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.27,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "medium",
+      "caveat": "Leaderboard Cost/Task column; not a quality score."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.55,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high",
+      "caveat": "Leaderboard Cost/Task column; not a quality score."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.69,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "xhigh",
+      "caveat": "Leaderboard Cost/Task column; not a quality score."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 1.09,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "max",
+      "caveat": "Leaderboard Cost/Task column; not a quality score."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.07,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "low",
+      "caveat": "Leaderboard Cost/Task column; not a quality score."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.11,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "medium",
+      "caveat": "Leaderboard Cost/Task column; not a quality score."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.29,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high",
+      "caveat": "Leaderboard Cost/Task column; not a quality score."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.54,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "xhigh",
+      "caveat": "Leaderboard Cost/Task column; not a quality score."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.67,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "max",
+      "caveat": "Leaderboard Cost/Task column; not a quality score."
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "ARC-AGI-1",
+      "score": 0.88,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "low",
+      "caveat": "2026-06-01 CoT"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "ARC-AGI-1",
+      "score": 0.915,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "medium"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "ARC-AGI-1",
+      "score": 0.92,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high",
+      "caveat": "ARC-AGI-3 1.5% same effort"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "ARC-AGI-2",
+      "score": 0.622,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "low"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "ARC-AGI-2",
+      "score": 0.717,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "medium"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "ARC-AGI-2",
+      "score": 0.721,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "ARC-AGI-3",
+      "score": 0.015,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "ARC-AGI-1",
+      "score": 0.762,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "low",
+      "caveat": "2026-04-22"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "ARC-AGI-1",
+      "score": 0.922,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "medium"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "ARC-AGI-1",
+      "score": 0.945,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "ARC-AGI-1",
+      "score": 0.95,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "xhigh"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "ARC-AGI-2",
+      "score": 0.333,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "low"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "ARC-AGI-2",
+      "score": 0.704,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "medium"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "ARC-AGI-2",
+      "score": 0.833,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "ARC-AGI-2",
+      "score": 0.85,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "xhigh"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "ARC-AGI-3",
+      "score": 0.004,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high"
+    },
+    {
+      "model": "gpt-5.5-pro",
+      "metric": "ARC-AGI-1",
+      "score": 0.965,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high"
+    },
+    {
+      "model": "gpt-5.5-pro",
+      "metric": "ARC-AGI-2",
+      "score": 0.846,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high"
+    },
+    {
+      "model": "gemini-3.1-pro-preview",
+      "metric": "ARC-AGI-1",
+      "score": 0.98,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "caveat": "2026-02-19 CoT"
+    },
+    {
+      "model": "gemini-3.1-pro-preview",
+      "metric": "ARC-AGI-2",
+      "score": 0.771,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09"
+    },
+    {
+      "model": "gemini-3.1-pro-preview",
+      "metric": "ARC-AGI-3",
+      "score": 0.004,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09"
+    },
+    {
+      "model": "grok-4.20",
+      "metric": "ARC-AGI-1",
+      "score": 0.895,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "reasoning",
+      "caveat": "Original: Grok 4.20 Reasoning 2026-03-09"
+    },
+    {
+      "model": "grok-4.20",
+      "metric": "ARC-AGI-2",
+      "score": 0.651,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "reasoning"
+    },
+    {
+      "model": "gemini-3.5-flash",
+      "metric": "ARC-AGI-1",
+      "score": 0.488,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "minimal"
+    },
+    {
+      "model": "gemini-3.5-flash",
+      "metric": "ARC-AGI-1",
+      "score": 0.925,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high"
+    },
+    {
+      "model": "gemini-3.5-flash",
+      "metric": "ARC-AGI-2",
+      "score": 0.089,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "minimal"
+    },
+    {
+      "model": "gemini-3.5-flash",
+      "metric": "ARC-AGI-2",
+      "score": 0.721,
+      "unit": "accuracy",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 1.68,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "low",
+      "caveat": "Leaderboard Cost/Task"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 2.39,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "medium",
+      "caveat": "Leaderboard Cost/Task"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 2.74,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high",
+      "caveat": "Leaderboard Cost/Task"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 2.33,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "max",
+      "caveat": "Leaderboard Cost/Task"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.35,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "low",
+      "caveat": "Leaderboard Cost/Task"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.86,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "medium",
+      "caveat": "Leaderboard Cost/Task"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 1.45,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high",
+      "caveat": "Leaderboard Cost/Task"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 1.87,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "xhigh",
+      "caveat": "Leaderboard Cost/Task"
+    },
+    {
+      "model": "gpt-5.5-pro",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 10.51,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high",
+      "caveat": "Leaderboard Cost/Task"
+    },
+    {
+      "model": "gpt-5.5-pro",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 10.76,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "xhigh",
+      "caveat": "Leaderboard Cost/Task"
+    },
+    {
+      "model": "gemini-3.5-flash",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.107,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "minimal",
+      "caveat": "Leaderboard Cost/Task"
+    },
+    {
+      "model": "gemini-3.5-flash",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.85,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "high",
+      "caveat": "Leaderboard Cost/Task"
+    },
+    {
+      "model": "gemini-3.1-pro-preview",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.962,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "caveat": "Leaderboard Cost/Task"
+    },
+    {
+      "model": "grok-4.20",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.92,
+      "unit": "other",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "effort": "reasoning",
+      "caveat": "Leaderboard Cost/Task"
     }
   ],
   "claims": [
@@ -466,7 +917,7 @@
     }
   ],
   "missing": [
-    "Full Cost/Task matrix for Terra/Luna and Sol xhigh/max from leaderboard (not fully extracted in this snapshot).",
-    "Claude/Grok ARC-AGI-3 effort ladders in the same file (add when scraped with provenance)."
+    "Claude Fable/Mythos ARC rows not on extracted leaderboard slice",
+    "Full historical ARC board beyond frontier extract"
   ]
 }

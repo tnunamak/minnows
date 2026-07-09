@@ -6,66 +6,79 @@
   "agent": "claude-code",
   "retrieved_at": "2026-07-09",
   "source_urls": [
+    "https://platform.claude.com/docs/en/about-claude/pricing",
     "https://platform.claude.com/docs/en/about-claude/models/overview",
-    "https://www.anthropic.com/news/claude-sonnet-5",
-    "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    "https://www.anthropic.com/news/claude-sonnet-5"
   ],
-  "notes": "Standard API rates (USD per 1M tokens). Claude Sonnet 5 has introductory pricing of $2/$10 through 2026-08-31 (see models.claude-sonnet-5-intro); after that use claude-sonnet-5 standard $3/$15. cache_write_per_m uses the 5-minute TTL multiplier (1.25× base input) where applicable; cache_read is 10% of base input. Sonnet 5 uses an updated tokenizer (~1.0–1.35× tokens for the same text vs prior Sonnet) — intro pricing is set to be roughly cost-neutral for migration.",
+  "source_ids": [
+    "anthropic-pricing-2026-07-09",
+    "anthropic-models-overview-2026-07-09",
+    "anthropic-sonnet-5-2026-06-30"
+  ],
+  "notes": "USD per 1M tokens from Anthropic Pricing docs. cache_write_per_m = 5-minute cache write (1.25× base input). 1h cache write is 2× (not stored as separate field). cache_read = 0.1× base. Sonnet 5 intro through 2026-08-31 as claude-sonnet-5-intro. Fast mode Opus 4.8 is a mode not a separate model id ($10/$50) — see claims in capabilities.",
   "models": {
     "claude-fable-5": {
-      "fresh_input_per_m": 10.0,
+      "fresh_input_per_m": 10,
       "cache_read_per_m": 1.0,
       "cache_write_per_m": 12.5,
-      "output_per_m": 50.0
+      "output_per_m": 50
+    },
+    "claude-mythos-5": {
+      "fresh_input_per_m": 10,
+      "cache_read_per_m": 1.0,
+      "cache_write_per_m": 12.5,
+      "output_per_m": 50
     },
     "claude-opus-4-8": {
-      "fresh_input_per_m": 5.0,
+      "fresh_input_per_m": 5,
       "cache_read_per_m": 0.5,
       "cache_write_per_m": 6.25,
-      "output_per_m": 25.0
-    },
-    "claude-sonnet-5": {
-      "fresh_input_per_m": 3.0,
-      "cache_read_per_m": 0.3,
-      "cache_write_per_m": 3.75,
-      "output_per_m": 15.0
-    },
-    "claude-sonnet-5-intro": {
-      "fresh_input_per_m": 2.0,
-      "cache_read_per_m": 0.2,
-      "cache_write_per_m": 2.5,
-      "output_per_m": 10.0
-    },
-    "claude-sonnet-4-6": {
-      "fresh_input_per_m": 3.0,
-      "cache_read_per_m": 0.3,
-      "cache_write_per_m": 3.75,
-      "output_per_m": 15.0
-    },
-    "claude-sonnet-4-5": {
-      "fresh_input_per_m": 3.0,
-      "cache_read_per_m": 0.3,
-      "cache_write_per_m": 3.75,
-      "output_per_m": 15.0
+      "output_per_m": 25
     },
     "claude-opus-4-7": {
-      "fresh_input_per_m": 5.0,
+      "fresh_input_per_m": 5,
       "cache_read_per_m": 0.5,
       "cache_write_per_m": 6.25,
-      "output_per_m": 25.0
+      "output_per_m": 25
+    },
+    "claude-opus-4-6": {
+      "fresh_input_per_m": 5,
+      "cache_read_per_m": 0.5,
+      "cache_write_per_m": 6.25,
+      "output_per_m": 25
+    },
+    "claude-sonnet-5": {
+      "fresh_input_per_m": 3,
+      "cache_read_per_m": 0.3,
+      "cache_write_per_m": 3.75,
+      "output_per_m": 15
+    },
+    "claude-sonnet-5-intro": {
+      "fresh_input_per_m": 2,
+      "cache_read_per_m": 0.2,
+      "cache_write_per_m": 2.5,
+      "output_per_m": 10
+    },
+    "claude-sonnet-4-6": {
+      "fresh_input_per_m": 3,
+      "cache_read_per_m": 0.3,
+      "cache_write_per_m": 3.75,
+      "output_per_m": 15
+    },
+    "claude-sonnet-4-5": {
+      "fresh_input_per_m": 3,
+      "cache_read_per_m": 0.3,
+      "cache_write_per_m": 3.75,
+      "output_per_m": 15
     },
     "claude-haiku-4-5": {
-      "fresh_input_per_m": 1.0,
+      "fresh_input_per_m": 1,
       "cache_read_per_m": 0.1,
       "cache_write_per_m": 1.25,
-      "output_per_m": 5.0
+      "output_per_m": 5
     }
   },
   "match": [
-    {
-      "pattern": "claude-fable-5",
-      "model": "claude-fable-5"
-    },
     {
       "pattern": "fable-5",
       "model": "claude-fable-5"
@@ -75,32 +88,36 @@
       "model": "claude-fable-5"
     },
     {
-      "pattern": "claude-sonnet-5",
-      "model": "claude-sonnet-5"
+      "pattern": "mythos-5",
+      "model": "claude-mythos-5"
+    },
+    {
+      "pattern": "mythos",
+      "model": "claude-mythos-5"
+    },
+    {
+      "pattern": "opus-4-8",
+      "model": "claude-opus-4-8"
+    },
+    {
+      "pattern": "opus 4.8",
+      "model": "claude-opus-4-8"
+    },
+    {
+      "pattern": "opus-4-7",
+      "model": "claude-opus-4-7"
+    },
+    {
+      "pattern": "sonnet-5-intro",
+      "model": "claude-sonnet-5-intro"
     },
     {
       "pattern": "sonnet-5",
       "model": "claude-sonnet-5"
     },
     {
-      "pattern": "claude-sonnet-4-6",
-      "model": "claude-sonnet-4-6"
-    },
-    {
-      "pattern": "claude-sonnet-4-5",
-      "model": "claude-sonnet-4-5"
-    },
-    {
-      "pattern": "claude-opus-4-8",
-      "model": "claude-opus-4-8"
-    },
-    {
-      "pattern": "claude-opus-4-7",
-      "model": "claude-opus-4-7"
-    },
-    {
-      "pattern": "claude-haiku-4-5",
-      "model": "claude-haiku-4-5"
+      "pattern": "sonnet 5",
+      "model": "claude-sonnet-5"
     },
     {
       "pattern": "sonnet-4-6",
@@ -111,32 +128,16 @@
       "model": "claude-sonnet-4-5"
     },
     {
-      "pattern": "opus-4-8",
-      "model": "claude-opus-4-8"
-    },
-    {
-      "pattern": "opus-4-7",
-      "model": "claude-opus-4-7"
-    },
-    {
       "pattern": "haiku-4-5",
       "model": "claude-haiku-4-5"
     },
     {
-      "pattern": "sonnet",
-      "model": "claude-sonnet-5"
-    },
-    {
-      "pattern": "opus",
+      "pattern": "claude-opus",
       "model": "claude-opus-4-8"
     },
     {
-      "pattern": "haiku",
-      "model": "claude-haiku-4-5"
+      "pattern": "claude-sonnet",
+      "model": "claude-sonnet-5"
     }
-  ],
-  "source_ids": [
-    "anthropic-models-overview-2026-07-09",
-    "anthropic-sonnet-5-2026-06-30"
   ]
 }

@@ -1,0 +1,93 @@
+{
+  "$schema": "schemas/pricing-v1.schema.json",
+  "id": "google-api-2026-07",
+  "schema_version": 1,
+  "kind": "api_usd",
+  "agent": "google",
+  "retrieved_at": "2026-07-09",
+  "source_urls": [
+    "https://ai.google.dev/gemini-api/docs/pricing"
+  ],
+  "source_ids": [
+    "google-gemini-pricing-2026-07-09"
+  ],
+  "notes": "Standard paid tier USD/1MTok for prompts \u2264200k where tiered. Long-context higher rates on source page not separate model ids. cache_write_per_m=0 (storage billed hourly, not write multiplier). Batch/Flex often ~50% off \u2014 not modeled here.",
+  "models": {
+    "gemini-3.1-pro-preview": {
+      "fresh_input_per_m": 2.0,
+      "cache_read_per_m": 0.2,
+      "cache_write_per_m": 0,
+      "output_per_m": 12.0
+    },
+    "gemini-3.5-flash": {
+      "fresh_input_per_m": 1.5,
+      "cache_read_per_m": 0.15,
+      "cache_write_per_m": 0,
+      "output_per_m": 9.0
+    },
+    "gemini-3-flash-preview": {
+      "fresh_input_per_m": 0.5,
+      "cache_read_per_m": 0.05,
+      "cache_write_per_m": 0,
+      "output_per_m": 3.0
+    },
+    "gemini-3.1-flash-lite": {
+      "fresh_input_per_m": 0.25,
+      "cache_read_per_m": 0.025,
+      "cache_write_per_m": 0,
+      "output_per_m": 1.5
+    },
+    "gemini-2.5-pro": {
+      "fresh_input_per_m": 1.25,
+      "cache_read_per_m": 0.125,
+      "cache_write_per_m": 0,
+      "output_per_m": 10.0
+    },
+    "gemini-2.5-flash": {
+      "fresh_input_per_m": 0.3,
+      "cache_read_per_m": 0.03,
+      "cache_write_per_m": 0,
+      "output_per_m": 2.5
+    },
+    "gemini-2.5-flash-lite": {
+      "fresh_input_per_m": 0.1,
+      "cache_read_per_m": 0.01,
+      "cache_write_per_m": 0,
+      "output_per_m": 0.4
+    }
+  },
+  "match": [
+    {
+      "pattern": "gemini-3.1-pro",
+      "model": "gemini-3.1-pro-preview"
+    },
+    {
+      "pattern": "gemini-3.5-flash",
+      "model": "gemini-3.5-flash"
+    },
+    {
+      "pattern": "gemini-3-flash",
+      "model": "gemini-3-flash-preview"
+    },
+    {
+      "pattern": "gemini-3.1-flash-lite",
+      "model": "gemini-3.1-flash-lite"
+    },
+    {
+      "pattern": "gemini-2.5-pro",
+      "model": "gemini-2.5-pro"
+    },
+    {
+      "pattern": "gemini-2.5-flash-lite",
+      "model": "gemini-2.5-flash-lite"
+    },
+    {
+      "pattern": "gemini-2.5-flash",
+      "model": "gemini-2.5-flash"
+    },
+    {
+      "pattern": "gemini",
+      "model": "gemini-3.1-pro-preview"
+    }
+  ]
+}

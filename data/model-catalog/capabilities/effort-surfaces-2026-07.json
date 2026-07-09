@@ -1,117 +1,482 @@
 {
-  "$schema": "../schemas/capabilities-v1.schema.json",
+  "$schema": "schemas/capabilities-v1.schema.json",
   "id": "effort-surfaces-2026-07",
   "schema_version": 1,
   "kind": "capabilities",
   "retrieved_at": "2026-07-09",
   "source_urls": [
+    "https://platform.claude.com/docs/en/build-with-claude/effort",
+    "https://code.claude.com/docs/en/model-config",
     "https://developers.openai.com/codex/config-reference",
     "https://developers.openai.com/api/docs/guides/reasoning",
-    "https://docs.anthropic.com/en/docs/claude-code/model-config",
-    "https://www.anthropic.com/news/claude-sonnet-5",
     "https://docs.x.ai/developers/model-capabilities/text/reasoning",
-    "https://openai.com/index/introducing-gpt-5-5/",
     "https://openai.com/index/gpt-5-6/"
   ],
   "source_ids": [
-    "openai-codex-pricing-2026-07-09",
-    "openai-gpt-5-5-2026-04-23",
-    "openai-gpt-5-6-2026-07-09",
-    "anthropic-sonnet-5-2026-06-30",
-    "xai-models-2026-07-09"
+    "anthropic-effort-docs-2026-07-09",
+    "anthropic-claude-code-model-config-2026-07-09",
+    "openai-codex-config-2026-07-09",
+    "openai-reasoning-2026-07-09",
+    "xai-reasoning-2026-07-09",
+    "openai-gpt-5-6-2026-07-09"
   ],
-  "notes": "Per provider/model/surface effort and mode capabilities. Validity is surface-specific. Unsupported values must hard-fail in headless orchestration — never silent remap. Org policy may still cap Claude Code effort at runtime (log requested vs passed vs observed).",
+  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort.",
   "surfaces": [
     {
-      "provider": "openai",
-      "model": "gpt-5.5",
-      "surface": "codex_cli",
-      "valid_efforts": ["minimal", "low", "medium", "high", "xhigh"],
-      "default_effort": "medium",
+      "provider": "anthropic",
+      "model": "claude-fable-5",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "high",
       "unsupported_behavior": "hard_fail",
       "aliases": {},
       "modes": [
         {
-          "mode_id": "standard",
-          "notes": "Default speed/cost tier"
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "anthropic-effort-docs-2026-07-09"
+      ],
+      "notes": "Adaptive thinking always on"
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-fable-5",
+      "surface": "claude_code",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        },
+        {
+          "mode_id": "ultracode",
+          "notes": "Session-only: xhigh + multi-agent orchestration; not an API effort value"
+        }
+      ],
+      "source_ids": [
+        "anthropic-claude-code-model-config-2026-07-09"
+      ]
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-mythos-5",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "anthropic-effort-docs-2026-07-09"
+      ],
+      "notes": "Limited Project Glasswing availability"
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-opus-4-8",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
         },
         {
           "mode_id": "fast",
-          "notes": "Speed/cost tier separate from reasoning effort (OpenAI Fast mode)"
+          "notes": "Fast mode research preview $10/$50 (2.5\u00d7 speed)"
         }
       ],
-      "source_ids": ["openai-gpt-5-5-2026-04-23"]
+      "source_ids": [
+        "anthropic-effort-docs-2026-07-09",
+        "anthropic-pricing-2026-07-09"
+      ]
     },
     {
-      "provider": "openai",
-      "model": "gpt-5.6-sol",
-      "surface": "codex_cli",
-      "valid_efforts": ["minimal", "low", "medium", "high", "xhigh", "max"],
-      "default_effort": "medium",
+      "provider": "anthropic",
+      "model": "claude-opus-4-8",
+      "surface": "claude_code",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "high",
       "unsupported_behavior": "hard_fail",
       "aliases": {},
       "modes": [
         {
-          "mode_id": "standard",
-          "notes": "Default"
-        },
-        {
-          "mode_id": "ultra",
-          "notes": "Multi-agent higher-compute mode (not an effort enum synonym)"
+          "mode_id": "standard"
         }
       ],
-      "source_ids": ["openai-gpt-5-6-2026-07-09"],
-      "notes": "GPT-5.6 introduces max beyond xhigh and ultra multi-agent. Confirm CLI flag names per model availability."
+      "source_ids": [
+        "anthropic-claude-code-model-config-2026-07-09"
+      ]
     },
     {
-      "provider": "openai",
-      "model": "gpt-5.6-terra",
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
       "surface": "api",
-      "valid_efforts": ["minimal", "low", "medium", "high", "xhigh", "max"],
-      "default_effort": "medium",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "high",
       "unsupported_behavior": "hard_fail",
       "aliases": {},
-      "modes": [{ "mode_id": "standard" }],
-      "source_ids": ["openai-gpt-5-6-2026-07-09"]
-    },
-    {
-      "provider": "openai",
-      "model": "gpt-5.6-luna",
-      "surface": "api",
-      "valid_efforts": ["minimal", "low", "medium", "high", "xhigh", "max"],
-      "default_effort": "medium",
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [{ "mode_id": "standard" }],
-      "source_ids": ["openai-gpt-5-6-2026-07-09"]
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "anthropic-effort-docs-2026-07-09"
+      ],
+      "notes": "medium comparable to Sonnet 4.6 at high per docs"
     },
     {
       "provider": "anthropic",
       "model": "claude-sonnet-5",
       "surface": "claude_code",
-      "valid_efforts": ["low", "medium", "high", "xhigh", "max"],
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "anthropic-claude-code-model-config-2026-07-09"
+      ]
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-6",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "anthropic-effort-docs-2026-07-09"
+      ],
+      "notes": "xhigh not listed for Sonnet 4.6"
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.5",
+      "surface": "codex_cli",
+      "valid_efforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
       "default_effort": "medium",
       "unsupported_behavior": "hard_fail",
       "aliases": {},
-      "modes": [{ "mode_id": "standard" }],
-      "source_ids": ["anthropic-sonnet-5-2026-06-30"],
-      "notes": "Organization policies may silently reduce effective effort; log requested/passed/observed."
+      "modes": [
+        {
+          "mode_id": "standard"
+        },
+        {
+          "mode_id": "fast",
+          "notes": "Speed/cost tier 1.5\u00d7 gen speed for 2.5\u00d7 cost \u2014 not effort"
+        }
+      ],
+      "source_ids": [
+        "openai-codex-config-2026-07-09",
+        "openai-gpt-5-5-2026-04-23"
+      ]
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.5",
+      "surface": "api",
+      "valid_efforts": [
+        "none",
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "openai-reasoning-2026-07-09"
+      ]
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "surface": "codex_cli",
+      "valid_efforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        },
+        {
+          "mode_id": "ultra",
+          "notes": "Multi-agent higher-compute mode (not an effort synonym)"
+        }
+      ],
+      "source_ids": [
+        "openai-codex-config-2026-07-09",
+        "openai-gpt-5-6-2026-07-09"
+      ],
+      "notes": "max/ultra documented for GPT-5.6 family on launch post; confirm CLI support per version"
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "surface": "api",
+      "valid_efforts": [
+        "none",
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        },
+        {
+          "mode_id": "pro",
+          "notes": "reasoning.mode pro bills more work at model rates"
+        },
+        {
+          "mode_id": "ultra"
+        }
+      ],
+      "source_ids": [
+        "openai-reasoning-2026-07-09",
+        "openai-gpt-5-6-2026-07-09"
+      ]
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.6-terra",
+      "surface": "api",
+      "valid_efforts": [
+        "none",
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "openai-gpt-5-6-2026-07-09"
+      ]
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "surface": "api",
+      "valid_efforts": [
+        "none",
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "openai-gpt-5-6-2026-07-09"
+      ]
+    },
+    {
+      "provider": "xai",
+      "model": "grok-4.5",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "xai-reasoning-2026-07-09"
+      ],
+      "notes": "Cannot disable reasoning"
     },
     {
       "provider": "xai",
       "model": "grok-4.5",
       "surface": "grok_cli",
-      "valid_efforts": ["none", "minimal", "low", "medium", "high", "xhigh", "max"],
+      "valid_efforts": [
+        "none",
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
       "default_effort": "medium",
+      "unsupported_behavior": "warn_passthrough",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "xai-models-2026-07-09"
+      ],
+      "notes": "CLI may accept broader set than API reasoning_effort docs"
+    },
+    {
+      "provider": "xai",
+      "model": "grok-4.20-multi-agent-0309",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "default_effort": null,
       "unsupported_behavior": "hard_fail",
       "aliases": {},
-      "modes": [{ "mode_id": "standard" }],
-      "source_ids": ["xai-models-2026-07-09"],
-      "notes": "Multi-agent xhigh may mean agent count, not single-model reasoning depth — treat surface carefully."
+      "modes": [
+        {
+          "mode_id": "multi-agent",
+          "notes": "xhigh controls agent count (4 or 16) not single-model depth"
+        }
+      ],
+      "source_ids": [
+        "xai-reasoning-2026-07-09"
+      ]
+    },
+    {
+      "provider": "xai",
+      "model": "grok-build-0.1",
+      "surface": "build_agent",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "warn_passthrough",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "xai-models-2026-07-09"
+      ]
     }
   ],
   "missing": [
-    "Confirmed default_effort per every CLI version pin",
-    "Observed-effort telemetry schema from Claude Code org caps"
+    "Confirmed CLI effort sets for every GPT-5.6 Codex pin",
+    "Google Gemini thinking-budget enum as effort surface"
   ]
 }

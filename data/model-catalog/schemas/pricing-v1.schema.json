@@ -41,7 +41,9 @@
       "enum": [
         "claude-code",
         "codex",
-        "grok"
+        "grok",
+        "google",
+        "other"
       ],
       "description": "Session/agent family this table applies to when resolving model ids"
     },

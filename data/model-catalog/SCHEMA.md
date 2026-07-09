@@ -76,7 +76,7 @@ scores as ground truth without checking `kind` (vendor vs third_party).
 
 - Rates are **per 1M tokens** (USD or Codex credits).
 - `match` is **ordered**; first substring hit wins; every `model` must exist in `models`.
-- `agent` is the session family used when resolving (`claude-code` | `codex` | `grok`).
+- `agent` is the session family used when resolving (`claude-code` | `codex` | `grok` | `google` | `other`).
 
 ## Performance (`kind`: `performance`)
 

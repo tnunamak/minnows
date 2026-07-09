@@ -1,0 +1,98 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "browsecomp-2026-07",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-07-09",
+  "source_urls": [
+    "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+    "https://openai.com/index/introducing-gpt-5-5/"
+  ],
+  "source_ids": [
+    "steel-browsecomp-2026-07-09",
+    "openai-gpt-5-5-2026-04-23"
+  ],
+  "notes": "BrowseComp aggregator mixes vendor-reported setups. GPT-5.6 Sol 90.4%/Ultra 92.2% live in openai-gpt-5-6-launch (primary). Prefer primary vendor pages when both exist.",
+  "scores": [
+    {
+      "model": "gpt-5.5-pro",
+      "metric": "BrowseComp",
+      "score": 0.901,
+      "unit": "accuracy",
+      "source_id": "steel-browsecomp-2026-07-09",
+      "effort": "xhigh",
+      "caveat": "OpenAI-reported"
+    },
+    {
+      "model": "gpt-5.4-pro",
+      "metric": "BrowseComp",
+      "score": 0.893,
+      "unit": "accuracy",
+      "source_id": "steel-browsecomp-2026-07-09",
+      "caveat": "OpenAI GPT-5.5 table"
+    },
+    {
+      "model": "claude-mythos-5",
+      "metric": "BrowseComp",
+      "score": 0.88,
+      "unit": "accuracy",
+      "source_id": "steel-browsecomp-2026-07-09",
+      "effort": "max",
+      "caveat": "Anthropic system card via Steel"
+    },
+    {
+      "model": "gemini-3.1-pro",
+      "metric": "BrowseComp",
+      "score": 0.859,
+      "unit": "accuracy",
+      "source_id": "steel-browsecomp-2026-07-09",
+      "caveat": "DeepMind via Steel"
+    },
+    {
+      "model": "claude-sonnet-5",
+      "metric": "BrowseComp",
+      "score": 0.847,
+      "unit": "accuracy",
+      "source_id": "steel-browsecomp-2026-07-09",
+      "caveat": "Single-agent; multi-agent 86.6% noted"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "BrowseComp",
+      "score": 0.844,
+      "unit": "accuracy",
+      "source_id": "steel-browsecomp-2026-07-09",
+      "effort": "xhigh",
+      "caveat": "OpenAI"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "BrowseComp",
+      "score": 0.843,
+      "unit": "accuracy",
+      "source_id": "steel-browsecomp-2026-07-09",
+      "effort": "max",
+      "caveat": "Single-agent; multi-agent 88.5%"
+    },
+    {
+      "model": "gpt-5.4",
+      "metric": "BrowseComp",
+      "score": 0.827,
+      "unit": "accuracy",
+      "source_id": "steel-browsecomp-2026-07-09",
+      "effort": "xhigh"
+    },
+    {
+      "model": "claude-opus-4-7",
+      "metric": "BrowseComp",
+      "score": 0.793,
+      "unit": "accuracy",
+      "source_id": "steel-browsecomp-2026-07-09"
+    }
+  ],
+  "claims": [],
+  "missing": [
+    "GPT-5.6 on Steel board at retrieval"
+  ]
+}

@@ -6,30 +6,68 @@
   "agent": "codex",
   "retrieved_at": "2026-07-09",
   "source_urls": [
-    "https://developers.openai.com/codex/pricing"
+    "https://developers.openai.com/codex/pricing",
+    "https://learn.chatgpt.com/docs/pricing"
   ],
-  "notes": "Credits per 1M tokens from the Codex pricing rate card. Input / cached input / output. cache_write_per_m=0. Fast mode and plan subscription windows are separate (see source); this table is credit burn only.",
+  "source_ids": [
+    "openai-codex-pricing-2026-07-09"
+  ],
+  "notes": "Codex credits per 1M tokens (NOT USD). Official rate card: Sol 250/25/1500, Terra 125/12.5/125, Luna 50/5/300, GPT-5.5 125/12.5/750, GPT-5.4 62.5/6.25/375, mini 18.75/1.875/113. cache_write=0. Terra output credits intentionally low on the rate card (verify if workflow is input-heavy).",
   "models": {
-    "gpt-5.5": {
-      "fresh_input_per_m": 125.0,
+    "gpt-5.6-sol": {
+      "fresh_input_per_m": 250,
+      "cache_read_per_m": 25,
+      "cache_write_per_m": 0,
+      "output_per_m": 1500
+    },
+    "gpt-5.6-terra": {
+      "fresh_input_per_m": 125,
       "cache_read_per_m": 12.5,
-      "cache_write_per_m": 0.0,
-      "output_per_m": 750.0
+      "cache_write_per_m": 0,
+      "output_per_m": 125
+    },
+    "gpt-5.6-luna": {
+      "fresh_input_per_m": 50,
+      "cache_read_per_m": 5,
+      "cache_write_per_m": 0,
+      "output_per_m": 300
+    },
+    "gpt-5.5": {
+      "fresh_input_per_m": 125,
+      "cache_read_per_m": 12.5,
+      "cache_write_per_m": 0,
+      "output_per_m": 750
     },
     "gpt-5.4": {
       "fresh_input_per_m": 62.5,
       "cache_read_per_m": 6.25,
-      "cache_write_per_m": 0.0,
-      "output_per_m": 375.0
+      "cache_write_per_m": 0,
+      "output_per_m": 375
     },
     "gpt-5.4-mini": {
       "fresh_input_per_m": 18.75,
       "cache_read_per_m": 1.875,
-      "cache_write_per_m": 0.0,
-      "output_per_m": 113.0
+      "cache_write_per_m": 0,
+      "output_per_m": 113
     }
   },
   "match": [
+    {
+      "pattern": "gpt-5.6-sol",
+      "model": "gpt-5.6-sol"
+    },
+    {
+      "pattern": "gpt-5.6-terra",
+      "model": "gpt-5.6-terra"
+    },
+    {
+      "pattern": "gpt-5.6-luna",
+      "model": "gpt-5.6-luna"
+    },
+    {
+      "pattern": "gpt-5.6",
+      "model": "gpt-5.6-sol"
+    },
     {
       "pattern": "gpt-5.5",
       "model": "gpt-5.5"
@@ -42,8 +80,5 @@
       "pattern": "gpt-5.4",
       "model": "gpt-5.4"
     }
-  ],
-  "source_ids": [
-    "openai-codex-pricing-2026-07-09"
   ]
 }

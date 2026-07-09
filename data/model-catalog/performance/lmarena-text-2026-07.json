@@ -1,0 +1,140 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "lmarena-text-2026-07",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-07-09",
+  "source_urls": [
+    "https://arena.ai/leaderboard/text"
+  ],
+  "source_ids": [
+    "lmarena-text-2026-07-01"
+  ],
+  "notes": "Preference Elo, not task success. Board dated 2026-07-01. GPT-5.6 not present. Coding Arena separate (not fetched).",
+  "scores": [
+    {
+      "model": "claude-fable-5",
+      "metric": "Chatbot Arena Text Elo",
+      "score": 1509,
+      "unit": "elo",
+      "source_id": "lmarena-text-2026-07-01",
+      "caveat": "Rank 1; Jul 1 2026 board; ±9; votes=4350"
+    },
+    {
+      "model": "claude-opus-4-6-thinking",
+      "metric": "Chatbot Arena Text Elo",
+      "score": 1504,
+      "unit": "elo",
+      "source_id": "lmarena-text-2026-07-01",
+      "caveat": "Rank 2; ±4; votes=55102"
+    },
+    {
+      "model": "claude-opus-4-7-thinking",
+      "metric": "Chatbot Arena Text Elo",
+      "score": 1502,
+      "unit": "elo",
+      "source_id": "lmarena-text-2026-07-01",
+      "caveat": "Rank 3; ±4; votes=41868"
+    },
+    {
+      "model": "claude-opus-4-6",
+      "metric": "Chatbot Arena Text Elo",
+      "score": 1499,
+      "unit": "elo",
+      "source_id": "lmarena-text-2026-07-01",
+      "caveat": "Rank 4; ±4; votes=58565"
+    },
+    {
+      "model": "claude-opus-4-7",
+      "metric": "Chatbot Arena Text Elo",
+      "score": 1494,
+      "unit": "elo",
+      "source_id": "lmarena-text-2026-07-01",
+      "caveat": "Rank 5; ±4; votes=43053"
+    },
+    {
+      "model": "gemini-3.1-pro-preview",
+      "metric": "Chatbot Arena Text Elo",
+      "score": 1486,
+      "unit": "elo",
+      "source_id": "lmarena-text-2026-07-01",
+      "caveat": "Rank 7; ±4; votes=73099"
+    },
+    {
+      "model": "gemini-3-pro",
+      "metric": "Chatbot Arena Text Elo",
+      "score": 1486,
+      "unit": "elo",
+      "source_id": "lmarena-text-2026-07-01",
+      "caveat": "Rank 8; ±4; votes=41306"
+    },
+    {
+      "model": "claude-opus-4-8-thinking",
+      "metric": "Chatbot Arena Text Elo",
+      "score": 1484,
+      "unit": "elo",
+      "source_id": "lmarena-text-2026-07-01",
+      "caveat": "Rank 9; ±5; votes=22340"
+    },
+    {
+      "model": "gpt-5.5-high",
+      "metric": "Chatbot Arena Text Elo",
+      "score": 1481,
+      "unit": "elo",
+      "source_id": "lmarena-text-2026-07-01",
+      "caveat": "Rank 10; effort high; ±5; votes=37260"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "Chatbot Arena Text Elo",
+      "score": 1475,
+      "unit": "elo",
+      "source_id": "lmarena-text-2026-07-01",
+      "caveat": "Rank 16; ±5; votes=38470"
+    },
+    {
+      "model": "grok-4.20-beta-0309-reasoning",
+      "metric": "Chatbot Arena Text Elo",
+      "score": 1475,
+      "unit": "elo",
+      "source_id": "lmarena-text-2026-07-01",
+      "caveat": "SpaceXAI Rank 17; ±4; votes=51724"
+    },
+    {
+      "model": "claude-sonnet-5-high",
+      "metric": "Chatbot Arena Text Elo",
+      "score": 1464,
+      "unit": "elo",
+      "source_id": "lmarena-text-2026-07-01",
+      "caveat": "Rank 32; ±9; votes=4385"
+    },
+    {
+      "model": "grok-4.3",
+      "metric": "Chatbot Arena Text Elo",
+      "score": 1444,
+      "unit": "elo",
+      "source_id": "lmarena-text-2026-07-01",
+      "caveat": "Rank 57; ±5; votes=37636"
+    }
+  ],
+  "claims": [
+    {
+      "models": [
+        "claude-fable-5"
+      ],
+      "task_families": [
+        "chat"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Fable 5 leads Text Arena Elo at 1509 (±9) on 2026-07-01 board — preference signal, not SWE/terminal success.",
+      "implication": "Do not use Arena Elo as implement.standard ranking alone.",
+      "source_id": "lmarena-text-2026-07-01"
+    }
+  ],
+  "missing": [
+    "Coding Arena Elo; GPT-5.6 Elo"
+  ]
+}

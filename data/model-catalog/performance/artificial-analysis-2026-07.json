@@ -1,0 +1,205 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "artificial-analysis-2026-07",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-07-09",
+  "source_urls": [
+    "https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index",
+    "https://artificialanalysis.ai/articles/claude-fable-5-mythos-intelligence-index",
+    "https://artificialanalysis.ai/articles/grok-4-5-brings-spacexai-to-the-the-intelligence-frontier",
+    "https://artificialanalysis.ai/models/comparisons/claude-fable-5-vs-grok-4-3",
+    "https://artificialanalysis.ai/models/capabilities/coding"
+  ],
+  "source_ids": [
+    "aa-intelligence-index-2026-07-09",
+    "aa-fable-5-launch-2026-06-09",
+    "aa-grok-4-5-2026-07-08",
+    "aa-fable-vs-grok-4-3-2026-07-09",
+    "aa-coding-index-2026-07-09"
+  ],
+  "notes": "Independent Artificial Analysis composites. Keep launch-article Index 64.9 separate from live FAQ 60 (index composition changed). Coding Index ≠ Coding Agent Index. GPT-5.6 vendor-reported Index scores live in openai-gpt-5-6-launch (not AA-published at retrieval).",
+  "scores": [
+    {
+      "model": "claude-fable-5",
+      "metric": "Artificial Analysis Intelligence Index (live FAQ)",
+      "score": 60,
+      "unit": "other",
+      "source_id": "aa-intelligence-index-2026-07-09",
+      "effort": "max",
+      "caveat": "Live FAQ 2026-07-09; Adaptive Max + Opus 4.8 fallback. Index version sensitive."
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "Artificial Analysis Intelligence Index (live FAQ)",
+      "score": 56,
+      "unit": "other",
+      "source_id": "aa-intelligence-index-2026-07-09",
+      "effort": "max"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "Artificial Analysis Intelligence Index (live FAQ)",
+      "score": 55,
+      "unit": "other",
+      "source_id": "aa-intelligence-index-2026-07-09",
+      "effort": "xhigh"
+    },
+    {
+      "model": "grok-4.5",
+      "metric": "Artificial Analysis Intelligence Index",
+      "score": 54,
+      "unit": "other",
+      "source_id": "aa-grok-4-5-2026-07-08",
+      "effort": "high",
+      "caveat": "4th after Fable/GPT-5.5/Opus 4.8 per AA Grok 4.5 article"
+    },
+    {
+      "model": "claude-fable-5",
+      "metric": "Artificial Analysis Intelligence Index (launch article)",
+      "score": 64.9,
+      "unit": "other",
+      "source_id": "aa-fable-5-launch-2026-06-09",
+      "effort": "max",
+      "caveat": "2026-06-09 launch article — may predate index composition change; do not merge with live 60 without version field"
+    },
+    {
+      "model": "claude-fable-5",
+      "metric": "AA-Omniscience",
+      "score": 40,
+      "unit": "other",
+      "source_id": "aa-fable-5-launch-2026-06-09",
+      "effort": "max",
+      "caveat": "Launch article; +7 vs Gemini 3.1 Pro Preview prior leader"
+    },
+    {
+      "model": "claude-fable-5",
+      "metric": "GDPval-AA Elo",
+      "score": 1932,
+      "unit": "elo",
+      "source_id": "aa-fable-5-launch-2026-06-09",
+      "effort": "max",
+      "caveat": "Launch article"
+    },
+    {
+      "model": "claude-fable-5",
+      "metric": "Humanity's Last Exam",
+      "score": 0.53,
+      "unit": "accuracy",
+      "source_id": "aa-fable-5-launch-2026-06-09",
+      "effort": "max",
+      "caveat": "Launch article; fallback on 9% HLE tasks"
+    },
+    {
+      "model": "grok-4.5",
+      "metric": "Artificial Analysis Coding Agent Index",
+      "score": 76,
+      "unit": "other",
+      "source_id": "aa-grok-4-5-2026-07-08",
+      "effort": "high",
+      "caveat": "Grok Build harness; on par with GPT-5.5 xhigh Codex; cost ~$2.49/task"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "Artificial Analysis Coding Agent Index",
+      "score": 76,
+      "unit": "other",
+      "source_id": "aa-grok-4-5-2026-07-08",
+      "effort": "xhigh",
+      "caveat": "Codex harness; ~$5.07/task"
+    },
+    {
+      "model": "claude-fable-5",
+      "metric": "Artificial Analysis Coding Index (model-level)",
+      "score": 76,
+      "unit": "other",
+      "source_id": "aa-coding-index-2026-07-09",
+      "effort": "max",
+      "caveat": "Model-level Coding Index FAQ (distinct from Coding Agent Index)"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "Artificial Analysis Coding Index (model-level)",
+      "score": 75,
+      "unit": "other",
+      "source_id": "aa-coding-index-2026-07-09",
+      "effort": "xhigh"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "Artificial Analysis Coding Index (model-level)",
+      "score": 74,
+      "unit": "other",
+      "source_id": "aa-coding-index-2026-07-09",
+      "effort": "max"
+    },
+    {
+      "model": "grok-4.5",
+      "metric": "GDPval-AA Elo",
+      "score": 1543,
+      "unit": "elo",
+      "source_id": "aa-grok-4-5-2026-07-08",
+      "effort": "high",
+      "caveat": "Rank #4"
+    },
+    {
+      "model": "grok-4.5",
+      "metric": "Tau3-Banking",
+      "score": 0.33,
+      "unit": "accuracy",
+      "source_id": "aa-grok-4-5-2026-07-08",
+      "effort": "high",
+      "caveat": "Top score stated in article"
+    },
+    {
+      "model": "claude-fable-5",
+      "metric": "AA cost-per-intelligence-index-task-USD",
+      "score": 7.7,
+      "unit": "other",
+      "source_id": "aa-fable-vs-grok-4-3-2026-07-09",
+      "effort": "max",
+      "caveat": "From Fable vs Grok 4.3 comparison page"
+    },
+    {
+      "model": "grok-4.3",
+      "metric": "Artificial Analysis Intelligence Index",
+      "score": 38,
+      "unit": "other",
+      "source_id": "aa-fable-vs-grok-4-3-2026-07-09",
+      "effort": "high"
+    },
+    {
+      "model": "grok-4.3",
+      "metric": "AA cost-per-intelligence-index-task-USD",
+      "score": 0.64,
+      "unit": "other",
+      "source_id": "aa-fable-vs-grok-4-3-2026-07-09",
+      "effort": "high"
+    }
+  ],
+  "claims": [
+    {
+      "models": [
+        "claude-fable-5",
+        "gpt-5.5",
+        "claude-opus-4-8",
+        "grok-4.5"
+      ],
+      "task_families": [
+        "agentic",
+        "coding"
+      ],
+      "axes": [
+        "quality",
+        "cost"
+      ],
+      "statement": "AA: Grok 4.5 reaches Intelligence Index 54 and Coding Agent Index 76 at much lower $/task than Fable/GPT-5.5 on AA's measured tasks.",
+      "implication": "Cost-per-task evidence for Grok exists via AA even without vendor coding curves.",
+      "source_id": "aa-grok-4-5-2026-07-08"
+    }
+  ],
+  "missing": [
+    "Full AA live chart matrix (client-rendered); GPT-5.6 Sol AA scores not on AA site at retrieval."
+  ]
+}

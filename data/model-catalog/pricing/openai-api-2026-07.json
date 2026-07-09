@@ -6,16 +6,16 @@
   "agent": "codex",
   "retrieved_at": "2026-07-09",
   "source_urls": [
+    "https://developers.openai.com/api/docs/pricing",
     "https://openai.com/index/gpt-5-6/",
-    "https://openai.com/index/introducing-gpt-5-5/",
-    "https://platform.openai.com/docs/pricing"
+    "https://openai.com/index/introducing-gpt-5-5/"
   ],
   "source_ids": [
+    "openai-api-pricing-2026-07-09",
     "openai-gpt-5-6-2026-07-09",
-    "openai-gpt-5-5-2026-04-23",
-    "openai-api-pricing-2026-07-09"
+    "openai-gpt-5-5-2026-04-23"
   ],
-  "notes": "USD per 1M tokens. GPT-5.6 family (2026-07-09 post): Sol $5/$30, Terra $2.50/$15, Luna $1/$6. Cache writes billed 1.25× uncached input for GPT-5.6+; cache reads 90% discount — cache_write_per_m set to 1.25× fresh_input for 5.6 models; cache_read_per_m = 0.1× fresh. GPT-5.5/5.4 rows retained from earlier snapshot; 5.5 cache_write left 0 (pre-5.6 write policy).",
+  "notes": "Standard short-context rates USD/1MTok. GPT-5.6 cache_write = 1.25× fresh; cache_read = 0.1×. Long-context rates (higher) exist on pricing page but are not separate model ids here — see notes. GPT-5.5/5.4 cache_write left 0 when not published as write line.",
   "models": {
     "gpt-5.6-sol": {
       "fresh_input_per_m": 5.0,
@@ -43,7 +43,7 @@
     },
     "gpt-5.5-pro": {
       "fresh_input_per_m": 30.0,
-      "cache_read_per_m": 3.0,
+      "cache_read_per_m": 0.0,
       "cache_write_per_m": 0.0,
       "output_per_m": 180.0
     },
@@ -52,6 +52,30 @@
       "cache_read_per_m": 0.25,
       "cache_write_per_m": 0.0,
       "output_per_m": 15.0
+    },
+    "gpt-5.4-mini": {
+      "fresh_input_per_m": 0.75,
+      "cache_read_per_m": 0.075,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 4.5
+    },
+    "gpt-5.4-nano": {
+      "fresh_input_per_m": 0.2,
+      "cache_read_per_m": 0.02,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 1.25
+    },
+    "gpt-5.4-pro": {
+      "fresh_input_per_m": 30.0,
+      "cache_read_per_m": 0.0,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 180.0
+    },
+    "gpt-5.3-codex": {
+      "fresh_input_per_m": 1.75,
+      "cache_read_per_m": 0.175,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 14.0
     }
   },
   "match": [
@@ -68,11 +92,11 @@
       "model": "gpt-5.6-luna"
     },
     {
-      "pattern": "gpt-5.6 sol",
+      "pattern": "5.6-sol",
       "model": "gpt-5.6-sol"
     },
     {
-      "pattern": "5.6-sol",
+      "pattern": "5.6 sol",
       "model": "gpt-5.6-sol"
     },
     {
@@ -88,8 +112,24 @@
       "model": "gpt-5.5"
     },
     {
+      "pattern": "gpt-5.4-mini",
+      "model": "gpt-5.4-mini"
+    },
+    {
+      "pattern": "gpt-5.4-nano",
+      "model": "gpt-5.4-nano"
+    },
+    {
+      "pattern": "gpt-5.4-pro",
+      "model": "gpt-5.4-pro"
+    },
+    {
       "pattern": "gpt-5.4",
       "model": "gpt-5.4"
+    },
+    {
+      "pattern": "gpt-5.3-codex",
+      "model": "gpt-5.3-codex"
     }
   ]
 }

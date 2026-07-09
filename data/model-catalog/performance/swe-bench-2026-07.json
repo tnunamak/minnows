@@ -1,0 +1,131 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "swe-bench-2026-07",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-07-09",
+  "source_urls": [
+    "https://labs.scale.com/leaderboard/swe_bench_pro_public",
+    "https://vals.ai/benchmarks/swebench",
+    "https://www.swebench.com/"
+  ],
+  "source_ids": [
+    "scale-swe-bench-pro-2026-07-09",
+    "vals-swebench-2026-07-09",
+    "swebench-verified-2026-07-09"
+  ],
+  "notes": "CRITICAL: SEAL SWE-Bench Pro Public standardized board tops ~59% (GPT-5.4 xhigh). Vendor Pro claims ~80% (Fable) are NOT on that board. vals.ai SWE-bench Verified numbers are third-party re-runs and can be much higher than older official mini-SWE snapshots — keep metric names distinct.",
+  "scores": [
+    {
+      "model": "gpt-5.4",
+      "metric": "SWE-Bench Pro Public (SEAL mini-swe-agent)",
+      "score": 0.591,
+      "unit": "accuracy",
+      "source_id": "scale-swe-bench-pro-2026-07-09",
+      "effort": "xhigh",
+      "caveat": "Uncapped cost, 250 turn limit; Rank (UB) 1; ±~3.5"
+    },
+    {
+      "model": "claude-opus-4-6",
+      "metric": "SWE-Bench Pro Public (SEAL mini-swe-agent)",
+      "score": 0.519,
+      "unit": "accuracy",
+      "source_id": "scale-swe-bench-pro-2026-07-09",
+      "effort": "thinking"
+    },
+    {
+      "model": "gemini-3.1-pro",
+      "metric": "SWE-Bench Pro Public (SEAL mini-swe-agent)",
+      "score": 0.461,
+      "unit": "accuracy",
+      "source_id": "scale-swe-bench-pro-2026-07-09",
+      "effort": "thinking"
+    },
+    {
+      "model": "claude-opus-4-5",
+      "metric": "SWE-Bench Pro Public (SEAL mini-swe-agent)",
+      "score": 0.4589,
+      "unit": "accuracy",
+      "source_id": "scale-swe-bench-pro-2026-07-09"
+    },
+    {
+      "model": "claude-sonnet-4-5",
+      "metric": "SWE-Bench Pro Public (SEAL mini-swe-agent)",
+      "score": 0.436,
+      "unit": "accuracy",
+      "source_id": "scale-swe-bench-pro-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "SWE-bench Verified (vals.ai Mini-SWE-agent)",
+      "score": 0.962,
+      "unit": "accuracy",
+      "source_id": "vals-swebench-2026-07-09",
+      "caveat": "Third-party aggregator re-run — NOT official swebench.com snapshot; Cost/Test $1.15"
+    },
+    {
+      "model": "claude-fable-5",
+      "metric": "SWE-bench Verified (vals.ai Mini-SWE-agent)",
+      "score": 0.95,
+      "unit": "accuracy",
+      "source_id": "vals-swebench-2026-07-09",
+      "caveat": "vals.ai; Cost/Test $2.05"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "SWE-bench Verified (vals.ai Mini-SWE-agent)",
+      "score": 0.886,
+      "unit": "accuracy",
+      "source_id": "vals-swebench-2026-07-09",
+      "caveat": "vals.ai"
+    },
+    {
+      "model": "grok-4.5",
+      "metric": "SWE-bench Verified (vals.ai Mini-SWE-agent)",
+      "score": 0.866,
+      "unit": "accuracy",
+      "source_id": "vals-swebench-2026-07-09",
+      "caveat": "vals.ai; Cost/Test $0.54"
+    },
+    {
+      "model": "claude-opus-4-5",
+      "metric": "SWE-bench Verified (official mini-SWE-agent snapshot)",
+      "score": 0.768,
+      "unit": "accuracy",
+      "source_id": "swebench-verified-2026-07-09",
+      "effort": "high",
+      "caveat": "Search-visible official board row 2026-02-17; Avg $0.75 — table client-rendered, may be incomplete"
+    },
+    {
+      "model": "gemini-3-flash",
+      "metric": "SWE-bench Verified (official mini-SWE-agent snapshot)",
+      "score": 0.758,
+      "unit": "accuracy",
+      "source_id": "swebench-verified-2026-07-09",
+      "effort": "high",
+      "caveat": "Avg $0.36"
+    }
+  ],
+  "claims": [
+    {
+      "models": [
+        "gpt-5.4",
+        "claude-fable-5",
+        "gpt-5.6-sol"
+      ],
+      "task_families": [
+        "implementation"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Standardized SEAL Pro Public and vendor-reported Pro/Verified numbers are not comparable. Prefer SEAL for cross-lab Pro; treat vals.ai and vendor claims as separate evidence grades.",
+      "implication": "Do not pick an implement op from a 95% Verified claim alone.",
+      "source_id": "scale-swe-bench-pro-2026-07-09"
+    }
+  ],
+  "missing": [
+    "Fable 5 / GPT-5.6 Sol not on SEAL Pro Public board at retrieval; full official Verified table client-rendered."
+  ]
+}

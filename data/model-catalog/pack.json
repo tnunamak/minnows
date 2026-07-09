@@ -2,9 +2,9 @@
   "$schema": "schemas/pack-v1.schema.json",
   "name": "model-catalog",
   "schema_version": 1,
-  "tag": "data-model-catalog-v0.3.1",
+  "tag": "data-model-catalog-v0.4.0",
   "generated_at": "2026-07-09",
-  "description": "Versioned model economics, source-backed quality/effort scores, and per-surface effort/mode capabilities. Every rate and score links to SOURCES.json.",
+  "description": "Broad model economics + multi-source quality evidence with full SOURCES provenance. Pricing (Anthropic/OpenAI/Codex credits/xAI/Google), capabilities, vendor launch tables, and third-party boards (ARC, AA, Terminal-Bench, SWE, Arena).",
   "files": [
     "SCHEMA.md",
     "SOURCES.json",
@@ -12,29 +12,35 @@
     "schemas/pack-v1.schema.json",
     "schemas/pricing-v1.schema.json",
     "schemas/performance-v1.schema.json",
+    "schemas/capabilities-v1.schema.json",
     "schemas/sources-v1.schema.json",
     "pricing/anthropic-api-2026-07.json",
     "pricing/openai-api-2026-07.json",
     "pricing/codex-credits-2026-07.json",
     "pricing/xai-api-2026-07.json",
+    "pricing/google-api-2026-07.json",
+    "capabilities/effort-surfaces-2026-07.json",
     "performance/anthropic-effort-quality-2026-07.json",
     "performance/openai-quality-2026-07.json",
     "performance/openai-gpt-5-6-launch-2026-07.json",
     "performance/arcprize-gpt-5-6-2026-07.json",
-    "schemas/capabilities-v1.schema.json",
-    "capabilities/effort-surfaces-2026-07.json"
+    "performance/terminal-bench-2026-07.json",
+    "performance/artificial-analysis-2026-07.json",
+    "performance/swe-bench-2026-07.json",
+    "performance/lmarena-text-2026-07.json",
+    "performance/browsecomp-2026-07.json"
   ],
   "schemas": {
     "pricing": "schemas/pricing-v1.schema.json",
     "performance": "schemas/performance-v1.schema.json",
+    "capabilities": "schemas/capabilities-v1.schema.json",
     "sources": "schemas/sources-v1.schema.json",
-    "pack": "schemas/pack-v1.schema.json",
-    "docs": "schemas/README.md",
-    "capabilities": "schemas/capabilities-v1.schema.json"
+    "pack": "schemas/pack-v1.schema.json"
   },
   "related": {
-    "research": "https://github.com/tnunamak/dotfiles/blob/main/ai/research/agentic-context-design/agent-model-choice-is-cost-performance-at-effort-not-quota-or-sticker-price-alone.md",
+    "policy": "data-model-choice-policy-v0.1.0",
     "openai_gpt_5_6": "https://openai.com/index/gpt-5-6/",
-    "arcprize_gpt_5_6": "https://arcprize.org/results/openai-gpt-5-6"
+    "arcprize": "https://arcprize.org/results/openai-gpt-5-6",
+    "terminal_bench": "https://www.tbench.ai/leaderboard/terminal-bench/2.1"
   }
 }

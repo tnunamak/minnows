@@ -3,7 +3,7 @@
   "schema_version": 1,
   "id": "model-catalog-sources",
   "retrieved_at": "2026-07-09",
-  "description": "Canonical provenance registry. Every pricing/performance payload should reference these ids via source_ids[]. Score/claim rows may set source_id for row-level attribution.",
+  "description": "Canonical provenance registry. Every pricing/performance/capabilities payload should reference these ids via source_ids[].",
   "sources": [
     {
       "id": "anthropic-sonnet-5-2026-06-30",
@@ -13,7 +13,27 @@
       "published": "2026-06-30",
       "retrieved_at": "2026-07-09",
       "kind": "vendor_blog",
-      "notes": "Cost-performance curves at effort levels on BrowseComp and OSWorld-Verified; intro pricing; tokenizer density note."
+      "notes": "Effort curves (image); intro $2/$10; standard $3/$15; Opus 4.8 $5/$25."
+    },
+    {
+      "id": "anthropic-opus-4-8-2026-05-28",
+      "url": "https://www.anthropic.com/news/claude-opus-4-8",
+      "title": "Introducing Claude Opus 4.8",
+      "publisher": "Anthropic",
+      "published": "2026-05-28",
+      "retrieved_at": "2026-07-09",
+      "kind": "vendor_blog",
+      "notes": "$5/$25 regular; fast mode $10/$50."
+    },
+    {
+      "id": "anthropic-fable-mythos-2026-06-09",
+      "url": "https://www.anthropic.com/news/claude-fable-5-mythos-5",
+      "title": "Claude Fable 5 and Claude Mythos 5",
+      "publisher": "Anthropic",
+      "published": "2026-06-09",
+      "retrieved_at": "2026-07-09",
+      "kind": "vendor_blog",
+      "notes": "Fable/Mythos $10/$50."
     },
     {
       "id": "anthropic-models-overview-2026-07-09",
@@ -22,8 +42,36 @@
       "publisher": "Anthropic",
       "published": null,
       "retrieved_at": "2026-07-09",
+      "kind": "vendor_docs"
+    },
+    {
+      "id": "anthropic-pricing-2026-07-09",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "title": "Pricing",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-07-09",
       "kind": "vendor_docs",
-      "notes": "Official API rate card and effort defaults."
+      "notes": "Full cache write/read/batch tables."
+    },
+    {
+      "id": "anthropic-effort-docs-2026-07-09",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "vendor_docs",
+      "notes": "valid efforts low|medium|high|xhigh|max per model family."
+    },
+    {
+      "id": "anthropic-claude-code-model-config-2026-07-09",
+      "url": "https://code.claude.com/docs/en/model-config",
+      "title": "Model configuration",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "vendor_docs"
     },
     {
       "id": "openai-gpt-5-5-2026-04-23",
@@ -32,8 +80,7 @@
       "publisher": "OpenAI",
       "published": "2026-04-23",
       "retrieved_at": "2026-07-09",
-      "kind": "vendor_blog",
-      "notes": "GPT-5.5 launch eval tables (Terminal-Bench 2.0, SWE-Bench Pro Public, OSWorld-Verified)."
+      "kind": "vendor_blog"
     },
     {
       "id": "openai-gpt-5-6-2026-07-09",
@@ -42,27 +89,45 @@
       "publisher": "OpenAI",
       "published": "2026-07-09",
       "retrieved_at": "2026-07-09",
-      "kind": "vendor_blog",
-      "notes": "Sol/Terra/Luna pricing ($5/$30, $2.50/$15, $1/$6); full professional/coding/science/cyber/computer-use/academic tables; max/ultra effort; cache write 1.25\u00d7."
+      "kind": "vendor_blog"
     },
     {
       "id": "openai-api-pricing-2026-07-09",
-      "url": "https://platform.openai.com/docs/pricing",
-      "title": "API pricing",
-      "publisher": "OpenAI",
-      "published": null,
-      "retrieved_at": "2026-07-09",
-      "kind": "vendor_docs",
-      "notes": "Platform pricing page; cross-check against launch posts."
-    },
-    {
-      "id": "openai-codex-pricing-2026-07-09",
-      "url": "https://developers.openai.com/codex/pricing",
-      "title": "Codex pricing",
+      "url": "https://developers.openai.com/api/docs/pricing",
+      "title": "Pricing | OpenAI API",
       "publisher": "OpenAI",
       "published": null,
       "retrieved_at": "2026-07-09",
       "kind": "vendor_docs"
+    },
+    {
+      "id": "openai-reasoning-2026-07-09",
+      "url": "https://developers.openai.com/api/docs/guides/reasoning",
+      "title": "Reasoning models",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "vendor_docs"
+    },
+    {
+      "id": "openai-codex-pricing-2026-07-09",
+      "url": "https://learn.chatgpt.com/docs/pricing",
+      "title": "Pricing – Codex",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "vendor_docs",
+      "notes": "Codex credits per 1M tokens incl. GPT-5.6 Sol/Terra/Luna."
+    },
+    {
+      "id": "openai-codex-config-2026-07-09",
+      "url": "https://developers.openai.com/codex/config-reference",
+      "title": "Configuration Reference – Codex",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "vendor_docs",
+      "notes": "model_reasoning_effort minimal|low|medium|high|xhigh."
     },
     {
       "id": "xai-models-2026-07-09",
@@ -74,14 +139,31 @@
       "kind": "vendor_docs"
     },
     {
+      "id": "xai-reasoning-2026-07-09",
+      "url": "https://docs.x.ai/developers/model-capabilities/text/reasoning",
+      "title": "Reasoning",
+      "publisher": "xAI",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "vendor_docs"
+    },
+    {
+      "id": "google-gemini-pricing-2026-07-09",
+      "url": "https://ai.google.dev/gemini-api/docs/pricing",
+      "title": "Gemini Developer API pricing",
+      "publisher": "Google",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "vendor_docs"
+    },
+    {
       "id": "arcprize-gpt-5-6-2026-07-09",
       "url": "https://arcprize.org/results/openai-gpt-5-6",
-      "title": "GPT-5.6 Series \u2014 ARC-AGI Results",
+      "title": "GPT-5.6 Series — ARC-AGI Results",
       "publisher": "ARC Prize",
       "published": "2026-07-09",
       "retrieved_at": "2026-07-09",
-      "kind": "third_party_eval",
-      "notes": "ARC Prize Verified badge. Effort-stratified ARC-AGI-1/2/3 for Sol/Terra/Luna (Max/Extra High/High/Medium/Low)."
+      "kind": "third_party_eval"
     },
     {
       "id": "arcprize-leaderboard-2026-07-09",
@@ -91,7 +173,130 @@
       "published": null,
       "retrieved_at": "2026-07-09",
       "kind": "third_party_eval",
-      "notes": "Includes Cost/Task for GPT-5.6 Sol effort variants among other systems."
+      "notes": "Cost/Task + scores for multi-vendor systems."
+    },
+    {
+      "id": "aa-intelligence-index-2026-07-09",
+      "url": "https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index",
+      "title": "Artificial Analysis Intelligence Index",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "third_party_eval",
+      "notes": "Live FAQ top scores; index version matters (v4.1)."
+    },
+    {
+      "id": "aa-fable-5-launch-2026-06-09",
+      "url": "https://artificialanalysis.ai/articles/claude-fable-5-mythos-intelligence-index",
+      "title": "Claude Fable 5 Launches at #1 on the Artificial Analysis Intelligence Index",
+      "publisher": "Artificial Analysis",
+      "published": "2026-06-09",
+      "retrieved_at": "2026-07-09",
+      "kind": "third_party_eval",
+      "notes": "Launch-day Fable 64.9; may differ from live index composition."
+    },
+    {
+      "id": "aa-grok-4-5-2026-07-08",
+      "url": "https://artificialanalysis.ai/articles/grok-4-5-brings-spacexai-to-the-the-intelligence-frontier",
+      "title": "Grok 4.5 brings SpaceXAI to the intelligence frontier",
+      "publisher": "Artificial Analysis",
+      "published": "2026-07-08",
+      "retrieved_at": "2026-07-09",
+      "kind": "third_party_eval"
+    },
+    {
+      "id": "aa-fable-vs-grok-4-3-2026-07-09",
+      "url": "https://artificialanalysis.ai/models/comparisons/claude-fable-5-vs-grok-4-3",
+      "title": "Claude Fable 5 vs Grok 4.3 (high)",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "third_party_eval"
+    },
+    {
+      "id": "aa-terminalbench-v2-1-2026-07-09",
+      "url": "https://artificialanalysis.ai/evaluations/terminalbench-v2-1",
+      "title": "Terminal-Bench v2.1 Benchmark Leaderboard | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "third_party_eval"
+    },
+    {
+      "id": "aa-coding-index-2026-07-09",
+      "url": "https://artificialanalysis.ai/models/capabilities/coding",
+      "title": "Best AI for Coding: LLM Leaderboard (Coding Index)",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "third_party_eval"
+    },
+    {
+      "id": "tbench-2-1-2026-07-09",
+      "url": "https://www.tbench.ai/leaderboard/terminal-bench/2.1",
+      "title": "terminal-bench@2.1 Leaderboard",
+      "publisher": "Terminal-Bench",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "third_party_eval"
+    },
+    {
+      "id": "tbench-2-0-2026-07-09",
+      "url": "https://www.tbench.ai/leaderboard/terminal-bench/2.0",
+      "title": "terminal-bench@2.0 Leaderboard",
+      "publisher": "Terminal-Bench",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "third_party_eval"
+    },
+    {
+      "id": "scale-swe-bench-pro-2026-07-09",
+      "url": "https://labs.scale.com/leaderboard/swe_bench_pro_public",
+      "title": "SWE-Bench Pro (Public Dataset)",
+      "publisher": "Scale AI SEAL",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "third_party_eval",
+      "notes": "Standardized mini-swe-agent harness; uncapped cost, 250 turns."
+    },
+    {
+      "id": "swebench-verified-2026-07-09",
+      "url": "https://www.swebench.com/",
+      "title": "SWE-bench Leaderboards",
+      "publisher": "SWE-bench",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "third_party_eval",
+      "notes": "Partial crawl; client-rendered tables."
+    },
+    {
+      "id": "vals-swebench-2026-07-09",
+      "url": "https://vals.ai/benchmarks/swebench",
+      "title": "SWE-bench Verified (vals.ai)",
+      "publisher": "vals.ai",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "third_party_eval",
+      "notes": "Third-party re-run aggregator; not official swebench.com snapshot."
+    },
+    {
+      "id": "steel-browsecomp-2026-07-09",
+      "url": "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+      "title": "BrowseComp Leaderboard 2026",
+      "publisher": "Steel.dev",
+      "published": null,
+      "retrieved_at": "2026-07-09",
+      "kind": "third_party_eval",
+      "notes": "Aggregator of vendor-reported BrowseComp; mixed harnesses."
+    },
+    {
+      "id": "lmarena-text-2026-07-01",
+      "url": "https://arena.ai/leaderboard/text",
+      "title": "Text Arena Overall Leaderboard",
+      "publisher": "LMArena / Arena",
+      "published": "2026-07-01",
+      "retrieved_at": "2026-07-09",
+      "kind": "third_party_eval"
     },
     {
       "id": "arxiv-ai-agents-that-matter-2024",
@@ -100,8 +305,7 @@
       "publisher": "arXiv",
       "published": "2024-07-01",
       "retrieved_at": "2026-07-09",
-      "kind": "academic",
-      "notes": "Doctrine: accuracy-vs-cost Pareto; cost-per-successful-task."
+      "kind": "academic"
     }
   ]
 }

@@ -1,0 +1,171 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "terminal-bench-2026-07",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-07-09",
+  "source_urls": [
+    "https://www.tbench.ai/leaderboard/terminal-bench/2.1",
+    "https://artificialanalysis.ai/evaluations/terminalbench-v2-1"
+  ],
+  "source_ids": [
+    "tbench-2-1-2026-07-09",
+    "aa-terminalbench-v2-1-2026-07-09"
+  ],
+  "notes": "Independent Terminal-Bench leaderboards. Official TB 2.1 rows encode agent@model because harness dominates. AA rows use AA's Terminus 2 protocol — not interchangeable with vendor-reported Terminal-Bench 2.1 on OpenAI launch posts.",
+  "scores": [
+    {
+      "model": "gpt-5.5@codex-cli",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.834,
+      "unit": "accuracy",
+      "source_id": "tbench-2-1-2026-07-09",
+      "caveat": "Agent=Codex CLI; ±2.2; 2026-05-01"
+    },
+    {
+      "model": "claude-fable-5@claude-code",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.831,
+      "unit": "accuracy",
+      "source_id": "tbench-2-1-2026-07-09",
+      "caveat": "Agent=Claude Code; ±2.0; 2026-06-17"
+    },
+    {
+      "model": "claude-fable-5@terminus-2",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.804,
+      "unit": "accuracy",
+      "source_id": "tbench-2-1-2026-07-09",
+      "caveat": "Agent=Terminus 2; ±2.3"
+    },
+    {
+      "model": "claude-opus-4-8@claude-code",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.789,
+      "unit": "accuracy",
+      "source_id": "tbench-2-1-2026-07-09",
+      "caveat": "Agent=Claude Code; ±2.5"
+    },
+    {
+      "model": "gpt-5.5@terminus-2",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.782,
+      "unit": "accuracy",
+      "source_id": "tbench-2-1-2026-07-09",
+      "caveat": "Agent=Terminus 2; ±2.4"
+    },
+    {
+      "model": "claude-opus-4-8@terminus-2",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.746,
+      "unit": "accuracy",
+      "source_id": "tbench-2-1-2026-07-09",
+      "caveat": "Agent=Terminus 2"
+    },
+    {
+      "model": "gemini-3-pro@terminus-2",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.744,
+      "unit": "accuracy",
+      "source_id": "tbench-2-1-2026-07-09",
+      "caveat": "Agent=Terminus 2"
+    },
+    {
+      "model": "gemini-3.1-pro@gemini-cli",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.707,
+      "unit": "accuracy",
+      "source_id": "tbench-2-1-2026-07-09",
+      "caveat": "Agent=Gemini CLI"
+    },
+    {
+      "model": "gemini-3.1-pro@terminus-2",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.703,
+      "unit": "accuracy",
+      "source_id": "tbench-2-1-2026-07-09",
+      "caveat": "Agent=Terminus 2"
+    },
+    {
+      "model": "claude-opus-4-7@claude-code",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.697,
+      "unit": "accuracy",
+      "source_id": "tbench-2-1-2026-07-09",
+      "caveat": "Agent=Claude Code"
+    },
+    {
+      "model": "gemini-3-pro@gemini-cli",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.663,
+      "unit": "accuracy",
+      "source_id": "tbench-2-1-2026-07-09",
+      "caveat": "Agent=Gemini CLI"
+    },
+    {
+      "model": "claude-opus-4-7@terminus-2",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.661,
+      "unit": "accuracy",
+      "source_id": "tbench-2-1-2026-07-09",
+      "caveat": "Agent=Terminus 2"
+    },
+    {
+      "model": "glm-5.1@claude-code",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.587,
+      "unit": "accuracy",
+      "source_id": "tbench-2-1-2026-07-09",
+      "caveat": "Agent=Claude Code; Model Org Z-AI"
+    },
+    {
+      "model": "claude-fable-5",
+      "metric": "Terminal-Bench v2.1 (AA Terminus 2)",
+      "score": 0.846,
+      "unit": "accuracy",
+      "source_id": "aa-terminalbench-v2-1-2026-07-09",
+      "effort": "max",
+      "caveat": "AA Terminus 2 harness pass@1 avg 3 repeats"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "Terminal-Bench v2.1 (AA Terminus 2)",
+      "score": 0.846,
+      "unit": "accuracy",
+      "source_id": "aa-terminalbench-v2-1-2026-07-09",
+      "effort": "max",
+      "caveat": "AA Terminus 2 harness"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "Terminal-Bench v2.1 (AA Terminus 2)",
+      "score": 0.843,
+      "unit": "accuracy",
+      "source_id": "aa-terminalbench-v2-1-2026-07-09",
+      "effort": "xhigh",
+      "caveat": "AA Terminus 2 harness"
+    }
+  ],
+  "claims": [
+    {
+      "models": [
+        "gpt-5.5",
+        "claude-fable-5"
+      ],
+      "task_families": [
+        "terminal",
+        "coding"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "On official TB 2.1, Codex CLI+GPT-5.5 leads at 83.4%±2.2; Claude Code+Fable 5 at 83.1%±2.0. Harness choice (Codex CLI vs Terminus 2 vs Claude Code) moves scores several points.",
+      "implication": "Never rank models without the agent/harness column.",
+      "source_id": "tbench-2-1-2026-07-09"
+    }
+  ],
+  "missing": [
+    "GPT-5.6 Sol/Terra/Luna not yet on official tbench.ai 2.1 board at retrieval (vendor claims exist in openai-gpt-5-6-launch)."
+  ]
+}
