@@ -5,22 +5,31 @@
   "repo": "tnunamak/minnows",
   "packs": {
     "model-catalog": {
-      "latest_tag": "data-model-catalog-v0.5.0",
-      "description": "Model pricing + quality/effort scores + effort/mode capabilities (SOURCES provenance)",
+      "latest_tag": "data-model-catalog-v0.5.1",
+      "description": "Model pricing + quality/effort + models/metrics + local-eval grades",
       "readme": "https://github.com/tnunamak/minnows/blob/main/data/model-catalog/README.md",
       "releases": "https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true",
-      "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-model-catalog-v0.5.0/data/model-catalog/pack.json",
-      "tarball": "https://github.com/tnunamak/minnows/releases/download/data-model-catalog-v0.5.0/data-model-catalog-v0.5.0.tar.gz",
-      "tree": "https://github.com/tnunamak/minnows/tree/data-model-catalog-v0.5.0/data/model-catalog"
+      "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-model-catalog-v0.5.1/data/model-catalog/pack.json",
+      "tarball": "https://github.com/tnunamak/minnows/releases/download/data-model-catalog-v0.5.1/data-model-catalog-v0.5.1.tar.gz",
+      "tree": "https://github.com/tnunamak/minnows/tree/data-model-catalog-v0.5.1/data/model-catalog"
     },
     "model-choice-policy": {
-      "latest_tag": "data-model-choice-policy-v0.1.2",
-      "description": "Task-shaped operating points (policy layer; pins model-catalog)",
+      "latest_tag": "data-model-choice-policy-v0.1.3",
+      "description": "Task-shaped operating points (policy; pins catalog)",
       "readme": "https://github.com/tnunamak/minnows/blob/main/data/model-choice-policy/README.md",
       "releases": "https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true",
-      "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-model-choice-policy-v0.1.2/data/model-choice-policy/pack.json",
-      "tarball": "https://github.com/tnunamak/minnows/releases/download/data-model-choice-policy-v0.1.2/data-model-choice-policy-v0.1.2.tar.gz",
-      "tree": "https://github.com/tnunamak/minnows/tree/data-model-choice-policy-v0.1.2/data/model-choice-policy"
+      "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-model-choice-policy-v0.1.3/data/model-choice-policy/pack.json",
+      "tarball": "https://github.com/tnunamak/minnows/releases/download/data-model-choice-policy-v0.1.3/data-model-choice-policy-v0.1.3.tar.gz",
+      "tree": "https://github.com/tnunamak/minnows/tree/data-model-choice-policy-v0.1.3/data/model-choice-policy"
+    },
+    "local-evals": {
+      "latest_tag": "data-local-evals-v0.1.0",
+      "description": "Fixed-harness local P(success) for policy ops on waspflow",
+      "readme": "https://github.com/tnunamak/minnows/blob/main/data/local-evals/README.md",
+      "releases": "https://github.com/tnunamak/minnows/releases?q=data-local-evals&expanded=true",
+      "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-local-evals-v0.1.0/data/local-evals/pack.json",
+      "tarball": "https://github.com/tnunamak/minnows/releases/download/data-local-evals-v0.1.0/data-local-evals-v0.1.0.tar.gz",
+      "tree": "https://github.com/tnunamak/minnows/tree/data-local-evals-v0.1.0/data/local-evals"
     }
   }
 }
