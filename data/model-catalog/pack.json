@@ -4,7 +4,7 @@
   "schema_version": 1,
   "tag": "data-model-catalog-v0.5.2",
   "generated_at": "2026-07-09",
-  "description": "Model economics catalog. v0.5.2: Sol+Fable honesty pass \u2014 local rows reclassified harness_smoke/D; comparability_group on mixed metrics; deterministic validation fixes.",
+  "description": "Model economics catalog. v0.5.2: Sol+Fable honesty pass — local rows reclassified harness_smoke/D; comparability_group on mixed metrics; deterministic validation fixes.",
   "files": [
     "SCHEMA.md",
     "SOURCES.json",
