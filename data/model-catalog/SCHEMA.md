@@ -6,6 +6,7 @@ Contracts for every JSON file in this pack. **Validated by**
 | Schema | Applies to |
 |--------|------------|
 | [`sources-v1.schema.json`](schemas/sources-v1.schema.json) | `SOURCES.json` |
+| `models.json` (stdlib-validated) | L0 model registry — join key for the pack |
 | [`pricing-v1.schema.json`](schemas/pricing-v1.schema.json) | `pricing/*.json` |
 | [`performance-v1.schema.json`](schemas/performance-v1.schema.json) | `performance/*.json` |
 | [`capabilities-v1.schema.json`](schemas/capabilities-v1.schema.json) | `capabilities/*.json` |
@@ -15,10 +16,11 @@ Contracts for every JSON file in this pack. **Validated by**
 ## Design principles
 
 1. **Never invent rates or scores.** Omit models / use `missing[]` for gaps.
-2. **Pricing is tokensmash-compatible** (`kind`, `agent`, `models`, `match`, four rate fields).
-3. **Performance is sparse and source-backed.** Claims and scores share one document kind.
-4. **`schema_version: 1`** on every payload; bump major only on breaking changes.
-5. **Provenance is mandatory and resolvable:**
+2. **`models.json` is the join key.** Every model string in pricing/performance/capabilities must resolve (exact id, alias, or strip `@harness`).
+3. **Pricing is tokensmash-compatible** (`kind`, `agent`, `models`, `match`, four rate fields).
+4. **Performance is sparse and source-backed.** Claims and scores share one document kind.
+5. **`schema_version: 1`** on every payload; bump major only on breaking changes.
+6. **Provenance is mandatory and resolvable:**
    - Document: `retrieved_at` + `source_urls[]` + `source_ids[]`
    - Registry: `SOURCES.json` (canonical id → url / publisher / kind)
    - Row (recommended): `source_id` on each score/claim

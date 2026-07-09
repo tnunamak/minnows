@@ -2,12 +2,13 @@
   "$schema": "schemas/pack-v1.schema.json",
   "name": "model-catalog",
   "schema_version": 1,
-  "tag": "data-model-catalog-v0.4.1",
+  "tag": "data-model-catalog-v0.4.2",
   "generated_at": "2026-07-09",
-  "description": "Broad model economics + multi-source quality evidence with full SOURCES provenance. Pricing (Anthropic/OpenAI/Codex credits/xAI/Google), capabilities, vendor launch tables, and third-party boards (ARC, AA, Terminal-Bench, SWE, Arena). Includes digitized Anthropic Sonnet 5 effort curves (v0.4.1).",
+  "description": "Broad model economics + multi-source quality evidence with full SOURCES provenance. L0 models.json join registry (v0.4.2). Pricing (Anthropic/OpenAI/Codex credits/xAI/Google), capabilities, vendor launch tables, third-party boards, digitized Sonnet 5 effort curves.",
   "files": [
     "SCHEMA.md",
     "SOURCES.json",
+    "models.json",
     "schemas/README.md",
     "schemas/pack-v1.schema.json",
     "schemas/pricing-v1.schema.json",
@@ -49,7 +50,7 @@
     "pack": "schemas/pack-v1.schema.json"
   },
   "related": {
-    "policy": "data-model-choice-policy-v0.1.0",
+    "policy": "data-model-choice-policy-v0.1.1",
     "openai_gpt_5_6": "https://openai.com/index/gpt-5-6/",
     "arcprize": "https://arcprize.org/results/openai-gpt-5-6",
     "terminal_bench": "https://www.tbench.ai/leaderboard/terminal-bench/2.1"

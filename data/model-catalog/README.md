@@ -9,7 +9,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | Tag **`data-model-catalog-v0.4.1`** — [release](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.4.1) |
+| **This version** | Tag **`data-model-catalog-v0.4.2`** — [release](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.4.2) |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -18,14 +18,14 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.4.1
+TAG=data-model-catalog-v0.4.2
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
 
 # or
 ./scripts/fetch-data-pack.sh model-catalog
-./scripts/fetch-data-pack.sh model-catalog v0.3.0
+./scripts/fetch-data-pack.sh model-catalog v0.4.2
 ```
 
 ### Local
@@ -41,10 +41,13 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 | Path | Role |
 |---|---|
 | `pack.json` | Envelope (tag, file list, schema pointers) |
+| `models.json` | **L0 model registry** — canonical ids + aliases (join key) |
 | `SOURCES.json` | **Provenance registry** — id → URL / publisher / kind |
 | `SCHEMA.md` / `schemas/` | Contracts — pricing + performance + sources v1 |
 | `pricing/*.json` | USD/MTok or Codex credits (tokensmash-compatible) |
 | `performance/*.json` | Vendor + third-party scores/claims |
+| `capabilities/*.json` | Effort/mode surfaces per model |
+| `digitized/` | Chart extraction artifacts (case-by-case) |
 
 ### Performance documents (v0.3)
 
@@ -70,6 +73,10 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 5. **Validate before shipping:** `./scripts/validate_data_pack.py model-catalog`
 
 ## Changelog
+
+### v0.4.2 — 2026-07-09
+
+- **`models.json` L0 registry** — canonical model ids, providers, families, aliases (e.g. board naming drift → pricing ids). Validator resolves every model string in pricing/performance/capabilities against it (including `model@harness` scores).
 
 ### v0.4.1 — 2026-07-09
 

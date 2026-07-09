@@ -242,7 +242,12 @@ def check_row_source_id(row: dict, row_path: str, registry: set[str], errors: Er
         errors.add(row_path, f"source_id {sid!r} not in SOURCES.json")
 
 
-def validate_pricing(path: Path, errors: Errors, registry: set[str] | None = None) -> None:
+def validate_pricing(
+    path: Path,
+    errors: Errors,
+    registry: set[str] | None = None,
+    model_registry: dict[str, str] | None = None,
+) -> None:
     data = load_json(path, errors)
     if not isinstance(data, dict):
         return
@@ -275,6 +280,8 @@ def validate_pricing(path: Path, errors: Errors, registry: set[str] | None = Non
         if not isinstance(rates, dict):
             errors.add(rp, "must be an object")
             continue
+        if model_registry is not None:
+            check_model_id(mid, rp, model_registry, errors)
         for f in RATE_FIELDS:
             if f not in rates:
                 errors.add(rp, f"missing {f}")
@@ -302,7 +309,10 @@ def validate_pricing(path: Path, errors: Errors, registry: set[str] | None = Non
 
 
 def validate_performance(
-    path: Path, errors: Errors, registry: set[str] | None = None
+    path: Path,
+    errors: Errors,
+    registry: set[str] | None = None,
+    model_registry: dict[str, str] | None = None,
 ) -> None:
     data = load_json(path, errors)
     if not isinstance(data, dict):
@@ -346,6 +356,10 @@ def validate_performance(
                     continue
                 if not isinstance(c.get("models"), list) or not c["models"]:
                     errors.add(cp, "models must be non-empty array")
+                elif model_registry is not None:
+                    for mid in c["models"]:
+                        if isinstance(mid, str):
+                            check_model_id(mid, cp, model_registry, errors)
                 if not isinstance(c.get("statement"), str) or not c["statement"].strip():
                     errors.add(cp, "statement required")
                 axes = c.get("axes")
@@ -375,6 +389,8 @@ def validate_performance(
                     errors.add(sp, "score must be a number")
                 if s.get("unit") not in PERF_UNITS and "unit" in s:
                     errors.add(sp, f"unit must be one of {sorted(PERF_UNITS)}")
+                if model_registry is not None and isinstance(s.get("model"), str):
+                    check_model_id(s["model"], sp, model_registry, errors)
                 comps = s.get("comparisons")
                 if comps is not None:
                     if not isinstance(comps, dict):
@@ -391,7 +407,12 @@ def validate_performance(
 
 
 
-def validate_capabilities(path: Path, errors: Errors, registry: set[str] | None = None) -> None:
+def validate_capabilities(
+    path: Path,
+    errors: Errors,
+    registry: set[str] | None = None,
+    model_registry: dict[str, str] | None = None,
+) -> None:
     data = load_json(path, errors)
     if not isinstance(data, dict):
         return
@@ -422,14 +443,99 @@ def validate_capabilities(path: Path, errors: Errors, registry: set[str] | None 
         for k in ("provider", "model", "surface", "valid_efforts", "unsupported_behavior"):
             if k not in s:
                 errors.add(sp, f"missing {k}")
+        if model_registry is not None and isinstance(s.get("model"), str):
+            check_model_id(s["model"], sp, model_registry, errors)
         ve = s.get("valid_efforts")
         if not isinstance(ve, list) or not ve:
             errors.add(sp, "valid_efforts must be non-empty array")
 
 
+
+def load_model_registry(pack_dir: Path, errors: Errors) -> dict[str, str]:
+    """Return map of resolvable id/alias -> canonical id. Empty if models.json missing."""
+    path = pack_dir / "models.json"
+    p = str(path.relative_to(REPO))
+    if not path.is_file():
+        errors.add(p, "models.json missing — L0 model registry required")
+        return {}
+    data = load_json(path, errors)
+    if not isinstance(data, dict):
+        return {}
+    require_keys(data, ("id", "schema_version", "generated_at", "models"), p, errors)
+    if data.get("schema_version") != 1:
+        errors.add(p, "schema_version must be 1")
+    if data.get("id") != "model-catalog-models":
+        errors.add(p, "id must be 'model-catalog-models'")
+    if not DATE_RE.match(str(data.get("generated_at", ""))):
+        errors.add(p, "generated_at must be YYYY-MM-DD")
+    models = data.get("models")
+    resolve: dict[str, str] = {}
+    if not isinstance(models, list) or not models:
+        errors.add(p, "models must be a non-empty array")
+        return resolve
+    seen_ids: set[str] = set()
+    for i, m in enumerate(models):
+        mp = f"{p}#models[{i}]"
+        if not isinstance(m, dict):
+            errors.add(mp, "must be an object")
+            continue
+        mid = m.get("id")
+        if not isinstance(mid, str) or not mid:
+            errors.add(mp, "id required")
+            continue
+        if mid in seen_ids:
+            errors.add(mp, f"duplicate model id {mid!r}")
+        seen_ids.add(mid)
+        if mid in resolve and resolve[mid] != mid:
+            errors.add(mp, f"id {mid!r} collides with alias of {resolve[mid]!r}")
+        resolve[mid] = mid
+        for k in ("provider", "family", "status"):
+            if k not in m:
+                errors.add(mp, f"missing {k}")
+        aliases = m.get("aliases") or []
+        if aliases is not None and not isinstance(aliases, list):
+            errors.add(mp, "aliases must be an array")
+            continue
+        for a in aliases or []:
+            if not isinstance(a, str) or not a:
+                errors.add(mp, f"invalid alias {a!r}")
+                continue
+            if a in resolve and resolve[a] != mid:
+                errors.add(mp, f"alias {a!r} already maps to {resolve[a]!r}")
+            else:
+                resolve[a] = mid
+    return resolve
+
+
+def resolve_model_id(mid: str, registry: dict[str, str]) -> str | None:
+    """Resolve model id via exact match, alias, or harness @suffix strip."""
+    if not mid or not registry:
+        return None
+    if mid in registry:
+        return registry[mid]
+    if "@" in mid:
+        return resolve_model_id(mid.split("@", 1)[0], registry)
+    return None
+
+
+def check_model_id(
+    mid: str,
+    path: str,
+    registry: dict[str, str],
+    errors: Errors,
+    *,
+    field: str = "model",
+) -> None:
+    if not registry:
+        return
+    if resolve_model_id(mid, registry) is None:
+        errors.add(path, f"{field} {mid!r} not in models.json (id or alias)")
+
+
 def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
     validate_pack_envelope(pack_dir, errors)
-    registry = load_source_registry(pack_dir, errors)
+    source_registry = load_source_registry(pack_dir, errors)
+    model_registry = load_model_registry(pack_dir, errors)
     pricing_dir = pack_dir / "pricing"
     perf_dir = pack_dir / "performance"
     if pricing_dir.is_dir():
@@ -437,16 +543,16 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
         if not paths:
             errors.add(str(pack_dir.relative_to(REPO)), "pricing/ has no JSON tables")
         for path in paths:
-            validate_pricing(path, errors, registry)
+            validate_pricing(path, errors, source_registry, model_registry)
     else:
         errors.add(str(pack_dir.relative_to(REPO)), "missing pricing/")
     if perf_dir.is_dir():
         for path in sorted(perf_dir.glob("*.json")):
-            validate_performance(path, errors, registry)
+            validate_performance(path, errors, source_registry, model_registry)
     cap_dir = pack_dir / "capabilities"
     if cap_dir.is_dir():
         for path in sorted(cap_dir.glob("*.json")):
-            validate_capabilities(path, errors, registry)
+            validate_capabilities(path, errors, source_registry, model_registry)
 
     for name in (
         "pricing-v1.schema.json",
@@ -457,6 +563,187 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
             errors.add(str(pack_dir.relative_to(REPO)), f"missing schemas/{name}")
     if not (pack_dir / "SCHEMA.md").is_file() and not (pack_dir / "schemas" / "README.md").is_file():
         errors.add(str(pack_dir.relative_to(REPO)), "missing SCHEMA.md or schemas/README.md")
+
+
+
+def validate_policy_pack(pack_dir: Path, errors: Errors) -> None:
+    """Validate model-choice-policy: envelope, ops integrity, catalog pin, evidence refs."""
+    envelope = validate_pack_envelope(pack_dir, errors)
+    path = pack_dir / "operating-points.json"
+    p = str(path.relative_to(REPO))
+    data = load_json(path, errors)
+    if not isinstance(data, dict):
+        return
+
+    require_keys(
+        data,
+        ("id", "schema_version", "policy_version", "generated_at", "catalog_ref", "operating_points"),
+        p,
+        errors,
+    )
+    if data.get("schema_version") != 1:
+        errors.add(p, "schema_version must be 1")
+    if data.get("id") != "model-choice-policy":
+        errors.add(p, "id must be 'model-choice-policy'")
+    if not DATE_RE.match(str(data.get("generated_at", ""))):
+        errors.add(p, "generated_at must be YYYY-MM-DD")
+
+    catalog_ref = str(data.get("catalog_ref", ""))
+    if not TAG_RE.match(catalog_ref) or not catalog_ref.startswith("data-model-catalog-v"):
+        errors.add(p, f"catalog_ref must be data-model-catalog-vX.Y.Z (got {catalog_ref!r})")
+
+    # pack.json related.catalog must agree
+    if isinstance(envelope, dict):
+        related = envelope.get("related") or {}
+        if isinstance(related, dict):
+            rel_cat = related.get("catalog")
+            if rel_cat and rel_cat != catalog_ref:
+                errors.add(
+                    str((pack_dir / "pack.json").relative_to(REPO)),
+                    f"related.catalog {rel_cat!r} != operating-points catalog_ref {catalog_ref!r}",
+                )
+        # pack tag vs policy_version
+        tag = str(envelope.get("tag", ""))
+        pv = str(data.get("policy_version", ""))
+        if tag and pv and not tag.endswith(f"-v{pv}"):
+            errors.add(
+                str((pack_dir / "pack.json").relative_to(REPO)),
+                f"tag {tag!r} should end with -v{pv} (policy_version)",
+            )
+
+    # Load pinned catalog if present on disk (same repo)
+    catalog_dir = DATA / "model-catalog"
+    model_registry: dict[str, str] = {}
+    source_ids: set[str] = set()
+    catalog_file_ids: set[str] = set()  # stem of pricing/performance json
+    effort_surfaces: list[dict] = []
+    if catalog_dir.is_dir():
+        model_registry = load_model_registry(catalog_dir, Errors())  # soft: don't double-count models.json errors
+        # re-load models without polluting if already validated; if empty, try direct
+        if not model_registry and (catalog_dir / "models.json").is_file():
+            model_registry = load_model_registry(catalog_dir, errors)
+        src = load_json(catalog_dir / "SOURCES.json", Errors())
+        if isinstance(src, dict):
+            for s in src.get("sources") or []:
+                if isinstance(s, dict) and s.get("id"):
+                    source_ids.add(str(s["id"]))
+        for sub in ("pricing", "performance", "capabilities"):
+            d = catalog_dir / sub
+            if d.is_dir():
+                for f in d.glob("*.json"):
+                    catalog_file_ids.add(f"{sub}/{f.stem}")
+        cap_path = catalog_dir / "capabilities" / "effort-surfaces-2026-07.json"
+        if cap_path.is_file():
+            cap = load_json(cap_path, Errors())
+            if isinstance(cap, dict) and isinstance(cap.get("surfaces"), list):
+                effort_surfaces = [s for s in cap["surfaces"] if isinstance(s, dict)]
+        # catalog pack tag should match pin when local
+        cpack = load_json(catalog_dir / "pack.json", Errors())
+        if isinstance(cpack, dict):
+            local_tag = cpack.get("tag")
+            if local_tag and local_tag != catalog_ref:
+                errors.add(
+                    p,
+                    f"catalog_ref {catalog_ref!r} does not match local model-catalog tag {local_tag!r}",
+                )
+    else:
+        errors.add(p, "cannot validate evidence_refs: data/model-catalog missing")
+
+    ops = data.get("operating_points")
+    if not isinstance(ops, list) or not ops:
+        errors.add(p, "operating_points must be a non-empty array")
+        return
+
+    op_ids: set[str] = set()
+    for i, op in enumerate(ops):
+        op_path = f"{p}#operating_points[{i}]"
+        if not isinstance(op, dict):
+            errors.add(op_path, "must be an object")
+            continue
+        oid = op.get("id")
+        if not isinstance(oid, str) or not oid:
+            errors.add(op_path, "id required")
+            continue
+        if oid in op_ids:
+            errors.add(op_path, f"duplicate op id {oid!r}")
+        op_ids.add(oid)
+        for k in ("task_family", "constraint_family", "expands_to"):
+            if k not in op:
+                errors.add(op_path, f"missing {k}")
+        expands = op.get("expands_to")
+        if not isinstance(expands, dict):
+            errors.add(op_path, "expands_to must be an object")
+            continue
+        provider = expands.get("provider")
+        model = expands.get("model")
+        effort = expands.get("effort")
+        if not provider:
+            errors.add(op_path, "expands_to.provider required")
+        if isinstance(model, str) and model_registry:
+            check_model_id(model, f"{op_path}.expands_to", model_registry, errors)
+        # capabilities surface check
+        if effort_surfaces and isinstance(model, str) and isinstance(effort, str) and provider:
+            matches = [
+                s
+                for s in effort_surfaces
+                if s.get("model") == model
+                or resolve_model_id(str(s.get("model", "")), model_registry or {})
+                == resolve_model_id(model, model_registry or {})
+            ]
+            # filter by provider if surfaces declare it
+            prov_matches = [s for s in matches if s.get("provider") == provider] or matches
+            if not prov_matches:
+                errors.add(
+                    op_path,
+                    f"expands_to model {model!r} provider {provider!r} has no capabilities surface",
+                )
+            else:
+                ok_effort = False
+                for s in prov_matches:
+                    ve = s.get("valid_efforts") or []
+                    if effort in ve:
+                        ok_effort = True
+                        break
+                if not ok_effort:
+                    errors.add(
+                        op_path,
+                        f"effort {effort!r} not in valid_efforts for model {model!r}",
+                    )
+
+        # evidence_refs
+        for j, ref in enumerate(op.get("evidence_refs") or []):
+            rp = f"{op_path}.evidence_refs[{j}]"
+            if not isinstance(ref, str):
+                errors.add(rp, "must be string")
+                continue
+            if ref.startswith("catalog://"):
+                rest = ref[len("catalog://") :]
+                # allow catalog://pricing/foo or catalog://performance/foo
+                if rest not in catalog_file_ids and f"{rest}" not in catalog_file_ids:
+                    # also try without checking exact — stem under subdir
+                    parts = rest.split("/", 1)
+                    if len(parts) != 2 or f"{parts[0]}/{parts[1]}" not in catalog_file_ids:
+                        errors.add(rp, f"unresolved catalog ref {ref!r}")
+            elif ref.startswith("source://"):
+                sid = ref[len("source://") :]
+                if source_ids and sid not in source_ids:
+                    errors.add(rp, f"source id {sid!r} not in catalog SOURCES.json")
+            else:
+                errors.add(rp, f"evidence_ref must be catalog:// or source:// (got {ref!r})")
+
+    # escalate/deescalate graph
+    for i, op in enumerate(ops):
+        if not isinstance(op, dict):
+            continue
+        op_path = f"{p}#operating_points[{i}]"
+        for field in ("escalate_to", "deescalate_to"):
+            targets = op.get(field) or []
+            if not isinstance(targets, list):
+                errors.add(op_path, f"{field} must be an array")
+                continue
+            for t in targets:
+                if t not in op_ids:
+                    errors.add(op_path, f"{field} target {t!r} is not a known op id")
 
 
 def try_jsonschema(errors: Errors, pack: str | None) -> None:
@@ -508,6 +795,8 @@ def main() -> int:
                 errors.add(args.pack, "pack directory not found")
             elif args.pack == "model-catalog":
                 validate_model_catalog(pdir, errors)
+            elif args.pack == "model-choice-policy":
+                validate_policy_pack(pdir, errors)
             else:
                 validate_pack_envelope(pdir, errors)
         else:
@@ -515,6 +804,8 @@ def main() -> int:
                 if (pdir / "pack.json").is_file():
                     if pdir.name == "model-catalog":
                         validate_model_catalog(pdir, errors)
+                    elif pdir.name == "model-choice-policy":
+                        validate_policy_pack(pdir, errors)
                     else:
                         validate_pack_envelope(pdir, errors)
 

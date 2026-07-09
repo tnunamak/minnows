@@ -1,0 +1,290 @@
+{
+  "$schema": "schemas/models-v1.schema.json",
+  "id": "model-catalog-models",
+  "schema_version": 1,
+  "generated_at": "2026-07-09",
+  "notes": [
+    "L0 model registry \u2014 THE join key for pricing, performance, capabilities, and policy.",
+    "Harness-suffixed score ids (model@harness) resolve to the base id.",
+    "Effort-in-id suffixes (-thinking, -high) are aliases where listed.",
+    "aliases[] map third-party/board naming drift onto canonical pricing ids."
+  ],
+  "models": [
+    {
+      "id": "claude-fable-5",
+      "provider": "anthropic",
+      "family": "claude-fable",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "claude-haiku-4-5",
+      "provider": "anthropic",
+      "family": "claude-haiku",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "claude-mythos-5",
+      "provider": "anthropic",
+      "family": "claude-mythos",
+      "status": "ga",
+      "aliases": [
+        "claude-mythos-preview"
+      ]
+    },
+    {
+      "id": "claude-opus-4-5",
+      "provider": "anthropic",
+      "family": "claude-opus",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "claude-opus-4-6",
+      "provider": "anthropic",
+      "family": "claude-opus",
+      "status": "ga",
+      "aliases": [
+        "claude-opus-4-6-thinking"
+      ]
+    },
+    {
+      "id": "claude-opus-4-7",
+      "provider": "anthropic",
+      "family": "claude-opus",
+      "status": "ga",
+      "aliases": [
+        "claude-opus-4-7-thinking"
+      ]
+    },
+    {
+      "id": "claude-opus-4-8",
+      "provider": "anthropic",
+      "family": "claude-opus",
+      "status": "ga",
+      "aliases": [
+        "claude-opus-4-8-thinking"
+      ]
+    },
+    {
+      "id": "claude-sonnet-4-5",
+      "provider": "anthropic",
+      "family": "claude-sonnet",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "claude-sonnet-4-6",
+      "provider": "anthropic",
+      "family": "claude-sonnet",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "claude-sonnet-5",
+      "provider": "anthropic",
+      "family": "claude-sonnet",
+      "status": "ga",
+      "aliases": [
+        "claude-sonnet-5-high"
+      ]
+    },
+    {
+      "id": "claude-sonnet-5-intro",
+      "provider": "anthropic",
+      "family": "claude-sonnet",
+      "status": "promo",
+      "aliases": []
+    },
+    {
+      "id": "gemini-2.5-flash",
+      "provider": "google",
+      "family": "gemini-2.5",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gemini-2.5-flash-lite",
+      "provider": "google",
+      "family": "gemini-2.5",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gemini-2.5-pro",
+      "provider": "google",
+      "family": "gemini-2.5",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gemini-3-flash-preview",
+      "provider": "google",
+      "family": "gemini-3",
+      "status": "preview",
+      "aliases": [
+        "gemini-3-flash"
+      ]
+    },
+    {
+      "id": "gemini-3-pro",
+      "provider": "google",
+      "family": "gemini-3",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gemini-3.1-flash-lite",
+      "provider": "google",
+      "family": "gemini-3.1",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gemini-3.1-pro-preview",
+      "provider": "google",
+      "family": "gemini-3.1",
+      "status": "preview",
+      "aliases": [
+        "gemini-3.1-pro"
+      ]
+    },
+    {
+      "id": "gemini-3.5-flash",
+      "provider": "google",
+      "family": "gemini-3.5",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "glm-5.1",
+      "provider": "other",
+      "family": "glm",
+      "status": "third_party_board_only",
+      "aliases": []
+    },
+    {
+      "id": "gpt-5.3-codex",
+      "provider": "openai",
+      "family": "gpt-5.3",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gpt-5.4",
+      "provider": "openai",
+      "family": "gpt-5.4",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gpt-5.4-mini",
+      "provider": "openai",
+      "family": "gpt-5.4",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gpt-5.4-nano",
+      "provider": "openai",
+      "family": "gpt-5.4",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gpt-5.4-pro",
+      "provider": "openai",
+      "family": "gpt-5.4",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gpt-5.5",
+      "provider": "openai",
+      "family": "gpt-5.5",
+      "status": "ga",
+      "aliases": [
+        "gpt-5.5-high"
+      ]
+    },
+    {
+      "id": "gpt-5.5-pro",
+      "provider": "openai",
+      "family": "gpt-5.5",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gpt-5.6-luna",
+      "provider": "openai",
+      "family": "gpt-5.6",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gpt-5.6-sol",
+      "provider": "openai",
+      "family": "gpt-5.6",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gpt-5.6-terra",
+      "provider": "openai",
+      "family": "gpt-5.6",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "grok-4.20-0309-non-reasoning",
+      "provider": "xai",
+      "family": "grok-4.20",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "grok-4.20-0309-reasoning",
+      "provider": "xai",
+      "family": "grok-4.20",
+      "status": "ga",
+      "aliases": [
+        "grok-4.20",
+        "grok-4.20-beta-0309-reasoning"
+      ]
+    },
+    {
+      "id": "grok-4.20-multi-agent-0309",
+      "provider": "xai",
+      "family": "grok-4.20",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "grok-4.3",
+      "provider": "xai",
+      "family": "grok-4.3",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "grok-4.5",
+      "provider": "xai",
+      "family": "grok-4.5",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "grok-build-0.1",
+      "provider": "xai",
+      "family": "grok-build",
+      "status": "ga",
+      "aliases": []
+    }
+  ],
+  "resolution_rules": {
+    "harness_suffix": "Strip @<harness> before lookup (e.g. claude-sonnet-5@claude-code \u2192 claude-sonnet-5)",
+    "alias": "If id not found, look up as an alias of a registered model",
+    "exact": "Prefer exact id match first"
+  }
+}
