@@ -4,7 +4,7 @@
   "schema_version": 1,
   "tag": "data-model-choice-policy-v0.1.1",
   "generated_at": "2026-07-09",
-  "description": "Task-shaped operating points that expand to explicit provider/model/effort/mode. Policy layer only \u2014 not facts. Pins model-catalog v0.4.2.",
+  "description": "Task-shaped operating points that expand to explicit provider/model/effort/mode. Policy layer only — not facts. Pins model-catalog v0.4.2.",
   "files": [
     "README.md",
     "SCHEMA.md",
@@ -12,6 +12,6 @@
   ],
   "related": {
     "catalog": "data-model-catalog-v0.4.2",
-    "doctrine": "Operating Point Resolver \u2014 task-shaped ops, not cheap/default/max, not silent auto-routing"
+    "doctrine": "Operating Point Resolver — task-shaped ops, not cheap/default/max, not silent auto-routing"
   }
 }
