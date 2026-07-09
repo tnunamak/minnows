@@ -1,5 +1,7 @@
 {
+  "$schema": "schemas/pricing-v1.schema.json",
   "id": "anthropic-api-2026-07",
+  "schema_version": 1,
   "kind": "api_usd",
   "agent": "claude-code",
   "retrieved_at": "2026-07-09",
@@ -60,23 +62,77 @@
     }
   },
   "match": [
-    {"pattern": "claude-fable-5", "model": "claude-fable-5"},
-    {"pattern": "fable-5", "model": "claude-fable-5"},
-    {"pattern": "fable", "model": "claude-fable-5"},
-    {"pattern": "claude-sonnet-5", "model": "claude-sonnet-5"},
-    {"pattern": "sonnet-5", "model": "claude-sonnet-5"},
-    {"pattern": "claude-sonnet-4-6", "model": "claude-sonnet-4-6"},
-    {"pattern": "claude-sonnet-4-5", "model": "claude-sonnet-4-5"},
-    {"pattern": "claude-opus-4-8", "model": "claude-opus-4-8"},
-    {"pattern": "claude-opus-4-7", "model": "claude-opus-4-7"},
-    {"pattern": "claude-haiku-4-5", "model": "claude-haiku-4-5"},
-    {"pattern": "sonnet-4-6", "model": "claude-sonnet-4-6"},
-    {"pattern": "sonnet-4-5", "model": "claude-sonnet-4-5"},
-    {"pattern": "opus-4-8", "model": "claude-opus-4-8"},
-    {"pattern": "opus-4-7", "model": "claude-opus-4-7"},
-    {"pattern": "haiku-4-5", "model": "claude-haiku-4-5"},
-    {"pattern": "sonnet", "model": "claude-sonnet-5"},
-    {"pattern": "opus", "model": "claude-opus-4-8"},
-    {"pattern": "haiku", "model": "claude-haiku-4-5"}
+    {
+      "pattern": "claude-fable-5",
+      "model": "claude-fable-5"
+    },
+    {
+      "pattern": "fable-5",
+      "model": "claude-fable-5"
+    },
+    {
+      "pattern": "fable",
+      "model": "claude-fable-5"
+    },
+    {
+      "pattern": "claude-sonnet-5",
+      "model": "claude-sonnet-5"
+    },
+    {
+      "pattern": "sonnet-5",
+      "model": "claude-sonnet-5"
+    },
+    {
+      "pattern": "claude-sonnet-4-6",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "pattern": "claude-sonnet-4-5",
+      "model": "claude-sonnet-4-5"
+    },
+    {
+      "pattern": "claude-opus-4-8",
+      "model": "claude-opus-4-8"
+    },
+    {
+      "pattern": "claude-opus-4-7",
+      "model": "claude-opus-4-7"
+    },
+    {
+      "pattern": "claude-haiku-4-5",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "pattern": "sonnet-4-6",
+      "model": "claude-sonnet-4-6"
+    },
+    {
+      "pattern": "sonnet-4-5",
+      "model": "claude-sonnet-4-5"
+    },
+    {
+      "pattern": "opus-4-8",
+      "model": "claude-opus-4-8"
+    },
+    {
+      "pattern": "opus-4-7",
+      "model": "claude-opus-4-7"
+    },
+    {
+      "pattern": "haiku-4-5",
+      "model": "claude-haiku-4-5"
+    },
+    {
+      "pattern": "sonnet",
+      "model": "claude-sonnet-5"
+    },
+    {
+      "pattern": "opus",
+      "model": "claude-opus-4-8"
+    },
+    {
+      "pattern": "haiku",
+      "model": "claude-haiku-4-5"
+    }
   ]
 }

@@ -1,10 +1,16 @@
 {
+  "$schema": "schemas/pack-v1.schema.json",
   "name": "model-catalog",
   "schema_version": 1,
-  "tag": "data-model-catalog-v0.1.0",
+  "tag": "data-model-catalog-v0.2.0",
   "generated_at": "2026-07-09",
-  "description": "Versioned model economics (API/credits pricing) and sparse vendor quality/effort claims for coding agents. Prefer cost-per-successful-task over sticker price alone.",
+  "description": "Versioned model economics (API/credits pricing) and sparse vendor quality/effort claims for coding agents. Prefer cost-per-successful-task over sticker price alone. Schema contracts in schemas/.",
   "files": [
+    "SCHEMA.md",
+    "schemas/README.md",
+    "schemas/pack-v1.schema.json",
+    "schemas/pricing-v1.schema.json",
+    "schemas/performance-v1.schema.json",
     "pricing/anthropic-api-2026-07.json",
     "pricing/openai-api-2026-07.json",
     "pricing/codex-credits-2026-07.json",
@@ -12,6 +18,12 @@
     "performance/anthropic-effort-quality-2026-07.json",
     "performance/openai-quality-2026-07.json"
   ],
+  "schemas": {
+    "pricing": "schemas/pricing-v1.schema.json",
+    "performance": "schemas/performance-v1.schema.json",
+    "pack": "schemas/pack-v1.schema.json",
+    "docs": "schemas/README.md"
+  },
   "related": {
     "research": "https://github.com/tnunamak/dotfiles/blob/main/ai/research/agentic-context-design/agent-model-choice-is-cost-performance-at-effort-not-quota-or-sticker-price-alone.md"
   }

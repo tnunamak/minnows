@@ -2,74 +2,64 @@
 
 Versioned **pricing** and sparse **quality/effort** facts for coding-agent model choice.
 
-Not a CLI. Not a skill. Just JSON.
+Not a CLI. Not a skill. Just versioned, **schema-validated** JSON.
 
 ## Get this pack (click / copy — no URL math)
 
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | Tag **`data-model-catalog-v0.1.0`** — [release page](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.1.0) (created when published) |
+| **This version** | Tag **`data-model-catalog-v0.2.0`** — [release](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.2.0) |
 | **All data packs** | [data/README.md](../README.md) |
-| **Machine index** | [data/index.json](../index.json) on `main` (points at latest tags) |
+| **Machine index** | [data/index.json](../index.json) on `main` |
+| **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
 
-### Full pack (recommended)
-
-After the release exists:
+### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.1.0
+TAG=data-model-catalog-v0.2.0
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
-# → ./model-catalog/pack.json and files listed in pack.json
+
+# or
+./scripts/fetch-data-pack.sh model-catalog
+./scripts/fetch-data-pack.sh model-catalog v0.2.0
 ```
 
-Or use the helper from a minnows checkout:
+### Local
 
 ```bash
-./scripts/fetch-data-pack.sh model-catalog          # latest (via data/index.json)
-./scripts/fetch-data-pack.sh model-catalog v0.1.0   # specific (tag suffix)
+export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
+# after ./install.sh → $DATA_PACKS_HOME/model-catalog/pack.json
+./scripts/validate_data_pack.py model-catalog
 ```
 
-### Local checkout
+## Layout
 
-```bash
-# from a clone of minnows
-ls data/model-catalog/
-export DATA_PACKS_HOME="$PWD/data"   # or after install: ~/.local/share/minnows-data
-# pack root: $DATA_PACKS_HOME/model-catalog
-```
-
-`./install.sh` symlinks `data/*` into `~/.local/share/minnows-data/` when present.
-
-## What's inside
-
-| Path | Contents |
+| Path | Role |
 |---|---|
-| `pack.json` | Identity, tag, file list |
-| `pricing/*` | USD/MTok or Codex credits (tokensmash-compatible shape) |
-| `performance/*` | Sparse vendor quality/effort claims — **not** invented chart digits |
+| `pack.json` | Envelope (tag, file list, schema pointers) |
+| `SCHEMA.md` / `schemas/` | **Contracts** — pricing + performance v1 |
+| `pricing/*.json` | USD/MTok or Codex credits (tokensmash-compatible) |
+| `performance/*.json` | Sparse vendor claims + optional scores |
 
 ## Rules of use
 
-1. **Pin a tag** for studies and CI; don't load pack files from floating `main` except `data/index.json`.
-2. **Missing quality is OK** — Grok has rates, not effort curves, in this pack.
-3. **Quota ≠ cost** — remaining allowance is [clawmeter](https://github.com/tnunamak/clawmeter); this pack is rates + sparse quality.
-4. **Re-fetch sources** before spend-critical decisions; `retrieved_at` goes stale.
-
-## Schema notes (pricing files)
-
-Compatible with tokensmash pricing tables:
-
-- `kind`: `api_usd` | `codex_credits`
-- `agent`: `claude-code` | `codex` | `grok`
-- `models`: map of id → `{fresh_input_per_m, cache_read_per_m, cache_write_per_m, output_per_m}`
-- `match`: ordered substring patterns for fuzzy model resolution
+1. **Pin a tag** for studies; only `data/index.json` is meant to float on `main`.
+2. **Never invent rates or scores** — omit or list under `missing[]`.
+3. **Quota ≠ cost** — [clawmeter](https://github.com/tnunamak/clawmeter) for remaining allowance.
+4. **Validate before shipping:** `./scripts/validate_data_pack.py model-catalog`
 
 ## Changelog
 
+### v0.2.0 — 2026-07-09
+
+- Formal **JSON Schema** (Draft 2020-12) for pack envelope, index, pricing, performance.
+- Unified **performance** documents (`kind: performance` with `claims` and/or `scores`).
+- `schema_version: 1` + `$schema` on all payloads.
+- Stdlib **validator** (`scripts/validate_data_pack.py`); release path runs it.
+
 ### v0.1.0 — 2026-07-09
 
-- Initial pack: Anthropic / OpenAI API rates, Codex credits, xAI API rates.
-- Sparse Anthropic effort/cost-performance claims (Sonnet 5 post); OpenAI GPT-5.5 vendor scores.
+- Initial pricing (Anthropic / OpenAI / Codex credits / xAI) + sparse quality notes.

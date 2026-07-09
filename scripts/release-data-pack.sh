@@ -42,6 +42,11 @@ if command -v jq >/dev/null 2>&1; then
   mv "$tmp" "$PACK_DIR/pack.json"
 fi
 
+echo "Validating pack '$PACK'…"
+python3 "$REPO_ROOT/scripts/validate_data_pack.py" "$PACK"
+
+# Re-validate index after we may rewrite it later; full check at end of non-push path too.
+
 DIST="$REPO_ROOT/dist"
 mkdir -p "$DIST"
 TAR="$DIST/${TAG}.tar.gz"
@@ -77,6 +82,11 @@ if command -v jq >/dev/null 2>&1 && [[ -f "$REPO_ROOT/data/index.json" ]]; then
   mv "$tmp" "$REPO_ROOT/data/index.json"
   echo "Updated data/index.json → latest_tag=$TAG"
 fi
+
+python3 "$REPO_ROOT/scripts/validate_data_pack.py" || {
+  echo "validation failed after index update" >&2
+  exit 1
+}
 
 if [[ "$PUSH" -ne 1 ]]; then
   cat <<EOF

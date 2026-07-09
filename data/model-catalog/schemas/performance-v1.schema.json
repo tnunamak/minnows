@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tnunamak/minnows/data/model-catalog/schemas/performance-v1.schema.json",
+  "title": "model-catalog performance document v1",
+  "description": "Sparse, source-backed quality/effort claims and optional numeric scores. Missing data is expressed via missing[] — never invent chart points.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "schema_version",
+    "kind",
+    "provider",
+    "retrieved_at",
+    "source_urls"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]+$"
+    },
+    "schema_version": { "type": "integer", "const": 1 },
+    "kind": {
+      "type": "string",
+      "const": "performance",
+      "description": "Document kind (unified). Older free-form kinds are invalid under v1."
+    },
+    "provider": {
+      "type": "string",
+      "enum": ["anthropic", "openai", "xai", "google", "other"],
+      "description": "Vendor that published the claims/scores"
+    },
+    "retrieved_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "source_urls": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 8 }
+    },
+    "notes": { "type": "string" },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["models", "statement"],
+        "properties": {
+          "models": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "task_families": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "axes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["quality", "cost", "effort", "speed", "latency", "tokens"]
+            }
+          },
+          "statement": { "type": "string", "minLength": 1 },
+          "implication": { "type": "string" }
+        }
+      }
+    },
+    "scores": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["model", "metric", "score", "unit"],
+        "properties": {
+          "model": { "type": "string", "minLength": 1 },
+          "metric": { "type": "string", "minLength": 1 },
+          "score": { "type": "number" },
+          "unit": {
+            "type": "string",
+            "enum": ["accuracy", "pass_rate", "elo", "other"]
+          },
+          "effort": {
+            "type": "string",
+            "description": "Effort/reasoning level if applicable (e.g. high, xhigh)"
+          },
+          "comparisons": {
+            "type": "object",
+            "additionalProperties": { "type": "number" },
+            "description": "Other model id → score on the same metric (vendor table)"
+          },
+          "caveat": { "type": "string" }
+        }
+      }
+    },
+    "missing": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Explicit gaps (e.g. non-digitized chart series)"
+    }
+  },
+  "anyOf": [
+    { "required": ["claims"], "properties": { "claims": { "minItems": 1 } } },
+    { "required": ["scores"], "properties": { "scores": { "minItems": 1 } } }
+  ]
+}

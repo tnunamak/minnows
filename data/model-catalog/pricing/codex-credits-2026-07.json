@@ -1,5 +1,7 @@
 {
+  "$schema": "schemas/pricing-v1.schema.json",
   "id": "codex-credits-2026-07",
+  "schema_version": 1,
   "kind": "codex_credits",
   "agent": "codex",
   "retrieved_at": "2026-07-09",
@@ -28,8 +30,17 @@
     }
   },
   "match": [
-    {"pattern": "gpt-5.5", "model": "gpt-5.5"},
-    {"pattern": "gpt-5.4-mini", "model": "gpt-5.4-mini"},
-    {"pattern": "gpt-5.4", "model": "gpt-5.4"}
+    {
+      "pattern": "gpt-5.5",
+      "model": "gpt-5.5"
+    },
+    {
+      "pattern": "gpt-5.4-mini",
+      "model": "gpt-5.4-mini"
+    },
+    {
+      "pattern": "gpt-5.4",
+      "model": "gpt-5.4"
+    }
   ]
 }

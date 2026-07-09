@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tnunamak/minnows/data/schemas/pack-v1.schema.json",
+  "title": "minnows data pack envelope",
+  "description": "Required root document for every data pack at data/<name>/pack.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "schema_version",
+    "tag",
+    "generated_at",
+    "description",
+    "files"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Pack directory name; must match data/<name>/"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Envelope schema major version"
+    },
+    "tag": {
+      "type": "string",
+      "pattern": "^data-[a-z][a-z0-9-]*-v[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Git tag / release name, e.g. data-model-catalog-v0.2.0"
+    },
+    "generated_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "description": { "type": "string", "minLength": 1 },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._/-]*\\.(json|md)$",
+        "description": "Path relative to pack root; must exist on disk"
+      }
+    },
+    "schemas": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Map of payload kind → relative path to schema or SCHEMA.md section"
+    },
+    "related": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "format": "uri" }
+    }
+  }
+}

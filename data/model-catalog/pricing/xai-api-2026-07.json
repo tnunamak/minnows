@@ -1,5 +1,7 @@
 {
+  "$schema": "schemas/pricing-v1.schema.json",
   "id": "xai-api-2026-07",
+  "schema_version": 1,
   "kind": "api_usd",
   "agent": "grok",
   "retrieved_at": "2026-07-09",
@@ -40,11 +42,29 @@
     }
   },
   "match": [
-    {"pattern": "grok-4.5", "model": "grok-4.5"},
-    {"pattern": "grok-build", "model": "grok-build-0.1"},
-    {"pattern": "grok-4.3", "model": "grok-4.3"},
-    {"pattern": "grok-4.20", "model": "grok-4.20-0309-reasoning"},
-    {"pattern": "grok-4", "model": "grok-4.5"},
-    {"pattern": "grok", "model": "grok-4.5"}
+    {
+      "pattern": "grok-4.5",
+      "model": "grok-4.5"
+    },
+    {
+      "pattern": "grok-build",
+      "model": "grok-build-0.1"
+    },
+    {
+      "pattern": "grok-4.3",
+      "model": "grok-4.3"
+    },
+    {
+      "pattern": "grok-4.20",
+      "model": "grok-4.20-0309-reasoning"
+    },
+    {
+      "pattern": "grok-4",
+      "model": "grok-4.5"
+    },
+    {
+      "pattern": "grok",
+      "model": "grok-4.5"
+    }
   ]
 }

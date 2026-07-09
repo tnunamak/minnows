@@ -1,11 +1,14 @@
 {
+  "$schema": "schemas/performance-v1.schema.json",
   "id": "anthropic-effort-quality-2026-07",
-  "kind": "vendor_quality_claims",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "anthropic",
   "retrieved_at": "2026-07-09",
   "source_urls": [
     "https://www.anthropic.com/news/claude-sonnet-5"
   ],
-  "notes": "Sparse, source-backed quality/cost framing — NOT digitized chart points (figures are images-only on the vendor page). Prefer cost-per-successful-task over sticker $/MTok. Do not invent scores.",
+  "notes": "Source-backed quality/cost framing from the Sonnet 5 launch post. Chart point series are images-only on the vendor page — listed under missing[]. Prefer cost-per-successful-task over sticker $/MTok.",
   "claims": [
     {
       "models": ["claude-sonnet-5", "claude-sonnet-4-6", "claude-opus-4-8"],
@@ -22,7 +25,7 @@
       "implication": "Default mid-tier agent work: prefer Sonnet 5 over Sonnet 4.6; escalate effort before jumping to Opus when possible."
     },
     {
-      "models": ["claude-sonnet-5"],
+      "models": ["claude-sonnet-5", "claude-opus-4-8"],
       "task_families": ["api_billing"],
       "axes": ["cost"],
       "statement": "Charts price Sonnet 5 at $3/$15 per MTok (standard) and Opus 4.8 at $5/$25; intro Sonnet 5 is $2/$10 through 2026-08-31. Tokenizer change may map the same text to ~1.0–1.35× more tokens.",
@@ -30,7 +33,7 @@
     }
   ],
   "missing": [
-    "Numeric point series from the BrowseComp/OSWorld charts (not published as a table).",
+    "Numeric point series from the BrowseComp/OSWorld cost-performance charts (not published as a table).",
     "Independent fixed-harness multi-vendor ranking."
   ]
 }

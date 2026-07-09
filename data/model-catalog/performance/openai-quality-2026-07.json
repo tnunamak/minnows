@@ -1,11 +1,14 @@
 {
+  "$schema": "schemas/performance-v1.schema.json",
   "id": "openai-quality-2026-07",
-  "kind": "vendor_quality_claims",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "openai",
   "retrieved_at": "2026-07-09",
   "source_urls": [
     "https://openai.com/index/introducing-gpt-5-5/"
   ],
-  "notes": "Vendor-reported eval numbers from the GPT-5.5 launch post. Harnesses and asterisks are theirs. Cross-vendor comparison is not independent.",
+  "notes": "Vendor-reported eval numbers from the GPT-5.5 launch post. Harnesses and asterisks are OpenAI's. Cross-vendor comparison is not independent.",
   "scores": [
     {
       "model": "gpt-5.5",
@@ -44,13 +47,20 @@
   "claims": [
     {
       "models": ["gpt-5.5"],
+      "task_families": ["agentic_coding"],
+      "axes": ["quality", "tokens", "cost"],
       "statement": "OpenAI claims GPT-5.5 improves coding scores vs GPT-5.4 while using fewer tokens, and cites Artificial Analysis Coding Index for SOTA intelligence at half the cost of competitive frontier coding models.",
       "implication": "Token efficiency can dominate sticker $/MTok; measure cost-per-successful-task."
     },
     {
       "models": ["gpt-5.5"],
+      "task_families": ["codex"],
+      "axes": ["speed", "cost"],
       "statement": "In Codex, Fast mode generates tokens 1.5× faster for 2.5× the cost.",
       "implication": "Speed is an explicit cost multiplier, separate from model id."
     }
+  ],
+  "missing": [
+    "Effort-parameterized cost-performance curves comparable to Anthropic Sonnet 5 BrowseComp/OSWorld charts."
   ]
 }

@@ -11,7 +11,7 @@ Minnows ships two product kinds:
 
 | Pack | What it is | Latest tag | Browse |
 |------|------------|------------|--------|
-| **model-catalog** | Model pricing + sparse quality/effort claims | `data-model-catalog-v0.1.0` | [README](model-catalog/README.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) |
+| **model-catalog** | Model pricing + sparse quality/effort claims (**schema v1**) | `data-model-catalog-v0.2.0` | [README](model-catalog/README.md) · [SCHEMA](model-catalog/SCHEMA.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) |
 
 Machine-readable index (always on `main`): **[index.json](index.json)** — lists each pack’s `latest_tag` and ready-made URLs.
 
@@ -42,10 +42,15 @@ Machine-readable index (always on `main`): **[index.json](index.json)** — list
 
 ```text
 data/<pack-name>/
-  pack.json       # required: name, tag, files[], description
+  pack.json       # required: name, tag, files[], description, schema_version
   README.md       # required: Get this pack table with real links
+  SCHEMA.md       # recommended: human contract for payloads
+  schemas/        # recommended: JSON Schema files
   …               # pack-defined files
+data/schemas/     # shared: pack-v1 + index-v1 envelopes
 ```
+
+Validate: `./scripts/validate_data_pack.py` (all packs + index).
 
 ## Tag & release convention
 
