@@ -1,0 +1,82 @@
+{
+  "id": "local-review-audit-oracle-v1-2026-07-09",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-07-09",
+  "source_urls": [
+    "https://github.com/tnunamak/minnows/tree/main/data/local-evals"
+  ],
+  "source_ids": [],
+  "notes": "Fixed-harness local eval. policy=0.1.2 catalog_ref=data-model-catalog-v0.5.0. Not a vendor board \u2014 measured on Tim's waspflow harness.",
+  "scores": [
+    {
+      "model": "gpt-5.5",
+      "metric": "local-review.audit-oracle-v1",
+      "score": 1.0,
+      "unit": "pass_rate",
+      "effort": "xhigh",
+      "mode": "standard",
+      "harness": "waspflow",
+      "task_family": "review",
+      "source_type": "local_eval",
+      "evidence_grade": "A",
+      "observed_at": "2026-07-09",
+      "metric_id": "local-review-audit-oracle-v1",
+      "caveat": "local-eval task=review-audit-oracle-v1 op=review.audit oracle=pass. found all tokens in findings.md"
+    }
+  ],
+  "run": {
+    "op": "review.audit",
+    "task_id": "review-audit-oracle-v1",
+    "policy_version": "0.1.2",
+    "catalog_ref": "data-model-catalog-v0.5.0",
+    "expands_to": {
+      "provider": "codex",
+      "model": "gpt-5.5",
+      "effort": "xhigh",
+      "mode": "standard"
+    },
+    "work_dir": "/tmp/local-eval-review-audit-oracle-v1-lcjzbwei",
+    "passed": true,
+    "oracle_detail": "found all tokens in findings.md",
+    "meta": {
+      "started_at": "2026-07-09T22:18:59.053867+00:00",
+      "finished_at": "2026-07-09T22:20:20.797648+00:00",
+      "spawn_exit": 1,
+      "wait_exit": 0,
+      "lane_status": {
+        "provider": "codex",
+        "status": "live",
+        "result": "",
+        "cwd": "/tmp/local-eval-review-audit-oracle-v1-lcjzbwei",
+        "origin_cwd": "/tmp/local-eval-review-audit-oracle-v1-lcjzbwei",
+        "model": "gpt-5.5",
+        "effort": "xhigh",
+        "effort_requested": "xhigh",
+        "op": "review.audit",
+        "op_mode": "standard",
+        "policy_version": "0.1.2",
+        "catalog_ref": "data-model-catalog-v0.5.0",
+        "policy_file": "/home/tnunamak/code/waspflow/data/model-choice-policy/operating-points.json",
+        "session_id": "019f48f6-7ed7-7f73-bbaf-be8a0d9e1359",
+        "rollout": "/home/tnunamak/.codex/sessions/2026/07/09/rollout-2026-07-09T17-19-01-019f48f6-7ed7-7f73-bbaf-be8a0d9e1359.jsonl",
+        "worktree": "",
+        "repo_root": "",
+        "transcript": "/home/tnunamak/.local/state/waspflow/lanes/leval-review-audit-oracle-v1-35539/transcript.log",
+        "report": "/tmp/local-eval-review-audit-oracle-v1-lcjzbwei/findings.md",
+        "no_recovery": "false",
+        "verify_command": "",
+        "verify_name": "verify",
+        "verify_timeout": "1800",
+        "prepare_command": "",
+        "spawn_epoch": "1783635539",
+        "prompt": "Security-audit auth.py. Write findings.md that explicitly mentions all three planted defect IDs: ISSUE-1 (hardcoded secret), ISSUE-2 (unsafe password compare), ISSUE-3 (weak md5 token). Be concise.",
+        "updated_at": "1783635608",
+        "git_tracked": "false",
+        "codex_marker": "WASPFLOW_LANE_MARKER:leval-review-audit-oracle-v1-35539:b190c38a-c094-4f60-a19a-7c0e89bcc7f0",
+        "effort_passed": "xhigh"
+      }
+    }
+  }
+}

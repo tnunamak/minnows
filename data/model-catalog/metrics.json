@@ -9,6 +9,14 @@
   ],
   "metrics": [
     {
+      "id": "aa-cost-per-intelligence-index-task-usd",
+      "name": "AA cost-per-intelligence-index-task-USD",
+      "direction": "context_dependent",
+      "harness": null,
+      "steward": "auto_added",
+      "unit_default": "other"
+    },
+    {
       "id": "aa-omniscience",
       "name": "AA-Omniscience",
       "direction": "context_dependent",
@@ -63,6 +71,14 @@
       "harness": null,
       "steward": "third_party_board",
       "unit_default": "accuracy"
+    },
+    {
+      "id": "arc-agi-cost-per-task-usd",
+      "name": "ARC-AGI-cost-per-task-USD",
+      "direction": "context_dependent",
+      "harness": null,
+      "steward": "auto_added",
+      "unit_default": "other"
     },
     {
       "id": "artificial-analysis-coding-agent-index",
@@ -423,6 +439,30 @@
       "harness": null,
       "steward": "vendor_table",
       "unit_default": "accuracy"
+    },
+    {
+      "id": "local-fanout-explore-oracle-v1",
+      "name": "local-fanout.explore-oracle-v1",
+      "direction": "higher_better",
+      "harness": "waspflow",
+      "steward": "local_eval",
+      "unit_default": "pass_rate"
+    },
+    {
+      "id": "local-implement-standard-oracle-v1",
+      "name": "local-implement.standard-oracle-v1",
+      "direction": "higher_better",
+      "harness": "waspflow",
+      "steward": "local_eval",
+      "unit_default": "pass_rate"
+    },
+    {
+      "id": "local-review-audit-oracle-v1",
+      "name": "local-review.audit-oracle-v1",
+      "direction": "higher_better",
+      "harness": "waspflow",
+      "steward": "local_eval",
+      "unit_default": "pass_rate"
     },
     {
       "id": "management-consulting-tasks-internal",

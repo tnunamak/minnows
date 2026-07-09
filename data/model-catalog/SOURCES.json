@@ -316,6 +316,15 @@
       "retrieved_at": "2026-07-09",
       "kind": "digitized_chart",
       "notes": "Numeric series extracted from official figure PNGs via density-peak digitization and labeled-value reads. Intermediate JSON under digitized/."
+    },
+    {
+      "id": "local-evals-waspflow-2026-07-09",
+      "url": "https://github.com/tnunamak/minnows/tree/main/data/local-evals",
+      "title": "Local waspflow fixed-harness evals (implement/fanout/review)",
+      "publisher": "minnows",
+      "published": "2026-07-09",
+      "retrieved_at": "2026-07-09",
+      "kind": "local_eval"
     }
   ]
 }

@@ -1,0 +1,16 @@
+{
+  "id": "fanout-explore-oracle-v1",
+  "op": "fanout.explore",
+  "task_family": "fanout",
+  "fixture": "fixtures/mini-explore",
+  "prompt": "Which file defines the Color enum? Write answer.txt that includes the relative path src/colors.py (may include brief explanation).",
+  "oracle": {
+    "type": "file_contains",
+    "path": "answer.txt",
+    "must_contain": [
+      "src/colors.py"
+    ]
+  },
+  "metric": "local-fanout.explore-oracle-v1",
+  "timeout_sec": 600
+}

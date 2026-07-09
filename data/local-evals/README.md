@@ -1,39 +1,28 @@
-# Data pack: `local-evals` (scaffold)
+# Data pack: `local-evals`
 
-**Local, fixed-harness** success and cost evidence for `model-choice-policy` operating points.
+**Local, fixed-harness** success evidence for `model-choice-policy` operating points.
+Rows use performance score shape with `source_type: local_eval` and `evidence_grade: A`.
 
-This is the only path that upgrades `evidence_confidence: medium` to something earned on
-Tim's actual waspflow / Claude Code / Codex / Grok surfaces.
+## This version
 
-## Status
+| | |
+|---|---|
+| **Tag** | `data-local-evals-v0.1.0` |
+| **Measured cells** | implement.standard · fanout.explore · review.audit (all **pass** on 2026-07-09) |
 
-**v0.0.1 scaffold** — no result rows yet. Do not invent P(success).
+## Run
 
-## Protocol (when running)
-
-1. Pick an op (`implement.standard`, `review.audit`, …) and a model×effort cell.
-2. Spawn a waspflow lane with that exact op/model/effort (or explicit flags).
-3. Use a **fixed task** from `tasks/` with a deterministic oracle (tests pass, report exists, …).
-4. Emit a performance-shaped score row into `results/`:
-
-```json
-{
-  "model": "claude-sonnet-5",
-  "metric": "local-implement.standard-oracle-v1",
-  "score": 1.0,
-  "unit": "pass_rate",
-  "effort": "medium",
-  "harness": "waspflow+claude_code",
-  "task_family": "implementation",
-  "source_type": "local_eval",
-  "evidence_grade": "A",
-  "observed_at": "2026-07-09",
-  "cost": { "value": 0.42, "unit": "usd_per_task", "basis": "api_usd" }
-}
+```bash
+./scripts/run_local_eval.py --all
+./scripts/run_local_eval.py data/local-evals/tasks/implement-standard-oracle-v1.json
 ```
 
-5. Never judge a model with itself when an LLM judge is required.
+## Results (v0.1.0)
 
-## Get
+| Task | Op | Model / effort | Pass |
+|------|-----|----------------|------|
+| implement-standard-oracle-v1 | implement.standard | claude-sonnet-5 / medium | 1.0 |
+| fanout-explore-oracle-v1 | fanout.explore | claude-sonnet-5 / medium | 1.0 |
+| review-audit-oracle-v1 | review.audit | gpt-5.5 / xhigh | 1.0 |
 
-Not released until first real results land. Pin catalog/policy tags in `pack.json` related.
+Mirrored into catalog: `performance/local-evals-2026-07.json`.

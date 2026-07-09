@@ -327,6 +327,7 @@ def validate_performance(
     errors: Errors,
     registry: set[str] | None = None,
     model_registry: dict[str, str] | None = None,
+    metric_ids: set[str] | None = None,
 ) -> None:
     data = load_json(path, errors)
     if not isinstance(data, dict):
@@ -405,6 +406,10 @@ def validate_performance(
                     errors.add(sp, f"unit must be one of {sorted(PERF_UNITS)}")
                 if model_registry is not None and isinstance(s.get("model"), str):
                     check_model_id(s["model"], sp, model_registry, errors)
+                mid = s.get("metric_id")
+                if metric_ids is not None and mid is not None:
+                    if not isinstance(mid, str) or mid not in metric_ids:
+                        errors.add(sp, f"metric_id {mid!r} not in metrics.json")
                 comps = s.get("comparisons")
                 if comps is not None:
                     if not isinstance(comps, dict):
@@ -550,6 +555,14 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
     validate_pack_envelope(pack_dir, errors)
     source_registry = load_source_registry(pack_dir, errors)
     model_registry = load_model_registry(pack_dir, errors)
+    metric_ids: set[str] = set()
+    mpath = pack_dir / "metrics.json"
+    if mpath.is_file():
+        mdata = load_json(mpath, Errors())  # soft — full check later
+        if isinstance(mdata, dict):
+            for m in mdata.get("metrics") or []:
+                if isinstance(m, dict) and m.get("id"):
+                    metric_ids.add(str(m["id"]))
     pricing_dir = pack_dir / "pricing"
     perf_dir = pack_dir / "performance"
     if pricing_dir.is_dir():
@@ -562,7 +575,7 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
         errors.add(str(pack_dir.relative_to(REPO)), "missing pricing/")
     if perf_dir.is_dir():
         for path in sorted(perf_dir.glob("*.json")):
-            validate_performance(path, errors, source_registry, model_registry)
+            validate_performance(path, errors, source_registry, model_registry, metric_ids)
     cap_dir = pack_dir / "capabilities"
     if cap_dir.is_dir():
         for path in sorted(cap_dir.glob("*.json")):

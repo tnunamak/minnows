@@ -1,0 +1,14 @@
+{
+  "id": "review-audit-oracle-v1",
+  "op": "review.audit",
+  "task_family": "review",
+  "fixture": "fixtures/mini-review",
+  "prompt": "Security-audit auth.py. Write findings.md that explicitly mentions all three planted defect IDs: ISSUE-1 (hardcoded secret), ISSUE-2 (unsafe password compare), ISSUE-3 (weak md5 token). Be concise.",
+  "oracle": {
+    "type": "file_contains",
+    "path": "findings.md",
+    "must_contain": ["ISSUE-1", "ISSUE-2", "ISSUE-3"]
+  },
+  "metric": "local-review.audit-oracle-v1",
+  "timeout_sec": 900
+}

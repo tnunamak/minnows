@@ -1,0 +1,62 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "local-evals-2026-07",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-07-09",
+  "source_urls": [
+    "https://github.com/tnunamak/minnows/tree/main/data/local-evals"
+  ],
+  "source_ids": [
+    "local-evals-waspflow-2026-07-09"
+  ],
+  "notes": "Local fixed-harness evals on waspflow for top policy ops. evidence_grade A. Not vendor boards. See data/local-evals/ for fixtures, tasks, run metadata.",
+  "scores": [
+    {
+      "model": "claude-sonnet-5",
+      "metric": "local-fanout.explore-oracle-v1",
+      "score": 1.0,
+      "unit": "pass_rate",
+      "effort": "medium",
+      "mode": "standard",
+      "harness": "waspflow",
+      "task_family": "fanout",
+      "source_type": "local_eval",
+      "evidence_grade": "A",
+      "observed_at": "2026-07-09",
+      "metric_id": "local-fanout-explore-oracle-v1",
+      "caveat": "local-eval task=fanout-explore-oracle-v1 op=fanout.explore oracle=pass"
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "local-review.audit-oracle-v1",
+      "score": 1.0,
+      "unit": "pass_rate",
+      "effort": "xhigh",
+      "mode": "standard",
+      "harness": "waspflow",
+      "task_family": "review",
+      "source_type": "local_eval",
+      "evidence_grade": "A",
+      "observed_at": "2026-07-09",
+      "metric_id": "local-review-audit-oracle-v1",
+      "caveat": "local-eval task=review-audit-oracle-v1 op=review.audit oracle=pass. found all tokens in findings.md"
+    },
+    {
+      "model": "claude-sonnet-5",
+      "metric": "local-implement.standard-oracle-v1",
+      "score": 1.0,
+      "unit": "pass_rate",
+      "effort": "medium",
+      "mode": "standard",
+      "harness": "waspflow",
+      "task_family": "implementation",
+      "source_type": "local_eval",
+      "evidence_grade": "A",
+      "observed_at": "2026-07-09",
+      "metric_id": "local-implement-standard-oracle-v1",
+      "caveat": "local-eval task=implement-standard-oracle-v1 op=implement.standard oracle=pass (agent fixed missing return; graded with python3 -m pytest -q)"
+    }
+  ]
+}

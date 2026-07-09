@@ -1,17 +1,30 @@
 {
   "name": "local-evals",
   "schema_version": 1,
-  "tag": "data-local-evals-v0.0.1",
+  "tag": "data-local-evals-v0.1.0",
   "generated_at": "2026-07-09",
-  "description": "Fixed-harness P(success)/cost rows for policy ops on Tim's machines. Emits performance-v2-shaped scores with source_type=local_eval. Scaffold only until first runs land.",
+  "description": "Fixed-harness P(success) rows for policy ops on waspflow. First measured cells: implement.standard, fanout.explore, review.audit (all pass).",
   "files": [
     "README.md",
     "SCHEMA.md",
-    "tasks/README.md",
-    "results/.gitkeep"
+    "tasks/implement-standard-oracle-v1.json",
+    "tasks/fanout-explore-oracle-v1.json",
+    "tasks/review-audit-oracle-v1.json",
+    "fixtures/mini-implement/calc.py",
+    "fixtures/mini-implement/test_calc.py",
+    "fixtures/mini-implement/README.md",
+    "fixtures/mini-review/auth.py",
+    "fixtures/mini-review/README.md",
+    "fixtures/mini-explore/src/colors.py",
+    "fixtures/mini-explore/src/shapes.py",
+    "fixtures/mini-explore/src/util.py",
+    "fixtures/mini-explore/README.md",
+    "results/2026-07-09-implement-standard-oracle-v1-claude-sonnet-5-medium.json",
+    "results/2026-07-09-fanout-explore-oracle-v1-claude-sonnet-5-medium.json",
+    "results/2026-07-09-review-audit-oracle-v1-gpt-5.5-xhigh.json"
   ],
   "related": {
-    "catalog": "data-model-catalog-v0.5.0",
-    "policy": "data-model-choice-policy-v0.1.2"
+    "catalog": "data-model-catalog-v0.5.1",
+    "policy": "data-model-choice-policy-v0.1.3"
   }
 }

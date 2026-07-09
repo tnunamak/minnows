@@ -1,0 +1,43 @@
+{
+  "id": "local-implement-standard-oracle-v1-2026-07-09",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-07-09",
+  "source_urls": [
+    "https://github.com/tnunamak/minnows/tree/main/data/local-evals"
+  ],
+  "notes": "Fixed-harness local eval. policy=0.1.2 catalog_ref=data-model-catalog-v0.5.0. Measured on waspflow+claude-sonnet-5 medium.",
+  "scores": [
+    {
+      "model": "claude-sonnet-5",
+      "metric": "local-implement.standard-oracle-v1",
+      "score": 1.0,
+      "unit": "pass_rate",
+      "effort": "medium",
+      "mode": "standard",
+      "harness": "waspflow",
+      "task_family": "implementation",
+      "source_type": "local_eval",
+      "evidence_grade": "A",
+      "observed_at": "2026-07-09",
+      "metric_id": "local-implement-standard-oracle-v1",
+      "caveat": "local-eval task=implement-standard-oracle-v1 op=implement.standard oracle=pass (agent fixed missing return; graded with python3 -m pytest -q)"
+    }
+  ],
+  "run": {
+    "op": "implement.standard",
+    "task_id": "implement-standard-oracle-v1",
+    "policy_version": "0.1.2",
+    "catalog_ref": "data-model-catalog-v0.5.0",
+    "expands_to": {
+      "provider": "claude",
+      "model": "claude-sonnet-5",
+      "effort": "medium",
+      "mode": "standard"
+    },
+    "passed": true,
+    "oracle_detail": "python3 -m pytest -q exit=0",
+    "lane": "leval-implement-standard-oracl-35448"
+  }
+}

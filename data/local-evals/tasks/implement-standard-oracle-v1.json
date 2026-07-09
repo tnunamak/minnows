@@ -1,0 +1,14 @@
+{
+  "id": "implement-standard-oracle-v1",
+  "op": "implement.standard",
+  "task_family": "implementation",
+  "fixture": "fixtures/mini-implement",
+  "prompt": "In the working directory, fix calc.py so `python3 -m pytest -q` passes. Do not modify test_calc.py. Keep the fix minimal.",
+  "oracle": {
+    "type": "shell",
+    "command": "python3 -m pytest -q",
+    "expect_exit": 0
+  },
+  "metric": "local-implement.standard-oracle-v1",
+  "timeout_sec": 600
+}
