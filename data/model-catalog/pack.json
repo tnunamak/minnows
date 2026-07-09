@@ -1,0 +1,18 @@
+{
+  "name": "model-catalog",
+  "schema_version": 1,
+  "tag": "data-model-catalog-v0.1.0",
+  "generated_at": "2026-07-09",
+  "description": "Versioned model economics (API/credits pricing) and sparse vendor quality/effort claims for coding agents. Prefer cost-per-successful-task over sticker price alone.",
+  "files": [
+    "pricing/anthropic-api-2026-07.json",
+    "pricing/openai-api-2026-07.json",
+    "pricing/codex-credits-2026-07.json",
+    "pricing/xai-api-2026-07.json",
+    "performance/anthropic-effort-quality-2026-07.json",
+    "performance/openai-quality-2026-07.json"
+  ],
+  "related": {
+    "research": "https://github.com/tnunamak/dotfiles/blob/main/ai/research/agentic-context-design/agent-model-choice-is-cost-performance-at-effort-not-quota-or-sticker-price-alone.md"
+  }
+}

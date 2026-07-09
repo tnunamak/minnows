@@ -42,6 +42,32 @@ for tool_dir in "$REPO"/tools/*/; do
   echo "  ✓ ~/.local/bin/$name"
 done
 
+# 4. Data packs → XDG data home (path-based; not on PATH).
+DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/minnows-data"
+echo "Symlinking data packs into $DATA_HOME..."
+mkdir -p "$DATA_HOME"
+if [[ -d "$REPO/data" ]]; then
+  for pack_dir in "$REPO"/data/*/; do
+    [[ -d "$pack_dir" ]] || continue
+    pname="$(basename "$pack_dir")"
+    [[ -f "$pack_dir/pack.json" ]] || continue
+    rm -rf "$DATA_HOME/$pname"
+    ln -sfn "${pack_dir%/}" "$DATA_HOME/$pname"
+    echo "  ✓ $DATA_HOME/$pname"
+  done
+fi
+# Convenience scripts on PATH
+for s in fetch-data-pack release-data-pack; do
+  if [[ -f "$REPO/scripts/${s}.sh" ]]; then
+    chmod +x "$REPO/scripts/${s}.sh"
+    ln -sfn "$REPO/scripts/${s}.sh" "$HOME/.local/bin/$s"
+    echo "  ✓ ~/.local/bin/$s"
+  fi
+done
+
 echo
-echo "minnows installed. Tools are on PATH; skills are live in claude/codex/gemini."
+echo "minnows installed."
+echo "  Tools:  on PATH (~/.local/bin)"
+echo "  Skills: ~/.claude|codex|gemini/skills"
+echo "  Data:   $DATA_HOME  (export DATA_PACKS_HOME=$DATA_HOME)"
 echo "Note: ~/.local/bin must be on \$PATH (dotfiles shell config handles this)."

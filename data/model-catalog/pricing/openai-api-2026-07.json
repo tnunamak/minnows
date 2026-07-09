@@ -1,0 +1,36 @@
+{
+  "id": "openai-api-2026-07",
+  "kind": "api_usd",
+  "agent": "codex",
+  "retrieved_at": "2026-07-09",
+  "source_urls": [
+    "https://openai.com/index/introducing-gpt-5-5/",
+    "https://platform.openai.com/docs/pricing"
+  ],
+  "notes": "USD per 1M tokens. gpt-5.5 from the 2026-04-23 launch post: $5 input / $30 output. gpt-5.5-pro: $30 / $180. cache_write_per_m=0 (OpenAI prompt caching has no separate write charge in the documented rate card used here). gpt-5.4 short-context rates retained from the 2026-06 tokensmash table ($2.50 / $0.25 cached / $15). Prefer official pricing page for long-context tiers if needed.",
+  "models": {
+    "gpt-5.5": {
+      "fresh_input_per_m": 5.0,
+      "cache_read_per_m": 0.5,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 30.0
+    },
+    "gpt-5.5-pro": {
+      "fresh_input_per_m": 30.0,
+      "cache_read_per_m": 3.0,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 180.0
+    },
+    "gpt-5.4": {
+      "fresh_input_per_m": 2.5,
+      "cache_read_per_m": 0.25,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 15.0
+    }
+  },
+  "match": [
+    {"pattern": "gpt-5.5-pro", "model": "gpt-5.5-pro"},
+    {"pattern": "gpt-5.5", "model": "gpt-5.5"},
+    {"pattern": "gpt-5.4", "model": "gpt-5.4"}
+  ]
+}

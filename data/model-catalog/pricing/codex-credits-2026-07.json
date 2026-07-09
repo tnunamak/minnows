@@ -1,0 +1,35 @@
+{
+  "id": "codex-credits-2026-07",
+  "kind": "codex_credits",
+  "agent": "codex",
+  "retrieved_at": "2026-07-09",
+  "source_urls": [
+    "https://developers.openai.com/codex/pricing"
+  ],
+  "notes": "Credits per 1M tokens from the Codex pricing rate card. Input / cached input / output. cache_write_per_m=0. Fast mode and plan subscription windows are separate (see source); this table is credit burn only.",
+  "models": {
+    "gpt-5.5": {
+      "fresh_input_per_m": 125.0,
+      "cache_read_per_m": 12.5,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 750.0
+    },
+    "gpt-5.4": {
+      "fresh_input_per_m": 62.5,
+      "cache_read_per_m": 6.25,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 375.0
+    },
+    "gpt-5.4-mini": {
+      "fresh_input_per_m": 18.75,
+      "cache_read_per_m": 1.875,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 113.0
+    }
+  },
+  "match": [
+    {"pattern": "gpt-5.5", "model": "gpt-5.5"},
+    {"pattern": "gpt-5.4-mini", "model": "gpt-5.4-mini"},
+    {"pattern": "gpt-5.4", "model": "gpt-5.4"}
+  ]
+}

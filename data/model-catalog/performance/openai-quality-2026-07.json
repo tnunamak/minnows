@@ -1,0 +1,56 @@
+{
+  "id": "openai-quality-2026-07",
+  "kind": "vendor_quality_claims",
+  "retrieved_at": "2026-07-09",
+  "source_urls": [
+    "https://openai.com/index/introducing-gpt-5-5/"
+  ],
+  "notes": "Vendor-reported eval numbers from the GPT-5.5 launch post. Harnesses and asterisks are theirs. Cross-vendor comparison is not independent.",
+  "scores": [
+    {
+      "model": "gpt-5.5",
+      "metric": "Terminal-Bench 2.0",
+      "score": 0.827,
+      "unit": "accuracy",
+      "comparisons": {
+        "gpt-5.4": 0.751,
+        "claude-opus-4-7": 0.694,
+        "gemini-3.1-pro": 0.685
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "SWE-Bench Pro (Public)",
+      "score": 0.586,
+      "unit": "accuracy",
+      "comparisons": {
+        "gpt-5.4": 0.577,
+        "claude-opus-4-7": 0.643,
+        "gemini-3.1-pro": 0.542
+      },
+      "caveat": "OpenAI notes labs have claimed memorization evidence on this eval."
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "OSWorld-Verified",
+      "score": 0.787,
+      "unit": "accuracy",
+      "comparisons": {
+        "gpt-5.4": 0.75,
+        "claude-opus-4-7": 0.78
+      }
+    }
+  ],
+  "claims": [
+    {
+      "models": ["gpt-5.5"],
+      "statement": "OpenAI claims GPT-5.5 improves coding scores vs GPT-5.4 while using fewer tokens, and cites Artificial Analysis Coding Index for SOTA intelligence at half the cost of competitive frontier coding models.",
+      "implication": "Token efficiency can dominate sticker $/MTok; measure cost-per-successful-task."
+    },
+    {
+      "models": ["gpt-5.5"],
+      "statement": "In Codex, Fast mode generates tokens 1.5× faster for 2.5× the cost.",
+      "implication": "Speed is an explicit cost multiplier, separate from model id."
+    }
+  ]
+}
