@@ -9,7 +9,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | Tag **`data-model-catalog-v0.5.1`** — [release](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.1) |
+| **This version** | Tag **`data-model-catalog-v0.5.2`** — [release](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.2) |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -18,7 +18,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.5.1
+TAG=data-model-catalog-v0.5.2
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -74,6 +74,11 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 5. **Validate before shipping:** `./scripts/validate_data_pack.py model-catalog`
 
 ## Changelog
+
+### v0.5.2 — 2026-07-09
+
+- **Honesty pass (Sol+Fable):** local rows reclassified harness_smoke / grade D; mixed `metric_id`s set `comparable: false` + `comparability_group`.
+- Pack schema allows png/py assets; CI requires jsonschema; freshness includes boards.
 
 ### v0.5.1 — 2026-07-09
 

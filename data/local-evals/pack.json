@@ -1,9 +1,9 @@
 {
   "name": "local-evals",
   "schema_version": 1,
-  "tag": "data-local-evals-v0.1.0",
+  "tag": "data-local-evals-v0.1.1",
   "generated_at": "2026-07-09",
-  "description": "Fixed-harness P(success) rows for policy ops on waspflow. First measured cells: implement.standard, fanout.explore, review.audit (all pass).",
+  "description": "Harness SMOKE tests for waspflow wiring only \u2014 NOT model quality evidence. v0.1.1 reclassifies v0.1.0 rows as grade D / smoke after Sol+Fable audit.",
   "files": [
     "README.md",
     "SCHEMA.md",
@@ -24,7 +24,7 @@
     "results/2026-07-09-review-audit-oracle-v1-gpt-5.5-xhigh.json"
   ],
   "related": {
-    "catalog": "data-model-catalog-v0.5.1",
-    "policy": "data-model-choice-policy-v0.1.3"
+    "catalog": "data-model-catalog-v0.5.2",
+    "policy": "data-model-choice-policy-v0.1.4"
   }
 }

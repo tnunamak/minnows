@@ -105,7 +105,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
       "task_family": "computer_use",
-      "metric_id": "osworld-verified"
+      "metric_id": "osworld-verified",
+      "comparable": false,
+      "comparability_group": "osworld-verified::vendor_table::null"
     },
     {
       "model": "gpt-5.5",
@@ -143,7 +145,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
       "task_family": "agentic_search",
-      "metric_id": "browsecomp"
+      "metric_id": "browsecomp",
+      "comparable": false,
+      "comparability_group": "browsecomp::vendor_table::null"
     },
     {
       "model": "gpt-5.5",
@@ -395,7 +399,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "humanity-s-last-exam-no-tools"
+      "metric_id": "humanity-s-last-exam-no-tools",
+      "comparable": false,
+      "comparability_group": "humanity-s-last-exam-no-tools::vendor_table::null"
     },
     {
       "model": "gpt-5.5",
@@ -415,7 +421,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "humanity-s-last-exam-with-tools"
+      "metric_id": "humanity-s-last-exam-with-tools",
+      "comparable": false,
+      "comparability_group": "humanity-s-last-exam-with-tools::vendor_table::null"
     },
     {
       "model": "gpt-5.5",

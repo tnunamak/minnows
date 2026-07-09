@@ -7,23 +7,25 @@
   "source_urls": [
     "https://github.com/tnunamak/minnows/tree/main/data/local-evals"
   ],
-  "source_ids": [],
-  "notes": "Fixed-harness local eval. policy=0.1.2 catalog_ref=data-model-catalog-v0.5.0. Not a vendor board \u2014 measured on Tim's waspflow harness.",
+  "source_ids": [
+    "local-evals-waspflow-2026-07-09"
+  ],
+  "notes": "HARNESS SMOKE \u2014 not quality evidence. Answer-contaminated tasks. Reclassified 2026-07-09 (Sol+Fable).",
   "scores": [
     {
       "model": "gpt-5.5",
-      "metric": "local-review.audit-oracle-v1",
+      "metric": "smoke-review.audit-oracle-v1",
       "score": 1.0,
-      "unit": "pass_rate",
+      "unit": "other",
       "effort": "xhigh",
       "mode": "standard",
       "harness": "waspflow",
       "task_family": "review",
       "source_type": "local_eval",
-      "evidence_grade": "A",
+      "evidence_grade": "D",
       "observed_at": "2026-07-09",
-      "metric_id": "local-review-audit-oracle-v1",
-      "caveat": "local-eval task=review-audit-oracle-v1 op=review.audit oracle=pass. found all tokens in findings.md"
+      "metric_id": "smoke-review-audit-oracle-v1",
+      "caveat": "harness_smoke: local-eval task=review-audit-oracle-v1 op=review.audit oracle=pass. found all tokens in findings.md"
     }
   ],
   "run": {
@@ -77,6 +79,8 @@
         "codex_marker": "WASPFLOW_LANE_MARKER:leval-review-audit-oracle-v1-35539:b190c38a-c094-4f60-a19a-7c0e89bcc7f0",
         "effort_passed": "xhigh"
       }
-    }
+    },
+    "classification": "harness_smoke",
+    "not_quality_evidence": true
   }
 }

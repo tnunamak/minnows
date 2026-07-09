@@ -13,6 +13,11 @@ LOAD_BEARING = [
     "pricing/codex-credits-2026-07.json",
     "pricing/xai-api-2026-07.json",
     "capabilities/effort-surfaces-2026-07.json",
+    # boards (FRESHNESS.md monthly tier)
+    "performance/artificial-analysis-2026-07.json",
+    "performance/terminal-bench-2026-07.json",
+    "performance/swe-bench-2026-07.json",
+    "performance/arcprize-gpt-5-6-2026-07.json",
 ]
 
 def main() -> int:

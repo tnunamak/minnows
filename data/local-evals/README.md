@@ -1,28 +1,24 @@
 # Data pack: `local-evals`
 
-**Local, fixed-harness** success evidence for `model-choice-policy` operating points.
-Rows use performance score shape with `source_type: local_eval` and `evidence_grade: A`.
+## Status: harness smoke tests — NOT quality evidence
 
-## This version
+After independent audits (GPT-5.6 Sol + Claude Fable, 2026-07-09), the v0.1.0 cells are
+**reclassified as harness smoke**:
 
-| | |
-|---|---|
-| **Tag** | `data-local-evals-v0.1.0` |
-| **Measured cells** | implement.standard · fanout.explore · review.audit (all **pass** on 2026-07-09) |
+- Prompts leaked expected answers / defect IDs (answer contamination).
+- Single seed, no cost capture, no weak-model control.
+- `evidence_grade: D`, unit `other` (not aggregate `pass_rate`).
+- Policy ops that cite these rows use **`evidence_confidence: medium`** (expert prior + smoke), not high.
+
+Do **not** use these rows for cross-model selection or “grade A / high confidence” claims.
+
+## Purpose that remains valid
+
+Prove waspflow can spawn `--op`, write artifacts, and that the runner + oracle path works.
+Use `./scripts/run_local_eval.py` for wiring checks. A real multi-task, hidden-oracle suite is future work.
 
 ## Run
 
 ```bash
 ./scripts/run_local_eval.py --all
-./scripts/run_local_eval.py data/local-evals/tasks/implement-standard-oracle-v1.json
 ```
-
-## Results (v0.1.0)
-
-| Task | Op | Model / effort | Pass |
-|------|-----|----------------|------|
-| implement-standard-oracle-v1 | implement.standard | claude-sonnet-5 / medium | 1.0 |
-| fanout-explore-oracle-v1 | fanout.explore | claude-sonnet-5 / medium | 1.0 |
-| review-audit-oracle-v1 | review.audit | gpt-5.5 / xhigh | 1.0 |
-
-Mirrored into catalog: `performance/local-evals-2026-07.json`.

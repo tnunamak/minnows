@@ -7,8 +7,15 @@
   "oracle": {
     "type": "file_contains",
     "path": "findings.md",
-    "must_contain": ["ISSUE-1", "ISSUE-2", "ISSUE-3"]
+    "must_contain": [
+      "ISSUE-1",
+      "ISSUE-2",
+      "ISSUE-3"
+    ]
   },
   "metric": "local-review.audit-oracle-v1",
-  "timeout_sec": 900
+  "timeout_sec": 900,
+  "quality_eligible": false,
+  "classification": "harness_smoke",
+  "notes": "Answer-contaminated smoke task \u2014 not quality evidence (Sol+Fable P0.2)."
 }

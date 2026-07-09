@@ -72,7 +72,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "gdpval-aa-v2"
+      "metric_id": "gdpval-aa-v2",
+      "comparable": false,
+      "comparability_group": "gdpval-aa-v2::vendor_table::null"
     },
     {
       "model": "gpt-5.6-terra",
@@ -83,7 +85,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "gdpval-aa-v2"
+      "metric_id": "gdpval-aa-v2",
+      "comparable": false,
+      "comparability_group": "gdpval-aa-v2::vendor_table::null"
     },
     {
       "model": "gpt-5.6-luna",
@@ -94,7 +98,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "gdpval-aa-v2"
+      "metric_id": "gdpval-aa-v2",
+      "comparable": false,
+      "comparability_group": "gdpval-aa-v2::vendor_table::null"
     },
     {
       "model": "gpt-5.6-sol",
@@ -273,7 +279,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "swe-bench-pro"
+      "metric_id": "swe-bench-pro",
+      "comparable": false,
+      "comparability_group": "swe-bench-pro::vendor_table::null"
     },
     {
       "model": "gpt-5.6-terra",
@@ -285,7 +293,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "swe-bench-pro"
+      "metric_id": "swe-bench-pro",
+      "comparable": false,
+      "comparability_group": "swe-bench-pro::vendor_table::null"
     },
     {
       "model": "gpt-5.6-luna",
@@ -297,7 +307,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "swe-bench-pro"
+      "metric_id": "swe-bench-pro",
+      "comparable": false,
+      "comparability_group": "swe-bench-pro::vendor_table::null"
     },
     {
       "model": "gpt-5.6-sol",
@@ -358,7 +370,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "terminal-bench-2-1"
+      "metric_id": "terminal-bench-2-1",
+      "comparable": false,
+      "comparability_group": "terminal-bench-2-1::vendor_table::null"
     },
     {
       "model": "gpt-5.6-terra",
@@ -370,7 +384,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "terminal-bench-2-1"
+      "metric_id": "terminal-bench-2-1",
+      "comparable": false,
+      "comparability_group": "terminal-bench-2-1::vendor_table::null"
     },
     {
       "model": "gpt-5.6-luna",
@@ -382,7 +398,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "terminal-bench-2-1"
+      "metric_id": "terminal-bench-2-1",
+      "comparable": false,
+      "comparability_group": "terminal-bench-2-1::vendor_table::null"
     },
     {
       "model": "gpt-5.6-sol",
@@ -397,7 +415,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "ultra",
       "task_family": "coding",
-      "metric_id": "terminal-bench-2-1"
+      "metric_id": "terminal-bench-2-1",
+      "comparable": false,
+      "comparability_group": "terminal-bench-2-1::vendor_table::null"
     },
     {
       "model": "gpt-5.6-sol",
@@ -607,7 +627,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "agentic_search",
-      "metric_id": "browsecomp"
+      "metric_id": "browsecomp",
+      "comparable": false,
+      "comparability_group": "browsecomp::vendor_table::null"
     },
     {
       "model": "gpt-5.6-terra",
@@ -619,7 +641,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "agentic_search",
-      "metric_id": "browsecomp"
+      "metric_id": "browsecomp",
+      "comparable": false,
+      "comparability_group": "browsecomp::vendor_table::null"
     },
     {
       "model": "gpt-5.6-luna",
@@ -631,7 +655,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "agentic_search",
-      "metric_id": "browsecomp"
+      "metric_id": "browsecomp",
+      "comparable": false,
+      "comparability_group": "browsecomp::vendor_table::null"
     },
     {
       "model": "gpt-5.6-sol",
@@ -646,7 +672,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "ultra",
       "task_family": "agentic_search",
-      "metric_id": "browsecomp"
+      "metric_id": "browsecomp",
+      "comparable": false,
+      "comparability_group": "browsecomp::vendor_table::null"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1583,7 +1611,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "reasoning",
-      "metric_id": "arc-agi-3"
+      "metric_id": "arc-agi-3",
+      "comparable": false,
+      "comparability_group": "arc-agi-3::vendor_table::null"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1595,7 +1625,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "reasoning",
-      "metric_id": "arc-agi-3"
+      "metric_id": "arc-agi-3",
+      "comparable": false,
+      "comparability_group": "arc-agi-3::vendor_table::null"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1607,7 +1639,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "reasoning",
-      "metric_id": "arc-agi-3"
+      "metric_id": "arc-agi-3",
+      "comparable": false,
+      "comparability_group": "arc-agi-3::vendor_table::null"
     }
   ],
   "claims": [

@@ -7,22 +7,22 @@
   "source_urls": [
     "https://github.com/tnunamak/minnows/tree/main/data/local-evals"
   ],
-  "notes": "Fixed-harness local eval. policy=0.1.2 catalog_ref=data-model-catalog-v0.5.0. Measured on waspflow+claude-sonnet-5 medium.",
+  "notes": "HARNESS SMOKE \u2014 not quality evidence. Answer-contaminated tasks. Reclassified 2026-07-09 (Sol+Fable).",
   "scores": [
     {
       "model": "claude-sonnet-5",
-      "metric": "local-implement.standard-oracle-v1",
+      "metric": "smoke-implement.standard-oracle-v1",
       "score": 1.0,
-      "unit": "pass_rate",
+      "unit": "other",
       "effort": "medium",
       "mode": "standard",
       "harness": "waspflow",
       "task_family": "implementation",
       "source_type": "local_eval",
-      "evidence_grade": "A",
+      "evidence_grade": "D",
       "observed_at": "2026-07-09",
-      "metric_id": "local-implement-standard-oracle-v1",
-      "caveat": "local-eval task=implement-standard-oracle-v1 op=implement.standard oracle=pass (agent fixed missing return; graded with python3 -m pytest -q)"
+      "metric_id": "smoke-implement-standard-oracle-v1",
+      "caveat": "harness_smoke: local-eval task=implement-standard-oracle-v1 op=implement.standard oracle=pass (agent fixed missing return; graded with python3 -m pytest -q)"
     }
   ],
   "run": {
@@ -38,6 +38,11 @@
     },
     "passed": true,
     "oracle_detail": "python3 -m pytest -q exit=0",
-    "lane": "leval-implement-standard-oracl-35448"
-  }
+    "lane": "leval-implement-standard-oracl-35448",
+    "classification": "harness_smoke",
+    "not_quality_evidence": true
+  },
+  "source_ids": [
+    "local-evals-waspflow-2026-07-09"
+  ]
 }

@@ -1,6 +1,6 @@
 {
   "$schema": "schemas/performance-v1.schema.json",
-  "id": "local-evals-2026-07",
+  "id": "local-evals-smoke-2026-07",
   "schema_version": 1,
   "kind": "performance",
   "provider": "other",
@@ -11,52 +11,70 @@
   "source_ids": [
     "local-evals-waspflow-2026-07-09"
   ],
-  "notes": "Local fixed-harness evals on waspflow for top policy ops. evidence_grade A. Not vendor boards. See data/local-evals/ for fixtures, tasks, run metadata.",
+  "notes": "HARNESS SMOKE TESTS only \u2014 NOT task-quality evidence. Tasks were answer-contaminated (prompt leaked expected tokens). Single seed, no cost, no discrimination. Reclassified 2026-07-09 after Sol+Fable audit. Do not use for high-confidence routing.",
   "scores": [
     {
       "model": "claude-sonnet-5",
-      "metric": "local-fanout.explore-oracle-v1",
+      "metric": "smoke-fanout.explore-oracle-v1",
       "score": 1.0,
-      "unit": "pass_rate",
+      "unit": "other",
       "effort": "medium",
       "mode": "standard",
       "harness": "waspflow",
       "task_family": "fanout",
       "source_type": "local_eval",
-      "evidence_grade": "A",
+      "evidence_grade": "D",
       "observed_at": "2026-07-09",
-      "metric_id": "local-fanout-explore-oracle-v1",
-      "caveat": "local-eval task=fanout-explore-oracle-v1 op=fanout.explore oracle=pass"
+      "metric_id": "smoke-fanout-explore-oracle-v1",
+      "caveat": "harness_smoke (Sol+Fable P0.2): answer-contaminated single-seed observation; not model quality evidence. local-eval task=fanout-explore-oracle-v1 op=fanout.explore oracle=pass",
+      "confidence": {
+        "type": "single_seed",
+        "value": 0
+      },
+      "comparable": false,
+      "comparability_group": "smoke::smoke-fanout-explore-oracle-v1"
     },
     {
       "model": "gpt-5.5",
-      "metric": "local-review.audit-oracle-v1",
+      "metric": "smoke-review.audit-oracle-v1",
       "score": 1.0,
-      "unit": "pass_rate",
+      "unit": "other",
       "effort": "xhigh",
       "mode": "standard",
       "harness": "waspflow",
       "task_family": "review",
       "source_type": "local_eval",
-      "evidence_grade": "A",
+      "evidence_grade": "D",
       "observed_at": "2026-07-09",
-      "metric_id": "local-review-audit-oracle-v1",
-      "caveat": "local-eval task=review-audit-oracle-v1 op=review.audit oracle=pass. found all tokens in findings.md"
+      "metric_id": "smoke-review-audit-oracle-v1",
+      "caveat": "harness_smoke (Sol+Fable P0.2): answer-contaminated single-seed observation; not model quality evidence. local-eval task=review-audit-oracle-v1 op=review.audit oracle=pass. found all tokens in findings.md",
+      "confidence": {
+        "type": "single_seed",
+        "value": 0
+      },
+      "comparable": false,
+      "comparability_group": "smoke::smoke-review-audit-oracle-v1"
     },
     {
       "model": "claude-sonnet-5",
-      "metric": "local-implement.standard-oracle-v1",
+      "metric": "smoke-implement.standard-oracle-v1",
       "score": 1.0,
-      "unit": "pass_rate",
+      "unit": "other",
       "effort": "medium",
       "mode": "standard",
       "harness": "waspflow",
       "task_family": "implementation",
       "source_type": "local_eval",
-      "evidence_grade": "A",
+      "evidence_grade": "D",
       "observed_at": "2026-07-09",
-      "metric_id": "local-implement-standard-oracle-v1",
-      "caveat": "local-eval task=implement-standard-oracle-v1 op=implement.standard oracle=pass (agent fixed missing return; graded with python3 -m pytest -q)"
+      "metric_id": "smoke-implement-standard-oracle-v1",
+      "caveat": "harness_smoke (Sol+Fable P0.2): answer-contaminated single-seed observation; not model quality evidence. local-eval task=implement-standard-oracle-v1 op=implement.standard oracle=pass (agent fixed missing return; graded with python3 -m pytest -q)",
+      "confidence": {
+        "type": "single_seed",
+        "value": 0
+      },
+      "comparable": false,
+      "comparability_group": "smoke::smoke-implement-standard-oracle-v1"
     }
   ]
 }

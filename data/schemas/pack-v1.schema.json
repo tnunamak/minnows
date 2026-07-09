@@ -14,7 +14,9 @@
     "files"
   ],
   "properties": {
-    "$schema": { "type": "string" },
+    "$schema": {
+      "type": "string"
+    },
     "name": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9-]*$",
@@ -34,25 +36,40 @@
       "type": "string",
       "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
     },
-    "description": { "type": "string", "minLength": 1 },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
     "files": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
       "items": {
         "type": "string",
-        "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._/-]*\\.(json|md)$",
-        "description": "Path relative to pack root; must exist on disk"
+        "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._/-]*\\.(json|md|png|py|txt|sha256)$",
+        "description": "Path relative to pack root; allowed extensions: json, md, png, py, txt"
       }
     },
     "schemas": {
       "type": "object",
-      "additionalProperties": { "type": "string" },
-      "description": "Map of payload kind → relative path to schema or SCHEMA.md section"
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Map of payload kind \u2192 relative path to schema or SCHEMA.md section"
     },
     "related": {
       "type": "object",
-      "additionalProperties": { "type": "string", "format": "uri" }
+      "additionalProperties": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Optional non-JSON assets (png, etc.) already listed in files[]"
     }
   }
 }

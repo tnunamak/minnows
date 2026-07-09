@@ -581,6 +581,39 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
         for path in sorted(cap_dir.glob("*.json")):
             validate_capabilities(path, errors, source_registry, model_registry)
 
+
+    # Comparability: metric_ids that mix source_type or harness must set comparable=false on rows
+    by_mid: dict[str, list[tuple[str, str, str | None]]] = {}
+    for path in sorted((pack_dir / "performance").glob("*.json")) if (pack_dir / "performance").is_dir() else []:
+        data = load_json(path, Errors())
+        if not isinstance(data, dict):
+            continue
+        for i, s in enumerate(data.get("scores") or []):
+            if not isinstance(s, dict):
+                continue
+            mid = s.get("metric_id")
+            if not isinstance(mid, str):
+                continue
+            by_mid.setdefault(mid, []).append(
+                (
+                    str(path.relative_to(REPO)) + f"#scores[{i}]",
+                    str(s.get("source_type") or "unknown"),
+                    s.get("harness"),
+                    s.get("comparable"),
+                )
+            )
+    for mid, rows in by_mid.items():
+        types = {r[1] for r in rows}
+        harnesses = {r[2] for r in rows}
+        if len(types) > 1 or len(harnesses) > 1:
+            for rp, st, h, comp in rows:
+                if comp is not False:
+                    errors.add(
+                        rp,
+                        f"metric_id {mid!r} mixes source/harness classes; set comparable=false "
+                        f"(got source_type={st!r} harness={h!r} comparable={comp!r})",
+                    )
+
     for name in (
         "pricing-v1.schema.json",
         "performance-v1.schema.json",
@@ -821,6 +854,7 @@ def main() -> int:
     ap.add_argument("pack", nargs="?", help="Pack name (default: all)")
     ap.add_argument("--index-only", action="store_true")
     ap.add_argument("--no-jsonschema", action="store_true", help="Skip optional jsonschema module")
+    ap.add_argument("--require-jsonschema", action="store_true", help="Fail if jsonschema is not installed")
     args = ap.parse_args()
 
     errors = Errors()
@@ -847,6 +881,11 @@ def main() -> int:
                     else:
                         validate_pack_envelope(pdir, errors)
 
+    if args.require_jsonschema:
+        try:
+            import jsonschema  # noqa: F401
+        except ImportError:
+            errors.add("jsonschema", "required but not installed (pip install jsonschema)")
     if not args.no_jsonschema and not args.index_only:
         try_jsonschema(errors, args.pack)
 

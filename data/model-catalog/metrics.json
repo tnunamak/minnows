@@ -70,7 +70,9 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "third_party_board",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "arc-agi-cost-per-task-usd",
@@ -182,7 +184,9 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "digitized_chart",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "capture-the-flag-challenges",
@@ -326,7 +330,9 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "digitized_chart",
-      "unit_default": "elo"
+      "unit_default": "elo",
+      "comparable": false,
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "gdpval-wins-or-ties",
@@ -398,7 +404,9 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "digitized_chart",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "humanity-s-last-exam-with-tools",
@@ -406,7 +414,9 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "digitized_chart",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "internal-research-debugging-evaluation",
@@ -445,24 +455,27 @@
       "name": "local-fanout.explore-oracle-v1",
       "direction": "higher_better",
       "harness": "waspflow",
-      "steward": "local_eval",
-      "unit_default": "pass_rate"
+      "steward": "harness_smoke",
+      "unit_default": "pass_rate",
+      "notes": "Not a quality metric \u2014 harness smoke observation only"
     },
     {
       "id": "local-implement-standard-oracle-v1",
       "name": "local-implement.standard-oracle-v1",
       "direction": "higher_better",
       "harness": "waspflow",
-      "steward": "local_eval",
-      "unit_default": "pass_rate"
+      "steward": "harness_smoke",
+      "unit_default": "pass_rate",
+      "notes": "Not a quality metric \u2014 harness smoke observation only"
     },
     {
       "id": "local-review-audit-oracle-v1",
       "name": "local-review.audit-oracle-v1",
       "direction": "higher_better",
       "harness": "waspflow",
-      "steward": "local_eval",
-      "unit_default": "pass_rate"
+      "steward": "harness_smoke",
+      "unit_default": "pass_rate",
+      "notes": "Not a quality metric \u2014 harness smoke observation only"
     },
     {
       "id": "management-consulting-tasks-internal",
@@ -558,7 +571,9 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "digitized_chart",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "posttrainbench-lite",
@@ -585,12 +600,68 @@
       "unit_default": "accuracy"
     },
     {
+      "id": "smoke-fanout-explore-oracle-v1",
+      "name": "smoke fanout.explore oracle",
+      "direction": "context_dependent",
+      "harness": "waspflow",
+      "steward": "harness_smoke",
+      "unit_default": "other",
+      "comparable": false
+    },
+    {
+      "id": "smoke-implement-standard-oracle-v1",
+      "name": "smoke implement.standard oracle",
+      "direction": "context_dependent",
+      "harness": "waspflow",
+      "steward": "harness_smoke",
+      "unit_default": "other",
+      "comparable": false
+    },
+    {
+      "id": "smoke-local-fanout-explore-oracle-v1",
+      "name": "smoke fanout (legacy id)",
+      "direction": "context_dependent",
+      "harness": "waspflow",
+      "steward": "harness_smoke",
+      "unit_default": "other",
+      "comparable": false
+    },
+    {
+      "id": "smoke-local-implement-standard-oracle-v1",
+      "name": "smoke implement (legacy id)",
+      "direction": "context_dependent",
+      "harness": "waspflow",
+      "steward": "harness_smoke",
+      "unit_default": "other",
+      "comparable": false
+    },
+    {
+      "id": "smoke-local-review-audit-oracle-v1",
+      "name": "smoke review (legacy id)",
+      "direction": "context_dependent",
+      "harness": "waspflow",
+      "steward": "harness_smoke",
+      "unit_default": "other",
+      "comparable": false
+    },
+    {
+      "id": "smoke-review-audit-oracle-v1",
+      "name": "smoke review.audit oracle",
+      "direction": "context_dependent",
+      "harness": "waspflow",
+      "steward": "harness_smoke",
+      "unit_default": "other",
+      "comparable": false
+    },
+    {
       "id": "swe-bench-pro",
       "name": "SWE-bench Pro",
       "direction": "higher_better",
       "harness": null,
       "steward": "digitized_chart",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "swe-bench-pro-public",
@@ -654,7 +725,9 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "digitized_chart",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "terminal-bench-v2-1-aa-terminus-2",

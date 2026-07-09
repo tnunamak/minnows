@@ -10,5 +10,8 @@
     "expect_exit": 0
   },
   "metric": "local-implement.standard-oracle-v1",
-  "timeout_sec": 600
+  "timeout_sec": 600,
+  "quality_eligible": false,
+  "classification": "harness_smoke",
+  "notes": "Answer-contaminated smoke task \u2014 not quality evidence (Sol+Fable P0.2)."
 }

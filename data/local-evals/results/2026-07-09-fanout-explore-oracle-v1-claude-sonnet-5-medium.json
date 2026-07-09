@@ -7,22 +7,22 @@
   "source_urls": [
     "https://github.com/tnunamak/minnows/tree/main/data/local-evals"
   ],
-  "notes": "Fixed-harness local eval. policy=0.1.2 catalog_ref=data-model-catalog-v0.5.0.",
+  "notes": "HARNESS SMOKE \u2014 not quality evidence. Answer-contaminated tasks. Reclassified 2026-07-09 (Sol+Fable).",
   "scores": [
     {
       "model": "claude-sonnet-5",
-      "metric": "local-fanout.explore-oracle-v1",
+      "metric": "smoke-fanout.explore-oracle-v1",
       "score": 1.0,
-      "unit": "pass_rate",
+      "unit": "other",
       "effort": "medium",
       "mode": "standard",
       "harness": "waspflow",
       "task_family": "fanout",
       "source_type": "local_eval",
-      "evidence_grade": "A",
+      "evidence_grade": "D",
       "observed_at": "2026-07-09",
-      "metric_id": "local-fanout-explore-oracle-v1",
-      "caveat": "local-eval task=fanout-explore-oracle-v1 op=fanout.explore oracle=pass"
+      "metric_id": "smoke-fanout-explore-oracle-v1",
+      "caveat": "harness_smoke: local-eval task=fanout-explore-oracle-v1 op=fanout.explore oracle=pass"
     }
   ],
   "run": {
@@ -37,6 +37,11 @@
       "mode": "standard"
     },
     "passed": true,
-    "oracle_detail": "Task: Identify which file defines the `Color` enum and record the relative path in answer.txt.\n\nWhat was done:\n- Searched the repository under `src/` for a `Color` enum definition using grep.\n- Found `class Color(Enum):` defined at src/colors.py:2.\n- Wrote the relative path `src/colors.py` to answer"
-  }
+    "oracle_detail": "Task: Identify which file defines the `Color` enum and record the relative path in answer.txt.\n\nWhat was done:\n- Searched the repository under `src/` for a `Color` enum definition using grep.\n- Found `class Color(Enum):` defined at src/colors.py:2.\n- Wrote the relative path `src/colors.py` to answer",
+    "classification": "harness_smoke",
+    "not_quality_evidence": true
+  },
+  "source_ids": [
+    "local-evals-waspflow-2026-07-09"
+  ]
 }

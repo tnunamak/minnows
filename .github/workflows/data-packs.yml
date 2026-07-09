@@ -3,8 +3,7 @@ on:
   push:
     paths:
       - 'data/**'
-      - 'scripts/validate_data_pack.py'
-      - 'scripts/check_freshness.py'
+      - 'scripts/**'
       - '.github/workflows/data-packs.yml'
   pull_request:
     paths:
@@ -19,7 +18,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Validate data packs
-        run: python3 scripts/validate_data_pack.py
+      - name: Install jsonschema
+        run: pip install 'jsonschema>=4.0'
+      - name: Validate data packs (require jsonschema)
+        run: python3 scripts/validate_data_pack.py --require-jsonschema
       - name: Freshness (load-bearing)
         run: python3 scripts/check_freshness.py --max-age-days 45 --fail

@@ -245,6 +245,14 @@
           "metric_id": {
             "type": "string",
             "description": "Stable id in metrics.json when present"
+          },
+          "comparability_group": {
+            "type": "string",
+            "description": "Rows may only be compared when this key matches AND comparable is not false"
+          },
+          "comparable": {
+            "type": "boolean",
+            "description": "If false, never cross-rank with other rows even with same metric_id"
           }
         }
       }
@@ -258,12 +266,17 @@
     },
     "source_ids": {
       "type": "array",
-      "minItems": 1,
+      "minItems": 0,
       "items": {
         "type": "string",
         "pattern": "^[a-z][a-z0-9-]+$"
       },
       "description": "Ids from SOURCES.json that back this document"
+    },
+    "run": {
+      "type": "object",
+      "description": "Optional local-eval run receipt (not a quality fact)",
+      "additionalProperties": true
     }
   },
   "anyOf": [

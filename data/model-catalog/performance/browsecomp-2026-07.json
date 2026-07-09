@@ -28,7 +28,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
       "task_family": "agentic_search",
-      "metric_id": "browsecomp"
+      "metric_id": "browsecomp",
+      "comparable": false,
+      "comparability_group": "browsecomp::third_party_board::null"
     },
     {
       "model": "gpt-5.4-pro",
@@ -41,7 +43,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
       "task_family": "agentic_search",
-      "metric_id": "browsecomp"
+      "metric_id": "browsecomp",
+      "comparable": false,
+      "comparability_group": "browsecomp::third_party_board::null"
     },
     {
       "model": "claude-mythos-5",
@@ -56,7 +60,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "max",
       "task_family": "agentic_search",
-      "metric_id": "browsecomp"
+      "metric_id": "browsecomp",
+      "comparable": false,
+      "comparability_group": "browsecomp::third_party_board::null"
     },
     {
       "model": "gemini-3.1-pro",
@@ -69,7 +75,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
       "task_family": "agentic_search",
-      "metric_id": "browsecomp"
+      "metric_id": "browsecomp",
+      "comparable": false,
+      "comparability_group": "browsecomp::third_party_board::null"
     },
     {
       "model": "claude-sonnet-5",
@@ -82,7 +90,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
       "task_family": "agentic_search",
-      "metric_id": "browsecomp"
+      "metric_id": "browsecomp",
+      "comparable": false,
+      "comparability_group": "browsecomp::third_party_board::null"
     },
     {
       "model": "gpt-5.5",
@@ -97,7 +107,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
       "task_family": "agentic_search",
-      "metric_id": "browsecomp"
+      "metric_id": "browsecomp",
+      "comparable": false,
+      "comparability_group": "browsecomp::third_party_board::null"
     },
     {
       "model": "claude-opus-4-8",
@@ -112,7 +124,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "max",
       "task_family": "agentic_search",
-      "metric_id": "browsecomp"
+      "metric_id": "browsecomp",
+      "comparable": false,
+      "comparability_group": "browsecomp::third_party_board::null"
     },
     {
       "model": "gpt-5.4",
@@ -126,7 +140,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
       "task_family": "agentic_search",
-      "metric_id": "browsecomp"
+      "metric_id": "browsecomp",
+      "comparable": false,
+      "comparability_group": "browsecomp::third_party_board::null"
     },
     {
       "model": "claude-opus-4-7",
@@ -138,7 +154,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
       "task_family": "agentic_search",
-      "metric_id": "browsecomp"
+      "metric_id": "browsecomp",
+      "comparable": false,
+      "comparability_group": "browsecomp::third_party_board::null"
     }
   ],
   "claims": [],

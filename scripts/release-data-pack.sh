@@ -43,7 +43,12 @@ if command -v jq >/dev/null 2>&1; then
 fi
 
 echo "Validating pack '$PACK'…"
-python3 "$REPO_ROOT/scripts/validate_data_pack.py" "$PACK"
+if python3 -c "import jsonschema" 2>/dev/null; then
+  python3 "$REPO_ROOT/scripts/validate_data_pack.py" "$PACK" --require-jsonschema
+else
+  echo "WARN: jsonschema not installed; release validation is weaker" >&2
+  python3 "$REPO_ROOT/scripts/validate_data_pack.py" "$PACK"
+fi
 
 # Re-validate index after we may rewrite it later; full check at end of non-push path too.
 
@@ -83,10 +88,17 @@ if command -v jq >/dev/null 2>&1 && [[ -f "$REPO_ROOT/data/index.json" ]]; then
   echo "Updated data/index.json → latest_tag=$TAG"
 fi
 
-python3 "$REPO_ROOT/scripts/validate_data_pack.py" || {
-  echo "validation failed after index update" >&2
-  exit 1
-}
+if python3 -c "import jsonschema" 2>/dev/null; then
+  python3 "$REPO_ROOT/scripts/validate_data_pack.py" --require-jsonschema || {
+    echo "validation failed after index update" >&2
+    exit 1
+  }
+else
+  python3 "$REPO_ROOT/scripts/validate_data_pack.py" || {
+    echo "validation failed after index update" >&2
+    exit 1
+  }
+fi
 
 if [[ "$PUSH" -ne 1 ]]; then
   cat <<EOF
