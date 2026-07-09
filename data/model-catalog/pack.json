@@ -2,9 +2,9 @@
   "$schema": "schemas/pack-v1.schema.json",
   "name": "model-catalog",
   "schema_version": 1,
-  "tag": "data-model-catalog-v0.3.0",
+  "tag": "data-model-catalog-v0.3.1",
   "generated_at": "2026-07-09",
-  "description": "Versioned model economics (API/credits pricing) and source-backed quality/effort scores for coding agents. Every rate and score links to SOURCES.json. Prefer cost-per-successful-task over sticker price alone.",
+  "description": "Versioned model economics, source-backed quality/effort scores, and per-surface effort/mode capabilities. Every rate and score links to SOURCES.json.",
   "files": [
     "SCHEMA.md",
     "SOURCES.json",
@@ -20,14 +20,17 @@
     "performance/anthropic-effort-quality-2026-07.json",
     "performance/openai-quality-2026-07.json",
     "performance/openai-gpt-5-6-launch-2026-07.json",
-    "performance/arcprize-gpt-5-6-2026-07.json"
+    "performance/arcprize-gpt-5-6-2026-07.json",
+    "schemas/capabilities-v1.schema.json",
+    "capabilities/effort-surfaces-2026-07.json"
   ],
   "schemas": {
     "pricing": "schemas/pricing-v1.schema.json",
     "performance": "schemas/performance-v1.schema.json",
     "sources": "schemas/sources-v1.schema.json",
     "pack": "schemas/pack-v1.schema.json",
-    "docs": "schemas/README.md"
+    "docs": "schemas/README.md",
+    "capabilities": "schemas/capabilities-v1.schema.json"
   },
   "related": {
     "research": "https://github.com/tnunamak/dotfiles/blob/main/ai/research/agentic-context-design/agent-model-choice-is-cost-performance-at-effort-not-quota-or-sticker-price-alone.md",

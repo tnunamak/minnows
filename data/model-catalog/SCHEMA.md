@@ -8,6 +8,7 @@ Contracts for every JSON file in this pack. **Validated by**
 | [`sources-v1.schema.json`](schemas/sources-v1.schema.json) | `SOURCES.json` |
 | [`pricing-v1.schema.json`](schemas/pricing-v1.schema.json) | `pricing/*.json` |
 | [`performance-v1.schema.json`](schemas/performance-v1.schema.json) | `performance/*.json` |
+| [`capabilities-v1.schema.json`](schemas/capabilities-v1.schema.json) | `capabilities/*.json` |
 | [`../../schemas/pack-v1.schema.json`](../../schemas/pack-v1.schema.json) | `pack.json` |
 | [`../../schemas/index-v1.schema.json`](../../schemas/index-v1.schema.json) | `data/index.json` |
 
@@ -84,6 +85,7 @@ At least one of `claims` or `scores` must be non-empty.
 ```json
 {
   "$schema": "schemas/performance-v1.schema.json",
+| [`capabilities-v1.schema.json`](schemas/capabilities-v1.schema.json) | `capabilities/*.json` |
   "id": "…",
   "schema_version": 1,
   "kind": "performance",

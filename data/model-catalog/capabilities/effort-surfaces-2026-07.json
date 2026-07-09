@@ -1,0 +1,117 @@
+{
+  "$schema": "../schemas/capabilities-v1.schema.json",
+  "id": "effort-surfaces-2026-07",
+  "schema_version": 1,
+  "kind": "capabilities",
+  "retrieved_at": "2026-07-09",
+  "source_urls": [
+    "https://developers.openai.com/codex/config-reference",
+    "https://developers.openai.com/api/docs/guides/reasoning",
+    "https://docs.anthropic.com/en/docs/claude-code/model-config",
+    "https://www.anthropic.com/news/claude-sonnet-5",
+    "https://docs.x.ai/developers/model-capabilities/text/reasoning",
+    "https://openai.com/index/introducing-gpt-5-5/",
+    "https://openai.com/index/gpt-5-6/"
+  ],
+  "source_ids": [
+    "openai-codex-pricing-2026-07-09",
+    "openai-gpt-5-5-2026-04-23",
+    "openai-gpt-5-6-2026-07-09",
+    "anthropic-sonnet-5-2026-06-30",
+    "xai-models-2026-07-09"
+  ],
+  "notes": "Per provider/model/surface effort and mode capabilities. Validity is surface-specific. Unsupported values must hard-fail in headless orchestration — never silent remap. Org policy may still cap Claude Code effort at runtime (log requested vs passed vs observed).",
+  "surfaces": [
+    {
+      "provider": "openai",
+      "model": "gpt-5.5",
+      "surface": "codex_cli",
+      "valid_efforts": ["minimal", "low", "medium", "high", "xhigh"],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard",
+          "notes": "Default speed/cost tier"
+        },
+        {
+          "mode_id": "fast",
+          "notes": "Speed/cost tier separate from reasoning effort (OpenAI Fast mode)"
+        }
+      ],
+      "source_ids": ["openai-gpt-5-5-2026-04-23"]
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "surface": "codex_cli",
+      "valid_efforts": ["minimal", "low", "medium", "high", "xhigh", "max"],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard",
+          "notes": "Default"
+        },
+        {
+          "mode_id": "ultra",
+          "notes": "Multi-agent higher-compute mode (not an effort enum synonym)"
+        }
+      ],
+      "source_ids": ["openai-gpt-5-6-2026-07-09"],
+      "notes": "GPT-5.6 introduces max beyond xhigh and ultra multi-agent. Confirm CLI flag names per model availability."
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.6-terra",
+      "surface": "api",
+      "valid_efforts": ["minimal", "low", "medium", "high", "xhigh", "max"],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [{ "mode_id": "standard" }],
+      "source_ids": ["openai-gpt-5-6-2026-07-09"]
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "surface": "api",
+      "valid_efforts": ["minimal", "low", "medium", "high", "xhigh", "max"],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [{ "mode_id": "standard" }],
+      "source_ids": ["openai-gpt-5-6-2026-07-09"]
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-sonnet-5",
+      "surface": "claude_code",
+      "valid_efforts": ["low", "medium", "high", "xhigh", "max"],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [{ "mode_id": "standard" }],
+      "source_ids": ["anthropic-sonnet-5-2026-06-30"],
+      "notes": "Organization policies may silently reduce effective effort; log requested/passed/observed."
+    },
+    {
+      "provider": "xai",
+      "model": "grok-4.5",
+      "surface": "grok_cli",
+      "valid_efforts": ["none", "minimal", "low", "medium", "high", "xhigh", "max"],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [{ "mode_id": "standard" }],
+      "source_ids": ["xai-models-2026-07-09"],
+      "notes": "Multi-agent xhigh may mean agent count, not single-model reasoning depth — treat surface carefully."
+    }
+  ],
+  "missing": [
+    "Confirmed default_effort per every CLI version pin",
+    "Observed-effort telemetry schema from Claude Code org caps"
+  ]
+}

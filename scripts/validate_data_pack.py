@@ -390,6 +390,43 @@ def validate_performance(
         errors.add(p, "missing must be an array")
 
 
+
+def validate_capabilities(path: Path, errors: Errors, registry: set[str] | None = None) -> None:
+    data = load_json(path, errors)
+    if not isinstance(data, dict):
+        return
+    p = str(path.relative_to(REPO))
+    require_keys(
+        data,
+        ("id", "schema_version", "kind", "retrieved_at", "source_urls", "surfaces"),
+        p,
+        errors,
+    )
+    if data.get("schema_version") != 1:
+        errors.add(p, "schema_version must be 1")
+    if data.get("kind") != "capabilities":
+        errors.add(p, "kind must be 'capabilities'")
+    if not DATE_RE.match(str(data.get("retrieved_at", ""))):
+        errors.add(p, "retrieved_at must be YYYY-MM-DD")
+    if registry is not None:
+        check_source_ids(data, p, registry, errors, require_doc=False)
+    surfaces = data.get("surfaces")
+    if not isinstance(surfaces, list) or not surfaces:
+        errors.add(p, "surfaces must be a non-empty array")
+        return
+    for i, s in enumerate(surfaces):
+        sp = f"{p}#surfaces[{i}]"
+        if not isinstance(s, dict):
+            errors.add(sp, "must be an object")
+            continue
+        for k in ("provider", "model", "surface", "valid_efforts", "unsupported_behavior"):
+            if k not in s:
+                errors.add(sp, f"missing {k}")
+        ve = s.get("valid_efforts")
+        if not isinstance(ve, list) or not ve:
+            errors.add(sp, "valid_efforts must be non-empty array")
+
+
 def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
     validate_pack_envelope(pack_dir, errors)
     registry = load_source_registry(pack_dir, errors)
@@ -406,6 +443,10 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
     if perf_dir.is_dir():
         for path in sorted(perf_dir.glob("*.json")):
             validate_performance(path, errors, registry)
+    cap_dir = pack_dir / "capabilities"
+    if cap_dir.is_dir():
+        for path in sorted(cap_dir.glob("*.json")):
+            validate_capabilities(path, errors, registry)
 
     for name in (
         "pricing-v1.schema.json",
