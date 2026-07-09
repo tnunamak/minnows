@@ -368,7 +368,13 @@ def cmd_geometric(args: argparse.Namespace) -> int:
         c, m = item.split(":", 1)
         series_map[c] = m
 
-    points = geometric_extract(image, cal, series_map)
+    points = geometric_extract(
+        image,
+        cal,
+        series_map,
+        min_count=args.min_count,
+        keep_per_series=args.keep if args.keep > 0 else None,
+    )
     efforts = [e.strip() for e in args.efforts.split(",") if e.strip()]
     if efforts:
         points = assign_effort_by_order(points, efforts)
@@ -481,6 +487,8 @@ def main() -> int:
         help="comma list assigned left→right per series",
     )
     g.add_argument("--dual-read", help="JSON file of points for error estimate")
+    g.add_argument("--min-count", type=int, default=1400, help="density peak min window count")
+    g.add_argument("--keep", type=int, default=5, help="max markers kept per series (densest)")
     g.add_argument("--notes", default="")
     g.set_defaults(func=cmd_geometric)
 
