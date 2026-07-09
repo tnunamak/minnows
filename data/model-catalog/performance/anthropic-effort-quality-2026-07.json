@@ -11,29 +11,59 @@
   "notes": "Source-backed quality/cost framing from the Sonnet 5 launch post. Chart point series are images-only on the vendor page — listed under missing[]. Prefer cost-per-successful-task over sticker $/MTok.",
   "claims": [
     {
-      "models": ["claude-sonnet-5", "claude-sonnet-4-6", "claude-opus-4-8"],
-      "task_families": ["BrowseComp", "OSWorld-Verified"],
-      "axes": ["quality", "cost", "effort"],
+      "models": [
+        "claude-sonnet-5",
+        "claude-sonnet-4-6",
+        "claude-opus-4-8"
+      ],
+      "task_families": [
+        "BrowseComp",
+        "OSWorld-Verified"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
       "statement": "Anthropic published cost-performance curves at different effort levels (including xhigh) for Sonnet 5 vs Sonnet 4.6 vs Opus 4.8 on BrowseComp (agentic search) and OSWorld-Verified (computer use).",
-      "implication": "Between Sonnet 5 and Opus 4.8, adjust effort to balance cost and performance; medium effort is called out for improved cost efficiency; higher effort can match Opus 4.8 on some tasks."
+      "implication": "Between Sonnet 5 and Opus 4.8, adjust effort to balance cost and performance; medium effort is called out for improved cost efficiency; higher effort can match Opus 4.8 on some tasks.",
+      "source_id": "anthropic-sonnet-5-2026-06-30"
     },
     {
-      "models": ["claude-sonnet-5"],
-      "task_families": ["agentic"],
-      "axes": ["quality"],
+      "models": [
+        "claude-sonnet-5"
+      ],
+      "task_families": [
+        "agentic"
+      ],
+      "axes": [
+        "quality"
+      ],
       "statement": "Anthropic states Sonnet 5 is a strict improvement over Sonnet 4.6 on those curves and covers a wider range of cost-performance options than Opus 4.8.",
-      "implication": "Default mid-tier agent work: prefer Sonnet 5 over Sonnet 4.6; escalate effort before jumping to Opus when possible."
+      "implication": "Default mid-tier agent work: prefer Sonnet 5 over Sonnet 4.6; escalate effort before jumping to Opus when possible.",
+      "source_id": "anthropic-sonnet-5-2026-06-30"
     },
     {
-      "models": ["claude-sonnet-5", "claude-opus-4-8"],
-      "task_families": ["api_billing"],
-      "axes": ["cost"],
+      "models": [
+        "claude-sonnet-5",
+        "claude-opus-4-8"
+      ],
+      "task_families": [
+        "api_billing"
+      ],
+      "axes": [
+        "cost"
+      ],
       "statement": "Charts price Sonnet 5 at $3/$15 per MTok (standard) and Opus 4.8 at $5/$25; intro Sonnet 5 is $2/$10 through 2026-08-31. Tokenizer change may map the same text to ~1.0–1.35× more tokens.",
-      "implication": "Intro pricing is roughly migration cost-neutral despite denser tokenization; after intro, re-check effective task cost."
+      "implication": "Intro pricing is roughly migration cost-neutral despite denser tokenization; after intro, re-check effective task cost.",
+      "source_id": "anthropic-sonnet-5-2026-06-30"
     }
   ],
   "missing": [
     "Numeric point series from the BrowseComp/OSWorld cost-performance charts (not published as a table).",
     "Independent fixed-harness multi-vendor ranking."
+  ],
+  "source_ids": [
+    "anthropic-sonnet-5-2026-06-30"
   ]
 }

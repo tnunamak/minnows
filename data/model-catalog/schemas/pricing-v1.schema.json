@@ -16,21 +16,33 @@
     "match"
   ],
   "properties": {
-    "$schema": { "type": "string" },
+    "$schema": {
+      "type": "string"
+    },
     "id": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9-]+$",
       "description": "Stable table id, e.g. anthropic-api-2026-07"
     },
-    "schema_version": { "type": "integer", "const": 1 },
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
     "kind": {
       "type": "string",
-      "enum": ["api_usd", "codex_credits"],
+      "enum": [
+        "api_usd",
+        "codex_credits"
+      ],
       "description": "api_usd = dollars per 1M tokens; codex_credits = Codex credit units per 1M tokens"
     },
     "agent": {
       "type": "string",
-      "enum": ["claude-code", "codex", "grok"],
+      "enum": [
+        "claude-code",
+        "codex",
+        "grok"
+      ],
       "description": "Session/agent family this table applies to when resolving model ids"
     },
     "retrieved_at": {
@@ -40,9 +52,14 @@
     "source_urls": {
       "type": "array",
       "minItems": 1,
-      "items": { "type": "string", "minLength": 8 }
+      "items": {
+        "type": "string",
+        "minLength": 8
+      }
     },
-    "notes": { "type": "string" },
+    "notes": {
+      "type": "string"
+    },
     "models": {
       "type": "object",
       "minProperties": 1,
@@ -56,10 +73,22 @@
           "output_per_m"
         ],
         "properties": {
-          "fresh_input_per_m": { "type": "number", "minimum": 0 },
-          "cache_read_per_m": { "type": "number", "minimum": 0 },
-          "cache_write_per_m": { "type": "number", "minimum": 0 },
-          "output_per_m": { "type": "number", "minimum": 0 }
+          "fresh_input_per_m": {
+            "type": "number",
+            "minimum": 0
+          },
+          "cache_read_per_m": {
+            "type": "number",
+            "minimum": 0
+          },
+          "cache_write_per_m": {
+            "type": "number",
+            "minimum": 0
+          },
+          "output_per_m": {
+            "type": "number",
+            "minimum": 0
+          }
         }
       }
     },
@@ -69,13 +98,31 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["pattern", "model"],
+        "required": [
+          "pattern",
+          "model"
+        ],
         "properties": {
-          "pattern": { "type": "string", "minLength": 1 },
-          "model": { "type": "string", "minLength": 1 }
+          "pattern": {
+            "type": "string",
+            "minLength": 1
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       },
       "description": "Ordered substring match rules; first win. Each model must exist in models."
+    },
+    "source_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]+$"
+      },
+      "description": "Ids from SOURCES.json that back this pricing table"
     }
   }
 }

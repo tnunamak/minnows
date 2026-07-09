@@ -1,30 +1,31 @@
 # Data pack: `model-catalog`
 
-Versioned **pricing** and sparse **quality/effort** facts for coding-agent model choice.
+Versioned **pricing** and **source-backed quality/effort** facts for coding-agent model choice.
 
-Not a CLI. Not a skill. Just versioned, **schema-validated** JSON.
+Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **provenance registry**.
 
 ## Get this pack (click / copy — no URL math)
 
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | Tag **`data-model-catalog-v0.2.0`** — [release](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.2.0) |
+| **This version** | Tag **`data-model-catalog-v0.3.0`** — [release](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.3.0) |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
+| **Provenance** | [SOURCES.json](SOURCES.json) — every score/rate links here |
 
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.2.0
+TAG=data-model-catalog-v0.3.0
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
 
 # or
 ./scripts/fetch-data-pack.sh model-catalog
-./scripts/fetch-data-pack.sh model-catalog v0.2.0
+./scripts/fetch-data-pack.sh model-catalog v0.3.0
 ```
 
 ### Local
@@ -40,18 +41,43 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 | Path | Role |
 |---|---|
 | `pack.json` | Envelope (tag, file list, schema pointers) |
-| `SCHEMA.md` / `schemas/` | **Contracts** — pricing + performance v1 |
+| `SOURCES.json` | **Provenance registry** — id → URL / publisher / kind |
+| `SCHEMA.md` / `schemas/` | Contracts — pricing + performance + sources v1 |
 | `pricing/*.json` | USD/MTok or Codex credits (tokensmash-compatible) |
-| `performance/*.json` | Sparse vendor claims + optional scores |
+| `performance/*.json` | Vendor + third-party scores/claims |
+
+### Performance documents (v0.3)
+
+| File | What | Primary sources |
+|------|------|-----------------|
+| `anthropic-effort-quality-2026-07.json` | Sonnet 5 effort×cost framing | Anthropic Sonnet 5 post |
+| `openai-quality-2026-07.json` | GPT-5.5 launch evals | OpenAI GPT-5.5 post |
+| `openai-gpt-5-6-launch-2026-07.json` | **Full GPT-5.6 Sol/Terra/Luna tables** (coding, cyber, science, long-context, ARC-AGI-3 headline, …) | [openai.com/index/gpt-5-6](https://openai.com/index/gpt-5-6/) |
+| `arcprize-gpt-5-6-2026-07.json` | **Effort-stratified ARC-AGI-1/2/3** + Sol cost/task | [ARC Prize GPT-5.6](https://arcprize.org/results/openai-gpt-5-6) |
+
+### How to see where a number came from
+
+1. Open a score/claim row → read `source_id` (or the document’s `source_ids[]`).
+2. Look up that id in `SOURCES.json` → get URL, publisher, published date, `kind`.
+3. Prefer `third_party_eval` over `vendor_blog` when they disagree on the same metric family (e.g. ARC).
 
 ## Rules of use
 
 1. **Pin a tag** for studies; only `data/index.json` is meant to float on `main`.
 2. **Never invent rates or scores** — omit or list under `missing[]`.
 3. **Quota ≠ cost** — [clawmeter](https://github.com/tnunamak/clawmeter) for remaining allowance.
-4. **Validate before shipping:** `./scripts/validate_data_pack.py model-catalog`
+4. **Vendor tables are directional** until independently reproduced.
+5. **Validate before shipping:** `./scripts/validate_data_pack.py model-catalog`
 
 ## Changelog
+
+### v0.3.0 — 2026-07-09
+
+- **`SOURCES.json` provenance registry** + `sources-v1` schema; validator requires resolvable `source_ids`.
+- **Full GPT-5.6 GA eval tables** (`openai-gpt-5-6-launch-2026-07.json`) from [OpenAI launch post](https://openai.com/index/gpt-5-6/) — professional, coding, science, computer use, cyber, self-improvement, multimodal, academic, tool use, long context, ARC-AGI-3.
+- **ARC Prize effort ladders** for Sol/Terra/Luna ARC-AGI-1/2/3 + leaderboard cost/task (`arcprize-gpt-5-6-2026-07.json`).
+- GPT-5.6 Sol/Terra/Luna **API pricing** (+ cache write 1.25×) in `pricing/openai-api-2026-07.json`.
+- Row-level `source_id` on scores/claims throughout.
 
 ### v0.2.0 — 2026-07-09
 

@@ -11,7 +11,7 @@ Minnows ships two product kinds:
 
 | Pack | What it is | Latest tag | Browse |
 |------|------------|------------|--------|
-| **model-catalog** | Model pricing + sparse quality/effort claims (**schema v1**) | `data-model-catalog-v0.2.0` | [README](model-catalog/README.md) · [SCHEMA](model-catalog/SCHEMA.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) |
+| **model-catalog** | Model pricing + source-backed quality/effort scores (**schema v1**, provenance registry) | `data-model-catalog-v0.3.0` | [README](model-catalog/README.md) · [SOURCES](model-catalog/SOURCES.json) · [SCHEMA](model-catalog/SCHEMA.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) |
 
 Machine-readable index (always on `main`): **[index.json](index.json)** — lists each pack’s `latest_tag` and ready-made URLs.
 

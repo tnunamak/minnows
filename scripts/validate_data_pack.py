@@ -155,7 +155,94 @@ def validate_pack_envelope(pack_dir: Path, errors: Errors) -> dict | None:
     return data
 
 
-def validate_pricing(path: Path, errors: Errors) -> None:
+SOURCE_KINDS = frozenset(
+    {"vendor_blog", "vendor_docs", "third_party_eval", "academic", "other"}
+)
+SOURCE_ID_RE = re.compile(r"^[a-z][a-z0-9-]+$")
+
+
+def load_source_registry(pack_dir: Path, errors: Errors) -> set[str]:
+    """Load SOURCES.json id set. Empty set if absent (with error)."""
+    path = pack_dir / "SOURCES.json"
+    p = str(path.relative_to(REPO))
+    if not path.is_file():
+        errors.add(p, "SOURCES.json missing — required provenance registry")
+        return set()
+    data = load_json(path, errors)
+    if not isinstance(data, dict):
+        return set()
+    require_keys(data, ("id", "schema_version", "retrieved_at", "sources"), p, errors)
+    if data.get("schema_version") != 1:
+        errors.add(p, "schema_version must be 1")
+    if data.get("id") != "model-catalog-sources":
+        errors.add(p, "id must be 'model-catalog-sources'")
+    if not DATE_RE.match(str(data.get("retrieved_at", ""))):
+        errors.add(p, "retrieved_at must be YYYY-MM-DD")
+    sources = data.get("sources")
+    ids: set[str] = set()
+    if not isinstance(sources, list) or not sources:
+        errors.add(p, "sources must be a non-empty array")
+        return ids
+    for i, s in enumerate(sources):
+        sp = f"{p}#sources[{i}]"
+        if not isinstance(s, dict):
+            errors.add(sp, "must be an object")
+            continue
+        for k in ("id", "url", "title", "publisher", "retrieved_at", "kind"):
+            if k not in s:
+                errors.add(sp, f"missing {k}")
+        sid = str(s.get("id", ""))
+        if sid:
+            if not SOURCE_ID_RE.match(sid):
+                errors.add(sp, f"invalid source id {sid!r}")
+            elif sid in ids:
+                errors.add(sp, f"duplicate source id {sid!r}")
+            else:
+                ids.add(sid)
+        if s.get("kind") not in SOURCE_KINDS:
+            errors.add(sp, f"kind must be one of {sorted(SOURCE_KINDS)}")
+        if not DATE_RE.match(str(s.get("retrieved_at", ""))):
+            errors.add(sp, "retrieved_at must be YYYY-MM-DD")
+        url = str(s.get("url", ""))
+        if url and not url.startswith("https://"):
+            errors.add(sp, "url must be https")
+    return ids
+
+
+def check_source_ids(
+    data: dict,
+    path: str,
+    registry: set[str],
+    errors: Errors,
+    *,
+    require_doc: bool = True,
+) -> None:
+    sids = data.get("source_ids")
+    if sids is None:
+        if require_doc and registry:
+            errors.add(path, "source_ids[] required (link to SOURCES.json)")
+        return
+    if not isinstance(sids, list) or not sids:
+        errors.add(path, "source_ids must be a non-empty array when present")
+        return
+    for sid in sids:
+        if not isinstance(sid, str) or not SOURCE_ID_RE.match(sid):
+            errors.add(path, f"invalid source_ids entry {sid!r}")
+        elif registry and sid not in registry:
+            errors.add(path, f"source_ids entry {sid!r} not in SOURCES.json")
+
+
+def check_row_source_id(row: dict, row_path: str, registry: set[str], errors: Errors) -> None:
+    sid = row.get("source_id")
+    if sid is None:
+        return
+    if not isinstance(sid, str) or not SOURCE_ID_RE.match(sid):
+        errors.add(row_path, f"invalid source_id {sid!r}")
+    elif registry and sid not in registry:
+        errors.add(row_path, f"source_id {sid!r} not in SOURCES.json")
+
+
+def validate_pricing(path: Path, errors: Errors, registry: set[str] | None = None) -> None:
     data = load_json(path, errors)
     if not isinstance(data, dict):
         return
@@ -177,6 +264,8 @@ def validate_pricing(path: Path, errors: Errors) -> None:
     sources = data.get("source_urls")
     if not isinstance(sources, list) or not sources:
         errors.add(p, "source_urls must be a non-empty array")
+    if registry is not None:
+        check_source_ids(data, p, registry, errors)
     models = data.get("models")
     if not isinstance(models, dict) or not models:
         errors.add(p, "models must be a non-empty object")
@@ -212,7 +301,9 @@ def validate_pricing(path: Path, errors: Errors) -> None:
             errors.add(mp, f"model {entry['model']!r} not in models")
 
 
-def validate_performance(path: Path, errors: Errors) -> None:
+def validate_performance(
+    path: Path, errors: Errors, registry: set[str] | None = None
+) -> None:
     data = load_json(path, errors)
     if not isinstance(data, dict):
         return
@@ -234,6 +325,8 @@ def validate_performance(path: Path, errors: Errors) -> None:
     sources = data.get("source_urls")
     if not isinstance(sources, list) or not sources:
         errors.add(p, "source_urls must be a non-empty array")
+    if registry is not None:
+        check_source_ids(data, p, registry, errors)
 
     claims = data.get("claims")
     scores = data.get("scores")
@@ -263,6 +356,8 @@ def validate_performance(path: Path, errors: Errors) -> None:
                         for a in axes:
                             if a not in PERF_AXES:
                                 errors.add(cp, f"unknown axis {a!r}")
+                if registry is not None:
+                    check_row_source_id(c, cp, registry, errors)
 
     if scores is not None:
         if not isinstance(scores, list):
@@ -288,6 +383,8 @@ def validate_performance(path: Path, errors: Errors) -> None:
                         for mk, mv in comps.items():
                             if not isinstance(mv, (int, float)):
                                 errors.add(sp, f"comparisons.{mk} must be number")
+                if registry is not None:
+                    check_row_source_id(s, sp, registry, errors)
 
     if "missing" in data and not isinstance(data["missing"], list):
         errors.add(p, "missing must be an array")
@@ -295,6 +392,7 @@ def validate_performance(path: Path, errors: Errors) -> None:
 
 def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
     validate_pack_envelope(pack_dir, errors)
+    registry = load_source_registry(pack_dir, errors)
     pricing_dir = pack_dir / "pricing"
     perf_dir = pack_dir / "performance"
     if pricing_dir.is_dir():
@@ -302,14 +400,18 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
         if not paths:
             errors.add(str(pack_dir.relative_to(REPO)), "pricing/ has no JSON tables")
         for path in paths:
-            validate_pricing(path, errors)
+            validate_pricing(path, errors, registry)
     else:
         errors.add(str(pack_dir.relative_to(REPO)), "missing pricing/")
     if perf_dir.is_dir():
         for path in sorted(perf_dir.glob("*.json")):
-            validate_performance(path, errors)
+            validate_performance(path, errors, registry)
 
-    for name in ("pricing-v1.schema.json", "performance-v1.schema.json"):
+    for name in (
+        "pricing-v1.schema.json",
+        "performance-v1.schema.json",
+        "sources-v1.schema.json",
+    ):
         if not (pack_dir / "schemas" / name).is_file():
             errors.add(str(pack_dir.relative_to(REPO)), f"missing schemas/{name}")
     if not (pack_dir / "SCHEMA.md").is_file() and not (pack_dir / "schemas" / "README.md").is_file():
@@ -339,6 +441,9 @@ def try_jsonschema(errors: Errors, pack: str | None) -> None:
         pdir = DATA / name
         check(pdir / "pack.json", DATA / "schemas" / "pack-v1.schema.json")
         if name == "model-catalog":
+            src = pdir / "SOURCES.json"
+            if src.is_file():
+                check(src, pdir / "schemas" / "sources-v1.schema.json")
             for path in sorted((pdir / "pricing").glob("*.json")):
                 check(path, pdir / "schemas" / "pricing-v1.schema.json")
             for path in sorted((pdir / "performance").glob("*.json")):

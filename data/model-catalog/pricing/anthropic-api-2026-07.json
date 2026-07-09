@@ -134,5 +134,9 @@
       "pattern": "haiku",
       "model": "claude-haiku-4-5"
     }
+  ],
+  "source_ids": [
+    "anthropic-models-overview-2026-07-09",
+    "anthropic-sonnet-5-2026-06-30"
   ]
 }

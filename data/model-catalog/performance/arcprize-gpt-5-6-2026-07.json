@@ -1,0 +1,472 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "arcprize-gpt-5-6-2026-07",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "openai",
+  "retrieved_at": "2026-07-09",
+  "source_urls": [
+    "https://arcprize.org/results/openai-gpt-5-6",
+    "https://arcprize.org/leaderboard"
+  ],
+  "source_ids": [
+    "arcprize-gpt-5-6-2026-07-09",
+    "arcprize-leaderboard-2026-07-09"
+  ],
+  "notes": "Third-party ARC Prize verified scores. Effort labels Max/Extra High/High/Medium/Low mapped to max/xhigh/high/medium/low. ARC-AGI-3 remains near-floor for most systems; do not treat ARC-AGI-1 saturation as coding-agent ranking. Cost/task only recorded where leaderboard listed Sol variants in the crawl (low/medium/high).",
+  "scores": [
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-1",
+      "score": 0.965,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-2",
+      "score": 0.925,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-3",
+      "score": 0.078,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-1",
+      "score": 0.975,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-2",
+      "score": 0.9,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-3",
+      "score": 0.07,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-1",
+      "score": 0.97,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-2",
+      "score": 0.854,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-3",
+      "score": 0.021,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances. Cost/task (leaderboard, same date): $0.740 USD — source_id arcprize-leaderboard-2026-07-09."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-1",
+      "score": 0.925,
+      "unit": "accuracy",
+      "effort": "medium",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-2",
+      "score": 0.671,
+      "unit": "accuracy",
+      "effort": "medium",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-3",
+      "score": 0.011,
+      "unit": "accuracy",
+      "effort": "medium",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances. Cost/task (leaderboard, same date): $0.470 USD — source_id arcprize-leaderboard-2026-07-09."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-1",
+      "score": 0.745,
+      "unit": "accuracy",
+      "effort": "low",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-2",
+      "score": 0.425,
+      "unit": "accuracy",
+      "effort": "low",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-3",
+      "score": 0.003,
+      "unit": "accuracy",
+      "effort": "low",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances. Cost/task (leaderboard, same date): $0.320 USD — source_id arcprize-leaderboard-2026-07-09."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-1",
+      "score": 0.965,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-2",
+      "score": 0.839,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-3",
+      "score": 0.008,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-1",
+      "score": 0.94,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-2",
+      "score": 0.742,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-3",
+      "score": 0.007,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-1",
+      "score": 0.92,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-2",
+      "score": 0.671,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-3",
+      "score": 0.005,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-1",
+      "score": 0.77,
+      "unit": "accuracy",
+      "effort": "medium",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-2",
+      "score": 0.375,
+      "unit": "accuracy",
+      "effort": "medium",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-3",
+      "score": 0.001,
+      "unit": "accuracy",
+      "effort": "medium",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-1",
+      "score": 0.602,
+      "unit": "accuracy",
+      "effort": "low",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-2",
+      "score": 0.188,
+      "unit": "accuracy",
+      "effort": "low",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-3",
+      "score": 0.0,
+      "unit": "accuracy",
+      "effort": "low",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-1",
+      "score": 0.88,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-2",
+      "score": 0.595,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-3",
+      "score": 0.002,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-1",
+      "score": 0.877,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-2",
+      "score": 0.476,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-3",
+      "score": 0.0,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-1",
+      "score": 0.765,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-2",
+      "score": 0.293,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-3",
+      "score": 0.001,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-1",
+      "score": 0.565,
+      "unit": "accuracy",
+      "effort": "medium",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-2",
+      "score": 0.074,
+      "unit": "accuracy",
+      "effort": "medium",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-3",
+      "score": 0.002,
+      "unit": "accuracy",
+      "effort": "medium",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-1",
+      "score": 0.342,
+      "unit": "accuracy",
+      "effort": "low",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-2",
+      "score": 0.051,
+      "unit": "accuracy",
+      "effort": "low",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-3",
+      "score": 0.002,
+      "unit": "accuracy",
+      "effort": "low",
+      "source_id": "arcprize-gpt-5-6-2026-07-09",
+      "caveat": "ARC Prize Verified public/semi-private protocol; see source page for private-set nuances."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.32,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "caveat": "Leaderboard Cost/Task column for GPT-5.6 Sol; not a quality score."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.47,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "caveat": "Leaderboard Cost/Task column for GPT-5.6 Sol; not a quality score."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-cost-per-task-USD",
+      "score": 0.74,
+      "unit": "other",
+      "effort": "high",
+      "source_id": "arcprize-leaderboard-2026-07-09",
+      "caveat": "Leaderboard Cost/Task column for GPT-5.6 Sol; not a quality score."
+    }
+  ],
+  "claims": [
+    {
+      "models": [
+        "gpt-5.6-sol"
+      ],
+      "task_families": [
+        "ARC-AGI-3"
+      ],
+      "axes": [
+        "quality",
+        "effort"
+      ],
+      "statement": "ARC Prize: Sol at max is the standout of the GPT-5.6 family on ARC-AGI-3 (public/semi-private averages cited on results page); first model to win an ARC-AGI-3 public game (ft09, 87% at Max).",
+      "implication": "Effort stratification matters; ARC-AGI-3 discriminates where ARC-AGI-1 does not.",
+      "source_id": "arcprize-gpt-5-6-2026-07-09"
+    }
+  ],
+  "missing": [
+    "Full Cost/Task matrix for Terra/Luna and Sol xhigh/max from leaderboard (not fully extracted in this snapshot).",
+    "Claude/Grok ARC-AGI-3 effort ladders in the same file (add when scraped with provenance)."
+  ]
+}

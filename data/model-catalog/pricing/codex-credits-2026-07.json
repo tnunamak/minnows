@@ -42,5 +42,8 @@
       "pattern": "gpt-5.4",
       "model": "gpt-5.4"
     }
+  ],
+  "source_ids": [
+    "openai-codex-pricing-2026-07-09"
   ]
 }

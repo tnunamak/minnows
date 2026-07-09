@@ -66,5 +66,8 @@
       "pattern": "grok",
       "model": "grok-4.5"
     }
+  ],
+  "source_ids": [
+    "xai-models-2026-07-09"
   ]
 }

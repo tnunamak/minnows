@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/tnunamak/minnows/data/model-catalog/schemas/performance-v1.schema.json",
   "title": "model-catalog performance document v1",
-  "description": "Sparse, source-backed quality/effort claims and optional numeric scores. Missing data is expressed via missing[] — never invent chart points.",
+  "description": "Sparse, source-backed quality/effort claims and optional numeric scores. Missing data is expressed via missing[] \u2014 never invent chart points. Prefer source_ids[] (document) + source_id (row) pointing at SOURCES.json.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -14,12 +14,17 @@
     "source_urls"
   ],
   "properties": {
-    "$schema": { "type": "string" },
+    "$schema": {
+      "type": "string"
+    },
     "id": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9-]+$"
     },
-    "schema_version": { "type": "integer", "const": 1 },
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
     "kind": {
       "type": "string",
       "const": "performance",
@@ -27,7 +32,13 @@
     },
     "provider": {
       "type": "string",
-      "enum": ["anthropic", "openai", "xai", "google", "other"],
+      "enum": [
+        "anthropic",
+        "openai",
+        "xai",
+        "google",
+        "other"
+      ],
       "description": "Vendor that published the claims/scores"
     },
     "retrieved_at": {
@@ -37,34 +48,64 @@
     "source_urls": {
       "type": "array",
       "minItems": 1,
-      "items": { "type": "string", "minLength": 8 }
+      "items": {
+        "type": "string",
+        "minLength": 8
+      }
     },
-    "notes": { "type": "string" },
+    "notes": {
+      "type": "string"
+    },
     "claims": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["models", "statement"],
+        "required": [
+          "models",
+          "statement"
+        ],
         "properties": {
           "models": {
             "type": "array",
             "minItems": 1,
-            "items": { "type": "string", "minLength": 1 }
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
           },
           "task_families": {
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           },
           "axes": {
             "type": "array",
             "items": {
               "type": "string",
-              "enum": ["quality", "cost", "effort", "speed", "latency", "tokens"]
+              "enum": [
+                "quality",
+                "cost",
+                "effort",
+                "speed",
+                "latency",
+                "tokens"
+              ]
             }
           },
-          "statement": { "type": "string", "minLength": 1 },
-          "implication": { "type": "string" }
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "implication": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]+$",
+            "description": "Primary SOURCES.json id for this claim"
+          }
         }
       }
     },
@@ -73,14 +114,32 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["model", "metric", "score", "unit"],
+        "required": [
+          "model",
+          "metric",
+          "score",
+          "unit"
+        ],
         "properties": {
-          "model": { "type": "string", "minLength": 1 },
-          "metric": { "type": "string", "minLength": 1 },
-          "score": { "type": "number" },
+          "model": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metric": {
+            "type": "string",
+            "minLength": 1
+          },
+          "score": {
+            "type": "number"
+          },
           "unit": {
             "type": "string",
-            "enum": ["accuracy", "pass_rate", "elo", "other"]
+            "enum": [
+              "accuracy",
+              "pass_rate",
+              "elo",
+              "other"
+            ]
           },
           "effort": {
             "type": "string",
@@ -88,21 +147,59 @@
           },
           "comparisons": {
             "type": "object",
-            "additionalProperties": { "type": "number" },
-            "description": "Other model id → score on the same metric (vendor table)"
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Other model id \u2192 score on the same metric (vendor table)"
           },
-          "caveat": { "type": "string" }
+          "caveat": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]+$",
+            "description": "Primary SOURCES.json id for this score row"
+          }
         }
       }
     },
     "missing": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "description": "Explicit gaps (e.g. non-digitized chart series)"
+    },
+    "source_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]+$"
+      },
+      "description": "Ids from SOURCES.json that back this document"
     }
   },
   "anyOf": [
-    { "required": ["claims"], "properties": { "claims": { "minItems": 1 } } },
-    { "required": ["scores"], "properties": { "scores": { "minItems": 1 } } }
+    {
+      "required": [
+        "claims"
+      ],
+      "properties": {
+        "claims": {
+          "minItems": 1
+        }
+      }
+    },
+    {
+      "required": [
+        "scores"
+      ],
+      "properties": {
+        "scores": {
+          "minItems": 1
+        }
+      }
+    }
   ]
 }

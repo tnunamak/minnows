@@ -6,11 +6,35 @@
   "agent": "codex",
   "retrieved_at": "2026-07-09",
   "source_urls": [
+    "https://openai.com/index/gpt-5-6/",
     "https://openai.com/index/introducing-gpt-5-5/",
     "https://platform.openai.com/docs/pricing"
   ],
-  "notes": "USD per 1M tokens. gpt-5.5 from the 2026-04-23 launch post: $5 input / $30 output. gpt-5.5-pro: $30 / $180. cache_write_per_m=0 (OpenAI prompt caching has no separate write charge in the documented rate card used here). gpt-5.4 short-context rates retained from the 2026-06 tokensmash table ($2.50 / $0.25 cached / $15). Prefer official pricing page for long-context tiers if needed.",
+  "source_ids": [
+    "openai-gpt-5-6-2026-07-09",
+    "openai-gpt-5-5-2026-04-23",
+    "openai-api-pricing-2026-07-09"
+  ],
+  "notes": "USD per 1M tokens. GPT-5.6 family (2026-07-09 post): Sol $5/$30, Terra $2.50/$15, Luna $1/$6. Cache writes billed 1.25× uncached input for GPT-5.6+; cache reads 90% discount — cache_write_per_m set to 1.25× fresh_input for 5.6 models; cache_read_per_m = 0.1× fresh. GPT-5.5/5.4 rows retained from earlier snapshot; 5.5 cache_write left 0 (pre-5.6 write policy).",
   "models": {
+    "gpt-5.6-sol": {
+      "fresh_input_per_m": 5.0,
+      "cache_read_per_m": 0.5,
+      "cache_write_per_m": 6.25,
+      "output_per_m": 30.0
+    },
+    "gpt-5.6-terra": {
+      "fresh_input_per_m": 2.5,
+      "cache_read_per_m": 0.25,
+      "cache_write_per_m": 3.125,
+      "output_per_m": 15.0
+    },
+    "gpt-5.6-luna": {
+      "fresh_input_per_m": 1.0,
+      "cache_read_per_m": 0.1,
+      "cache_write_per_m": 1.25,
+      "output_per_m": 6.0
+    },
     "gpt-5.5": {
       "fresh_input_per_m": 5.0,
       "cache_read_per_m": 0.5,
@@ -31,6 +55,30 @@
     }
   },
   "match": [
+    {
+      "pattern": "gpt-5.6-sol",
+      "model": "gpt-5.6-sol"
+    },
+    {
+      "pattern": "gpt-5.6-terra",
+      "model": "gpt-5.6-terra"
+    },
+    {
+      "pattern": "gpt-5.6-luna",
+      "model": "gpt-5.6-luna"
+    },
+    {
+      "pattern": "gpt-5.6 sol",
+      "model": "gpt-5.6-sol"
+    },
+    {
+      "pattern": "5.6-sol",
+      "model": "gpt-5.6-sol"
+    },
+    {
+      "pattern": "gpt-5.6",
+      "model": "gpt-5.6-sol"
+    },
     {
       "pattern": "gpt-5.5-pro",
       "model": "gpt-5.5-pro"

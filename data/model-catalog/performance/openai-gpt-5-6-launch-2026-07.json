@@ -1,0 +1,1168 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "openai-gpt-5-6-launch-2026-07",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "openai",
+  "retrieved_at": "2026-07-09",
+  "source_urls": [
+    "https://openai.com/index/gpt-5-6/"
+  ],
+  "source_ids": [
+    "openai-gpt-5-6-2026-07-09"
+  ],
+  "notes": "Full vendor eval tables transcribed from the GPT-5.6 GA post (2026-07-09). Scores without effort are the published Sol/Terra/Luna columns (table default; not always max). Rows with effort=ultra are multi-agent. Independent replications may differ. Percent metrics stored as 0–1 accuracy/pass fractions; Elo and AA index scores keep published scale (unit other|elo). Cross-check ARC-AGI-3 effort ladders against arcprize-gpt-5-6-2026-07.json (third-party verified).",
+  "scores": [
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "Agents' Last Exam",
+      "score": 0.527,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.469,
+        "claude-fable-5": 0.405,
+        "claude-opus-4-8": 0.452,
+        "gemini-3.1-pro-preview": 0.321
+      },
+      "caveat": "Table value 52.7%. Prose elsewhere on same page cites 53.6 for Sol — keep table as primary."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "Agents' Last Exam",
+      "score": 0.504,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "Agents' Last Exam",
+      "score": 0.503,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "GDPval-AA v2",
+      "score": 1747.8,
+      "unit": "elo",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 1493.7,
+        "claude-fable-5": 1759.6,
+        "claude-opus-4-8": 1600.1,
+        "gemini-3.1-pro-preview": 962.3,
+        "gemini-3.5-flash": 1348.8
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "GDPval-AA v2",
+      "score": 1593.0,
+      "unit": "elo",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "GDPval-AA v2",
+      "score": 1591.8,
+      "unit": "elo",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "Management Consulting Tasks (Internal)",
+      "score": 0.432,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.313,
+        "claude-fable-5": 0.355,
+        "claude-opus-4-8": 0.316,
+        "gemini-3.1-pro-preview": 0.132
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "Management Consulting Tasks (Internal)",
+      "score": 0.372,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "Management Consulting Tasks (Internal)",
+      "score": 0.354,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "Big Finance Bench",
+      "score": 0.53,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.49,
+        "claude-opus-4-8": 0.44
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "Big Finance Bench",
+      "score": 0.51,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "Big Finance Bench",
+      "score": 0.36,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "Artificial Analysis Intelligence Index v4.1",
+      "score": 58.9,
+      "unit": "other",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 54.8,
+        "claude-fable-5": 59.9,
+        "claude-opus-4-8": 55.7,
+        "gemini-3.1-pro-preview": 46.5,
+        "gemini-3.5-flash": 50.2
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "Artificial Analysis Intelligence Index v4.1",
+      "score": 55.0,
+      "unit": "other",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "Artificial Analysis Intelligence Index v4.1",
+      "score": 51.2,
+      "unit": "other",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "Artificial Analysis Coding Agent Index v1.1",
+      "score": 80.0,
+      "unit": "other",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 76.4,
+        "claude-fable-5": 77.2,
+        "claude-opus-4-8": 72.5,
+        "gemini-3.1-pro-preview": 42.7
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "Artificial Analysis Coding Agent Index v1.1",
+      "score": 77.4,
+      "unit": "other",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "Artificial Analysis Coding Agent Index v1.1",
+      "score": 74.6,
+      "unit": "other",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "SWE-Bench Pro",
+      "score": 0.646,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.594,
+        "claude-mythos-5": 0.803,
+        "claude-mythos-preview": 0.778,
+        "claude-fable-5": 0.8,
+        "claude-opus-4-8": 0.692,
+        "gemini-3.1-pro-preview": 0.542
+      },
+      "caveat": "Vendor table; SWE-Bench Pro historically contested across labs"
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "SWE-Bench Pro",
+      "score": 0.634,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "SWE-Bench Pro",
+      "score": 0.627,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "DeepSWE v1.1",
+      "score": 0.727,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.67,
+        "claude-fable-5": 0.697,
+        "claude-opus-4-8": 0.59,
+        "gemini-3.1-pro-preview": 0.118
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "DeepSWE v1.1",
+      "score": 0.696,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "DeepSWE v1.1",
+      "score": 0.672,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.888,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.856,
+        "claude-mythos-5": 0.88,
+        "claude-fable-5": 0.831,
+        "claude-opus-4-8": 0.789,
+        "gemini-3.1-pro-preview": 0.707
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.874,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.847,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "Terminal-Bench 2.1",
+      "score": 0.919,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "effort": "ultra",
+      "caveat": "Sol Ultra multi-agent column in OpenAI table (default ~4 agents)"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "GeneBench Pro",
+      "score": 0.287,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.12,
+        "claude-opus-4-8": 0.16,
+        "gemini-3.1-pro-preview": 0.031,
+        "gemini-3.5-flash": 0.0814
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "GeneBench Pro",
+      "score": 0.233,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "GeneBench Pro",
+      "score": 0.108,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "LifeSciBench",
+      "score": 0.599,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.504,
+        "claude-opus-4-8": 0.536
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "LifeSciBench",
+      "score": 0.56,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "LifeSciBench",
+      "score": 0.512,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "MedChemBench (Internal)",
+      "score": 0.483,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.355
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "MedChemBench (Internal)",
+      "score": 0.35,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "MedChemBench (Internal)",
+      "score": 0.304,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "HealthBench Professional",
+      "score": 0.605,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.495,
+        "claude-fable-5": 0.609,
+        "claude-opus-4-8": 0.53
+      },
+      "caveat": "OpenAI footnote: official HealthBench Professional scoring; not comparable to Anthropic system-card figures"
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "HealthBench Professional",
+      "score": 0.577,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "HealthBench Professional",
+      "score": 0.557,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "OSWorld 2.0",
+      "score": 0.626,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.475,
+        "claude-opus-4-8": 0.548
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "OSWorld 2.0",
+      "score": 0.502,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "OSWorld 2.0",
+      "score": 0.456,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "BrowseComp",
+      "score": 0.904,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.844,
+        "claude-mythos-5": 0.88,
+        "claude-mythos-preview": 0.879,
+        "claude-opus-4-8": 0.843,
+        "gemini-3.1-pro-preview": 0.859
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "BrowseComp",
+      "score": 0.875,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "BrowseComp",
+      "score": 0.833,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "BrowseComp",
+      "score": 0.922,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "effort": "ultra",
+      "caveat": "Sol Ultra multi-agent column in OpenAI table (default ~4 agents)"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "BenchCAD",
+      "score": 0.706,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.444,
+        "claude-mythos-5": 0.384,
+        "claude-mythos-preview": 0.355,
+        "claude-opus-4-8": 0.273
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "BenchCAD",
+      "score": 0.623,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "BenchCAD",
+      "score": 0.631,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "BenchCAD (python tool)",
+      "score": 0.834,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.558,
+        "claude-mythos-5": 0.65,
+        "claude-mythos-preview": 0.61,
+        "claude-opus-4-8": 0.518
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "BenchCAD (python tool)",
+      "score": 0.782,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "BenchCAD (python tool)",
+      "score": 0.739,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "Capture-the-Flag Challenges",
+      "score": 0.967,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.881
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "Capture-the-Flag Challenges",
+      "score": 0.918,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "Capture-the-Flag Challenges",
+      "score": 0.852,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "SEC-Bench Pro",
+      "score": 0.712,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.458
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "SEC-Bench Pro",
+      "score": 0.577,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "SEC-Bench Pro",
+      "score": 0.489,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "SEC-Bench Pro",
+      "score": 0.743,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "effort": "ultra",
+      "caveat": "Sol Ultra multi-agent column in OpenAI table (default ~4 agents)"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "CyberGym",
+      "score": 0.845,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.818,
+        "claude-mythos-5": 0.838,
+        "claude-mythos-preview": 0.83,
+        "claude-opus-4-8": 0.781
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "CyberGym",
+      "score": 0.818,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "CyberGym",
+      "score": 0.779,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ExploitBench",
+      "score": 0.735,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.479,
+        "claude-mythos-5": 0.78,
+        "claude-mythos-preview": 0.742,
+        "claude-opus-4-8": 0.4
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ExploitBench",
+      "score": 0.529,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ExploitBench",
+      "score": 0.332,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ExploitGym",
+      "score": 0.337,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.151
+      },
+      "caveat": "OpenAI footnote: alpha API speeds then rescaled; 6-hour cap figure for Sol"
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ExploitGym",
+      "score": 0.232,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ExploitGym",
+      "score": 0.124,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "Internal Research Debugging Evaluation",
+      "score": 0.683,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.5
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "Internal Research Debugging Evaluation",
+      "score": 0.678,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "Internal Research Debugging Evaluation",
+      "score": 0.508,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "KernelGen 1P",
+      "score": 0.611,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.293
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "KernelGen 1P",
+      "score": 0.492,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "KernelGen 1P",
+      "score": 0.224,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "NanoGPT",
+      "score": 0.0969,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.0265
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "NanoGPT",
+      "score": 0.145,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "NanoGPT",
+      "score": 0.0166,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "PostTrainBench Lite",
+      "score": 0.503,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.388
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "PostTrainBench Lite",
+      "score": 0.515,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "PostTrainBench Lite",
+      "score": 0.296,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "RSI Index",
+      "score": 0.579,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.417
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "RSI Index",
+      "score": 0.563,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "RSI Index",
+      "score": 0.419,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "MMMU Pro (no tools)",
+      "score": 0.83,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.812,
+        "gemini-3.1-pro-preview": 0.805
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "MMMU Pro (no tools)",
+      "score": 0.807,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "MMMU Pro (no tools)",
+      "score": 0.784,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "MMMU Pro (with tools)",
+      "score": 0.846,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.832
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "MMMU Pro (with tools)",
+      "score": 0.82,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "MMMU Pro (with tools)",
+      "score": 0.795,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "gdp.pdf",
+      "score": 0.307,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.26,
+        "claude-fable-5": 0.298,
+        "claude-opus-4-8": 0.225,
+        "gemini-3.1-pro-preview": 0.167
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "gdp.pdf",
+      "score": 0.247,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "gdp.pdf",
+      "score": 0.227,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "GPQA Diamond",
+      "score": 0.946,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.936,
+        "claude-mythos-5": 0.941,
+        "claude-mythos-preview": 0.946,
+        "claude-fable-5": 0.926,
+        "claude-opus-4-8": 0.92,
+        "gemini-3.1-pro-preview": 0.943
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "GPQA Diamond",
+      "score": 0.929,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "GPQA Diamond",
+      "score": 0.923,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "FrontierMath Tier 1-3 (v2)",
+      "score": 0.86,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.853,
+        "claude-fable-5": 0.87,
+        "claude-opus-4-8": 0.8,
+        "gemini-3.1-pro-preview": 0.596
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "FrontierMath Tier 1-3 (v2)",
+      "score": 0.849,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "FrontierMath Tier 1-3 (v2)",
+      "score": 0.786,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "FrontierMath Tier 4 (v2)",
+      "score": 0.659,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.725,
+        "claude-fable-5": 0.878,
+        "claude-opus-4-8": 0.561
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "FrontierMath Tier 4 (v2)",
+      "score": 0.683,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "FrontierMath Tier 4 (v2)",
+      "score": 0.585,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "AutomationBench",
+      "score": 0.181,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.129,
+        "claude-fable-5": 0.174,
+        "claude-opus-4-8": 0.155,
+        "gemini-3.5-flash": 0.145
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "AutomationBench",
+      "score": 0.152,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "AutomationBench",
+      "score": 0.149,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "Toolathlon",
+      "score": 0.58,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.556,
+        "claude-mythos-5": 0.617,
+        "claude-mythos-preview": 0.611,
+        "claude-fable-5": 0.617,
+        "claude-opus-4-8": 0.599,
+        "gemini-3.1-pro-preview": 0.488
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "Toolathlon",
+      "score": 0.531,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "Toolathlon",
+      "score": 0.534,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "OpenAI MRCR v2 8-needle 256K-512K",
+      "score": 0.915,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.815
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "OpenAI MRCR v2 8-needle 256K-512K",
+      "score": 0.896,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "OpenAI MRCR v2 8-needle 256K-512K",
+      "score": 0.413,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "OpenAI MRCR v2 8-needle 512K-1M",
+      "score": 0.738,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.74
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "OpenAI MRCR v2 8-needle 512K-1M",
+      "score": 0.725,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "OpenAI MRCR v2 8-needle 512K-1M",
+      "score": 0.413,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "GraphWalks BFS 256k f1",
+      "score": 0.907,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.737,
+        "claude-mythos-5": 0.911,
+        "claude-mythos-preview": 0.857,
+        "claude-opus-4-8": 0.859
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "GraphWalks BFS 256k f1",
+      "score": 0.769,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "GraphWalks BFS 256k f1",
+      "score": 0.813,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "GraphWalks BFS 1mil f1",
+      "score": 0.771,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.454,
+        "claude-mythos-5": 0.794,
+        "claude-mythos-preview": 0.743,
+        "claude-opus-4-8": 0.681
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "GraphWalks BFS 1mil f1",
+      "score": 0.712,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "GraphWalks BFS 1mil f1",
+      "score": 0.512,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "ARC-AGI-3",
+      "score": 0.0778,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09",
+      "comparisons": {
+        "gpt-5.5": 0.0043,
+        "claude-opus-4-8": 0.015,
+        "gemini-3.1-pro-preview": 0.0042
+      },
+      "caveat": "OpenAI table; footnote: Opus 4.8 ARC-AGI-3 was high not max. Prefer arcprize-* for effort ladder."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "ARC-AGI-3",
+      "score": 0.008,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "ARC-AGI-3",
+      "score": 0.0018,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    }
+  ],
+  "claims": [
+    {
+      "models": [
+        "gpt-5.6-sol",
+        "gpt-5.6-terra",
+        "gpt-5.6-luna"
+      ],
+      "task_families": [
+        "coding",
+        "knowledge_work",
+        "professional"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "tokens",
+        "speed"
+      ],
+      "statement": "OpenAI claims Sol sets SOTA on Artificial Analysis Coding Agent Index at 80 with fewer tokens/time/cost vs Fable 5; Terra ~above Fable 5; Luna outperforms Opus 4.8 at ~1/4 estimated cost in their framing. Agents' Last Exam prose cites Sol 53.6 (table 52.7%).",
+      "implication": "Family tiers (Sol/Terra/Luna) are a first-class cost/quality ladder within one generation.",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "models": [
+        "gpt-5.6-sol"
+      ],
+      "task_families": [
+        "agentic"
+      ],
+      "axes": [
+        "quality",
+        "speed",
+        "cost"
+      ],
+      "statement": "OpenAI introduces max (beyond xhigh) and ultra (default four parallel agents) as higher-compute operating points that shift score-latency frontiers on BrowseComp, SEC-Bench Pro, Terminal-Bench 2.1.",
+      "implication": "Effort is multi-step: low…xhigh, plus max/ultra — not a single 3-rung cheap/default/max profile.",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "models": [
+        "gpt-5.6-sol",
+        "gpt-5.6-terra",
+        "gpt-5.6-luna"
+      ],
+      "task_families": [
+        "api_billing"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "API pricing: Sol $5/$30, Terra $2.50/$15, Luna $1/$6 per 1M input/output; cache writes 1.25× uncached input; cache reads 90% discount for GPT-5.6+.",
+      "implication": "Use pricing/openai-api-2026-07.json for $/MTok; this claim is narrative cross-check only.",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    },
+    {
+      "models": [
+        "gpt-5.6-sol"
+      ],
+      "task_families": [
+        "cybersecurity",
+        "science"
+      ],
+      "axes": [
+        "quality",
+        "tokens"
+      ],
+      "statement": "OpenAI reports large Sol gains vs GPT-5.5 on ExploitBench (73.5% vs 47.9%), SEC-Bench Pro (71.2% vs 45.8%), ExploitGym (33.7% vs 15.1% peak under longer cap), GeneBench Pro (28.7% vs 12%).",
+      "implication": "Cyber/science headline gains are vendor-reported; treat as directional until third-party harnesses publish.",
+      "source_id": "openai-gpt-5-6-2026-07-09"
+    }
+  ],
+  "missing": [
+    "Full effort ladder (low…max) for every coding/professional metric (only some Ultra columns published).",
+    "Digitized cost/latency series from page charts (estimates only; not tabular).",
+    "Independent third-party re-runs of the same tables (except ARC Prize for ARC-AGI)."
+  ]
+}
