@@ -1,15 +1,14 @@
+# PR / path-filtered validation. Full release pipeline is release.yml (semantic-release + pending packs).
 name: data-packs
 on:
-  push:
-    paths:
-      - 'data/**'
-      - 'scripts/**'
-      - '.github/workflows/data-packs.yml'
   pull_request:
     paths:
-      - 'data/**'
-      - 'scripts/**'
+      - "data/**"
+      - "scripts/**"
+      - ".github/workflows/data-packs.yml"
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -17,9 +16,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - name: Install jsonschema
-        run: pip install 'jsonschema>=4.0'
+        run: pip install "jsonschema>=4.0"
       - name: Validate data packs (require jsonschema)
         run: python3 scripts/validate_data_pack.py --require-jsonschema
       - name: Freshness (load-bearing)

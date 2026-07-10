@@ -100,3 +100,18 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 1. `data/<pack>/pack.json` + files + `README.md` with a **Get this pack** table (real links).
 2. Add a row to `data/README.md` and an entry in `data/index.json`.
 3. `./scripts/release-data-pack.sh <pack> <semver>` then commit + `--push` when ready.
+
+
+## Releases (CI)
+
+Two complementary release tracks on `main`:
+
+1. **Repo releases** (`vX.Y.Z`) — [semantic-release](https://github.com/semantic-release/semantic-release) from conventional commits (`feat:`, `fix:`, …). Changelog notes on GitHub Releases.
+2. **Data pack releases** (`data-<pack>-vX.Y.Z`) — when `data/<pack>/pack.json` declares a `tag` that is not yet a GitHub Release, CI publishes the tarball + updates `data/index.json` (`scripts/ci-publish-pending-packs.sh`).
+
+Workflows: `.github/workflows/release.yml` (release + packs), `.github/workflows/data-packs.yml` (PR validation).
+
+Local machines using the clone install (`./install.sh` or `dotfiles/setup.sh`) pick up pack **files** via git pull + symlink; remote consumers use `fetch-data-pack.sh` / release assets.
+
+Manual pack release still works: `./scripts/release-data-pack.sh <pack> <semver> [--push]`.
+
