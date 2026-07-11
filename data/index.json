@@ -1,7 +1,7 @@
 {
   "$schema": "schemas/index-v1.schema.json",
   "schema_version": 1,
-  "updated_at": "2026-07-09",
+  "updated_at": "2026-07-11",
   "repo": "tnunamak/minnows",
   "packs": {
     "model-catalog": {
@@ -14,17 +14,17 @@
       "tree": "https://github.com/tnunamak/minnows/tree/data-model-catalog-v0.5.2/data/model-catalog"
     },
     "model-choice-policy": {
-      "latest_tag": "data-model-choice-policy-v0.1.4",
+      "latest_tag": "data-model-choice-policy-v0.1.5",
       "description": "Operating points; medium confidence; pins catalog v0.5.2",
       "readme": "https://github.com/tnunamak/minnows/blob/main/data/model-choice-policy/README.md",
       "releases": "https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true",
-      "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-model-choice-policy-v0.1.4/data/model-choice-policy/pack.json",
-      "tarball": "https://github.com/tnunamak/minnows/releases/download/data-model-choice-policy-v0.1.4/data-model-choice-policy-v0.1.4.tar.gz",
-      "tree": "https://github.com/tnunamak/minnows/tree/data-model-choice-policy-v0.1.4/data/model-choice-policy"
+      "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-model-choice-policy-v0.1.5/data/model-choice-policy/pack.json",
+      "tarball": "https://github.com/tnunamak/minnows/releases/download/data-model-choice-policy-v0.1.5/data-model-choice-policy-v0.1.5.tar.gz",
+      "tree": "https://github.com/tnunamak/minnows/tree/data-model-choice-policy-v0.1.5/data/model-choice-policy"
     },
     "local-evals": {
       "latest_tag": "data-local-evals-v0.1.1",
-      "description": "Harness smoke only \u2014 not quality evidence",
+      "description": "Harness smoke only — not quality evidence",
       "readme": "https://github.com/tnunamak/minnows/blob/main/data/local-evals/README.md",
       "releases": "https://github.com/tnunamak/minnows/releases?q=data-local-evals&expanded=true",
       "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-local-evals-v0.1.1/data/local-evals/pack.json",
