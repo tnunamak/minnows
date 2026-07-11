@@ -16,6 +16,8 @@ python3 scripts/validate_data_pack.py --require-jsonschema
 OWNER_REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || echo tnunamak/minnows)"
 DIST="$REPO_ROOT/dist"
 mkdir -p "$DIST"
+git config user.name "github-actions[bot]"
+git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
 published=0
 
@@ -104,8 +106,6 @@ for pack_json in data/*/pack.json; do
 done
 
 if [[ "$published" -gt 0 ]] && ! git diff --quiet data/index.json 2>/dev/null; then
-  git config user.name "github-actions[bot]"
-  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
   git add data/index.json
   git commit -m "chore(data): sync index.json after pack release [skip ci]"
   git push origin HEAD
