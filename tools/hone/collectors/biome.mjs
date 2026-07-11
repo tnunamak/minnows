@@ -6,6 +6,7 @@
 import { writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { isAbsolute, join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { walkSourceFiles } from '../lib/util.mjs';
 
 const AUTO_EXCLUDED_DIRS = new Set([
   'node_modules', 'dist', 'build', 'out', 'coverage', 'vendor', 'tmp', 'fixtures', 'test', 'tests', '__tests__',
@@ -22,11 +23,7 @@ export function resolveOwnedDirs(ctx) {
   const dirs = [];
   for (const e of readdirSync(ctx.repoRoot, { withFileTypes: true })) {
     if (!e.isDirectory() || e.name.startsWith('.') || AUTO_EXCLUDED_DIRS.has(e.name)) continue;
-    const hit = ctx.sh(
-      `find '${join(ctx.repoRoot, e.name)}' -name node_modules -prune -o -type f ` +
-      `\\( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' -o -name '*.ts' -o -name '*.tsx' -o -name '*.jsx' \\) -print 2>/dev/null | head -1`,
-    ).trim();
-    if (hit) dirs.push(e.name);
+    if (walkSourceFiles(join(ctx.repoRoot, e.name)).length) dirs.push(e.name);
   }
   return dirs.sort();
 }

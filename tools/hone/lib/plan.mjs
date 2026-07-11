@@ -15,7 +15,8 @@ import { join } from 'node:path';
 import { buildContext, HONE_ROOT } from './profile.mjs';
 import { parseYaml, stringifyYaml } from './yaml.mjs';
 import { assertValidPacket } from './validate-packet.mjs';
-import { deepEqual, djb2, escRe, globToRegExp, slug, subsystemOf } from './util.mjs';
+import { countWordInFiles, deepEqual, djb2, escRe, globToRegExp, slug, subsystemOf, walkSourceFiles } from './util.mjs';
+import { loadVerifiedInventorySnapshot } from './inventory-snapshot.mjs';
 
 // ---- tier → execution contract (fixed deterministic table; provenance: SPEC evidence ladder) ----
 const TIER_EXEC = {
@@ -54,12 +55,10 @@ export async function runPlan(flags) {
   for (const f of ['meta.json', 'tier-mass.json', 'hotspots.json']) {
     if (!existsSync(join(invDir, f))) throw new Error(`missing quality/inventory/${f} — run \`hone inventory --repo ${ctx.repoRoot}\` first`);
   }
-  const meta = JSON.parse(readFileSync(join(invDir, 'meta.json'), 'utf8'));
-  const tierMass = JSON.parse(readFileSync(join(invDir, 'tier-mass.json'), 'utf8'));
-  const hotspots = JSON.parse(readFileSync(join(invDir, 'hotspots.json'), 'utf8'));
-  if (meta.repo_sha !== ctx.git.sha) {
-    process.stderr.write(`WARN: inventory repo_sha ${meta.repo_sha.slice(0, 12)} != HEAD ${ctx.git.sha.slice(0, 12)} — packets stamp the INVENTORY sha; re-run inventory for fresh routing\n`);
-  }
+  const snapshot = loadVerifiedInventorySnapshot(ctx.repoRoot, ctx.git.sha);
+  const meta = snapshot.meta;
+  const tierMass = snapshot.sensors['tier-mass.json'];
+  const hotspots = snapshot.sensors['hotspots.json'];
 
   const cls = ctx.profile.classification || {};
   const publicGlobs = cls.public_surface_globs || [];
@@ -107,11 +106,10 @@ export async function runPlan(flags) {
 
   // ---- 3. DELETE upgrade on the top pool: hard 0-caller evidence for small named groups ----
   // (bounded grep cost; falsify's callerCount, ported: -w word match across owned dirs, minus the def)
-  const dirsAbs = (meta.owned_dirs || []).map((d) => `'${join(ctx.repoRoot, d)}'`).join(' ');
+  const ownedSourceFiles = (meta.owned_dirs || []).flatMap((d) => walkSourceFiles(join(ctx.repoRoot, d)));
   const callerCount = (fn) => {
-    if (!/^[A-Za-z_$][\w$]*$/.test(fn)) return null;
-    const n = ctx.sh(`grep -rncw '${fn}' ${dirsAbs} 2>/dev/null | awk -F: '{s+=$2} END{print s+0}'`).trim();
-    return Number.isFinite(Number(n)) ? Math.max(0, Number(n) - 1) : null;
+    const n = countWordInFiles(fn, ownedSourceFiles);
+    return n == null ? null : Math.max(0, n - 1);
   };
   const pool = scored.slice(0, topN * 2);
   for (const g of pool) {

@@ -29,7 +29,9 @@
 
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
+import { homedir } from 'node:os';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { djb2 } from './util.mjs';
 import { validatePacket } from './validate-packet.mjs';
 import { loadPacket, writePacket } from './packet-io.mjs';
@@ -65,6 +67,9 @@ export async function runLane(flags) {
     const { laneSelfTest } = await import('./test-lane.mjs');
     process.exitCode = await laneSelfTest({ verbose: !!flags.verbose });
     return;
+  }
+  if (process.env.HONE_ENABLE_EXTERNAL_LANE !== '1') {
+    throw new Error('external lane execution is experimental and disabled by default: same-user in-harness Bash cannot be an authority boundary for engine state. Use `hone work` for bettable execution, or explicitly set HONE_ENABLE_EXTERNAL_LANE=1 to accept this risk.');
   }
   const sub = flags._?.[0];
   const id = typeof flags.packet === 'string' ? flags.packet : null;
@@ -140,24 +145,49 @@ export function readInput(flags, name) {
 
 const laneDir = (repoRoot, id) => join(repoRoot, 'quality', '.lane', id);
 const statePath = (repoRoot, id) => join(laneDir(repoRoot, id), 'state.json');
+const sealPath = (repoRoot, id) => join(process.env.XDG_STATE_HOME || join(homedir(), '.local', 'state'), 'hone', 'lane-seals', djb2(resolve(repoRoot)), `${id}.json`);
+
+function sealedStateDigest(stateRaw, baselineRaw) {
+  return createHash('sha256').update(stateRaw).update('\0').update(baselineRaw).digest('hex');
+}
+
+function writeSeal(repoRoot, id, stateRaw, baselineRaw) {
+  const p = sealPath(repoRoot, id);
+  mkdirSync(dirname(p), { recursive: true, mode: 0o700 });
+  writeFileSync(p, JSON.stringify({ candidate_id: id, state_digest: sealedStateDigest(stateRaw, baselineRaw) }), { mode: 0o600 });
+}
 
 function loadState(repoRoot, id) {
   const p = statePath(repoRoot, id);
   if (!existsSync(p)) return null;
-  const state = JSON.parse(readFileSync(p, 'utf8'));
+  const stateRaw = readFileSync(p, 'utf8');
+  const baselineRaw = readFileSync(join(laneDir(repoRoot, id), 'baseline.json'), 'utf8');
+  const state = JSON.parse(stateRaw);
   if (state.candidate_id !== id) throw new Error(`lane state at ${p} names candidate '${state.candidate_id}', expected '${id}' — refusing (fail-closed)`);
-  state.baseline = JSON.parse(readFileSync(join(laneDir(repoRoot, id), 'baseline.json'), 'utf8'));
+  const sp = sealPath(repoRoot, id);
+  if (!existsSync(sp)) throw new Error(`authoritative lane seal missing for ${id} — state may have been rewritten by a maker`);
+  const seal = JSON.parse(readFileSync(sp, 'utf8'));
+  if (seal.candidate_id !== id || seal.state_digest !== sealedStateDigest(stateRaw, baselineRaw)) {
+    throw new Error(`lane state disagrees with its external authoritative seal for ${id} — refusing possible maker tampering`);
+  }
+  state.baseline = JSON.parse(baselineRaw);
   return state;
 }
 
 function saveState(repoRoot, id, state) {
   mkdirSync(laneDir(repoRoot, id), { recursive: true });
   const { baseline, ...rest } = state;
-  writeFileSync(join(laneDir(repoRoot, id), 'baseline.json'), JSON.stringify(baseline));
-  writeFileSync(statePath(repoRoot, id), JSON.stringify(rest, null, 2));
+  const baselineRaw = JSON.stringify(baseline);
+  const stateRaw = JSON.stringify(rest, null, 2);
+  writeFileSync(join(laneDir(repoRoot, id), 'baseline.json'), baselineRaw);
+  writeFileSync(statePath(repoRoot, id), stateRaw);
+  writeSeal(repoRoot, id, stateRaw, baselineRaw);
 }
 
-const clearState = (repoRoot, id) => rmSync(laneDir(repoRoot, id), { recursive: true, force: true });
+const clearState = (repoRoot, id) => {
+  rmSync(laneDir(repoRoot, id), { recursive: true, force: true });
+  rmSync(sealPath(repoRoot, id), { force: true });
+};
 
 const refuse = (id, sub, reason) => ({
   exitCode: 2,
@@ -238,14 +268,12 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
       (inTouch.length ? ` — DIRTY TOUCHSET FILES: ${inTouch.join(', ')} (baseline would be unattributable)` : ''));
   }
 
-  // L1 routing: class -> ordered maker tier list (+ L2 batch eligibility) — the script
-  // consumes this; the engine never lets a maker choose its own tier. Routing failure is
-  // a warning + null (economics lever, not a safety gate; callers fall back to defaults).
+  // L1 routing is load-bearing: malformed or uncalibrated policy never falls back.
   let routing = null;
   try {
     const table = loadRouting();
     routing = { ...resolveRouting(packet, table), batch_eligible: isBatchEligible(packet, table) };
-  } catch (e) { log(`  WARNING (routing): ${e.message} — no routing emitted`); }
+  } catch (e) { return refuse(id, 'emit', `routing configuration invalid: ${e.message}`); }
 
   const brief = makerBrief(rawText, packet);
   if (dryRun) {
@@ -271,6 +299,9 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
   try {
     const startedAt = Date.now();
     const head = g.git(['rev-parse', 'HEAD']);
+    if (/^[0-9a-f]{7,40}$/i.test(packet.repo_sha) && !head.startsWith(packet.repo_sha) && !packet.repo_sha.startsWith(head)) {
+      return refuse(id, 'emit', `packet repo_sha ${packet.repo_sha} does not match current HEAD ${head} — regenerate/rebase the packet from live inventory`);
+    }
     packet.status = 'in_progress';
     writePacket(packetPath, packet);
 
@@ -279,6 +310,7 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
     const state = {
       candidate_id: id, created: new Date().toISOString(), started_at_ms: startedAt,
       head_sha: head, branch: g.branch, packet_path: packetPath,
+      packet_digest: djb2(readFileSync(packetPath, 'utf8')),
       maker_provider: makerProvider, judge_provider: judgeProvider, maker_ran: false,
       touchset_toplevel: touchTop, receipts_dir_rel: receiptsDirRel,
       receiptLines: [], receiptSlices: [], receiptMeta: [],
@@ -290,37 +322,11 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
         log(`  WARNING [${rung.rung}]: command matches a compare-vs-HEAD pattern — structurally unwinnable before commit (warning only; see README "Authoring evidence rungs")`);
       }
     }
-    // baseline cache: identical EXECUTED command at the SAME HEAD on a guaranteed-clean
-    // tree ⇒ identical result — batch members share one engine-run baseline instead of
-    // N suite runs ("never pay for the same context twice"). Green results only; keyed
-    // by (head_sha, executed command) so authored variants that portably rewrite to the
-    // same command share too; receipts are byte-identical to a fresh run's.
     const portCtx = { gitRoot: g.gitRoot, repoRoot, prefix: g.prefix };
     const execRung = makeRungExecutor({ ...portCtx, log, packetDefaultTimeoutS: packet.rung_timeout_s ?? null });
-    const cacheDir = join(repoRoot, 'quality', '.lane', '.baseline-cache', head);
-    const cachePath = (cmd, timeoutMs) => join(cacheDir, `${djb2(`${cmd}\0timeout=${timeoutMs}`)}.json`);
     for (const [i, rung] of packet.evidence_required.entries()) {
-      const port = portableRungCommand(rung.command, portCtx);
-      const timeout = resolveRungTimeout(rung, packet.rung_timeout_s ?? null);
-      const cacheKey = port.refused || timeout.error ? null : cachePath(port.command, timeout.timeoutMs);
-      let res = null, verdict, executedCommand;
-      if (cacheKey && existsSync(cacheKey)) {
-        try {
-          res = JSON.parse(readFileSync(cacheKey, 'utf8'));
-          log(`  [baseline] ${rung.rung}: ${rung.command} (shared: engine-run result reused from this HEAD)`);
-        } catch { res = null; }
-      }
-      if (res) {
-        verdict = checkExpect(rung, res, 'baseline');
-        executedCommand = port.command;
-      } else {
-        log(`  [baseline] ${rung.rung}: ${rung.command}`);
-        ({ res, verdict, executedCommand } = await execRung(rung, 'baseline'));
-        if (verdict.pass && cacheKey && !existsSync(cacheKey)) {
-          mkdirSync(cacheDir, { recursive: true });
-          writeFileSync(cacheKey, JSON.stringify({ code: res.code, timedOut: res.timedOut, stdout: res.stdout, output: res.output, durationMs: res.durationMs, timeoutMs: res.timeoutMs, timeoutSource: res.timeoutSource, timeoutRequestedS: res.timeoutRequestedS, timeoutCapped: res.timeoutCapped }));
-        }
-      }
+      log(`  [baseline] ${rung.rung}: ${rung.command}`);
+      const { res, verdict, executedCommand } = await execRung(rung, 'baseline');
       const r = writeRungReceipt({ repoRoot, receiptsDirRel, id, via: 'lane', phase: 'baseline', index: i, rung, res, verdict, stripCtx, executedCommand });
       state.receiptLines.push(r.line); state.receiptSlices.push(r.slice); state.receiptMeta.push(r.meta);
       state.baseline.push({ code: res.code, timedOut: res.timedOut, stdout: res.stdout, output: res.output, durationMs: res.durationMs, timeoutMs: res.timeoutMs });
@@ -380,6 +386,9 @@ export async function executeLaneGate({ id, repoRoot, makerSummary = null, revis
   try { state = loadState(repoRoot, id); }
   catch (e) { return refuse(id, 'gate', e.message); }
   if (!state) return refuse(id, 'gate', `no lane state for ${id} (quality/.lane/${id}/) — this in_progress packet was not emitted by hone lane (crashed hone work? foreign state?); resolve manually`);
+  if (djb2(loaded.rawText) !== state.packet_digest) {
+    return refuse(id, 'gate', 'packet contract changed after emit — evidence/constraints are not maker-writable; restore and re-emit');
+  }
   let usage = null;
   if (usageRaw != null) {
     const u = parseUsageInput(usageRaw);
@@ -594,6 +603,9 @@ export async function executeLaneLand({ id, repoRoot, verdictRaw = null, usageRa
   try { state = loadState(repoRoot, id); }
   catch (e) { return refuse(id, 'land', e.message); }
   if (!state) return refuse(id, 'land', `no lane state for ${id} (quality/.lane/${id}/) — nothing to land (fail-closed)`);
+  if (djb2(loaded.rawText) !== state.packet_digest) {
+    return refuse(id, 'land', 'packet contract changed after emit — green receipts cannot certify a rewritten contract');
+  }
 
   let usage = null;
   if (usageRaw != null) {

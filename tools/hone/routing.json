@@ -2,9 +2,9 @@
   "version": 2,
   "note": "Routing POLICY (data) — L1 amendment, token-economics-levers-2026-07-02. class -> ORDERED candidate list of {model: <models.json registry name>, effort}; two-strike escalation walks down the list; judge constraint = different lineage at tier_rank >= maker. Packets may pin routing_class, NEVER a model (validator-enforced). Policy authorship is judgment on a slow cadence: the agenda/chooser PROPOSES diffs to this file from the measured per-(class x tier) pass-rate table; application is deterministic (lib/routing.mjs selectAgent).",
   "provenance": {
-    "source": "waspflow docs/model-economics.md (2026-06-30 snapshot) + fable-workflow-baseline-2026-07-02 + hone run-history (gpt-5.5 4/6 zero-revision on async-order oracles)",
-    "date": "2026-07-02",
-    "rationale": "Sonnet 5 @ high is the bulk value knee; Opus med is a trap (never routed); Haiku leads only the certified-mechanical class; GPT-5.5 leads async-order oracles"
+    "source": "minnows model-catalog data-model-catalog-v0.5.2 + fable-workflow-baseline-2026-07-02",
+    "date": "2026-07-11",
+    "rationale": "Sonnet 5 @ high is the bulk value knee; Opus med is a trap (never routed); Haiku leads only the certified-mechanical class; GPT-5.6 Sol leads accuracy-first Codex work"
   },
   "default_class": "extraction",
   "proof_class_map": {
@@ -29,24 +29,27 @@
       "maker": [
         { "model": "haiku-4.5", "effort": "medium" },
         { "model": "sonnet-5", "effort": "high" },
-        { "model": "opus-4.8", "effort": "high" }
+        { "model": "opus-4.8", "effort": "high" },
+        { "model": "gpt-5.6-sol", "effort": "high" }
       ]
     },
     "extraction": {
       "maker": [
         { "model": "sonnet-5", "effort": "high" },
-        { "model": "opus-4.8", "effort": "high" }
+        { "model": "opus-4.8", "effort": "high" },
+        { "model": "gpt-5.6-sol", "effort": "xhigh" }
       ]
     },
     "async-order-oracle": {
       "maker": [
-        { "model": "gpt-5.5", "effort": "high" },
+        { "model": "gpt-5.6-sol", "effort": "xhigh" },
         { "model": "opus-4.8", "effort": "high" }
       ]
     },
     "hard-ambiguous": {
       "maker": [
-        { "model": "opus-4.8", "effort": "high" }
+        { "model": "opus-4.8", "effort": "high" },
+        { "model": "gpt-5.6-sol", "effort": "xhigh" }
       ]
     }
   },

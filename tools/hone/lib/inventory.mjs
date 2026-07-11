@@ -2,7 +2,7 @@
 //
 // Durable, idempotent (deterministic overwrite of the same filenames), stamped with repo_sha.
 // One biome run + one AST-model pass are shared across all collectors; churn is computed once.
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { buildContext } from './profile.mjs';
 import { loadTS, buildFileModel } from '../collectors/ast-scope.mjs';
@@ -85,7 +85,12 @@ export async function runInventory(flags) {
 
   const outDir = join(ctx.repoRoot, 'quality', 'inventory');
   mkdirSync(outDir, { recursive: true });
-  const write = (name, obj) => writeFileSync(join(outDir, name), JSON.stringify(obj, null, 2) + '\n');
+  const write = (name, obj) => {
+    const final = join(outDir, name);
+    const temp = join(outDir, `.${name}.${process.pid}.tmp`);
+    writeFileSync(temp, JSON.stringify(obj, null, 2) + '\n');
+    renameSync(temp, final);
+  };
   write('tier-mass.json', tierMass);
   write('callback-smells.json', smells);
   write('hotspots.json', hotspots);

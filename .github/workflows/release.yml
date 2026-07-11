@@ -1,5 +1,9 @@
 name: Release
 
+concurrency:
+  group: minnows-release-main
+  cancel-in-progress: false
+
 on:
   push:
     branches:
@@ -28,6 +32,25 @@ jobs:
 
       - name: Freshness (load-bearing)
         run: python3 scripts/check_freshness.py --max-age-days 45 --fail
+
+      - name: Shell and Python syntax
+        run: |
+          bash -n sync.sh install.sh scripts/*.sh
+          python3 -m py_compile lib/*.py tools/convo/convo tools/uncompact/uncompact scripts/*.py
+
+      - name: Offline CLI integrity suites
+        run: |
+          node tools/hone/providers/test-discrimination.mjs --self-test
+          node tools/hone/hone work --self-test
+          node tools/hone/hone lane --self-test
+          node tools/hone/lib/test-agenda.mjs
+          node tools/hone/lib/test-collectors.mjs
+          node tools/hone/lib/test-report-run.mjs
+
+      - name: Generated skills are current
+        run: |
+          bash sync.sh
+          git diff --exit-code -- skills
 
   release:
     needs: validate

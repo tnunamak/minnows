@@ -18,6 +18,11 @@ PUSH=0
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
+if [[ "$PUSH" -eq 1 ]] && [[ -n "$(git status --porcelain --untracked-files=all)" ]]; then
+  echo "--push requires a completely clean worktree; commit the pack/index first" >&2
+  exit 1
+fi
+
 if [[ -z "$PACK" || -z "$SEMVER" || "$PACK" == "-h" ]]; then
   cat <<'EOF'
 Usage: release-data-pack.sh <pack> <semver> [--push]
@@ -115,12 +120,22 @@ EOF
 fi
 
 command -v gh >/dev/null 2>&1 || { echo "gh required for --push" >&2; exit 1; }
+command -v jq >/dev/null 2>&1 || { echo "jq required for --push" >&2; exit 1; }
+python3 -c "import jsonschema" 2>/dev/null || { echo "jsonschema required for --push" >&2; exit 1; }
 
-if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+if [[ -n "$(git status --porcelain --untracked-files=all)" ]]; then
+  echo "--push refused: release metadata changed after validation; commit it, then rerun" >&2
+  exit 1
+fi
+head_tag="$(git show "HEAD:data/$PACK/pack.json" | jq -r '.tag // empty')"
+[[ "$head_tag" == "$TAG" ]] || { echo "HEAD pack tag is '$head_tag', expected '$TAG'" >&2; exit 1; }
+
+if git rev-parse "$TAG" >/dev/null 2>&1; then
+  [[ "$(git rev-list -n1 "$TAG")" == "$(git rev-parse HEAD)" ]] || { echo "existing tag $TAG does not point at HEAD" >&2; exit 1; }
+else
   git tag -a "$TAG" -m "data pack $PACK v$SEMVER"
 fi
-git push origin "refs/tags/$TAG"
-git push origin HEAD
+git push --atomic origin HEAD "refs/tags/$TAG"
 
 NOTES="$DIST/${TAG}-notes.md"
 {

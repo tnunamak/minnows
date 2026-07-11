@@ -1,5 +1,7 @@
 // util.mjs — small shared helpers for hone (stdlib-only).
 import { execSync } from 'node:child_process';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 /** parse argv: supports --k=v, --k v, bare --flag, and positionals in `_`. */
 export function parseArgs(argv) {
@@ -16,12 +18,34 @@ export function parseArgs(argv) {
   return out;
 }
 
-/** shell runner bound to a default cwd; on failure returns stdout+stderr (ported from the PDPP instruments). */
+/** Shell runner bound to a cwd. Failures propagate; callers must never launder rc. */
 export function makeSh(defaultCwd) {
-  return (cmd, cwd = defaultCwd) => {
-    try { return execSync(cmd, { cwd, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }); }
-    catch (e) { return (e.stdout || '') + (e.stderr || ''); }
+  return (cmd, cwd = defaultCwd) => execSync(cmd, { cwd, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+}
+
+const SOURCE_EXT = /\.(?:js|mjs|cjs|ts|tsx|jsx)$/;
+export function walkSourceFiles(root, { maxDepth = Infinity, excludeNames = [] } = {}) {
+  const excluded = new Set(['node_modules', ...excludeNames]);
+  const out = [];
+  const walk = (dir, depth) => {
+    if (depth > maxDepth) return;
+    for (const ent of readdirSync(dir, { withFileTypes: true })) {
+      if (excluded.has(ent.name)) continue;
+      const path = join(dir, ent.name);
+      if (ent.isDirectory()) walk(path, depth + 1);
+      else if (ent.isFile() && SOURCE_EXT.test(ent.name)) out.push(path);
+    }
   };
+  walk(root, 0);
+  return out.sort();
+}
+
+export function countWordInFiles(word, files) {
+  if (!/^[A-Za-z_$][\w$]*$/.test(word)) return null;
+  const re = new RegExp(`(^|[^A-Za-z0-9_$])${escRe(word)}(?=$|[^A-Za-z0-9_$])`, 'g');
+  let count = 0;
+  for (const file of files) count += (readFileSync(file, 'utf8').match(re) || []).length;
+  return count;
 }
 
 /** deterministic djb2 hash → 8-hex string (no Math.random anywhere in hone; reproducibility is a feature). */

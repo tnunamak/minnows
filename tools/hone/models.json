@@ -53,21 +53,21 @@
         "note": "hard/ambiguous tier + default lane judge; effort=high only"
       }
     },
-    "gpt-5.5": {
+    "gpt-5.6-sol": {
       "provider": "codex",
-      "id": "gpt-5.5",
-      "short": "gpt-5.5",
+      "id": "gpt-5.6-sol",
+      "short": "gpt-5.6-sol",
       "lineage": "openai",
       "pricing": { "in": 5.0, "out": 30.0, "cache_read": 0.5 },
       "quota_pool": "openai-sub",
-      "efforts": ["low", "medium", "high"],
+      "efforts": ["low", "medium", "high", "xhigh"],
       "tier_rank": 4,
       "status": "active",
       "calibration": {
         "type": "external-eval-digitization",
-        "source": "waspflow docs/model-economics.md — SWE-Bench Pro 58.6%, Terminal-Bench 2.0 82.7% (SoTA); hone run-history: 4/6 zero-revision on async-order oracles",
-        "date": "2026-06-30",
-        "note": "strongest agentic coder; different-lineage judge/maker for cross-provider pairs"
+        "source": "minnows model-catalog data-model-catalog-v0.5.2 — GPT-5.6 launch evidence plus vals.ai SWE-bench Verified",
+        "date": "2026-07-09",
+        "note": "accuracy-first Codex tier; different-lineage judge/maker for cross-provider pairs"
       }
     }
   }

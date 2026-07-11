@@ -11,6 +11,7 @@
 //                 measured that dynamic dispatch / table-driven suites make 0-by-name ≠ untested.
 //                 A lead for evidence-generation, never a coverage verdict.
 import { join } from 'node:path';
+import { walkSourceFiles } from '../lib/util.mjs';
 
 const SKIP_MODIFIER_RE = /\b(?:test|it|describe|t)\.skip\s*\(/g;
 const SKIP_OPTION_RE = /\{\s*skip\s*:/g;
@@ -61,26 +62,15 @@ const SRC_EXTS = `\\( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' -o -name '*
 /** repo-relative test files: *.test.* / *.spec.* anywhere + everything under test dirs. */
 function findTestFiles(inv) {
   const { ctx } = inv;
-  const out = ctx.sh(
-    `find '${ctx.repoRoot}' -name node_modules -prune -o -type f ` +
-    `\\( -name '*.test.*' -o -name '*.spec.*' -o -path '*/test/*' -o -path '*/tests/*' -o -path '*/__tests__/*' \\) ` +
-    `${SRC_EXTS} -print 2>/dev/null`,
-  );
-  return [...new Set(out.split('\n').filter(Boolean).map((a) => inv.rel(a)))].sort();
+  return walkSourceFiles(ctx.repoRoot).filter((file) => /(?:\.(?:test|spec)\.|\/(?:test|tests|__tests__)\/)/.test(file)).map(inv.rel);
 }
 
 /** owned source files (same walk as hotspots: bounded depth, profile exclusions). */
 function findOwnedSources(inv) {
   const { ctx, ownedDirs } = inv;
   const depth = ctx.profile.analysis?.scan_depth ?? 2;
-  const excludeArgs = (ctx.profile.analysis?.exclude_names || []).map((p) => `! -name '${p}'`).join(' ');
-  const files = [];
-  for (const dir of ownedDirs) {
-    const found = ctx.sh(
-      `find '${join(ctx.repoRoot, dir)}' -maxdepth ${depth} -type f ${SRC_EXTS} ${excludeArgs} 2>/dev/null`,
-    );
-    for (const abs of found.split('\n').filter(Boolean)) files.push(inv.rel(abs));
-  }
+  const excludeNames = ctx.profile.analysis?.exclude_names || [];
+  const files = ownedDirs.flatMap((dir) => walkSourceFiles(join(ctx.repoRoot, dir), { maxDepth: depth, excludeNames }).map(inv.rel));
   return [...new Set(files)].sort();
 }
 

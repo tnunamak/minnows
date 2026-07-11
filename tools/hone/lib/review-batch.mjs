@@ -209,7 +209,7 @@ export async function executeReviewBatch({ repoRoot, judgeName = 'claude', limit
     .map((r) => `!!! DEFERRED REVIEW FLAGGED LANDED COMMIT ${r.commit} (${r.id}): ${r.verdict} — ${r.reason}`);
   const table = rows.map((r) => `${r.verdict.padEnd(6)} ${r.commit.padEnd(12)} ${r.id} — ${r.reason}`);
   return {
-    exitCode: 0,
+    exitCode: flagged > 0 ? 2 : 0,
     summary: [
       `hone review-batch: reviewed ${rows.length}, pass ${pass}, flagged ${flagged}`,
       ...loud,

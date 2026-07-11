@@ -165,6 +165,7 @@ const verdictJson = (verdict, reasoning, model = 'opus') =>
   JSON.stringify({ verdict, reasoning, confidence: 0.9, judge: { provider: 'claude', model } });
 
 export async function laneSelfTest({ verbose = false } = {}) {
+  process.env.HONE_ENABLE_EXTERNAL_LANE = '1';
   const results = [];
   const w = (s) => process.stdout.write(s + '\n');
   const read = (root, p) => (existsSync(join(root, p)) ? readFileSync(join(root, p), 'utf8') : null);
@@ -676,12 +677,11 @@ export async function laneSelfTest({ verbose = false } = {}) {
     const q = selectAgent('async-order-oracle', 0, { pools: { 'openai-sub': 0.95 } }, reg, pol);
     check('quota pressure shifts to same-or-higher tier on the other pool, with a note', q.model === 'claude-opus-4-8' && q.notes.some((n) => /quota-pressure/.test(n) && /shifted/.test(n)), q.notes.join(' | '));
     const q2 = selectAgent('hard-ambiguous', 0, { pools: { 'claude-sub': 0.99 } }, reg, pol);
-    check('no alternate pool → proceed WITH a ledger-visible note (honest, not silent)', q2.model === 'claude-opus-4-8' && q2.notes.some((n) => /no eligible alternate pool/.test(n)), q2.notes.join(' | '));
+    check('quota pressure can shift hard work to GPT-5.6 Sol on the other pool', q2.model === 'gpt-5.6-sol' && q2.notes.some((n) => /shifted/.test(n)), q2.notes.join(' | '));
     const pf = selectAgent('async-order-oracle', 0, null, reg, pol, { providerFilter: 'claude' });
     check('providerFilter constrains to the CLI-chosen provider (hone work case)', pf.provider === 'claude' && pf.model === 'claude-opus-4-8');
-    let threw = null;
-    try { selectAgent('extraction', 0, null, reg, pol, { providerFilter: 'codex' }); } catch (e) { threw = e.message; }
-    check('providerFilter with no candidates throws fail-closed', /no candidates for provider 'codex'/.test(threw ?? ''), threw);
+    const codexOnly = selectAgent('extraction', 0, null, reg, pol, { providerFilter: 'codex' });
+    check('providerFilter routes Codex work only to GPT-5.6 Sol', codexOnly.model === 'gpt-5.6-sol', codexOnly.model);
     // calibration gate: an uncalibrated registry entry is routing-INELIGIBLE
     const regU = JSON.parse(JSON.stringify(reg));
     regU.models['haiku-4.5'].calibration = null;
@@ -690,6 +690,7 @@ export async function laneSelfTest({ verbose = false } = {}) {
     check('allowUncalibrated override routes it (callers must ledger-note)', selectAgent('certified-mechanical', 0, null, regU, pol, { allowUncalibrated: true }).model === 'claude-haiku-4-5');
     const regAll = JSON.parse(JSON.stringify(reg));
     regAll.models['opus-4.8'].calibration = null;
+    regAll.models['gpt-5.6-sol'].calibration = null;
     let threw2 = null;
     try { selectAgent('hard-ambiguous', 0, null, regAll, pol); } catch (e) { threw2 = e.message; }
     check('all candidates ineligible → throws (never a silent default)', /no eligible candidate/.test(threw2 ?? ''), threw2);
@@ -710,9 +711,9 @@ export async function laneSelfTest({ verbose = false } = {}) {
     // a model-pinned packet cannot even be authored via writePacket; simulate a hand-edited
     // YAML on disk and confirm emit's schema gate refuses it before any side effect
     const root = fixtureRepo();
-    writeFileSync(join(root, 'quality/packets', `${ID}.yaml`), stringifyYaml({ ...basePacket(), routing_class: 'gpt-5.5' }));
+    writeFileSync(join(root, 'quality/packets', `${ID}.yaml`), stringifyYaml({ ...basePacket(), routing_class: 'not-a-routing-class' }));
     const r = await emit(root);
-    check('emit refuses a model-pinned packet before any side effect', r.exitCode === 2 && /never a specific model/.test(r.json.reason), r.json.reason);
+    check('emit refuses a model-pinned packet before any side effect', r.exitCode === 2 && /routing_class/.test(r.json.reason), r.json.reason);
   });
 
   await scenario('emit: routing block emitted (materialized candidates + batch eligibility)', async (check) => {
@@ -749,16 +750,16 @@ export async function laneSelfTest({ verbose = false } = {}) {
     check('efforts routed alongside models (medium → medium → high)', seen.map((s) => s.effort).join(',') === 'medium,medium,high');
   });
 
-  // ---- baseline cache (never pay for the same context twice at one HEAD) ----
-  await scenario('emit baseline cache: identical rung at the same HEAD reused across batch-member emits', async (check) => {
+  // ---- live baseline: same HEAD does not imply same external state ----
+  await scenario('emit baseline runs every member fresh even at the same HEAD', async (check) => {
     const root = fixtureRepo({ secondPacket: {} });
     const logs1 = [];
     await emit(root, { log: (s) => logs1.push(s) });
     check('first emit runs the rung fresh (no share note)', !logs1.some((l) => /shared/.test(l)), logs1.join(' | '));
-    check('cache dir populated at this HEAD', existsSync(join(root, 'quality', '.lane', '.baseline-cache')));
+    check('no durable baseline cache exists', !existsSync(join(root, 'quality', '.lane', '.baseline-cache')));
     const logs2 = [];
     await executeLaneEmit({ id: ID2, repoRoot: root, makerProvider: 'claude', judgeProvider: 'claude', log: (s) => logs2.push(s) });
-    check('second emit REUSES the shared rung result (engine-run, same HEAD, clean tree)', logs2.some((l) => /direct-test.*shared: engine-run result reused/.test(l)), logs2.join(' | '));
+    check('second emit reruns the shared command against live state', logs2.some((l) => /direct-test: node test\.js/.test(l)) && !logs2.some((l) => /shared/.test(l)), logs2.join(' | '));
     check('non-shared rung still runs fresh', logs2.some((l) => /test2\.js/.test(l) && !/shared/.test(l)));
     check('both packets in_progress with their own baselines', packetOnDisk(root).status === 'in_progress' && packetOnDisk(root, ID2).status === 'in_progress');
   });

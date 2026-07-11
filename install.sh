@@ -11,6 +11,23 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$REPO"
 
+replace_with_link() {
+  local source="$1" destination="$2"
+  if [[ -L "$destination" ]]; then
+    rm -f "$destination"
+  elif [[ -e "$destination" ]]; then
+    if [[ -d "$source" && -d "$destination" ]] && diff -qr "$source" "$destination" >/dev/null; then
+      rm -rf "$destination"
+    elif [[ -f "$source" && -f "$destination" ]] && cmp -s "$source" "$destination"; then
+      rm -f "$destination"
+    else
+      echo "REFUSED: $destination is real, non-identical user data; move it aside explicitly" >&2
+      return 1
+    fi
+  fi
+  ln -s "$source" "$destination"
+}
+
 # 1. Build shipped skill folders from tools/.
 bash "$REPO/sync.sh"
 
@@ -21,11 +38,9 @@ for agent_dir in "$HOME/.claude" "$HOME/.codex" "$HOME/.gemini"; do
   for skill in "$REPO"/skills/*/; do
     [[ -d "$skill" ]] || continue
     sname="$(basename "$skill")"
-    # rm -rf first: `ln -sfn` nests INTO an existing real directory instead of
-    # replacing it (e.g. an older standalone copy of this skill), which silently
-    # shadows the new symlink. Remove any existing entry, then link cleanly.
-    rm -rf "$agent_dir/skills/$sname"
-    ln -sfn "${skill%/}" "$agent_dir/skills/$sname"
+    # Replace managed symlinks and byte-identical legacy copies. Refuse a
+    # non-identical real directory so installation cannot erase user data.
+    replace_with_link "${skill%/}" "$agent_dir/skills/$sname"
     echo "  ✓ $agent_dir/skills/$sname"
   done
 done
@@ -38,7 +53,7 @@ for tool_dir in "$REPO"/tools/*/; do
   exe="$tool_dir$name"
   [[ -f "$exe" ]] || continue
   chmod +x "$exe"
-  ln -sfn "$exe" "$HOME/.local/bin/$name"
+  replace_with_link "$exe" "$HOME/.local/bin/$name"
   echo "  ✓ ~/.local/bin/$name"
 done
 
@@ -51,8 +66,7 @@ if [[ -d "$REPO/data" ]]; then
     [[ -d "$pack_dir" ]] || continue
     pname="$(basename "$pack_dir")"
     [[ -f "$pack_dir/pack.json" ]] || continue
-    rm -rf "$DATA_HOME/$pname"
-    ln -sfn "${pack_dir%/}" "$DATA_HOME/$pname"
+    replace_with_link "${pack_dir%/}" "$DATA_HOME/$pname"
     echo "  ✓ $DATA_HOME/$pname"
   done
 fi
@@ -60,7 +74,7 @@ fi
 for s in fetch-data-pack release-data-pack; do
   if [[ -f "$REPO/scripts/${s}.sh" ]]; then
     chmod +x "$REPO/scripts/${s}.sh"
-    ln -sfn "$REPO/scripts/${s}.sh" "$HOME/.local/bin/$s"
+    replace_with_link "$REPO/scripts/${s}.sh" "$HOME/.local/bin/$s"
     echo "  ✓ ~/.local/bin/$s"
   fi
 done

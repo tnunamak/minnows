@@ -74,18 +74,30 @@ if ! curl -fsSL -L "$TARBALL" -o "$TMP/pack.tar.gz"; then
   exit 1
 fi
 
+CHECKSUM_URL="${TARBALL%.tar.gz}.SHA256SUMS"
+curl -fsSL -L "$CHECKSUM_URL" -o "$TMP/SHA256SUMS" || { echo "Checksum download failed: $CHECKSUM_URL" >&2; exit 1; }
+(cd "$TMP" && sed -E 's#  .*$#  pack.tar.gz#' SHA256SUMS | sha256sum -c -) >/dev/null || { echo "Checksum verification failed" >&2; exit 1; }
+
+tar_listing="$(tar -tzf "$TMP/pack.tar.gz")"
+if grep -Eq '(^/|(^|/)\.\.(/|$))' <<<"$tar_listing"; then
+  echo "Unsafe path in data-pack archive" >&2
+  exit 1
+fi
+
 mkdir -p "$TMP/out"
 tar -xzf "$TMP/pack.tar.gz" -C "$TMP/out"
-# tarball contains <pack>/...
-if [[ -d "$TMP/out/$PACK" ]]; then
-  rm -rf "$DEST"
-  mkdir -p "$(dirname "$DEST")"
-  mv "$TMP/out/$PACK" "$DEST"
-else
-  # flat fallback
-  rm -rf "$DEST"
-  mkdir -p "$DEST"
-  mv "$TMP/out"/* "$DEST/" 2>/dev/null || true
+[[ -f "$TMP/out/$PACK/pack.json" ]] || { echo "Archive does not contain $PACK/pack.json" >&2; exit 1; }
+actual_name="$(jq -r '.name // empty' "$TMP/out/$PACK/pack.json")"
+actual_tag="$(jq -r '.tag // empty' "$TMP/out/$PACK/pack.json")"
+[[ "$actual_name" == "$PACK" ]] || { echo "Pack identity mismatch: expected $PACK, got $actual_name" >&2; exit 1; }
+[[ "$actual_tag" == "$TAG" ]] || { echo "Pack tag mismatch: expected $TAG, got $actual_tag" >&2; exit 1; }
+
+backup=""
+if [[ -e "$DEST" ]]; then backup="$TMP/previous"; mv "$DEST" "$backup"; fi
+mkdir -p "$(dirname "$DEST")"
+if ! mv "$TMP/out/$PACK" "$DEST"; then
+  [[ -n "$backup" ]] && mv "$backup" "$DEST"
+  exit 1
 fi
 
 echo "Installed pack '$PACK' ($TAG) → $DEST" >&2

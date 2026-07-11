@@ -45,7 +45,7 @@
 // (a)+(b) + the identity expect_check types — improvement clauses like
 // `cognitive_before < N` / `file_excess_lt` are post-change goals by construction.
 
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { cpSync, lstatSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, rmSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve, dirname } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -58,7 +58,7 @@ import { executeReset } from './reset.mjs';
 import { appendClaim, appendCostEntry, nextClaimSeq, nextJobAttempt, readJsonl, claimsPath, costPath } from './ledger.mjs';
 import { loadRegistry, loadRouting, resolveRoutingClass, selectAgent } from './routing.mjs';
 import { HONE_ROOT } from './profile.mjs';
-import { runCli } from '../providers/provider.mjs';
+import { CLAUDE_NO_MCP_ARGS, codexNoMcpArgs, noMcpEnv, requireGpt56, runCli } from '../providers/provider.mjs';
 import {
   DETERMINISTIC_PROOF_PROVIDER,
   DETERMINISTIC_PROOF_TIER,
@@ -79,6 +79,43 @@ const EVIDENCE_HARD_TIMEOUT_MS = 45 * 60 * 1000;
 const EVIDENCE_TIMEOUT_MS = Math.min(Number(process.env.HONE_EVIDENCE_TIMEOUT_MS ?? EVIDENCE_HARD_TIMEOUT_MS), EVIDENCE_HARD_TIMEOUT_MS);
 const DEFAULT_RUNG_TIMEOUT_S = 30 * 60;
 const MAX_BUFFER = 64 * 1024 * 1024;
+
+function treeDigest(root) {
+  const h = createHash('sha256');
+  const walk = (dir, rel = '') => {
+    if (!existsSync(dir)) { h.update('MISSING'); return; }
+    for (const name of readdirSync(dir).sort()) {
+      const path = join(dir, name), child = rel ? `${rel}/${name}` : name;
+      const st = lstatSync(path);
+      h.update(`${child}\0${st.mode}\0`);
+      if (st.isDirectory()) walk(path, child);
+      else if (st.isSymbolicLink()) h.update(`L${readlinkSync(path)}`);
+      else if (st.isFile()) h.update(readFileSync(path));
+      else h.update(`T${st.mode}`);
+    }
+  };
+  walk(root);
+  return h.digest('hex');
+}
+
+async function invokeMakerProtected(repoRoot, call) {
+  const quality = join(repoRoot, 'quality');
+  const temp = mkdtempSync(join(tmpdir(), 'hone-quality-snapshot-'));
+  const backup = join(temp, 'quality');
+  if (existsSync(quality)) cpSync(quality, backup, { recursive: true, preserveTimestamps: true });
+  const before = treeDigest(quality);
+  let result, error;
+  try { result = await call(); } catch (e) { error = e; }
+  const changed = treeDigest(quality) !== before;
+  if (changed) {
+    rmSync(quality, { recursive: true, force: true });
+    if (existsSync(backup)) cpSync(backup, quality, { recursive: true, preserveTimestamps: true });
+  }
+  rmSync(temp, { recursive: true, force: true });
+  if (changed) throw Object.assign(new Error('maker modified authoritative quality/ engine state; state restored and run refused'), { kind: 'engine-state-tamper' });
+  if (error) throw error;
+  return result;
+}
 
 // ---------------------------------------------------------------- entry point
 
@@ -126,8 +163,8 @@ async function claudeMaker(prompt, { cwd, timeoutMs = MAKER_TIMEOUT_MS, model: r
   // permission non-interactively. Bash is deliberately NOT allowed: evidence commands
   // are the engine's job, and a maker that can't run git can't commit or stage.
   const args = ['-p', '--model', model, '--effort', effort, '--output-format', 'json', '--no-session-persistence',
-    '--allowedTools', 'Read,Glob,Grep,Edit,Write'];
-  const { stdout, durationMs } = await runCli('claude', args, { input: prompt, timeoutMs, cwd });
+    '--allowedTools', 'Read,Glob,Grep,Edit,Write', ...CLAUDE_NO_MCP_ARGS];
+  const { stdout, durationMs } = await runCli('claude', args, { input: prompt, timeoutMs, cwd, env: noMcpEnv() });
   let envelope;
   try { envelope = JSON.parse(stdout); }
   catch { throw Object.assign(new Error(`claude maker emitted non-JSON envelope: ${stdout.slice(0, 300)}`), { kind: 'bad-envelope' }); }
@@ -147,16 +184,18 @@ async function claudeMaker(prompt, { cwd, timeoutMs = MAKER_TIMEOUT_MS, model: r
 }
 
 async function codexMaker(prompt, { cwd, timeoutMs = MAKER_TIMEOUT_MS, model: routedModel, effort: routedEffort } = {}) {
-  const model = process.env.HONE_CODEX_MODEL || routedModel || 'gpt-5.5';
+  const model = requireGpt56(process.env.HONE_CODEX_MODEL || routedModel || 'gpt-5.6-sol');
   const effort = process.env.HONE_CODEX_EFFORT || routedEffort || 'high';
   const dir = mkdtempSync(join(tmpdir(), 'hone-maker-'));
   const outFile = join(dir, 'last-message.txt');
+  const mcpArgs = await codexNoMcpArgs(cwd);
   // network_access: codex's workspace-write sandbox blocks localhost binding by default, which blinds
   // the maker to any test that starts a local server — it sees red where the engine sees green (proven
   // by no-model probe, campaign-rescue 2026-07-02: `listen EPERM 127.0.0.1` without the flag).
   const args = ['exec', '--ephemeral', '--skip-git-repo-check', '-s', 'workspace-write',
     '-c', 'sandbox_workspace_write.network_access=true',
     '-c', `model_reasoning_effort="${effort}"`,
+    ...mcpArgs,
     '--color', 'never', '-m', model, '-o', outFile, '-'];
   const { stdout, stderr, durationMs } = await runCli('codex', args, { input: prompt, timeoutMs, cwd });
   let text = '';
@@ -1240,6 +1279,10 @@ async function executeWorkAttempt(opts, deps, signal) {
 
   // ---- 2. preflight: git state (still read-only) ----
   const g = gitContext(repoRoot);
+  const currentHead = g.git(['rev-parse', 'HEAD']);
+  if (/^[0-9a-f]{7,40}$/i.test(packet.repo_sha) && !currentHead.startsWith(packet.repo_sha) && !packet.repo_sha.startsWith(currentHead)) {
+    return refuse(`packet repo_sha ${packet.repo_sha} does not match current HEAD ${currentHead} — regenerate/rebase from live inventory`);
+  }
   if (g.branch === 'main' || g.branch === 'master') {
     return refuse(`target repo is on '${g.branch}' — work lands commits and never works on the default branch`);
   }
@@ -1387,14 +1430,24 @@ async function executeWorkAttempt(opts, deps, signal) {
     // L1 model selection: registry (models.json) + policy (routing.json) resolved once;
     // selectAgent is THE deterministic runtime chooser (two-strike escalation rides
     // revisionCount; quota state is an optional env input, honest-null otherwise).
-    // Routing failure falls back to the provider's explicit defaults (routing is an
-    // economics lever, not a safety gate — today's behavior is the safe floor).
+    // Routing is load-bearing: invalid policy or calibration never falls back.
     let routingCtx = null;
     try {
       const registry = loadRegistry();
       const policy = loadRouting(undefined, registry);
       routingCtx = { cls: resolveRoutingClass(packet, policy), registry, policy };
-    } catch (e) { log(`  WARNING (routing): ${e.message} — provider default model/effort will be used`); }
+    } catch (e) {
+      return terminalize({
+        status: 'blocked',
+        blockedOn: `routing configuration invalid: ${e.message}`,
+        lesson: 'model routing is a safety gate; invalid registry/policy never falls back to a provider default',
+        claims: [
+          { type: 'verified_fact', statement: `hone refused to invoke a maker because routing configuration was invalid: ${e.message}`, evidence: [{ command: 'loadRegistry() + loadRouting()', output_digest: String(e.message) }] },
+          { type: 'remaining_work', statement: `repair Hone model routing, reset packet ${id} to pending, and retry` },
+        ],
+        headline: 'invalid model routing — blocked before maker invocation',
+      });
+    }
     const makerCwd = makerName === 'codex' && touchsetLeavesRepoRoot(g, touchTop) ? g.gitRoot : repoRoot;
     const makerPacket = makerCwd === g.gitRoot
       ? { ...parseYaml(rawText), touchset: touchTop }
@@ -1405,24 +1458,18 @@ async function executeWorkAttempt(opts, deps, signal) {
       : null;
     const makerOpts = () => {
       const base = { cwd: makerCwd, timeoutMs: MAKER_TIMEOUT_MS };
-      if (!routingCtx) return base;
-      try {
-        const quotaState = process.env.HONE_QUOTA_STATE ? JSON.parse(process.env.HONE_QUOTA_STATE) : null;
-        const sel = selectAgent(routingCtx.cls, revisionCount, quotaState, routingCtx.registry, routingCtx.policy, { providerFilter: makerName });
-        for (const n of sel.notes) log(`  routing note: ${n}`);
-        log(`  maker selection (class=${routingCtx.cls}, strikes=${revisionCount}): ${sel.provider}:${sel.model}@${sel.effort}`);
-        return { ...base, model: sel.model, effort: sel.effort };
-      } catch (e) {
-        log(`  WARNING (selectAgent): ${e.message} — provider default model/effort will be used`);
-        return base;
-      }
+      const quotaState = process.env.HONE_QUOTA_STATE ? JSON.parse(process.env.HONE_QUOTA_STATE) : null;
+      const sel = selectAgent(routingCtx.cls, revisionCount, quotaState, routingCtx.registry, routingCtx.policy, { providerFilter: makerName });
+      for (const n of sel.notes) log(`  routing note: ${n}`);
+      log(`  maker selection (class=${routingCtx.cls}, strikes=${revisionCount}): ${sel.provider}:${sel.model}@${sel.effort}`);
+      return { ...base, model: sel.model, effort: sel.effort };
     };
     const brief = makerBrief(makerRawText, makerPacket, { cwdNote: makerCwdNote });
     log(`  maker: ${makerName} (timeout ${Math.round(MAKER_TIMEOUT_MS / 60000)}m)`);
     persistBriefDigest(brief);
     let makerRun;
     try {
-      makerRun = await deps.maker(makerName, brief, makerOpts());
+      makerRun = await invokeMakerProtected(repoRoot, () => deps.maker(makerName, brief, makerOpts()));
       makerMetas.push(makerRun.meta);
     } catch (e) {
       revertAll(g); // fail-closed: whatever half-state the maker left, remove it
@@ -1522,7 +1569,7 @@ async function executeWorkAttempt(opts, deps, signal) {
       try {
         const revBrief = revisionBrief(brief, failureNote, g.git(['diff', '--', ...touchTop]));
         persistBriefDigest(revBrief);
-        const rev = await deps.maker(makerName, revBrief, makerOpts());
+        const rev = await invokeMakerProtected(repoRoot, () => deps.maker(makerName, revBrief, makerOpts()));
         makerMetas.push(rev.meta);
       } catch (e) {
         return reverted({}, [
@@ -1628,7 +1675,7 @@ async function executeWorkAttempt(opts, deps, signal) {
       try {
         const revBrief = revisionBrief(brief, `independent judge (${judgeName}) verdict REVISE: ${verdict.reasoning}`, buildDiff());
         persistBriefDigest(revBrief);
-        const rev = await deps.maker(makerName, revBrief, makerOpts());
+        const rev = await invokeMakerProtected(repoRoot, () => deps.maker(makerName, revBrief, makerOpts()));
         makerMetas.push(rev.meta);
       } catch (e) {
         return reverted({ judgeVerdict: verdictLine(verdict) }, [
@@ -2145,7 +2192,7 @@ async function selfTest({ verbose = false } = {}) {
     };
     const rr = await executeReviewBatch({ repoRoot: root, judgeName: 'claude' }, reviewDeps);
     const p = packetOnDisk(root);
-    check('review batch exits 0 and reports flagged loudly', rr.exitCode === 0 && /!!! DEFERRED REVIEW FLAGGED LANDED COMMIT/.test(rr.summary) && /No landed commit was auto-reverted/.test(rr.summary), rr.summary);
+    check('review batch exits nonzero and reports flagged loudly', rr.exitCode === 2 && /!!! DEFERRED REVIEW FLAGGED LANDED COMMIT/.test(rr.summary) && /No landed commit was auto-reverted/.test(rr.summary), rr.summary);
     check('packet remains landed but reviewed-reject', p.status === 'landed' && p.outcome.review_status === 'reviewed-reject' && /claude REJECT/.test(p.outcome.judge_verdict ?? ''), JSON.stringify(p.outcome));
     check('HEAD unchanged; no auto-revert commit created', headSubject(root) === beforeHead);
     check('remaining_work claim names owner decision', claims(root).some((c) => /owner must decide revert-commit or re-work/.test(c.statement)));

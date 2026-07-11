@@ -26,6 +26,7 @@ commands:
   review-batch  run deferred model review over landed packets with outcome.review_status=pending
               [--repo .] [--limit N] [--judge claude|codex]
   lane        deterministic spine for EXTERNAL (Workflow-substrate) makers/judges;
+              EXPERIMENTAL: disabled unless HONE_ENABLE_EXTERNAL_LANE=1; use work for the bettable path
               engine-run receipts/gates/ledgers only — agent claims never trusted
               (design: SUBSTRATE.md; driver: workflows/hone-lane.js)
     lane emit --packet <id>   gates + in_progress + GREEN BASELINE → maker brief JSON
@@ -111,7 +112,8 @@ try {
     }
     case 'run': {
       const { runLoop } = await import('./lib/run.mjs');
-      await runLoop(flags);
+      const summary = await runLoop(flags);
+      if (summary.infra > 0 || summary.unexecuted > 0) process.exitCode = 2;
       break;
     }
     case 'help':

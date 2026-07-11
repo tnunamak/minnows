@@ -6,12 +6,10 @@
 // boundary is the whole contract: exit 0 = landed, nonzero = some other terminal
 // state; the details live in the ledgers work writes, never in stdout parsing.
 //
-// LANES v1 LIMITATION (deliberate): all lanes share ONE git worktree. That is only
-// safe because (a) two packets run concurrently ONLY when their touchsets are
-// provably disjoint (any shared file, or either packet touching a file under the
-// other's subsystem, serializes — and a missing/empty touchset conflicts with
-// EVERYTHING), and (b) `work` commits per-packet. Default lanes=2; per-lane
-// worktrees are v2. Fail-safe: on any doubt, packets serialize (lanes degrade to 1).
+// Real makers share the target worktree, so production execution is deliberately
+// serial until per-lane worktrees exist. Parallel lanes remain available only to
+// deterministic test stubs; accepting them for real work could let one lane
+// mistake another lane's edit for a touchset violation and revert both.
 //
 // INFRASTRUCTURE failure vs honest outcome: after each work exit we re-read the
 // packet from disk. Nonzero exit + terminal packet status (reverted/skipped/blocked)
@@ -180,7 +178,7 @@ export async function runLoop(flags) {
     throw new Error('--budget is not implemented in v1 — use --n K (packet count)');
   }
   const n = Math.max(1, Number(flags.n ?? 1));
-  const lanes = Math.max(1, Number(flags.lanes ?? 2));
+  const lanes = Math.max(1, Number(flags.lanes ?? 1));
   if (!Number.isFinite(n) || !Number.isFinite(lanes)) throw new Error('--n and --lanes must be numbers');
   const maker = flags.maker ? String(flags.maker) : null;
   const judge = flags.judge ? String(flags.judge) : null;
@@ -188,6 +186,9 @@ export async function runLoop(flags) {
     throw new Error(`maker and judge MUST differ (maker ≠ judge is structural, SPEC non-negotiable #1), both are '${maker}'`);
   }
   const workCmd = flags['work-cmd'] ? String(flags['work-cmd']) : (process.env.HONE_WORK_CMD || null);
+  if (lanes > 1 && !workCmd) {
+    throw new Error('--lanes > 1 is unsafe with real makers in a shared worktree; use --lanes 1 (parallelism requires isolated per-lane worktrees)');
+  }
 
   if (flags['plan-first']) {
     const { runPlan } = await import('./plan.mjs');

@@ -98,8 +98,9 @@ async function engine(label, phaseName, cmd) {
 // verbatim (run wf_cdc171e4: haiku re-typed 20KB and silently dropped brief_path —
 // fail-closed as designed, wrong transport). The projector shrinks stdout to the exact
 // field contract this driver reads; artifacts stay on disk where maker/judge read them.
+const shQuote = (value) => `'${String(value).replaceAll("'", `'"'"'`)}'`;
 const laneCmd = (sub, sel, extra = '') =>
-  `cd ${REPO} && node ${HONE} lane ${sub} ${sel} --repo ${REPO} ${extra} 2>/dev/null | node ${HONE_DIR}/workflows/project-lane-json.mjs`;
+  `cd ${shQuote(REPO)} && node ${shQuote(HONE)} lane ${sub} ${sel} --repo ${shQuote(REPO)} ${extra} 2>/dev/null | node ${shQuote(`${HONE_DIR}/workflows/project-lane-json.mjs`)}`;
 const pkt = (id) => `--packet ${id}`;
 
 // L1 tier ladder for THIS lane: the claude-family CALIBRATED candidates of the emitted

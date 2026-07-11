@@ -35,9 +35,10 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFil
 import { tmpdir } from 'node:os';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 import { buildContext } from './profile.mjs';
-import { runCli, extractFencedJson } from '../providers/provider.mjs';
+import { CLAUDE_NO_MCP_ARGS, codexNoMcpArgs, extractFencedJson, noMcpEnv, requireGpt56, runCli } from '../providers/provider.mjs';
 import { slug } from './util.mjs';
 import { readPacketPool } from './report.mjs';
+import { loadVerifiedInventorySnapshot } from './inventory-snapshot.mjs';
 import { notChosenPath, selectionLedgerPath, readAgendaArtifacts } from './agenda-consume.mjs';
 
 const AGENDA_TIMEOUT_MS = Number(process.env.HONE_AGENDA_TIMEOUT_MS ?? 20 * 60 * 1000);
@@ -683,8 +684,8 @@ export function diffAgendas(incumbent, challenger) {
 async function claudeExec(prompt, { timeoutMs = AGENDA_TIMEOUT_MS } = {}) {
   const model = process.env.HONE_AGENDA_CLAUDE_MODEL || 'opus'; // strong tier by default
   const cwd = mkdtempSync(join(tmpdir(), 'hone-agenda-'));
-  const args = ['-p', '--model', model, '--output-format', 'json', '--no-session-persistence'];
-  const { stdout, durationMs } = await runCli('claude', args, { input: prompt, timeoutMs, cwd });
+  const args = ['-p', '--model', model, '--output-format', 'json', '--no-session-persistence', ...CLAUDE_NO_MCP_ARGS];
+  const { stdout, durationMs } = await runCli('claude', args, { input: prompt, timeoutMs, cwd, env: noMcpEnv() });
   let envelope;
   try { envelope = JSON.parse(stdout); }
   catch { throw Object.assign(new Error(`claude -p emitted non-JSON envelope: ${stdout.slice(0, 300)}`), { kind: 'bad-envelope' }); }
@@ -700,10 +701,11 @@ async function claudeExec(prompt, { timeoutMs = AGENDA_TIMEOUT_MS } = {}) {
 }
 
 async function codexExec(prompt, { timeoutMs = AGENDA_TIMEOUT_MS } = {}) {
-  const model = process.env.HONE_AGENDA_CODEX_MODEL || process.env.HONE_CODEX_MODEL || 'gpt-5.5';
+  const model = requireGpt56(process.env.HONE_AGENDA_CODEX_MODEL || process.env.HONE_CODEX_MODEL || 'gpt-5.6-sol');
   const dir = mkdtempSync(join(tmpdir(), 'hone-agenda-'));
   const outFile = join(dir, 'last-message.txt');
-  const args = ['exec', '--ephemeral', '--skip-git-repo-check', '-s', 'read-only', '--color', 'never', '-m', model, '-o', outFile, '-'];
+  const mcpArgs = await codexNoMcpArgs(dir);
+  const args = ['exec', '--ephemeral', '--skip-git-repo-check', '-s', 'read-only', '--color', 'never', '-m', model, ...mcpArgs, '-o', outFile, '-'];
   const { stdout, stderr, durationMs } = await runCli('codex', args, { input: prompt, timeoutMs, cwd: dir });
   let text = '';
   try { text = readFileSync(outFile, 'utf8'); }
@@ -723,6 +725,7 @@ function realDeps() {
 
 export async function executeAgenda(opts, deps) {
   const { repoRoot, gitRoot, repoSha, doctrinePath, profileAgenda = null, challenge = false, dryRun = false } = opts;
+  loadVerifiedInventorySnapshot(repoRoot, repoSha);
   const log = deps.log;
   const provider = challenge ? 'codex' : 'claude'; // challenger uses the OTHER family (amendment 4)
 

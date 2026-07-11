@@ -15,7 +15,7 @@ import { existsSync, readFileSync, rmSync, writeFileSync, realpathSync } from 'n
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { markerHits } from '../lib/util.mjs';
+import { countWordInFiles, markerHits, walkSourceFiles } from '../lib/util.mjs';
 
 /** per-file biome run, maxAllowedComplexity=1 so EVERY function reports its real score. */
 function biomeFnScores(ctx, absFile) {
@@ -87,10 +87,10 @@ export function scopeFn(ctx, ownedDirs, target) {
   const red = defLine ? bodyRedScan(defLine) : { markers: [], bodyLines: 0 };
 
   // caller count: grep the name across owned dirs, minus its own definition occurrence.
-  const dirsAbs = ownedDirs.map((d) => `'${join(ctx.repoRoot, d)}'`).join(' ');
   const callerCount = () => {
-    const n = ctx.sh(`grep -rncw '${fnName}' ${dirsAbs} 2>/dev/null | awk -F: '{s+=$2} END{print s+0}'`).trim();
-    return Number.isFinite(Number(n)) ? Math.max(0, Number(n) - 1) : null;
+    const files = ownedDirs.flatMap((d) => walkSourceFiles(join(ctx.repoRoot, d)));
+    const n = countWordInFiles(fnName, files);
+    return n == null ? null : Math.max(0, n - 1);
   };
 
   return {

@@ -19,6 +19,8 @@ this folder when shipped as a skill).
 
 import argparse
 import json
+import os
+import shlex
 import sys
 import uuid
 from pathlib import Path
@@ -62,12 +64,28 @@ def trim_trailing_noise(lines: list, cutoff: int) -> int:
 
 
 def create_recovered_session(src_path: Path, project_dir: Path, cutoff: int, lines: list) -> str:
-    """Write a new JSONL truncated to `cutoff` lines, with every sessionId reference
-    rewritten to a fresh UUID (the id is embedded in every line, not just the name)."""
+    """Write a private truncated JSONL, rewriting only structural sessionId fields."""
     new_id = str(uuid.uuid4())
     original_id = src_path.stem
     dst_path = project_dir / f"{new_id}.jsonl"
-    dst_path.write_text("".join(line.replace(original_id, new_id) for line in lines[:cutoff]))
+    def rewrite(value):
+        if isinstance(value, dict):
+            return {key: (new_id if key == "sessionId" and item == original_id else rewrite(item))
+                    for key, item in value.items()}
+        if isinstance(value, list):
+            return [rewrite(item) for item in value]
+        return value
+    fd = os.open(dst_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        with os.fdopen(fd, "w") as out:
+            for line in lines[:cutoff]:
+                try:
+                    out.write(json.dumps(rewrite(json.loads(line)), separators=(",", ":")) + "\n")
+                except json.JSONDecodeError as exc:
+                    raise ValueError(f"source JSONL is corrupt inside recovery prefix: {exc.msg}") from exc
+    except Exception:
+        dst_path.unlink(missing_ok=True)
+        raise
     return new_id
 
 
@@ -87,7 +105,9 @@ def main():
         if not project_dir:
             print(f"No Claude project directory found for: {args.find}", file=sys.stderr)
             sys.exit(1)
-        jsonl_files = sorted(project_dir.glob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+        jsonl_files = sorted((p for p in project_dir.glob("*.jsonl")
+                              if not p.name.startswith("agent-")),
+                             key=lambda p: p.stat().st_mtime, reverse=True)
         if not jsonl_files:
             print(f"No session files found in {project_dir}", file=sys.stderr)
             sys.exit(1)
@@ -121,13 +141,22 @@ def main():
         return
 
     go_back = args.go_back
+    if go_back < 1:
+        parser.error("--go-back must be at least 1")
     if go_back > len(boundaries):
         print(f"Only {len(boundaries)} compaction(s) found; going back {len(boundaries)}.")
         go_back = len(boundaries)
 
     target = boundaries[-go_back]
+    if target["last_real_line"] is None:
+        print("Compaction boundary has no recoverable user/assistant message before it.", file=sys.stderr)
+        sys.exit(1)
     cutoff = trim_trailing_noise(lines, target["last_real_line"] + 1)
-    new_id = create_recovered_session(src_path, project_dir, cutoff, lines)
+    try:
+        new_id = create_recovered_session(src_path, project_dir, cutoff, lines)
+    except ValueError as exc:
+        print(f"Recovery refused: {exc}", file=sys.stderr)
+        sys.exit(1)
 
     original_cwd = cs.cwd_from_lines(lines[:cutoff]) or cs.project_dir_to_cwd(project_dir)
 
@@ -137,7 +166,7 @@ def main():
     print()
     print("To resume, open a new terminal and run:")
     print()
-    print(f"  cd {original_cwd}")
+    print(f"  cd -- {shlex.quote(str(original_cwd))}")
     print(f"  claude --resume {new_id}")
     print()
 

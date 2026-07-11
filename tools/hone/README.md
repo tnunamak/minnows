@@ -19,8 +19,9 @@ hone work <id> --repo /path/to/repo            # execute one packet (maker ≠ j
 hone work <id> --repo /path/to/repo --defer-judge
                                                # land on deterministic gates, mark model review pending
 hone review-batch --repo /path/to/repo         # batch-review pending landed packets; never auto-reverts
-hone lane emit|gate|land --packet <id> --repo /path/to/repo
-                                               # deterministic spine for EXTERNAL (Workflow-substrate)
+HONE_ENABLE_EXTERNAL_LANE=1 hone lane emit|gate|land --packet <id> --repo /path/to/repo
+                                               # EXPERIMENTAL external Workflow substrate;
+                                               # same-user Bash is not a bettable state boundary
                                                # makers/judges — books identical, engine-run receipts only
                                                # (design: SUBSTRATE.md; driver: workflows/hone-lane.js)
 hone reset <id> --repo /path/to/repo           # deliberately reopen a terminal packet (landed needs --force)

@@ -12,7 +12,7 @@
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createProvider, runCli, DEFAULT_TIMEOUT_MS } from "./provider.mjs";
+import { CLAUDE_NO_MCP_ARGS, createProvider, noMcpEnv, runCli, DEFAULT_TIMEOUT_MS } from "./provider.mjs";
 
 const MODEL = process.env.HONE_CLAUDE_MODEL || "sonnet";
 // effort is FIRST-CLASS and always explicit — never the CLI's silent default (L1
@@ -22,8 +22,8 @@ const EFFORT = process.env.HONE_CLAUDE_JUDGE_EFFORT || "high";
 
 async function exec(prompt, { timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
   const cwd = mkdtempSync(join(tmpdir(), "hone-claude-"));
-  const args = ["-p", "--model", MODEL, "--effort", EFFORT, "--output-format", "json", "--no-session-persistence"];
-  const { stdout, durationMs } = await runCli("claude", args, { input: prompt, timeoutMs, cwd });
+  const args = ["-p", "--model", MODEL, "--effort", EFFORT, "--output-format", "json", "--no-session-persistence", ...CLAUDE_NO_MCP_ARGS];
+  const { stdout, durationMs } = await runCli("claude", args, { input: prompt, timeoutMs, cwd, env: noMcpEnv() });
 
   let envelope;
   try {

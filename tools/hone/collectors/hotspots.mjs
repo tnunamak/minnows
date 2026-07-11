@@ -12,7 +12,7 @@
 // Files matching the profile's nogo_path_pattern are RANKED AND FLAGGED, never hidden
 // (essential security complexity: classify + flag, don't auto-target).
 import { join } from 'node:path';
-import { escRe } from '../lib/util.mjs';
+import { walkSourceFiles } from '../lib/util.mjs';
 
 export function collectHotspots(inv) {
   const { ctx, ownedDirs } = inv;
@@ -22,16 +22,7 @@ export function collectHotspots(inv) {
   const nogoRe = nogoPattern ? new RegExp(nogoPattern, 'i') : null;
 
   // ---- owned source files (find, bounded depth; exclusions from profile) ----
-  const files = [];
-  const excludeArgs = excludeNames.map((p) => `! -name '${p}'`).join(' ');
-  for (const dir of ownedDirs) {
-    const found = inv.ctx.sh(
-      `find '${join(ctx.repoRoot, dir)}' -maxdepth ${depth} -type f ` +
-      `\\( -name '*.js' -o -name '*.mjs' -o -name '*.cjs' -o -name '*.ts' -o -name '*.tsx' -o -name '*.jsx' \\) ` +
-      `${excludeArgs} 2>/dev/null`,
-    );
-    for (const abs of found.split('\n').filter(Boolean)) files.push(inv.rel(abs));
-  }
+  const files = ownedDirs.flatMap((dir) => walkSourceFiles(join(ctx.repoRoot, dir), { maxDepth: depth, excludeNames }).map(inv.rel));
   files.sort();
 
   // cognitive hotspot count per file, from the shared flagged universe (cc > cog) —
@@ -44,14 +35,10 @@ export function collectHotspots(inv) {
   };
 
   // coupling proxy (ported): how many OTHER owned files reference this file's basename.
-  const dirsAbs = ownedDirs.map((d) => `'${join(ctx.repoRoot, d)}'`).join(' ');
   const coupling = (f) => {
     const base = f.split('/').pop().replace(/\.(js|mjs|cjs|ts|tsx|jsx)$/, '');
-    const n = inv.ctx.sh(
-      `grep -rl -E "${base.replace(/[^a-zA-Z0-9]/g, '.')}" ${dirsAbs} 2>/dev/null | ` +
-      `grep -v -E "${f.replace(/[^a-zA-Z0-9]/g, '.')}$|\\.test\\." | wc -l`,
-    ).trim();
-    return Number(n) || 0;
+    const word = new RegExp(base.replace(/[^a-zA-Z0-9]/g, '.'));
+    return files.filter((other) => other !== f && !/\.test\./.test(other) && word.test(inv.srcOf(join(ctx.repoRoot, other)))).length;
   };
 
   const rows = files.map((f) => {

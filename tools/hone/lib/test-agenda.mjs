@@ -59,7 +59,7 @@ function seedInventory(root) {
     counts: { flagged_fns: 2, flagged_files: 1, total_excess_mass: 30 },
   }));
   writeFileSync(join(inv, 'tier-mass.json'), JSON.stringify({
-    generated_from: { repo_sha: 'fixture' },
+    generated_from: { repo_sha: 'fixtureinventorysha0000000000000000000000' },
     universe_tier_count: { T0: 1, 'T1-seam': 1 },
     universe_tier_mass: { T0: 5, 'T1-seam': 25 },
     by_subsystem: [{ subsystem: 'srva', files: 1, fns: 2, mass: 30, tiers: { T0: 5 } }],
@@ -71,14 +71,14 @@ function seedInventory(root) {
     ],
   }));
   writeFileSync(join(inv, 'hotspots.json'), JSON.stringify({
-    generated_from: {}, files: [{ file: 'srva/a.mjs', loc: 120, churn: 12, cog: 40, coupling: 3, score: 99, nogo: false }],
+    generated_from: { repo_sha: 'fixtureinventorysha0000000000000000000000' }, files: [{ file: 'srva/a.mjs', loc: 120, churn: 12, cog: 40, coupling: 3, score: 99, nogo: false }],
   }));
   writeFileSync(join(inv, 'callback-smells.json'), JSON.stringify({
-    generated_from: {}, by_class: { T1b: 1 }, mass_by_class: { T1b: 9 }, by_kind: { iterator: 1 }, b_flagged: 0,
+    generated_from: { repo_sha: 'fixtureinventorysha0000000000000000000000' }, by_class: { T1b: 1 }, mass_by_class: { T1b: 9 }, by_kind: { iterator: 1 }, b_flagged: 0,
     callbacks: [{ file: 'srva/a.mjs', parent_fn: 'bigFn', callback_anchor: '.map', callback_kind: 'iterator', cc: 9, excess: 4, captured_vars: ['x'], captured_mutable_vars: [], recommended_class: 'T1b', why: 'captures x' }],
   }));
   writeFileSync(join(inv, 'test-signals.json'), JSON.stringify({
-    generated_from: { repo_sha: 'fixture', test_files: 2 },
+    generated_from: { repo_sha: 'fixtureinventorysha0000000000000000000000', test_files: 2 },
     skips: { total: 4, pattern: 'static', files: [{ file: 'test/slow.test.mjs', skips: 3 }, { file: 'test/old.test.mjs', skips: 1 }] },
     zero_by_name: { by_name_only: true, note: 'weak', files: [{ file: 'srva/dark.mjs', exports: 5, unreferenced: ['darkOne', 'darkTwo'], by_name_only: true }] },
   }));
@@ -184,7 +184,7 @@ const MODEL_AGENDA = {
   const { root, doctrine } = newAgendaRepo('dry');
   writePacket(root, makePacket('rr-aa'));
   const { state, deps } = mockDeps([fence(MODEL_AGENDA)]);
-  const r = await executeAgenda({ repoRoot: root, gitRoot: root, repoSha: 'sha', doctrinePath: doctrine, dryRun: true }, deps);
+  const r = await executeAgenda({ repoRoot: root, gitRoot: root, repoSha: 'fixtureinventorysha0000000000000000000000', doctrinePath: doctrine, dryRun: true }, deps);
   ok('dry-run: no provider call', r.outcome === 'dry-run' && state.calls.length === 0);
   ok('dry-run: prints per-section byte sizes + prompt', /sensor:tier-mass/.test(r.summary) && /--- prompt follows ---/.test(r.summary));
   ok('dry-run: prompt carries doctrine + sensors + contract', /fixture doctrine/.test(r.prompt) && /cc=40/.test(r.prompt) && /est_cost/.test(r.prompt));
@@ -198,7 +198,7 @@ const MODEL_AGENDA = {
   const { root, doctrine } = newAgendaRepo('emit');
   writePacket(root, makePacket('rr-aa'));
   const { state, deps } = mockDeps([fence(MODEL_AGENDA)]);
-  const r = await executeAgenda({ repoRoot: root, gitRoot: root, repoSha: 'sha', doctrinePath: doctrine }, deps);
+  const r = await executeAgenda({ repoRoot: root, gitRoot: root, repoSha: 'fixtureinventorysha0000000000000000000000', doctrinePath: doctrine }, deps);
   ok('emit: incumbent agenda uses the claude family', state.calls[0].provider === 'claude');
   const aj = JSON.parse(readFileSync(join(root, 'quality', 'AGENDA.json'), 'utf8'));
   const md = readFileSync(join(root, 'quality', 'AGENDA.md'), 'utf8');
@@ -225,11 +225,11 @@ const MODEL_AGENDA = {
 
   // ---- 4. aging across a second + third agenda (same repo) ----
   const secondNotChosen = { ...MODEL_AGENDA, deltas_from_prior: ['kept shape'] };
-  await executeAgenda({ repoRoot: root, gitRoot: root, repoSha: 'sha', doctrinePath: doctrine }, mockDeps([fence(secondNotChosen)]).deps);
+  await executeAgenda({ repoRoot: root, gitRoot: root, repoSha: 'fixtureinventorysha0000000000000000000000', doctrinePath: doctrine }, mockDeps([fence(secondNotChosen)]).deps);
   const nc2 = JSON.parse(readFileSync(join(root, 'quality', 'agendas', 'not-chosen.json'), 'utf8'));
   ok('aging: age_count increments across agendas', nc2.entries['low-mass-tidy']?.age_count === 2, JSON.stringify(nc2));
   const third = { ...MODEL_AGENDA, items: [...MODEL_AGENDA.items, { id: 'low-mass-tidy', what: 'small T0 tidy — now chosen', why_now: 'aged in', evidence: [{ type: 'sensor', citation: 'srva/a.mjs:cc[smallFn]=7' }], workflow_class: 'T0', acceptance_criteria: ['x'], est_cost: { usd: 1, basis: 'actuals' } }], not_chosen: [] };
-  await executeAgenda({ repoRoot: root, gitRoot: root, repoSha: 'sha', doctrinePath: doctrine }, mockDeps([fence(third)]).deps);
+  await executeAgenda({ repoRoot: root, gitRoot: root, repoSha: 'fixtureinventorysha0000000000000000000000', doctrinePath: doctrine }, mockDeps([fence(third)]).deps);
   const nc3 = JSON.parse(readFileSync(join(root, 'quality', 'agendas', 'not-chosen.json'), 'utf8'));
   ok('aging: chosen item leaves the not-chosen file', !('low-mass-tidy' in nc3.entries), JSON.stringify(nc3));
 
@@ -239,7 +239,7 @@ const MODEL_AGENDA = {
   const ledgerBefore = readFileSync(join(root, 'quality', 'selection-ledger.jsonl'), 'utf8');
   const challengerReply = { ...MODEL_AGENDA, items: [MODEL_AGENDA.items[0], { id: 'challenger-only', what: 'a thing only the challenger sees', why_now: 'independent take', evidence: [{ type: 'sensor', citation: 'srva/a.mjs:churn=12' }], workflow_class: 'T1a', acceptance_criteria: ['x'], est_cost: { usd: 2, basis: 'actuals' } }] };
   const { state: chState, deps: chDeps } = mockDeps([fence(challengerReply)]);
-  const cr = await executeAgenda({ repoRoot: root, gitRoot: root, repoSha: 'sha', doctrinePath: doctrine, challenge: true }, chDeps);
+  const cr = await executeAgenda({ repoRoot: root, gitRoot: root, repoSha: 'fixtureinventorysha0000000000000000000000', doctrinePath: doctrine, challenge: true }, chDeps);
   ok('challenge: uses the OTHER provider family (codex)', chState.calls[0].provider === 'codex');
   const chPrompt = chState.calls[0].prompt;
   ok('challenge: BLIND — no prior-agenda/ledger/not-chosen section in the prompt',
@@ -264,7 +264,7 @@ const MODEL_AGENDA = {
 {
   const { root, doctrine } = newAgendaRepo('retry');
   const { state, deps } = mockDeps(['no json here at all', fence(MODEL_AGENDA)]);
-  const r = await executeAgenda({ repoRoot: root, gitRoot: root, repoSha: 'sha', doctrinePath: doctrine }, deps);
+  const r = await executeAgenda({ repoRoot: root, gitRoot: root, repoSha: 'fixtureinventorysha0000000000000000000000', doctrinePath: doctrine }, deps);
   ok('retry: unparseable first reply → ONE strict retry succeeds', r.exitCode === 0 && state.calls.length === 2 && /ONLY the single fenced/.test(state.calls[1].prompt));
   rmSync(root, { recursive: true, force: true });
 }
@@ -272,7 +272,7 @@ const MODEL_AGENDA = {
   const { root, doctrine } = newAgendaRepo('fail');
   const { deps } = mockDeps(['garbage', 'still garbage']);
   let err = null;
-  try { await executeAgenda({ repoRoot: root, gitRoot: root, repoSha: 'sha', doctrinePath: doctrine }, deps); } catch (e) { err = e.message; }
+  try { await executeAgenda({ repoRoot: root, gitRoot: root, repoSha: 'fixtureinventorysha0000000000000000000000', doctrinePath: doctrine }, deps); } catch (e) { err = e.message; }
   ok('fail-loud: two contract violations → throws, nothing written', /fail-loud/.test(err || '') && !existsSync(join(root, 'quality', 'AGENDA.json')), err ?? '(no error)');
   ok('contract: items without typed evidence rejected by the normalizer',
     normalizeModelAgenda({ items: [{ id: 'x', what: 'w', why_now: 'y', evidence: [], workflow_class: 'T0', acceptance_criteria: ['a'], est_cost: { usd: 1 } }] }).errors.some((e) => /never bare judgment/.test(e)));

@@ -18,6 +18,14 @@ import { spawn } from "node:child_process";
 
 export const VERDICTS = Object.freeze(["PASS", "REVISE", "REJECT"]);
 export const DEFAULT_TIMEOUT_MS = Number(process.env.HONE_JUDGE_TIMEOUT_MS ?? 5 * 60 * 1000);
+export const CLAUDE_NO_MCP_ARGS = Object.freeze(["--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}']);
+export const noMcpEnv = () => ({ ...process.env, ENABLE_CLAUDEAI_MCP_SERVERS: "false" });
+export function requireGpt56(model) {
+  if (!/^gpt-5\.6(?:-|$)/.test(model)) {
+    throw new Error(`refusing non-GPT-5.6 Codex model '${model}'`);
+  }
+  return model;
+}
 
 // ---------------------------------------------------------------------------
 // Subprocess runner (shared by all adapters): 5-min default timeout, process-
@@ -80,6 +88,22 @@ export function runCli(cmd, args, { input = null, timeoutMs = DEFAULT_TIMEOUT_MS
     if (input != null) child.stdin.write(input);
     child.stdin.end();
   });
+}
+
+/** Derive fail-closed MCP disable overrides from the live Codex profile. */
+export async function codexNoMcpArgs(cwd) {
+  const { stdout } = await runCli("codex", ["mcp", "list", "--json"], { cwd, timeoutMs: 30_000 });
+  let rows;
+  try { rows = JSON.parse(stdout); }
+  catch { throw Object.assign(new Error("codex MCP discovery emitted invalid JSON"), { kind: "mcp-discovery" }); }
+  if (!Array.isArray(rows) || rows.some((row) => !row || typeof row !== "object" || typeof row.name !== "string" || !row.name)) {
+    throw Object.assign(new Error("codex MCP discovery returned an unsupported schema"), { kind: "mcp-discovery" });
+  }
+  const names = [...new Set(rows.map((row) => row.name))].sort();
+  if (names.some((name) => !/^[A-Za-z0-9_-]+$/.test(name))) {
+    throw Object.assign(new Error("codex MCP name cannot be represented safely as a config override"), { kind: "mcp-discovery" });
+  }
+  return names.flatMap((name) => ["-c", `mcp_servers.${name}.enabled=false`]);
 }
 
 // ---------------------------------------------------------------------------

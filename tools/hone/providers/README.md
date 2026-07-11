@@ -54,7 +54,7 @@ judge). The JSON envelope supplies real `costUsd` and token usage. Model:
 **`codex.mjs`** — `codex exec --ephemeral --skip-git-repo-check -s read-only --color never
 -m <m> -o <file> -`, prompt on stdin, fresh temp cwd. `-o` captures the final message
 robustly; `-s read-only` because a judge reviews evidence, it never mutates. Model:
-`HONE_CODEX_MODEL` (default `gpt-5.5`). ChatGPT-plan auth reports tokens, not dollars —
+`HONE_CODEX_MODEL` (default `gpt-5.6-sol`; non-GPT-5.6 values are refused). ChatGPT-plan auth reports tokens, not dollars —
 `meta.tokens.total` + duration are the cost proxy. Verified against codex-cli 0.142.5.
 
 ## Discrimination test (proof the judges can judge)
@@ -78,7 +78,7 @@ maker outputs:
 | provider (model) | good | bad-behavior | bad-relocation | wall/call | cost/call |
 |---|---|---|---|---|---|
 | claude (sonnet) | PASS (0.92) | REJECT (0.95) | REJECT (0.90) | 14–16 s | $0.14–0.26 |
-| codex (gpt-5.5, xhigh) | PASS (0.90) | REJECT (0.99) | REJECT (0.93) | 24–68 s | 15.3k–26.0k tokens (subscription) |
+| codex (historical GPT-5.5, xhigh) | PASS (0.90) | REJECT (0.99) | REJECT (0.93) | 24–68 s | 15.3k–26.0k tokens (subscription) |
 
 6/6 correct, all single-attempt, both providers cited the exact defect (the `<=`→`<`
 boundary flip incl. that the supplied evidence couldn't have caught it; the still-implicit
