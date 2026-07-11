@@ -45,7 +45,7 @@ for pack_json in data/*/pack.json; do
   (
     cd "$DIST"
     sha256sum "$(basename "$tar_path")" >"${tag}.SHA256SUMS"
-    cp "$pack_json" "${tag}-pack.json"
+    cp "$REPO_ROOT/$pack_json" "${tag}-pack.json"
   )
 
   if ! git rev-parse "$tag" >/dev/null 2>&1; then
