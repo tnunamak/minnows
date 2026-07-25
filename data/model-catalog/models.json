@@ -68,6 +68,13 @@
       ]
     },
     {
+      "id": "claude-opus-5",
+      "provider": "anthropic",
+      "family": "claude-opus",
+      "status": "ga",
+      "aliases": []
+    },
+    {
       "id": "claude-sonnet-4-5",
       "provider": "anthropic",
       "family": "claude-sonnet",

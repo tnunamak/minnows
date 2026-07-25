@@ -26,6 +26,25 @@
       "notes": "$5/$25 regular; fast mode $10/$50."
     },
     {
+      "id": "anthropic-opus-5-2026-07-24",
+      "url": "https://www.anthropic.com/news/claude-opus-5",
+      "title": "Introducing Claude Opus 5",
+      "publisher": "Anthropic",
+      "published": "2026-07-24",
+      "retrieved_at": "2026-07-25",
+      "kind": "vendor_blog",
+      "notes": "$5/$25; 1M ctx; 128k out; effort low..max default high; adaptive thinking; qualitative benchmarks only (Frontier-Bench v0.1, CursorBench 3.2, ARC-AGI 3, GDPval-AA v2, OSWorld 2.0) — no exact numeric scores published on primary pages."
+    },
+    {
+      "id": "anthropic-opus-5-system-card-2026-07-24",
+      "url": "https://www.anthropic.com/claude-opus-5-system-card",
+      "title": "Claude Opus 5 System Card",
+      "publisher": "Anthropic",
+      "published": "2026-07-24",
+      "retrieved_at": "2026-07-25",
+      "kind": "vendor_docs"
+    },
+    {
       "id": "anthropic-fable-mythos-2026-06-09",
       "url": "https://www.anthropic.com/news/claude-fable-5-mythos-5",
       "title": "Claude Fable 5 and Claude Mythos 5",
