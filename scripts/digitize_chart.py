@@ -44,6 +44,7 @@ SERIES_COLORS: dict[str, tuple[tuple[int, int, int], tuple[int, int, int]]] = {
     "green": ((0, 120, 80), (80, 200, 140)),
     "teal": ((40, 160, 140), (120, 220, 200)),
     "brown": ((120, 60, 0), (200, 130, 60)),
+    "blue": ((20, 95, 190), (70, 145, 235)),  # Opus 4.8 (Opus 5 launch charts)
 }
 
 

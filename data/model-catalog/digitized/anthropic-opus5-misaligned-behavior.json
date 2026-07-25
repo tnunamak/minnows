@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "kind": "digitized_chart",
+  "title": "Opus 5 misaligned behavior (automated behavioral audit, printed labels)",
+  "retrieved_at": "2026-07-25",
+  "page_url": "https://www.anthropic.com/news/claude-opus-5",
+  "asset": {
+    "path": "data/model-catalog/digitized/assets/anthropic-opus5-misaligned-behavior.png",
+    "source_url": "https://www-cdn.anthropic.com/images/4zrzovbb/website/76d4af96516ffca2aceb4c1d0b0a83e2720d874b-3840x2160.png",
+    "sha256": "8b436e10a59cf9c72aa48993b06427a4c709b13db64d31f1ff2c19f71be78600",
+    "width": 3840,
+    "height": 2160,
+    "format": "PNG"
+  },
+  "digitization": {
+    "method": "labeled_value_read",
+    "axis": {
+      "notes": "values read from printed labels on chart, not geometric inversion"
+    },
+    "error_estimate": {
+      "x_abs_median_vs_dual_read": null,
+      "y_abs_median_vs_dual_read": null,
+      "notes": "error_estimate filled only when --dual-read JSON provided"
+    },
+    "operator": "automated"
+  },
+  "points": [
+    {
+      "model": "claude-opus-4-8",
+      "y": 2.85,
+      "metric": "Misaligned behavior (1-10)"
+    },
+    {
+      "model": "claude-mythos-5",
+      "y": 2.81,
+      "metric": "Misaligned behavior (1-10)"
+    },
+    {
+      "model": "claude-sonnet-5",
+      "y": 3.35,
+      "metric": "Misaligned behavior (1-10)"
+    },
+    {
+      "model": "claude-opus-5",
+      "y": 2.3,
+      "metric": "Misaligned behavior (1-10)"
+    }
+  ],
+  "dual_read": [],
+  "notes": "Printed bar labels transcribed verbatim; lower is better; error bars not digitized. Corroborates blog text \"2.3 on overall misaligned behavior\" for Opus 5.",
+  "catalog_hint": {
+    "source_type": "digitized_chart",
+    "unit_for_y": "pass_rate or accuracy depending on metric",
+    "unit_for_x": "USD cost per task when x is cost"
+  }
+}
