@@ -26,7 +26,7 @@ import json
 import os
 import re
 import sys
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterable, Optional
@@ -45,7 +45,7 @@ def _load_lib():
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
             return mod
-    return None  # convo degrades gracefully without it (chain-stitching disabled)
+    return None  # convo degrades gracefully without the shared Claude marker definition.
 
 
 cs = _load_lib()
@@ -73,6 +73,25 @@ class Turn:
 
 
 @dataclass
+class TranscriptProvenance:
+    """Facts about one loaded physical session, separate from its normalized turns.
+
+    `logical_thread_status` describes only explicit harness evidence.  In particular,
+    ``single_session`` means this file did not name a parent or fork; it does *not*
+    assert that the complete logical thread is known.
+    """
+
+    physical_session_status: str = "complete"  # complete | complete_prefix | unknown
+    logical_thread_status: str = "single_session"  # single_session | explicit_parent | fork | unknown
+    segment_count: int = 1
+    deduplicated_record_count: int = 0
+    parent_session_id: Optional[str] = None
+    forked_from_session_id: Optional[str] = None
+    notes: list[str] = field(default_factory=list)
+    harness_metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
 class Session:
     harness: str
     session_id: str
@@ -80,6 +99,7 @@ class Session:
     project: Optional[str]         # human-readable project/cwd if known
     mtime: float
     turns: list = field(default_factory=list)   # list[Turn], chronological
+    provenance: TranscriptProvenance = field(default_factory=TranscriptProvenance)
 
     @property
     def started(self) -> Optional[str]:
@@ -158,8 +178,16 @@ def _looks_like_meta_user(text: str) -> bool:
 # Loaders — one per harness, each returns a Session (or None)
 # --------------------------------------------------------------------------------------
 
-def _read_jsonl(path: Path) -> Iterable[dict]:
-    """Parse JSONL; tolerate only a torn final line from an active writer."""
+@dataclass
+class JsonlReadState:
+    """Integrity outcome shared by a streaming JSONL reader and its loader."""
+
+    physical_session_status: str = "complete"
+
+
+def _read_jsonl(path: Path, state: Optional[JsonlReadState] = None) -> Iterable[dict]:
+    """Parse JSONL, reporting a safely readable prefix when an active writer tears EOF."""
+    state = state or JsonlReadState()
     with open(path, "r", encoding="utf-8", errors="replace") as fh:
         pending = None
         for line_no, line in enumerate(fh, 1):
@@ -168,9 +196,12 @@ def _read_jsonl(path: Path) -> Iterable[dict]:
                 prior = prior.strip()
                 if prior:
                     try:
-                        yield json.loads(prior)
+                        row = json.loads(prior)
                     except json.JSONDecodeError as exc:
                         raise ValueError(f"corrupt JSONL at {path}:{prior_no}: {exc.msg}") from exc
+                    if not isinstance(row, dict):
+                        raise ValueError(f"unsupported JSONL record at {path}:{prior_no}: expected an object")
+                    yield row
             pending = (line_no, line)
         if pending is not None:
             _, line = pending
@@ -179,11 +210,55 @@ def _read_jsonl(path: Path) -> Iterable[dict]:
             if not line:
                 return
             try:
-                yield json.loads(line)
+                row = json.loads(line)
             except json.JSONDecodeError as exc:
                 if terminated:
                     raise ValueError(f"corrupt JSONL at {path}:{pending[0]}: {exc.msg}") from exc
+                state.physical_session_status = "complete_prefix"
                 return
+            if not isinstance(row, dict):
+                raise ValueError(f"unsupported JSONL record at {path}:{pending[0]}: expected an object")
+            yield row
+
+
+def _claude_compaction_boundary(row: dict) -> bool:
+    """Recognize both current boundary records and older injected summary prompts."""
+    if row.get("type") == "system" and row.get("subtype") == "compact_boundary":
+        return True
+    content = row.get("message", {}).get("content")
+    marker = cs.COMPACTION_MARKER if cs else "continued from a previous conversation"
+    return row.get("type") == "user" and isinstance(content, str) and marker in content
+
+
+def _claude_record_fingerprint(row: dict) -> Optional[tuple[str, str]]:
+    """Return the safe replay identity: native UUID plus transcript-relevant semantics.
+
+    UUID reuse is not itself proof of a replay.  Parent links and visibility flags are
+    included so branch copies and changed rows remain in chronology rather than being
+    silently discarded.
+    """
+    record_id = row.get("uuid")
+    if not isinstance(record_id, str) or not record_id:
+        return None
+    message = row.get("message")
+    # Claude appends mutable accounting fields (for example ``usage``) to replayed
+    # messages.  The normalized transcript observes only role/content, not those
+    # counters, so keep the replay identity at that same semantic boundary.
+    message_semantics = (
+        {"role": message.get("role"), "content": message.get("content")}
+        if isinstance(message, dict) else message
+    )
+    semantic = {
+        "type": row.get("type"),
+        "subtype": row.get("subtype"),
+        "message": message_semantics,
+        "parentUuid": row.get("parentUuid"),
+        "isMeta": row.get("isMeta"),
+        "isSidechain": row.get("isSidechain"),
+        "agentId": row.get("agentId"),
+    }
+    return record_id, json.dumps(semantic, sort_keys=True, ensure_ascii=False,
+                                 separators=(",", ":"), default=str)
 
 
 def load_claude(path: Path) -> Optional[Session]:
@@ -191,10 +266,42 @@ def load_claude(path: Path) -> Optional[Session]:
     session_id = path.stem
     cwd = None
     turns: list[Turn] = []
+    state = JsonlReadState()
+    provenance = TranscriptProvenance()
+    seen_records: dict[str, set[str]] = {}
+    conflicting_record_ids: set[str] = set()
+    sidechain_rows = 0
+    meta_rows = 0
+    parent_ids: set[str] = set()
+    leaf_uuid = None
+    previous_was_system_boundary = False
 
-    for row in _read_jsonl(path):
+    for row in _read_jsonl(path, state):
+        identity = _claude_record_fingerprint(row)
+        if identity:
+            record_id, fingerprint = identity
+            prior = seen_records.setdefault(record_id, set())
+            if fingerprint in prior:
+                provenance.deduplicated_record_count += 1
+                continue
+            if prior:
+                conflicting_record_ids.add(record_id)
+            prior.add(fingerprint)
         rtype = row.get("type")
+        if isinstance(row.get("parentUuid"), str):
+            parent_ids.add(row["parentUuid"])
+        if rtype == "last-prompt" and isinstance(row.get("leafUuid"), str):
+            leaf_uuid = row["leafUuid"]
+        is_system_boundary = rtype == "system" and row.get("subtype") == "compact_boundary"
+        is_summary_boundary = _claude_compaction_boundary(row) and not is_system_boundary
+        # Current Claude writes a compact_boundary row followed immediately by the
+        # synthetic summary prompt for the same event.  Older logs can have only the
+        # prompt, which remains a boundary in its own right.
+        if is_system_boundary or (is_summary_boundary and not previous_was_system_boundary):
+            provenance.segment_count += 1
+        previous_was_system_boundary = is_system_boundary
         if row.get("isSidechain"):
+            sidechain_rows += 1
             continue
         if cwd is None and row.get("cwd"):
             cwd = row["cwd"]
@@ -202,6 +309,7 @@ def load_claude(path: Path) -> Optional[Session]:
 
         if rtype == "user":
             if row.get("isMeta"):
+                meta_rows += 1
                 continue
             msg = row.get("message", {})
             content = msg.get("content")
@@ -229,7 +337,7 @@ def load_claude(path: Path) -> Optional[Session]:
                             "text": _stringify_tool_result(b.get("content", "")),
                         })
                 if text_parts:
-                    turns.append(Turn("user", "\n\n".join(text_parts), ts, events))
+                    turns.append(Turn("user", "\n\n".join(text_parts), ts, events=events))
                 elif events:
                     # Pure tool-result turn: attach to the preceding assistant turn's events.
                     if turns and turns[-1].role == "assistant":
@@ -275,7 +383,24 @@ def load_claude(path: Path) -> Optional[Session]:
 
     if not turns:
         return None
-    return Session("claude", session_id, str(path), cwd, path.stat().st_mtime, turns)
+    provenance.physical_session_status = state.physical_session_status
+    provenance.harness_metadata = {
+        "last_prompt_leaf_uuid": leaf_uuid,
+        "observed_parent_uuid_count": len(parent_ids),
+        "skipped_sidechain_record_count": sidechain_rows,
+        "skipped_meta_record_count": meta_rows,
+        "conflicting_record_id_count": len(conflicting_record_ids),
+    }
+    if conflicting_record_ids:
+        provenance.notes.append(
+            "Claude records reused an identifier with conflicting semantic content; "
+            "all were retained in file order."
+        )
+    if leaf_uuid and leaf_uuid not in seen_records:
+        provenance.notes.append(
+            "Claude last-prompt leaf was not found in this physical file; the branch was not reconstructed."
+        )
+    return Session("claude", session_id, str(path), cwd, path.stat().st_mtime, turns, provenance)
 
 
 def load_codex(path: Path) -> Optional[Session]:
@@ -283,12 +408,25 @@ def load_codex(path: Path) -> Optional[Session]:
     session_id = path.stem.replace("rollout-", "")
     cwd = None
     turns: list[Turn] = []
-    seen_first_user = False
+    state = JsonlReadState()
+    provenance = TranscriptProvenance()
+    parent_thread_id = None
+    forked_from_id = None
+    replacement_history_count = 0
 
-    for row in _read_jsonl(path):
+    for row in _read_jsonl(path, state):
         if row.get("type") == "session_meta":
             p = row.get("payload", {})
             cwd = p.get("cwd") or p.get("cwd_path") or cwd
+            parent_thread_id = p.get("parent_thread_id") or parent_thread_id
+            forked_from_id = p.get("forked_from_id") or forked_from_id
+            continue
+        if row.get("type") == "compacted":
+            provenance.segment_count += 1
+            p = row.get("payload", {})
+            history = p.get("replacement_history") if isinstance(p, dict) else None
+            if isinstance(history, list):
+                replacement_history_count += len(history)
             continue
         if row.get("type") != "response_item":
             continue
@@ -302,12 +440,10 @@ def load_codex(path: Path) -> Optional[Session]:
             if role == "user":
                 # First user message is the AGENTS.md/env preamble — skip it and any meta.
                 if _looks_like_meta_user(text):
-                    seen_first_user = True
                     continue
                 if not text.strip():
                     continue
                 turns.append(Turn("user", clean_text(text), ts))
-                seen_first_user = True
             elif role == "assistant":
                 t = clean_text(text)
                 if turns and turns[-1].role == "assistant":
@@ -337,15 +473,49 @@ def load_codex(path: Path) -> Optional[Session]:
 
     if not turns:
         return None
-    return Session("codex", session_id, str(path), cwd, path.stat().st_mtime, turns)
+    provenance.physical_session_status = state.physical_session_status
+    if forked_from_id:
+        provenance.logical_thread_status = "fork"
+    elif parent_thread_id:
+        provenance.logical_thread_status = "explicit_parent"
+    provenance.harness_metadata = {
+        "parent_thread_id": parent_thread_id,
+        "forked_from_id": forked_from_id,
+        "replacement_history_item_count": replacement_history_count,
+    }
+    return Session("codex", session_id, str(path), cwd, path.stat().st_mtime, turns, provenance)
 
 
 def load_gemini(path: Path) -> Optional[Session]:
-    """Gemini CLI: ~/.gemini/tmp/<projectHash>/chats/session-*.json"""
-    try:
-        obj = json.loads(path.read_text(encoding="utf-8", errors="replace"))
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"corrupt Gemini session {path}: {exc.msg}") from exc
+    """Gemini CLI JSON snapshots and verified JSONL mutation streams.
+
+    JSONL starts with session metadata, interleaves user/gemini message records, and
+    uses shallow ``$set`` records for fields such as ``lastUpdated``.  It is not a
+    line-delimited copy of the JSON snapshot schema.
+    """
+    state = JsonlReadState()
+    if path.suffix == ".jsonl":
+        obj: dict[str, Any] = {}
+        messages: list[dict] = []
+        for row in _read_jsonl(path, state):
+            if "$set" in row and isinstance(row["$set"], dict):
+                update = row["$set"]
+                updated_messages = update.get("messages")
+                if isinstance(updated_messages, list):
+                    # `$set.messages` replaces the snapshot message array; preserving
+                    # that meaning keeps mutation-stream sessions with no direct rows.
+                    messages = [item for item in updated_messages if isinstance(item, dict)]
+                obj.update({key: value for key, value in update.items() if key != "messages"})
+            elif row.get("type") in ("user", "gemini", "assistant", "model"):
+                messages.append(row)
+            elif not obj:
+                obj.update(row)
+        obj["messages"] = messages
+    else:
+        try:
+            obj = json.loads(path.read_text(encoding="utf-8", errors="replace"))
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"corrupt Gemini session {path}: {exc.msg}") from exc
     if not isinstance(obj, dict):
         raise ValueError(f"unsupported Gemini session schema in {path}: top level must be an object")
     msgs = obj.get("messages")
@@ -378,7 +548,13 @@ def load_gemini(path: Path) -> Optional[Session]:
         return None
     # project hash dir is the parent-of-parent (chats/ -> <hash>/)
     project = obj.get("projectHash")
-    return Session("gemini", session_id, str(path), project, path.stat().st_mtime, turns)
+    provenance = TranscriptProvenance(physical_session_status=state.physical_session_status)
+    if isinstance(obj.get("summary"), str) and obj["summary"].strip():
+        provenance.harness_metadata["summary"] = "present"
+        provenance.notes.append("Gemini top-level summary is metadata and is not rendered as a user prompt.")
+    if path.suffix == ".jsonl":
+        provenance.harness_metadata["source_format"] = "jsonl_mutation_stream"
+    return Session("gemini", session_id, str(path), project, path.stat().st_mtime, turns, provenance)
 
 
 # --------------------------------------------------------------------------------------
@@ -504,12 +680,57 @@ def peek_codex(path: Path) -> Optional[Peek]:
 
 
 def peek_gemini(path: Path) -> Optional[Peek]:
-    # Gemini chat files are small single-JSON; just load fully.
-    s = load_gemini(path)
-    if not s:
+    # JSON snapshots are currently small. JSONL mutation streams can be active or huge,
+    # so keep their list path bounded just like the Claude and Codex peeks.
+    if path.suffix != ".jsonl":
+        s = load_gemini(path)
+        if not s:
+            return None
+        return Peek("gemini", s.session_id, s.path, s.project, s.mtime,
+                    s.first_user_text, sum(1 for t in s.turns if t.role == "user"), False)
+
+    state = JsonlReadState()
+    session_id = path.stem
+    project = None
+    first_user = ""
+    user_msgs = 0
+    truncated = False
+
+    def count_messages(messages: list[dict], replace: bool = False):
+        nonlocal first_user, user_msgs
+        if replace:
+            first_user = ""
+            user_msgs = 0
+        for message in messages:
+            if message.get("type") != "user":
+                continue
+            content = message.get("content")
+            text = content if isinstance(content, str) else _codex_text(content)
+            text = clean_text(text)
+            if text and not _looks_like_meta_user(text):
+                user_msgs += 1
+                if not first_user:
+                    first_user = text
+
+    for i, row in enumerate(_read_jsonl(path, state)):
+        if i >= _PEEK_MAX_LINES:
+            truncated = True
+            break
+        if row.get("sessionId") and session_id == path.stem:
+            session_id = row["sessionId"]
+        project = row.get("projectHash") or project
+        if "$set" in row and isinstance(row["$set"], dict):
+            update = row["$set"]
+            project = update.get("projectHash") or project
+            messages = update.get("messages")
+            if isinstance(messages, list):
+                count_messages([item for item in messages if isinstance(item, dict)], replace=True)
+            continue
+        count_messages([row])
+    if user_msgs == 0 and not first_user:
         return None
-    return Peek("gemini", s.session_id, s.path, s.project, s.mtime,
-                s.first_user_text, sum(1 for t in s.turns if t.role == "user"), False)
+    return Peek("gemini", session_id, str(path), project, path.stat().st_mtime,
+                first_user, user_msgs, truncated)
 
 
 # --------------------------------------------------------------------------------------
@@ -533,7 +754,7 @@ HARNESSES: dict[str, dict] = {
     },
     "gemini": {
         "root": Path.home() / ".gemini" / "tmp",
-        "glob": "*/chats/session-*.json",
+        "glob": ("*/chats/session-*.json", "*/chats/session-*.jsonl"),
         "loader": load_gemini,
         "peek": peek_gemini,
         "skip": lambda p: False,
@@ -601,7 +822,8 @@ def discover(harnesses: list[str], project_filter: Optional[str],
         root: Path = cfg["root"]
         if not root.exists():
             continue
-        paths = root.glob(cfg["glob"])
+        globs = cfg["glob"] if isinstance(cfg["glob"], tuple) else (cfg["glob"],)
+        paths: Iterable[Path] = (p for pattern in globs for p in root.glob(pattern))
         if h == "claude" and project_filter and "/" in project_filter and cs:
             exact_dir = cs.cwd_to_project_dir(project_filter)
             paths = exact_dir.glob("*.jsonl") if exact_dir else []
@@ -704,6 +926,19 @@ def render_session(session: Session, mode: str, n: Optional[int], color: bool) -
         out.append("")
         out.append(c("─" * 60, "2;37"))
     return "\n".join(out)
+
+
+def provenance_warning(provenance: TranscriptProvenance) -> Optional[str]:
+    """Return the small human warning needed to avoid a false completeness claim."""
+    if provenance.physical_session_status == "complete_prefix":
+        return "active writer detected; transcript ends at the last valid JSONL record"
+    if provenance.logical_thread_status in ("explicit_parent", "fork"):
+        kind = "fork" if provenance.logical_thread_status == "fork" else "parent thread"
+        return f"explicit Codex {kind} ancestry exists but is not joined into this physical session"
+    for note in provenance.notes:
+        if "not found in this physical file" in note:
+            return note
+    return None
 
 
 def summary_line(pk: "Peek", idx: Optional[int] = None) -> str:
@@ -936,6 +1171,7 @@ def cmd_show(args):
         data = {
             "harness": s.harness, "session_id": s.session_id, "path": s.path,
             "project": s.project,
+            "transcript": asdict(s.provenance),
             "exchanges": [{
                 "ts": ex["ts"], "user": ex["user"],
                 "assistant_final": ex["assistant_texts"][-1] if ex["assistant_texts"] else "",
@@ -948,6 +1184,9 @@ def cmd_show(args):
     color = sys.stdout.isatty() and not args.no_color
     header = _terminal_safe(f"# {s.harness}:{s.session_id}  ({s.project or '?'})")
     print(header)
+    warning = provenance_warning(s.provenance)
+    if warning:
+        print(_terminal_safe(f"# note: {warning}"))
     print(render_session(s, args.mode, args.n, color))
 
 

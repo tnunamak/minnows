@@ -67,20 +67,47 @@ Transcripts can be large. Prefer `-n` to bound exchanges, `grep` to locate befor
 and `--json` when you intend to process rather than display. When the user just wants to *see*
 the history, print the plain text form directly.
 
+## Session completeness and provenance
+
+`convo show` reads one **physical session**: one log file produced by one harness. Claude
+Code and Codex CLI normally retain multiple compactions in that same file, so valid turns
+from both before and after a compaction are included. A **compaction segment** is therefore
+not a new session or proof that the logical conversation moved to another file.
+
+`convo show --json` includes an additive `transcript` object. It reports the physical-file
+read status (`complete` or `complete_prefix` when an active writer left a torn final JSONL
+row), compaction segment count, replay records safely deduplicated, and any explicit harness
+ancestry. The default transcript stays clean: synthetic compaction summaries are never shown
+as user prompts.
+
+Logical threads can span physical sessions or forks, but `convo` only reports harness-recorded
+ancestry; it never guesses links from timestamps, topics, paths, or summary text. Codex native
+`parent_thread_id` and `forked_from_id` values are exposed as provenance and are not joined
+into the current transcript. Claude's UUID graph can be replayed or conflicting, so `convo`
+keeps the verified chronological physical-file transcript and records leaf/duplicate diagnostics
+rather than reconstructing an uncertain branch. No ancestry is treated as a claim that a
+logical thread is complete.
+
+Gemini supports its JSON snapshots and the verified JSONL mutation stream. Its top-level JSON
+`summary` is metadata, not a real user prompt. Gemini does not currently provide verified
+cross-file thread ancestry or a working-directory path; its project remains a hash when that
+is all the harness stores.
+
 ## Known limitations (state these if relevant)
 
-- **Compaction chains**: a session that was compacted is split across multiple files linked by
-  summary/`leafUuid` references (Claude). `convo` reads a single session file; it does **not**
-  yet stitch a compaction chain back together, so very long histories may be partial. The
-  older `claude-export` tool traces those chains (Claude-only) if full history is essential.
+- **Logical-thread recovery**: `convo show` intentionally selects and loads one physical
+  session. It does not concatenate parents, forks, sidechains, or subagent files, even when
+  a harness records an identifier for one. This avoids duplicated replacement history and
+  unverified cross-file joins.
 - **Gemini project tag**: Gemini chat files don't store the cwd, so their project shows as a
   hash, not a path. Filter Gemini sessions by `--all-projects` + `--since` or by id.
 - **Codex `+msg` count**: in `list`, a count like `133+msg` means the message count was capped
   during the fast header scan (huge rollout files); the full transcript is still read by `show`.
 - **`pi` and other harnesses**: not yet supported (no logs found on disk). The loader registry
-  in `bin/.local/bin/convo` (`HARNESSES`) is the extension point — add a `load_*`/`peek_*` pair.
+  in `tools/convo/convo` (`HARNESSES`) is the extension point — add a `load_*`/`peek_*` pair.
 
 ## Implementation
 
-Single stdlib-only Python script: `bin/.local/bin/convo` (stow-managed via the `bin` package).
-To add a harness, add a `load_<h>` + `peek_<h>` and an entry in the `HARNESSES` dict.
+Single stdlib-only Python script: `tools/convo/convo` (vendored into the generated skill by
+`./sync.sh`). To add a harness, add a `load_<h>` + `peek_<h>` and an entry in the
+`HARNESSES` dict.
