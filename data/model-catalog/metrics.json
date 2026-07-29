@@ -277,6 +277,16 @@
       "unit_default": "accuracy"
     },
     {
+      "id": "frontier-bench-v0-1",
+      "name": "Frontier-Bench v0.1",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "digitized_chart",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
+    },
+    {
       "id": "frontiermath-tier-1-3",
       "name": "FrontierMath Tier 1\u20133",
       "direction": "higher_better",

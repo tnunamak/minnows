@@ -3,14 +3,15 @@
   "id": "effort-surfaces-2026-07",
   "schema_version": 1,
   "kind": "capabilities",
-  "retrieved_at": "2026-07-09",
+  "retrieved_at": "2026-07-25",
   "source_urls": [
     "https://platform.claude.com/docs/en/build-with-claude/effort",
     "https://code.claude.com/docs/en/model-config",
     "https://developers.openai.com/codex/config-reference",
     "https://developers.openai.com/api/docs/guides/reasoning",
     "https://docs.x.ai/developers/model-capabilities/text/reasoning",
-    "https://openai.com/index/gpt-5-6/"
+    "https://openai.com/index/gpt-5-6/",
+    "https://www.anthropic.com/news/claude-opus-5"
   ],
   "source_ids": [
     "anthropic-effort-docs-2026-07-09",
@@ -18,7 +19,8 @@
     "openai-codex-config-2026-07-09",
     "openai-reasoning-2026-07-09",
     "xai-reasoning-2026-07-09",
-    "openai-gpt-5-6-2026-07-09"
+    "openai-gpt-5-6-2026-07-09",
+    "anthropic-opus-5-2026-07-24"
   ],
   "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort.",
   "surfaces": [
@@ -117,7 +119,7 @@
         },
         {
           "mode_id": "fast",
-          "notes": "Fast mode research preview $10/$50 (2.5\u00d7 speed)"
+          "notes": "Fast mode research preview $10/$50 (2.5× speed)"
         }
       ],
       "source_ids": [
@@ -146,6 +148,59 @@
       ],
       "source_ids": [
         "anthropic-claude-code-model-config-2026-07-09"
+      ]
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-opus-5",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        },
+        {
+          "mode_id": "fast",
+          "notes": "Fast mode ~2× price, ~2.5× speed — a mode, not a separate model id"
+        }
+      ],
+      "source_ids": [
+        "anthropic-effort-docs-2026-07-09",
+        "anthropic-opus-5-2026-07-24"
+      ],
+      "notes": "Adaptive thinking; no fixed extended-thinking mode (thinking.type:enabled not supported)."
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-opus-5",
+      "surface": "claude_code",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "anthropic-claude-code-model-config-2026-07-09",
+        "anthropic-opus-5-2026-07-24"
       ]
     },
     {
@@ -238,7 +293,7 @@
         },
         {
           "mode_id": "fast",
-          "notes": "Speed/cost tier 1.5\u00d7 gen speed for 2.5\u00d7 cost \u2014 not effort"
+          "notes": "Speed/cost tier 1.5× gen speed for 2.5× cost — not effort"
         }
       ],
       "source_ids": [
@@ -473,6 +528,90 @@
       "source_ids": [
         "xai-models-2026-07-09"
       ]
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.8-max-preview",
+      "surface": "qwen_code",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "enable_thinking=true; thinkingMandatory — cannot disable"
+        }
+      ],
+      "source_ids": [
+        "qwen-code-cli-config-2026-07"
+      ],
+      "notes": "Qwen has no discrete effort levels. Thinking is mandatory for this model."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.7-max",
+      "surface": "qwen_code",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "enable_thinking=true (default)"
+        },
+        {
+          "mode_id": "non-thinking",
+          "notes": "enable_thinking=false"
+        }
+      ],
+      "source_ids": [
+        "qwen-code-cli-config-2026-07"
+      ],
+      "notes": "Qwen has no discrete effort levels. Thinking on/off only."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.7-plus",
+      "surface": "qwen_code",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "enable_thinking=true (default)"
+        },
+        {
+          "mode_id": "non-thinking",
+          "notes": "enable_thinking=false"
+        }
+      ],
+      "source_ids": [
+        "qwen-code-cli-config-2026-07"
+      ],
+      "notes": "Qwen has no discrete effort levels. Thinking on/off only."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3-coder-plus",
+      "surface": "qwen_code",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard",
+          "notes": "No thinking mode configured for coder models"
+        }
+      ],
+      "source_ids": [
+        "qwen-code-cli-config-2026-07"
+      ],
+      "notes": "Coding specialist. No thinking mode in default config."
     }
   ],
   "missing": [

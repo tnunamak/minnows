@@ -1,0 +1,405 @@
+{
+  "schema_version": 1,
+  "kind": "digitized_chart",
+  "title": "Agentic coding by effort level (Frontier-Bench v0.1)",
+  "retrieved_at": "2026-07-25",
+  "page_url": "https://www.anthropic.com/news/claude-opus-5",
+  "asset": {
+    "path": "data/model-catalog/digitized/assets/anthropic-opus5-frontier-bench-effort.png",
+    "source_url": "https://www-cdn.anthropic.com/images/4zrzovbb/website/7530b1086992936d7e9d5796a892d1e8fa063253-3840x2160.png",
+    "sha256": "015df0145ae599d96fb7c710a4998cc19a703b0cdda3371fad55036ed8ae3d82",
+    "width": 3840,
+    "height": 2160
+  },
+  "digitization": {
+    "method": "density_peak_marker_centroids",
+    "axis": {
+      "x": "cost_per_attempt_usd",
+      "y": "score_pct",
+      "x_scale": "log",
+      "y_scale": "linear",
+      "x_min": 1.0,
+      "x_max": 30.0,
+      "y_min": 0.0,
+      "y_max": 50.0,
+      "plot_box_px": [
+        599.6,
+        405.5,
+        3385.6,
+        1812.5
+      ]
+    },
+    "error_estimate": {
+      "x_abs_median_vs_vision_dual_read": 0.0446,
+      "y_abs_median_vs_vision_dual_read": 0.1122,
+      "notes": "vision dual_read is independent approximate read of same image"
+    },
+    "operator": "automated"
+  },
+  "points": [
+    {
+      "model": "claude-fable-5",
+      "series_color": "gold",
+      "x": 10.2999,
+      "y": 17.97,
+      "pixel": {
+        "x": 2509.9,
+        "y": 1306.8,
+        "n": 2620
+      },
+      "effort": "low"
+    },
+    {
+      "model": "claude-fable-5",
+      "series_color": "gold",
+      "x": 11.988,
+      "y": 24.9641,
+      "pixel": {
+        "x": 2634.2,
+        "y": 1110.0,
+        "n": 2413
+      },
+      "effort": "medium"
+    },
+    {
+      "model": "claude-fable-5",
+      "series_color": "gold",
+      "x": 14.6143,
+      "y": 28.9288,
+      "pixel": {
+        "x": 2796.5,
+        "y": 998.4,
+        "n": 2663
+      },
+      "effort": "high"
+    },
+    {
+      "model": "claude-fable-5",
+      "series_color": "gold",
+      "x": 19.5146,
+      "y": 31.5249,
+      "pixel": {
+        "x": 3033.3,
+        "y": 925.4,
+        "n": 2661
+      },
+      "effort": "xhigh"
+    },
+    {
+      "model": "claude-fable-5",
+      "series_color": "gold",
+      "x": 27.0516,
+      "y": 33.5815,
+      "pixel": {
+        "x": 3300.9,
+        "y": 867.5,
+        "n": 2389
+      },
+      "effort": "max"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "series_color": "blue",
+      "x": 4.6646,
+      "y": 6.5647,
+      "pixel": {
+        "x": 1861.0,
+        "y": 1627.8,
+        "n": 2657
+      },
+      "effort": "low"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "series_color": "blue",
+      "x": 7.2896,
+      "y": 9.6339,
+      "pixel": {
+        "x": 2226.7,
+        "y": 1541.4,
+        "n": 2434
+      },
+      "effort": "medium"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "series_color": "blue",
+      "x": 8.0618,
+      "y": 12.8585,
+      "pixel": {
+        "x": 2309.2,
+        "y": 1450.7,
+        "n": 2508
+      },
+      "effort": "high"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "series_color": "blue",
+      "x": 11.7897,
+      "y": 15.4645,
+      "pixel": {
+        "x": 2620.6,
+        "y": 1377.3,
+        "n": 2630
+      },
+      "effort": "xhigh"
+    },
+    {
+      "model": "claude-opus-4-8",
+      "series_color": "blue",
+      "x": 16.8032,
+      "y": 18.6791,
+      "pixel": {
+        "x": 2910.8,
+        "y": 1286.9,
+        "n": 2505
+      },
+      "effort": "max"
+    },
+    {
+      "model": "claude-opus-5",
+      "series_color": "orange",
+      "x": 5.5678,
+      "y": 25.6748,
+      "pixel": {
+        "x": 2006.0,
+        "y": 1090.0,
+        "n": 2678
+      },
+      "effort": "low"
+    },
+    {
+      "model": "claude-opus-5",
+      "series_color": "orange",
+      "x": 8.3038,
+      "y": 34.7439,
+      "pixel": {
+        "x": 2333.4,
+        "y": 834.8,
+        "n": 2500
+      },
+      "effort": "medium"
+    },
+    {
+      "model": "claude-opus-5",
+      "series_color": "orange",
+      "x": 11.5579,
+      "y": 39.2623,
+      "pixel": {
+        "x": 2604.3,
+        "y": 707.7,
+        "n": 2389
+      },
+      "effort": "high"
+    },
+    {
+      "model": "claude-opus-5",
+      "series_color": "orange",
+      "x": 14.3201,
+      "y": 44.261,
+      "pixel": {
+        "x": 2779.8,
+        "y": 567.0,
+        "n": 2728
+      },
+      "effort": "xhigh"
+    },
+    {
+      "model": "claude-opus-5",
+      "series_color": "orange",
+      "x": 16.4302,
+      "y": 43.142,
+      "pixel": {
+        "x": 2892.4,
+        "y": 598.5,
+        "n": 2360
+      },
+      "effort": "max"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "series_color": "gray",
+      "x": 1.0664,
+      "y": 2.0592,
+      "pixel": {
+        "x": 652.3,
+        "y": 1754.6,
+        "n": 2511
+      },
+      "effort": "low"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "series_color": "gray",
+      "x": 2.6368,
+      "y": 14.1875,
+      "pixel": {
+        "x": 1393.8,
+        "y": 1413.3,
+        "n": 2718
+      },
+      "effort": "medium"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "series_color": "gray",
+      "x": 3.604,
+      "y": 22.5188,
+      "pixel": {
+        "x": 1649.8,
+        "y": 1178.8,
+        "n": 2600
+      },
+      "effort": "high"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "series_color": "gray",
+      "x": 5.6781,
+      "y": 28.9978,
+      "pixel": {
+        "x": 2022.1,
+        "y": 996.5,
+        "n": 2590
+      },
+      "effort": "xhigh"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "series_color": "gray",
+      "x": 11.4624,
+      "y": 37.4096,
+      "pixel": {
+        "x": 2597.5,
+        "y": 759.8,
+        "n": 2333
+      },
+      "effort": "max"
+    }
+  ],
+  "dual_read": [
+    {
+      "model": "claude-opus-5",
+      "effort": "low",
+      "x": 5.5,
+      "y": 26.0
+    },
+    {
+      "model": "claude-opus-5",
+      "effort": "medium",
+      "x": 8.5,
+      "y": 35.0
+    },
+    {
+      "model": "claude-opus-5",
+      "effort": "high",
+      "x": 11.5,
+      "y": 39.5
+    },
+    {
+      "model": "claude-opus-5",
+      "effort": "xhigh",
+      "x": 14.5,
+      "y": 44.5
+    },
+    {
+      "model": "claude-opus-5",
+      "effort": "max",
+      "x": 16.5,
+      "y": 43.0
+    },
+    {
+      "model": "claude-fable-5",
+      "effort": "low",
+      "x": 10.5,
+      "y": 18.0
+    },
+    {
+      "model": "claude-fable-5",
+      "effort": "medium",
+      "x": 12.0,
+      "y": 25.0
+    },
+    {
+      "model": "claude-fable-5",
+      "effort": "high",
+      "x": 14.5,
+      "y": 29.0
+    },
+    {
+      "model": "claude-fable-5",
+      "effort": "xhigh",
+      "x": 19.5,
+      "y": 31.5
+    },
+    {
+      "model": "claude-fable-5",
+      "effort": "max",
+      "x": 27.0,
+      "y": 34.0
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "low",
+      "x": 4.7,
+      "y": 6.5
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "medium",
+      "x": 7.3,
+      "y": 9.5
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "high",
+      "x": 8.0,
+      "y": 13.0
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "xhigh",
+      "x": 11.8,
+      "y": 15.5
+    },
+    {
+      "model": "claude-opus-4-8",
+      "effort": "max",
+      "x": 17.0,
+      "y": 18.5
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "effort": "low",
+      "x": 1.1,
+      "y": 2.0
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "effort": "medium",
+      "x": 2.6,
+      "y": 14.0
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "x": 3.6,
+      "y": 22.5
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "effort": "xhigh",
+      "x": 5.7,
+      "y": 29.0
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "effort": "max",
+      "x": 11.5,
+      "y": 37.5
+    }
+  ],
+  "notes": "Geometric density-peak extraction of filled markers on official Opus 5 launch chart (Frontier-Bench v0.1, internal mini-SWE-agent harness, mean reward over 5 attempts/task; Opus 4.8 served as fallback on safety-classifier refusals for Opus 5/Fable 5 per chart caption). GPT-5.6 Sol series shares its light-gray marker/line color with the chart's vertical gridlines; recovered via density-peak blob detection (gridlines are thin strokes, markers are filled discs) with a widened gray color window ((222,220,210)-(242,240,230)) and a lower min_count (1200) than the tool default (1400) to catch a partially-occluded marker. Opus 4.8 (blue) recovered via a new 'blue' entry added to scripts/digitize_chart.py SERIES_COLORS ((20,95,190)-(70,145,235)), a mechanical extension of the existing color-window pattern (this chart family's Opus 4.8 is drawn blue, unlike the Sonnet 5 pilot's gold Opus 4.8). Score % as-is; convert to 0-1 for catalog scores.",
+  "source_type": "digitized_chart"
+}

@@ -37,6 +37,7 @@
         "openai",
         "xai",
         "google",
+        "alibaba",
         "other"
       ],
       "description": "Vendor that published the claims/scores"

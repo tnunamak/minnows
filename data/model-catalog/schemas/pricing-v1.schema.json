@@ -43,6 +43,7 @@
         "codex",
         "grok",
         "google",
+        "qwen-code",
         "other"
       ],
       "description": "Session/agent family this table applies to when resolving model ids"

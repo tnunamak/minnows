@@ -1,0 +1,64 @@
+{
+  "$schema": "schemas/pricing-v1.schema.json",
+  "id": "alibaba-api-2026-07",
+  "schema_version": 1,
+  "kind": "api_usd",
+  "agent": "qwen-code",
+  "retrieved_at": "2026-07-29",
+  "source_urls": [
+    "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+    "https://www.alibabacloud.com/help/en/model-studio/context-cache"
+  ],
+  "source_ids": [
+    "alibaba-pricing-2026-07",
+    "alibaba-context-cache-2026-07"
+  ],
+  "notes": "USD per 1M tokens, International region. List prices (not promo). Explicit context caching: cache_read = 10% of input, cache_write = 125% of input (5-min TTL, 1024-token min). Implicit caching: read = 20% of input, write = 100% (no extra fee, indeterminate TTL). qwen3.8-max-preview is Token Plan only (no public per-token pricing). qwen3-coder-plus and qwen3-coder-next are Coding Plan subscription only.",
+  "models": {
+    "qwen3.7-max": {
+      "fresh_input_per_m": 2.5,
+      "cache_read_per_m": 0.25,
+      "cache_write_per_m": 3.125,
+      "output_per_m": 7.5
+    },
+    "qwen3-max-2026-01-23": {
+      "fresh_input_per_m": 1.2,
+      "cache_read_per_m": 0.12,
+      "cache_write_per_m": 1.5,
+      "output_per_m": 6
+    },
+    "qwen3.7-plus": {
+      "fresh_input_per_m": 0.4,
+      "cache_read_per_m": 0.04,
+      "cache_write_per_m": 0.5,
+      "output_per_m": 1.6
+    },
+    "qwen3.6-plus": {
+      "fresh_input_per_m": 0.5,
+      "cache_read_per_m": 0.05,
+      "cache_write_per_m": 0.625,
+      "output_per_m": 3
+    },
+    "qwen3.5-plus": {
+      "fresh_input_per_m": 0.4,
+      "cache_read_per_m": 0.04,
+      "cache_write_per_m": 0.5,
+      "output_per_m": 2.4
+    },
+    "qwen3.6-flash": {
+      "fresh_input_per_m": 0.25,
+      "cache_read_per_m": 0.025,
+      "cache_write_per_m": 0.3125,
+      "output_per_m": 1.5
+    }
+  },
+  "match": [
+    { "pattern": "qwen3.7-max", "model": "qwen3.7-max", "family_default": true },
+    { "pattern": "qwen3-max", "model": "qwen3-max-2026-01-23" },
+    { "pattern": "qwen3.7-plus", "model": "qwen3.7-plus", "family_default": true },
+    { "pattern": "qwen3.6-plus", "model": "qwen3.6-plus" },
+    { "pattern": "qwen3.5-plus", "model": "qwen3.5-plus" },
+    { "pattern": "qwen3.6-flash", "model": "qwen3.6-flash", "family_default": true }
+  ],
+  "role": "operational"
+}
