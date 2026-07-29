@@ -119,7 +119,7 @@
         },
         {
           "mode_id": "fast",
-          "notes": "Fast mode research preview $10/$50 (2.5\u00d7 speed)"
+          "notes": "Fast mode research preview $10/$50 (2.5× speed)"
         }
       ],
       "source_ids": [
@@ -293,7 +293,7 @@
         },
         {
           "mode_id": "fast",
-          "notes": "Speed/cost tier 1.5\u00d7 gen speed for 2.5\u00d7 cost \u2014 not effort"
+          "notes": "Speed/cost tier 1.5× gen speed for 2.5× cost — not effort"
         }
       ],
       "source_ids": [
@@ -528,6 +528,90 @@
       "source_ids": [
         "xai-models-2026-07-09"
       ]
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.8-max-preview",
+      "surface": "qwen_code",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "enable_thinking=true; thinkingMandatory — cannot disable"
+        }
+      ],
+      "source_ids": [
+        "qwen-code-cli-config-2026-07"
+      ],
+      "notes": "Qwen has no discrete effort levels. Thinking is mandatory for this model."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.7-max",
+      "surface": "qwen_code",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "enable_thinking=true (default)"
+        },
+        {
+          "mode_id": "non-thinking",
+          "notes": "enable_thinking=false"
+        }
+      ],
+      "source_ids": [
+        "qwen-code-cli-config-2026-07"
+      ],
+      "notes": "Qwen has no discrete effort levels. Thinking on/off only."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.7-plus",
+      "surface": "qwen_code",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "enable_thinking=true (default)"
+        },
+        {
+          "mode_id": "non-thinking",
+          "notes": "enable_thinking=false"
+        }
+      ],
+      "source_ids": [
+        "qwen-code-cli-config-2026-07"
+      ],
+      "notes": "Qwen has no discrete effort levels. Thinking on/off only."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3-coder-plus",
+      "surface": "qwen_code",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard",
+          "notes": "No thinking mode configured for coder models"
+        }
+      ],
+      "source_ids": [
+        "qwen-code-cli-config-2026-07"
+      ],
+      "notes": "Coding specialist. No thinking mode in default config."
     }
   ],
   "missing": [

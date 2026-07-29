@@ -4,7 +4,7 @@
   "schema_version": 1,
   "generated_at": "2026-07-09",
   "notes": [
-    "L0 model registry \u2014 THE join key for pricing, performance, capabilities, and policy.",
+    "L0 model registry — THE join key for pricing, performance, capabilities, and policy.",
     "Harness-suffixed score ids (model@harness) resolve to the base id.",
     "Effort-in-id suffixes (-thinking, -high) are aliases where listed.",
     "aliases[] map third-party/board naming drift onto canonical pricing ids."
@@ -287,10 +287,130 @@
       "family": "grok-build",
       "status": "ga",
       "aliases": []
+    },
+    {
+      "id": "qwen3.8-max-preview",
+      "provider": "alibaba",
+      "family": "qwen-max",
+      "status": "preview",
+      "aliases": []
+    },
+    {
+      "id": "qwen3.7-max",
+      "provider": "alibaba",
+      "family": "qwen-max",
+      "status": "ga",
+      "aliases": [
+        "qwen3.7-max-2026-05-20"
+      ]
+    },
+    {
+      "id": "qwen3-max-2026-01-23",
+      "provider": "alibaba",
+      "family": "qwen-max",
+      "status": "ga",
+      "aliases": [
+        "qwen3-max"
+      ]
+    },
+    {
+      "id": "qwen3.7-plus",
+      "provider": "alibaba",
+      "family": "qwen-plus",
+      "status": "ga",
+      "aliases": [
+        "qwen3.7-plus-2026-05-26"
+      ]
+    },
+    {
+      "id": "qwen3.6-plus",
+      "provider": "alibaba",
+      "family": "qwen-plus",
+      "status": "ga",
+      "aliases": [
+        "qwen3.6-plus-2026-04-02"
+      ]
+    },
+    {
+      "id": "qwen3.5-plus",
+      "provider": "alibaba",
+      "family": "qwen-plus",
+      "status": "ga",
+      "aliases": [
+        "qwen3.5-plus-2026-02-15"
+      ]
+    },
+    {
+      "id": "qwen3.6-flash",
+      "provider": "alibaba",
+      "family": "qwen-flash",
+      "status": "ga",
+      "aliases": [
+        "qwen3.6-flash-2026-04-16"
+      ]
+    },
+    {
+      "id": "qwen3-coder-plus",
+      "provider": "alibaba",
+      "family": "qwen-coder",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "qwen3-coder-next",
+      "provider": "alibaba",
+      "family": "qwen-coder",
+      "status": "preview",
+      "aliases": []
+    },
+    {
+      "id": "qwen3.5-35b-a3b",
+      "provider": "alibaba",
+      "family": "qwen3.5",
+      "status": "ga",
+      "aliases": [
+        "Qwen3.5-35B-A3B"
+      ]
+    },
+    {
+      "id": "qwen3.5-9b",
+      "provider": "alibaba",
+      "family": "qwen3.5",
+      "status": "ga",
+      "aliases": [
+        "Qwen3.5-9B"
+      ]
+    },
+    {
+      "id": "qwen3-coder-480b",
+      "provider": "alibaba",
+      "family": "qwen-coder",
+      "status": "ga",
+      "aliases": [
+        "Qwen3-Coder-480B-A35B-Instruct"
+      ]
+    },
+    {
+      "id": "qwen3.5-27b",
+      "provider": "alibaba",
+      "family": "qwen3.5",
+      "status": "ga",
+      "aliases": [
+        "Qwen3.5-27B"
+      ]
+    },
+    {
+      "id": "qwen3.5-122b-a10b",
+      "provider": "alibaba",
+      "family": "qwen3.5",
+      "status": "ga",
+      "aliases": [
+        "Qwen3.5-122B-A10B"
+      ]
     }
   ],
   "resolution_rules": {
-    "harness_suffix": "Strip @<harness> before lookup (e.g. claude-sonnet-5@claude-code \u2192 claude-sonnet-5)",
+    "harness_suffix": "Strip @<harness> before lookup (e.g. claude-sonnet-5@claude-code → claude-sonnet-5)",
     "alias": "If id not found, look up as an alias of a registered model",
     "exact": "Prefer exact id match first"
   }

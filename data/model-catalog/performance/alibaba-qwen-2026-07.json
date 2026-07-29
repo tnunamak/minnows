@@ -1,0 +1,280 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "alibaba-qwen-2026-07",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "alibaba",
+  "retrieved_at": "2026-07-29",
+  "source_urls": [
+    "https://huggingface.co/Qwen/Qwen3.5-35B-A3B",
+    "https://huggingface.co/Qwen/Qwen3.5-9B",
+    "https://huggingface.co/Qwen/Qwen3-Coder-480B-A35B-Instruct"
+  ],
+  "source_ids": [
+    "qwen35-35b-a3b-hf-2026-07",
+    "qwen3-coder-480b-hf-2026-07",
+    "qwen35-9b-hf-2026-07"
+  ],
+  "notes": "Vendor-published benchmark scores from HuggingFace model cards. Open-source models only — API-only models (qwen3.7-max, qwen3.8-max-preview) have no published benchmarks. Thinking-mode scores for qwen3.5 models. Qwen3-Coder scores are non-thinking (no thinking mode configured). evidence_grade C (vendor self-reported, no independent reproduction).",
+  "scores": [
+    {
+      "model": "qwen3.5-35b-a3b",
+      "metric": "MMLU-Pro",
+      "score": 85.3,
+      "unit": "accuracy",
+      "source_id": "qwen35-35b-a3b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "knowledge"
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "metric": "GPQA Diamond",
+      "score": 84.2,
+      "unit": "accuracy",
+      "source_id": "qwen35-35b-a3b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "reasoning",
+      "metric_id": "gpqa-diamond"
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "metric": "SWE-bench Verified",
+      "score": 69.2,
+      "unit": "pass_rate",
+      "source_id": "qwen35-35b-a3b-hf-2026-07",
+      "comparisons": {
+        "gpt-5-mini": 72.0,
+        "qwen3.5-27b": 72.4,
+        "qwen3.5-122b-a10b": 72.0
+      },
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "coding"
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "metric": "LiveCodeBench v6",
+      "score": 74.6,
+      "unit": "accuracy",
+      "source_id": "qwen35-35b-a3b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "coding"
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "metric": "MathArena AIME 2026",
+      "score": 93.33,
+      "unit": "accuracy",
+      "source_id": "qwen35-35b-a3b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "math"
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "metric": "IFEval",
+      "score": 91.9,
+      "unit": "accuracy",
+      "source_id": "qwen35-35b-a3b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "instruction_following"
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "metric": "Terminal Bench 2",
+      "score": 40.5,
+      "unit": "accuracy",
+      "source_id": "qwen35-35b-a3b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "agentic",
+      "metric_id": "terminal-bench-2-0"
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "metric": "OSWorld-Verified",
+      "score": 54.5,
+      "unit": "accuracy",
+      "source_id": "qwen35-35b-a3b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "agentic",
+      "metric_id": "osworld-verified",
+      "comparable": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "metric": "BrowseComp",
+      "score": 61.0,
+      "unit": "accuracy",
+      "source_id": "qwen35-35b-a3b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "agentic",
+      "metric_id": "browsecomp",
+      "comparable": false
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "metric": "TAU2-Bench",
+      "score": 81.2,
+      "unit": "accuracy",
+      "source_id": "qwen35-35b-a3b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "agentic"
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "metric": "MMMU",
+      "score": 81.4,
+      "unit": "accuracy",
+      "source_id": "qwen35-35b-a3b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "vision"
+    },
+    {
+      "model": "qwen3.5-35b-a3b",
+      "metric": "HLE w/ CoT",
+      "score": 22.4,
+      "unit": "accuracy",
+      "source_id": "qwen35-35b-a3b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "reasoning"
+    },
+    {
+      "model": "qwen3.5-9b",
+      "metric": "MMLU-Pro",
+      "score": 82.5,
+      "unit": "accuracy",
+      "source_id": "qwen35-9b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "knowledge"
+    },
+    {
+      "model": "qwen3.5-9b",
+      "metric": "GPQA Diamond",
+      "score": 81.7,
+      "unit": "accuracy",
+      "source_id": "qwen35-9b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "reasoning",
+      "metric_id": "gpqa-diamond"
+    },
+    {
+      "model": "qwen3.5-9b",
+      "metric": "MathArena AIME 2026",
+      "score": 92.5,
+      "unit": "accuracy",
+      "source_id": "qwen35-9b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "math"
+    },
+    {
+      "model": "qwen3.5-9b",
+      "metric": "LiveCodeBench v6",
+      "score": 65.6,
+      "unit": "accuracy",
+      "source_id": "qwen35-9b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "coding"
+    },
+    {
+      "model": "qwen3.5-9b",
+      "metric": "OSWorld-Verified",
+      "score": 41.8,
+      "unit": "accuracy",
+      "source_id": "qwen35-9b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "agentic",
+      "metric_id": "osworld-verified",
+      "comparable": false
+    },
+    {
+      "model": "qwen3-coder-480b",
+      "metric": "SWE-bench Pro",
+      "score": 38.7,
+      "unit": "pass_rate",
+      "source_id": "qwen3-coder-480b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "coding",
+      "metric_id": "swe-bench-pro",
+      "comparable": false
+    },
+    {
+      "model": "qwen3-coder-480b",
+      "metric": "Terminal-Bench 2.0",
+      "score": 23.9,
+      "unit": "accuracy",
+      "source_id": "qwen3-coder-480b-hf-2026-07",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-07-29",
+      "task_family": "agentic",
+      "metric_id": "terminal-bench-2-0"
+    }
+  ],
+  "claims": [
+    {
+      "models": [
+        "qwen3-coder-480b"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Qwen claims Qwen3-Coder-480B is comparable to Claude Sonnet 4 and SOTA among open-source models on SWE-bench Verified without test-time scaling.",
+      "implication": "Strong open-source coding model.",
+      "source_id": "qwen3-coder-480b-hf-2026-07"
+    },
+    {
+      "models": [
+        "qwen3.5-35b-a3b"
+      ],
+      "task_families": [
+        "coding",
+        "math",
+        "agentic"
+      ],
+      "axes": [
+        "quality",
+        "cost"
+      ],
+      "statement": "Qwen3.5-35B-A3B (3B active params) approaches GPT-5-mini on SWE-bench Verified (69.2 vs 72.0) at a fraction of the compute. Gated DeltaNet hybrid architecture.",
+      "implication": "Efficiency frontier: near-frontier coding quality at MoE-active-3B cost. Model card identifies Qwen3.5-Flash as the hosted counterpart.",
+      "source_id": "qwen35-35b-a3b-hf-2026-07"
+    }
+  ]
+}

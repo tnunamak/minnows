@@ -28,14 +28,14 @@ PACK_NAME_RE = re.compile(r"^[a-z][a-z0-9-]*$")
 REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 
 PRICING_KINDS = frozenset({"api_usd", "codex_credits"})
-PRICING_AGENTS = frozenset({"claude-code", "codex", "grok", "google", "other"})
+PRICING_AGENTS = frozenset({"claude-code", "codex", "grok", "google", "qwen-code", "other"})
 RATE_FIELDS = (
     "fresh_input_per_m",
     "cache_read_per_m",
     "cache_write_per_m",
     "output_per_m",
 )
-PERF_PROVIDERS = frozenset({"anthropic", "openai", "xai", "google", "other"})
+PERF_PROVIDERS = frozenset({"anthropic", "openai", "xai", "google", "alibaba", "other"})
 PERF_AXES = frozenset({"quality", "cost", "effort", "speed", "latency", "tokens"})
 PERF_UNITS = frozenset({"accuracy", "pass_rate", "elo", "other"})
 
@@ -465,8 +465,8 @@ def validate_capabilities(
         if model_registry is not None and isinstance(s.get("model"), str):
             check_model_id(s["model"], sp, model_registry, errors)
         ve = s.get("valid_efforts")
-        if not isinstance(ve, list) or not ve:
-            errors.add(sp, "valid_efforts must be non-empty array")
+        if not isinstance(ve, list):
+            errors.add(sp, "valid_efforts must be an array")
 
 
 

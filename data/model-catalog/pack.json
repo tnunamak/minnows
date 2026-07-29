@@ -21,6 +21,8 @@
     "pricing/codex-credits-2026-07.json",
     "pricing/xai-api-2026-07.json",
     "pricing/google-api-2026-07.json",
+    "pricing/alibaba-api-2026-07.json",
+    "performance/alibaba-qwen-2026-07.json",
     "capabilities/effort-surfaces-2026-07.json",
     "performance/anthropic-effort-quality-2026-07.json",
     "performance/openai-quality-2026-07.json",
