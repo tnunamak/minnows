@@ -1,6 +1,6 @@
 ---
 name: convo-history
-description: "Read past agent conversation history across harnesses (Claude Code, Codex CLI, Gemini CLI) via the `convo` CLI. Use when the user asks to recall, print, search, or summarize earlier sessions — 'what did we discuss', 'print the last N messages', 'find where we talked about X', 'what did I ask you yesterday', 'pull up that earlier conversation', 'read our history', 'what was the conclusion in the other session'. The signature view is the clean transcript: each user prompt paired with only the agent's FINAL reply before the next prompt, tool-call noise stripped. Works cross-harness so you can read Codex/Gemini logs from Claude and vice-versa. Triggers: 'last N messages', 'our conversation', 'previous session', 'what did we say', 'search my sessions', 'recall what I asked', 'read the transcript'."
+description: "Read past agent conversation history across harnesses (Claude Code, Codex CLI, Gemini CLI, Qwen Code) via the `convo` CLI. Use when the user asks to recall, print, search, or summarize earlier sessions — 'what did we discuss', 'print the last N messages', 'find where we talked about X', 'what did I ask you yesterday', 'pull up that earlier conversation', 'read our history', 'what was the conclusion in the other session'. The signature view is the clean transcript: each user prompt paired with only the agent's FINAL reply before the next prompt, tool-call noise stripped. Works cross-harness so you can read Codex/Gemini/Qwen logs from Claude and vice-versa. Triggers: 'last N messages', 'our conversation', 'previous session', 'what did we say', 'search my sessions', 'recall what I asked', 'read the transcript'."
 ---
 
 # convo — cross-harness conversation history
@@ -8,7 +8,7 @@ description: "Read past agent conversation history across harnesses (Claude Code
 `convo` reads your own (and sibling agents') session transcripts off disk and prints them
 as a clean human/agent-readable transcript. It is the right tool whenever the user wants to
 **look back at what was actually said** in this or another session — across Claude Code,
-Codex CLI, and Gemini CLI.
+Codex CLI, Gemini CLI, and Qwen Code.
 
 It is NOT a memory store and NOT for the *current* live turn — use it to read **prior**
 exchanges that have been written to the session log.
@@ -36,7 +36,7 @@ convo grep 'X' --all-projects --since 30d
 ```
 
 ### Common flags (on every command)
-- `--harness claude|codex|gemini|all` (aliases `cc,cx,gm`; default **all**)
+- `--harness claude|codex|gemini|qwen|all` (aliases `cc,cx,gm,qw`; default **all**)
 - `--project SUBSTR` — filter by project/cwd. **Defaults to the current directory.**
 - `--all-projects` — don't filter by cwd (use when the user means "any session anywhere").
   Mutually exclusive with `--project` — pass one or the other, never both (it errors).
@@ -58,6 +58,8 @@ convo grep 'X' --all-projects --since 30d
   then `convo show <id>` on the hit to read the surrounding exchange.
 - **"read my Codex session from yesterday"** → `convo list --harness codex --since 1d` then
   `convo show <id> --harness codex`.
+- **"read my Qwen session"** → `convo list --harness qwen --since 1d` then
+  `convo show <id> --harness qwen`.
 - **Summarize a long past session** → `convo show <id> --mode final --json` and summarize the
   JSON, or pipe the text form. Use `--json` if you'll process it (keeps output structured).
 
@@ -78,9 +80,9 @@ the history, print the plain text form directly.
 - **Codex `+msg` count**: in `list`, a count like `133+msg` means the message count was capped
   during the fast header scan (huge rollout files); the full transcript is still read by `show`.
 - **`pi` and other harnesses**: not yet supported (no logs found on disk). The loader registry
-  in `bin/.local/bin/convo` (`HARNESSES`) is the extension point — add a `load_*`/`peek_*` pair.
+  in `tools/convo/convo` (`HARNESSES`) is the extension point — add a `load_*`/`peek_*` pair.
 
 ## Implementation
 
-Single stdlib-only Python script: `bin/.local/bin/convo` (stow-managed via the `bin` package).
+Single stdlib-only Python script: `tools/convo/convo` (vendored into the shipped skill by `sync.sh`).
 To add a harness, add a `load_<h>` + `peek_<h>` and an entry in the `HARNESSES` dict.
