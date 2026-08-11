@@ -46,14 +46,15 @@ An unchanged outcome is not reparsed. A changed source is rebuilt atomically; a 
 hashing leaves the prior snapshot intact and records a retryable failure. JSONL parsing computes its hash
 in the same bounded pass over an initial stat-sized byte boundary. If that exact source merely grows after
 the boundary, its safely parsed prefix is recorded as `live` and retried without failure; replacement and truncation remain
-unsafe races.
+unsafe races. Before that live transition, a second read hashes exactly the captured prefix and must
+match the streaming hash; this proof is limited to files that grew during parsing.
 
 ### 3. Publish accurate progress (complete)
 
 `convo sync` reports aggregate counts, elapsed time, and throughput; `--verbose` reveals individual
 source diagnostics. Periodic progress is interactive-only. Its JSON result includes stable source, observed
 corpus bytes, processed-source bytes, duration, throughput, skipped,
-partial, pending, and live fields. `convo status` separates parser failures, partial, pending, live, skipped, and
+partial, pending, and live fields, plus separately named live-prefix verification bytes. `convo status` separates parser failures, partial, pending, live, skipped, and
 oversized sources. `partial`, `pending`, `live`, and `skipped` are recorded outcomes and do not make a
 sync fail; exit 2 is reserved for inability to record one.
 

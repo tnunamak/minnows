@@ -352,7 +352,8 @@ class LedgerTests(unittest.TestCase):
             self.assertEqual(streamed.content_hash, expected)
         finally:
             streamed.spool_path.unlink(missing_ok=True)
-        with mock.patch.object(convo.ledger_lib.Ledger, "hash_file", side_effect=AssertionError("second pass")):
+        with mock.patch.object(convo.ledger_lib.Ledger, "hash_file", side_effect=AssertionError("second pass")), \
+                mock.patch.object(convo, "_hash_file_prefix", side_effect=AssertionError("growth proof")):
             _, _, code = self.run_convo("sync")
         self.assertEqual(code, 0)
         with sqlite3.connect(self.data_dir / "ledger.sqlite3") as conn:
@@ -553,6 +554,7 @@ class LedgerTests(unittest.TestCase):
     def test_append_during_stream_publishes_cold_prefix_and_retries(self):
         path = self.claude_path()
         self.write_claude(path, "candidate before append", "answer")
+        initial_size = path.stat().st_size
         original_stream = convo._stream_jsonl_source
 
         def append_after_stream(*args, **kwargs):
@@ -568,6 +570,7 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(code, 0, (stdout, stderr))
         self.assertEqual(result["live"], 1)
         self.assertEqual(result["failed"], 0)
+        self.assertEqual(result["bytes_verified"], initial_size)
         self.assertIn("source remains live", stderr)
         hit = self.ledger().search("candidate before append")[0]
         self.assertEqual(hit["source_status"], "live")
@@ -580,6 +583,31 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(retry_code, 0)
         self.assertEqual(self.ledger().search("candidate before append")[0]["source_status"], "present")
         self.assertEqual(self.ledger().search("appended live row")[0]["source_status"], "present")
+
+    def test_rewrite_and_growth_during_stream_is_unsafe_not_live(self):
+        path = self.claude_path()
+        self.write_claude(path, "old prefix that must not publish", "answer")
+        initial_size = path.stat().st_size
+        original_stream = convo._stream_jsonl_source
+
+        def rewrite_and_append_after_stream(*args, **kwargs):
+            parsed = original_stream(*args, **kwargs)
+            self.write_claude(path, "rewritten prefix with a larger replacement body", "answer")
+            with path.open("a", encoding="utf-8") as stream:
+                stream.write(json.dumps({"type": "user", "isMeta": False,
+                                         "message": {"content": "additional growth"}}) + "\n")
+            self.assertGreater(path.stat().st_size, initial_size)
+            return parsed
+
+        with mock.patch.object(convo, "_stream_jsonl_source", side_effect=rewrite_and_append_after_stream):
+            stdout, stderr, code = self.run_convo("sync", "--json", "--verbose")
+        result = json.loads(stdout)
+        self.assertEqual(code, 2)
+        self.assertEqual(result["live"], 0)
+        self.assertGreater(result["bytes_verified"], 0)
+        self.assertIn("verifying streamed prefix", stderr)
+        self.assertEqual(self.ledger().search("old prefix that must not publish"), [])
+        self.assertEqual(self.ledger().status()["parser_failures"], 1)
 
     def test_mutation_during_stream_is_failure_and_preserves_prior_snapshot(self):
         path = self.claude_path()

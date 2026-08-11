@@ -60,13 +60,14 @@ establish ancestry or merge them with another session.
 
 The streaming pass hashes the exact initial byte boundary as it reads. If that same file
 only grows before the final stat check, `sync` records the safely parsed prefix as `live`
-and retries on the next run without exit 2. A rewrite, replacement, or
+only after a second hash of that prefix proves it was not rewritten; it then retries on
+the next run without exit 2. Stable sources need no second hash. A rewrite, replacement, or
 truncation remains an unsafe race and is never promoted from a guessed prefix.
 
 Streaming keeps individual JSONL rows and normalized assistant messages bounded. An unusually large
 normalized assistant reply is retained in ordered chunks and marks the source `partial`; `sync --verbose`
 shows the diagnostic. Progress is interactive-only; JSON reports observed corpus bytes separately from
-source bytes processed during this run.
+source bytes parsed during this run and the rare live-prefix verification bytes.
 
 ### Flags for direct/raw read commands (`list`, `show`, `grep`)
 - `--harness claude|codex|gemini|qwen|all` (aliases `cc,cx,gm,qw`; default **all**)

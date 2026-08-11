@@ -1039,6 +1039,24 @@ def _source_appended_after_snapshot(initial_stat, final_stat, bytes_read: int) -
     )
 
 
+def _hash_file_prefix(path: Path, length: int) -> tuple[str, int]:
+    """Hash exactly ``length`` bytes, returning the digest and bytes actually read.
+
+    This is deliberately used only to prove a source that grew during its stream
+    parse.  Stable JSONL sources retain their one-pass read and hash path.
+    """
+    digest = hashlib.sha256()
+    remaining = length
+    with path.open("rb") as stream:
+        while remaining:
+            block = stream.read(min(1024 * 1024, remaining))
+            if not block:
+                break
+            digest.update(block)
+            remaining -= len(block)
+    return digest.hexdigest(), length - remaining
+
+
 @dataclass
 class _StreamParse:
     """One bounded-memory ledger normalization result.
@@ -1324,6 +1342,7 @@ def _cmd_sync_with_ledger(ledger, args):
     imported = unchanged = failed = skipped = partial = pending_sources = live_sources = 0
     observed_bytes = 0
     processed_bytes = 0
+    verified_bytes = 0
     seen: list[str] = []
     staged: list[tuple[Callable[[], None], Callable[[], None]]] = []
     pending_message_bytes = 0
@@ -1337,7 +1356,7 @@ def _cmd_sync_with_ledger(ledger, args):
         if not sys.stderr.isatty():
             return
         rate = processed_bytes / elapsed / (1024 * 1024)
-        print(f"convo: sync progress sources={index}/{total} observed-bytes={observed_bytes} processed-bytes={processed_bytes} elapsed={elapsed:.1f}s throughput={rate:.1f}MiB/s", file=sys.stderr)
+        print(f"convo: sync progress sources={index}/{total} observed-bytes={observed_bytes} processed-bytes={processed_bytes} verification-bytes={verified_bytes} elapsed={elapsed:.1f}s throughput={rate:.1f}MiB/s", file=sys.stderr)
 
     def flush() -> None:
         """Apply buffered rows quickly; parsing and hashing always happen outside a write txn."""
@@ -1432,8 +1451,12 @@ def _cmd_sync_with_ledger(ledger, args):
                 final_stat = path.stat()
                 if _source_identity(final_stat) != _source_identity(stat_result):
                     if _source_appended_after_snapshot(stat_result, final_stat, parsed.bytes_read):
+                        proof_hash, proof_bytes = _hash_file_prefix(path, parsed.bytes_read)
+                        verified_bytes += proof_bytes
+                        if proof_bytes != parsed.bytes_read or proof_hash != content_hash:
+                            raise ValueError("source changed while verifying streamed prefix; retry sync")
                         activity = (f"source appended after captured {parsed.bytes_read}-byte boundary; "
-                                    "retry sync")
+                                    f"retry sync (verified {proof_bytes} prefix bytes)")
                         detail = f"{source.parser_error}; {activity}" if source.parser_error else activity
                         # The stat identity and digest both describe the parsed prefix.
                         # Publish that safe prefix for cold ledgers, but make `live`
@@ -1561,6 +1584,7 @@ def _cmd_sync_with_ledger(ledger, args):
               "unchanged": unchanged, "failed": failed, "skipped": skipped, "partial": partial,
               "pending": pending_sources, "live": live_sources, "marked_missing": missing, "sources_scanned": total,
               "bytes_observed": observed_bytes, "bytes_processed": processed_bytes,
+              "bytes_verified": verified_bytes,
               "elapsed_seconds": round(elapsed, 3),
               "throughput_mib_per_second": round(processed_bytes / elapsed / (1024 * 1024), 3)}
     if args.json:
