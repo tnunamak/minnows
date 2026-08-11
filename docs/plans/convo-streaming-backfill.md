@@ -42,17 +42,20 @@ Before choosing a JSON parser, measure the largest physical line in each store. 
 ### 2. Cache completed source outcomes (implemented; full-corpus validation pending)
 
 Cache the physical identity (size, mtime, device, inode, ctime) plus parser version, policy version,
-and applicable source cap for every outcome: present, skipped, partial, pending, corrupt, or oversized.
+and applicable source cap for every outcome: present, skipped, partial, pending, live, corrupt, or oversized.
 An unchanged outcome is not reparsed. A changed source is rebuilt atomically; a race during parsing or
-hashing leaves the prior snapshot intact and records a retryable failure.
+hashing leaves the prior snapshot intact and records a retryable failure. JSONL parsing computes its hash
+in the same bounded pass over an initial stat-sized byte boundary. If that exact source merely grows after
+the boundary, its safely parsed prefix is recorded as `live` and retried without failure; replacement and truncation remain
+unsafe races.
 
 ### 3. Publish accurate progress (implemented; full-corpus validation pending)
 
 `convo sync` reports aggregate counts, elapsed time, and throughput; `--verbose` reveals individual
 source diagnostics. Periodic progress is interactive-only. Its JSON result includes stable source, observed
 corpus bytes, processed-source bytes, duration, throughput, skipped,
-partial, and pending fields. `convo status` separates parser failures, partial, pending, skipped, and
-oversized sources. `partial`, `pending`, and `skipped` are recorded outcomes and do not make a
+partial, pending, and live fields. `convo status` separates parser failures, partial, pending, live, skipped, and
+oversized sources. `partial`, `pending`, `live`, and `skipped` are recorded outcomes and do not make a
 sync fail; exit 2 is reserved for inability to record one.
 
 ### 4. Prove the full journey

@@ -88,6 +88,8 @@ def _completeness(status: str) -> str:
         return "partial_normalized_snapshot_source_present"
     if status == "pending":
         return "pending_normalized_snapshot_source_present"
+    if status == "live":
+        return "live_normalized_snapshot_source_present"
     if status == "skipped":
         return "no_normalized_messages_source_present"
     return "normalized_snapshot_source_unavailable"
@@ -261,7 +263,7 @@ class Ledger:
         ):
             # Discovery is direct evidence that a previously missing physical path is
             # present again, even if inode and timestamps happen to be unchanged.
-            if row["source_status"] != "missing":
+            if row["source_status"] not in ("missing", "live"):
                 return {"source_status": row["source_status"], "parser_error": row["parser_error"]}
         return None
 
@@ -391,6 +393,22 @@ class Ledger:
                   stat_result.st_ino, stat_result.st_ctime_ns, detail, parser_version, policy_version, source_cap))
         self._write(record)
 
+    def record_live(self, harness: str, path: Path, stat_result, detail: str) -> None:
+        """Record append activity without replacing a snapshot from an unstable source."""
+        detail = detail.splitlines()[0][:500]
+        def record(conn):
+            conn.execute("""
+                INSERT INTO source_files(harness, path, size, mtime_ns, device, inode, ctime_ns,
+                    source_status, parser_error, parser_version, policy_version, source_cap)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'live', ?, '', '', NULL)
+                ON CONFLICT(path) DO UPDATE SET harness = excluded.harness, size = excluded.size,
+                    mtime_ns = excluded.mtime_ns, device = excluded.device, inode = excluded.inode,
+                    ctime_ns = excluded.ctime_ns, source_status = 'live', parser_error = excluded.parser_error,
+                    parser_version = '', policy_version = '', source_cap = NULL, updated_at = CURRENT_TIMESTAMP
+            """, (harness, str(path), stat_result.st_size, stat_result.st_mtime_ns, stat_result.st_dev,
+                  stat_result.st_ino, stat_result.st_ctime_ns, detail))
+        self._write(record)
+
     def record_access_failure(self, harness: str, path: Path, error: Exception) -> None:
         """Keep an inaccessible discovered path from being mislabeled as disappeared."""
         detail = str(error).splitlines()[0][:500]
@@ -454,10 +472,12 @@ class Ledger:
         partial = conn.execute("SELECT COUNT(*) FROM source_files WHERE source_status = 'partial'").fetchone()[0]
         skipped = conn.execute("SELECT COUNT(*) FROM source_files WHERE source_status = 'skipped'").fetchone()[0]
         pending = conn.execute("SELECT COUNT(*) FROM source_files WHERE source_status = 'pending'").fetchone()[0]
+        live = conn.execute("SELECT COUNT(*) FROM source_files WHERE source_status = 'live'").fetchone()[0]
         oversized = conn.execute("SELECT COUNT(*) FROM source_files WHERE source_status = 'oversized'").fetchone()[0]
         return {"schema_version": SCHEMA_VERSION, "data_dir": str(self.data_dir), "database": str(self.db_path),
                 "sources": status_counts, "messages": messages, "parser_failures": failures,
                 "partial_sources": partial, "skipped_sources": skipped, "pending_sources": pending,
+                "live_sources": live,
                 "oversized_sources": oversized}
 
     @staticmethod

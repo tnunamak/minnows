@@ -46,7 +46,7 @@ raw log stays searchable from its retained normalized snapshot and is labeled as
 search never claims it can reconstruct raw tool traces.
 
 `sync` exits 0 after any recorded outcome, including `skipped`, `partial`, and
-`pending` sources. Exit 2 is reserved for an access, parser, transaction, or source-race
+`pending`, and `live` sources. Exit 2 is reserved for an access, parser, transaction, or unsafe source-race
 failure that prevented the ledger from recording a valid source status; `status` separates
 those failures from partial coverage.
 
@@ -57,6 +57,11 @@ malformed complete JSONL row marks that source `partial` while retaining valid s
 messages. An unterminated final row is `pending` until its writer completes it. Qwen
 `agent-fork-call_*.jsonl` files remain separate physical sources; their filenames never
 establish ancestry or merge them with another session.
+
+The streaming pass hashes the exact initial byte boundary as it reads. If that same file
+only grows before the final stat check, `sync` records the safely parsed prefix as `live`
+and retries on the next run without exit 2. A rewrite, replacement, or
+truncation remains an unsafe race and is never promoted from a guessed prefix.
 
 Streaming keeps individual JSONL rows and normalized assistant messages bounded. An unusually large
 normalized assistant reply is retained in ordered chunks and marks the source `partial`; `sync --verbose`

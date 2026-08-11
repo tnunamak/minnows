@@ -1,6 +1,7 @@
 """Regression tests for the stdlib-only convo CLI."""
 
 import contextlib
+import hashlib
 import importlib.machinery
 import importlib.util
 import io
@@ -341,6 +342,22 @@ class LedgerTests(unittest.TestCase):
                     streamed.spool_path.unlink(missing_ok=True)
                 self.assertEqual(actual, expected)
 
+    def test_streaming_hash_is_exact_and_sync_never_rehashes_jsonl(self):
+        path = self.claude_path()
+        self.write_claude(path, "single pass hash", "answer")
+        expected = hashlib.sha256(path.read_bytes()).hexdigest()
+        streamed = convo._stream_jsonl_source("claude", path, path.stat(), self.data_dir / "spool")
+        try:
+            self.assertEqual(streamed.bytes_read, path.stat().st_size)
+            self.assertEqual(streamed.content_hash, expected)
+        finally:
+            streamed.spool_path.unlink(missing_ok=True)
+        with mock.patch.object(convo.ledger_lib.Ledger, "hash_file", side_effect=AssertionError("second pass")):
+            _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        with sqlite3.connect(self.data_dir / "ledger.sqlite3") as conn:
+            self.assertEqual(conn.execute("SELECT content_hash FROM source_files").fetchone()[0], expected)
+
     def test_stream_spool_is_removed_when_reading_raises(self):
         path = self.claude_path()
         self.write_claude(path, "spool failure", "answer")
@@ -533,25 +550,77 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(self.ledger().search("same-size alpha"), [])
         self.assertEqual(self.ledger().search("same-size bravo")[0]["text"], "same-size bravo")
 
-    def test_mutation_during_hash_is_partial_and_preserves_prior_snapshot(self):
+    def test_append_during_stream_publishes_cold_prefix_and_retries(self):
+        path = self.claude_path()
+        self.write_claude(path, "candidate before append", "answer")
+        original_stream = convo._stream_jsonl_source
+
+        def append_after_stream(*args, **kwargs):
+            parsed = original_stream(*args, **kwargs)
+            with path.open("a", encoding="utf-8") as stream:
+                stream.write(json.dumps({"type": "user", "isMeta": False,
+                                         "message": {"content": "appended live row"}}) + "\n")
+            return parsed
+
+        with mock.patch.object(convo, "_stream_jsonl_source", side_effect=append_after_stream):
+            stdout, stderr, code = self.run_convo("sync", "--json", "--verbose")
+        result = json.loads(stdout)
+        self.assertEqual(code, 0, (stdout, stderr))
+        self.assertEqual(result["live"], 1)
+        self.assertEqual(result["failed"], 0)
+        self.assertIn("source remains live", stderr)
+        hit = self.ledger().search("candidate before append")[0]
+        self.assertEqual(hit["source_status"], "live")
+        self.assertEqual(hit["content_basis"], "snapshot")
+        self.assertEqual(self.ledger().search("appended live row"), [])
+        self.assertEqual(self.ledger().current_source_outcome(
+            "claude", path, path.stat(), convo.LEDGER_JSONL_PARSER_VERSION,
+            convo.LEDGER_POLICY_VERSION, None), None)
+        _, _, retry_code = self.run_convo("sync")
+        self.assertEqual(retry_code, 0)
+        self.assertEqual(self.ledger().search("candidate before append")[0]["source_status"], "present")
+        self.assertEqual(self.ledger().search("appended live row")[0]["source_status"], "present")
+
+    def test_mutation_during_stream_is_failure_and_preserves_prior_snapshot(self):
         path = self.claude_path()
         self.write_claude(path, "prior consistent topic", "answer")
         self.run_convo("sync")
         self.write_claude(path, "candidate topic", "answer")
-        real_hash = convo.ledger_lib.Ledger.hash_file
 
-        def mutate_after_hash(source_path):
-            digest = real_hash(source_path)
-            self.write_claude(source_path, "mutated during hash", "answer")
-            return digest
+        original_stream = convo._stream_jsonl_source
 
-        with mock.patch.object(convo.ledger_lib.Ledger, "hash_file", side_effect=mutate_after_hash):
-            _, stderr, code = self.run_convo("sync")
+        def truncate_after_stream(*args, **kwargs):
+            parsed = original_stream(*args, **kwargs)
+            path.write_text("", encoding="utf-8")
+            return parsed
+
+        with mock.patch.object(convo, "_stream_jsonl_source", side_effect=truncate_after_stream):
+            _, stderr, code = self.run_convo("sync", "--verbose")
         self.assertEqual(code, 2)
-        self.assertNotIn("source changed while parsing or hashing", stderr)
+        self.assertIn("source changed while streaming", stderr)
         hit = self.ledger().search("prior consistent topic")[0]
         self.assertEqual(hit["source_status"], "corrupt")
         self.assertEqual(self.ledger().search("candidate topic"), [])
+
+    def test_same_size_mutation_during_stream_is_not_classified_as_live(self):
+        path = self.claude_path()
+        self.write_claude(path, "prior rewrite snapshot", "answer")
+        self.run_convo("sync")
+        self.write_claude(path, "candidate rewrite data", "answer")
+        rewritten = path.read_text(encoding="utf-8").replace("candidate", "rewritten", 1)
+        self.assertEqual(len(rewritten.encode("utf-8")), path.stat().st_size)
+        original_stream = convo._stream_jsonl_source
+
+        def rewrite_after_stream(*args, **kwargs):
+            parsed = original_stream(*args, **kwargs)
+            path.write_text(rewritten, encoding="utf-8")
+            return parsed
+
+        with mock.patch.object(convo, "_stream_jsonl_source", side_effect=rewrite_after_stream):
+            _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 2)
+        hit = self.ledger().search("prior rewrite snapshot")[0]
+        self.assertEqual(hit["source_status"], "corrupt")
 
     def test_future_schema_version_is_not_downgraded_and_status_fails_cleanly(self):
         self.ledger().status()
