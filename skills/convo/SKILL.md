@@ -10,8 +10,10 @@ as a clean human/agent-readable transcript. It is the right tool whenever the us
 **look back at what was actually said** in this or another session — across Claude Code,
 Codex CLI, Gemini CLI, and Qwen Code.
 
-It is NOT a memory store and NOT for the *current* live turn — use it to read **prior**
-exchanges that have been written to the session log.
+The legacy `list`, `show`, and `grep` commands are direct/raw readers, not a memory
+store. Use them for the *current* live turn and recent source logs. The additive local
+ledger commands below retain normalized user and assistant text after an explicit sync;
+that snapshot deliberately excludes tool payloads, hidden reasoning, and system text.
 
 ## The one thing to understand
 
@@ -33,9 +35,24 @@ convo show <id> --mode full    # debug view with tool calls/results/thinking
 convo show <id> --json         # structured exchanges for programmatic use
 convo grep 'god files'         # search turn text across sessions in this project
 convo grep 'X' --all-projects --since 30d
+convo sync                     # incrementally persist normalized text from all sources
+convo search 'SQLite ledger'   # ranked FTS search of retained message snapshots
+convo status                   # source presence, retained rows, and parser health
 ```
 
-### Common flags (on every command)
+`sync`, `status`, and `search` use `$CONVO_DATA_DIR` when set (useful for isolated
+tests), otherwise `$XDG_DATA_HOME/minnows/convo`. `sync` is safe to repeat. A missing
+raw log stays searchable from its retained normalized snapshot and is labeled as such;
+search never claims it can reconstruct raw tool traces.
+
+The current normalizers are bounded to sources of at most 64 MiB by default
+(`CONVO_MAX_SOURCE_BYTES` overrides the cap for controlled testing). A larger source is
+recorded as `oversized`, preserves any old snapshot, and makes `sync` exit 2: cold sync
+is therefore intentionally partial until streaming normalization ships. Qwen
+`agent-fork-call_*.jsonl` files remain separate physical sources when present; their
+filenames do not establish ancestry or merge them with another session.
+
+### Flags for direct/raw read commands (`list`, `show`, `grep`)
 - `--harness claude|codex|gemini|qwen|all` (aliases `cc,cx,gm,qw`; default **all**)
 - `--project SUBSTR` — filter by project/cwd. **Defaults to the current directory.**
 - `--all-projects` — don't filter by cwd (use when the user means "any session anywhere").
