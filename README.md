@@ -48,9 +48,10 @@ minnows/
 A skill folder gets copied/symlinked **out** of this repo. At that point `from lib import …`
 has no repo-root `lib/` — *on another machine, where you can't see it*.
 
-- **Dev time → shared `lib/` (DRY).**
-- **Ship time → vendored / self-contained.** `sync.sh` copies the exe + `lib/` into each
-  `skills/*/scripts/`.
+- **Dev time → shared `lib/` only when it is genuinely shared.** Tool-private code lives
+  in `tools/<name>/lib/`, so unrelated skills do not inherit its state or dependencies.
+- **Ship time → vendored / self-contained.** `sync.sh` copies the executable, shared root
+  `lib/`, and that tool's optional private `lib/` into `skills/<name>/scripts/`.
 
 Never symlink `lib/` into a skill. Data packs are **read as files** (path / env), not imported
 like `lib/` — tools that need a pack resolve `$DATA_PACKS_HOME/<pack>` or a pinned tarball.
@@ -59,7 +60,7 @@ like `lib/` — tools that need a pack resolve `$DATA_PACKS_HOME/<pack>` or a pi
 
 | tool | CLI | skill | what it does |
 |------|-----|-------|--------------|
-| **convo** | ✓ | ✓ | Read past agent conversation history across Claude Code / Codex / Gemini. |
+| **convo** | ✓ | ✓ | Read past agent conversation history across Claude Code / Codex / Gemini / Qwen. |
 | **hone** | ✓ | — (not yet) | Repo-quality engine (inventory, ranked packets, maker≠judge). |
 | **uncompact** | ✓ | ✓ | Recover a Claude Code session lost to context compaction. |
 
@@ -92,7 +93,8 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 
 1. `tools/<name>/<name>` — the CLI (stdlib-only preferred).
 2. Optional `tools/<name>/SKILL.md` if agents should auto-discover it.
-3. Reuse `lib/` with the existing `_load_lib()` bootstrap pattern.
+3. Reuse root `lib/` only when another tool needs the code; otherwise use
+   `tools/<name>/lib/` with the existing `_load_lib()` bootstrap pattern.
 4. `./install.sh`.
 
 ## Adding a data pack
@@ -114,4 +116,3 @@ Workflows: `.github/workflows/release.yml` (release + packs), `.github/workflows
 Local machines using the clone install (`./install.sh` or `dotfiles/setup.sh`) pick up pack **files** via git pull + symlink; remote consumers use `fetch-data-pack.sh` / release assets.
 
 Manual pack release still works: `./scripts/release-data-pack.sh <pack> <semver> [--push]`.
-

@@ -3,8 +3,8 @@
 #
 # A skill is copied OUT of this repo (into ~/.{claude,codex,gemini}/skills/ or a
 # marketplace), so it can't rely on the repo-root lib/ being importable. We VENDOR:
-# each shipped skill gets its own copy of the tool executable + the shared lib/, so
-# it runs self-contained anywhere. (See README: vendor-on-ship at the skill boundary.)
+# each shipped skill gets its own executable, shared lib/, and optional tool-private
+# lib/, so it runs self-contained anywhere. (See README: vendor-on-ship.)
 #
 # Run this after editing any tool, SKILL.md, or lib/. install.sh runs it for you.
 set -euo pipefail
@@ -38,6 +38,14 @@ for name in "${shipped[@]}"; do
   # vendor the shared lib next to the script so its bootstrap finds ./lib/
   # (exclude __pycache__ — bytecode is interpreter-specific and shouldn't ship)
   for f in lib/*.py; do cp "$f" "$dst/scripts/lib/"; done
+
+  # A tool may also own a private lib/ for state or parsing that does not belong in
+  # every other shipped skill. It is vendored only with that tool.
+  if [[ -d "$src/lib" ]]; then
+    for f in "$src"/lib/*.py; do
+      [[ -e "$f" ]] && cp "$f" "$dst/scripts/lib/"
+    done
+  fi
 
   # optional supporting dirs (references/, assets/) if a tool has them
   for extra in references assets; do

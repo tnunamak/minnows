@@ -25,6 +25,7 @@ import argparse
 import json
 import os
 import re
+import shlex
 import sys
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
@@ -32,23 +33,25 @@ from pathlib import Path
 from typing import Any, Callable, Iterable, Optional
 
 
-# Shared Claude-session lib (locating projects/sessions, compaction boundaries).
-# Importable whether running from the minnows repo (lib/ at repo root) or from a
-# vendored skill folder (lib/ copied beside this script). See minnows README.
-def _load_lib():
+# Shared libraries are importable whether running from the repo (lib/ at repo root)
+# or from a vendored skill folder (lib/ copied beside this script). See minnows README.
+def _load_lib(name: str):
     import importlib.util
     here = Path(__file__).resolve().parent
-    for cand in (here / "lib" / "claude_sessions.py",                 # vendored beside script
-                 here.parent.parent / "lib" / "claude_sessions.py"):  # repo root lib/
+    for cand in (here / "lib" / f"{name}.py",                 # vendored beside script
+                 here.parent.parent / "lib" / f"{name}.py"):  # repo root lib/
         if cand.exists():
-            spec = importlib.util.spec_from_file_location("claude_sessions", cand)
+            spec = importlib.util.spec_from_file_location(name, cand)
             mod = importlib.util.module_from_spec(spec)
+            # dataclasses resolves forward annotations through sys.modules.
+            sys.modules[name] = mod
             spec.loader.exec_module(mod)
             return mod
-    return None  # convo degrades gracefully without it (chain-stitching disabled)
+    return None
 
 
-cs = _load_lib()
+cs = _load_lib("claude_sessions")
+ledger_lib = _load_lib("convo_ledger")
 
 
 # --------------------------------------------------------------------------------------
@@ -648,6 +651,9 @@ HARNESSES: dict[str, dict] = {
         "glob": "*/chats/*.jsonl",
         "loader": load_qwen,
         "peek": peek_qwen,
+        # Qwen's agent-fork-call files are retained as separate physical sources.
+        # Provenance filtering keeps their hidden/tool records out; V1 never infers
+        # ancestry or merges them with their parent from the filename alone.
         "skip": lambda p: False,
     },
 }
@@ -959,6 +965,175 @@ def default_project_slug() -> Optional[str]:
     return cwd  # used as a substring filter; matches cwd inside codex/claude paths
 
 
+def _ledger_sources() -> list[tuple[str, Path]]:
+    """Find every physical source for a full ledger sync, without query-time caps."""
+    sources: list[tuple[str, Path]] = []
+    for harness, cfg in HARNESSES.items():
+        root: Path = cfg["root"]
+        if not root.exists():
+            continue
+        for path in root.glob(cfg["glob"]):
+            if not cfg["skip"](path):
+                sources.append((harness, path))
+    return sorted(sources, key=lambda item: (item[0], str(item[1])))
+
+
+def _require_ledger():
+    if ledger_lib is None:
+        sys.exit("convo: ledger support is unavailable (the vendored lib/convo_ledger.py is missing)")
+    return ledger_lib.Ledger()
+
+
+def _normalized_source(harness: str, path: Path, session: Session, stat_result) -> object:
+    """Adapt the existing clean-turn parser to the ledger's narrow persistence contract."""
+    messages = tuple(
+        ledger_lib.Message(turn.role, turn.text, turn.ts)
+        for turn in session.turns
+        if turn.role in ("user", "assistant") and turn.text.strip()
+    )
+    return ledger_lib.ParsedSource(
+        harness, str(path), stat_result.st_size, stat_result.st_mtime_ns, stat_result.st_dev,
+        stat_result.st_ino, stat_result.st_ctime_ns, session.session_id, session.project, messages)
+
+
+def _source_identity(stat_result) -> tuple[int, int, int, int, int]:
+    return (stat_result.st_size, stat_result.st_mtime_ns, stat_result.st_dev,
+            stat_result.st_ino, stat_result.st_ctime_ns)
+
+
+def _cmd_sync_with_ledger(ledger, args):
+    """Incrementally capture every current source; retained rows survive disappearance."""
+    max_source_bytes = ledger_lib.max_source_bytes_from_environment()
+    imported = unchanged = failed = 0
+    seen: list[str] = []
+    pending: list[Callable[[], None]] = []
+    pending_message_bytes = 0
+
+    def flush() -> None:
+        """Apply buffered rows quickly; parsing and hashing always happen outside a write txn."""
+        nonlocal pending_message_bytes
+        if not pending:
+            return
+        ledger.begin_batch()
+        try:
+            for operation in pending:
+                operation()
+            ledger.commit_batch()
+        except Exception:
+            ledger.close()  # rolls back only the current batch; prior flushes are durable
+            raise
+        pending.clear()
+        pending_message_bytes = 0
+
+    def stage(operation: Callable[[], None], message_bytes: int = 0) -> None:
+        nonlocal pending_message_bytes
+        pending.append(operation)
+        pending_message_bytes += message_bytes
+        if (len(pending) >= ledger_lib.SYNC_BATCH_SIZE
+                or pending_message_bytes >= ledger_lib.SYNC_BATCH_MESSAGE_BYTES):
+            flush()
+
+    for harness, path in _ledger_sources():
+        # A globbed path is evidence of presence for this run even if a concurrent
+        # permission/race error keeps us from reading it now.
+        seen.append(str(path))
+        try:
+            stat_result = path.stat()
+        except OSError as exc:
+            stage(lambda harness=harness, path=path, exc=exc:
+                  ledger.record_access_failure(harness, path, exc))
+            failed += 1
+            print(f"convo: source preserved after access failure: {path}: {exc}", file=sys.stderr)
+            continue
+        # Existing loaders normalize a whole source in process memory. Do not attempt
+        # a multi-gigabyte parse until a streaming normalization slice exists.
+        if stat_result.st_size > max_source_bytes:
+            stage(lambda harness=harness, path=path, stat_result=stat_result:
+                  ledger.record_oversized(harness, path, stat_result, max_source_bytes))
+            failed += 1
+            print(f"convo: source preserved but not parsed (oversized): {path}: "
+                  f"{stat_result.st_size} bytes exceeds cap {max_source_bytes}", file=sys.stderr)
+            continue
+        if ledger.source_is_current(harness, path, stat_result):
+            unchanged += 1
+            continue
+        try:
+            session = HARNESSES[harness]["loader"](path)
+            if session is None:
+                raise ValueError("source contains no normalized user or assistant messages")
+            content_hash = ledger.hash_file(path)
+            # Capture the bytes whose identity we persist. A source that changed during
+            # parsing is retried on the next idempotent sync rather than being mislabeled.
+            final_stat = path.stat()
+            if _source_identity(final_stat) != _source_identity(stat_result):
+                raise ValueError("source changed while parsing or hashing; retry sync")
+            source = _normalized_source(harness, path, session, stat_result)
+            retained_bytes = sum(len(message.text.encode("utf-8")) for message in source.messages)
+            stage(lambda source=source, content_hash=content_hash:
+                  ledger.replace_source(source, content_hash), retained_bytes)
+            imported += 1
+        except Exception as exc:  # Preserve the last successful snapshot on every failure.
+            stage(lambda harness=harness, path=path, stat_result=stat_result, exc=exc:
+                  ledger.record_parse_failure(harness, path, stat_result, exc))
+            failed += 1
+            print(f"convo: source preserved after parse failure: {path}: {exc}", file=sys.stderr)
+    flush()
+    # The disappearance transition has no parse work behind it, so apply it alone.
+    ledger.begin_batch()
+    missing = ledger.mark_missing_except(seen)
+    ledger.commit_batch()
+    result = {"schema_version": ledger_lib.SCHEMA_VERSION, "imported": imported,
+              "unchanged": unchanged, "failed": failed, "marked_missing": missing}
+    if args.json:
+        print(json.dumps(result, sort_keys=True))
+    else:
+        print("convo: sync imported={imported} unchanged={unchanged} failed={failed} marked-missing={marked_missing}".format(**result))
+    if failed:
+        raise SystemExit(2)
+
+
+def cmd_sync(args):
+    with _require_ledger() as ledger:
+        with ledger.sync_lock():
+            _cmd_sync_with_ledger(ledger, args)
+
+
+def cmd_status(args):
+    with _require_ledger() as ledger:
+        status = ledger.status()
+        if args.json:
+            print(json.dumps(status, sort_keys=True))
+            return
+        source_counts = ", ".join(f"{key}={value}" for key, value in sorted(status["sources"].items())) or "none"
+        print(f"convo ledger: {status['messages']} messages; sources: {source_counts}; "
+              f"parser-failures={status['parser_failures']}; oversized={status['oversized_sources']}")
+        print(f"data: {status['data_dir']}")
+
+
+def cmd_search(args):
+    if args.limit < 1:
+        sys.exit("convo: --limit must be at least 1")
+    with _require_ledger() as ledger:
+        results = ledger.search(args.query, args.limit, args.context)
+        if args.json:
+            print(json.dumps({"schema_version": ledger_lib.SCHEMA_VERSION, "results": results}, indent=2))
+            return
+        if not results:
+            print("convo: no matches.", file=sys.stderr)
+            return
+        for result in results:
+            label = (f"{result['harness']}:{result['session_id']} [{result['role']}] "
+                     f"{_short_ts(result['timestamp'])} source={result['source_status']} "
+                     f"completeness={result['completeness']} basis={result['content_basis']}")
+            print(_terminal_safe(label))
+            for item in result["context"]:
+                marker = ">" if item["role"] == result["role"] and item["text"] == result["text"] else " "
+                print(f"  {marker} {item['role']}: {_terminal_safe(' '.join(item['text'].split())[:500])}")
+            command = f"convo show {shlex.quote(str(result['session_id']))}"
+            print(_terminal_safe(f"  next: {command}"))
+            print()
+
+
 def cmd_list(args):
     if args.limit < 1:
         sys.exit("convo: --limit must be at least 1")
@@ -1200,6 +1375,23 @@ def build_parser() -> argparse.ArgumentParser:
                          help=argparse.SUPPRESS)
     sp_grep.set_defaults(func=cmd_grep)
 
+    # These are deliberately additive. The legacy commands above remain direct/raw
+    # readers in this increment; only these commands open the durable local ledger.
+    sp_sync = sub.add_parser("sync", help="incrementally refresh the durable local ledger")
+    sp_sync.add_argument("--json", action="store_true", help="emit a versioned JSON result")
+    sp_sync.set_defaults(func=cmd_sync)
+
+    sp_status = sub.add_parser("status", help="show local ledger source and parser health")
+    sp_status.add_argument("--json", action="store_true", help="emit a versioned JSON result")
+    sp_status.set_defaults(func=cmd_status)
+
+    sp_search = sub.add_parser("search", help="rank retained user/assistant messages with FTS")
+    sp_search.add_argument("query", help="ordinary words to search (FTS syntax is treated literally)")
+    sp_search.add_argument("--limit", type=int, default=20, help="max ranked messages (default 20)")
+    sp_search.add_argument("--context", type=int, default=1, help="messages on each side (default 1, max 5)")
+    sp_search.add_argument("--json", action="store_true", help="emit a versioned JSON result")
+    sp_search.set_defaults(func=cmd_search)
+
     return p
 
 
@@ -1213,9 +1405,16 @@ def textwrap_epilog() -> str:
         "  convo show <id> --mode full   # full debug view with tool calls\n"
         "  convo show <id> --json        # structured exchanges for an agent to consume\n"
         "  convo grep 'god files' --all-projects --since 30d\n"
+        "  convo sync                     # incrementally capture current raw logs\n"
+        "  convo search 'SQLite ledger'   # ranked retained message search\n"
+        "  convo status                   # source, retention, and parser health\n"
         "\nThe default 'final' mode shows each of your prompts paired with ONLY the agent's last\n"
         "text reply before your next prompt — tool calls and noise stripped. That's the clean\n"
         "transcript that's usually most useful when reviewing 'what did we actually say'.\n"
+        "\nState boundary: list, show, and grep remain stateless direct/raw readers in this\n"
+        "increment. Only sync, status, and search use the local SQLite ledger.\n"
+        "sync parses sources up to 64 MiB by default; larger sources are preserved as\n"
+        "partial/oversized (exit 2) until streaming normalization is available.\n"
     )
 
 
@@ -1224,7 +1423,7 @@ def main(argv=None):
     parser = build_parser()
 
     # Let -h/--help and a bare subcommand reach the top-level parser directly.
-    subcommands = {"list", "show", "grep"}
+    subcommands = {"list", "show", "grep", "sync", "status", "search"}
     if argv and (argv[0] in ("-h", "--help") or argv[0] in subcommands):
         args = parser.parse_args(argv)
     elif not argv:

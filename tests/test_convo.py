@@ -6,13 +6,16 @@ import importlib.util
 import io
 import json
 import os
+import sqlite3
 import tempfile
 import time
 import unittest
+from unittest import mock
 from pathlib import Path
 
 
 TOOL = Path(__file__).parents[1] / "tools" / "convo" / "convo"
+REPO = Path(__file__).parents[1]
 LOADER = importlib.machinery.SourceFileLoader("convo_under_test", str(TOOL))
 SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)
 convo = importlib.util.module_from_spec(SPEC)
@@ -115,6 +118,331 @@ class CrossHarnessGrepTests(unittest.TestCase):
         explicit_all = self.grep_output("--harness", "all")
         self.assertIn("needle in Claude", default)
         self.assertEqual(default, explicit_all)
+
+
+class LedgerTests(unittest.TestCase):
+    """The ledger is exercised through the CLI to keep its public boundary honest."""
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.root = Path(self.directory.name)
+        self.data_dir = self.root / "ledger-data"
+        self.original_roots = {harness: config["root"] for harness, config in convo.HARNESSES.items()}
+        self.old_data_dir = os.environ.get("CONVO_DATA_DIR")
+        self.old_source_cap = os.environ.get("CONVO_MAX_SOURCE_BYTES")
+        self._ledger = None
+        os.environ["CONVO_DATA_DIR"] = str(self.data_dir)
+        os.environ["CONVO_MAX_SOURCE_BYTES"] = str(64 * 1024 * 1024)
+        for harness, config in convo.HARNESSES.items():
+            config["root"] = self.root / harness
+
+    def tearDown(self):
+        if self._ledger is not None:
+            self._ledger.close()
+        for harness, root in self.original_roots.items():
+            convo.HARNESSES[harness]["root"] = root
+        if self.old_data_dir is None:
+            os.environ.pop("CONVO_DATA_DIR", None)
+        else:
+            os.environ["CONVO_DATA_DIR"] = self.old_data_dir
+        if self.old_source_cap is None:
+            os.environ.pop("CONVO_MAX_SOURCE_BYTES", None)
+        else:
+            os.environ["CONVO_MAX_SOURCE_BYTES"] = self.old_source_cap
+        self.directory.cleanup()
+
+    def claude_path(self, name: str = "session.jsonl") -> Path:
+        return self.root / "claude" / "project" / name
+
+    def write_claude(self, path: Path, user: str, assistant: str, timestamp: str = "2026-08-01T00:00:00Z") -> None:
+        write_jsonl(path, [
+            {"type": "user", "timestamp": timestamp, "cwd": "/project", "isMeta": False,
+             "message": {"content": user}},
+            {"type": "assistant", "timestamp": timestamp, "message": {"content": [
+                {"type": "text", "text": assistant},
+            ]}},
+        ])
+
+    def run_convo(self, *args: str) -> tuple[str, str, int]:
+        stdout, stderr = io.StringIO(), io.StringIO()
+        code = 0
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            try:
+                convo.main(list(args))
+            except SystemExit as exc:
+                code = int(exc.code) if isinstance(exc.code, int) else 1
+        return stdout.getvalue(), stderr.getvalue(), code
+
+    def ledger(self):
+        if self._ledger is None:
+            self._ledger = convo.ledger_lib.Ledger()
+        return self._ledger
+
+    def test_sync_is_idempotent_and_uses_the_test_data_directory(self):
+        self.write_claude(self.claude_path(), "Find idempotence", "Stored once")
+        first, _, first_code = self.run_convo("sync", "--json")
+        second, _, second_code = self.run_convo("sync", "--json")
+        self.assertEqual(first_code, 0)
+        self.assertEqual(second_code, 0)
+        self.assertEqual(json.loads(first)["imported"], 1)
+        self.assertEqual(json.loads(second)["unchanged"], 1)
+        self.assertEqual(self.ledger().status()["messages"], 2)
+        self.assertTrue((self.data_dir / "ledger.sqlite3").exists())
+
+    def test_unchanged_full_sync_uses_one_database_connection(self):
+        for index in range(25):
+            self.write_claude(self.claude_path(f"source-{index}.jsonl"), f"source {index}", "answer")
+        self.run_convo("sync")
+        real_connect = convo.ledger_lib.sqlite3.connect
+        calls = 0
+
+        def counted_connect(*args, **kwargs):
+            nonlocal calls
+            calls += 1
+            return real_connect(*args, **kwargs)
+
+        with mock.patch.object(convo.ledger_lib.sqlite3, "connect", side_effect=counted_connect):
+            _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        self.assertEqual(calls, 1)
+
+    def test_thousand_oversized_sources_use_bounded_batch_commits(self):
+        os.environ["CONVO_MAX_SOURCE_BYTES"] = "1"
+        for index in range(1000):
+            path = self.claude_path(f"large-{index}.jsonl")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("too large for this test cap\n", encoding="utf-8")
+        real_commit_batch = convo.ledger_lib.Ledger.commit_batch
+        commits = 0
+
+        def counted_commit_batch(ledger):
+            nonlocal commits
+            commits += 1
+            return real_commit_batch(ledger)
+
+        with mock.patch.object(convo.ledger_lib.Ledger, "commit_batch", new=counted_commit_batch):
+            _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 2)
+        # 1,000 source transitions at 250/batch plus the final missing-source pass.
+        self.assertEqual(commits, 5)
+
+    def test_changed_source_replaces_prior_rows(self):
+        path = self.claude_path()
+        self.write_claude(path, "old unique topic", "old answer")
+        self.run_convo("sync")
+        self.write_claude(path, "new unique topic", "new answer", "2026-08-02T00:00:00Z")
+        self.run_convo("sync")
+        self.assertEqual(self.ledger().search("old unique topic"), [])
+        hits = self.ledger().search("new unique topic")
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0]["text"], "new unique topic")
+
+    def test_missing_source_keeps_a_searchable_snapshot_with_honest_labels(self):
+        path = self.claude_path()
+        self.write_claude(path, "retained deletion topic", "retained answer")
+        self.run_convo("sync")
+        path.unlink()
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        hit = self.ledger().search("retained deletion topic")[0]
+        self.assertEqual(hit["source_status"], "missing")
+        self.assertEqual(hit["content_basis"], "snapshot")
+        self.assertEqual(hit["completeness"], "normalized_snapshot_source_missing")
+
+    def test_parse_failure_preserves_last_good_rows_and_is_partial(self):
+        path = self.claude_path()
+        self.write_claude(path, "preserve good topic", "good answer")
+        self.run_convo("sync")
+        path.write_text('{"type":"user"}\nnot-json\n', encoding="utf-8")
+        _, stderr, code = self.run_convo("sync")
+        self.assertEqual(code, 2)
+        self.assertIn("source preserved after parse failure", stderr)
+        hit = self.ledger().search("preserve good topic")[0]
+        self.assertEqual(hit["source_status"], "corrupt")
+        self.assertEqual(hit["content_basis"], "snapshot")
+
+    def test_oversized_source_preserves_last_good_rows_and_is_partial(self):
+        path = self.claude_path()
+        self.write_claude(path, "cap preserves topic", "good answer")
+        self.run_convo("sync")
+        os.environ["CONVO_MAX_SOURCE_BYTES"] = "1"
+        original_loader = convo.HARNESSES["claude"]["loader"]
+
+        def should_not_parse(_path):
+            raise AssertionError("oversized source reached its in-memory loader")
+
+        convo.HARNESSES["claude"]["loader"] = should_not_parse
+        try:
+            _, stderr, code = self.run_convo("sync")
+        finally:
+            convo.HARNESSES["claude"]["loader"] = original_loader
+        self.assertEqual(code, 2)
+        self.assertIn("oversized", stderr)
+        hit = self.ledger().search("cap preserves topic")[0]
+        self.assertEqual(hit["source_status"], "oversized")
+        self.assertEqual(hit["completeness"], "normalized_snapshot_source_unavailable")
+        self.assertEqual(self.ledger().status()["oversized_sources"], 1)
+
+    def test_torn_final_jsonl_row_is_ignored_then_imported_after_resume(self):
+        path = self.claude_path()
+        self.write_claude(path, "stable before torn", "first reply")
+        with path.open("a", encoding="utf-8") as stream:
+            stream.write('{"type":"user"')
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        self.assertEqual(len(self.ledger().search("stable before torn")), 1)
+        with path.open("a", encoding="utf-8") as stream:
+            stream.write(',"timestamp":"2026-08-02T00:00:00Z","cwd":"/project","isMeta":false,"message":{"content":"resumed torn row"}}\n')
+        self.run_convo("sync")
+        self.assertEqual(len(self.ledger().search("resumed torn row")), 1)
+
+    def test_search_ranks_equal_text_matches_by_message_timestamp(self):
+        self.write_claude(self.claude_path("old.jsonl"), "ranking shared phrase", "old", "2026-08-01T00:00:00Z")
+        self.write_claude(self.claude_path("new.jsonl"), "ranking shared phrase", "new", "2026-08-03T00:00:00Z")
+        self.run_convo("sync")
+        hits = self.ledger().search("ranking shared phrase")
+        self.assertEqual([hit["session_id"] for hit in hits], ["new", "old"])
+
+    def test_fts_query_safety_treats_operators_and_punctuation_as_terms(self):
+        self.write_claude(self.claude_path(), "safe FTS tokens", "answer")
+        self.run_convo("sync")
+        for query in ('" OR *', "safe OR tokens", "(((())))"):
+            _, _, code = self.run_convo("search", query, "--json")
+            self.assertEqual(code, 0, query)
+
+    def test_search_human_output_sanitizes_ids_and_quotes_next_command(self):
+        source = convo.ledger_lib.ParsedSource(
+            "claude", "/untrusted/source", 1, 1,
+            0, 0, 1,
+            "unsafe; touch /tmp/nope\x1b[31m\nnext", "/project",
+            (convo.ledger_lib.Message("user", "terminal safety query", "2026-08-01T00:00:00Z"),),
+        )
+        self.ledger().replace_source(source, "hash")
+        stdout, _, code = self.run_convo("search", "terminal safety query")
+        self.assertEqual(code, 0)
+        self.assertNotIn("\x1b", stdout)
+        self.assertNotIn("convo show unsafe;", stdout)
+        self.assertIn("next: convo show 'unsafe; touch /tmp/nope[31m", stdout)
+
+    def test_same_size_rewrite_with_restored_mtime_reindexes_from_stat_identity(self):
+        path = self.claude_path()
+        self.write_claude(path, "same-size alpha", "answer")
+        self.run_convo("sync")
+        original_stat = path.stat()
+        self.write_claude(path, "same-size bravo", "answer")
+        self.assertEqual(path.stat().st_size, original_stat.st_size)
+        os.utime(path, ns=(original_stat.st_atime_ns, original_stat.st_mtime_ns))
+        rewritten_stat = path.stat()
+        self.assertNotEqual(rewritten_stat.st_ctime_ns, original_stat.st_ctime_ns)
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        self.assertEqual(self.ledger().search("same-size alpha"), [])
+        self.assertEqual(self.ledger().search("same-size bravo")[0]["text"], "same-size bravo")
+
+    def test_mutation_during_hash_is_partial_and_preserves_prior_snapshot(self):
+        path = self.claude_path()
+        self.write_claude(path, "prior consistent topic", "answer")
+        self.run_convo("sync")
+        self.write_claude(path, "candidate topic", "answer")
+        real_hash = convo.ledger_lib.Ledger.hash_file
+
+        def mutate_after_hash(source_path):
+            digest = real_hash(source_path)
+            self.write_claude(source_path, "mutated during hash", "answer")
+            return digest
+
+        with mock.patch.object(convo.ledger_lib.Ledger, "hash_file", side_effect=mutate_after_hash):
+            _, stderr, code = self.run_convo("sync")
+        self.assertEqual(code, 2)
+        self.assertIn("source changed while parsing or hashing", stderr)
+        hit = self.ledger().search("prior consistent topic")[0]
+        self.assertEqual(hit["source_status"], "corrupt")
+        self.assertEqual(self.ledger().search("candidate topic"), [])
+
+    def test_future_schema_version_is_not_downgraded_and_status_fails_cleanly(self):
+        self.ledger().status()
+        self._ledger.close()
+        self._ledger = None
+        with sqlite3.connect(self.data_dir / "ledger.sqlite3") as conn:
+            conn.execute("PRAGMA user_version = 99")
+        with self.assertRaises(SystemExit) as raised:
+            convo.main(["status"])
+        self.assertIn("newer than supported", str(raised.exception))
+        with sqlite3.connect(self.data_dir / "ledger.sqlite3") as conn:
+            self.assertEqual(conn.execute("PRAGMA user_version").fetchone()[0], 99)
+
+    def test_sync_lock_excludes_other_syncs_while_wal_readers_continue(self):
+        writer = convo.ledger_lib.Ledger()
+        reader = convo.ledger_lib.Ledger()
+        contender = convo.ledger_lib.Ledger()
+        try:
+            writer.status()
+            with writer.sync_lock():
+                writer.begin_batch()
+                self.assertEqual(reader.status()["messages"], 0)
+                self.assertEqual(reader.search("anything"), [])
+                with self.assertRaises(convo.ledger_lib.LedgerBusyError):
+                    with contender.sync_lock():
+                        pass
+                writer.commit_batch()
+        finally:
+            writer.close()
+            reader.close()
+            contender.close()
+
+    def test_parsing_never_runs_inside_a_buffered_write_batch(self):
+        for index in range(convo.ledger_lib.SYNC_BATCH_SIZE + 1):
+            self.write_claude(self.claude_path(f"buffered-{index}.jsonl"), f"buffer {index}", "answer")
+        original_loader = convo.HARNESSES["claude"]["loader"]
+        original_begin = convo.ledger_lib.Ledger.begin_batch
+        original_commit = convo.ledger_lib.Ledger.commit_batch
+        write_active = False
+
+        def checked_loader(path):
+            self.assertFalse(write_active)
+            return original_loader(path)
+
+        def tracked_begin(ledger):
+            nonlocal write_active
+            original_begin(ledger)
+            write_active = True
+
+        def tracked_commit(ledger):
+            nonlocal write_active
+            original_commit(ledger)
+            write_active = False
+
+        convo.HARNESSES["claude"]["loader"] = checked_loader
+        try:
+            with mock.patch.object(convo.ledger_lib.Ledger, "begin_batch", new=tracked_begin), \
+                 mock.patch.object(convo.ledger_lib.Ledger, "commit_batch", new=tracked_commit):
+                _, _, code = self.run_convo("sync")
+        finally:
+            convo.HARNESSES["claude"]["loader"] = original_loader
+        self.assertEqual(code, 0)
+
+    def test_current_commands_remain_direct_raw_readers_after_ledger_commands(self):
+        path = self.claude_path()
+        self.write_claude(path, "compatibility needle", "compatibility answer")
+        before = [
+            self.run_convo("list", "--all-projects", "--no-color"),
+            self.run_convo("show", str(path), "--all-projects", "--no-color"),
+            self.run_convo("grep", "compatibility needle", "--all-projects", "--no-color"),
+        ]
+        self.run_convo("status")
+        after = [
+            self.run_convo("list", "--all-projects", "--no-color"),
+            self.run_convo("show", str(path), "--all-projects", "--no-color"),
+            self.run_convo("grep", "compatibility needle", "--all-projects", "--no-color"),
+        ]
+        self.assertEqual(before, after)
+
+
+class PackagingBoundaryTests(unittest.TestCase):
+    def test_convo_private_ledger_is_not_vendored_with_uncompact(self):
+        self.assertTrue((REPO / "tools" / "convo" / "lib" / "convo_ledger.py").is_file())
+        self.assertTrue((REPO / "skills" / "convo" / "scripts" / "lib" / "convo_ledger.py").is_file())
+        self.assertFalse((REPO / "skills" / "uncompact" / "scripts" / "lib" / "convo_ledger.py").exists())
 
 
 if __name__ == "__main__":
