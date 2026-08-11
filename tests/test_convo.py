@@ -209,7 +209,7 @@ class LedgerTests(unittest.TestCase):
     def test_thousand_oversized_sources_use_bounded_batch_commits(self):
         os.environ["CONVO_MAX_SOURCE_BYTES"] = "1"
         for index in range(1000):
-            path = self.claude_path(f"large-{index}.jsonl")
+            path = self.root / "gemini" / f"project-{index}" / "chats" / f"session-{index}.json"
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("too large for this test cap\n", encoding="utf-8")
         real_commit_batch = convo.ledger_lib.Ledger.commit_batch
@@ -256,32 +256,25 @@ class LedgerTests(unittest.TestCase):
         path.write_text('{"type":"user"}\nnot-json\n', encoding="utf-8")
         _, stderr, code = self.run_convo("sync")
         self.assertEqual(code, 2)
-        self.assertIn("source preserved after parse failure", stderr)
+        self.assertNotIn("source preserved after parse failure", stderr)
         hit = self.ledger().search("preserve good topic")[0]
-        self.assertEqual(hit["source_status"], "corrupt")
+        self.assertEqual(hit["source_status"], "partial")
         self.assertEqual(hit["content_basis"], "snapshot")
+        second, _, second_code = self.run_convo("sync", "--json")
+        self.assertEqual(second_code, 2)
+        self.assertEqual(json.loads(second)["unchanged"], 1)
 
-    def test_oversized_source_preserves_last_good_rows_and_is_partial(self):
+    def test_jsonl_sources_stream_past_the_legacy_whole_file_cap(self):
         path = self.claude_path()
         self.write_claude(path, "cap preserves topic", "good answer")
         self.run_convo("sync")
         os.environ["CONVO_MAX_SOURCE_BYTES"] = "1"
-        original_loader = convo.HARNESSES["claude"]["loader"]
-
-        def should_not_parse(_path):
-            raise AssertionError("oversized source reached its in-memory loader")
-
-        convo.HARNESSES["claude"]["loader"] = should_not_parse
-        try:
-            _, stderr, code = self.run_convo("sync")
-        finally:
-            convo.HARNESSES["claude"]["loader"] = original_loader
-        self.assertEqual(code, 2)
-        self.assertIn("oversized", stderr)
+        _, stderr, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        self.assertNotIn("oversized", stderr)
         hit = self.ledger().search("cap preserves topic")[0]
-        self.assertEqual(hit["source_status"], "oversized")
-        self.assertEqual(hit["completeness"], "normalized_snapshot_source_unavailable")
-        self.assertEqual(self.ledger().status()["oversized_sources"], 1)
+        self.assertEqual(hit["source_status"], "present")
+        self.assertEqual(self.ledger().status()["oversized_sources"], 0)
 
     def test_torn_final_jsonl_row_is_ignored_then_imported_after_resume(self):
         path = self.claude_path()
@@ -295,6 +288,42 @@ class LedgerTests(unittest.TestCase):
             stream.write(',"timestamp":"2026-08-02T00:00:00Z","cwd":"/project","isMeta":false,"message":{"content":"resumed torn row"}}\n')
         self.run_convo("sync")
         self.assertEqual(len(self.ledger().search("resumed torn row")), 1)
+
+    def test_no_normalized_messages_are_skipped_and_cached(self):
+        path = self.claude_path()
+        write_jsonl(path, [{"type": "user", "isMeta": True, "message": {"content": "system only"}}])
+        first, _, code = self.run_convo("sync", "--json")
+        second, _, second_code = self.run_convo("sync", "--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(second_code, 0)
+        self.assertEqual(json.loads(first)["skipped"], 1)
+        self.assertEqual(json.loads(second)["unchanged"], 1)
+        self.assertEqual(self.ledger().status()["skipped_sources"], 1)
+
+    def test_malformed_complete_row_retains_valid_rows_on_both_sides(self):
+        path = self.claude_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            json.dumps({"type": "user", "isMeta": False, "message": {"content": "before malformed"}}) + "\n"
+            "{definitely bad}\n"
+            + json.dumps({"type": "assistant", "message": {"content": [{"type": "text", "text": "after malformed"}]}}) + "\n",
+            encoding="utf-8",
+        )
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 2)
+        self.assertEqual(self.ledger().search("before malformed")[0]["source_status"], "partial")
+        self.assertEqual(self.ledger().search("after malformed")[0]["source_status"], "partial")
+
+    def test_torn_final_row_is_pending_and_cached_until_changed(self):
+        path = self.claude_path()
+        self.write_claude(path, "pending prefix", "answer")
+        with path.open("a", encoding="utf-8") as stream:
+            stream.write('{"type":"assistant"')
+        _, _, code = self.run_convo("sync")
+        _, _, second_code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        self.assertEqual(second_code, 0)
+        self.assertEqual(self.ledger().status()["pending_sources"], 1)
 
     def test_search_ranks_equal_text_matches_by_message_timestamp(self):
         self.write_claude(self.claude_path("old.jsonl"), "ranking shared phrase", "old", "2026-08-01T00:00:00Z")
@@ -354,7 +383,7 @@ class LedgerTests(unittest.TestCase):
         with mock.patch.object(convo.ledger_lib.Ledger, "hash_file", side_effect=mutate_after_hash):
             _, stderr, code = self.run_convo("sync")
         self.assertEqual(code, 2)
-        self.assertIn("source changed while parsing or hashing", stderr)
+        self.assertNotIn("source changed while parsing or hashing", stderr)
         hit = self.ledger().search("prior consistent topic")[0]
         self.assertEqual(hit["source_status"], "corrupt")
         self.assertEqual(self.ledger().search("candidate topic"), [])
@@ -393,14 +422,14 @@ class LedgerTests(unittest.TestCase):
     def test_parsing_never_runs_inside_a_buffered_write_batch(self):
         for index in range(convo.ledger_lib.SYNC_BATCH_SIZE + 1):
             self.write_claude(self.claude_path(f"buffered-{index}.jsonl"), f"buffer {index}", "answer")
-        original_loader = convo.HARNESSES["claude"]["loader"]
+        original_stream = convo._stream_jsonl_source
         original_begin = convo.ledger_lib.Ledger.begin_batch
         original_commit = convo.ledger_lib.Ledger.commit_batch
         write_active = False
 
-        def checked_loader(path):
+        def checked_stream(*args, **kwargs):
             self.assertFalse(write_active)
-            return original_loader(path)
+            return original_stream(*args, **kwargs)
 
         def tracked_begin(ledger):
             nonlocal write_active
@@ -412,13 +441,13 @@ class LedgerTests(unittest.TestCase):
             original_commit(ledger)
             write_active = False
 
-        convo.HARNESSES["claude"]["loader"] = checked_loader
+        convo._stream_jsonl_source = checked_stream
         try:
             with mock.patch.object(convo.ledger_lib.Ledger, "begin_batch", new=tracked_begin), \
                  mock.patch.object(convo.ledger_lib.Ledger, "commit_batch", new=tracked_commit):
                 _, _, code = self.run_convo("sync")
         finally:
-            convo.HARNESSES["claude"]["loader"] = original_loader
+            convo._stream_jsonl_source = original_stream
         self.assertEqual(code, 0)
 
     def test_current_commands_remain_direct_raw_readers_after_ledger_commands(self):
