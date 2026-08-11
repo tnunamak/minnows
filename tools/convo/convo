@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-convo — read agent conversation history across harnesses (Claude Code, Codex, Gemini CLI).
+convo — read agent conversation history across harnesses (Claude Code, Codex, Gemini CLI, Qwen Code).
 
 Built for AGENTS to read their own session transcripts, with humans as a secondary user.
 The signature view is the "clean transcript": each of YOUR prompts paired with only the
@@ -381,6 +381,83 @@ def load_gemini(path: Path) -> Optional[Session]:
     return Session("gemini", session_id, str(path), project, path.stat().st_mtime, turns)
 
 
+def load_qwen(path: Path) -> Optional[Session]:
+    """Qwen Code: ~/.qwen/projects/<slug>/chats/<sessionId>.jsonl."""
+    session_id = path.stem
+    cwd = None
+    turns: list[Turn] = []
+
+    for row in _read_jsonl(path):
+        if cwd is None and row.get("cwd"):
+            cwd = row["cwd"]
+        rtype = row.get("type")
+        ts = row.get("timestamp")
+        msg = row.get("message", {})
+        parts = msg.get("parts", []) if isinstance(msg, dict) else []
+
+        # Qwen records status notifications and task results as user-shaped messages.
+        # Only provenance=real_user represents an actual prompt from the human.
+        if rtype == "user" and row.get("provenance") == "real_user":
+            text_parts = []
+            for part in parts:
+                if isinstance(part, dict) and isinstance(part.get("text"), str):
+                    text = clean_text(part["text"])
+                    if text:
+                        text_parts.append(text)
+            text = "\n\n".join(text_parts)
+            if text and not _looks_like_meta_user(text):
+                turns.append(Turn("user", text, ts))
+
+        elif rtype == "assistant":
+            text_parts, events = [], []
+            for part in parts:
+                if not isinstance(part, dict):
+                    continue
+                if isinstance(part.get("text"), str):
+                    text = clean_text(part["text"])
+                    if text and part.get("thought") is True:
+                        events.append({"kind": "thinking", "name": "", "text": text})
+                    elif text:
+                        text_parts.append(text)
+                elif isinstance(part.get("functionCall"), dict):
+                    call = part["functionCall"]
+                    events.append({
+                        "kind": "tool_use",
+                        "name": call.get("name", ""),
+                        "text": _stringify_tool_input(call.get("args", {})),
+                    })
+            if turns and turns[-1].role == "assistant":
+                previous = turns[-1]
+                for text in text_parts:
+                    previous.add_text(text)
+                previous.events.extend(events)
+            else:
+                turn = Turn("assistant", "", ts, events=events)
+                for text in text_parts:
+                    turn.add_text(text)
+                turns.append(turn)
+
+        elif rtype == "tool_result":
+            events = []
+            for part in parts:
+                if not isinstance(part, dict) or not isinstance(part.get("functionResponse"), dict):
+                    continue
+                response = part["functionResponse"]
+                events.append({
+                    "kind": "tool_result",
+                    "name": response.get("name", response.get("id", "")),
+                    "text": _stringify_tool_result(response.get("response", "")),
+                })
+            if events:
+                if not turns or turns[-1].role != "assistant":
+                    turns.append(Turn("assistant", "", ts))
+                turns[-1].events.extend(events)
+
+    if not turns:
+        return None
+    return Session("qwen", session_id, str(path), cwd, path.stat().st_mtime, turns)
+
+
 # --------------------------------------------------------------------------------------
 # Tool/content stringification helpers
 # --------------------------------------------------------------------------------------
@@ -512,6 +589,34 @@ def peek_gemini(path: Path) -> Optional[Peek]:
                 s.first_user_text, sum(1 for t in s.turns if t.role == "user"), False)
 
 
+def peek_qwen(path: Path) -> Optional[Peek]:
+    cwd = None
+    first_user = ""
+    user_msgs = 0
+    truncated = False
+    for i, row in enumerate(_read_jsonl(path)):
+        if i >= _PEEK_MAX_LINES:
+            truncated = True
+            break
+        if cwd is None and row.get("cwd"):
+            cwd = row["cwd"]
+        if row.get("type") != "user" or row.get("provenance") != "real_user":
+            continue
+        msg = row.get("message", {})
+        parts = msg.get("parts", []) if isinstance(msg, dict) else []
+        texts = [part["text"] for part in parts
+                 if isinstance(part, dict) and isinstance(part.get("text"), str)]
+        text = clean_text("\n\n".join(texts))
+        if text and not _looks_like_meta_user(text):
+            user_msgs += 1
+            if not first_user:
+                first_user = text
+    if user_msgs == 0 and not first_user:
+        return None
+    return Peek("qwen", path.stem, str(path), cwd, path.stat().st_mtime,
+                first_user, user_msgs, truncated)
+
+
 # --------------------------------------------------------------------------------------
 # Discovery — find sessions across harnesses
 # --------------------------------------------------------------------------------------
@@ -538,6 +643,13 @@ HARNESSES: dict[str, dict] = {
         "peek": peek_gemini,
         "skip": lambda p: False,
     },
+    "qwen": {
+        "root": Path.home() / ".qwen" / "projects",
+        "glob": "*/chats/*.jsonl",
+        "loader": load_qwen,
+        "peek": peek_qwen,
+        "skip": lambda p: False,
+    },
 }
 
 
@@ -546,6 +658,9 @@ def _slug_for_project(p: Path, harness: str) -> str:
     if harness == "claude":
         # parent dir is the slug e.g. -home-tnunamak-code-dotfiles
         return p.parent.name
+    if harness == "qwen":
+        # Qwen inserts a chats/ directory below its project slug.
+        return p.parent.parent.name
     if harness == "gemini":
         # parent-of-parent is the project hash dir
         return p.parent.parent.name
@@ -561,6 +676,12 @@ def _candidate_may_match_project(harness: str, path: Path, flt: Optional[str]) -
             expected = cs.cwd_to_project_dir(flt) if cs else None
             return bool(expected) and path.parent == expected
         return flt.lower() in path.parent.name.lower()
+    if harness == "qwen":
+        project_dir = path.parent.parent
+        if "/" in flt:
+            expected_slug = str(Path(flt).expanduser().resolve()).replace("/", "-")
+            return project_dir.name == expected_slug
+        return flt.lower() in project_dir.name.lower()
     if harness == "codex":
         try:
             with open(path, "r", encoding="utf-8", errors="replace") as fh:
@@ -586,7 +707,8 @@ def _candidate_may_match_project(harness: str, path: Path, flt: Optional[str]) -
 
 
 def discover(harnesses: list[str], project_filter: Optional[str],
-             since_ts: Optional[float], limit: int) -> list[tuple[str, Path]]:
+             since_ts: Optional[float], limit: int, *,
+             per_harness: bool = False) -> list[tuple[str, Path]]:
     """Return [(harness, path)] candidate session files, newest first, cheaply (stat only).
 
     Project filtering is intentionally NOT applied here: the authoritative project/cwd is
@@ -596,7 +718,9 @@ def discover(harnesses: list[str], project_filter: Optional[str],
     project filter runs post-load in load_sessions().
     """
     found: list[tuple[float, str, Path]] = []
+    found_by_harness: dict[str, list[tuple[float, str, Path]]] = {}
     for h in harnesses:
+        harness_found: list[tuple[float, str, Path]] = []
         cfg = HARNESSES[h]
         root: Path = cfg["root"]
         if not root.exists():
@@ -614,11 +738,24 @@ def discover(harnesses: list[str], project_filter: Optional[str],
                 continue
             if since_ts and st.st_mtime < since_ts:
                 continue
-            found.append((st.st_mtime, h, p))
+            harness_found.append((st.st_mtime, h, p))
+        found_by_harness[h] = harness_found
+        found.extend(harness_found)
+
+    # A cross-harness search must not let recent sessions from one harness push every
+    # candidate from another harness outside the scan window. `list` and implicit
+    # session selection intentionally remain globally newest-first; only grep needs a
+    # fair per-harness candidate budget.
+    if per_harness:
+        found = []
+        for harness_found in found_by_harness.values():
+            harness_found.sort(reverse=True)
+            cap = len(harness_found) if project_filter else max(limit * 2, 60)
+            found.extend(harness_found[:cap])
     found.sort(reverse=True)
     # Project filtering happens after reading the authoritative cwd, so pre-capping
     # can erase every matching older session. Scan all candidates when scoped.
-    cap = len(found) if project_filter else max(limit * 2, 60)
+    cap = len(found) if project_filter else (len(found) if per_harness else max(limit * 2, 60))
     return [(h, p) for _, h, p in found[:cap]]
 
 
@@ -712,7 +849,7 @@ def summary_line(pk: "Peek", idx: Optional[int] = None) -> str:
     proj = proj.replace(str(Path.home()), "~")
     first = " ".join(pk.first_user.split())[:80]
     prefix = f"{idx}. " if idx is not None else ""
-    badge = {"claude": "CC", "codex": "CX", "gemini": "GM"}.get(pk.harness, pk.harness[:2].upper())
+    badge = {"claude": "CC", "codex": "CX", "gemini": "GM", "qwen": "QW"}.get(pk.harness, pk.harness[:2].upper())
     when = datetime.fromtimestamp(pk.mtime).strftime("%Y-%m-%d %H:%M")
     count = f"{pk.user_msgs}{'+' if pk.truncated else ''}msg"
     return _terminal_safe(f"{prefix}[{badge}] {when}  {count}  {proj}\n"
@@ -766,7 +903,10 @@ def resolve_harnesses(arg: Optional[str]) -> list[str]:
     out = []
     for h in arg.split(","):
         h = h.strip().lower()
-        alias = {"cc": "claude", "cx": "codex", "gm": "gemini", "gemini-cli": "gemini"}.get(h, h)
+        alias = {
+            "cc": "claude", "cx": "codex", "gm": "gemini", "gemini-cli": "gemini",
+            "qw": "qwen", "qwen-code": "qwen",
+        }.get(h, h)
         if alias in HARNESSES:
             out.append(alias)
         else:
@@ -957,7 +1097,7 @@ def cmd_grep(args):
     since = parse_since(args.since)
     harnesses = resolve_harnesses(args.harness)
     proj = None if args.all_projects else (args.project or None)
-    candidates = discover(harnesses, proj, since, args.limit)
+    candidates = discover(harnesses, proj, since, args.limit, per_harness=True)
     errors: list[str] = []
     sessions = load_sessions(candidates, proj, errors)
     sessions.sort(key=lambda s: s.mtime, reverse=True)
@@ -993,7 +1133,7 @@ def cmd_grep(args):
         sys.exit(1)
     color = sys.stdout.isatty() and not args.no_color
     for s, ti, t in hits:
-        badge = {"claude": "CC", "codex": "CX", "gemini": "GM"}.get(s.harness, s.harness)
+        badge = {"claude": "CC", "codex": "CX", "gemini": "GM", "qwen": "QW"}.get(s.harness, s.harness)
         loc = f"{badge}:{s.session_id[:12]} {_short_ts(t.ts)} [{t.role}]"
         snippet = _terminal_safe(" ".join(t.text.split()))
         # highlight match
@@ -1019,14 +1159,14 @@ def cmd_grep(args):
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="convo",
-        description="Read agent conversation history across Claude Code, Codex, and Gemini CLI.",
+        description="Read agent conversation history across Claude Code, Codex, Gemini CLI, and Qwen Code.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap_epilog(),
     )
     sub = p.add_subparsers(dest="cmd")
 
     def common(sp):
-        sp.add_argument("--harness", help="claude|codex|gemini|all (or cc,cx,gm). Default: all")
+        sp.add_argument("--harness", help="claude|codex|gemini|qwen|all (or cc,cx,gm,qw). Default: all")
         sp.add_argument("--project", help="substring filter on project/cwd (default: current dir)")
         sp.add_argument("--all-projects", action="store_true", help="don't filter by current dir")
         sp.add_argument("--since", help="time window: 7d, 24h, 30m, 2w, or ISO date")
@@ -1050,7 +1190,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp_grep = sub.add_parser("grep", help="search across sessions")
     common(sp_grep)
     sp_grep.add_argument("pattern", help="regex to search in turn text")
-    sp_grep.add_argument("--limit", type=int, default=100, help="max sessions to scan")
+    sp_grep.add_argument("--limit", type=int, default=100,
+                         help="max sessions to scan per selected harness")
     sp_grep.add_argument("--case-sensitive", action="store_true",
                          help="case-sensitive match (default: case-insensitive)")
     # Accept grep's reflexive -i/--ignore-case as a friendly no-op (we're already
