@@ -33,7 +33,9 @@ The work is complete when a clean database can index every supported source with
 Claude, Codex, and Qwen read one bounded JSONL row at a time, write normalized messages to a
 private temporary spool, then atomically replace the source snapshot in SQLite. This keeps parsing
 outside write transactions and prevents a full source from becoming a Python object graph. Gemini's
-small JSON documents use the existing whole-document path.
+small JSON documents use the existing whole-document path. A cap on normalized assistant messages
+preserves unusually large replies in ordered chunks and records `partial` coverage rather than growing
+memory without bound.
 
 Before choosing a JSON parser, measure the largest physical line in each store. Python's standard JSON decoder still needs one complete value in memory. If a single event is too large for the memory target, evaluate a streaming JSON parser as a separate dependency decision rather than hiding the allocation.
 
@@ -47,7 +49,8 @@ hashing leaves the prior snapshot intact and records a retryable failure.
 ### 3. Publish honest progress — implemented; full-corpus validation pending
 
 `convo sync` reports aggregate counts, elapsed time, and throughput; `--verbose` reveals individual
-source diagnostics. Its JSON result includes stable source, byte, duration, throughput, skipped,
+source diagnostics. Periodic progress is interactive-only. Its JSON result includes stable source, observed
+corpus bytes, processed-source bytes, duration, throughput, skipped,
 partial, and pending fields. `convo status` separates parser failures, partial, pending, skipped, and
 oversized sources. `partial`, `pending`, and `skipped` are honest retained outcomes and do not make a
 sync fail; exit 2 is reserved for inability to record one.

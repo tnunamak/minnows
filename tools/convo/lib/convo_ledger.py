@@ -244,10 +244,10 @@ class Ledger:
             finally:
                 os.close(fd)
 
-    def current_source_status(self, harness: str, path: Path, stat_result, parser_version: str,
-                              policy_version: str, source_cap: Optional[int]) -> Optional[str]:
+    def current_source_outcome(self, harness: str, path: Path, stat_result, parser_version: str,
+                               policy_version: str, source_cap: Optional[int]) -> Optional[dict]:
         row = self._connect().execute(
-            "SELECT size, mtime_ns, device, inode, ctime_ns, source_status, parser_version, "
+            "SELECT size, mtime_ns, device, inode, ctime_ns, source_status, parser_error, parser_version, "
             "policy_version, source_cap "
             "FROM source_files WHERE harness = ? AND path = ?",
             (harness, str(path)),
@@ -259,8 +259,16 @@ class Ledger:
             and row["parser_version"] == parser_version and row["policy_version"] == policy_version
             and row["source_cap"] == source_cap
         ):
-            return row["source_status"]
+            # Discovery is direct evidence that a previously missing physical path is
+            # present again, even if inode and timestamps happen to be unchanged.
+            if row["source_status"] != "missing":
+                return {"source_status": row["source_status"], "parser_error": row["parser_error"]}
         return None
+
+    def current_source_status(self, harness: str, path: Path, stat_result, parser_version: str,
+                              policy_version: str, source_cap: Optional[int]) -> Optional[str]:
+        outcome = self.current_source_outcome(harness, path, stat_result, parser_version, policy_version, source_cap)
+        return outcome["source_status"] if outcome else None
 
     def source_is_current(self, harness: str, path: Path, stat_result, parser_version: str,
                           policy_version: str, source_cap: Optional[int]) -> bool:

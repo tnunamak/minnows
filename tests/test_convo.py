@@ -186,6 +186,9 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(second_code, 0)
         self.assertEqual(json.loads(first)["imported"], 1)
         self.assertEqual(json.loads(second)["unchanged"], 1)
+        self.assertGreater(json.loads(first)["bytes_processed"], 0)
+        self.assertEqual(json.loads(second)["bytes_processed"], 0)
+        self.assertGreater(json.loads(second)["bytes_observed"], 0)
         self.assertEqual(self.ledger().status()["messages"], 2)
         self.assertTrue((self.data_dir / "ledger.sqlite3").exists())
 
@@ -249,6 +252,19 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(hit["content_basis"], "snapshot")
         self.assertEqual(hit["completeness"], "normalized_snapshot_source_missing")
 
+    def test_reappeared_missing_source_is_reimported_even_with_same_identity(self):
+        path = self.claude_path()
+        self.write_claude(path, "reappeared source topic", "answer")
+        self.run_convo("sync")
+        hidden = self.root / "hidden-project"
+        path.parent.rename(hidden)
+        self.run_convo("sync")
+        self.assertEqual(self.ledger().search("reappeared source topic")[0]["source_status"], "missing")
+        hidden.rename(path.parent)
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        self.assertEqual(self.ledger().search("reappeared source topic")[0]["source_status"], "present")
+
     def test_parse_failure_preserves_last_good_rows_and_is_partial(self):
         path = self.claude_path()
         self.write_claude(path, "preserve good topic", "good answer")
@@ -267,6 +283,10 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(json.loads(second)["unchanged"], 1)
         self.assertEqual(json.loads(second)["partial"], 1)
         self.assertEqual(json.loads(second)["failed"], 0)
+        _, verbose, verbose_code = self.run_convo("sync", "--verbose")
+        self.assertEqual(verbose_code, 0)
+        self.assertIn(str(path), verbose)
+        self.assertIn("cached source partial", verbose)
 
     def test_jsonl_sources_stream_past_the_legacy_whole_file_cap(self):
         path = self.claude_path()
@@ -279,6 +299,95 @@ class LedgerTests(unittest.TestCase):
         hit = self.ledger().search("cap preserves topic")[0]
         self.assertEqual(hit["source_status"], "present")
         self.assertEqual(self.ledger().status()["oversized_sources"], 0)
+
+    def test_streaming_normalization_matches_existing_jsonl_loaders(self):
+        cases = {
+            "claude": (self.claude_path(), [
+                {"type": "user", "isMeta": False, "message": {"content": "# AGENTS.md instructions, but explicit user"}},
+                {"type": "assistant", "timestamp": "2026-08-01T00:00:00Z", "message": {"content": [{"type": "text", "text": "first"}]}},
+                {"type": "assistant", "timestamp": "2026-08-01T00:00:01Z", "message": {"content": [{"source": {"type": "base64"}}]}},
+            ]),
+            "codex": (self.root / "codex" / "2026" / "rollout-codex.jsonl", [
+                {"type": "session_meta", "payload": {"cwd": "/project"}},
+                {"type": "response_item", "timestamp": "2026-08-01T00:00:00Z", "payload": {"type": "message", "role": "user", "content": "question"}},
+                {"type": "response_item", "timestamp": "2026-08-01T00:00:01Z", "payload": {"type": "message", "role": "assistant", "content": "first"}},
+                {"type": "response_item", "timestamp": "2026-08-01T00:00:02Z", "payload": {"type": "message", "role": "assistant", "content": "second"}},
+            ]),
+            "qwen": (self.root / "qwen" / "project" / "chats" / "qwen.jsonl", [
+                {"type": "user", "provenance": "real_user", "message": {"parts": [{"text": "question"}]}},
+                {"type": "assistant", "timestamp": "2026-08-01T00:00:01Z", "message": {"parts": [{"text": "first"}]}},
+                {"type": "assistant", "timestamp": "2026-08-01T00:00:02Z", "message": {"parts": [{"text": "second"}]}},
+            ]),
+        }
+        for harness, (path, rows) in cases.items():
+            with self.subTest(harness=harness):
+                write_jsonl(path, rows)
+                raw = convo.HARNESSES[harness]["loader"](path)
+                expected = [(m.role, m.text, m.timestamp) for m in convo._normalized_source(harness, path, raw, path.stat()).messages]
+                streamed = convo._stream_jsonl_source(harness, path, path.stat(), self.data_dir / "spool")
+                try:
+                    actual = [(m.role, m.text, m.timestamp) for m in streamed.source.messages]
+                finally:
+                    streamed.spool_path.unlink(missing_ok=True)
+                self.assertEqual(actual, expected)
+
+    def test_stream_spool_is_removed_when_reading_raises(self):
+        path = self.claude_path()
+        self.write_claude(path, "spool failure", "answer")
+        with mock.patch.object(convo, "_sync_jsonl_rows", side_effect=OSError("injected read failure")):
+            with self.assertRaises(OSError):
+                convo._stream_jsonl_source("claude", path, path.stat(), self.data_dir / "spool")
+        self.assertEqual(list((self.data_dir / "spool").glob("sync-*.jsonl")), [])
+
+    def test_stream_spool_is_removed_on_interrupt_and_next_sync_purges_stale_spools(self):
+        path = self.claude_path()
+        self.write_claude(path, "interrupt spool", "answer")
+        with mock.patch.object(convo, "_sync_jsonl_rows", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                convo._stream_jsonl_source("claude", path, path.stat(), self.data_dir / "spool")
+        spool_dir = self.data_dir / "spool"
+        self.assertEqual(list(spool_dir.glob("sync-*.jsonl")), [])
+        stale = spool_dir / "sync-stale.jsonl"
+        stale.write_text("sensitive temporary text", encoding="utf-8")
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        self.assertFalse(stale.exists())
+
+    def test_ledger_write_failure_is_not_mislabeled_as_a_source_parse_failure(self):
+        path = self.claude_path()
+        self.write_claude(path, "write failure", "answer")
+        with mock.patch.object(convo.ledger_lib.Ledger, "replace_source", side_effect=sqlite3.OperationalError("disk full")):
+            _, stderr, code = self.run_convo("sync")
+        self.assertEqual(code, 2)
+        self.assertIn("ledger write transaction failed", stderr)
+        self.assertNotIn("source preserved after parse failure", stderr)
+        self.assertEqual(self.ledger().status()["sources"], {})
+        self.assertEqual(list((self.data_dir / "spool").glob("sync-*.jsonl")), [])
+
+    def test_stream_keeps_bounded_malformed_diagnostic_samples(self):
+        path = self.claude_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("not-json\n" * 1000, encoding="utf-8")
+        streamed = convo._stream_jsonl_source("claude", path, path.stat(), self.data_dir / "spool")
+        try:
+            self.assertEqual(streamed.source.source_status, "partial")
+            self.assertIn("1000 malformed JSONL row(s)", streamed.source.parser_error)
+            self.assertEqual(streamed.source.parser_error.count("corrupt JSONL"), 3)
+        finally:
+            streamed.spool_path.unlink(missing_ok=True)
+
+    def test_stream_chunks_oversized_normalized_assistant_messages(self):
+        path = self.claude_path()
+        self.write_claude(path, "question", "abcdefghij")
+        with mock.patch.object(convo, "MAX_NORMALIZED_MESSAGE_BYTES", 4):
+            streamed = convo._stream_jsonl_source("claude", path, path.stat(), self.data_dir / "spool")
+        try:
+            messages = list(streamed.source.messages)
+            self.assertEqual(streamed.source.source_status, "partial")
+            self.assertEqual("".join(message.text for message in messages if message.role == "assistant"), "abcdefghij")
+            self.assertTrue(all(len(message.text.encode("utf-8")) <= 4 for message in messages if message.role == "assistant"))
+        finally:
+            streamed.spool_path.unlink(missing_ok=True)
 
     def test_legacy_oversized_jsonl_is_invalidated_by_streaming_parser_version(self):
         path = self.claude_path()
@@ -308,13 +417,14 @@ class LedgerTests(unittest.TestCase):
     def test_no_normalized_messages_are_skipped_and_cached(self):
         path = self.claude_path()
         write_jsonl(path, [{"type": "user", "isMeta": True, "message": {"content": "system only"}}])
-        first, _, code = self.run_convo("sync", "--json")
+        first, stderr, code = self.run_convo("sync", "--json")
         second, _, second_code = self.run_convo("sync", "--json")
         self.assertEqual(code, 0)
         self.assertEqual(second_code, 0)
         self.assertEqual(json.loads(first)["skipped"], 1)
         self.assertEqual(json.loads(second)["unchanged"], 1)
         self.assertEqual(self.ledger().status()["skipped_sources"], 1)
+        self.assertNotIn("sync progress", stderr)
 
     def test_malformed_complete_row_retains_valid_rows_on_both_sides(self):
         path = self.claude_path()
@@ -343,10 +453,12 @@ class LedgerTests(unittest.TestCase):
         with path.open("a", encoding="utf-8") as stream:
             stream.write('{"type":"assistant"')
         _, _, code = self.run_convo("sync")
-        _, _, second_code = self.run_convo("sync")
+        _, verbose, second_code = self.run_convo("sync", "--verbose")
         self.assertEqual(code, 0)
         self.assertEqual(second_code, 0)
         self.assertEqual(self.ledger().status()["pending_sources"], 1)
+        self.assertIn(str(path), verbose)
+        self.assertIn("cached source pending", verbose)
 
     def test_search_ranks_equal_text_matches_by_message_timestamp(self):
         self.write_claude(self.claude_path("old.jsonl"), "ranking shared phrase", "old", "2026-08-01T00:00:00Z")

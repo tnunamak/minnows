@@ -22,6 +22,7 @@ Run `convo --help` for usage. No third-party dependencies (stdlib only).
 """
 
 import argparse
+import io
 import json
 import os
 import re
@@ -61,6 +62,11 @@ LEDGER_POLICY_VERSION = "normalized-user-assistant-v2"
 LEDGER_JSONL_PARSER_VERSION = "stream-jsonl-v1"
 LEDGER_GEMINI_PARSER_VERSION = "whole-document-v1"
 MAX_JSONL_ROW_BYTES = 32 * 1024 * 1024
+MAX_NORMALIZED_MESSAGE_BYTES = 8 * 1024 * 1024
+
+
+class SyncWriteError(RuntimeError):
+    """A durable ledger write failed after parsing; do not mislabel it as source corruption."""
 
 
 # --------------------------------------------------------------------------------------
@@ -1082,7 +1088,7 @@ def _normalized_jsonl_row(harness: str, row: dict, cwd: Optional[str]) -> tuple[
         if rtype == "user" and not row.get("isMeta"):
             if isinstance(content, str):
                 text = clean_text(content)
-                if text and not _looks_like_meta_user(content):
+                if text and (row.get("isMeta") is False or not _looks_like_meta_user(content)):
                     out.append(("user", text, ts))
             elif isinstance(content, list):
                 parts = []
@@ -1091,9 +1097,10 @@ def _normalized_jsonl_row(harness: str, row: dict, cwd: Optional[str]) -> tuple[
                         continue
                     if block.get("type") == "text":
                         text = clean_text(block.get("text", ""))
-                        if text and not _looks_like_meta_user(block.get("text", "")):
+                        if text and (row.get("isMeta") is False or not _looks_like_meta_user(block.get("text", ""))):
                             parts.append(text)
-                    elif block.get("type") in ("image", "image_url", "input_image"):
+                    elif block.get("type") in ("image", "image_url", "input_image") or (
+                            "source" in block and block.get("type") != "tool_result"):
                         parts.append("[image]")
                 if parts:
                     out.append(("user", "\n\n".join(parts), ts))
@@ -1107,7 +1114,8 @@ def _normalized_jsonl_row(harness: str, row: dict, cwd: Optional[str]) -> tuple[
                     text = clean_text(block.get("text", ""))
                     if text:
                         parts.append(text)
-                elif block.get("type") in ("image", "image_url", "output_image"):
+                elif block.get("type") in ("image", "image_url", "output_image") or (
+                        "source" in block and block.get("type") not in ("tool_use", "thinking")):
                     parts.append("[image]")
             if parts:
                 out.append(("assistant", "\n\n".join(parts), ts))
@@ -1150,26 +1158,111 @@ def _stream_jsonl_source(harness: str, path: Path, stat_result, temp_dir: Path) 
     """Normalize a Claude/Codex/Qwen source through a disk spool, not a Session list."""
     session_id = path.stem.replace("rollout-", "") if harness == "codex" else path.stem
     cwd: Optional[str] = None
-    partial_errors: list[str] = []
+    malformed_error_count = 0
+    other_partial_count = 0
+    partial_error_samples: list[str] = []
     pending_error: Optional[str] = None
     message_bytes = 0
     temp_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=temp_dir, prefix="sync-", suffix=".jsonl", delete=False) as spool:
-        spool_path = Path(spool.name)
-        for row, diagnostic, pending in _sync_jsonl_rows(path):
-            if diagnostic:
-                if pending:
-                    pending_error = diagnostic
-                    break
-                partial_errors.append(diagnostic)
-                continue
-            cwd, messages = _normalized_jsonl_row(harness, row, cwd)
-            for role, text, timestamp in messages:
-                spool.write(json.dumps({"role": role, "text": text, "timestamp": timestamp}, ensure_ascii=False))
-                spool.write("\n")
-                message_bytes += len(text.encode("utf-8"))
-    status = "partial" if partial_errors else ("pending" if pending_error else "present")
-    error = "; ".join(partial_errors[:3]) if partial_errors else pending_error
+    spool_path: Optional[Path] = None
+    pending_assistant: Optional[io.StringIO] = None
+    pending_assistant_timestamp: Optional[str] = None
+    pending_assistant_bytes = 0
+
+    def write_message(spool, role: str, text: str, timestamp: Optional[str]) -> None:
+        nonlocal message_bytes
+        spool.write(json.dumps({"role": role, "text": text, "timestamp": timestamp}, ensure_ascii=False))
+        spool.write("\n")
+        message_bytes += len(text.encode("utf-8"))
+
+    def remember_partial(diagnostic: str, *, malformed: bool = False) -> None:
+        nonlocal malformed_error_count, other_partial_count
+        if malformed:
+            malformed_error_count += 1
+        else:
+            other_partial_count += 1
+        if len(partial_error_samples) < 3:
+            partial_error_samples.append(diagnostic)
+
+    def flush_assistant(spool) -> None:
+        nonlocal pending_assistant, pending_assistant_timestamp, pending_assistant_bytes
+        if pending_assistant is not None:
+            write_message(spool, "assistant", pending_assistant.getvalue(), pending_assistant_timestamp)
+        pending_assistant = None
+        pending_assistant_timestamp = None
+        pending_assistant_bytes = 0
+
+    def append_assistant(spool, text: str, timestamp: Optional[str]) -> None:
+        """Merge ordinary rows exactly; split only a cap-exceeding normalized message."""
+        nonlocal pending_assistant, pending_assistant_timestamp, pending_assistant_bytes
+        text_bytes = len(text.encode("utf-8"))
+        separator = "\n\n" if pending_assistant_bytes else ""
+        if pending_assistant_bytes + len(separator) + text_bytes <= MAX_NORMALIZED_MESSAGE_BYTES:
+            if pending_assistant is None:
+                pending_assistant = io.StringIO()
+                pending_assistant_timestamp = timestamp
+            if separator:
+                pending_assistant.write(separator)
+                pending_assistant_bytes += len(separator)
+            pending_assistant.write(text)
+            pending_assistant_bytes += text_bytes
+            return
+        split = False
+        pieces = (separator, text)
+        for piece in pieces:
+            for char in piece:
+                char_bytes = len(char.encode("utf-8"))
+                if pending_assistant is None:
+                    pending_assistant = io.StringIO()
+                    pending_assistant_timestamp = timestamp
+                if pending_assistant_bytes and pending_assistant_bytes + char_bytes > MAX_NORMALIZED_MESSAGE_BYTES:
+                    flush_assistant(spool)
+                    split = True
+                    pending_assistant = io.StringIO()
+                    pending_assistant_timestamp = timestamp
+                pending_assistant.write(char)
+                pending_assistant_bytes += char_bytes
+        if split:
+            remember_partial(
+                f"normalized assistant message exceeds {MAX_NORMALIZED_MESSAGE_BYTES} bytes; retained in chunks"
+            )
+
+    try:
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=temp_dir, prefix="sync-", suffix=".jsonl", delete=False) as spool:
+            spool_path = Path(spool.name)
+            for row, diagnostic, pending in _sync_jsonl_rows(path):
+                if diagnostic:
+                    if pending:
+                        pending_error = diagnostic
+                        break
+                    flush_assistant(spool)
+                    remember_partial(diagnostic, malformed=True)
+                    continue
+                cwd, messages = _normalized_jsonl_row(harness, row, cwd)
+                for role, text, timestamp in messages:
+                    if role == "assistant":
+                        append_assistant(spool, text, timestamp)
+                        continue
+                    if pending_assistant is not None:
+                        flush_assistant(spool)
+                    write_message(spool, role, text, timestamp)
+            if pending_assistant is not None:
+                flush_assistant(spool)
+    except BaseException:
+        if spool_path is not None:
+            spool_path.unlink(missing_ok=True)
+        raise
+    partial_error_count = malformed_error_count + other_partial_count
+    status = "partial" if partial_error_count else ("pending" if pending_error else "present")
+    if partial_error_count:
+        reasons = []
+        if malformed_error_count:
+            reasons.append(f"{malformed_error_count} malformed JSONL row(s)")
+        if other_partial_count:
+            reasons.append(f"{other_partial_count} other partial diagnostic(s)")
+        error = ", ".join(reasons) + ": " + "; ".join(partial_error_samples)
+    else:
+        error = pending_error
     if not message_bytes and status == "present":
         status = "skipped"
         error = "source contains no normalized user or assistant messages"
@@ -1187,9 +1280,10 @@ def _cmd_sync_with_ledger(ledger, args):
     max_source_bytes = ledger_lib.max_source_bytes_from_environment()
     started = datetime.now(timezone.utc).timestamp()
     imported = unchanged = failed = skipped = partial = pending_sources = 0
-    scanned_bytes = 0
+    observed_bytes = 0
+    processed_bytes = 0
     seen: list[str] = []
-    staged: list[Callable[[], None]] = []
+    staged: list[tuple[Callable[[], None], Callable[[], None]]] = []
     pending_message_bytes = 0
     total_sources = _ledger_sources()
     total = len(total_sources)
@@ -1198,28 +1292,35 @@ def _cmd_sync_with_ledger(ledger, args):
         if not total or (index != total and index % 100 != 0):
             return
         elapsed = max(datetime.now(timezone.utc).timestamp() - started, 0.001)
-        rate = scanned_bytes / elapsed / (1024 * 1024)
-        print(f"convo: sync progress sources={index}/{total} bytes={scanned_bytes} elapsed={elapsed:.1f}s throughput={rate:.1f}MiB/s", file=sys.stderr)
+        if not sys.stderr.isatty():
+            return
+        rate = processed_bytes / elapsed / (1024 * 1024)
+        print(f"convo: sync progress sources={index}/{total} observed-bytes={observed_bytes} processed-bytes={processed_bytes} elapsed={elapsed:.1f}s throughput={rate:.1f}MiB/s", file=sys.stderr)
 
     def flush() -> None:
         """Apply buffered rows quickly; parsing and hashing always happen outside a write txn."""
         nonlocal pending_message_bytes
         if not staged:
             return
-        ledger.begin_batch()
         try:
-            for operation in staged:
+            ledger.begin_batch()
+            for operation, _cleanup in staged:
                 operation()
             ledger.commit_batch()
-        except Exception:
+        except Exception as exc:
             ledger.rollback_batch()  # prior flushes are durable; the context manager owns close()
-            raise
+            for _operation, cleanup in staged:
+                cleanup()
+            staged.clear()
+            pending_message_bytes = 0
+            raise SyncWriteError("ledger write transaction failed") from exc
         staged.clear()
         pending_message_bytes = 0
 
-    def stage(operation: Callable[[], None], message_bytes: int = 0) -> None:
+    def stage(operation: Callable[[], None], message_bytes: int = 0,
+              cleanup: Optional[Callable[[], None]] = None) -> None:
         nonlocal pending_message_bytes
-        staged.append(operation)
+        staged.append((operation, cleanup or (lambda: None)))
         pending_message_bytes += message_bytes
         if (len(staged) >= ledger_lib.SYNC_BATCH_SIZE
                 or pending_message_bytes >= ledger_lib.SYNC_BATCH_MESSAGE_BYTES):
@@ -1239,12 +1340,13 @@ def _cmd_sync_with_ledger(ledger, args):
                 print(f"convo: source preserved after access failure: {path}: {exc}", file=sys.stderr)
             report_progress(index)
             continue
-        scanned_bytes += stat_result.st_size
+        observed_bytes += stat_result.st_size
         parser_version = LEDGER_GEMINI_PARSER_VERSION if harness == "gemini" else LEDGER_JSONL_PARSER_VERSION
         source_cap = max_source_bytes if harness == "gemini" else None
-        current_status = ledger.current_source_status(
+        current_outcome = ledger.current_source_outcome(
             harness, path, stat_result, parser_version, LEDGER_POLICY_VERSION, source_cap)
-        if current_status is not None:
+        if current_outcome is not None:
+            current_status = current_outcome["source_status"]
             unchanged += 1
             if current_status == "skipped":
                 skipped += 1
@@ -1254,6 +1356,9 @@ def _cmd_sync_with_ledger(ledger, args):
                 partial += 1
             elif current_status in ("corrupt", "oversized"):
                 failed += 1
+            if args.verbose and current_status in ("partial", "pending", "corrupt", "oversized"):
+                print(f"convo: cached source {current_status}: {path}: "
+                      f"{current_outcome['parser_error'] or '(no diagnostic)'}", file=sys.stderr)
             report_progress(index)
             continue
         # Gemini is a whole-document format.  JSONL harnesses stream through a disk
@@ -1269,8 +1374,10 @@ def _cmd_sync_with_ledger(ledger, args):
                       f"{stat_result.st_size} bytes exceeds cap {max_source_bytes}", file=sys.stderr)
             report_progress(index)
             continue
+        spool_path = None
+        spool_staged = False
         try:
-            spool_path = None
+            processed_bytes += stat_result.st_size
             if harness in ("claude", "codex", "qwen"):
                 parsed = _stream_jsonl_source(harness, path, stat_result, ledger.data_dir / "spool")
                 source = parsed.source
@@ -1311,6 +1418,8 @@ def _cmd_sync_with_ledger(ledger, args):
                     spool_path = None
                 imported += 1
                 partial += 1
+                if args.verbose:
+                    print(f"convo: source retained as partial: {path}: {detail}", file=sys.stderr)
                 report_progress(index)
                 continue
             def replace(source=source, content_hash=content_hash, spool_path=spool_path,
@@ -1320,14 +1429,23 @@ def _cmd_sync_with_ledger(ledger, args):
                 finally:
                     if spool_path is not None:
                         spool_path.unlink(missing_ok=True)
-            stage(replace, retained_bytes)
+            stage(replace, retained_bytes,
+                  cleanup=(lambda spool_path=spool_path: spool_path.unlink(missing_ok=True)
+                           if spool_path is not None else None))
+            spool_staged = True
             imported += 1
             if source.source_status == "skipped":
                 skipped += 1
             elif source.source_status == "partial":
                 partial += 1
+                if args.verbose:
+                    print(f"convo: source retained as partial: {path}: {source.parser_error}", file=sys.stderr)
             elif source.source_status == "pending":
                 pending_sources += 1
+                if args.verbose:
+                    print(f"convo: source retained as pending: {path}: {source.parser_error}", file=sys.stderr)
+        except SyncWriteError:
+            raise
         except Exception as exc:  # Preserve the last successful snapshot on every failure.
             stage(lambda harness=harness, path=path, stat_result=stat_result, exc=exc,
                          parser_version=parser_version, source_cap=source_cap:
@@ -1336,20 +1454,26 @@ def _cmd_sync_with_ledger(ledger, args):
             failed += 1
             if args.verbose:
                 print(f"convo: source preserved after parse failure: {path}: {exc}", file=sys.stderr)
-            if 'spool_path' in locals() and spool_path is not None:
+        finally:
+            if spool_path is not None and not spool_staged:
                 spool_path.unlink(missing_ok=True)
         report_progress(index)
     flush()
     # The disappearance transition has no parse work behind it, so apply it alone.
-    ledger.begin_batch()
-    missing = ledger.mark_missing_except(seen)
-    ledger.commit_batch()
+    try:
+        ledger.begin_batch()
+        missing = ledger.mark_missing_except(seen)
+        ledger.commit_batch()
+    except Exception as exc:
+        ledger.rollback_batch()
+        raise SyncWriteError("ledger source-state transaction failed") from exc
     elapsed = max(datetime.now(timezone.utc).timestamp() - started, 0.001)
     result = {"schema_version": ledger_lib.SCHEMA_VERSION, "imported": imported,
               "unchanged": unchanged, "failed": failed, "skipped": skipped, "partial": partial,
               "pending": pending_sources, "marked_missing": missing, "sources_scanned": total,
-              "bytes_scanned": scanned_bytes, "elapsed_seconds": round(elapsed, 3),
-              "throughput_mib_per_second": round(scanned_bytes / elapsed / (1024 * 1024), 3)}
+              "bytes_observed": observed_bytes, "bytes_processed": processed_bytes,
+              "elapsed_seconds": round(elapsed, 3),
+              "throughput_mib_per_second": round(processed_bytes / elapsed / (1024 * 1024), 3)}
     if args.json:
         print(json.dumps(result, sort_keys=True))
     else:
@@ -1359,9 +1483,17 @@ def _cmd_sync_with_ledger(ledger, args):
 
 
 def cmd_sync(args):
-    with _require_ledger() as ledger:
-        with ledger.sync_lock():
-            _cmd_sync_with_ledger(ledger, args)
+    try:
+        with _require_ledger() as ledger:
+            with ledger.sync_lock():
+                spool_dir = ledger.data_dir / "spool"
+                if spool_dir.exists():
+                    for stale_spool in spool_dir.glob("sync-*.jsonl"):
+                        stale_spool.unlink(missing_ok=True)
+                _cmd_sync_with_ledger(ledger, args)
+    except SyncWriteError as exc:
+        print(f"convo: sync stopped: {exc}", file=sys.stderr)
+        raise SystemExit(2) from exc
 
 
 def cmd_status(args):

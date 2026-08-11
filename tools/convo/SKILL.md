@@ -58,6 +58,11 @@ messages. An unterminated final row is `pending` until its writer completes it. 
 `agent-fork-call_*.jsonl` files remain separate physical sources; their filenames never
 establish ancestry or merge them with another session.
 
+Streaming keeps individual JSONL rows and normalized assistant messages bounded. An unusually large
+normalized assistant reply is retained in ordered chunks and marks the source `partial`; `sync --verbose`
+shows the diagnostic. Progress is interactive-only; JSON reports observed corpus bytes separately from
+source bytes processed during this run.
+
 ### Flags for direct/raw read commands (`list`, `show`, `grep`)
 - `--harness claude|codex|gemini|qwen|all` (aliases `cc,cx,gm,qw`; default **all**)
 - `--project SUBSTR` — filter by project/cwd. **Defaults to the current directory.**
