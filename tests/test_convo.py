@@ -414,6 +414,26 @@ class LedgerTests(unittest.TestCase):
         self.run_convo("sync")
         self.assertEqual(len(self.ledger().search("resumed torn row")), 1)
 
+    def test_pending_zero_row_rewrite_preserves_prior_snapshot(self):
+        path = self.claude_path()
+        self.write_claude(path, "prior pending snapshot", "answer")
+        self.run_convo("sync")
+        path.write_text('{"type":"user"', encoding="utf-8")
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        hit = self.ledger().search("prior pending snapshot")[0]
+        self.assertEqual(hit["source_status"], "pending")
+        self.assertEqual(hit["content_basis"], "snapshot")
+
+    def test_new_pending_zero_row_source_has_no_messages(self):
+        path = self.claude_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('{"type":"user"', encoding="utf-8")
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        self.assertEqual(self.ledger().status()["pending_sources"], 1)
+        self.assertEqual(self.ledger().status()["messages"], 0)
+
     def test_no_normalized_messages_are_skipped_and_cached(self):
         path = self.claude_path()
         write_jsonl(path, [{"type": "user", "isMeta": True, "message": {"content": "system only"}}])

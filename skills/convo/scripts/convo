@@ -1407,19 +1407,24 @@ def _cmd_sync_with_ledger(ledger, args):
             final_stat = path.stat()
             if _source_identity(final_stat) != _source_identity(stat_result):
                 raise ValueError("source changed while parsing or hashing; retry sync")
-            if source.source_status == "partial" and not retained_bytes:
+            if source.source_status in ("partial", "pending") and not retained_bytes:
                 detail = source.parser_error or "source has no safely normalized messages"
+                record_outcome = ledger.record_partial if source.source_status == "partial" else ledger.record_pending
                 stage(lambda harness=harness, path=path, stat_result=stat_result, detail=detail,
-                             parser_version=parser_version, source_cap=source_cap:
-                      ledger.record_partial(harness, path, stat_result, detail, parser_version,
-                                            LEDGER_POLICY_VERSION, source_cap))
+                             parser_version=parser_version, source_cap=source_cap,
+                             record_outcome=record_outcome:
+                      record_outcome(harness, path, stat_result, detail, parser_version,
+                                     LEDGER_POLICY_VERSION, source_cap))
                 if spool_path is not None:
                     spool_path.unlink(missing_ok=True)
                     spool_path = None
                 imported += 1
-                partial += 1
+                if source.source_status == "partial":
+                    partial += 1
+                else:
+                    pending_sources += 1
                 if args.verbose:
-                    print(f"convo: source retained as partial: {path}: {detail}", file=sys.stderr)
+                    print(f"convo: source retained as {source.source_status}: {path}: {detail}", file=sys.stderr)
                 report_progress(index)
                 continue
             def replace(source=source, content_hash=content_hash, spool_path=spool_path,

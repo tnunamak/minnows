@@ -372,6 +372,25 @@ class Ledger:
                   stat_result.st_ino, stat_result.st_ctime_ns, detail, parser_version, policy_version, source_cap))
         self._write(record)
 
+    def record_pending(self, harness: str, path: Path, stat_result, detail: str,
+                       parser_version: str, policy_version: str, source_cap: Optional[int]) -> None:
+        """Record a torn active source without discarding a prior safe snapshot."""
+        detail = detail.splitlines()[0][:500]
+        def record(conn):
+            conn.execute("""
+                INSERT INTO source_files(harness, path, size, mtime_ns, device, inode, ctime_ns,
+                    source_status, parser_error, parser_version, policy_version, source_cap)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)
+                ON CONFLICT(path) DO UPDATE SET harness = excluded.harness, size = excluded.size,
+                    mtime_ns = excluded.mtime_ns, device = excluded.device, inode = excluded.inode,
+                    ctime_ns = excluded.ctime_ns, source_status = 'pending',
+                    parser_error = excluded.parser_error, parser_version = excluded.parser_version,
+                    policy_version = excluded.policy_version, source_cap = excluded.source_cap,
+                    updated_at = CURRENT_TIMESTAMP
+            """, (harness, str(path), stat_result.st_size, stat_result.st_mtime_ns, stat_result.st_dev,
+                  stat_result.st_ino, stat_result.st_ctime_ns, detail, parser_version, policy_version, source_cap))
+        self._write(record)
+
     def record_access_failure(self, harness: str, path: Path, error: Exception) -> None:
         """Keep an inaccessible discovered path from being mislabeled as disappeared."""
         detail = str(error).splitlines()[0][:500]
