@@ -3,11 +3,12 @@
   "id": "effort-surfaces-2026-07",
   "schema_version": 1,
   "kind": "capabilities",
-  "retrieved_at": "2026-07-25",
+  "retrieved_at": "2026-08-02",
   "source_urls": [
     "https://platform.claude.com/docs/en/build-with-claude/effort",
     "https://code.claude.com/docs/en/model-config",
     "https://developers.openai.com/codex/config-reference",
+    "https://developers.openai.com/codex/models",
     "https://developers.openai.com/api/docs/guides/reasoning",
     "https://docs.x.ai/developers/model-capabilities/text/reasoning",
     "https://openai.com/index/gpt-5-6/",
@@ -17,6 +18,7 @@
     "anthropic-effort-docs-2026-07-09",
     "anthropic-claude-code-model-config-2026-07-09",
     "openai-codex-config-2026-07-09",
+    "openai-codex-models-2026-08-02",
     "openai-reasoning-2026-07-09",
     "xai-reasoning-2026-07-09",
     "openai-gpt-5-6-2026-07-09",
@@ -350,9 +352,60 @@
       ],
       "source_ids": [
         "openai-codex-config-2026-07-09",
+        "openai-codex-models-2026-08-02",
         "openai-gpt-5-6-2026-07-09"
       ],
-      "notes": "max/ultra documented for GPT-5.6 family on launch post; confirm CLI support per version"
+      "notes": "CONFIRMED 2026-08-02: the config-reference (config file / model_reasoning_effort key) does not list max; Codex's separate Models doc describes Max as an opt-in UI-level toggle layered on top of a chosen model/effort (\"Max mode\"), not a model_reasoning_effort value, and says most tasks do not need it. Treat max as UI-toggle-gated, not config-settable, until a newer primary source says otherwise. See ~/code/dotfiles/ai/research/model-routing/gpt-5-6-luna-at-max-effort-is-a-defensible-not-dominant-codex-value-pick.md."
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.6-terra",
+      "surface": "codex_cli",
+      "valid_efforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "openai-codex-config-2026-07-09",
+        "openai-codex-models-2026-08-02"
+      ],
+      "notes": "Inferred from the same config-reference enum as gpt-5.6-sol (no per-model override documented). Max mode is a UI toggle per openai-codex-models-2026-08-02, not confirmed as a config_reference value for this model specifically."
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "surface": "codex_cli",
+      "valid_efforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "openai-codex-config-2026-07-09",
+        "openai-codex-models-2026-08-02"
+      ],
+      "notes": "Codex default (\"Power\") tier is gpt-5.6-sol@medium; selecting Luna requires opening Advanced settings (openai-codex-models-2026-08-02). Inferred from the same config-reference enum as gpt-5.6-sol (no per-model override documented). Max mode is a UI toggle, not confirmed as a config_reference value for this model specifically — the 'Luna at max' operating point evaluated in deepswe-leaderboard-gpt-5-6-2026-08.json used the API/leaderboard harness, not a verified Codex CLI config_reference max setting."
     },
     {
       "provider": "openai",
@@ -615,7 +668,8 @@
     }
   ],
   "missing": [
-    "Confirmed CLI effort sets for every GPT-5.6 Codex pin",
+    "Whether 'max' is ever a literal model_reasoning_effort config value for any GPT-5.6 Codex pin, vs. always a separate UI Max-mode toggle layered on top (config-reference silent 2026-07-09 and re-checked 2026-08-02; only the Models doc's UI description confirms max exists at all in Codex)",
+    "Codex CLI effort enum specifically for gpt-5.6-terra / gpt-5.6-luna (inferred from the shared config-reference enum, not independently verified per-model)",
     "Google Gemini thinking-budget enum as effort surface"
   ]
 }

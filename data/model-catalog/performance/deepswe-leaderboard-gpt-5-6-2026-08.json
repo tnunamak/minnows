@@ -1,0 +1,107 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "deepswe-leaderboard-gpt-5-6-2026-08",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "openai",
+  "retrieved_at": "2026-08-02",
+  "source_urls": [
+    "https://deepswe.datacurve.ai/"
+  ],
+  "source_ids": [
+    "deepswe-leaderboard-2026-08-02",
+    "majesticlabs-luna-max-2026-08-02"
+  ],
+  "notes": "Third-party independently-run leaderboard (DataCurve), not an OpenAI vendor table — do not conflate with the deepswe-v1-1 metric_id (OpenAI's own internal DeepSWE table in openai-gpt-5-6-launch-2026-07.json), hence the distinct metric_id deepswe-leaderboard-datacurve. Harness is mini-swe-agent, NOT Codex's native harness, so these numbers approximate but do not directly measure Codex CLI performance. 113 long-horizon coding tasks, 91 repos, 5 languages. Captured to evaluate the community claim 'Luna at max reasoning effort is the best Codex setting' (see ~/code/dotfiles/ai/research/model-routing/gpt-5-6-luna-at-max-effort-is-a-defensible-not-dominant-codex-value-pick.md): Luna@max is a real cost/quality value point (~92% of Sol@max pass rate at ~7% of Sol@max cost) but is NOT the highest-accuracy point in this table, and confidence intervals across Sol/Terra/Luna@max overlap so the ranking is not statistically decisive at this sample size.",
+  "scores": [
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "DeepSWE Leaderboard (datacurve.ai)",
+      "score": 0.73,
+      "unit": "pass_rate",
+      "effort": "max",
+      "harness": "mini-swe-agent",
+      "source_id": "deepswe-leaderboard-2026-08-02",
+      "caveat": "Reported as 73%±3% (95% CI not specified). mini-swe-agent scaffold, not Codex's native harness.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-25",
+      "effort_verbatim": "max",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "cost": {
+        "value": 8.39,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "DeepSWE Leaderboard (datacurve.ai)",
+      "score": 0.70,
+      "unit": "pass_rate",
+      "effort": "max",
+      "harness": "mini-swe-agent",
+      "source_id": "deepswe-leaderboard-2026-08-02",
+      "caveat": "Reported as 70%±3%. mini-swe-agent scaffold, not Codex's native harness.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-25",
+      "effort_verbatim": "max",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "cost": {
+        "value": 3.96,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "DeepSWE Leaderboard (datacurve.ai)",
+      "score": 0.67,
+      "unit": "pass_rate",
+      "effort": "max",
+      "harness": "mini-swe-agent",
+      "source_id": "deepswe-leaderboard-2026-08-02",
+      "caveat": "Reported as 67%±4%. mini-swe-agent scaffold, not Codex's native harness. Confidence interval overlaps Sol/Terra@max per majesticlabs-luna-max-2026-08-02 — point-estimate ranking not statistically decisive.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-07-25",
+      "effort_verbatim": "max",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "cost": {
+        "value": 0.61,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    }
+  ],
+  "claims": [
+    {
+      "models": [
+        "gpt-5.6-sol",
+        "gpt-5.6-terra",
+        "gpt-5.6-luna"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
+      "statement": "On the DeepSWE third-party leaderboard (mini-swe-agent harness, 113 tasks), gpt-5.6-luna at effort=max reaches ~92% of gpt-5.6-sol@max's pass rate (67% vs 73%) at ~7% of its cost ($0.61 vs $8.39/task); confidence intervals for all three tiers at max overlap.",
+      "implication": "Luna@max is a real, evidence-backed cost/quality operating point for bounded coding tasks where near-ceiling quality at low cost is acceptable — but it is NOT the highest-accuracy point on this or any table in this catalog, so 'best Codex setting' as an unqualified claim is not supported. Treat as a candidate deescalate-from-Sol operating point, not a universal default. Corroborating research write-up: ~/code/dotfiles/ai/research/model-routing/gpt-5-6-luna-at-max-effort-is-a-defensible-not-dominant-codex-value-pick.md",
+      "source_id": "deepswe-leaderboard-2026-08-02"
+    }
+  ],
+  "missing": [
+    "Independent (non mini-swe-agent) reading of gpt-5.6 tier×effort on a coding benchmark using Codex's native harness",
+    "A second benchmark corroborating this cost/quality shape (single-source finding)",
+    "Narrower confidence intervals (more than 113 tasks) to make the Sol/Terra/Luna@max gap statistically separable",
+    "Confirmation that Codex CLI (not just the ChatGPT/Codex app UI) actually exposes effort=max as a settable value for gpt-5.6-luna — the official config-reference lists only minimal..xhigh"
+  ]
+}

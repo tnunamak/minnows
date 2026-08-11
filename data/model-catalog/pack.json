@@ -2,9 +2,9 @@
   "$schema": "schemas/pack-v1.schema.json",
   "name": "model-catalog",
   "schema_version": 1,
-  "tag": "data-model-catalog-v0.5.2",
-  "generated_at": "2026-07-09",
-  "description": "Model economics catalog. v0.5.2: Sol+Fable honesty pass — local rows reclassified harness_smoke/D; comparability_group on mixed metrics; deterministic validation fixes.",
+  "tag": "data-model-catalog-v0.5.3",
+  "generated_at": "2026-08-11",
+  "description": "Model economics catalog. v0.5.3: GPT-5.6 Codex effort-tier value-claim check — third-party DeepSWE leaderboard reading for Sol/Terra/Luna@max cost/quality, Codex CLI max-effort surface correction (config-reference has no max value; it is a separate UI toggle), Terra/Luna codex_cli surfaces added.",
   "files": [
     "SCHEMA.md",
     "SOURCES.json",
@@ -33,6 +33,7 @@
     "performance/swe-bench-2026-07.json",
     "performance/lmarena-text-2026-07.json",
     "performance/browsecomp-2026-07.json",
+    "performance/deepswe-leaderboard-gpt-5-6-2026-08.json",
     "performance/anthropic-sonnet5-digitized-2026-07.json",
     "digitized/anthropic-sonnet5-browsecomp-effort.json",
     "digitized/anthropic-sonnet5-osworld-effort.json",
@@ -59,6 +60,8 @@
     "openai_gpt_5_6": "https://openai.com/index/gpt-5-6/",
     "arcprize": "https://arcprize.org/results/openai-gpt-5-6",
     "terminal_bench": "https://www.tbench.ai/leaderboard/terminal-bench/2.1",
-    "local_evals": "data-local-evals-v0.1.1"
+    "local_evals": "data-local-evals-v0.1.1",
+    "deepswe_leaderboard": "https://deepswe.datacurve.ai/",
+    "research_note": "https://github.com/tnunamak/dotfiles/blob/main/ai/research/model-routing/gpt-5-6-luna-at-max-effort-is-a-defensible-not-dominant-codex-value-pick.md"
   }
 }
