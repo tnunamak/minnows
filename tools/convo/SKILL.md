@@ -45,9 +45,9 @@ tests), otherwise `$XDG_DATA_HOME/minnows/convo`. `sync` is safe to repeat. A mi
 raw log stays searchable from its retained normalized snapshot and is labeled as such;
 search never claims it can reconstruct raw tool traces.
 
-`sync` exits 0 after any honest retained outcome, including `skipped`, `partial`, and
+`sync` exits 0 after any recorded outcome, including `skipped`, `partial`, and
 `pending` sources. Exit 2 is reserved for an access, parser, transaction, or source-race
-failure that prevented the ledger from recording an honest outcome; `status` separates
+failure that prevented the ledger from recording a valid source status; `status` separates
 those failures from partial coverage.
 
 Claude, Codex, and Qwen JSONL sources are normalized in a bounded-memory streaming pass;
