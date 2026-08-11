@@ -129,6 +129,12 @@ class Ledger:
             self._connect().commit()
             self._batch_active = False
 
+    def rollback_batch(self) -> None:
+        """Abort only the active bounded write batch; keep the connection usable."""
+        if self._batch_active:
+            self._connect().rollback()
+            self._batch_active = False
+
     def _write(self, operation):
         conn = self._connect()
         if self._batch_active:

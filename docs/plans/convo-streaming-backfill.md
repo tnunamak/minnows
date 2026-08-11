@@ -1,6 +1,7 @@
 # Convo streaming backfill execution plan
 
-Status: implemented for Claude, Codex, and Qwen JSONL; Gemini remains whole-document
+Status: implementation and synthetic tests complete for Claude, Codex, and Qwen JSONL; full-corpus
+performance validation remains pending. Gemini remains whole-document.
 Date: 2026-08-11
 
 ## Objective
@@ -27,7 +28,7 @@ The work is complete when a clean database can index every supported source with
 
 ## Implementation slices
 
-### 1. Stream normalized messages — complete
+### 1. Stream normalized messages — implemented; full-corpus validation pending
 
 Claude, Codex, and Qwen read one bounded JSONL row at a time, write normalized messages to a
 private temporary spool, then atomically replace the source snapshot in SQLite. This keeps parsing
@@ -36,14 +37,14 @@ small JSON documents use the existing whole-document path.
 
 Before choosing a JSON parser, measure the largest physical line in each store. Python's standard JSON decoder still needs one complete value in memory. If a single event is too large for the memory target, evaluate a streaming JSON parser as a separate dependency decision rather than hiding the allocation.
 
-### 2. Cache completed source outcomes — complete
+### 2. Cache completed source outcomes — implemented; full-corpus validation pending
 
 Cache the physical identity (size, mtime, device, inode, ctime) plus parser version, policy version,
 and applicable source cap for every outcome: present, skipped, partial, pending, corrupt, or oversized.
 An unchanged outcome is not reparsed. A changed source is rebuilt atomically; a race during parsing or
 hashing leaves the prior snapshot intact and records a retryable failure.
 
-### 3. Publish honest progress — complete
+### 3. Publish honest progress — implemented; full-corpus validation pending
 
 `convo sync` reports aggregate counts, elapsed time, and throughput; `--verbose` reveals individual
 source diagnostics. Its JSON result includes stable source, byte, duration, throughput, skipped,
@@ -65,7 +66,8 @@ git diff --check
 
 The real-corpus gate must use an isolated `CONVO_DATA_DIR`. Remove or trash that test database after recording aggregate evidence. Do not print transcript text during performance runs.
 
-## Non-goals
+## Scope boundary
 
-The CLI never depends on tmux, Waspflow, resurrection sidecars, PDPP, raw-log pruning, automatic
-upload, AI summaries, or a resident daemon. It indexes supported harness logs only.
+The core CLI permanently excludes tmux and resurrection-sidecar ingestion and has no Waspflow runtime
+dependency. Raw-log pruning, automatic upload, AI summaries, and a resident daemon are current non-goals,
+not permanent product prohibitions. This implementation indexes supported harness logs only.

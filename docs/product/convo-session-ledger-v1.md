@@ -111,8 +111,8 @@ Definitions:
 
 V1 stores normalized user and assistant text in the durable ledger with owner-only permissions. Search can therefore survive source deletion, but the result must say `content_basis=snapshot`. The tool must not claim it can reproduce tool traces or exact raw events from that snapshot.
 
-External deletion changes a source to `missing`; it does not imply user intent. The core CLI never removes
-raw logs or manages archives.
+External deletion changes a source to `missing`; it does not imply user intent. V1 does not remove raw
+logs or manage archives.
 
 ## Identity and relationships
 
@@ -123,12 +123,14 @@ Use a physical source file as the base evidence unit. Store the harness-native s
 | Physical session | One source file from one harness. |
 | Harness-native session ID | The identifier retained from that source when present. |
 
-The ledger never infers cross-process ancestry. Matching lane names, cwd, timestamps, or conversation
-text is useful human search evidence, not a relationship assertion. V1 has no relationship tables or
-tmux/resurrection-sidecar ingestion. If an external orchestrator later needs to publish provenance, its
-only clean boundary is a generic append-only provenance-event format with explicit source, subject,
-relationship kind, observed time, and confidence; Waspflow can be one producer, but `convo` has no
-runtime dependency on it.
+The ledger never infers cross-process ancestry from matching lane names, cwd, timestamps, or conversation
+text. V1 has no relationship tables and permanently excludes tmux/resurrection-sidecar ingestion. The
+future boundary is generic append-only `agent-provenance/v1` receipts: producer, receipt ID, observed time,
+subject and object exact native IDs, relationship kind, evidence, and confidence. Exact-ID receipts can
+join automatically. Explicit but non-verifiable claims remain visibly `asserted`; heuristic candidates
+remain visibly `inferred` with their evidence and confidence. Neither is silently promoted to exact or
+used to merge sessions. Waspflow may emit such receipts as one producer, but `convo` has no runtime
+dependency on Waspflow.
 
 ## Resume contract
 
@@ -209,12 +211,13 @@ messages remain searchable. An unterminated final row is `pending` rather than c
 
 ### 4. Keep external orchestration out of the core
 
-- Do not add Waspflow, tmux, resurrection, cgroup, PDPP, or dotfiles dependencies.
-- Do not infer parentage from names, timestamps, cwd, or text similarity.
-- If provenance is ever imported, accept only generic append-only events with explicit evidence; never
-  inspect tmux resurrection data or infer a link from indirect correlation.
+- Do not add tmux, resurrection, cgroup, PDPP, dotfiles, or Waspflow runtime dependencies.
+- Permanently exclude tmux/resurrection sidecars. Do not infer parentage from names, timestamps, cwd, or
+  text similarity.
+- A later generic `agent-provenance/v1` importer may automatically join exact native IDs, but must render
+  asserted and inferred candidates with their grades and must never silently promote or merge them.
 
 ## Product boundary
 
 V1 ends at the explicit CLI ledger. It does not add automatic refresh, a timer, a resident daemon,
-source-data management, inferred ancestry, or external orchestration integration.
+source-data management, relationship tables, or external orchestration integration.

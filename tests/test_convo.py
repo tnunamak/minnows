@@ -419,6 +419,18 @@ class LedgerTests(unittest.TestCase):
             reader.close()
             contender.close()
 
+    def test_rollback_batch_keeps_ledger_connection_usable(self):
+        source = convo.ledger_lib.ParsedSource(
+            "claude", "/rollback-source", 1, 1, 0, 0, 1, "rollback", None,
+            (convo.ledger_lib.Message("user", "discarded", None),),
+        )
+        ledger = self.ledger()
+        ledger.begin_batch()
+        ledger.replace_source(source, "hash")
+        ledger.rollback_batch()
+        self.assertEqual(ledger.status()["messages"], 0)
+        self.assertFalse(ledger._batch_active)
+
     def test_parsing_never_runs_inside_a_buffered_write_batch(self):
         for index in range(convo.ledger_lib.SYNC_BATCH_SIZE + 1):
             self.write_claude(self.claude_path(f"buffered-{index}.jsonl"), f"buffer {index}", "answer")

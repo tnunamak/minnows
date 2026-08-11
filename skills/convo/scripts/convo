@@ -1212,7 +1212,7 @@ def _cmd_sync_with_ledger(ledger, args):
                 operation()
             ledger.commit_batch()
         except Exception:
-            ledger.close()  # rolls back only the current batch; prior flushes are durable
+            ledger.rollback_batch()  # prior flushes are durable; the context manager owns close()
             raise
         staged.clear()
         pending_message_bytes = 0
@@ -1260,7 +1260,8 @@ def _cmd_sync_with_ledger(ledger, args):
         # Gemini is a whole-document format.  JSONL harnesses stream through a disk
         # spool and therefore have no whole-source size cap.
         if harness == "gemini" and stat_result.st_size > max_source_bytes:
-            stage(lambda harness=harness, path=path, stat_result=stat_result:
+            stage(lambda harness=harness, path=path, stat_result=stat_result,
+                         parser_version=parser_version, source_cap=source_cap:
                   ledger.record_oversized(harness, path, stat_result, max_source_bytes,
                                           parser_version, LEDGER_POLICY_VERSION))
             failed += 1
@@ -1331,7 +1332,8 @@ def _cmd_sync_with_ledger(ledger, args):
             elif source.source_status == "pending":
                 pending_sources += 1
         except Exception as exc:  # Preserve the last successful snapshot on every failure.
-            stage(lambda harness=harness, path=path, stat_result=stat_result, exc=exc:
+            stage(lambda harness=harness, path=path, stat_result=stat_result, exc=exc,
+                         parser_version=parser_version, source_cap=source_cap:
                   ledger.record_parse_failure(harness, path, stat_result, exc, parser_version,
                                               LEDGER_POLICY_VERSION, source_cap))
             failed += 1
