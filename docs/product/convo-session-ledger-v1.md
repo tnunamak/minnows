@@ -13,7 +13,8 @@ Extend `convo` into the local session ledger for Tim's agent harnesses. It shoul
 3. How do I inspect or resume that work?
 4. What evidence still exists if a raw log was archived, deleted, lost, or corrupted?
 
-The tool remains local-first and CLI-first. Minnows owns the code. Dotfiles installs it and may schedule background refresh later.
+The tool remains local-first and CLI-first. Minnows owns the code. Dotfiles may install it, but has no
+runtime role in the ledger design.
 
 ## Confirmed product decisions
 
@@ -23,7 +24,8 @@ The tool remains local-first and CLI-first. Minnows owns the code. Dotfiles inst
 - Keep normalized user and assistant text by default. This makes search useful after raw logs are deleted.
 - Do not copy thinking, system prompts, or raw tool arguments and results into the durable default snapshot.
 - Treat summaries as derived data. V1 does not use an LLM.
-- Keep Waspflow lane metadata separate from transcript ancestry. Never join sessions from topic, time, cwd, or tmux names alone.
+- The core ledger depends only on supported harness logs and SQLite. It does not ingest tmux, Waspflow,
+  resurrection sidecars, cgroups, or dotfiles-specific state.
 - Do not delete raw harness logs in V1.
 
 ## Users and jobs
@@ -34,7 +36,6 @@ The tool remains local-first and CLI-first. Minnows owns the code. Dotfiles inst
 - Search by ordinary words and find the matching message, not only a session title.
 - Resume with the correct harness command and working directory.
 - Know whether a result is backed by a current raw log, a verified archive, a retained snapshot, or metadata only.
-- See explicit Waspflow and tmux relationships without merging unrelated sessions.
 
 ### Agents and scripts
 
@@ -56,7 +57,6 @@ convo show <session>               bounded clean transcript
 convo show <session> --around <message-id> --window 10
 convo resume <session>             print the safest resume command
 convo resume <session> --exec      execute only after explicit request
-convo related <session>            explicit ancestry and orchestration links
 convo status                       source, index, retention, and parser health
 convo sync                         incremental refresh; safe to repeat
 convo doctor                       paths, parsers, SQLite, and stale-data checks
@@ -89,13 +89,14 @@ The first ledger release is additive. `list`, `show`, and `grep` continue to rea
 
 Warm reads query the ledger without walking every source directory. Human output reports the last completed sync time. Callers can request refresh explicitly when they need current data.
 
-A later dotfiles-managed user timer may call `convo sync` every minute. Concurrent syncs must coalesce through one SQLite lock. The timer removes routine effort, but the CLI remains correct without it and reports stale data honestly.
+`convo` has no timer or resident process. Invoke `convo sync` explicitly from the owner’s chosen
+automation if desired; concurrent invocations coalesce through one SQLite lock.
 
 ## Evidence and retention contract
 
 Track these facts separately. Do not compress them into one vague status.
 
-- `source_status`: `present`, `missing`, `tombstoned`, or `corrupt`.
+- `source_status`: `present`, `skipped`, `partial`, `pending`, `missing`, `corrupt`, or `oversized`.
 - `archive_status`: `none`, `unverified`, `verified`, or `failed`.
 - `snapshot_policy`: `conversation`, `metadata_only`, or an explicit future policy.
 - `completeness`: `complete_raw_verified`, `complete_snapshot_only`, `partial_range_verified`, `metadata_only`, or `unknown`.
@@ -106,31 +107,28 @@ Definitions:
 - `tombstoned` means the owner intentionally removed or expired it.
 - `archived` is not a source status. A source may be tombstoned and have a verified archive.
 - `verified` requires a locator, byte size, content hash, and successful verification time.
-- A PDPP record, local path, or external URI is only an unverified locator until checked.
 - FTS is a derived index. Its presence never proves that a raw transcript was complete.
 
 V1 stores normalized user and assistant text in the durable ledger with owner-only permissions. Search can therefore survive source deletion, but the result must say `content_basis=snapshot`. The tool must not claim it can reproduce tool traces or exact raw events from that snapshot.
 
-External deletion changes a source to `missing`; it does not imply user intent. A future retention command must use a dry run and refuse to remove a raw log unless the required snapshot or archive has been verified.
+External deletion changes a source to `missing`; it does not imply user intent. The core CLI never removes
+raw logs or manages archives.
 
 ## Identity and relationships
 
-Use a physical source file as the base evidence unit. Store the harness-native session ID when present, but do not assume it is globally unique.
-
-Keep six identities distinct:
+Use a physical source file as the base evidence unit. Store the harness-native session ID when present, but do not assume it is globally unique. The core CLI intentionally keeps only harness-native identity:
 
 | Identity | Meaning |
 | --- | --- |
 | Physical session | One source file from one harness. |
-| Logical thread | Physical sessions joined by explicit harness ancestry. |
-| Compaction segment | One bounded portion of a physical session. |
-| Parent or fork | An explicit ancestry edge. |
-| Waspflow lane life | One orchestration run keyed by its stable lane identity. |
-| Terminal location | A tmux pane or restored terminal associated with the work. |
+| Harness-native session ID | The identifier retained from that source when present. |
 
-Only explicit harness ancestry may join physical sessions into a logical thread. Waspflow lane UUIDs, lane markers, tmux sidecars, and cwd are association evidence; they do not alter transcript ancestry. Reused lane names must remain separate lane lives.
-
-Every relationship row records its kind, source, observed time, and confidence. Human output labels inferred associations. Machine output never reports them as exact.
+The ledger never infers cross-process ancestry. Matching lane names, cwd, timestamps, or conversation
+text is useful human search evidence, not a relationship assertion. V1 has no relationship tables or
+tmux/resurrection-sidecar ingestion. If an external orchestrator later needs to publish provenance, its
+only clean boundary is a generic append-only provenance-event format with explicit source, subject,
+relationship kind, observed time, and confidence; Waspflow can be one producer, but `convo` has no
+runtime dependency on it.
 
 ## Resume contract
 
@@ -147,16 +145,8 @@ Each result uses one of these states:
 | Table | Responsibility |
 | --- | --- |
 | `source_files` | Records harness, path, size, mtime, hashes, parser version, and source status. |
-| `source_ranges` | Verifies incremental JSONL byte ranges. |
-| `sessions` | Stores normalized identity, project, cwd, timestamps, completeness, and title. |
-| `messages` | Stores retained user and assistant text with its role, source event ID, message time, and snapshot hash. |
+| `messages` | Stores retained user and assistant text with its role, ordinal, and message time. |
 | `messages_fts` | Projects retained messages into FTS5. |
-| `compaction_segments` | Records explicit boundaries and completeness. |
-| `relationships` | Records ancestry and orchestration associations with evidence and confidence. |
-| `resume_targets` | Stores the command, cwd, support state, and derivation source. |
-| `archive_locators` | Stores the location, size, hash, last verification, and error. |
-| `source_state_events` | Preserves append-only evidence for status changes. |
-| `index_runs`, `diagnostics` | Records parser failures, torn rows, conflicts, and timings. |
 
 The database belongs under `$XDG_DATA_HOME/minnows/convo/`, not a cache directory. Use mode `0600` for the database and `0700` for its parent. The data may be the only retained conversation snapshot after source deletion.
 
@@ -181,7 +171,10 @@ These are product targets, not claims about the current implementation.
 - Bounded `show` around a message: p95 under 50 ms after indexing.
 - Search and list must not parse every full source log after the first index.
 
-The current corpus includes two Codex files near 1.5 GiB and one Claude file near 287 MiB. Until a streaming normalizer exists, sync must report oversized files as partial. It must not load them into memory or call the ledger complete.
+Claude, Codex, and Qwen JSONL sources stream through a bounded temporary spool, including multi-GiB
+files. Gemini remains a whole-document parser and reports an explicit `oversized` state when it exceeds
+the configured cap. A malformed complete JSONL record makes only that source `partial`; valid surrounding
+messages remain searchable. An unterminated final row is `pending` rather than corrupt.
 
 ## Privacy and safety
 
@@ -214,21 +207,14 @@ The current corpus includes two Codex files near 1.5 GiB and one Claude file nea
 - Test external disappearance, intentional tombstone, truncated file, changed bytes, verified archive, and failed archive.
 - Gate: a deleted raw log remains searchable only from an allowed snapshot and is labeled `complete_snapshot_only`.
 
-### 4. Add explicit Convo and Waspflow relationships
+### 4. Keep external orchestration out of the core
 
-- Import compaction and ancestry semantics from the existing handoff.
-- Ingest Waspflow lane UUIDs and tmux resume sidecars as associations.
-- Gate: reused lane names and similar sessions never merge without explicit ancestry.
+- Do not add Waspflow, tmux, resurrection, cgroup, PDPP, or dotfiles dependencies.
+- Do not infer parentage from names, timestamps, cwd, or text similarity.
+- If provenance is ever imported, accept only generic append-only events with explicit evidence; never
+  inspect tmux resurrection data or infer a link from indirect correlation.
 
-### 5. Remove ongoing effort
+## Product boundary
 
-- Make every read command refresh changed sources automatically.
-- Measure contention and crash recovery before adding a timer.
-- Add an optional dotfiles user timer only if it improves first-query latency.
-- Gate: kill indexing mid-write, restart it, and get the same database as a clean run.
-
-## Deferred work
-
-V1 ends at the CLI ledger. Defer any feature that does not directly improve deterministic discovery, inspection, provenance, or resumption. This excludes AI-based interpretation, secondary interfaces, source-data management, inferred ancestry, and spend governance.
-
-Add any of these features only after the CLI ledger proves insufficient. CodeBurn shows the value of shared calculations. It also shows how quickly a focused local tool can grow into several products.
+V1 ends at the explicit CLI ledger. It does not add automatic refresh, a timer, a resident daemon,
+source-data management, inferred ancestry, or external orchestration integration.

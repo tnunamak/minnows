@@ -1,6 +1,6 @@
 # Convo streaming backfill execution plan
 
-Status: ready for implementation after the ledger draft
+Status: implemented for Claude, Codex, and Qwen JSONL; Gemini remains whole-document
 Date: 2026-08-11
 
 ## Objective
@@ -12,7 +12,8 @@ Index the complete supported corpus without loading a whole session into memory.
 - Supported stores currently contain about 10,000 physical sources and 19 GiB of logs.
 - The largest Codex files are about 1.5 GiB. The largest Claude file is about 287 MiB.
 - A metadata-only pass over 9,983 supported sources completes in 1.64 seconds with 38.9 MiB maximum resident memory after batched writes.
-- The current in-memory normalizers are capped at 64 MiB. Larger sources remain explicit `oversized` rows and make sync exit 2.
+- Claude, Codex, and Qwen normalize through a temporary disk spool instead of a full in-memory `Session`.
+- Gemini remains subject to the configurable 64 MiB whole-document cap and is explicitly `oversized` when over it.
 
 ## Stop condition
 
@@ -26,19 +27,28 @@ The work is complete when a clean database can index every supported source with
 
 ## Implementation slices
 
-### 1. Stream normalized messages
+### 1. Stream normalized messages — complete
 
-Add one streaming adapter per JSONL harness. Feed normalized user and assistant messages directly into a bounded database batch. Do not construct a full `Session` object for backfill. Keep Gemini's small JSON documents on the existing whole-document path.
+Claude, Codex, and Qwen read one bounded JSONL row at a time, write normalized messages to a
+private temporary spool, then atomically replace the source snapshot in SQLite. This keeps parsing
+outside write transactions and prevents a full source from becoming a Python object graph. Gemini's
+small JSON documents use the existing whole-document path.
 
 Before choosing a JSON parser, measure the largest physical line in each store. Python's standard JSON decoder still needs one complete value in memory. If a single event is too large for the memory target, evaluate a streaming JSON parser as a separate dependency decision rather than hiding the allocation.
 
-### 2. Checkpoint source progress
+### 2. Cache completed source outcomes — complete
 
-Record the source identity, byte offset, last complete record boundary, parser version, and a rolling range hash. Resume an append-only source from the last verified boundary. If device, inode, ctime, size, or prior range hash changes incompatibly, discard only that source's pending generation and rebuild it.
+Cache the physical identity (size, mtime, device, inode, ctime) plus parser version, policy version,
+and applicable source cap for every outcome: present, skipped, partial, pending, corrupt, or oversized.
+An unchanged outcome is not reparsed. A changed source is rebuilt atomically; a race during parsing or
+hashing leaves the prior snapshot intact and records a retryable failure.
 
-### 3. Publish honest progress
+### 3. Publish honest progress — complete
 
-Add `index_runs` and per-source diagnostics. `convo sync --json` should report scanned bytes, completed sources, partial sources, pending torn rows, elapsed time, and the last durable checkpoint. `convo status` should report the last completed run and whether search is complete or partial.
+`convo sync` reports aggregate counts, elapsed time, and throughput; `--verbose` reveals individual
+source diagnostics. Its JSON result includes stable source, byte, duration, throughput, skipped,
+partial, and pending fields. `convo status` separates parser failures, partial, pending, skipped, and
+oversized sources.
 
 ### 4. Prove the full journey
 
@@ -55,6 +65,7 @@ git diff --check
 
 The real-corpus gate must use an isolated `CONVO_DATA_DIR`. Remove or trash that test database after recording aggregate evidence. Do not print transcript text during performance runs.
 
-## Deferred
+## Non-goals
 
-Do not add raw-log pruning, automatic PDPP upload, Waspflow relationships, AI summaries, or a resident daemon in this slice. The streaming backfill must be complete and recoverable first.
+The CLI never depends on tmux, Waspflow, resurrection sidecars, PDPP, raw-log pruning, automatic
+upload, AI summaries, or a resident daemon. It indexes supported harness logs only.

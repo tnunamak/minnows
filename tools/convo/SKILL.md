@@ -45,12 +45,13 @@ tests), otherwise `$XDG_DATA_HOME/minnows/convo`. `sync` is safe to repeat. A mi
 raw log stays searchable from its retained normalized snapshot and is labeled as such;
 search never claims it can reconstruct raw tool traces.
 
-The current normalizers are bounded to sources of at most 64 MiB by default
-(`CONVO_MAX_SOURCE_BYTES` overrides the cap for controlled testing). A larger source is
-recorded as `oversized`, preserves any old snapshot, and makes `sync` exit 2: cold sync
-is therefore intentionally partial until streaming normalization ships. Qwen
-`agent-fork-call_*.jsonl` files remain separate physical sources when present; their
-filenames do not establish ancestry or merge them with another session.
+Claude, Codex, and Qwen JSONL sources are normalized in a bounded-memory streaming pass;
+they are not limited by the former whole-source 64 MiB cap. Gemini remains a whole-document
+parser, so `CONVO_MAX_SOURCE_BYTES` (64 MiB by default) still applies to Gemini only. A
+malformed complete JSONL row marks that source `partial` while retaining valid surrounding
+messages. An unterminated final row is `pending` until its writer completes it. Qwen
+`agent-fork-call_*.jsonl` files remain separate physical sources; their filenames never
+establish ancestry or merge them with another session.
 
 ### Flags for direct/raw read commands (`list`, `show`, `grep`)
 - `--harness claude|codex|gemini|qwen|all` (aliases `cc,cx,gm,qw`; default **all**)
