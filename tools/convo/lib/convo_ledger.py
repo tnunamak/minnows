@@ -399,6 +399,7 @@ class Ledger:
             if existing:
                 conn.execute("""
                     UPDATE source_files SET harness = ?, source_status = 'corrupt', parser_error = ?,
+                        parser_version = '', policy_version = '', source_cap = NULL,
                         updated_at = CURRENT_TIMESTAMP WHERE id = ?
                 """, (harness, detail, existing["id"]))
             else:

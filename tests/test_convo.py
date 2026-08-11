@@ -265,6 +265,16 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(self.ledger().search("reappeared source topic")[0]["source_status"], "present")
 
+    def test_access_failure_is_retried_after_the_source_becomes_readable(self):
+        path = self.claude_path()
+        self.write_claude(path, "access recovery topic", "answer")
+        self.run_convo("sync")
+        self.ledger().record_access_failure("claude", path, OSError("transient permission failure"))
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        hit = self.ledger().search("access recovery topic")[0]
+        self.assertEqual(hit["source_status"], "present")
+
     def test_parse_failure_preserves_last_good_rows_and_is_partial(self):
         path = self.claude_path()
         self.write_claude(path, "preserve good topic", "good answer")
