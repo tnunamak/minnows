@@ -1,7 +1,6 @@
 # Convo streaming backfill execution plan
 
-Status: implementation and synthetic tests complete for Claude, Codex, and Qwen JSONL; full-corpus
-performance validation remains pending. Gemini remains whole-document.
+Status: implemented and validated against the full local corpus. Gemini remains whole-document.
 Date: 2026-08-11
 
 ## Objective
@@ -28,7 +27,7 @@ The work is complete when a clean database can index every supported source with
 
 ## Implementation slices
 
-### 1. Stream normalized messages (implemented; full-corpus validation pending)
+### 1. Stream normalized messages (complete)
 
 Claude, Codex, and Qwen read one bounded JSONL row at a time, write normalized messages to a
 private temporary spool, then atomically replace the source snapshot in SQLite. This keeps parsing
@@ -39,7 +38,7 @@ memory without bound.
 
 Before choosing a JSON parser, measure the largest physical line in each store. Python's standard JSON decoder still needs one complete value in memory. If a single event is too large for the memory target, evaluate a streaming JSON parser as a separate dependency decision rather than hiding the allocation.
 
-### 2. Cache completed source outcomes (implemented; full-corpus validation pending)
+### 2. Cache completed source outcomes (complete)
 
 Cache the physical identity (size, mtime, device, inode, ctime) plus parser version, policy version,
 and applicable source cap for every outcome: present, skipped, partial, pending, live, corrupt, or oversized.
@@ -49,7 +48,7 @@ in the same bounded pass over an initial stat-sized byte boundary. If that exact
 the boundary, its safely parsed prefix is recorded as `live` and retried without failure; replacement and truncation remain
 unsafe races.
 
-### 3. Publish accurate progress (implemented; full-corpus validation pending)
+### 3. Publish accurate progress (complete)
 
 `convo sync` reports aggregate counts, elapsed time, and throughput; `--verbose` reveals individual
 source diagnostics. Periodic progress is interactive-only. Its JSON result includes stable source, observed
@@ -61,6 +60,13 @@ sync fail; exit 2 is reserved for inability to record one.
 ### 4. Prove the full journey
 
 Run synthetic fixtures first, then the real corpus with transcript output suppressed. Capture time, maximum resident memory, source counts, message counts, partial reasons, and a second no-change run. Search several seeded unique markers and verify their exact message timestamps.
+
+The 2026-08-11 corpus run scanned 10,182 sources and 21.3 GB in 420 seconds. Peak resident memory
+was 143 MB. The ledger retained 182,673 messages, the FTS row count matched, and SQLite's integrity
+check returned `ok`. The run ended with 9,952 present, 192 skipped, 33 partial, 3 pending, and 2 live
+sources; it had no failed sources and wrote nothing to redirected stderr. A follow-up run processed
+only sources that had changed or remained live and also exited 0. A quiescent second-run time was not
+measured because other agents continued to append to two multi-gigabyte Codex logs during the gate.
 
 ## Required oracle
 
