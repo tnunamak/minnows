@@ -9,7 +9,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | Tag **`data-model-catalog-v0.5.2`** — [release](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.2) |
+| **This version** | Tag **`data-model-catalog-v0.5.3`** — not yet released; latest published release remains [data-model-catalog-v0.5.2](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.2) until `./scripts/release-data-pack.sh` is run |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -18,7 +18,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.5.2
+TAG=data-model-catalog-v0.5.2  # latest RELEASED tag; v0.5.3 is working-tree only until released
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -74,6 +74,13 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 5. **Validate before shipping:** `./scripts/validate_data_pack.py model-catalog`
 
 ## Changelog
+
+### v0.5.3 — 2026-08-02
+
+- **Investigated the community claim "Luna at max reasoning effort is the best Codex setting."** Verdict: not supported as stated — real value point, not a dominant one. Full writeup: `~/code/dotfiles/ai/research/model-routing/gpt-5-6-luna-at-max-effort-is-a-defensible-not-dominant-codex-value-pick.md`.
+- **New:** `performance/deepswe-leaderboard-gpt-5-6-2026-08.json` — third-party DeepSWE leaderboard (datacurve.ai, mini-swe-agent harness, 113 tasks) reading for gpt-5.6-sol/terra/luna at effort=max, with cost/task. New metric_id `deepswe-leaderboard-datacurve` (distinct from OpenAI's own `deepswe-v1-1` vendor table) added to `metrics.json`.
+- **Corrected:** `capabilities/effort-surfaces-2026-07.json` — Codex CLI's official config-reference lists no `max` value for `model_reasoning_effort` (only minimal..xhigh); `max` is a separate opt-in UI toggle per Codex's Models doc, not a config-settable value, confirmed 2026-08-02. Added `gpt-5.6-terra` and `gpt-5.6-luna` `codex_cli` surface entries (previously only `gpt-5.6-sol` had one).
+- **New SOURCES:** `openai-codex-models-2026-08-02`, `deepswe-leaderboard-2026-08-02`, `majesticlabs-luna-max-2026-08-02` (secondary commentary, explicitly not cited for numeric scores).
 
 ### v0.5.2 — 2026-07-09
 

@@ -2,16 +2,16 @@
   "$schema": "../schemas/pack-v1.schema.json",
   "name": "model-choice-policy",
   "schema_version": 1,
-  "tag": "data-model-choice-policy-v0.1.5",
-  "generated_at": "2026-07-11",
-  "description": "Task-shaped operating points. Pins catalog v0.5.2; refreshes review.audit to GPT-5.6 Sol; evidence_confidence remains medium for top-3 ops.",
+  "tag": "data-model-choice-policy-v0.1.6",
+  "generated_at": "2026-08-11",
+  "description": "Task-shaped operating points. Pins catalog v0.5.3; refreshes review.audit to GPT-5.6 Sol; evidence_confidence remains medium for top-3 ops.",
   "files": [
     "README.md",
     "SCHEMA.md",
     "operating-points.json"
   ],
   "related": {
-    "catalog": "data-model-catalog-v0.5.2",
+    "catalog": "data-model-catalog-v0.5.3",
     "doctrine": "Operating Point Resolver — task-shaped ops, not cheap/default/max, not silent auto-routing"
   }
 }

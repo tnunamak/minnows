@@ -146,7 +146,37 @@
       "published": null,
       "retrieved_at": "2026-07-09",
       "kind": "vendor_docs",
-      "notes": "model_reasoning_effort minimal|low|medium|high|xhigh."
+      "notes": "model_reasoning_effort minimal|low|medium|high|xhigh (xhigh model-dependent). No 'max' value documented in the config file reference itself (re-confirmed 2026-08-02); 'max' is a separate UI-level toggle, see openai-codex-models-2026-08-02."
+    },
+    {
+      "id": "openai-codex-models-2026-08-02",
+      "url": "https://developers.openai.com/codex/models",
+      "title": "Models – Codex",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-08-02",
+      "kind": "vendor_docs",
+      "notes": "Codex CLI/app default (\"Power\") tier is gpt-5.6-sol at medium reasoning; Luna requires opening \"Advanced\" settings. Max mode is a separate opt-in toggle (\"If you don't see Max in your options, you'll have to enable it in your app settings... most tasks do not need Max or Ultra\"). Recommends Sol as the safe default and Luna only for \"specific, high-volume tasks where you know what success looks like.\""
+    },
+    {
+      "id": "deepswe-leaderboard-2026-08-02",
+      "url": "https://deepswe.datacurve.ai/",
+      "title": "DeepSWE Leaderboard",
+      "publisher": "DataCurve",
+      "published": "2026-07-25",
+      "retrieved_at": "2026-08-02",
+      "kind": "third_party_eval",
+      "notes": "113 long-horizon coding tasks across 91 repos / 5 languages, standardized mini-swe-agent harness (not Codex's native harness). Single independently-run leaderboard reading; confidence intervals for Sol/Terra/Luna at effort=max overlap per secondary commentary (see majesticlabs-luna-max-2026-08-02) so point-estimate ranking is not statistically decisive at this sample size."
+    },
+    {
+      "id": "majesticlabs-luna-max-2026-08-02",
+      "url": "https://majesticlabs.dev/blog/202608/using-gpt-5-6-luna-at-max",
+      "title": "Using GPT-5.6 Luna at Max in Codex",
+      "publisher": "Majestic Labs (David Paluy) — company blog, not OpenAI or an independent benchmark org",
+      "published": "2026-08",
+      "retrieved_at": "2026-08-02",
+      "kind": "other",
+      "notes": "Secondary commentary on the DeepSWE leaderboard reading; explicitly notes overlapping confidence intervals and that DeepSWE used mini-swe-agent rather than Codex's native custom-agent harness. Directional practitioner opinion, not primary benchmark data — do not cite for numeric scores, only for the CI/methodology caveat."
     },
     {
       "id": "xai-models-2026-07-09",

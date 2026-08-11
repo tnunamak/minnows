@@ -229,6 +229,15 @@
       "unit_default": "accuracy"
     },
     {
+      "id": "deepswe-leaderboard-datacurve",
+      "name": "DeepSWE Leaderboard (datacurve.ai)",
+      "direction": "higher_better",
+      "harness": "mini-swe-agent",
+      "steward": "third_party_board",
+      "unit_default": "pass_rate",
+      "notes": "Distinct from deepswe-v1-1 (OpenAI's internal vendor table). Independently-run leaderboard, 113 long-horizon coding tasks / 91 repos / 5 languages, mini-swe-agent harness (NOT Codex's native harness)."
+    },
+    {
       "id": "expert-swe-internal",
       "name": "Expert-SWE (Internal)",
       "direction": "higher_better",
