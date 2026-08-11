@@ -49,7 +49,8 @@ hashing leaves the prior snapshot intact and records a retryable failure.
 `convo sync` reports aggregate counts, elapsed time, and throughput; `--verbose` reveals individual
 source diagnostics. Its JSON result includes stable source, byte, duration, throughput, skipped,
 partial, and pending fields. `convo status` separates parser failures, partial, pending, skipped, and
-oversized sources.
+oversized sources. `partial`, `pending`, and `skipped` are honest retained outcomes and do not make a
+sync fail; exit 2 is reserved for inability to record one.
 
 ### 4. Prove the full journey
 

@@ -1252,7 +1252,6 @@ def _cmd_sync_with_ledger(ledger, args):
                 pending_sources += 1
             elif current_status == "partial":
                 partial += 1
-                failed += 1
             elif current_status in ("corrupt", "oversized"):
                 failed += 1
             report_progress(index)
@@ -1312,7 +1311,6 @@ def _cmd_sync_with_ledger(ledger, args):
                     spool_path = None
                 imported += 1
                 partial += 1
-                failed += 1
                 report_progress(index)
                 continue
             def replace(source=source, content_hash=content_hash, spool_path=spool_path,
@@ -1328,7 +1326,6 @@ def _cmd_sync_with_ledger(ledger, args):
                 skipped += 1
             elif source.source_status == "partial":
                 partial += 1
-                failed += 1
             elif source.source_status == "pending":
                 pending_sources += 1
         except Exception as exc:  # Preserve the last successful snapshot on every failure.

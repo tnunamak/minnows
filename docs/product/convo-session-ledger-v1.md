@@ -156,7 +156,9 @@ The database belongs under `$XDG_DATA_HOME/minnows/convo/`, not a cache director
 
 - Put data on stdout and progress or diagnostics on stderr.
 - Add `schema_version` to every JSON object.
-- Use stable exit codes for success, no match, partial result, invalid input, and internal failure.
+- Use stable exit codes for success, no match, invalid input, and internal failure. A retained `partial`,
+  `pending`, or `skipped` source is success with explicit coverage metadata; exit 2 means the source
+  could not be honestly retained.
 - Keep list and search excerpts bounded by default.
 - Never emit full transcript text in an error.
 - Make interrupted sync safe to rerun.

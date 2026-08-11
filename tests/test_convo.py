@@ -254,15 +254,19 @@ class LedgerTests(unittest.TestCase):
         self.write_claude(path, "preserve good topic", "good answer")
         self.run_convo("sync")
         path.write_text('{"type":"user"}\nnot-json\n', encoding="utf-8")
-        _, stderr, code = self.run_convo("sync")
-        self.assertEqual(code, 2)
+        first, stderr, code = self.run_convo("sync", "--json")
+        self.assertEqual(code, 0)
         self.assertNotIn("source preserved after parse failure", stderr)
+        self.assertEqual(json.loads(first)["partial"], 1)
+        self.assertEqual(json.loads(first)["failed"], 0)
         hit = self.ledger().search("preserve good topic")[0]
         self.assertEqual(hit["source_status"], "partial")
         self.assertEqual(hit["content_basis"], "snapshot")
         second, _, second_code = self.run_convo("sync", "--json")
-        self.assertEqual(second_code, 2)
+        self.assertEqual(second_code, 0)
         self.assertEqual(json.loads(second)["unchanged"], 1)
+        self.assertEqual(json.loads(second)["partial"], 1)
+        self.assertEqual(json.loads(second)["failed"], 0)
 
     def test_jsonl_sources_stream_past_the_legacy_whole_file_cap(self):
         path = self.claude_path()
@@ -273,6 +277,18 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertNotIn("oversized", stderr)
         hit = self.ledger().search("cap preserves topic")[0]
+        self.assertEqual(hit["source_status"], "present")
+        self.assertEqual(self.ledger().status()["oversized_sources"], 0)
+
+    def test_legacy_oversized_jsonl_is_invalidated_by_streaming_parser_version(self):
+        path = self.claude_path()
+        self.write_claude(path, "legacy cap topic", "answer")
+        self.ledger().record_oversized(
+            "claude", path, path.stat(), 1, "whole-session-v0", convo.LEDGER_POLICY_VERSION,
+        )
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        hit = self.ledger().search("legacy cap topic")[0]
         self.assertEqual(hit["source_status"], "present")
         self.assertEqual(self.ledger().status()["oversized_sources"], 0)
 
@@ -309,8 +325,15 @@ class LedgerTests(unittest.TestCase):
             + json.dumps({"type": "assistant", "message": {"content": [{"type": "text", "text": "after malformed"}]}}) + "\n",
             encoding="utf-8",
         )
-        _, _, code = self.run_convo("sync")
-        self.assertEqual(code, 2)
+        first, _, code = self.run_convo("sync", "--json")
+        second, _, second_code = self.run_convo("sync", "--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(second_code, 0)
+        self.assertEqual(json.loads(first)["partial"], 1)
+        self.assertEqual(json.loads(first)["failed"], 0)
+        self.assertEqual(json.loads(second)["unchanged"], 1)
+        self.assertEqual(json.loads(second)["partial"], 1)
+        self.assertEqual(json.loads(second)["failed"], 0)
         self.assertEqual(self.ledger().search("before malformed")[0]["source_status"], "partial")
         self.assertEqual(self.ledger().search("after malformed")[0]["source_status"], "partial")
 
