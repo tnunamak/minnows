@@ -996,22 +996,42 @@ def _normalized_source(harness: str, path: Path, session: Session, stat_result) 
         stat_result.st_ino, stat_result.st_ctime_ns, session.session_id, session.project, messages)
 
 
+def _source_identity(stat_result) -> tuple[int, int, int, int, int]:
+    return (stat_result.st_size, stat_result.st_mtime_ns, stat_result.st_dev,
+            stat_result.st_ino, stat_result.st_ctime_ns)
+
+
 def _cmd_sync_with_ledger(ledger, args):
     """Incrementally capture every current source; retained rows survive disappearance."""
     max_source_bytes = ledger_lib.max_source_bytes_from_environment()
     imported = unchanged = failed = 0
-    writes_in_batch = 0
     seen: list[str] = []
+    pending: list[Callable[[], None]] = []
+    pending_message_bytes = 0
 
-    def write(operation):
-        """Run a durable state transition in a bounded batch, not a per-file commit."""
-        nonlocal writes_in_batch
+    def flush() -> None:
+        """Apply buffered rows quickly; parsing and hashing always happen outside a write txn."""
+        nonlocal pending_message_bytes
+        if not pending:
+            return
         ledger.begin_batch()
-        operation()
-        writes_in_batch += 1
-        if writes_in_batch >= ledger_lib.SYNC_BATCH_SIZE:
+        try:
+            for operation in pending:
+                operation()
             ledger.commit_batch()
-            writes_in_batch = 0
+        except Exception:
+            ledger.close()  # rolls back only the current batch; prior flushes are durable
+            raise
+        pending.clear()
+        pending_message_bytes = 0
+
+    def stage(operation: Callable[[], None], message_bytes: int = 0) -> None:
+        nonlocal pending_message_bytes
+        pending.append(operation)
+        pending_message_bytes += message_bytes
+        if (len(pending) >= ledger_lib.SYNC_BATCH_SIZE
+                or pending_message_bytes >= ledger_lib.SYNC_BATCH_MESSAGE_BYTES):
+            flush()
 
     for harness, path in _ledger_sources():
         # A globbed path is evidence of presence for this run even if a concurrent
@@ -1020,14 +1040,16 @@ def _cmd_sync_with_ledger(ledger, args):
         try:
             stat_result = path.stat()
         except OSError as exc:
-            write(lambda: ledger.record_access_failure(harness, path, exc))
+            stage(lambda harness=harness, path=path, exc=exc:
+                  ledger.record_access_failure(harness, path, exc))
             failed += 1
             print(f"convo: source preserved after access failure: {path}: {exc}", file=sys.stderr)
             continue
         # Existing loaders normalize a whole source in process memory. Do not attempt
         # a multi-gigabyte parse until a streaming normalization slice exists.
         if stat_result.st_size > max_source_bytes:
-            write(lambda: ledger.record_oversized(harness, path, stat_result, max_source_bytes))
+            stage(lambda harness=harness, path=path, stat_result=stat_result:
+                  ledger.record_oversized(harness, path, stat_result, max_source_bytes))
             failed += 1
             print(f"convo: source preserved but not parsed (oversized): {path}: "
                   f"{stat_result.st_size} bytes exceeds cap {max_source_bytes}", file=sys.stderr)
@@ -1043,17 +1065,20 @@ def _cmd_sync_with_ledger(ledger, args):
             # Capture the bytes whose identity we persist. A source that changed during
             # parsing is retried on the next idempotent sync rather than being mislabeled.
             final_stat = path.stat()
-            if (final_stat.st_size, final_stat.st_mtime_ns) != (stat_result.st_size, stat_result.st_mtime_ns):
-                raise ValueError("source changed while parsing; retry sync")
-            write(lambda: ledger.replace_source(
-                _normalized_source(harness, path, session, stat_result), content_hash))
+            if _source_identity(final_stat) != _source_identity(stat_result):
+                raise ValueError("source changed while parsing or hashing; retry sync")
+            source = _normalized_source(harness, path, session, stat_result)
+            retained_bytes = sum(len(message.text.encode("utf-8")) for message in source.messages)
+            stage(lambda source=source, content_hash=content_hash:
+                  ledger.replace_source(source, content_hash), retained_bytes)
             imported += 1
         except Exception as exc:  # Preserve the last successful snapshot on every failure.
-            write(lambda: ledger.record_parse_failure(harness, path, stat_result, exc))
+            stage(lambda harness=harness, path=path, stat_result=stat_result, exc=exc:
+                  ledger.record_parse_failure(harness, path, stat_result, exc))
             failed += 1
             print(f"convo: source preserved after parse failure: {path}: {exc}", file=sys.stderr)
-    # Include the disappearance transition in the final current batch, then make it
-    # durable. If interrupted, only this bounded batch rolls back.
+    flush()
+    # The disappearance transition has no parse work behind it, so apply it alone.
     ledger.begin_batch()
     missing = ledger.mark_missing_except(seen)
     ledger.commit_batch()
@@ -1069,7 +1094,8 @@ def _cmd_sync_with_ledger(ledger, args):
 
 def cmd_sync(args):
     with _require_ledger() as ledger:
-        _cmd_sync_with_ledger(ledger, args)
+        with ledger.sync_lock():
+            _cmd_sync_with_ledger(ledger, args)
 
 
 def cmd_status(args):

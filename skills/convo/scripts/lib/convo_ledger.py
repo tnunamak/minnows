@@ -13,6 +13,8 @@ import hashlib
 import os
 import re
 import sqlite3
+import fcntl
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Optional
@@ -22,6 +24,15 @@ SCHEMA_VERSION = 2
 DEFAULT_DATA_HOME = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share")) / "minnows" / "convo"
 DEFAULT_MAX_SOURCE_BYTES = 64 * 1024 * 1024
 SYNC_BATCH_SIZE = 250
+SYNC_BATCH_MESSAGE_BYTES = 8 * 1024 * 1024
+
+
+class LedgerSchemaError(ValueError):
+    pass
+
+
+class LedgerBusyError(ValueError):
+    pass
 
 
 @dataclass(frozen=True)
@@ -80,6 +91,7 @@ class Ledger:
     def __init__(self, data_dir: Optional[Path] = None):
         self.data_dir = data_dir or data_dir_from_environment()
         self.db_path = self.data_dir / "ledger.sqlite3"
+        self.lock_path = self.data_dir / "sync.lock"
         self._conn: Optional[sqlite3.Connection] = None
         self._batch_active = False
 
@@ -125,19 +137,30 @@ class Ledger:
         except OSError:
             pass
         conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        try:
+            self._migrate(conn)
+            conn.execute("PRAGMA foreign_keys = ON")
+            conn.execute("PRAGMA journal_mode = WAL")
+        except Exception:
+            conn.close()
+            raise
         try:
             self.db_path.chmod(0o600)
         except OSError:
             pass
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA foreign_keys = ON")
-        conn.execute("PRAGMA journal_mode = WAL")
-        self._migrate(conn)
         self._conn = conn
         return self._conn
 
     @staticmethod
     def _migrate(conn: sqlite3.Connection) -> None:
+        current_version = conn.execute("PRAGMA user_version").fetchone()[0]
+        if current_version > SCHEMA_VERSION:
+            raise LedgerSchemaError(
+                f"ledger schema version {current_version} is newer than supported version {SCHEMA_VERSION}"
+            )
+        if current_version == SCHEMA_VERSION:
+            return
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS source_files (
                 id INTEGER PRIMARY KEY,
@@ -185,6 +208,23 @@ class Ledger:
             if column not in existing_columns:
                 conn.execute(f"ALTER TABLE source_files ADD COLUMN {column} INTEGER")
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
+
+    @contextmanager
+    def sync_lock(self):
+        """Fail fast rather than let simultaneous syncs race source-state transitions."""
+        self.data_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+        fd = os.open(self.lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+        try:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as exc:
+                raise LedgerBusyError("another convo sync is already running") from exc
+            yield
+        finally:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_UN)
+            finally:
+                os.close(fd)
 
     def source_is_current(self, harness: str, path: Path, stat_result) -> bool:
         row = self._connect().execute(

@@ -6,6 +6,7 @@ import importlib.util
 import io
 import json
 import os
+import sqlite3
 import tempfile
 import time
 import unittest
@@ -337,6 +338,88 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(self.ledger().search("same-size alpha"), [])
         self.assertEqual(self.ledger().search("same-size bravo")[0]["text"], "same-size bravo")
+
+    def test_mutation_during_hash_is_partial_and_preserves_prior_snapshot(self):
+        path = self.claude_path()
+        self.write_claude(path, "prior consistent topic", "answer")
+        self.run_convo("sync")
+        self.write_claude(path, "candidate topic", "answer")
+        real_hash = convo.ledger_lib.Ledger.hash_file
+
+        def mutate_after_hash(source_path):
+            digest = real_hash(source_path)
+            self.write_claude(source_path, "mutated during hash", "answer")
+            return digest
+
+        with mock.patch.object(convo.ledger_lib.Ledger, "hash_file", side_effect=mutate_after_hash):
+            _, stderr, code = self.run_convo("sync")
+        self.assertEqual(code, 2)
+        self.assertIn("source changed while parsing or hashing", stderr)
+        hit = self.ledger().search("prior consistent topic")[0]
+        self.assertEqual(hit["source_status"], "corrupt")
+        self.assertEqual(self.ledger().search("candidate topic"), [])
+
+    def test_future_schema_version_is_not_downgraded_and_status_fails_cleanly(self):
+        self.ledger().status()
+        self._ledger.close()
+        self._ledger = None
+        with sqlite3.connect(self.data_dir / "ledger.sqlite3") as conn:
+            conn.execute("PRAGMA user_version = 99")
+        with self.assertRaises(SystemExit) as raised:
+            convo.main(["status"])
+        self.assertIn("newer than supported", str(raised.exception))
+        with sqlite3.connect(self.data_dir / "ledger.sqlite3") as conn:
+            self.assertEqual(conn.execute("PRAGMA user_version").fetchone()[0], 99)
+
+    def test_sync_lock_excludes_other_syncs_while_wal_readers_continue(self):
+        writer = convo.ledger_lib.Ledger()
+        reader = convo.ledger_lib.Ledger()
+        contender = convo.ledger_lib.Ledger()
+        try:
+            writer.status()
+            with writer.sync_lock():
+                writer.begin_batch()
+                self.assertEqual(reader.status()["messages"], 0)
+                self.assertEqual(reader.search("anything"), [])
+                with self.assertRaises(convo.ledger_lib.LedgerBusyError):
+                    with contender.sync_lock():
+                        pass
+                writer.commit_batch()
+        finally:
+            writer.close()
+            reader.close()
+            contender.close()
+
+    def test_parsing_never_runs_inside_a_buffered_write_batch(self):
+        for index in range(convo.ledger_lib.SYNC_BATCH_SIZE + 1):
+            self.write_claude(self.claude_path(f"buffered-{index}.jsonl"), f"buffer {index}", "answer")
+        original_loader = convo.HARNESSES["claude"]["loader"]
+        original_begin = convo.ledger_lib.Ledger.begin_batch
+        original_commit = convo.ledger_lib.Ledger.commit_batch
+        write_active = False
+
+        def checked_loader(path):
+            self.assertFalse(write_active)
+            return original_loader(path)
+
+        def tracked_begin(ledger):
+            nonlocal write_active
+            original_begin(ledger)
+            write_active = True
+
+        def tracked_commit(ledger):
+            nonlocal write_active
+            original_commit(ledger)
+            write_active = False
+
+        convo.HARNESSES["claude"]["loader"] = checked_loader
+        try:
+            with mock.patch.object(convo.ledger_lib.Ledger, "begin_batch", new=tracked_begin), \
+                 mock.patch.object(convo.ledger_lib.Ledger, "commit_batch", new=tracked_commit):
+                _, _, code = self.run_convo("sync")
+        finally:
+            convo.HARNESSES["claude"]["loader"] = original_loader
+        self.assertEqual(code, 0)
 
     def test_current_commands_remain_direct_raw_readers_after_ledger_commands(self):
         path = self.claude_path()

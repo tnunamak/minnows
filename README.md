@@ -60,7 +60,7 @@ like `lib/` — tools that need a pack resolve `$DATA_PACKS_HOME/<pack>` or a pi
 
 | tool | CLI | skill | what it does |
 |------|-----|-------|--------------|
-| **convo** | ✓ | ✓ | Read past agent conversation history across Claude Code / Codex / Gemini. |
+| **convo** | ✓ | ✓ | Read past agent conversation history across Claude Code / Codex / Gemini / Qwen. |
 | **hone** | ✓ | — (not yet) | Repo-quality engine (inventory, ranked packets, maker≠judge). |
 | **uncompact** | ✓ | ✓ | Recover a Claude Code session lost to context compaction. |
 

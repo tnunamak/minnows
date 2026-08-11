@@ -88,10 +88,10 @@ the history, print the plain text form directly.
 
 ## Known limitations (state these if relevant)
 
-- **Compaction chains**: a session that was compacted is split across multiple files linked by
-  summary/`leafUuid` references (Claude). `convo` reads a single session file; it does **not**
-  yet stitch a compaction chain back together, so very long histories may be partial. The
-  older `claude-export` tool traces those chains (Claude-only) if full history is essential.
+- **Compaction history**: compaction metadata can refer to earlier logical context. `convo`
+  reads the physical source file and does **not** reconstruct that pre-compaction context, so
+  very long histories may be partial. It does not assume compaction creates separate physical
+  session files. The older `claude-export` tool traces Claude-only links if full history is essential.
 - **Gemini project tag**: Gemini chat files don't store the cwd, so their project shows as a
   hash, not a path. Filter Gemini sessions by `--all-projects` + `--since` or by id.
 - **Codex `+msg` count**: in `list`, a count like `133+msg` means the message count was capped
