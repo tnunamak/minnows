@@ -1,6 +1,7 @@
 """Regression tests for the stdlib-only convo CLI."""
 
 import contextlib
+import hashlib
 import importlib.machinery
 import importlib.util
 import io
@@ -186,6 +187,9 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(second_code, 0)
         self.assertEqual(json.loads(first)["imported"], 1)
         self.assertEqual(json.loads(second)["unchanged"], 1)
+        self.assertGreater(json.loads(first)["bytes_processed"], 0)
+        self.assertEqual(json.loads(second)["bytes_processed"], 0)
+        self.assertGreater(json.loads(second)["bytes_observed"], 0)
         self.assertEqual(self.ledger().status()["messages"], 2)
         self.assertTrue((self.data_dir / "ledger.sqlite3").exists())
 
@@ -209,7 +213,7 @@ class LedgerTests(unittest.TestCase):
     def test_thousand_oversized_sources_use_bounded_batch_commits(self):
         os.environ["CONVO_MAX_SOURCE_BYTES"] = "1"
         for index in range(1000):
-            path = self.claude_path(f"large-{index}.jsonl")
+            path = self.root / "gemini" / f"project-{index}" / "chats" / f"session-{index}.json"
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("too large for this test cap\n", encoding="utf-8")
         real_commit_batch = convo.ledger_lib.Ledger.commit_batch
@@ -249,39 +253,181 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(hit["content_basis"], "snapshot")
         self.assertEqual(hit["completeness"], "normalized_snapshot_source_missing")
 
+    def test_reappeared_missing_source_is_reimported_even_with_same_identity(self):
+        path = self.claude_path()
+        self.write_claude(path, "reappeared source topic", "answer")
+        self.run_convo("sync")
+        hidden = self.root / "hidden-project"
+        path.parent.rename(hidden)
+        self.run_convo("sync")
+        self.assertEqual(self.ledger().search("reappeared source topic")[0]["source_status"], "missing")
+        hidden.rename(path.parent)
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        self.assertEqual(self.ledger().search("reappeared source topic")[0]["source_status"], "present")
+
+    def test_access_failure_is_retried_after_the_source_becomes_readable(self):
+        path = self.claude_path()
+        self.write_claude(path, "access recovery topic", "answer")
+        self.run_convo("sync")
+        self.ledger().record_access_failure("claude", path, OSError("transient permission failure"))
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        hit = self.ledger().search("access recovery topic")[0]
+        self.assertEqual(hit["source_status"], "present")
+
     def test_parse_failure_preserves_last_good_rows_and_is_partial(self):
         path = self.claude_path()
         self.write_claude(path, "preserve good topic", "good answer")
         self.run_convo("sync")
         path.write_text('{"type":"user"}\nnot-json\n', encoding="utf-8")
-        _, stderr, code = self.run_convo("sync")
-        self.assertEqual(code, 2)
-        self.assertIn("source preserved after parse failure", stderr)
+        first, stderr, code = self.run_convo("sync", "--json")
+        self.assertEqual(code, 0)
+        self.assertNotIn("source preserved after parse failure", stderr)
+        self.assertEqual(json.loads(first)["partial"], 1)
+        self.assertEqual(json.loads(first)["failed"], 0)
         hit = self.ledger().search("preserve good topic")[0]
-        self.assertEqual(hit["source_status"], "corrupt")
+        self.assertEqual(hit["source_status"], "partial")
         self.assertEqual(hit["content_basis"], "snapshot")
+        second, _, second_code = self.run_convo("sync", "--json")
+        self.assertEqual(second_code, 0)
+        self.assertEqual(json.loads(second)["unchanged"], 1)
+        self.assertEqual(json.loads(second)["partial"], 1)
+        self.assertEqual(json.loads(second)["failed"], 0)
+        _, verbose, verbose_code = self.run_convo("sync", "--verbose")
+        self.assertEqual(verbose_code, 0)
+        self.assertIn(str(path), verbose)
+        self.assertIn("cached source partial", verbose)
 
-    def test_oversized_source_preserves_last_good_rows_and_is_partial(self):
+    def test_jsonl_sources_stream_past_the_legacy_whole_file_cap(self):
         path = self.claude_path()
         self.write_claude(path, "cap preserves topic", "good answer")
         self.run_convo("sync")
         os.environ["CONVO_MAX_SOURCE_BYTES"] = "1"
-        original_loader = convo.HARNESSES["claude"]["loader"]
-
-        def should_not_parse(_path):
-            raise AssertionError("oversized source reached its in-memory loader")
-
-        convo.HARNESSES["claude"]["loader"] = should_not_parse
-        try:
-            _, stderr, code = self.run_convo("sync")
-        finally:
-            convo.HARNESSES["claude"]["loader"] = original_loader
-        self.assertEqual(code, 2)
-        self.assertIn("oversized", stderr)
+        _, stderr, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        self.assertNotIn("oversized", stderr)
         hit = self.ledger().search("cap preserves topic")[0]
-        self.assertEqual(hit["source_status"], "oversized")
-        self.assertEqual(hit["completeness"], "normalized_snapshot_source_unavailable")
-        self.assertEqual(self.ledger().status()["oversized_sources"], 1)
+        self.assertEqual(hit["source_status"], "present")
+        self.assertEqual(self.ledger().status()["oversized_sources"], 0)
+
+    def test_streaming_normalization_matches_existing_jsonl_loaders(self):
+        cases = {
+            "claude": (self.claude_path(), [
+                {"type": "user", "isMeta": False, "message": {"content": "# AGENTS.md instructions, but explicit user"}},
+                {"type": "assistant", "timestamp": "2026-08-01T00:00:00Z", "message": {"content": [{"type": "text", "text": "first"}]}},
+                {"type": "assistant", "timestamp": "2026-08-01T00:00:01Z", "message": {"content": [{"source": {"type": "base64"}}]}},
+            ]),
+            "codex": (self.root / "codex" / "2026" / "rollout-codex.jsonl", [
+                {"type": "session_meta", "payload": {"cwd": "/project"}},
+                {"type": "response_item", "timestamp": "2026-08-01T00:00:00Z", "payload": {"type": "message", "role": "user", "content": "question"}},
+                {"type": "response_item", "timestamp": "2026-08-01T00:00:01Z", "payload": {"type": "message", "role": "assistant", "content": "first"}},
+                {"type": "response_item", "timestamp": "2026-08-01T00:00:02Z", "payload": {"type": "message", "role": "assistant", "content": "second"}},
+            ]),
+            "qwen": (self.root / "qwen" / "project" / "chats" / "qwen.jsonl", [
+                {"type": "user", "provenance": "real_user", "message": {"parts": [{"text": "question"}]}},
+                {"type": "assistant", "timestamp": "2026-08-01T00:00:01Z", "message": {"parts": [{"text": "first"}]}},
+                {"type": "assistant", "timestamp": "2026-08-01T00:00:02Z", "message": {"parts": [{"text": "second"}]}},
+            ]),
+        }
+        for harness, (path, rows) in cases.items():
+            with self.subTest(harness=harness):
+                write_jsonl(path, rows)
+                raw = convo.HARNESSES[harness]["loader"](path)
+                expected = [(m.role, m.text, m.timestamp) for m in convo._normalized_source(harness, path, raw, path.stat()).messages]
+                streamed = convo._stream_jsonl_source(harness, path, path.stat(), self.data_dir / "spool")
+                try:
+                    actual = [(m.role, m.text, m.timestamp) for m in streamed.source.messages]
+                finally:
+                    streamed.spool_path.unlink(missing_ok=True)
+                self.assertEqual(actual, expected)
+
+    def test_streaming_hash_is_exact_and_sync_never_rehashes_jsonl(self):
+        path = self.claude_path()
+        self.write_claude(path, "single pass hash", "answer")
+        expected = hashlib.sha256(path.read_bytes()).hexdigest()
+        streamed = convo._stream_jsonl_source("claude", path, path.stat(), self.data_dir / "spool")
+        try:
+            self.assertEqual(streamed.bytes_read, path.stat().st_size)
+            self.assertEqual(streamed.content_hash, expected)
+        finally:
+            streamed.spool_path.unlink(missing_ok=True)
+        with mock.patch.object(convo.ledger_lib.Ledger, "hash_file", side_effect=AssertionError("second pass")), \
+                mock.patch.object(convo, "_hash_file_prefix", side_effect=AssertionError("growth proof")):
+            _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        with sqlite3.connect(self.data_dir / "ledger.sqlite3") as conn:
+            self.assertEqual(conn.execute("SELECT content_hash FROM source_files").fetchone()[0], expected)
+
+    def test_stream_spool_is_removed_when_reading_raises(self):
+        path = self.claude_path()
+        self.write_claude(path, "spool failure", "answer")
+        with mock.patch.object(convo, "_sync_jsonl_rows", side_effect=OSError("injected read failure")):
+            with self.assertRaises(OSError):
+                convo._stream_jsonl_source("claude", path, path.stat(), self.data_dir / "spool")
+        self.assertEqual(list((self.data_dir / "spool").glob("sync-*.jsonl")), [])
+
+    def test_stream_spool_is_removed_on_interrupt_and_next_sync_purges_stale_spools(self):
+        path = self.claude_path()
+        self.write_claude(path, "interrupt spool", "answer")
+        with mock.patch.object(convo, "_sync_jsonl_rows", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                convo._stream_jsonl_source("claude", path, path.stat(), self.data_dir / "spool")
+        spool_dir = self.data_dir / "spool"
+        self.assertEqual(list(spool_dir.glob("sync-*.jsonl")), [])
+        stale = spool_dir / "sync-stale.jsonl"
+        stale.write_text("sensitive temporary text", encoding="utf-8")
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        self.assertFalse(stale.exists())
+
+    def test_ledger_write_failure_is_not_mislabeled_as_a_source_parse_failure(self):
+        path = self.claude_path()
+        self.write_claude(path, "write failure", "answer")
+        with mock.patch.object(convo.ledger_lib.Ledger, "replace_source", side_effect=sqlite3.OperationalError("disk full")):
+            _, stderr, code = self.run_convo("sync")
+        self.assertEqual(code, 2)
+        self.assertIn("ledger write transaction failed", stderr)
+        self.assertNotIn("source preserved after parse failure", stderr)
+        self.assertEqual(self.ledger().status()["sources"], {})
+        self.assertEqual(list((self.data_dir / "spool").glob("sync-*.jsonl")), [])
+
+    def test_stream_keeps_bounded_malformed_diagnostic_samples(self):
+        path = self.claude_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("not-json\n" * 1000, encoding="utf-8")
+        streamed = convo._stream_jsonl_source("claude", path, path.stat(), self.data_dir / "spool")
+        try:
+            self.assertEqual(streamed.source.source_status, "partial")
+            self.assertIn("1000 malformed JSONL row(s)", streamed.source.parser_error)
+            self.assertEqual(streamed.source.parser_error.count("corrupt JSONL"), 3)
+        finally:
+            streamed.spool_path.unlink(missing_ok=True)
+
+    def test_stream_chunks_oversized_normalized_assistant_messages(self):
+        path = self.claude_path()
+        self.write_claude(path, "question", "abcdefghij")
+        with mock.patch.object(convo, "MAX_NORMALIZED_MESSAGE_BYTES", 4):
+            streamed = convo._stream_jsonl_source("claude", path, path.stat(), self.data_dir / "spool")
+        try:
+            messages = list(streamed.source.messages)
+            self.assertEqual(streamed.source.source_status, "partial")
+            self.assertEqual("".join(message.text for message in messages if message.role == "assistant"), "abcdefghij")
+            self.assertTrue(all(len(message.text.encode("utf-8")) <= 4 for message in messages if message.role == "assistant"))
+        finally:
+            streamed.spool_path.unlink(missing_ok=True)
+
+    def test_legacy_oversized_jsonl_is_invalidated_by_streaming_parser_version(self):
+        path = self.claude_path()
+        self.write_claude(path, "legacy cap topic", "answer")
+        self.ledger().record_oversized(
+            "claude", path, path.stat(), 1, "whole-session-v0", convo.LEDGER_POLICY_VERSION,
+        )
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        hit = self.ledger().search("legacy cap topic")[0]
+        self.assertEqual(hit["source_status"], "present")
+        self.assertEqual(self.ledger().status()["oversized_sources"], 0)
 
     def test_torn_final_jsonl_row_is_ignored_then_imported_after_resume(self):
         path = self.claude_path()
@@ -295,6 +441,72 @@ class LedgerTests(unittest.TestCase):
             stream.write(',"timestamp":"2026-08-02T00:00:00Z","cwd":"/project","isMeta":false,"message":{"content":"resumed torn row"}}\n')
         self.run_convo("sync")
         self.assertEqual(len(self.ledger().search("resumed torn row")), 1)
+
+    def test_pending_zero_row_rewrite_preserves_prior_snapshot(self):
+        path = self.claude_path()
+        self.write_claude(path, "prior pending snapshot", "answer")
+        self.run_convo("sync")
+        path.write_text('{"type":"user"', encoding="utf-8")
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        hit = self.ledger().search("prior pending snapshot")[0]
+        self.assertEqual(hit["source_status"], "pending")
+        self.assertEqual(hit["content_basis"], "snapshot")
+
+    def test_new_pending_zero_row_source_has_no_messages(self):
+        path = self.claude_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('{"type":"user"', encoding="utf-8")
+        _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 0)
+        self.assertEqual(self.ledger().status()["pending_sources"], 1)
+        self.assertEqual(self.ledger().status()["messages"], 0)
+
+    def test_no_normalized_messages_are_skipped_and_cached(self):
+        path = self.claude_path()
+        write_jsonl(path, [{"type": "user", "isMeta": True, "message": {"content": "system only"}}])
+        first, stderr, code = self.run_convo("sync", "--json")
+        second, _, second_code = self.run_convo("sync", "--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(second_code, 0)
+        self.assertEqual(json.loads(first)["skipped"], 1)
+        self.assertEqual(json.loads(second)["unchanged"], 1)
+        self.assertEqual(self.ledger().status()["skipped_sources"], 1)
+        self.assertNotIn("sync progress", stderr)
+
+    def test_malformed_complete_row_retains_valid_rows_on_both_sides(self):
+        path = self.claude_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            json.dumps({"type": "user", "isMeta": False, "message": {"content": "before malformed"}}) + "\n"
+            "{definitely bad}\n"
+            + json.dumps({"type": "assistant", "message": {"content": [{"type": "text", "text": "after malformed"}]}}) + "\n",
+            encoding="utf-8",
+        )
+        first, _, code = self.run_convo("sync", "--json")
+        second, _, second_code = self.run_convo("sync", "--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(second_code, 0)
+        self.assertEqual(json.loads(first)["partial"], 1)
+        self.assertEqual(json.loads(first)["failed"], 0)
+        self.assertEqual(json.loads(second)["unchanged"], 1)
+        self.assertEqual(json.loads(second)["partial"], 1)
+        self.assertEqual(json.loads(second)["failed"], 0)
+        self.assertEqual(self.ledger().search("before malformed")[0]["source_status"], "partial")
+        self.assertEqual(self.ledger().search("after malformed")[0]["source_status"], "partial")
+
+    def test_torn_final_row_is_pending_and_cached_until_changed(self):
+        path = self.claude_path()
+        self.write_claude(path, "pending prefix", "answer")
+        with path.open("a", encoding="utf-8") as stream:
+            stream.write('{"type":"assistant"')
+        _, _, code = self.run_convo("sync")
+        _, verbose, second_code = self.run_convo("sync", "--verbose")
+        self.assertEqual(code, 0)
+        self.assertEqual(second_code, 0)
+        self.assertEqual(self.ledger().status()["pending_sources"], 1)
+        self.assertIn(str(path), verbose)
+        self.assertIn("cached source pending", verbose)
 
     def test_search_ranks_equal_text_matches_by_message_timestamp(self):
         self.write_claude(self.claude_path("old.jsonl"), "ranking shared phrase", "old", "2026-08-01T00:00:00Z")
@@ -339,25 +551,104 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(self.ledger().search("same-size alpha"), [])
         self.assertEqual(self.ledger().search("same-size bravo")[0]["text"], "same-size bravo")
 
-    def test_mutation_during_hash_is_partial_and_preserves_prior_snapshot(self):
+    def test_append_during_stream_publishes_cold_prefix_and_retries(self):
+        path = self.claude_path()
+        self.write_claude(path, "candidate before append", "answer")
+        initial_size = path.stat().st_size
+        original_stream = convo._stream_jsonl_source
+
+        def append_after_stream(*args, **kwargs):
+            parsed = original_stream(*args, **kwargs)
+            with path.open("a", encoding="utf-8") as stream:
+                stream.write(json.dumps({"type": "user", "isMeta": False,
+                                         "message": {"content": "appended live row"}}) + "\n")
+            return parsed
+
+        with mock.patch.object(convo, "_stream_jsonl_source", side_effect=append_after_stream):
+            stdout, stderr, code = self.run_convo("sync", "--json", "--verbose")
+        result = json.loads(stdout)
+        self.assertEqual(code, 0, (stdout, stderr))
+        self.assertEqual(result["live"], 1)
+        self.assertEqual(result["failed"], 0)
+        self.assertEqual(result["bytes_verified"], initial_size)
+        self.assertIn("source remains live", stderr)
+        hit = self.ledger().search("candidate before append")[0]
+        self.assertEqual(hit["source_status"], "live")
+        self.assertEqual(hit["content_basis"], "snapshot")
+        self.assertEqual(self.ledger().search("appended live row"), [])
+        self.assertEqual(self.ledger().current_source_outcome(
+            "claude", path, path.stat(), convo.LEDGER_JSONL_PARSER_VERSION,
+            convo.LEDGER_POLICY_VERSION, None), None)
+        _, _, retry_code = self.run_convo("sync")
+        self.assertEqual(retry_code, 0)
+        self.assertEqual(self.ledger().search("candidate before append")[0]["source_status"], "present")
+        self.assertEqual(self.ledger().search("appended live row")[0]["source_status"], "present")
+
+    def test_rewrite_and_growth_during_stream_is_unsafe_not_live(self):
+        path = self.claude_path()
+        self.write_claude(path, "old prefix that must not publish", "answer")
+        initial_size = path.stat().st_size
+        original_stream = convo._stream_jsonl_source
+
+        def rewrite_and_append_after_stream(*args, **kwargs):
+            parsed = original_stream(*args, **kwargs)
+            self.write_claude(path, "rewritten prefix with a larger replacement body", "answer")
+            with path.open("a", encoding="utf-8") as stream:
+                stream.write(json.dumps({"type": "user", "isMeta": False,
+                                         "message": {"content": "additional growth"}}) + "\n")
+            self.assertGreater(path.stat().st_size, initial_size)
+            return parsed
+
+        with mock.patch.object(convo, "_stream_jsonl_source", side_effect=rewrite_and_append_after_stream):
+            stdout, stderr, code = self.run_convo("sync", "--json", "--verbose")
+        result = json.loads(stdout)
+        self.assertEqual(code, 2)
+        self.assertEqual(result["live"], 0)
+        self.assertGreater(result["bytes_verified"], 0)
+        self.assertIn("verifying streamed prefix", stderr)
+        self.assertEqual(self.ledger().search("old prefix that must not publish"), [])
+        self.assertEqual(self.ledger().status()["parser_failures"], 1)
+
+    def test_mutation_during_stream_is_failure_and_preserves_prior_snapshot(self):
         path = self.claude_path()
         self.write_claude(path, "prior consistent topic", "answer")
         self.run_convo("sync")
         self.write_claude(path, "candidate topic", "answer")
-        real_hash = convo.ledger_lib.Ledger.hash_file
 
-        def mutate_after_hash(source_path):
-            digest = real_hash(source_path)
-            self.write_claude(source_path, "mutated during hash", "answer")
-            return digest
+        original_stream = convo._stream_jsonl_source
 
-        with mock.patch.object(convo.ledger_lib.Ledger, "hash_file", side_effect=mutate_after_hash):
-            _, stderr, code = self.run_convo("sync")
+        def truncate_after_stream(*args, **kwargs):
+            parsed = original_stream(*args, **kwargs)
+            path.write_text("", encoding="utf-8")
+            return parsed
+
+        with mock.patch.object(convo, "_stream_jsonl_source", side_effect=truncate_after_stream):
+            _, stderr, code = self.run_convo("sync", "--verbose")
         self.assertEqual(code, 2)
-        self.assertIn("source changed while parsing or hashing", stderr)
+        self.assertIn("source changed while streaming", stderr)
         hit = self.ledger().search("prior consistent topic")[0]
         self.assertEqual(hit["source_status"], "corrupt")
         self.assertEqual(self.ledger().search("candidate topic"), [])
+
+    def test_same_size_mutation_during_stream_is_not_classified_as_live(self):
+        path = self.claude_path()
+        self.write_claude(path, "prior rewrite snapshot", "answer")
+        self.run_convo("sync")
+        self.write_claude(path, "candidate rewrite data", "answer")
+        rewritten = path.read_text(encoding="utf-8").replace("candidate", "rewritten", 1)
+        self.assertEqual(len(rewritten.encode("utf-8")), path.stat().st_size)
+        original_stream = convo._stream_jsonl_source
+
+        def rewrite_after_stream(*args, **kwargs):
+            parsed = original_stream(*args, **kwargs)
+            path.write_text(rewritten, encoding="utf-8")
+            return parsed
+
+        with mock.patch.object(convo, "_stream_jsonl_source", side_effect=rewrite_after_stream):
+            _, _, code = self.run_convo("sync")
+        self.assertEqual(code, 2)
+        hit = self.ledger().search("prior rewrite snapshot")[0]
+        self.assertEqual(hit["source_status"], "corrupt")
 
     def test_future_schema_version_is_not_downgraded_and_status_fails_cleanly(self):
         self.ledger().status()
@@ -390,17 +681,29 @@ class LedgerTests(unittest.TestCase):
             reader.close()
             contender.close()
 
+    def test_rollback_batch_keeps_ledger_connection_usable(self):
+        source = convo.ledger_lib.ParsedSource(
+            "claude", "/rollback-source", 1, 1, 0, 0, 1, "rollback", None,
+            (convo.ledger_lib.Message("user", "discarded", None),),
+        )
+        ledger = self.ledger()
+        ledger.begin_batch()
+        ledger.replace_source(source, "hash")
+        ledger.rollback_batch()
+        self.assertEqual(ledger.status()["messages"], 0)
+        self.assertFalse(ledger._batch_active)
+
     def test_parsing_never_runs_inside_a_buffered_write_batch(self):
         for index in range(convo.ledger_lib.SYNC_BATCH_SIZE + 1):
             self.write_claude(self.claude_path(f"buffered-{index}.jsonl"), f"buffer {index}", "answer")
-        original_loader = convo.HARNESSES["claude"]["loader"]
+        original_stream = convo._stream_jsonl_source
         original_begin = convo.ledger_lib.Ledger.begin_batch
         original_commit = convo.ledger_lib.Ledger.commit_batch
         write_active = False
 
-        def checked_loader(path):
+        def checked_stream(*args, **kwargs):
             self.assertFalse(write_active)
-            return original_loader(path)
+            return original_stream(*args, **kwargs)
 
         def tracked_begin(ledger):
             nonlocal write_active
@@ -412,13 +715,13 @@ class LedgerTests(unittest.TestCase):
             original_commit(ledger)
             write_active = False
 
-        convo.HARNESSES["claude"]["loader"] = checked_loader
+        convo._stream_jsonl_source = checked_stream
         try:
             with mock.patch.object(convo.ledger_lib.Ledger, "begin_batch", new=tracked_begin), \
                  mock.patch.object(convo.ledger_lib.Ledger, "commit_batch", new=tracked_commit):
                 _, _, code = self.run_convo("sync")
         finally:
-            convo.HARNESSES["claude"]["loader"] = original_loader
+            convo._stream_jsonl_source = original_stream
         self.assertEqual(code, 0)
 
     def test_current_commands_remain_direct_raw_readers_after_ledger_commands(self):

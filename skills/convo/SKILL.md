@@ -45,12 +45,29 @@ tests), otherwise `$XDG_DATA_HOME/minnows/convo`. `sync` is safe to repeat. A mi
 raw log stays searchable from its retained normalized snapshot and is labeled as such;
 search never claims it can reconstruct raw tool traces.
 
-The current normalizers are bounded to sources of at most 64 MiB by default
-(`CONVO_MAX_SOURCE_BYTES` overrides the cap for controlled testing). A larger source is
-recorded as `oversized`, preserves any old snapshot, and makes `sync` exit 2: cold sync
-is therefore intentionally partial until streaming normalization ships. Qwen
-`agent-fork-call_*.jsonl` files remain separate physical sources when present; their
-filenames do not establish ancestry or merge them with another session.
+`sync` exits 0 after any recorded outcome, including `skipped`, `partial`, and
+`pending`, and `live` sources. Exit 2 is reserved for an access, parser, transaction, or unsafe source-race
+failure that prevented the ledger from recording a valid source status; `status` separates
+those failures from partial coverage.
+
+Claude, Codex, and Qwen JSONL sources are normalized in a bounded-memory streaming pass;
+they are not limited by the former whole-source 64 MiB cap. Gemini remains a whole-document
+parser, so `CONVO_MAX_SOURCE_BYTES` (64 MiB by default) still applies to Gemini only. A
+malformed complete JSONL row marks that source `partial` while retaining valid surrounding
+messages. An unterminated final row is `pending` until its writer completes it. Qwen
+`agent-fork-call_*.jsonl` files remain separate physical sources; their filenames never
+establish ancestry or merge them with another session.
+
+The streaming pass hashes the exact initial byte boundary as it reads. If that same file
+only grows before the final stat check, `sync` records the safely parsed prefix as `live`
+only after a second hash of that prefix proves it was not rewritten; it then retries on
+the next run without exit 2. Stable sources need no second hash. A rewrite, replacement, or
+truncation remains an unsafe race and is never promoted from a guessed prefix.
+
+Streaming keeps individual JSONL rows and normalized assistant messages bounded. An unusually large
+normalized assistant reply is retained in ordered chunks and marks the source `partial`; `sync --verbose`
+shows the diagnostic. Progress is interactive-only; JSON reports observed corpus bytes separately from
+source bytes parsed during this run and the rare live-prefix verification bytes.
 
 ### Flags for direct/raw read commands (`list`, `show`, `grep`)
 - `--harness claude|codex|gemini|qwen|all` (aliases `cc,cx,gm,qw`; default **all**)

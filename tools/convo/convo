@@ -22,12 +22,15 @@ Run `convo --help` for usage. No third-party dependencies (stdlib only).
 """
 
 import argparse
+import hashlib
+import io
 import json
 import os
 import re
 import shlex
 import sys
-from dataclasses import dataclass, field, asdict
+import tempfile
+from dataclasses import dataclass, field, asdict, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterable, Optional
@@ -52,6 +55,25 @@ def _load_lib(name: str):
 
 cs = _load_lib("claude_sessions")
 ledger_lib = _load_lib("convo_ledger")
+
+
+# Ledger parsing policy is intentionally versioned.  It is part of a source cache key:
+# a normalizer or retention-policy change must re-evaluate old physical files.
+LEDGER_POLICY_VERSION = "normalized-user-assistant-v2"
+LEDGER_JSONL_PARSER_VERSION = "stream-jsonl-v2"
+LEDGER_GEMINI_PARSER_VERSION = "whole-document-v1"
+MAX_JSONL_ROW_BYTES = 32 * 1024 * 1024
+MAX_NORMALIZED_MESSAGE_BYTES = 8 * 1024 * 1024
+
+
+class SyncWriteError(RuntimeError):
+    """A durable ledger write failed after parsing; do not mislabel it as source corruption."""
+
+
+@dataclass
+class _JsonlReadMetrics:
+    digest: Any = field(default_factory=hashlib.sha256)
+    bytes_read: int = 0
 
 
 # --------------------------------------------------------------------------------------
@@ -1001,39 +1023,371 @@ def _source_identity(stat_result) -> tuple[int, int, int, int, int]:
             stat_result.st_ino, stat_result.st_ctime_ns)
 
 
+def _source_appended_after_snapshot(initial_stat, final_stat, bytes_read: int) -> bool:
+    """True only when a complete, initially-observed prefix gained a tail.
+
+    The JSONL stream is deliberately bounded to ``initial_stat.st_size``.  That
+    lets its digest describe exactly those bytes, rather than a moving target.
+    An append after that boundary is routine for live agent logs; replacement,
+    truncation, and a short read remain unsafe and must be retried as failures.
+    """
+    return (
+        bytes_read == initial_stat.st_size
+        and final_stat.st_dev == initial_stat.st_dev
+        and final_stat.st_ino == initial_stat.st_ino
+        and final_stat.st_size > initial_stat.st_size
+    )
+
+
+def _hash_file_prefix(path: Path, length: int) -> tuple[str, int]:
+    """Hash exactly ``length`` bytes, returning the digest and bytes actually read.
+
+    This is deliberately used only to prove a source that grew during its stream
+    parse.  Stable JSONL sources retain their one-pass read and hash path.
+    """
+    digest = hashlib.sha256()
+    remaining = length
+    with path.open("rb") as stream:
+        while remaining:
+            block = stream.read(min(1024 * 1024, remaining))
+            if not block:
+                break
+            digest.update(block)
+            remaining -= len(block)
+    return digest.hexdigest(), length - remaining
+
+
+@dataclass
+class _StreamParse:
+    """One bounded-memory ledger normalization result.
+
+    JSONL parser errors are source-local.  Valid rows before and after a malformed
+    complete row are retained in a temporary spool, then committed atomically.
+    """
+    source: object
+    spool_path: Path
+    message_bytes: int
+    content_hash: str
+    bytes_read: int
+    partial_error: Optional[str] = None
+    pending_error: Optional[str] = None
+
+
+def _spooled_messages(path: Path) -> Iterable[object]:
+    with path.open("r", encoding="utf-8") as stream:
+        for line in stream:
+            item = json.loads(line)
+            yield ledger_lib.Message(item["role"], item["text"], item.get("timestamp"))
+
+
+def _sync_jsonl_rows(path: Path, byte_limit: Optional[int] = None,
+                     metrics: Optional[_JsonlReadMetrics] = None) -> Iterable[tuple[Optional[dict], Optional[str], bool]]:
+    """Yield (row, diagnostic, pending) without ever loading a whole source.
+
+    A malformed newline-terminated row is a durable partial diagnostic but does not
+    stop later rows.  A final unterminated row is normal for a live append-only log:
+    it is left pending until the writer completes it.  Individual JSON values still
+    need a bounded buffer for stdlib ``json``; an overlarge row is skipped safely.
+    """
+    with path.open("rb") as stream:
+        line_no = 0
+        remaining = byte_limit
+        while True:
+            if remaining is not None and remaining <= 0:
+                return
+            read_limit = MAX_JSONL_ROW_BYTES + 1 if remaining is None else min(MAX_JSONL_ROW_BYTES + 1, remaining)
+            raw = stream.readline(read_limit)
+            if not raw:
+                return
+            if metrics is not None:
+                metrics.digest.update(raw)
+                metrics.bytes_read += len(raw)
+            if remaining is not None:
+                remaining -= len(raw)
+            line_no += 1
+            if len(raw) > MAX_JSONL_ROW_BYTES and not raw.endswith(b"\n"):
+                while raw and not raw.endswith(b"\n") and (remaining is None or remaining > 0):
+                    read_limit = MAX_JSONL_ROW_BYTES + 1 if remaining is None else min(MAX_JSONL_ROW_BYTES + 1, remaining)
+                    raw = stream.readline(read_limit)
+                    if metrics is not None:
+                        metrics.digest.update(raw)
+                        metrics.bytes_read += len(raw)
+                    if remaining is not None:
+                        remaining -= len(raw)
+                yield None, f"JSONL row {line_no} exceeds {MAX_JSONL_ROW_BYTES} bytes", False
+                continue
+            complete = raw.endswith(b"\n")
+            raw = raw.strip()
+            if not raw:
+                continue
+            if not complete:
+                yield None, f"unterminated final JSONL row at {path}:{line_no}", True
+                return
+            try:
+                row = json.loads(raw.decode("utf-8", errors="replace"))
+            except json.JSONDecodeError as exc:
+                yield None, f"corrupt JSONL at {path}:{line_no}: {exc.msg}", False
+                continue
+            if not isinstance(row, dict):
+                yield None, f"unsupported JSONL row at {path}:{line_no}: expected object", False
+                continue
+            yield row, None, False
+
+
+def _normalized_jsonl_row(harness: str, row: dict, cwd: Optional[str]) -> tuple[Optional[str], list[tuple[str, str, Optional[str]]]]:
+    """Return this physical row's retained messages, matching raw-reader policy."""
+    cwd = cwd or row.get("cwd")
+    ts = row.get("timestamp")
+    out: list[tuple[str, str, Optional[str]]] = []
+    if harness == "claude":
+        if row.get("isSidechain"):
+            return cwd, out
+        rtype = row.get("type")
+        content = row.get("message", {}).get("content") if isinstance(row.get("message"), dict) else None
+        if rtype == "user" and not row.get("isMeta"):
+            if isinstance(content, str):
+                text = clean_text(content)
+                if text and (row.get("isMeta") is False or not _looks_like_meta_user(content)):
+                    out.append(("user", text, ts))
+            elif isinstance(content, list):
+                parts = []
+                for block in content:
+                    if not isinstance(block, dict):
+                        continue
+                    if block.get("type") == "text":
+                        text = clean_text(block.get("text", ""))
+                        if text and (row.get("isMeta") is False or not _looks_like_meta_user(block.get("text", ""))):
+                            parts.append(text)
+                    elif block.get("type") in ("image", "image_url", "input_image") or (
+                            "source" in block and block.get("type") != "tool_result"):
+                        parts.append("[image]")
+                if parts:
+                    out.append(("user", "\n\n".join(parts), ts))
+        elif rtype == "assistant":
+            parts = []
+            blocks = content if isinstance(content, list) else [{"type": "text", "text": content}]
+            for block in blocks:
+                if not isinstance(block, dict):
+                    continue
+                if block.get("type") == "text":
+                    text = clean_text(block.get("text", ""))
+                    if text:
+                        parts.append(text)
+                elif block.get("type") in ("image", "image_url", "output_image") or (
+                        "source" in block and block.get("type") not in ("tool_use", "thinking")):
+                    parts.append("[image]")
+            if parts:
+                out.append(("assistant", "\n\n".join(parts), ts))
+    elif harness == "codex":
+        if row.get("type") == "session_meta":
+            payload = row.get("payload", {})
+            if isinstance(payload, dict):
+                cwd = cwd or payload.get("cwd") or payload.get("cwd_path")
+        elif row.get("type") == "response_item":
+            payload = row.get("payload", {})
+            if isinstance(payload, dict) and payload.get("type") == "message":
+                role = payload.get("role")
+                text = clean_text(_codex_text(payload.get("content")))
+                if role == "user" and text and not _looks_like_meta_user(text):
+                    out.append(("user", text, ts))
+                elif role == "assistant" and text:
+                    out.append(("assistant", text, ts))
+    elif harness == "qwen":
+        msg = row.get("message", {})
+        parts = msg.get("parts", []) if isinstance(msg, dict) else []
+        if row.get("type") == "user" and row.get("provenance") == "real_user":
+            texts = [clean_text(part.get("text", "")) for part in parts
+                     if isinstance(part, dict) and isinstance(part.get("text"), str)]
+            text = "\n\n".join(text for text in texts if text)
+            if text and not _looks_like_meta_user(text):
+                out.append(("user", text, ts))
+        elif row.get("type") == "assistant":
+            texts = []
+            for part in parts:
+                if isinstance(part, dict) and isinstance(part.get("text"), str) and not part.get("thought"):
+                    text = clean_text(part["text"])
+                    if text:
+                        texts.append(text)
+            if texts:
+                out.append(("assistant", "\n\n".join(texts), ts))
+    return cwd, out
+
+
+def _stream_jsonl_source(harness: str, path: Path, stat_result, temp_dir: Path) -> _StreamParse:
+    """Normalize a Claude/Codex/Qwen source through a disk spool, not a Session list."""
+    session_id = path.stem.replace("rollout-", "") if harness == "codex" else path.stem
+    cwd: Optional[str] = None
+    malformed_error_count = 0
+    other_partial_count = 0
+    partial_error_samples: list[str] = []
+    pending_error: Optional[str] = None
+    message_bytes = 0
+    read_metrics = _JsonlReadMetrics()
+    temp_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+    spool_path: Optional[Path] = None
+    pending_assistant: Optional[io.StringIO] = None
+    pending_assistant_timestamp: Optional[str] = None
+    pending_assistant_bytes = 0
+
+    def write_message(spool, role: str, text: str, timestamp: Optional[str]) -> None:
+        nonlocal message_bytes
+        spool.write(json.dumps({"role": role, "text": text, "timestamp": timestamp}, ensure_ascii=False))
+        spool.write("\n")
+        message_bytes += len(text.encode("utf-8"))
+
+    def remember_partial(diagnostic: str, *, malformed: bool = False) -> None:
+        nonlocal malformed_error_count, other_partial_count
+        if malformed:
+            malformed_error_count += 1
+        else:
+            other_partial_count += 1
+        if len(partial_error_samples) < 3:
+            partial_error_samples.append(diagnostic)
+
+    def flush_assistant(spool) -> None:
+        nonlocal pending_assistant, pending_assistant_timestamp, pending_assistant_bytes
+        if pending_assistant is not None:
+            write_message(spool, "assistant", pending_assistant.getvalue(), pending_assistant_timestamp)
+        pending_assistant = None
+        pending_assistant_timestamp = None
+        pending_assistant_bytes = 0
+
+    def append_assistant(spool, text: str, timestamp: Optional[str]) -> None:
+        """Merge ordinary rows exactly; split only a cap-exceeding normalized message."""
+        nonlocal pending_assistant, pending_assistant_timestamp, pending_assistant_bytes
+        text_bytes = len(text.encode("utf-8"))
+        separator = "\n\n" if pending_assistant_bytes else ""
+        if pending_assistant_bytes + len(separator) + text_bytes <= MAX_NORMALIZED_MESSAGE_BYTES:
+            if pending_assistant is None:
+                pending_assistant = io.StringIO()
+                pending_assistant_timestamp = timestamp
+            if separator:
+                pending_assistant.write(separator)
+                pending_assistant_bytes += len(separator)
+            pending_assistant.write(text)
+            pending_assistant_bytes += text_bytes
+            return
+        split = False
+        pieces = (separator, text)
+        for piece in pieces:
+            for char in piece:
+                char_bytes = len(char.encode("utf-8"))
+                if pending_assistant is None:
+                    pending_assistant = io.StringIO()
+                    pending_assistant_timestamp = timestamp
+                if pending_assistant_bytes and pending_assistant_bytes + char_bytes > MAX_NORMALIZED_MESSAGE_BYTES:
+                    flush_assistant(spool)
+                    split = True
+                    pending_assistant = io.StringIO()
+                    pending_assistant_timestamp = timestamp
+                pending_assistant.write(char)
+                pending_assistant_bytes += char_bytes
+        if split:
+            remember_partial(
+                f"normalized assistant message exceeds {MAX_NORMALIZED_MESSAGE_BYTES} bytes; retained in chunks"
+            )
+
+    try:
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=temp_dir, prefix="sync-", suffix=".jsonl", delete=False) as spool:
+            spool_path = Path(spool.name)
+            for row, diagnostic, pending in _sync_jsonl_rows(path, stat_result.st_size, read_metrics):
+                if diagnostic:
+                    if pending:
+                        pending_error = diagnostic
+                        break
+                    flush_assistant(spool)
+                    remember_partial(diagnostic, malformed=True)
+                    continue
+                cwd, messages = _normalized_jsonl_row(harness, row, cwd)
+                for role, text, timestamp in messages:
+                    if role == "assistant":
+                        append_assistant(spool, text, timestamp)
+                        continue
+                    if pending_assistant is not None:
+                        flush_assistant(spool)
+                    write_message(spool, role, text, timestamp)
+            if pending_assistant is not None:
+                flush_assistant(spool)
+    except BaseException:
+        if spool_path is not None:
+            spool_path.unlink(missing_ok=True)
+        raise
+    partial_error_count = malformed_error_count + other_partial_count
+    status = "partial" if partial_error_count else ("pending" if pending_error else "present")
+    if partial_error_count:
+        reasons = []
+        if malformed_error_count:
+            reasons.append(f"{malformed_error_count} malformed JSONL row(s)")
+        if other_partial_count:
+            reasons.append(f"{other_partial_count} other partial diagnostic(s)")
+        error = ", ".join(reasons) + ": " + "; ".join(partial_error_samples)
+    else:
+        error = pending_error
+    if not message_bytes and status == "present":
+        status = "skipped"
+        error = "source contains no normalized user or assistant messages"
+    source = ledger_lib.ParsedSource(
+        harness, str(path), stat_result.st_size, stat_result.st_mtime_ns, stat_result.st_dev,
+        stat_result.st_ino, stat_result.st_ctime_ns, session_id, cwd,
+        _spooled_messages(spool_path), status, error,
+    )
+    return _StreamParse(source, spool_path, message_bytes, read_metrics.digest.hexdigest(), read_metrics.bytes_read,
+                        error if status == "partial" else None, error if status == "pending" else None)
+
+
 def _cmd_sync_with_ledger(ledger, args):
     """Incrementally capture every current source; retained rows survive disappearance."""
     max_source_bytes = ledger_lib.max_source_bytes_from_environment()
-    imported = unchanged = failed = 0
+    started = datetime.now(timezone.utc).timestamp()
+    imported = unchanged = failed = skipped = partial = pending_sources = live_sources = 0
+    observed_bytes = 0
+    processed_bytes = 0
+    verified_bytes = 0
     seen: list[str] = []
-    pending: list[Callable[[], None]] = []
+    staged: list[tuple[Callable[[], None], Callable[[], None]]] = []
     pending_message_bytes = 0
+    total_sources = _ledger_sources()
+    total = len(total_sources)
+
+    def report_progress(index: int) -> None:
+        if not total or (index != total and index % 100 != 0):
+            return
+        elapsed = max(datetime.now(timezone.utc).timestamp() - started, 0.001)
+        if not sys.stderr.isatty():
+            return
+        rate = processed_bytes / elapsed / (1024 * 1024)
+        print(f"convo: sync progress sources={index}/{total} observed-bytes={observed_bytes} processed-bytes={processed_bytes} verification-bytes={verified_bytes} elapsed={elapsed:.1f}s throughput={rate:.1f}MiB/s", file=sys.stderr)
 
     def flush() -> None:
         """Apply buffered rows quickly; parsing and hashing always happen outside a write txn."""
         nonlocal pending_message_bytes
-        if not pending:
+        if not staged:
             return
-        ledger.begin_batch()
         try:
-            for operation in pending:
+            ledger.begin_batch()
+            for operation, _cleanup in staged:
                 operation()
             ledger.commit_batch()
-        except Exception:
-            ledger.close()  # rolls back only the current batch; prior flushes are durable
-            raise
-        pending.clear()
+        except Exception as exc:
+            ledger.rollback_batch()  # prior flushes are durable; the context manager owns close()
+            for _operation, cleanup in staged:
+                cleanup()
+            staged.clear()
+            pending_message_bytes = 0
+            raise SyncWriteError("ledger write transaction failed") from exc
+        staged.clear()
         pending_message_bytes = 0
 
-    def stage(operation: Callable[[], None], message_bytes: int = 0) -> None:
+    def stage(operation: Callable[[], None], message_bytes: int = 0,
+              cleanup: Optional[Callable[[], None]] = None) -> None:
         nonlocal pending_message_bytes
-        pending.append(operation)
+        staged.append((operation, cleanup or (lambda: None)))
         pending_message_bytes += message_bytes
-        if (len(pending) >= ledger_lib.SYNC_BATCH_SIZE
+        if (len(staged) >= ledger_lib.SYNC_BATCH_SIZE
                 or pending_message_bytes >= ledger_lib.SYNC_BATCH_MESSAGE_BYTES):
             flush()
 
-    for harness, path in _ledger_sources():
+    for index, (harness, path) in enumerate(total_sources, 1):
         # A globbed path is evidence of presence for this run even if a concurrent
         # permission/race error keeps us from reading it now.
         seen.append(str(path))
@@ -1043,59 +1397,216 @@ def _cmd_sync_with_ledger(ledger, args):
             stage(lambda harness=harness, path=path, exc=exc:
                   ledger.record_access_failure(harness, path, exc))
             failed += 1
-            print(f"convo: source preserved after access failure: {path}: {exc}", file=sys.stderr)
+            if args.verbose:
+                print(f"convo: source preserved after access failure: {path}: {exc}", file=sys.stderr)
+            report_progress(index)
             continue
-        # Existing loaders normalize a whole source in process memory. Do not attempt
-        # a multi-gigabyte parse until a streaming normalization slice exists.
-        if stat_result.st_size > max_source_bytes:
-            stage(lambda harness=harness, path=path, stat_result=stat_result:
-                  ledger.record_oversized(harness, path, stat_result, max_source_bytes))
-            failed += 1
-            print(f"convo: source preserved but not parsed (oversized): {path}: "
-                  f"{stat_result.st_size} bytes exceeds cap {max_source_bytes}", file=sys.stderr)
-            continue
-        if ledger.source_is_current(harness, path, stat_result):
+        observed_bytes += stat_result.st_size
+        parser_version = LEDGER_GEMINI_PARSER_VERSION if harness == "gemini" else LEDGER_JSONL_PARSER_VERSION
+        source_cap = max_source_bytes if harness == "gemini" else None
+        current_outcome = ledger.current_source_outcome(
+            harness, path, stat_result, parser_version, LEDGER_POLICY_VERSION, source_cap)
+        if current_outcome is not None:
+            current_status = current_outcome["source_status"]
             unchanged += 1
+            if current_status == "skipped":
+                skipped += 1
+            elif current_status == "pending":
+                pending_sources += 1
+            elif current_status == "partial":
+                partial += 1
+            elif current_status in ("corrupt", "oversized"):
+                failed += 1
+            if args.verbose and current_status in ("partial", "pending", "corrupt", "oversized"):
+                print(f"convo: cached source {current_status}: {path}: "
+                      f"{current_outcome['parser_error'] or '(no diagnostic)'}", file=sys.stderr)
+            report_progress(index)
             continue
-        try:
-            session = HARNESSES[harness]["loader"](path)
-            if session is None:
-                raise ValueError("source contains no normalized user or assistant messages")
-            content_hash = ledger.hash_file(path)
-            # Capture the bytes whose identity we persist. A source that changed during
-            # parsing is retried on the next idempotent sync rather than being mislabeled.
-            final_stat = path.stat()
-            if _source_identity(final_stat) != _source_identity(stat_result):
-                raise ValueError("source changed while parsing or hashing; retry sync")
-            source = _normalized_source(harness, path, session, stat_result)
-            retained_bytes = sum(len(message.text.encode("utf-8")) for message in source.messages)
-            stage(lambda source=source, content_hash=content_hash:
-                  ledger.replace_source(source, content_hash), retained_bytes)
-            imported += 1
-        except Exception as exc:  # Preserve the last successful snapshot on every failure.
-            stage(lambda harness=harness, path=path, stat_result=stat_result, exc=exc:
-                  ledger.record_parse_failure(harness, path, stat_result, exc))
+        # Gemini is a whole-document format.  JSONL harnesses stream through a disk
+        # spool and therefore have no whole-source size cap.
+        if harness == "gemini" and stat_result.st_size > max_source_bytes:
+            stage(lambda harness=harness, path=path, stat_result=stat_result,
+                         parser_version=parser_version, source_cap=source_cap:
+                  ledger.record_oversized(harness, path, stat_result, max_source_bytes,
+                                          parser_version, LEDGER_POLICY_VERSION))
             failed += 1
-            print(f"convo: source preserved after parse failure: {path}: {exc}", file=sys.stderr)
+            if args.verbose:
+                print(f"convo: source preserved but not parsed (oversized): {path}: "
+                      f"{stat_result.st_size} bytes exceeds cap {max_source_bytes}", file=sys.stderr)
+            report_progress(index)
+            continue
+        spool_path = None
+        spool_staged = False
+        try:
+            if harness in ("claude", "codex", "qwen"):
+                parsed = _stream_jsonl_source(harness, path, stat_result, ledger.data_dir / "spool")
+                source = parsed.source
+                spool_path = parsed.spool_path
+                retained_bytes = parsed.message_bytes
+                processed_bytes += parsed.bytes_read
+                # The streaming hash covers exactly the initially observed bytes.
+                # Do not take a second full-file pass: an append-only transcript
+                # would otherwise race this sync almost every time.
+                content_hash = parsed.content_hash
+                final_stat = path.stat()
+                if _source_identity(final_stat) != _source_identity(stat_result):
+                    if _source_appended_after_snapshot(stat_result, final_stat, parsed.bytes_read):
+                        proof_hash, proof_bytes = _hash_file_prefix(path, parsed.bytes_read)
+                        verified_bytes += proof_bytes
+                        if proof_bytes != parsed.bytes_read or proof_hash != content_hash:
+                            raise ValueError("source changed while verifying streamed prefix; retry sync")
+                        activity = (f"source appended after captured {parsed.bytes_read}-byte boundary; "
+                                    f"retry sync (verified {proof_bytes} prefix bytes)")
+                        detail = f"{source.parser_error}; {activity}" if source.parser_error else activity
+                        # The stat identity and digest both describe the parsed prefix.
+                        # Publish that safe prefix for cold ledgers, but make `live`
+                        # non-cacheable so a later stable run advances to the full log.
+                        if retained_bytes:
+                            live_source = replace(source, source_status="live", parser_error=detail)
+                            def replace_live(source=live_source, content_hash=content_hash,
+                                             spool_path=spool_path, parser_version=parser_version,
+                                             source_cap=source_cap):
+                                try:
+                                    ledger.replace_source(source, content_hash, parser_version,
+                                                          LEDGER_POLICY_VERSION, source_cap)
+                                finally:
+                                    if spool_path is not None:
+                                        spool_path.unlink(missing_ok=True)
+                            stage(replace_live, retained_bytes,
+                                  cleanup=(lambda spool_path=spool_path: spool_path.unlink(missing_ok=True)
+                                           if spool_path is not None else None))
+                            spool_staged = True
+                            imported += 1
+                        else:
+                            stage(lambda harness=harness, path=path, stat_result=stat_result, detail=detail:
+                                  ledger.record_live(harness, path, stat_result, detail))
+                            if spool_path is not None:
+                                spool_path.unlink(missing_ok=True)
+                                spool_path = None
+                        live_sources += 1
+                        if args.verbose:
+                            print(f"convo: source remains live: {path}: {detail}", file=sys.stderr)
+                        report_progress(index)
+                        continue
+                    raise ValueError("source changed while streaming; retry sync")
+            else:
+                session = HARNESSES[harness]["loader"](path)
+                if session is None:
+                    source = ledger_lib.ParsedSource(
+                        harness, str(path), stat_result.st_size, stat_result.st_mtime_ns,
+                        stat_result.st_dev, stat_result.st_ino, stat_result.st_ctime_ns,
+                        path.stem, None, (), "skipped",
+                        "source contains no normalized user or assistant messages",
+                    )
+                else:
+                    source = _normalized_source(harness, path, session, stat_result)
+                    if not source.messages:
+                        source = ledger_lib.ParsedSource(
+                            source.harness, source.path, source.size, source.mtime_ns, source.device,
+                            source.inode, source.ctime_ns, source.session_id, source.project, (), "skipped",
+                            "source contains no normalized user or assistant messages",
+                        )
+                retained_bytes = sum(len(message.text.encode("utf-8")) for message in source.messages)
+                # Gemini is a whole-document format and retains its conservative
+                # hash-then-stat validation path.
+                content_hash = ledger.hash_file(path)
+                final_stat = path.stat()
+                processed_bytes += stat_result.st_size
+                if _source_identity(final_stat) != _source_identity(stat_result):
+                    raise ValueError("source changed while parsing or hashing; retry sync")
+            if source.source_status in ("partial", "pending") and not retained_bytes:
+                detail = source.parser_error or "source has no safely normalized messages"
+                record_outcome = ledger.record_partial if source.source_status == "partial" else ledger.record_pending
+                stage(lambda harness=harness, path=path, stat_result=stat_result, detail=detail,
+                             parser_version=parser_version, source_cap=source_cap,
+                             record_outcome=record_outcome:
+                      record_outcome(harness, path, stat_result, detail, parser_version,
+                                     LEDGER_POLICY_VERSION, source_cap))
+                if spool_path is not None:
+                    spool_path.unlink(missing_ok=True)
+                    spool_path = None
+                imported += 1
+                if source.source_status == "partial":
+                    partial += 1
+                else:
+                    pending_sources += 1
+                if args.verbose:
+                    print(f"convo: source retained as {source.source_status}: {path}: {detail}", file=sys.stderr)
+                report_progress(index)
+                continue
+            def replace_source(source=source, content_hash=content_hash, spool_path=spool_path,
+                               parser_version=parser_version, source_cap=source_cap):
+                try:
+                    ledger.replace_source(source, content_hash, parser_version, LEDGER_POLICY_VERSION, source_cap)
+                finally:
+                    if spool_path is not None:
+                        spool_path.unlink(missing_ok=True)
+            stage(replace_source, retained_bytes,
+                  cleanup=(lambda spool_path=spool_path: spool_path.unlink(missing_ok=True)
+                           if spool_path is not None else None))
+            spool_staged = True
+            imported += 1
+            if source.source_status == "skipped":
+                skipped += 1
+            elif source.source_status == "partial":
+                partial += 1
+                if args.verbose:
+                    print(f"convo: source retained as partial: {path}: {source.parser_error}", file=sys.stderr)
+            elif source.source_status == "pending":
+                pending_sources += 1
+                if args.verbose:
+                    print(f"convo: source retained as pending: {path}: {source.parser_error}", file=sys.stderr)
+        except SyncWriteError:
+            raise
+        except Exception as exc:  # Preserve the last successful snapshot on every failure.
+            stage(lambda harness=harness, path=path, stat_result=stat_result, exc=exc,
+                         parser_version=parser_version, source_cap=source_cap:
+                  ledger.record_parse_failure(harness, path, stat_result, exc, parser_version,
+                                              LEDGER_POLICY_VERSION, source_cap))
+            failed += 1
+            if args.verbose:
+                print(f"convo: source preserved after parse failure: {path}: {exc}", file=sys.stderr)
+        finally:
+            if spool_path is not None and not spool_staged:
+                spool_path.unlink(missing_ok=True)
+        report_progress(index)
     flush()
     # The disappearance transition has no parse work behind it, so apply it alone.
-    ledger.begin_batch()
-    missing = ledger.mark_missing_except(seen)
-    ledger.commit_batch()
+    try:
+        ledger.begin_batch()
+        missing = ledger.mark_missing_except(seen)
+        ledger.commit_batch()
+    except Exception as exc:
+        ledger.rollback_batch()
+        raise SyncWriteError("ledger source-state transaction failed") from exc
+    elapsed = max(datetime.now(timezone.utc).timestamp() - started, 0.001)
     result = {"schema_version": ledger_lib.SCHEMA_VERSION, "imported": imported,
-              "unchanged": unchanged, "failed": failed, "marked_missing": missing}
+              "unchanged": unchanged, "failed": failed, "skipped": skipped, "partial": partial,
+              "pending": pending_sources, "live": live_sources, "marked_missing": missing, "sources_scanned": total,
+              "bytes_observed": observed_bytes, "bytes_processed": processed_bytes,
+              "bytes_verified": verified_bytes,
+              "elapsed_seconds": round(elapsed, 3),
+              "throughput_mib_per_second": round(processed_bytes / elapsed / (1024 * 1024), 3)}
     if args.json:
         print(json.dumps(result, sort_keys=True))
     else:
-        print("convo: sync imported={imported} unchanged={unchanged} failed={failed} marked-missing={marked_missing}".format(**result))
+        print("convo: sync imported={imported} unchanged={unchanged} skipped={skipped} partial={partial} pending={pending} live={live} failed={failed} marked-missing={marked_missing} elapsed={elapsed_seconds:.1f}s throughput={throughput_mib_per_second:.1f}MiB/s".format(**result))
     if failed:
         raise SystemExit(2)
 
 
 def cmd_sync(args):
-    with _require_ledger() as ledger:
-        with ledger.sync_lock():
-            _cmd_sync_with_ledger(ledger, args)
+    try:
+        with _require_ledger() as ledger:
+            with ledger.sync_lock():
+                spool_dir = ledger.data_dir / "spool"
+                if spool_dir.exists():
+                    for stale_spool in spool_dir.glob("sync-*.jsonl"):
+                        stale_spool.unlink(missing_ok=True)
+                _cmd_sync_with_ledger(ledger, args)
+    except SyncWriteError as exc:
+        print(f"convo: sync stopped: {exc}", file=sys.stderr)
+        raise SystemExit(2) from exc
 
 
 def cmd_status(args):
@@ -1106,7 +1617,9 @@ def cmd_status(args):
             return
         source_counts = ", ".join(f"{key}={value}" for key, value in sorted(status["sources"].items())) or "none"
         print(f"convo ledger: {status['messages']} messages; sources: {source_counts}; "
-              f"parser-failures={status['parser_failures']}; oversized={status['oversized_sources']}")
+              f"parser-failures={status['parser_failures']}; partial={status['partial_sources']}; "
+              f"pending={status['pending_sources']}; skipped={status['skipped_sources']}; "
+              f"live={status['live_sources']}; oversized={status['oversized_sources']}")
         print(f"data: {status['data_dir']}")
 
 
@@ -1379,6 +1892,7 @@ def build_parser() -> argparse.ArgumentParser:
     # readers in this increment; only these commands open the durable local ledger.
     sp_sync = sub.add_parser("sync", help="incrementally refresh the durable local ledger")
     sp_sync.add_argument("--json", action="store_true", help="emit a versioned JSON result")
+    sp_sync.add_argument("--verbose", action="store_true", help="print one diagnostic per partial source")
     sp_sync.set_defaults(func=cmd_sync)
 
     sp_status = sub.add_parser("status", help="show local ledger source and parser health")
@@ -1413,8 +1927,8 @@ def textwrap_epilog() -> str:
         "transcript that's usually most useful when reviewing 'what did we actually say'.\n"
         "\nState boundary: list, show, and grep remain stateless direct/raw readers in this\n"
         "increment. Only sync, status, and search use the local SQLite ledger.\n"
-        "sync parses sources up to 64 MiB by default; larger sources are preserved as\n"
-        "partial/oversized (exit 2) until streaming normalization is available.\n"
+        "sync streams Claude, Codex, and Qwen JSONL; Gemini documents retain the configurable\n"
+        "64 MiB whole-document cap. Use --verbose for individual diagnostics.\n"
     )
 
 

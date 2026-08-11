@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Iterable, Optional
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 DEFAULT_DATA_HOME = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share")) / "minnows" / "convo"
 DEFAULT_MAX_SOURCE_BYTES = 64 * 1024 * 1024
 SYNC_BATCH_SIZE = 250
@@ -53,7 +53,9 @@ class ParsedSource:
     ctime_ns: int
     session_id: str
     project: Optional[str]
-    messages: tuple[Message, ...]
+    messages: Iterable[Message]
+    source_status: str = "present"
+    parser_error: Optional[str] = None
 
 
 def data_dir_from_environment() -> Path:
@@ -82,6 +84,14 @@ def _completeness(status: str) -> str:
         return "normalized_snapshot_source_present"
     if status == "missing":
         return "normalized_snapshot_source_missing"
+    if status == "partial":
+        return "partial_normalized_snapshot_source_present"
+    if status == "pending":
+        return "pending_normalized_snapshot_source_present"
+    if status == "live":
+        return "live_normalized_snapshot_source_present"
+    if status == "skipped":
+        return "no_normalized_messages_source_present"
     return "normalized_snapshot_source_unavailable"
 
 
@@ -119,6 +129,12 @@ class Ledger:
     def commit_batch(self) -> None:
         if self._batch_active:
             self._connect().commit()
+            self._batch_active = False
+
+    def rollback_batch(self) -> None:
+        """Abort only the active bounded write batch; keep the connection usable."""
+        if self._batch_active:
+            self._connect().rollback()
             self._batch_active = False
 
     def _write(self, operation):
@@ -174,6 +190,9 @@ class Ledger:
                 content_hash TEXT,
                 source_status TEXT NOT NULL DEFAULT 'present',
                 parser_error TEXT,
+                parser_version TEXT NOT NULL DEFAULT '',
+                policy_version TEXT NOT NULL DEFAULT '',
+                source_cap INTEGER,
                 session_id TEXT,
                 project TEXT,
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -204,9 +223,10 @@ class Ledger:
             END;
         """)
         existing_columns = {row["name"] for row in conn.execute("PRAGMA table_info(source_files)")}
-        for column in ("device", "inode", "ctime_ns"):
+        for column in ("device", "inode", "ctime_ns", "parser_version", "policy_version", "source_cap"):
             if column not in existing_columns:
-                conn.execute(f"ALTER TABLE source_files ADD COLUMN {column} INTEGER")
+                kind = "INTEGER" if column == "source_cap" else "TEXT"
+                conn.execute(f"ALTER TABLE source_files ADD COLUMN {column} {kind}")
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
 
     @contextmanager
@@ -226,17 +246,36 @@ class Ledger:
             finally:
                 os.close(fd)
 
-    def source_is_current(self, harness: str, path: Path, stat_result) -> bool:
+    def current_source_outcome(self, harness: str, path: Path, stat_result, parser_version: str,
+                               policy_version: str, source_cap: Optional[int]) -> Optional[dict]:
         row = self._connect().execute(
-            "SELECT size, mtime_ns, device, inode, ctime_ns, source_status "
+            "SELECT size, mtime_ns, device, inode, ctime_ns, source_status, parser_error, parser_version, "
+            "policy_version, source_cap "
             "FROM source_files WHERE harness = ? AND path = ?",
             (harness, str(path)),
         ).fetchone()
-        return bool(
+        if (
             row and row["size"] == stat_result.st_size and row["mtime_ns"] == stat_result.st_mtime_ns
             and row["device"] == stat_result.st_dev and row["inode"] == stat_result.st_ino
-            and row["ctime_ns"] == stat_result.st_ctime_ns and row["source_status"] == "present"
-        )
+            and row["ctime_ns"] == stat_result.st_ctime_ns
+            and row["parser_version"] == parser_version and row["policy_version"] == policy_version
+            and row["source_cap"] == source_cap
+        ):
+            # Discovery is direct evidence that a previously missing physical path is
+            # present again, even if inode and timestamps happen to be unchanged.
+            if row["source_status"] not in ("missing", "live"):
+                return {"source_status": row["source_status"], "parser_error": row["parser_error"]}
+        return None
+
+    def current_source_status(self, harness: str, path: Path, stat_result, parser_version: str,
+                              policy_version: str, source_cap: Optional[int]) -> Optional[str]:
+        outcome = self.current_source_outcome(harness, path, stat_result, parser_version, policy_version, source_cap)
+        return outcome["source_status"] if outcome else None
+
+    def source_is_current(self, harness: str, path: Path, stat_result, parser_version: str,
+                          policy_version: str, source_cap: Optional[int]) -> bool:
+        """Compatibility boolean for callers that only need cache membership."""
+        return self.current_source_status(harness, path, stat_result, parser_version, policy_version, source_cap) is not None
 
     @staticmethod
     def hash_file(path: Path) -> str:
@@ -247,12 +286,13 @@ class Ledger:
                 digest.update(block)
         return digest.hexdigest()
 
-    def replace_source(self, source: ParsedSource, content_hash: str) -> None:
+    def replace_source(self, source: ParsedSource, content_hash: str, parser_version: str = "",
+                       policy_version: str = "", source_cap: Optional[int] = None) -> None:
         """Atomically replace a source snapshot after parsing has already succeeded."""
         def replace(conn):
             conn.execute("SAVEPOINT replace_source")
             try:
-                self._replace_source_rows(conn, source, content_hash)
+                self._replace_source_rows(conn, source, content_hash, parser_version, policy_version, source_cap)
             except Exception:
                 conn.execute("ROLLBACK TO replace_source")
                 conn.execute("RELEASE replace_source")
@@ -261,7 +301,8 @@ class Ledger:
         self._write(replace)
 
     @staticmethod
-    def _replace_source_rows(conn: sqlite3.Connection, source: ParsedSource, content_hash: str) -> None:
+    def _replace_source_rows(conn: sqlite3.Connection, source: ParsedSource, content_hash: str,
+                             parser_version: str, policy_version: str, source_cap: Optional[int]) -> None:
         existing = conn.execute("SELECT id FROM source_files WHERE path = ?", (source.path,)).fetchone()
         if existing:
             source_id = existing["id"]
@@ -269,36 +310,101 @@ class Ledger:
             conn.execute("""
                 UPDATE source_files SET harness = ?, size = ?, mtime_ns = ?, device = ?, inode = ?,
                     ctime_ns = ?, content_hash = ?,
-                    source_status = 'present', parser_error = NULL, session_id = ?, project = ?,
+                    source_status = ?, parser_error = ?, parser_version = ?, policy_version = ?, source_cap = ?,
+                    session_id = ?, project = ?,
                     updated_at = CURRENT_TIMESTAMP WHERE id = ?
             """, (source.harness, source.size, source.mtime_ns, source.device, source.inode,
-                  source.ctime_ns, content_hash, source.session_id, source.project, source_id))
+                  source.ctime_ns, content_hash, source.source_status, source.parser_error,
+                  parser_version, policy_version, source_cap, source.session_id, source.project, source_id))
         else:
             cursor = conn.execute("""
                 INSERT INTO source_files(harness, path, size, mtime_ns, device, inode, ctime_ns,
-                    content_hash, source_status, session_id, project)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'present', ?, ?)
+                    content_hash, source_status, parser_error, parser_version, policy_version, source_cap,
+                    session_id, project)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (source.harness, source.path, source.size, source.mtime_ns, source.device,
-                  source.inode, source.ctime_ns, content_hash, source.session_id, source.project))
+                  source.inode, source.ctime_ns, content_hash, source.source_status, source.parser_error,
+                  parser_version, policy_version, source_cap, source.session_id, source.project))
             source_id = cursor.lastrowid
-        conn.executemany(
-            "INSERT INTO messages(source_id, ordinal, role, text, message_ts) VALUES (?, ?, ?, ?, ?)",
-            [(source_id, ordinal, message.role, message.text, message.timestamp)
-             for ordinal, message in enumerate(source.messages)],
-        )
+        rows = []
+        for ordinal, message in enumerate(source.messages):
+            rows.append((source_id, ordinal, message.role, message.text, message.timestamp))
+            if len(rows) >= 500:
+                conn.executemany("INSERT INTO messages(source_id, ordinal, role, text, message_ts) VALUES (?, ?, ?, ?, ?)", rows)
+                rows.clear()
+        if rows:
+            conn.executemany("INSERT INTO messages(source_id, ordinal, role, text, message_ts) VALUES (?, ?, ?, ?, ?)", rows)
 
-    def record_parse_failure(self, harness: str, path: Path, stat_result, error: Exception) -> None:
+    def record_parse_failure(self, harness: str, path: Path, stat_result, error: Exception,
+                             parser_version: str = "", policy_version: str = "",
+                             source_cap: Optional[int] = None) -> None:
         """Record failure metadata without touching the last known-good message rows."""
         detail = str(error).splitlines()[0][:500]
         def record(conn):
             conn.execute("""
                 INSERT INTO source_files(harness, path, size, mtime_ns, device, inode, ctime_ns,
-                    source_status, parser_error)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 'corrupt', ?)
+                    source_status, parser_error, parser_version, policy_version, source_cap)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'corrupt', ?, ?, ?, ?)
                 ON CONFLICT(path) DO UPDATE SET harness = excluded.harness, size = excluded.size,
                     mtime_ns = excluded.mtime_ns, device = excluded.device, inode = excluded.inode,
                     ctime_ns = excluded.ctime_ns, source_status = 'corrupt',
-                    parser_error = excluded.parser_error, updated_at = CURRENT_TIMESTAMP
+                    parser_error = excluded.parser_error, parser_version = excluded.parser_version,
+                    policy_version = excluded.policy_version, source_cap = excluded.source_cap,
+                    updated_at = CURRENT_TIMESTAMP
+            """, (harness, str(path), stat_result.st_size, stat_result.st_mtime_ns, stat_result.st_dev,
+                  stat_result.st_ino, stat_result.st_ctime_ns, detail, parser_version, policy_version, source_cap))
+        self._write(record)
+
+    def record_partial(self, harness: str, path: Path, stat_result, detail: str,
+                       parser_version: str, policy_version: str, source_cap: Optional[int]) -> None:
+        """Keep a prior complete snapshot when a changed source has no safe rows to replace it."""
+        detail = detail.splitlines()[0][:500]
+        def record(conn):
+            conn.execute("""
+                INSERT INTO source_files(harness, path, size, mtime_ns, device, inode, ctime_ns,
+                    source_status, parser_error, parser_version, policy_version, source_cap)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'partial', ?, ?, ?, ?)
+                ON CONFLICT(path) DO UPDATE SET harness = excluded.harness, size = excluded.size,
+                    mtime_ns = excluded.mtime_ns, device = excluded.device, inode = excluded.inode,
+                    ctime_ns = excluded.ctime_ns, source_status = 'partial',
+                    parser_error = excluded.parser_error, parser_version = excluded.parser_version,
+                    policy_version = excluded.policy_version, source_cap = excluded.source_cap,
+                    updated_at = CURRENT_TIMESTAMP
+            """, (harness, str(path), stat_result.st_size, stat_result.st_mtime_ns, stat_result.st_dev,
+                  stat_result.st_ino, stat_result.st_ctime_ns, detail, parser_version, policy_version, source_cap))
+        self._write(record)
+
+    def record_pending(self, harness: str, path: Path, stat_result, detail: str,
+                       parser_version: str, policy_version: str, source_cap: Optional[int]) -> None:
+        """Record a torn active source without discarding a prior safe snapshot."""
+        detail = detail.splitlines()[0][:500]
+        def record(conn):
+            conn.execute("""
+                INSERT INTO source_files(harness, path, size, mtime_ns, device, inode, ctime_ns,
+                    source_status, parser_error, parser_version, policy_version, source_cap)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)
+                ON CONFLICT(path) DO UPDATE SET harness = excluded.harness, size = excluded.size,
+                    mtime_ns = excluded.mtime_ns, device = excluded.device, inode = excluded.inode,
+                    ctime_ns = excluded.ctime_ns, source_status = 'pending',
+                    parser_error = excluded.parser_error, parser_version = excluded.parser_version,
+                    policy_version = excluded.policy_version, source_cap = excluded.source_cap,
+                    updated_at = CURRENT_TIMESTAMP
+            """, (harness, str(path), stat_result.st_size, stat_result.st_mtime_ns, stat_result.st_dev,
+                  stat_result.st_ino, stat_result.st_ctime_ns, detail, parser_version, policy_version, source_cap))
+        self._write(record)
+
+    def record_live(self, harness: str, path: Path, stat_result, detail: str) -> None:
+        """Record append activity without replacing a snapshot from an unstable source."""
+        detail = detail.splitlines()[0][:500]
+        def record(conn):
+            conn.execute("""
+                INSERT INTO source_files(harness, path, size, mtime_ns, device, inode, ctime_ns,
+                    source_status, parser_error, parser_version, policy_version, source_cap)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'live', ?, '', '', NULL)
+                ON CONFLICT(path) DO UPDATE SET harness = excluded.harness, size = excluded.size,
+                    mtime_ns = excluded.mtime_ns, device = excluded.device, inode = excluded.inode,
+                    ctime_ns = excluded.ctime_ns, source_status = 'live', parser_error = excluded.parser_error,
+                    parser_version = '', policy_version = '', source_cap = NULL, updated_at = CURRENT_TIMESTAMP
             """, (harness, str(path), stat_result.st_size, stat_result.st_mtime_ns, stat_result.st_dev,
                   stat_result.st_ino, stat_result.st_ctime_ns, detail))
         self._write(record)
@@ -311,6 +417,7 @@ class Ledger:
             if existing:
                 conn.execute("""
                     UPDATE source_files SET harness = ?, source_status = 'corrupt', parser_error = ?,
+                        parser_version = '', policy_version = '', source_cap = NULL,
                         updated_at = CURRENT_TIMESTAMP WHERE id = ?
                 """, (harness, detail, existing["id"]))
             else:
@@ -320,20 +427,23 @@ class Ledger:
                 """, (harness, str(path), detail))
         self._write(record)
 
-    def record_oversized(self, harness: str, path: Path, stat_result, limit: int) -> None:
+    def record_oversized(self, harness: str, path: Path, stat_result, limit: int,
+                         parser_version: str = "", policy_version: str = "") -> None:
         """Record an honest partial-sync state without deleting an older snapshot."""
         detail = f"oversized source: {stat_result.st_size} bytes exceeds full-parser cap {limit} bytes"
         def record(conn):
             conn.execute("""
                 INSERT INTO source_files(harness, path, size, mtime_ns, device, inode, ctime_ns,
-                    source_status, parser_error)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 'oversized', ?)
+                    source_status, parser_error, parser_version, policy_version, source_cap)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'oversized', ?, ?, ?, ?)
                 ON CONFLICT(path) DO UPDATE SET harness = excluded.harness, size = excluded.size,
                     mtime_ns = excluded.mtime_ns, device = excluded.device, inode = excluded.inode,
                     ctime_ns = excluded.ctime_ns, source_status = 'oversized',
-                    parser_error = excluded.parser_error, updated_at = CURRENT_TIMESTAMP
+                    parser_error = excluded.parser_error, parser_version = excluded.parser_version,
+                    policy_version = excluded.policy_version, source_cap = excluded.source_cap,
+                    updated_at = CURRENT_TIMESTAMP
             """, (harness, str(path), stat_result.st_size, stat_result.st_mtime_ns, stat_result.st_dev,
-                  stat_result.st_ino, stat_result.st_ctime_ns, detail))
+                  stat_result.st_ino, stat_result.st_ctime_ns, detail, parser_version, policy_version, limit))
         self._write(record)
 
     def mark_missing_except(self, seen_paths: Iterable[str]) -> int:
@@ -358,10 +468,16 @@ class Ledger:
             "SELECT source_status, COUNT(*) AS count FROM source_files GROUP BY source_status"
         )}
         messages = conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
-        failures = conn.execute("SELECT COUNT(*) FROM source_files WHERE parser_error IS NOT NULL").fetchone()[0]
+        failures = conn.execute("SELECT COUNT(*) FROM source_files WHERE source_status = 'corrupt'").fetchone()[0]
+        partial = conn.execute("SELECT COUNT(*) FROM source_files WHERE source_status = 'partial'").fetchone()[0]
+        skipped = conn.execute("SELECT COUNT(*) FROM source_files WHERE source_status = 'skipped'").fetchone()[0]
+        pending = conn.execute("SELECT COUNT(*) FROM source_files WHERE source_status = 'pending'").fetchone()[0]
+        live = conn.execute("SELECT COUNT(*) FROM source_files WHERE source_status = 'live'").fetchone()[0]
         oversized = conn.execute("SELECT COUNT(*) FROM source_files WHERE source_status = 'oversized'").fetchone()[0]
         return {"schema_version": SCHEMA_VERSION, "data_dir": str(self.data_dir), "database": str(self.db_path),
                 "sources": status_counts, "messages": messages, "parser_failures": failures,
+                "partial_sources": partial, "skipped_sources": skipped, "pending_sources": pending,
+                "live_sources": live,
                 "oversized_sources": oversized}
 
     @staticmethod
