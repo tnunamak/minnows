@@ -17,6 +17,7 @@ shipped skill folders (see minnows README: vendor-on-ship at the skill boundary)
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -30,23 +31,82 @@ COMPACTION_MARKER = "continued from a previous conversation"
 # Locating projects and sessions
 # --------------------------------------------------------------------------------------
 
-def cwd_to_project_dir(cwd: str) -> Optional[Path]:
-    """Convert a working directory path to its Claude projects slug directory.
+def claude_project_roots() -> list[Path]:
+    """All Claude Code `projects/` roots that may hold real sessions on this machine.
 
-    The slug is lossy (a literal '-' in a dir name is indistinguishable from the
-    '/'->'-' separator), so we try the direct slug first, then fall back to a
-    reverse scan that reconstructs each candidate's path.
+    Claude Code writes to a single config dir per invocation, but that dir is NOT always
+    `~/.claude` — the official `CLAUDE_CONFIG_DIR` env var repoints it (e.g. a separate
+    profile), and people also keep other `~/.claude*` dirs around (backups, alternate
+    profiles) that can independently hold real `projects/`. Do not hardcode any specific
+    alternate name: discover generically so a single-config-dir user sees identical
+    behavior (one root, no cost) and a multi-profile user is not silently invisible to
+    themselves.
+
+    Order: default `~/.claude`, then `$CLAUDE_CONFIG_DIR` if set, then any other
+    `~/.claude*` directory with a `projects/` subdir — deduplicated, existing only.
+    """
+    roots: list[Path] = []
+    seen: set[Path] = set()
+
+    def add(p: Optional[Path]):
+        if p is None:
+            return
+        projects = p / "projects"
+        try:
+            resolved = projects.resolve()
+        except OSError:
+            resolved = projects
+        if resolved in seen:
+            return
+        if projects.exists():
+            seen.add(resolved)
+            roots.append(projects)
+
+    add(CLAUDE_PROJECTS.parent)
+    env_dir = os.environ.get("CLAUDE_CONFIG_DIR")
+    if env_dir:
+        add(Path(env_dir).expanduser())
+    home = Path.home()
+    try:
+        candidates = sorted(home.glob(".claude*"))
+    except OSError:
+        candidates = []
+    for cand in candidates:
+        if cand.is_dir():
+            add(cand)
+    return roots
+
+
+def cwd_to_project_dirs(cwd: str) -> list[Path]:
+    """Every project slug directory for `cwd`, across ALL discovered roots.
+
+    A given project can have real sessions under more than one root at once (e.g. some
+    written under the default `~/.claude` config, others under a `CLAUDE_CONFIG_DIR`-scoped
+    profile) — callers that need full coverage (convo's scoped `list`/`grep`) must not stop
+    at the first match. Order matches `claude_project_roots()`.
     """
     slug = cwd.replace("/", "-").lstrip("-")
-    candidate = CLAUDE_PROJECTS / f"-{slug}"
-    if candidate.exists():
-        return candidate
-    if not CLAUDE_PROJECTS.exists():
-        return None
-    for d in CLAUDE_PROJECTS.iterdir():
-        if d.name.replace("-", "/").lstrip("/") == cwd.lstrip("/"):
-            return d
-    return None
+    found: list[Path] = []
+    for root in claude_project_roots():
+        candidate = root / f"-{slug}"
+        if candidate.exists():
+            found.append(candidate)
+            continue
+        for d in root.iterdir():
+            if d.name.replace("-", "/").lstrip("/") == cwd.lstrip("/"):
+                found.append(d)
+                break
+    return found
+
+
+def cwd_to_project_dir(cwd: str) -> Optional[Path]:
+    """Convert a working directory path to ONE Claude projects slug directory.
+
+    Single-result convenience for callers (e.g. uncompact) that only need any one match.
+    Prefer `cwd_to_project_dirs` when full cross-root coverage matters.
+    """
+    dirs = cwd_to_project_dirs(cwd)
+    return dirs[0] if dirs else None
 
 
 def project_dir_to_cwd(project_dir: Path) -> str:
@@ -60,12 +120,11 @@ def project_dir_to_cwd(project_dir: Path) -> str:
 
 
 def find_project_dir_for_session(session_id: str) -> Optional[Path]:
-    """Search all project dirs for the project containing <session_id>.jsonl."""
-    if not CLAUDE_PROJECTS.exists():
-        return None
-    for project_dir in CLAUDE_PROJECTS.iterdir():
-        if project_dir.is_dir() and (project_dir / f"{session_id}.jsonl").exists():
-            return project_dir
+    """Search all project dirs (across every discovered root) for <session_id>.jsonl."""
+    for root in claude_project_roots():
+        for project_dir in root.iterdir():
+            if project_dir.is_dir() and (project_dir / f"{session_id}.jsonl").exists():
+                return project_dir
     return None
 
 

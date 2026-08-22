@@ -105,6 +105,11 @@ class Session:
     project: Optional[str]         # human-readable project/cwd if known
     mtime: float
     turns: list = field(default_factory=list)   # list[Turn], chronological
+    # Set only for harness == "claude-agent": the parent session this subagent ran
+    # inside, and a short "[agentType] description" label. Keeps a subagent transcript
+    # clearly attributed as a DISTINCT source rather than silently merged or dropped.
+    parent_session_id: Optional[str] = None
+    agent_tag: Optional[str] = None
 
     @property
     def started(self) -> Optional[str]:
@@ -211,15 +216,21 @@ def _read_jsonl(path: Path) -> Iterable[dict]:
                 return
 
 
-def load_claude(path: Path) -> Optional[Session]:
-    """Claude Code: ~/.claude/projects/<slug>/<sessionId>.jsonl"""
-    session_id = path.stem
+def _parse_claude_jsonl_turns(path: Path, *, want_sidechain: bool) -> tuple[Optional[str], list[Turn]]:
+    """Shared row-walk for Claude Code's per-turn JSONL schema.
+
+    `want_sidechain` selects which rows to keep: False for a main-thread session file
+    (skip isSidechain rows — those are subagent turns physically interleaved on disk),
+    True for a subagent transcript file under `<session>/subagents/agent-*.jsonl` (every
+    real row in that file IS a sidechain row; keep them). Same schema either way, so the
+    turn-building logic is identical — only the filter differs.
+    """
     cwd = None
     turns: list[Turn] = []
 
     for row in _read_jsonl(path):
         rtype = row.get("type")
-        if row.get("isSidechain"):
+        if bool(row.get("isSidechain")) != want_sidechain:
             continue
         if cwd is None and row.get("cwd"):
             cwd = row["cwd"]
@@ -298,9 +309,52 @@ def load_claude(path: Path) -> Optional[Session]:
                     turn.add_text(tp)
                 turns.append(turn)
 
+    return cwd, turns
+
+
+def load_claude(path: Path) -> Optional[Session]:
+    """Claude Code: ~/.claude/projects/<slug>/<sessionId>.jsonl"""
+    session_id = path.stem
+    cwd, turns = _parse_claude_jsonl_turns(path, want_sidechain=False)
     if not turns:
         return None
     return Session("claude", session_id, str(path), cwd, path.stat().st_mtime, turns)
+
+
+def _claude_agent_meta(path: Path) -> dict:
+    """Read the `.meta.json` sidecar next to an `agent-<id>.jsonl` subagent transcript.
+
+    Missing/corrupt sidecar degrades to an empty dict — the transcript is still readable,
+    just without the agentType/description label. Never fatal.
+    """
+    meta_path = path.with_suffix("").with_suffix(".meta.json")
+    try:
+        return json.loads(meta_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def load_claude_agent(path: Path) -> Optional[Session]:
+    """Claude Code subagent transcript: <slug>/<sessionId>/subagents/agent-<agentId>.jsonl
+
+    A distinct physical source from its parent session, NOT merged into the main thread.
+    `session_id` is tagged `<parent-session-id>/agent-<agentId>` so it can never be
+    confused with (or silently collapsed into) the parent in `list`/`show`/`grep` output.
+    """
+    agent_id = path.stem.removeprefix("agent-")
+    parent_session_id = path.parent.parent.name  # <session-id>/subagents/agent-*.jsonl
+    cwd, turns = _parse_claude_jsonl_turns(path, want_sidechain=True)
+    if not turns:
+        return None
+    meta = _claude_agent_meta(path)
+    agent_type = meta.get("agentType") or "subagent"
+    description = meta.get("description") or ""
+    label = f"{parent_session_id}/agent-{agent_id}"
+    tag = f"[{agent_type}] {description}".strip()
+    session = Session("claude-agent", label, str(path), cwd, path.stat().st_mtime, turns)
+    session.parent_session_id = parent_session_id
+    session.agent_tag = tag
+    return session
 
 
 def load_codex(path: Path) -> Optional[Session]:
@@ -547,6 +601,7 @@ class Peek:
     first_user: str
     user_msgs: int       # exact for small files, lower-bound (capped) for huge ones
     truncated: bool      # True if we stopped scanning before EOF
+    agent_tag: Optional[str] = None   # "[agentType] description" — claude-agent sources only
 
 
 _PEEK_MAX_LINES = 4000   # scan cap for huge JSONL rollouts
@@ -575,6 +630,16 @@ def peek_claude(path: Path) -> Optional[Peek]:
         return None
     return Peek("claude", path.stem, str(path), cwd, path.stat().st_mtime,
                 first_user, user_msgs, truncated)
+
+
+def peek_claude_agent(path: Path) -> Optional[Peek]:
+    """Subagent transcripts are small (single-agent-turn files); a full load is cheap."""
+    s = load_claude_agent(path)
+    if not s:
+        return None
+    return Peek("claude-agent", s.session_id, s.path, s.project, s.mtime,
+                s.first_user_text, sum(1 for t in s.turns if t.role == "user"), False,
+                agent_tag=s.agent_tag)
 
 
 def peek_codex(path: Path) -> Optional[Peek]:
@@ -649,10 +714,28 @@ def peek_qwen(path: Path) -> Optional[Peek]:
 HARNESSES: dict[str, dict] = {
     "claude": {
         "root": Path.home() / ".claude" / "projects",
+        # Claude Code's own config dir is not always ~/.claude (CLAUDE_CONFIG_DIR, or a
+        # second profile kept around as ~/.claude-<name>) — see claude_project_roots().
+        # A test/override that sets "root" directly still works: _harness_roots() only
+        # consults "roots_fn" when the caller hasn't replaced "root".
+        "roots_fn": (lambda: cs.claude_project_roots()) if cs else None,
         "glob": "*/*.jsonl",
         "loader": load_claude,
         "peek": peek_claude,
         "skip": lambda p: p.name.startswith("agent-"),
+    },
+    # A Task-tool subagent's transcript, physically separate from its parent session file:
+    # <slug>/<sessionId>/subagents/agent-<agentId>.jsonl. Registered as its own harness (not
+    # merged into "claude") so subagent turns are always distinctly attributed and never
+    # silently absent — `convo list --harness claude-agent` / `grep --harness all` surface
+    # them explicitly instead of the prior behavior of skipping every "agent-*.jsonl" file.
+    "claude-agent": {
+        "root": Path.home() / ".claude" / "projects",
+        "roots_fn": (lambda: cs.claude_project_roots()) if cs else None,
+        "glob": "*/*/subagents/agent-*.jsonl",
+        "loader": load_claude_agent,
+        "peek": peek_claude_agent,
+        "skip": lambda p: False,
     },
     "codex": {
         "root": Path.home() / ".codex" / "sessions",
@@ -681,11 +764,38 @@ HARNESSES: dict[str, dict] = {
 }
 
 
+def _harness_roots(harness: str, cfg: dict) -> list[Path]:
+    """All roots to scan for one harness: the default `root`, plus any discovered extras.
+
+    `roots_fn` (currently only set for claude) is skipped whenever a caller has replaced
+    "root" with something other than the module's original default — this is what lets
+    tests redirect a harness into an isolated temp dir and get ONLY that dir back, with no
+    real `~/.claude*` data leaking into the result.
+    """
+    root: Path = cfg["root"]
+    roots_fn = cfg.get("roots_fn")
+    default_root = _DEFAULT_HARNESS_ROOTS.get(harness)
+    if roots_fn and root == default_root:
+        try:
+            discovered = roots_fn()
+        except OSError:
+            discovered = []
+        if discovered:
+            return discovered
+    return [root]
+
+
+_DEFAULT_HARNESS_ROOTS = {h: cfg["root"] for h, cfg in HARNESSES.items()}
+
+
 def _slug_for_project(p: Path, harness: str) -> str:
     """Best-effort human-readable project tag from a session path."""
     if harness == "claude":
         # parent dir is the slug e.g. -home-tnunamak-code-dotfiles
         return p.parent.name
+    if harness == "claude-agent":
+        # <slug>/<sessionId>/subagents/agent-<id>.jsonl — slug is 3 levels up.
+        return p.parent.parent.parent.name
     if harness == "qwen":
         # Qwen inserts a chats/ directory below its project slug.
         return p.parent.parent.name
@@ -701,9 +811,15 @@ def _candidate_may_match_project(harness: str, path: Path, flt: Optional[str]) -
         return True
     if harness == "claude":
         if "/" in flt:
-            expected = cs.cwd_to_project_dir(flt) if cs else None
-            return bool(expected) and path.parent == expected
+            expected = cs.cwd_to_project_dirs(flt) if cs else []
+            return path.parent in expected
         return flt.lower() in path.parent.name.lower()
+    if harness == "claude-agent":
+        project_dir = path.parent.parent.parent  # subagents/agent-x.jsonl -> session -> slug
+        if "/" in flt:
+            expected = cs.cwd_to_project_dirs(flt) if cs else []
+            return project_dir in expected
+        return flt.lower() in project_dir.name.lower()
     if harness == "qwen":
         project_dir = path.parent.parent
         if "/" in flt:
@@ -736,7 +852,7 @@ def _candidate_may_match_project(harness: str, path: Path, flt: Optional[str]) -
 
 def discover(harnesses: list[str], project_filter: Optional[str],
              since_ts: Optional[float], limit: int, *,
-             per_harness: bool = False) -> list[tuple[str, Path]]:
+             per_harness: bool = False, force_full: frozenset = frozenset()) -> list[tuple[str, Path]]:
     """Return [(harness, path)] candidate session files, newest first, cheaply (stat only).
 
     Project filtering is intentionally NOT applied here: the authoritative project/cwd is
@@ -744,19 +860,29 @@ def discover(harnesses: list[str], project_filter: Optional[str],
     lossy, dash-mangled encoding that won't substring-match a real path). discover() just
     bounds the candidate set by mtime/since so we don't load thousands of files; the real
     project filter runs post-load in load_sessions().
+
+    `force_full`: harness names exempted from the mtime-order candidate cap below. The cap
+    assumes recent-by-mtime files are representative of what a caller wants to peek, which
+    fails when non-session files (empty scaffolding, a corrupt in-progress write, test
+    fixtures) cluster at the top of mtime order — every genuine session can be capped out
+    even though far fewer exist in total. Callers detect that failure (peek-filtered result
+    is empty though the harness has candidates) and retry once with that harness forced full;
+    stat-ing every file already happens unconditionally below, so this only adds more (cheap,
+    header-only) `peek()` calls on the rare empty-result path — never the default cost.
     """
     found: list[tuple[float, str, Path]] = []
     found_by_harness: dict[str, list[tuple[float, str, Path]]] = {}
     for h in harnesses:
         harness_found: list[tuple[float, str, Path]] = []
         cfg = HARNESSES[h]
-        root: Path = cfg["root"]
-        if not root.exists():
-            continue
-        paths = root.glob(cfg["glob"])
         if h == "claude" and project_filter and "/" in project_filter and cs:
-            exact_dir = cs.cwd_to_project_dir(project_filter)
-            paths = exact_dir.glob("*.jsonl") if exact_dir else []
+            exact_dirs = cs.cwd_to_project_dirs(project_filter)
+            paths = [p for d in exact_dirs for p in d.glob("*.jsonl")]
+        else:
+            paths = []
+            for root in _harness_roots(h, cfg):
+                if root.exists():
+                    paths.extend(root.glob(cfg["glob"]))
         for p in paths:
             if cfg["skip"](p):
                 continue
@@ -776,14 +902,17 @@ def discover(harnesses: list[str], project_filter: Optional[str],
     # fair per-harness candidate budget.
     if per_harness:
         found = []
-        for harness_found in found_by_harness.values():
+        for h, harness_found in found_by_harness.items():
             harness_found.sort(reverse=True)
-            cap = len(harness_found) if project_filter else max(limit * 2, 60)
+            cap = len(harness_found) if (project_filter or h in force_full) else max(limit * 2, 60)
             found.extend(harness_found[:cap])
     found.sort(reverse=True)
     # Project filtering happens after reading the authoritative cwd, so pre-capping
     # can erase every matching older session. Scan all candidates when scoped.
-    cap = len(found) if project_filter else (len(found) if per_harness else max(limit * 2, 60))
+    if project_filter or (force_full and set(harnesses) <= force_full):
+        cap = len(found)
+    else:
+        cap = len(found) if per_harness else max(limit * 2, 60)
     return [(h, p) for _, h, p in found[:cap]]
 
 
@@ -871,16 +1000,22 @@ def render_session(session: Session, mode: str, n: Optional[int], color: bool) -
     return "\n".join(out)
 
 
+HARNESS_BADGES = {"claude": "CC", "claude-agent": "CCA", "codex": "CX", "gemini": "GM", "qwen": "QW"}
+
+
 def summary_line(pk: "Peek", idx: Optional[int] = None) -> str:
     """One list entry. Works on a Peek (cheap, used by `list`)."""
     proj = pk.project or _slug_for_project(Path(pk.path), pk.harness) or "?"
     proj = proj.replace(str(Path.home()), "~")
     first = " ".join(pk.first_user.split())[:80]
     prefix = f"{idx}. " if idx is not None else ""
-    badge = {"claude": "CC", "codex": "CX", "gemini": "GM", "qwen": "QW"}.get(pk.harness, pk.harness[:2].upper())
+    badge = HARNESS_BADGES.get(pk.harness, pk.harness[:2].upper())
     when = datetime.fromtimestamp(pk.mtime).strftime("%Y-%m-%d %H:%M")
     count = f"{pk.user_msgs}{'+' if pk.truncated else ''}msg"
-    return _terminal_safe(f"{prefix}[{badge}] {when}  {count}  {proj}\n"
+    # SUBAGENT transcripts are a distinct source from their parent session — always label
+    # them as such (never let a subagent line look like an ordinary top-level session).
+    subagent_note = f"  SUBAGENT {pk.agent_tag}" if pk.harness == "claude-agent" and pk.agent_tag else ""
+    return _terminal_safe(f"{prefix}[{badge}] {when}  {count}  {proj}{subagent_note}\n"
             f"     {pk.session_id}\n"
             f"     ↳ {first}")
 
@@ -925,20 +1060,32 @@ def parse_since(s: Optional[str]) -> Optional[float]:
         )
 
 
+
+# "all" deliberately excludes claude-agent: a project can have 5-10x more subagent
+# transcripts than top-level sessions (a single Task-heavy day can spawn hundreds), so
+# folding them into the default view would bury the "recent sessions" signal `list` exists
+# to give. This keeps default output/cost IDENTICAL for every existing user. Subagent
+# transcripts are still fully discoverable — just opt-in: `--harness claude-agent` (or
+# `cca`) explicitly, or `grep --include-subagents` to fold them into a text search without
+# changing what `list` shows by default.
+ALL_HARNESSES_DEFAULT = [h for h in HARNESSES if h != "claude-agent"]
+
+
 def resolve_harnesses(arg: Optional[str]) -> list[str]:
     if not arg or arg == "all":
-        return list(HARNESSES.keys())
+        return list(ALL_HARNESSES_DEFAULT)
     out = []
     for h in arg.split(","):
         h = h.strip().lower()
         alias = {
             "cc": "claude", "cx": "codex", "gm": "gemini", "gemini-cli": "gemini",
-            "qw": "qwen", "qwen-code": "qwen",
+            "qw": "qwen", "qwen-code": "qwen", "cca": "claude-agent", "subagent": "claude-agent",
+            "subagents": "claude-agent",
         }.get(h, h)
         if alias in HARNESSES:
             out.append(alias)
         else:
-            sys.exit(f"convo: unknown harness '{h}' (valid: {', '.join(HARNESSES)})")
+            sys.exit(f"convo: unknown harness '{h}' (valid: {', '.join(HARNESSES)}, or 'all')")
     return out
 
 
@@ -987,16 +1134,29 @@ def default_project_slug() -> Optional[str]:
     return cwd  # used as a substring filter; matches cwd inside codex/claude paths
 
 
+
+# claude-agent (subagent transcripts) is deliberately NOT synced into the durable ledger
+# yet: _normalized_jsonl_row has no "claude-agent" branch, so a synced row would silently
+# retain zero messages — invisible-but-technically-present is worse than not claiming
+# coverage at all. Subagent transcripts remain fully readable/searchable today through the
+# direct/raw readers (list/show/grep --harness claude-agent), which is where "search never
+# claims it can reconstruct raw tool traces" already applies. Extending the streaming
+# normalizer to cover this schema is future work, tracked here rather than silently gapped.
+LEDGER_UNSUPPORTED_HARNESSES = frozenset({"claude-agent"})
+
+
 def _ledger_sources() -> list[tuple[str, Path]]:
     """Find every physical source for a full ledger sync, without query-time caps."""
     sources: list[tuple[str, Path]] = []
     for harness, cfg in HARNESSES.items():
-        root: Path = cfg["root"]
-        if not root.exists():
+        if harness in LEDGER_UNSUPPORTED_HARNESSES:
             continue
-        for path in root.glob(cfg["glob"]):
-            if not cfg["skip"](path):
-                sources.append((harness, path))
+        for root in _harness_roots(harness, cfg):
+            if not root.exists():
+                continue
+            for path in root.glob(cfg["glob"]):
+                if not cfg["skip"](path):
+                    sources.append((harness, path))
     return sorted(sources, key=lambda item: (item[0], str(item[1])))
 
 
@@ -1621,6 +1781,9 @@ def cmd_status(args):
               f"pending={status['pending_sources']}; skipped={status['skipped_sources']}; "
               f"live={status['live_sources']}; oversized={status['oversized_sources']}")
         print(f"data: {status['data_dir']}")
+        if LEDGER_UNSUPPORTED_HARNESSES:
+            print(f"convo: NOT covered by this ledger (use direct 'list'/'show'/'grep' "
+                  f"instead): {', '.join(sorted(LEDGER_UNSUPPORTED_HARNESSES))}", file=sys.stderr)
 
 
 def cmd_search(args):
@@ -1647,17 +1810,10 @@ def cmd_search(args):
             print()
 
 
-def cmd_list(args):
-    if args.limit < 1:
-        sys.exit("convo: --limit must be at least 1")
-    since = parse_since(args.since)
-    harnesses = resolve_harnesses(args.harness)
-    proj = None if args.all_projects else (args.project or None)
-    candidates = discover(harnesses, proj, since, args.limit)
-
-    # Cheap peek (header-only) instead of full parse — huge rollouts stay fast.
+def _peek_candidates(candidates: list[tuple[str, Path]], proj: Optional[str],
+                      errors: list[str]) -> list[Peek]:
+    """Cheap peek (header-only) instead of full parse — huge rollouts stay fast."""
     peeks: list[Peek] = []
-    errors: list[str] = []
     for h, p in candidates:
         if not _candidate_may_match_project(h, p, proj):
             continue
@@ -1671,6 +1827,27 @@ def cmd_list(args):
         if proj and not peek_matches_project(pk, proj):
             continue
         peeks.append(pk)
+    return peeks
+
+
+def cmd_list(args):
+    if args.limit < 1:
+        sys.exit("convo: --limit must be at least 1")
+    since = parse_since(args.since)
+    harnesses = resolve_harnesses(args.harness)
+    proj = None if args.all_projects else (args.project or None)
+    candidates = discover(harnesses, proj, since, args.limit)
+
+    errors: list[str] = []
+    peeks = _peek_candidates(candidates, proj, errors)
+    # The mtime-order candidate cap can starve out every real session for a harness whose
+    # newest-by-mtime files happen to be non-sessions (see discover()'s force_full doc).
+    # Retry uncapped, harness by harness, ONLY for a harness that came back empty — bounded,
+    # and invisible in cost to the common case where results were already found.
+    empty_harnesses = {h for h in harnesses if not any(pk.harness == h for pk in peeks)}
+    if empty_harnesses and not proj:
+        wider = discover(list(empty_harnesses), proj, since, args.limit, force_full=frozenset(empty_harnesses))
+        peeks.extend(_peek_candidates(wider, proj, errors))
     peeks.sort(key=lambda pk: pk.mtime, reverse=True)
     peeks = peeks[: args.limit]
 
@@ -1695,6 +1872,10 @@ def cmd_list(args):
     for i, pk in enumerate(peeks, 1):
         print(summary_line(pk, i))
         print()
+    if any(pk.truncated for pk in peeks):
+        print("convo: '+msg' means the message COUNT above is a lower bound (this list scan "
+              "stopped early on a huge session file) — `convo show <id>` still reads the full "
+              "session, nothing is dropped there.", file=sys.stderr)
     for error in errors:
         print(f"convo: corrupt/unreadable session skipped: {error}", file=sys.stderr)
     if errors:
@@ -1709,7 +1890,7 @@ def _pick_session(args, require: bool = True) -> Optional[Session]:
         if p.exists() and p.is_file():
             for h, cfg in HARNESSES.items():
                 # crude harness detection by location
-                if str(cfg["root"]) in str(p.resolve()):
+                if any(str(root) in str(p.resolve()) for root in _harness_roots(h, cfg)):
                     return cfg["loader"](p)
             # fall back: try each loader
             for cfg in HARNESSES.values():
@@ -1757,8 +1938,31 @@ def _pick_session(args, require: bool = True) -> Optional[Session]:
     return HARNESSES[best[1]]["loader"](best[2])
 
 
+def _user_turns(session: Session, n: Optional[int]) -> list[Turn]:
+    """Every real user turn, oldest first — the human's own ask/decision trail, no replies."""
+    return _tail([t for t in session.turns if t.role == "user" and t.text.strip()], n)
+
+
 def cmd_show(args):
     s = _pick_session(args)
+    if getattr(args, "from_user", False):
+        turns = _user_turns(s, args.n)
+        if args.json:
+            data = {
+                "harness": s.harness, "session_id": s.session_id, "path": s.path,
+                "project": s.project,
+                "user_messages": [{"ts": t.ts, "text": t.text} for t in turns],
+            }
+            print(json.dumps(data, indent=2))
+            return
+        header = _terminal_safe(f"# {s.harness}:{s.session_id}  ({s.project or '?'})  [--from-user]")
+        print(header)
+        for t in turns:
+            ts = _short_ts(t.ts)
+            print(_terminal_safe(f"[you{(' · ' + ts) if ts else ''}]"))
+            print(_terminal_safe(t.text))
+            print()
+        return
     if args.json:
         pairs = _tail(build_pairs(s), args.n)
         data = {
@@ -1784,11 +1988,37 @@ def cmd_grep(args):
         sys.exit("convo: --limit must be at least 1")
     since = parse_since(args.since)
     harnesses = resolve_harnesses(args.harness)
+    if getattr(args, "include_subagents", False) and "claude-agent" not in harnesses:
+        harnesses = [*harnesses, "claude-agent"]
     proj = None if args.all_projects else (args.project or None)
     candidates = discover(harnesses, proj, since, args.limit, per_harness=True)
     errors: list[str] = []
     sessions = load_sessions(candidates, proj, errors)
+    # Same starvation risk as `list` (see discover()'s force_full doc): retry uncapped,
+    # only for a harness that yielded nothing, only when not already project-scoped
+    # (project scoping already forces a full per-harness scan).
+    empty_harnesses = {h for h in harnesses if not any(s.harness == h for s in sessions)}
+    if empty_harnesses and not proj:
+        wider = discover(list(empty_harnesses), proj, since, args.limit, per_harness=True,
+                          force_full=frozenset(empty_harnesses))
+        sessions.extend(load_sessions(wider, proj, errors))
     sessions.sort(key=lambda s: s.mtime, reverse=True)
+
+    # `--limit` is a documented per-harness scan bound (not "search everything"). A hit
+    # count within that bound must never look identical to a full-corpus search: tell the
+    # caller explicitly when more candidates existed than were scanned, so "no matches"
+    # (or a short hit list) is never silently mistaken for full coverage.
+    capped_harnesses: list[str] = []
+    if not proj:
+        candidate_counts: dict[str, int] = {}
+        for h, _ in candidates:
+            candidate_counts[h] = candidate_counts.get(h, 0) + 1
+        full_counts: dict[str, int] = {}
+        for h, _ in discover(harnesses, proj, since, args.limit, per_harness=True,
+                              force_full=frozenset(harnesses)):
+            full_counts[h] = full_counts.get(h, 0) + 1
+        capped_harnesses = sorted(h for h in harnesses
+                                   if full_counts.get(h, 0) > candidate_counts.get(h, 0))
 
     flags = 0 if args.case_sensitive else re.IGNORECASE
     try:
@@ -1801,6 +2031,12 @@ def cmd_grep(args):
         for ti, t in enumerate(s.turns):
             if pat.search(t.text):
                 hits.append((s, ti, t))
+    if capped_harnesses:
+        # stderr, not the --json payload: keeps the documented `grep --json` array shape
+        # stable for existing consumers while still never silently under-reporting coverage.
+        print(f"convo: scan bounded by --limit {args.limit} per harness; more candidates "
+              f"existed than were scanned for: {', '.join(capped_harnesses)} — raise --limit "
+              f"or add --project/--since to narrow instead for full coverage.", file=sys.stderr)
     if args.json:
         print(json.dumps([{
             "harness": s.harness, "session_id": s.session_id, "path": s.path,
@@ -1821,8 +2057,10 @@ def cmd_grep(args):
         sys.exit(1)
     color = sys.stdout.isatty() and not args.no_color
     for s, ti, t in hits:
-        badge = {"claude": "CC", "codex": "CX", "gemini": "GM", "qwen": "QW"}.get(s.harness, s.harness)
-        loc = f"{badge}:{s.session_id[:12]} {_short_ts(t.ts)} [{t.role}]"
+        badge = HARNESS_BADGES.get(s.harness, s.harness)
+        # A subagent hit must never read like a parent-session hit: label the parent id too.
+        subagent_note = f" (subagent of {s.parent_session_id[:12]})" if s.harness == "claude-agent" and s.parent_session_id else ""
+        loc = f"{badge}:{s.session_id[:12]}{subagent_note} {_short_ts(t.ts)} [{t.role}]"
         snippet = _terminal_safe(" ".join(t.text.split()))
         # highlight match
         if color:
@@ -1873,6 +2111,9 @@ def build_parser() -> argparse.ArgumentParser:
                          help="final=user+last reply (default); text=all agent text; full=+tools")
     sp_show.add_argument("-n", type=int, default=None,
                          help="only the last N exchanges (N<1 or omitted = all)")
+    sp_show.add_argument("--from-user", action="store_true",
+                         help="print only the human's own messages (no agent replies) — "
+                              "the whole-session ask/decision trail at a glance")
     sp_show.set_defaults(func=cmd_show)
 
     sp_grep = sub.add_parser("grep", help="search across sessions")
@@ -1886,6 +2127,9 @@ def build_parser() -> argparse.ArgumentParser:
     # case-insensitive by default) so muscle memory doesn't hit an argparse error.
     sp_grep.add_argument("-i", "--ignore-case", action="store_true",
                          help=argparse.SUPPRESS)
+    sp_grep.add_argument("--include-subagents", action="store_true",
+                         help="also search Claude Code subagent (Task-tool) transcripts, "
+                              "labeled distinctly from their parent session")
     sp_grep.set_defaults(func=cmd_grep)
 
     # These are deliberately additive. The legacy commands above remain direct/raw

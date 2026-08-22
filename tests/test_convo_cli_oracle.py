@@ -46,6 +46,12 @@ class ConvoCliOracleTests(unittest.TestCase):
         env = os.environ.copy()
         env["HOME"] = str(self.home)
         env["PYTHONNOUSERSITE"] = "1"
+        # This oracle simulates a single-config-dir machine via $HOME alone. The operator's
+        # own real CLAUDE_CONFIG_DIR (if set) must not leak into the subprocess — convo now
+        # discovers extra Claude config dirs from that env var (see claude_project_roots),
+        # so an inherited real value would pull real production sessions into these fixture
+        # assertions.
+        env.pop("CLAUDE_CONFIG_DIR", None)
         return subprocess.run(
             [str(TOOL), *args],
             cwd=str(cwd or self.project),

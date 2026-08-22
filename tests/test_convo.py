@@ -121,6 +121,193 @@ class CrossHarnessGrepTests(unittest.TestCase):
         self.assertEqual(default, explicit_all)
 
 
+class MultiRootClaudeDiscoveryTests(unittest.TestCase):
+    """Claude Code sessions living under a second/alternate config dir (CLAUDE_CONFIG_DIR,
+    or any other ~/.claude*/projects) must be as visible as the default ~/.claude — this
+    was previously a hard gap: convo only ever scanned the single hardcoded default root.
+
+    `_harness_roots()` only consults "roots_fn" when "root" is UNCHANGED from its original
+    default (see convo.py) — this is what keeps every other test class's "just override
+    root" pattern isolated from real ~/.claude* discovery. So here we leave "root" alone
+    and patch the underlying `cs.claude_project_roots` (which "roots_fn" calls through to
+    fresh on every lookup) instead of the HARNESSES entries directly.
+    """
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.root = Path(self.directory.name)
+        self.default_root = self.root / "default-home" / ".claude" / "projects"
+        self.alt_root = self.root / "alt-home" / ".claude-odl" / "projects"
+        self.original_claude_root = convo.HARNESSES["claude"]["root"]
+        self.original_agent_root = convo.HARNESSES["claude-agent"]["root"]
+        self.original_claude_project_roots = convo.cs.claude_project_roots
+        # Restore "root" to its true original default so the roots_fn guard engages.
+        convo.HARNESSES["claude"]["root"] = convo._DEFAULT_HARNESS_ROOTS["claude"]
+        convo.HARNESSES["claude-agent"]["root"] = convo._DEFAULT_HARNESS_ROOTS["claude-agent"]
+        convo.cs.claude_project_roots = lambda: [self.default_root, self.alt_root]
+
+        write_jsonl(self.default_root / "-project" / "default-session.jsonl", [{
+            "type": "user", "timestamp": "2026-08-20T00:00:00Z", "cwd": "/project",
+            "isMeta": False, "message": {"content": "in the default config dir"},
+        }])
+        write_jsonl(self.alt_root / "-project" / "alt-session.jsonl", [{
+            "type": "user", "timestamp": "2026-08-20T00:00:01Z", "cwd": "/project",
+            "isMeta": False, "message": {"content": "in the alternate config dir"},
+        }])
+
+    def tearDown(self):
+        convo.HARNESSES["claude"]["root"] = self.original_claude_root
+        convo.HARNESSES["claude-agent"]["root"] = self.original_agent_root
+        convo.cs.claude_project_roots = self.original_claude_project_roots
+        self.directory.cleanup()
+
+    def run_convo(self, *args: str) -> tuple[str, str, int]:
+        stdout, stderr = io.StringIO(), io.StringIO()
+        code = 0
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            try:
+                convo.main(list(args))
+            except SystemExit as exc:
+                code = int(exc.code) if isinstance(exc.code, int) else 1
+        return stdout.getvalue(), stderr.getvalue(), code
+
+    def test_list_all_projects_finds_sessions_from_every_discovered_root(self):
+        out, _, code = self.run_convo("list", "--harness", "claude", "--all-projects", "--limit", "10")
+        self.assertEqual(code, 0)
+        self.assertIn("default-session", out)
+        self.assertIn("alt-session", out)
+
+    def test_show_by_id_finds_a_session_that_only_exists_under_the_alternate_root(self):
+        out, err, code = self.run_convo("show", "alt-session", "--harness", "claude")
+        self.assertEqual(code, 0, err)
+        self.assertIn("in the alternate config dir", out)
+
+    def test_project_scoped_list_merges_both_roots_for_the_same_project_slug(self):
+        out, _, code = self.run_convo("list", "--harness", "claude", "--project", "/project", "--limit", "10")
+        self.assertEqual(code, 0)
+        self.assertIn("default-session", out)
+        self.assertIn("alt-session", out)
+
+    def test_a_test_override_of_root_alone_still_isolates_to_one_dir(self):
+        # This is the pattern every OTHER test class in this file uses (e.g.
+        # CrossHarnessGrepTests, LedgerTests): override "root" to an isolated temp dir and
+        # leave "roots_fn" alone. _harness_roots() must treat that as "root has been
+        # replaced" and skip roots_fn entirely — otherwise every one of those tests would
+        # silently scan this machine's real ~/.claude* directories instead of their fixture.
+        convo.HARNESSES["claude"]["root"] = self.default_root
+        out, _, code = self.run_convo("list", "--harness", "claude", "--all-projects", "--limit", "10")
+        self.assertEqual(code, 0)
+        self.assertIn("default-session", out)
+        self.assertNotIn("alt-session", out)
+
+
+class SubagentTranscriptTests(unittest.TestCase):
+    """Task-tool subagent transcripts (<slug>/<sessionId>/subagents/agent-*.jsonl) must be
+    discoverable and searchable, and always distinctly attributed — never silently merged
+    into the parent session's turns, and never silently invisible.
+    """
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.root = Path(self.directory.name) / "projects"
+        # Isolate every harness (not just claude/claude-agent): a default "all" `list` in
+        # these tests must not let real codex/gemini/qwen data on this machine leak in.
+        self.original_roots = {harness: config["root"] for harness, config in convo.HARNESSES.items()}
+        self.original_claude_roots_fn = convo.HARNESSES["claude"]["roots_fn"]
+        self.original_agent_roots_fn = convo.HARNESSES["claude-agent"]["roots_fn"]
+        for harness, config in convo.HARNESSES.items():
+            config["root"] = self.root / harness
+        convo.HARNESSES["claude"]["root"] = self.root
+        convo.HARNESSES["claude"]["roots_fn"] = None
+        convo.HARNESSES["claude-agent"]["root"] = self.root
+        convo.HARNESSES["claude-agent"]["roots_fn"] = None
+
+        self.parent_path = self.root / "-project" / "parent-session.jsonl"
+        write_jsonl(self.parent_path, [{
+            "type": "user", "timestamp": "2026-08-20T00:00:00Z", "cwd": "/project",
+            "isMeta": False, "message": {"content": "parent thread prompt"},
+        }, {
+            "type": "assistant", "timestamp": "2026-08-20T00:00:01Z", "cwd": "/project",
+            "message": {"content": [{"type": "text", "text": "parent thread reply"}]},
+        }])
+        self.agent_path = (self.root / "-project" / "parent-session" / "subagents"
+                            / "agent-cafef00d1.jsonl")
+        write_jsonl(self.agent_path, [{
+            "type": "user", "isSidechain": True, "agentId": "cafef00d1",
+            "sessionId": "parent-session", "timestamp": "2026-08-20T00:00:02Z",
+            "cwd": "/project", "message": {"content": "subagent-only investigation task"},
+        }, {
+            "type": "assistant", "isSidechain": True, "agentId": "cafef00d1",
+            "sessionId": "parent-session", "timestamp": "2026-08-20T00:00:03Z",
+            "cwd": "/project", "message": {"content": [
+                {"type": "text", "text": "subagent-only finding"},
+            ]},
+        }])
+        self.agent_path.with_suffix("").with_suffix(".meta.json").write_text(
+            json.dumps({"agentType": "Explore", "description": "Map the thing"}),
+            encoding="utf-8",
+        )
+
+    def tearDown(self):
+        for harness, root in self.original_roots.items():
+            convo.HARNESSES[harness]["root"] = root
+        convo.HARNESSES["claude"]["roots_fn"] = self.original_claude_roots_fn
+        convo.HARNESSES["claude-agent"]["roots_fn"] = self.original_agent_roots_fn
+        self.directory.cleanup()
+
+    def run_convo(self, *args: str) -> tuple[str, str, int]:
+        stdout, stderr = io.StringIO(), io.StringIO()
+        code = 0
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            try:
+                convo.main(list(args))
+            except SystemExit as exc:
+                code = int(exc.code) if isinstance(exc.code, int) else 1
+        return stdout.getvalue(), stderr.getvalue(), code
+
+    def test_default_harness_all_excludes_subagent_transcripts(self):
+        # Default behavior/cost must stay identical for everyone: a project can have far
+        # more subagent transcripts than real sessions, so folding them into "all" would
+        # bury the ordinary "recent sessions" signal `list` exists to give.
+        out, _, code = self.run_convo("list", "--all-projects", "--limit", "50")
+        self.assertEqual(code, 0)
+        self.assertIn("parent-session", out)
+        self.assertNotIn("cafef00d1", out)
+
+    def test_parent_session_load_does_not_include_sidechain_turns(self):
+        s = convo.load_claude(self.parent_path)
+        self.assertEqual([t.text for t in s.turns], ["parent thread prompt", "parent thread reply"])
+
+    def test_explicit_claude_agent_harness_lists_the_subagent_transcript_labeled_distinctly(self):
+        out, _, code = self.run_convo("list", "--harness", "claude-agent", "--all-projects", "--limit", "10")
+        self.assertEqual(code, 0)
+        self.assertIn("CCA", out)
+        self.assertIn("SUBAGENT", out)
+        self.assertIn("Explore", out)
+        self.assertIn("cafef00d1", out)
+
+    def test_grep_finds_subagent_text_only_with_include_subagents_and_labels_the_parent(self):
+        without, _, code_without = self.run_convo(
+            "grep", "subagent-only finding", "--harness", "claude", "--all-projects", "--limit", "10")
+        self.assertEqual(code_without, 1)  # grep convention: no match
+        self.assertNotIn("subagent-only finding", without)
+
+        with_flag, _, code_with = self.run_convo(
+            "grep", "subagent-only finding", "--harness", "claude", "--include-subagents",
+            "--all-projects", "--limit", "10")
+        self.assertEqual(code_with, 0)
+        self.assertIn("subagent-only finding", with_flag)
+        self.assertIn("CCA", with_flag)
+        self.assertIn("subagent of parent-sess", with_flag)
+
+    def test_show_reads_the_full_subagent_transcript_by_agent_id(self):
+        out, err, code = self.run_convo("show", "agent-cafef00d1", "--harness", "claude-agent")
+        self.assertEqual(code, 0, err)
+        self.assertIn("subagent-only investigation task", out)
+        self.assertIn("subagent-only finding", out)
+        self.assertIn("parent-session/agent-cafef00d1", out)
+
+
 class LedgerTests(unittest.TestCase):
     """The ledger is exercised through the CLI to keep its public boundary honest."""
 
@@ -739,6 +926,143 @@ class LedgerTests(unittest.TestCase):
             self.run_convo("grep", "compatibility needle", "--all-projects", "--no-color"),
         ]
         self.assertEqual(before, after)
+
+
+class CappedScanStarvationTests(unittest.TestCase):
+    """The mtime-order candidate cap in discover() can starve out every real session for a
+    harness whose newest-by-mtime files are non-sessions (empty scaffolding, test fixtures,
+    a corrupt in-progress write) — genuine data goes silently missing even though it exists
+    on disk. `list`/`grep` must retry uncapped for a harness that comes back completely empty.
+    """
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.root = Path(self.directory.name)
+        self.original_root = convo.HARNESSES["qwen"]["root"]
+        convo.HARNESSES["qwen"]["root"] = self.root / "qwen"
+        now = time.time()
+
+        # Many recent, empty (non-session) files — these out-rank the real session by
+        # mtime and would fill the whole capped candidate window on their own.
+        for i in range(80):
+            junk = self.root / "qwen" / f"junk-{i}" / "chats" / "empty.jsonl"
+            junk.parent.mkdir(parents=True, exist_ok=True)
+            junk.write_text("", encoding="utf-8")
+            os.utime(junk, (now - i, now - i))
+
+        # One genuine, older session, buried well outside a small mtime-ordered cap.
+        real = self.root / "qwen" / "real-project" / "chats" / "real-session.jsonl"
+        write_jsonl(real, [{
+            "sessionId": "real-session", "timestamp": "2026-08-01T00:00:00Z", "type": "user",
+            "provenance": "real_user", "cwd": "/real-project",
+            "message": {"role": "user", "parts": [{"text": "buried real question"}]},
+        }])
+        os.utime(real, (now - 5000, now - 5000))
+
+    def tearDown(self):
+        convo.HARNESSES["qwen"]["root"] = self.original_root
+        self.directory.cleanup()
+
+    def run_convo(self, *args: str) -> tuple[str, str, int]:
+        stdout, stderr = io.StringIO(), io.StringIO()
+        code = 0
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            try:
+                convo.main(list(args))
+            except SystemExit as exc:
+                code = int(exc.code) if isinstance(exc.code, int) else 1
+        return stdout.getvalue(), stderr.getvalue(), code
+
+    def test_list_retries_uncapped_and_still_finds_the_buried_real_session(self):
+        out, _, code = self.run_convo(
+            "list", "--harness", "qwen", "--all-projects", "--limit", "5")
+        self.assertEqual(code, 0)
+        self.assertIn("real-session", out)
+
+    def test_grep_retries_uncapped_and_still_finds_the_buried_real_session(self):
+        out, _, code = self.run_convo(
+            "grep", "buried real question", "--harness", "qwen", "--all-projects", "--limit", "5")
+        self.assertEqual(code, 0)
+        self.assertIn("real-session", out)
+
+    def test_grep_discloses_when_a_harness_scan_was_bounded(self):
+        # A capped scan that DOES find hits (so the starvation retry never fires) must not
+        # look identical to a full-corpus search — the cap is real and must be disclosed.
+        for i in range(80):
+            recent = self.root / "qwen" / f"decoy-{i}" / "chats" / "decoy.jsonl"
+            recent.parent.mkdir(parents=True, exist_ok=True)
+            write_jsonl(recent, [{
+                "sessionId": f"decoy-{i}", "timestamp": "2026-08-20T00:00:00Z", "type": "user",
+                "provenance": "real_user", "cwd": "/decoy",
+                "message": {"role": "user", "parts": [{"text": "buried real question decoy"}]},
+            }])
+            os.utime(recent, (time.time() - i, time.time() - i))
+        _, err, code = self.run_convo(
+            "grep", "buried real question", "--harness", "qwen", "--all-projects", "--limit", "5")
+        self.assertEqual(code, 0)
+        self.assertIn("scan bounded by --limit", err)
+        self.assertIn("qwen", err)
+
+
+class ShowFromUserTests(unittest.TestCase):
+    """`show --from-user` prints only the human's own messages — the ask/decision trail —
+    with no agent replies, for the recurring "give me the whole story" use case.
+    """
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.root = Path(self.directory.name)
+        self.original_root = convo.HARNESSES["claude"]["root"]
+        self.original_roots_fn = convo.HARNESSES["claude"]["roots_fn"]
+        convo.HARNESSES["claude"]["root"] = self.root / "claude"
+        convo.HARNESSES["claude"]["roots_fn"] = None
+        self.path = self.root / "claude" / "project" / "session.jsonl"
+        write_jsonl(self.path, [
+            {"type": "user", "timestamp": "2026-08-01T00:00:00Z", "cwd": "/project",
+             "isMeta": False, "message": {"content": "first human question"}},
+            {"type": "assistant", "timestamp": "2026-08-01T00:00:01Z",
+             "message": {"content": [{"type": "text", "text": "agent reply one"}]}},
+            {"type": "user", "timestamp": "2026-08-01T00:00:02Z", "cwd": "/project",
+             "isMeta": False, "message": {"content": "second human question"}},
+            {"type": "assistant", "timestamp": "2026-08-01T00:00:03Z",
+             "message": {"content": [{"type": "text", "text": "agent reply two"}]}},
+        ])
+
+    def tearDown(self):
+        convo.HARNESSES["claude"]["root"] = self.original_root
+        convo.HARNESSES["claude"]["roots_fn"] = self.original_roots_fn
+        self.directory.cleanup()
+
+    def run_convo(self, *args: str) -> tuple[str, str, int]:
+        stdout, stderr = io.StringIO(), io.StringIO()
+        code = 0
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            try:
+                convo.main(list(args))
+            except SystemExit as exc:
+                code = int(exc.code) if isinstance(exc.code, int) else 1
+        return stdout.getvalue(), stderr.getvalue(), code
+
+    def test_prints_only_user_messages_no_agent_text(self):
+        out, err, code = self.run_convo("show", str(self.path), "--from-user")
+        self.assertEqual(code, 0, err)
+        self.assertIn("first human question", out)
+        self.assertIn("second human question", out)
+        self.assertNotIn("agent reply", out)
+
+    def test_json_shape_is_user_messages_list(self):
+        out, err, code = self.run_convo("show", str(self.path), "--from-user", "--json")
+        self.assertEqual(code, 0, err)
+        data = json.loads(out)
+        self.assertEqual(set(data), {"harness", "session_id", "path", "project", "user_messages"})
+        self.assertEqual([m["text"] for m in data["user_messages"]],
+                          ["first human question", "second human question"])
+
+    def test_dash_n_bounds_to_the_last_n_user_messages(self):
+        out, err, code = self.run_convo("show", str(self.path), "--from-user", "-n", "1")
+        self.assertEqual(code, 0, err)
+        self.assertNotIn("first human question", out)
+        self.assertIn("second human question", out)
 
 
 class PackagingBoundaryTests(unittest.TestCase):
