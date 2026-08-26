@@ -1065,6 +1065,79 @@ class ShowFromUserTests(unittest.TestCase):
         self.assertIn("second human question", out)
 
 
+class ShowFromUserQueuedMessageTests(unittest.TestCase):
+    """A human can type a follow-up while the agent is still mid-turn; Claude Code
+    QUEUES it and auto-delivers it at turn end as a normal `type: "user"` row tagged
+    `promptSource: "queued"` (real shape confirmed against live ~/.claude/projects
+    JSONL). It is still a real human message — origin.kind is "human" — and must
+    surface in `--from-user` exactly like a typed one. Also covers back-to-back
+    queued messages delivered with no assistant turn between them (a human can queue
+    more than one correction in a single agent turn), which is the common real case.
+    """
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.root = Path(self.directory.name)
+        self.original_root = convo.HARNESSES["claude"]["root"]
+        self.original_roots_fn = convo.HARNESSES["claude"]["roots_fn"]
+        convo.HARNESSES["claude"]["root"] = self.root / "claude"
+        convo.HARNESSES["claude"]["roots_fn"] = None
+        self.path = self.root / "claude" / "project" / "session.jsonl"
+        write_jsonl(self.path, [
+            {"type": "user", "timestamp": "2026-08-01T00:00:00Z", "cwd": "/project",
+             "isMeta": False, "isSidechain": False, "origin": {"kind": "human"},
+             "promptSource": "typed",
+             "message": {"content": "start the refactor"}},
+            {"type": "assistant", "timestamp": "2026-08-01T00:00:01Z", "isSidechain": False,
+             "message": {"content": [{"type": "text", "text": "starting now"}]}},
+            {"type": "user", "timestamp": "2026-08-01T00:00:02Z", "cwd": "/project",
+             "isMeta": False, "isSidechain": False, "origin": {"kind": "human"},
+             "promptSource": "queued",
+             "message": {"content": "queued while you were mid-turn: also update the docs"}},
+            {"type": "user", "timestamp": "2026-08-01T00:00:03Z", "cwd": "/project",
+             "isMeta": False, "isSidechain": False, "origin": {"kind": "human"},
+             "promptSource": "queued",
+             "message": {"content": "second queued correction, same turn"}},
+            {"type": "assistant", "timestamp": "2026-08-01T00:00:04Z", "isSidechain": False,
+             "message": {"content": [{"type": "text", "text": "done, docs updated too"}]}},
+        ])
+
+    def tearDown(self):
+        convo.HARNESSES["claude"]["root"] = self.original_root
+        convo.HARNESSES["claude"]["roots_fn"] = self.original_roots_fn
+        self.directory.cleanup()
+
+    def run_convo(self, *args: str) -> tuple[str, str, int]:
+        stdout, stderr = io.StringIO(), io.StringIO()
+        code = 0
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            try:
+                convo.main(list(args))
+            except SystemExit as exc:
+                code = int(exc.code) if isinstance(exc.code, int) else 1
+        return stdout.getvalue(), stderr.getvalue(), code
+
+    def test_queued_human_messages_surface_in_from_user(self):
+        out, err, code = self.run_convo("show", str(self.path), "--from-user")
+        self.assertEqual(code, 0, err)
+        self.assertIn("start the refactor", out)
+        self.assertIn("queued while you were mid-turn: also update the docs", out)
+        self.assertIn("second queued correction, same turn", out)
+        self.assertNotIn("starting now", out)
+        self.assertNotIn("done, docs updated too", out)
+
+    def test_queued_human_messages_surface_in_from_user_json(self):
+        out, err, code = self.run_convo("show", str(self.path), "--from-user", "--json")
+        self.assertEqual(code, 0, err)
+        data = json.loads(out)
+        texts = [m["text"] for m in data["user_messages"]]
+        self.assertEqual(texts, [
+            "start the refactor",
+            "queued while you were mid-turn: also update the docs",
+            "second queued correction, same turn",
+        ])
+
+
 class PackagingBoundaryTests(unittest.TestCase):
     def test_convo_private_ledger_is_not_vendored_with_uncompact(self):
         self.assertTrue((REPO / "tools" / "convo" / "lib" / "convo_ledger.py").is_file())
