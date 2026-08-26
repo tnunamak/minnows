@@ -271,6 +271,18 @@ def _parse_claude_jsonl_turns(path: Path, *, want_sidechain: bool) -> tuple[Opti
                     if turns and turns[-1].role == "assistant":
                         turns[-1].events.extend(events)
 
+        elif rtype == "attachment":
+            att = row.get("attachment")
+            if (isinstance(att, dict) and att.get("type") == "queued_command"
+                    and att.get("commandMode") == "prompt"
+                    and isinstance(att.get("origin"), dict)
+                    and att["origin"].get("kind") == "human"):
+                # A message typed while the agent was mid-turn: Claude Code queues it and
+                # delivers it later as this attachment record instead of a fresh "user" row.
+                txt = clean_text(att.get("prompt", ""))
+                if txt:
+                    turns.append(Turn("user", txt, ts))
+
         elif rtype == "assistant":
             msg = row.get("message", {})
             content = msg.get("content", [])
@@ -1323,6 +1335,15 @@ def _normalized_jsonl_row(harness: str, row: dict, cwd: Optional[str]) -> tuple[
                         parts.append("[image]")
                 if parts:
                     out.append(("user", "\n\n".join(parts), ts))
+        elif rtype == "attachment":
+            att = row.get("attachment")
+            if (isinstance(att, dict) and att.get("type") == "queued_command"
+                    and att.get("commandMode") == "prompt"
+                    and isinstance(att.get("origin"), dict)
+                    and att["origin"].get("kind") == "human"):
+                text = clean_text(att.get("prompt", ""))
+                if text:
+                    out.append(("user", text, ts))
         elif rtype == "assistant":
             parts = []
             blocks = content if isinstance(content, list) else [{"type": "text", "text": content}]

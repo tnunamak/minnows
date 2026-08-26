@@ -1138,6 +1138,85 @@ class ShowFromUserQueuedMessageTests(unittest.TestCase):
         ])
 
 
+class ShowFromUserQueuedCommandAttachmentTests(unittest.TestCase):
+    """A human can also type a follow-up that Claude Code delivers not as a fresh
+    `type: "user"` row but as a `type: "attachment"` row whose `attachment.type` is
+    `"queued_command"` (real shape confirmed against live ~/.claude/projects JSONL —
+    421 occurrences found in one session file alone). `commandMode` distinguishes a
+    real human prompt ("prompt") from an unrelated queued-command use, background
+    task-notification delivery ("task-notification"), which must NOT be attributed
+    to the user. Only `origin.kind == "human"` with `commandMode == "prompt"` is a
+    real human message and must surface in `--from-user`.
+    """
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.root = Path(self.directory.name)
+        self.original_root = convo.HARNESSES["claude"]["root"]
+        self.original_roots_fn = convo.HARNESSES["claude"]["roots_fn"]
+        convo.HARNESSES["claude"]["root"] = self.root / "claude"
+        convo.HARNESSES["claude"]["roots_fn"] = None
+        self.path = self.root / "claude" / "project" / "session.jsonl"
+        write_jsonl(self.path, [
+            {"type": "user", "timestamp": "2026-08-01T00:00:00Z", "cwd": "/project",
+             "isMeta": False, "isSidechain": False, "origin": {"kind": "human"},
+             "promptSource": "typed",
+             "message": {"content": "start the refactor"}},
+            {"type": "assistant", "timestamp": "2026-08-01T00:00:01Z", "isSidechain": False,
+             "message": {"content": [{"type": "text", "text": "starting now"}]}},
+            {"type": "attachment", "timestamp": "2026-08-01T00:00:02Z", "isSidechain": False,
+             "attachment": {"type": "queued_command",
+                             "prompt": "typed mid-turn: also update the docs",
+                             "commandMode": "prompt", "origin": {"kind": "human"},
+                             "timestamp": "2026-08-01T00:00:02Z"}},
+            {"type": "attachment", "timestamp": "2026-08-01T00:00:03Z", "isSidechain": False,
+             "attachment": {"type": "queued_command",
+                             "prompt": "background task finished",
+                             "commandMode": "task-notification",
+                             "timestamp": "2026-08-01T00:00:03Z"}},
+            {"type": "assistant", "timestamp": "2026-08-01T00:00:04Z", "isSidechain": False,
+             "message": {"content": [{"type": "text", "text": "done, docs updated too"}]}},
+        ])
+
+    def tearDown(self):
+        convo.HARNESSES["claude"]["root"] = self.original_root
+        convo.HARNESSES["claude"]["roots_fn"] = self.original_roots_fn
+        self.directory.cleanup()
+
+    def run_convo(self, *args: str) -> tuple[str, str, int]:
+        stdout, stderr = io.StringIO(), io.StringIO()
+        code = 0
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            try:
+                convo.main(list(args))
+            except SystemExit as exc:
+                code = int(exc.code) if isinstance(exc.code, int) else 1
+        return stdout.getvalue(), stderr.getvalue(), code
+
+    def test_queued_command_attachment_surfaces_in_from_user(self):
+        out, err, code = self.run_convo("show", str(self.path), "--from-user")
+        self.assertEqual(code, 0, err)
+        self.assertIn("start the refactor", out)
+        self.assertIn("typed mid-turn: also update the docs", out)
+        self.assertNotIn("starting now", out)
+        self.assertNotIn("done, docs updated too", out)
+
+    def test_task_notification_attachment_is_not_attributed_to_user(self):
+        out, err, code = self.run_convo("show", str(self.path), "--from-user")
+        self.assertEqual(code, 0, err)
+        self.assertNotIn("background task finished", out)
+
+    def test_queued_command_attachment_surfaces_in_from_user_json(self):
+        out, err, code = self.run_convo("show", str(self.path), "--from-user", "--json")
+        self.assertEqual(code, 0, err)
+        data = json.loads(out)
+        texts = [m["text"] for m in data["user_messages"]]
+        self.assertEqual(texts, [
+            "start the refactor",
+            "typed mid-turn: also update the docs",
+        ])
+
+
 class PackagingBoundaryTests(unittest.TestCase):
     def test_convo_private_ledger_is_not_vendored_with_uncompact(self):
         self.assertTrue((REPO / "tools" / "convo" / "lib" / "convo_ledger.py").is_file())
