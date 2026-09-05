@@ -233,6 +233,16 @@
       "unit_default": "elo"
     },
     {
+      "id": "cursorbench-3-2-0",
+      "name": "CursorBench 3.2.0",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Agentic coding benchmark; vendor-reported rows carry grade C."
+    },
+    {
       "id": "cybergym",
       "name": "CyberGym",
       "direction": "higher_better",
@@ -787,6 +797,16 @@
       "unit_default": "accuracy",
       "comparable": false,
       "notes": "MIXED provenance under this id — do NOT cross-rank without checking source_type. Vendor launch-chart rows (openai.com GPT-6 Astra page) and secondary-audit rows (capitalandcompute.net reading of the 2026-09-03 board) report DIFFERENT numbers for the same nominal benchmark and must not be merged or averaged. Result is Astra+Codex+TB4.0, not a model-only score."
+    },
+    {
+      "id": "terminal-bench-science-0-1",
+      "name": "Terminal-Bench Science 0.1",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vendor-reported rows carry grade C. Anthropic notes the public board uses three trials/task and that its Fable/Opus recreations sit within noise."
     },
     {
       "id": "terminal-bench-v2-1-aa-terminus-2",

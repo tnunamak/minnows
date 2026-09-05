@@ -4,14 +4,16 @@
   "schema_version": 1,
   "kind": "api_usd",
   "agent": "google",
-  "retrieved_at": "2026-07-09",
+  "retrieved_at": "2026-09-05",
   "source_urls": [
     "https://ai.google.dev/gemini-api/docs/pricing"
   ],
   "source_ids": [
-    "google-gemini-pricing-2026-07-09"
+    "google-gemini-models-2026-09-05",
+    "google-gemini-pricing-2026-07-09",
+    "google-gemini-pricing-2026-09-05"
   ],
-  "notes": "Standard paid tier USD/1MTok for prompts ≤200k where tiered. Long-context higher rates on source page not separate model ids. cache_write_per_m=0 (storage billed hourly, not write multiplier). Batch/Flex often ~50% off — not modeled here. role=reference: priced for lookup only; no waspflow provider and no policy ops. Do not treat as integrated. 2026-09-05 audit (delegated researcher, primary source ai.google.dev): all existing rows re-verified UNCHANGED — gemini-3.1-pro-preview, 3.5-flash, 3-flash-preview, 3.1-flash-lite, 2.5-pro, 2.5-flash, 2.5-flash-lite. NOT APPLIED, needs direct verification before entry: (a) a >200k-token tier for gemini-3.1-pro-preview (4.00/18.00) and gemini-2.5-pro (2.50/15.00) which this flat-rate schema does not model; (b) new Flash models 3.6/3.7/3.8-flash and 3.5-flash-lite reported promo-priced through 2026-12-31; (c) the researcher flagged as surprising that no Pro model newer than 3.1-pro-preview was found while the Flash line advanced to 3.8 — treat as unconfirmed until re-checked.",
+  "notes": "Standard paid tier USD/1MTok for prompts ≤200k where tiered. Long-context higher rates on source page not separate model ids. cache_write_per_m=0 (storage billed hourly, not write multiplier). Batch/Flex often ~50% off — not modeled here. role=reference: priced for lookup only; no waspflow provider and no policy ops. Do not treat as integrated. 2026-09-05 audit (delegated researcher, primary source ai.google.dev): all existing rows re-verified UNCHANGED — gemini-3.1-pro-preview, 3.5-flash, 3-flash-preview, 3.1-flash-lite, 2.5-pro, 2.5-flash, 2.5-flash-lite. NOT APPLIED, needs direct verification before entry: (a) a >200k-token tier for gemini-3.1-pro-preview (4.00/18.00) and gemini-2.5-pro (2.50/15.00) which this flat-rate schema does not model; (b) new Flash models 3.6/3.7/3.8-flash and 3.5-flash-lite reported promo-priced through 2026-12-31; (c) the researcher flagged as surprising that no Pro model newer than 3.1-pro-preview was found while the Flash line advanced to 3.8 — treat as unconfirmed until re-checked. 2026-09-05: ADDED four current models missing from this file — gemini-3.8-flash (2026-09-02), 3.7-flash (2026-08-13), 3.6-flash (2026-07-21) all at the INTRO rate 0.75/3.75 with valid_until 2026-12-31 (they rise to 1.50/7.50 on 2027-01-01, which this flat schema cannot express as a future row); and gemini-3.5-flash-lite at 0.30/2.50. Output prices INCLUDE thinking tokens. NOT MODELED, documented rather than guessed: Batch/Flex/Priority service classes; cache STORAGE at 0.50/MTok-hour (intro) which is a per-hour charge this schema has no field for; and the >200k tier for gemini-3.1-pro-preview (4.00/18.00) and gemini-2.5-pro (2.50/15.00) — the existing flat rows for those two are the <=200k tier ONLY. ROSTER FLAG: gemini-3-pro is not on Google's current text roster; the live page lists gemini-3-pro-image, a separate image model. Left in place pending verification of its original source rather than renamed.",
   "models": {
     "gemini-3.1-pro-preview": {
       "fresh_input_per_m": 2.0,
@@ -54,6 +56,41 @@
       "cache_read_per_m": 0.01,
       "cache_write_per_m": 0,
       "output_per_m": 0.4
+    },
+    "gemini-3.8-flash": {
+      "fresh_input_per_m": 0.75,
+      "cache_read_per_m": 0.075,
+      "cache_write_per_m": 0,
+      "output_per_m": 3.75,
+      "confidence": "high",
+      "valid_from": "2026-09-05",
+      "valid_until": "2026-12-31"
+    },
+    "gemini-3.7-flash": {
+      "fresh_input_per_m": 0.75,
+      "cache_read_per_m": 0.075,
+      "cache_write_per_m": 0,
+      "output_per_m": 3.75,
+      "confidence": "high",
+      "valid_from": "2026-09-05",
+      "valid_until": "2026-12-31"
+    },
+    "gemini-3.6-flash": {
+      "fresh_input_per_m": 0.75,
+      "cache_read_per_m": 0.075,
+      "cache_write_per_m": 0,
+      "output_per_m": 3.75,
+      "confidence": "high",
+      "valid_from": "2026-09-05",
+      "valid_until": "2026-12-31"
+    },
+    "gemini-3.5-flash-lite": {
+      "fresh_input_per_m": 0.30,
+      "cache_read_per_m": 0.03,
+      "cache_write_per_m": 0,
+      "output_per_m": 2.50,
+      "confidence": "high",
+      "valid_from": "2026-09-05"
     }
   },
   "match": [
@@ -89,6 +126,22 @@
       "pattern": "gemini",
       "model": "gemini-3.1-pro-preview",
       "family_default": true
+    },
+    {
+      "pattern": "gemini-3.8-flash",
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "pattern": "gemini-3.7-flash",
+      "model": "gemini-3.7-flash"
+    },
+    {
+      "pattern": "gemini-3.6-flash",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "pattern": "gemini-3.5-flash-lite",
+      "model": "gemini-3.5-flash-lite"
     }
   ],
   "role": "reference"

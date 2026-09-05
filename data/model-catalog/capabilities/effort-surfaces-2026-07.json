@@ -17,7 +17,9 @@
   "source_ids": [
     "anthropic-claude-code-model-config-2026-07-09",
     "anthropic-effort-docs-2026-07-09",
+    "anthropic-fable-mythos-5-1-2026-09-01",
     "anthropic-opus-5-2026-07-24",
+    "google-gemini-thinking-2026-09-05",
     "openai-codex-config-2026-07-09",
     "openai-codex-debug-models-2026-09-05",
     "openai-codex-models-2026-08-02",
@@ -708,6 +710,146 @@
         "openai-codex-debug-models-2026-09-05"
       ],
       "notes": "Astra has NO minimal level (unlike gpt-5.5/5.6 codex_cli rows). Live catalog agrees with docs on efforts and default=medium."
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-fable-5-1",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "anthropic-fable-mythos-5-1-2026-09-01",
+        "anthropic-pricing-2026-09-05"
+      ],
+      "notes": "All five levels measured in the launch curves. The claude-fable-5 surface is NOT the authority for its successor."
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-mythos-5-1",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard",
+          "notes": "RESTRICTED: trusted-access only, not generally dispatchable despite ga status in models.json. Same underlying weights as claude-fable-5-1; differs only in safeguards."
+        }
+      ],
+      "source_ids": [
+        "anthropic-fable-mythos-5-1-2026-09-01"
+      ],
+      "notes": "Access-restricted. Do not duplicate Fable 5.1 scores as independent Mythos measurements."
+    },
+    {
+      "provider": "google",
+      "model": "gemini-3.8-flash",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "google-gemini-thinking-2026-09-05"
+      ],
+      "notes": "Gemini 3.x uses discrete thinkingLevel, NOT the numeric thinking_budget of 2.5 — different control surfaces. `minimal` errors on this model."
+    },
+    {
+      "provider": "google",
+      "model": "gemini-3.7-flash",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "google-gemini-thinking-2026-09-05"
+      ],
+      "notes": "`minimal` errors on this model."
+    },
+    {
+      "provider": "google",
+      "model": "gemini-3.6-flash",
+      "surface": "api",
+      "valid_efforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "google-gemini-thinking-2026-09-05"
+      ],
+      "notes": "Accepts minimal, unlike 3.7/3.8."
+    },
+    {
+      "provider": "google",
+      "model": "gemini-3.5-flash-lite",
+      "surface": "api",
+      "valid_efforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high"
+      ],
+      "default_effort": "minimal",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "google-gemini-thinking-2026-09-05"
+      ],
+      "notes": "Defaults to minimal, unlike the Flash line."
     }
   ],
   "missing": [
@@ -715,6 +857,9 @@
     "Astra: whether reasoning effort changes the per-token credit RATE or only token volume — vendor pricing page still does not say. (Per-effort TIME data EXISTS in the raw launch capture for Terminal-Bench 4.0, FrontierCode 1.1 and the AA Coding Agent Index, but is NOT ingested: the payload key is latency_s while the labels read minutes, and TB4.0 calls it SIMULATED time. Unit must be settled before any row claims it.)",
     "Astra: whether ultra's subagent delegation multiplies billed tokens beyond the single-agent run (behavioural, not just deeper reasoning — cost model may differ in kind)",
     "Vendor docs (2026-09-05) list ultra for gpt-5.6-sol/terra/luna and default=medium for sol, but this host's live `codex debug models` shows luna WITHOUT ultra and sol default=low — unresolved docs-vs-auth-scoped-catalog disagreement",
-    "Whether Codex CLI honors `max` as a literal model_reasoning_effort config value for the GPT-5.6 pins specifically. PARTIALLY RESOLVED 2026-09-05: `codex exec -c model_reasoning_effort=ultra --model gpt-5.6-terra` completed a turn while a bogus value returned HTTP 400, proving the -c surface does accept levels beyond the old published enum; `max` itself was not separately probed per-model."
+    "Whether Codex CLI honors `max` as a literal model_reasoning_effort config value for the GPT-5.6 pins specifically. PARTIALLY RESOLVED 2026-09-05: `codex exec -c model_reasoning_effort=ultra --model gpt-5.6-terra` completed a turn while a bogus value returned HTTP 400, proving the -c surface does accept levels beyond the old published enum; `max` itself was not separately probed per-model.",
+    "Google: no published same-model thinking-level performance/cost curve for the new Flash line — thinking levels and thinking-token pricing are documented, but no effort-vs-quality series. Do NOT manufacture a Gemini effort recommendation from family launch claims.",
+    "Google gemini-2.5 line uses numeric thinking_budget rather than Gemini 3 thinkingLevel; no surface recorded here because the two are not the same control.",
+    "Anthropic: no same-model effort curves for sonnet-4-5/4-6, haiku-4-5, or opus-4-5..4-8."
   ]
 }

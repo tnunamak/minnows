@@ -176,6 +176,34 @@
       "aliases": []
     },
     {
+      "id": "gemini-3.5-flash-lite",
+      "provider": "google",
+      "family": "gemini-3",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gemini-3.6-flash",
+      "provider": "google",
+      "family": "gemini-3",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gemini-3.7-flash",
+      "provider": "google",
+      "family": "gemini-3",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gemini-3.8-flash",
+      "provider": "google",
+      "family": "gemini-3",
+      "status": "ga",
+      "aliases": []
+    },
+    {
       "id": "glm-5.1",
       "provider": "other",
       "family": "glm",

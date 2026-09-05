@@ -564,6 +564,46 @@
       "retrieved_at": "2026-09-05",
       "kind": "third_party_eval",
       "notes": "Live board fetched 2026-09-05, updated 2026-09-03. v1.1, 113 tasks, mini-swe-agent harness (NOT native Codex). Sol max 73% ±3 $6.46 60k out 61 steps; Luna max 67% ±4 $0.61 73k out 102 steps; GPT-5.5 xhigh 67% ±6 $7.23 46k out 82 steps. Sol's cost moved 8.39 -> 6.46 at an unchanged score vs the 2026-07-25 snapshot. Static response exposed selected rows only — no Terra row was retrieved, which is a RETRIEVAL LIMIT, not evidence Terra is absent from the board. Sol/Luna CIs overlap."
+    },
+    {
+      "id": "anthropic-fable-mythos-5-1-2026-09-01",
+      "url": "https://www.anthropic.com/claude-fable-and-mythos-5-1",
+      "title": "Claude Fable 5.1 and Mythos 5.1 launch",
+      "publisher": "Anthropic",
+      "published": "2026-09-01",
+      "retrieved_at": "2026-09-05",
+      "kind": "vendor_blog",
+      "notes": "Effort-by-cost-by-quality values read from the page's server-rendered inline SVG accessible aria-labels — EXACT published values, not pixel digitization. Anthropic states Fable 5.1 and Mythos 5.1 are the SAME underlying model differing only in safeguards (Fable GA with cyber/bio safeguards, Mythos trusted-access), so they must not be treated as two independently benchmarked weights. Fable's displayed scores use production safeguards and can route to Opus on some restricted tasks. Anthropic states standard error ±3.5-4.5 points/model on Terminal-Bench Science."
+    },
+    {
+      "id": "google-gemini-models-2026-09-05",
+      "url": "https://ai.google.dev/gemini-api/docs/models",
+      "title": "Gemini API models",
+      "publisher": "Google",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "vendor_docs",
+      "notes": "Current text roster. GA: gemini-3.8-flash (2026-09-02), 3.7-flash (2026-08-13), 3.6-flash (2026-07-21), 3.5-flash, 3.5-flash-lite (2026-07-21), 3.1-flash-lite (earliest shutdown 2027-05-07). Preview: 3.1-pro-preview, 3-flash-preview (replacement 3.6-flash). NOTE gemini-3-pro is NOT on the current text roster; the live page has gemini-3-pro-image, a separate image model — do not rename one into the other."
+    },
+    {
+      "id": "google-gemini-pricing-2026-09-05",
+      "url": "https://ai.google.dev/gemini-api/docs/pricing",
+      "title": "Gemini API pricing",
+      "publisher": "Google",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "vendor_docs",
+      "notes": "New Flash line intro pricing $0.75/$3.75 USD/MTok through 2026-12-31, rising to $1.50/$7.50 on 2027-01-01. Batch/Flex $0.375/$1.875 intro then $0.75/$3.75; Priority $1.35/$6.75 intro then $2.70/$13.50. Cache reads follow the corresponding input tier; cache storage $0.50/MTok-hour intro then $1.00. Output prices INCLUDE thinking tokens. This pack's flat pricing schema cannot express multiple service classes or future-dated prices; only the standard-tier intro rate is stored, with valid_until."
+    },
+    {
+      "id": "google-gemini-thinking-2026-09-05",
+      "url": "https://ai.google.dev/gemini-api/docs/generate-content/thinking",
+      "title": "Gemini thinking controls",
+      "publisher": "Google",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "vendor_docs",
+      "notes": "Gemini 3.x uses discrete thinkingLevel; Gemini 2.5 uses a numeric thinking_budget — DIFFERENT control surfaces, not interchangeable. 3.8/3.7-flash accept low/medium/high (minimal errors), default medium. 3.6-flash and the flash-lite line accept minimal/low/medium/high."
     }
   ]
 }
