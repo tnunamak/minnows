@@ -1,0 +1,92 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "schema_version": 1,
+  "id": "deepswe-leaderboard-2026-09",
+  "kind": "performance",
+  "provider": "openai",
+  "retrieved_at": "2026-09-05",
+  "source_ids": [
+    "deepswe-leaderboard-2026-09-05"
+  ],
+  "source_urls": [
+    "https://deepswe.datacurve.ai/"
+  ],
+  "notes": "Dated snapshot of the LIVE DeepSWE board (2026-09-05; board updated 2026-09-03). Does NOT replace performance/deepswe-leaderboard-gpt-5-6-2026-08.json — that remains the 2026-07-25 observation. CHANGE WORTH NOTING: gpt-5.6-sol max holds 73% but its average cost moved 8.39 -> 6.46 usd_per_task, consistent with the API rate cut applied this session; the score did not move. Sol and Luna CIs overlap (±3 / ±4), so their 6-point gap is not separated by this board. NO TERRA ROW was retrievable from the static response — a retrieval limit, not an absence claim.",
+  "claims": [],
+  "missing": [
+    "A Terra row on the current board (not retrievable from the static response)",
+    "A stable all-config export or API from DeepSWE, so effort variants beyond the single published one per model could be compared",
+    "Any native-Codex-harness DeepSWE run; every row here is mini-swe-agent"
+  ],
+  "scores": [
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "DeepSWE Leaderboard (datacurve.ai)",
+      "score": 0.73,
+      "unit": "pass_rate",
+      "effort": "max",
+      "harness": "mini-swe-agent",
+      "source_id": "deepswe-leaderboard-2026-09-05",
+      "caveat": "v1.1, 113 tasks. 95% CI ±3 points. 60k output tokens, 61 steps. mini-swe-agent scaffold, NOT Codex's native harness. Board updated 2026-09-03; live board, so this is a dated snapshot.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-05",
+      "effort_verbatim": "max",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "comparable": false,
+      "comparability_group": "deepswe-datacurve-2026-09-05",
+      "cost": {
+        "value": 6.46,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "DeepSWE Leaderboard (datacurve.ai)",
+      "score": 0.67,
+      "unit": "pass_rate",
+      "effort": "max",
+      "harness": "mini-swe-agent",
+      "source_id": "deepswe-leaderboard-2026-09-05",
+      "caveat": "v1.1, 113 tasks. 95% CI ±4 points. 73k output tokens, 102 steps. mini-swe-agent scaffold, NOT Codex's native harness. Board updated 2026-09-03; live board, so this is a dated snapshot.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-05",
+      "effort_verbatim": "max",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "comparable": false,
+      "comparability_group": "deepswe-datacurve-2026-09-05",
+      "cost": {
+        "value": 0.61,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "metric": "DeepSWE Leaderboard (datacurve.ai)",
+      "score": 0.67,
+      "unit": "pass_rate",
+      "effort": "xhigh",
+      "harness": "mini-swe-agent",
+      "source_id": "deepswe-leaderboard-2026-09-05",
+      "caveat": "v1.1, 113 tasks. 95% CI ±6 points. 46k output tokens, 82 steps. mini-swe-agent scaffold, NOT Codex's native harness. Board updated 2026-09-03; live board, so this is a dated snapshot.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-05",
+      "effort_verbatim": "xhigh",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "comparable": false,
+      "comparability_group": "deepswe-datacurve-2026-09-05",
+      "cost": {
+        "value": 7.23,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    }
+  ]
+}

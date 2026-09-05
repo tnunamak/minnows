@@ -523,7 +523,7 @@
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "vendor_blog",
-      "notes": "Numbers parsed from the page's public Next.js hydration payload (vegaLiteSpec), NOT digitized from images — exact values, not chart reads. Nine benchmark charts with effort_display labels and x_metric rows for api_cost_usd, latency_s and output_tokens. Method + raw capture: minnows/tmp/workstreams/astra-launch-chart-evidence-2026-09-05.json. VENDOR-published, so grade C even where a chart is named after a third-party benchmark."
+      "notes": "Numbers parsed from the page's public Next.js hydration payload (vegaLiteSpec), NOT digitized from images — exact values, not chart reads. Nine benchmark charts with effort_display labels and x_metric rows for api_cost_usd, output_tokens, and a time series keyed latency_s whose values are actually MINUTES (x_label: \"28.72 minutes\") and, on Terminal-Bench 4.0, SIMULATED time rather than wall-clock; the AA chart uses the same key with no label, so its unit is unconfirmed. Method + raw capture: minnows/tmp/workstreams/astra-launch-chart-evidence-2026-09-05.json. VENDOR-published, so grade C even where a chart is named after a third-party benchmark."
     },
     {
       "id": "arcprize-gpt-6-astra-2026-09-05",
@@ -554,6 +554,16 @@
       "retrieved_at": "2026-09-05",
       "kind": "third_party_eval",
       "notes": "Independently measured aggregate of 10 evaluations, monotonic in both capability and cost across efforts. Its $/task is a weighted reconstruction across a mixed task basket, NOT a production task price."
+    },
+    {
+      "id": "deepswe-leaderboard-2026-09-05",
+      "url": "https://deepswe.datacurve.ai/",
+      "title": "DeepSWE leaderboard (live, v1.1)",
+      "publisher": "Datacurve",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "third_party_eval",
+      "notes": "Live board fetched 2026-09-05, updated 2026-09-03. v1.1, 113 tasks, mini-swe-agent harness (NOT native Codex). Sol max 73% ±3 $6.46 60k out 61 steps; Luna max 67% ±4 $0.61 73k out 102 steps; GPT-5.5 xhigh 67% ±6 $7.23 46k out 82 steps. Sol's cost moved 8.39 -> 6.46 at an unchanged score vs the 2026-07-25 snapshot. Static response exposed selected rows only — no Terra row was retrieved, which is a RETRIEVAL LIMIT, not evidence Terra is absent from the board. Sol/Luna CIs overlap."
     }
   ]
 }

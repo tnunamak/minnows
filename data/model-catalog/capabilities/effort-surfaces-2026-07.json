@@ -712,7 +712,7 @@
   ],
   "missing": [
     "Google Gemini thinking-budget enum as effort surface",
-    "Astra: whether reasoning effort changes the per-token credit RATE or only token volume — vendor pricing page still does not say. (Per-effort LATENCY is now HELD: openai-gpt-6-astra-launch-2026-09 carries latency_s for Terminal-Bench 4.0, FrontierCode 1.1 and the AA Coding Agent Index.)",
+    "Astra: whether reasoning effort changes the per-token credit RATE or only token volume — vendor pricing page still does not say. (Per-effort TIME data EXISTS in the raw launch capture for Terminal-Bench 4.0, FrontierCode 1.1 and the AA Coding Agent Index, but is NOT ingested: the payload key is latency_s while the labels read minutes, and TB4.0 calls it SIMULATED time. Unit must be settled before any row claims it.)",
     "Astra: whether ultra's subagent delegation multiplies billed tokens beyond the single-agent run (behavioural, not just deeper reasoning — cost model may differ in kind)",
     "Vendor docs (2026-09-05) list ultra for gpt-5.6-sol/terra/luna and default=medium for sol, but this host's live `codex debug models` shows luna WITHOUT ultra and sol default=low — unresolved docs-vs-auth-scoped-catalog disagreement",
     "Whether Codex CLI honors `max` as a literal model_reasoning_effort config value for the GPT-5.6 pins specifically. PARTIALLY RESOLVED 2026-09-05: `codex exec -c model_reasoning_effort=ultra --model gpt-5.6-terra` completed a turn while a bogus value returned HTTP 400, proving the -c surface does accept levels beyond the old published enum; `max` itself was not separately probed per-model."
