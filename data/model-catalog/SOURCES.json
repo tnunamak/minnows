@@ -444,6 +444,26 @@
       "retrieved_at": "2026-07-29",
       "kind": "vendor_docs",
       "notes": "Thinking mode support (enable_thinking parameter), model capabilities from Qwen blog and local CLI configuration."
+    },
+    {
+      "id": "openai-codex-debug-models-2026-08-30",
+      "url": "https://github.com/tnunamak/minnows/tree/main/data/model-catalog",
+      "title": "codex debug models (live auth-scoped catalog)",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-08-30",
+      "kind": "local_eval",
+      "notes": "Command: `codex debug models` (installed @openai/codex CLI, node 24.19.0 vendor build), run locally 2026-08-30. Live query of the installed Codex CLI (@openai/codex, node 24.19.0 vendor build) on Tim's host. Lists gpt-6-astra (new, default medium, visibility=list) and adds an `ultra` reasoning level to gpt-6-astra, gpt-5.6-sol and gpt-5.6-terra; gpt-5.6-luna does NOT list ultra. gpt-5.6-sol default_reasoning_level is `low` here, not medium. Auth-scoped: availability reflects this account, so treat as host-local evidence rather than a universal vendor claim."
+    },
+    {
+      "id": "waspflow-codex-ultra-probe-2026-08-30",
+      "url": "https://github.com/tnunamak/minnows/tree/main/data/model-catalog",
+      "title": "Live verification that Codex honors reasoning effort `ultra`",
+      "publisher": "local",
+      "published": null,
+      "retrieved_at": "2026-08-30",
+      "kind": "local_eval",
+      "notes": "Command: `codex exec --skip-git-repo-check -c model_reasoning_effort=ultra --model gpt-5.6-terra`, run locally 2026-08-30. Ran `codex exec --skip-git-repo-check -c model_reasoning_effort=ultra --model gpt-5.6-terra` — completed a turn (14,330 tokens). Control with model_reasoning_effort=bogus on the same command returned HTTP 400, which rules out the value being silently ignored/defaulted. Establishes `ultra` is accepted by the CLI config surface, not only advertised by the catalog API."
     }
   ]
 }
