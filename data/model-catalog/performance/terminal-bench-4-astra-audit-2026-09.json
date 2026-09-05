@@ -27,7 +27,7 @@
       "effort": "low",
       "harness": "codex",
       "source_id": "capitalandcompute-tbench4-2026-09-04",
-      "caveat": "330 trials (66 tasks x 5). 95% CI half-width ±2.83 points. SECONDARY audit — a third party's reading of the tbench.ai board (2026-09-03 21:34 UTC), NOT a direct reading of the original board, which renders client-side and was not fetchable. Grade C and source_type=other reflect that indirection; differs from the OpenAI launch-chart reading of the same nominal benchmark.",
+      "caveat": "330 trials (66 tasks x 5). 95% CI half-width ±2.83 points. SECONDARY audit — a third party's reading of the tbench.ai board (2026-09-03 21:34 UTC), NOT a direct reading of the original board, which renders client-side and was not fetchable. Grade C and source_type=other reflect that indirection; differs from the OpenAI launch-chart reading of the same nominal benchmark. Reported cost per solved task: $9.33; total suite cost: $1557.30.",
       "source_type": "other",
       "evidence_grade": "C",
       "observed_at": "2026-09-03",
@@ -35,14 +35,9 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "cost": {
-        "value": 9.33,
-        "unit": "usd_per_solved_task",
-        "basis": "api_usd"
-      },
-      "cost_total": {
         "value": 1557.30,
-        "unit": "usd_total_suite",
-        "basis": "api_usd"
+        "unit": "other",
+        "basis": "other"
       },
       "comparable": false,
       "comparability_group": "tb4-secondary-board-audit"
@@ -55,7 +50,7 @@
       "effort": "medium",
       "harness": "codex",
       "source_id": "capitalandcompute-tbench4-2026-09-04",
-      "caveat": "330 trials (66 tasks x 5). 95% CI half-width ±2.74 points. SECONDARY audit — a third party's reading of the tbench.ai board (2026-09-03 21:34 UTC), NOT a direct reading of the original board, which renders client-side and was not fetchable. Grade C and source_type=other reflect that indirection; differs from the OpenAI launch-chart reading of the same nominal benchmark.",
+      "caveat": "330 trials (66 tasks x 5). 95% CI half-width ±2.74 points. SECONDARY audit — a third party's reading of the tbench.ai board (2026-09-03 21:34 UTC), NOT a direct reading of the original board, which renders client-side and was not fetchable. Grade C and source_type=other reflect that indirection; differs from the OpenAI launch-chart reading of the same nominal benchmark. Reported cost per solved task: $10.70; total suite cost: $1914.80.",
       "source_type": "other",
       "evidence_grade": "C",
       "observed_at": "2026-09-03",
@@ -63,14 +58,9 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "cost": {
-        "value": 10.70,
-        "unit": "usd_per_solved_task",
-        "basis": "api_usd"
-      },
-      "cost_total": {
         "value": 1914.80,
-        "unit": "usd_total_suite",
-        "basis": "api_usd"
+        "unit": "other",
+        "basis": "other"
       },
       "comparable": false,
       "comparability_group": "tb4-secondary-board-audit"
@@ -83,7 +73,7 @@
       "effort": "high",
       "harness": "codex",
       "source_id": "capitalandcompute-tbench4-2026-09-04",
-      "caveat": "330 trials (66 tasks x 5). 95% CI half-width ±2.98 points. SECONDARY audit — a third party's reading of the tbench.ai board (2026-09-03 21:34 UTC), NOT a direct reading of the original board, which renders client-side and was not fetchable. Grade C and source_type=other reflect that indirection; differs from the OpenAI launch-chart reading of the same nominal benchmark.",
+      "caveat": "330 trials (66 tasks x 5). 95% CI half-width ±2.98 points. SECONDARY audit — a third party's reading of the tbench.ai board (2026-09-03 21:34 UTC), NOT a direct reading of the original board, which renders client-side and was not fetchable. Grade C and source_type=other reflect that indirection; differs from the OpenAI launch-chart reading of the same nominal benchmark. Reported cost per solved task: $11.88; total suite cost: $2269.42.",
       "source_type": "other",
       "evidence_grade": "C",
       "observed_at": "2026-09-03",
@@ -91,14 +81,9 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "cost": {
-        "value": 11.88,
-        "unit": "usd_per_solved_task",
-        "basis": "api_usd"
-      },
-      "cost_total": {
         "value": 2269.42,
-        "unit": "usd_total_suite",
-        "basis": "api_usd"
+        "unit": "other",
+        "basis": "other"
       },
       "comparable": false,
       "comparability_group": "tb4-secondary-board-audit"
@@ -111,7 +96,7 @@
       "effort": "xhigh",
       "harness": "codex",
       "source_id": "capitalandcompute-tbench4-2026-09-04",
-      "caveat": "330 trials (66 tasks x 5). 95% CI half-width ±2.71 points. SECONDARY audit — a third party's reading of the tbench.ai board (2026-09-03 21:34 UTC), NOT a direct reading of the original board, which renders client-side and was not fetchable. Grade C and source_type=other reflect that indirection; differs from the OpenAI launch-chart reading of the same nominal benchmark.",
+      "caveat": "330 trials (66 tasks x 5). 95% CI half-width ±2.71 points. SECONDARY audit — a third party's reading of the tbench.ai board (2026-09-03 21:34 UTC), NOT a direct reading of the original board, which renders client-side and was not fetchable. Grade C and source_type=other reflect that indirection; differs from the OpenAI launch-chart reading of the same nominal benchmark. Reported cost per solved task: $12.31; total suite cost: $2350.51.",
       "source_type": "other",
       "evidence_grade": "C",
       "observed_at": "2026-09-03",
@@ -119,14 +104,9 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "cost": {
-        "value": 12.31,
-        "unit": "usd_per_solved_task",
-        "basis": "api_usd"
-      },
-      "cost_total": {
         "value": 2350.51,
-        "unit": "usd_total_suite",
-        "basis": "api_usd"
+        "unit": "other",
+        "basis": "other"
       },
       "comparable": false,
       "comparability_group": "tb4-secondary-board-audit"
@@ -139,7 +119,7 @@
       "effort": "max",
       "harness": "codex",
       "source_id": "capitalandcompute-tbench4-2026-09-04",
-      "caveat": "330 trials (66 tasks x 5). 95% CI half-width ±2.79 points. SECONDARY audit — a third party's reading of the tbench.ai board (2026-09-03 21:34 UTC), NOT a direct reading of the original board, which renders client-side and was not fetchable. Grade C and source_type=other reflect that indirection; differs from the OpenAI launch-chart reading of the same nominal benchmark.",
+      "caveat": "330 trials (66 tasks x 5). 95% CI half-width ±2.79 points. SECONDARY audit — a third party's reading of the tbench.ai board (2026-09-03 21:34 UTC), NOT a direct reading of the original board, which renders client-side and was not fetchable. Grade C and source_type=other reflect that indirection; differs from the OpenAI launch-chart reading of the same nominal benchmark. Reported cost per solved task: $17.02; total suite cost: $3267.18.",
       "source_type": "other",
       "evidence_grade": "C",
       "observed_at": "2026-09-03",
@@ -147,14 +127,9 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "cost": {
-        "value": 17.02,
-        "unit": "usd_per_solved_task",
-        "basis": "api_usd"
-      },
-      "cost_total": {
         "value": 3267.18,
-        "unit": "usd_total_suite",
-        "basis": "api_usd"
+        "unit": "other",
+        "basis": "other"
       },
       "comparable": false,
       "comparability_group": "tb4-secondary-board-audit"

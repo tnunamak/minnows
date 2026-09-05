@@ -39,8 +39,8 @@
       "comparability_group": "arc-agi-3-standard",
       "cost": {
         "value": 38166,
-        "unit": "usd_total_suite",
-        "basis": "api_usd"
+        "unit": "other",
+        "basis": "other"
       },
       "comparable": false
     },
@@ -62,8 +62,8 @@
       "comparability_group": "arc-agi-3-standard",
       "cost": {
         "value": 48090,
-        "unit": "usd_total_suite",
-        "basis": "api_usd"
+        "unit": "other",
+        "basis": "other"
       },
       "comparable": false
     },
@@ -85,8 +85,8 @@
       "comparability_group": "arc-agi-3-standard",
       "cost": {
         "value": 40705,
-        "unit": "usd_total_suite",
-        "basis": "api_usd"
+        "unit": "other",
+        "basis": "other"
       },
       "comparable": false
     },
@@ -108,8 +108,8 @@
       "comparability_group": "arc-agi-3-standard",
       "cost": {
         "value": 37317,
-        "unit": "usd_total_suite",
-        "basis": "api_usd"
+        "unit": "other",
+        "basis": "other"
       },
       "comparable": false
     },
@@ -131,8 +131,8 @@
       "comparability_group": "arc-agi-3-standard",
       "cost": {
         "value": 26098,
-        "unit": "usd_total_suite",
-        "basis": "api_usd"
+        "unit": "other",
+        "basis": "other"
       },
       "comparable": false
     },
@@ -154,8 +154,8 @@
       "comparability_group": "arc-agi-3-provider-adapter",
       "cost": {
         "value": 21298,
-        "unit": "usd_total_suite",
-        "basis": "api_usd"
+        "unit": "other",
+        "basis": "other"
       },
       "comparable": false
     },
@@ -177,8 +177,8 @@
       "comparability_group": "arc-agi-3-provider-adapter",
       "cost": {
         "value": 19285,
-        "unit": "usd_total_suite",
-        "basis": "api_usd"
+        "unit": "other",
+        "basis": "other"
       },
       "comparable": false
     },
@@ -200,8 +200,8 @@
       "comparability_group": "arc-agi-3-provider-adapter",
       "cost": {
         "value": 18817,
-        "unit": "usd_total_suite",
-        "basis": "api_usd"
+        "unit": "other",
+        "basis": "other"
       },
       "comparable": false
     },
@@ -223,8 +223,8 @@
       "comparability_group": "arc-agi-3-provider-adapter",
       "cost": {
         "value": 18147,
-        "unit": "usd_total_suite",
-        "basis": "api_usd"
+        "unit": "other",
+        "basis": "other"
       },
       "comparable": false
     },
@@ -246,8 +246,8 @@
       "comparability_group": "arc-agi-3-provider-adapter",
       "cost": {
         "value": 17332,
-        "unit": "usd_total_suite",
-        "basis": "api_usd"
+        "unit": "other",
+        "basis": "other"
       },
       "comparable": false
     },
@@ -257,7 +257,6 @@
       "score": 49,
       "unit": "other",
       "effort": "low",
-      "harness": null,
       "source_id": "artificialanalysis-gpt-6-astra-2026-09-05",
       "caveat": "Independently measured aggregate of 10 evaluations across a MIXED basket (agentic coding, professional work, reasoning, long-context). Its $/task is a weighted reconstruction, not a production task price. Monotonic in both score and cost.",
       "source_type": "third_party_board",
@@ -279,7 +278,6 @@
       "score": 52,
       "unit": "other",
       "effort": "medium",
-      "harness": null,
       "source_id": "artificialanalysis-gpt-6-astra-2026-09-05",
       "caveat": "Independently measured aggregate of 10 evaluations across a MIXED basket (agentic coding, professional work, reasoning, long-context). Its $/task is a weighted reconstruction, not a production task price. Monotonic in both score and cost.",
       "source_type": "third_party_board",
@@ -301,7 +299,6 @@
       "score": 53,
       "unit": "other",
       "effort": "high",
-      "harness": null,
       "source_id": "artificialanalysis-gpt-6-astra-2026-09-05",
       "caveat": "Independently measured aggregate of 10 evaluations across a MIXED basket (agentic coding, professional work, reasoning, long-context). Its $/task is a weighted reconstruction, not a production task price. Monotonic in both score and cost.",
       "source_type": "third_party_board",
@@ -323,7 +320,6 @@
       "score": 54,
       "unit": "other",
       "effort": "xhigh",
-      "harness": null,
       "source_id": "artificialanalysis-gpt-6-astra-2026-09-05",
       "caveat": "Independently measured aggregate of 10 evaluations across a MIXED basket (agentic coding, professional work, reasoning, long-context). Its $/task is a weighted reconstruction, not a production task price. Monotonic in both score and cost.",
       "source_type": "third_party_board",
@@ -345,7 +341,6 @@
       "score": 55,
       "unit": "other",
       "effort": "max",
-      "harness": null,
       "source_id": "artificialanalysis-gpt-6-astra-2026-09-05",
       "caveat": "Independently measured aggregate of 10 evaluations across a MIXED basket (agentic coding, professional work, reasoning, long-context). Its $/task is a weighted reconstruction, not a production task price. Monotonic in both score and cost.",
       "source_type": "third_party_board",

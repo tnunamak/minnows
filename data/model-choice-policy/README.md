@@ -11,14 +11,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | Tag **`data-model-choice-policy-v0.1.6`** — not yet released; latest published release remains [data-model-choice-policy-v0.1.5](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.1.5) until `./scripts/release-data-pack.sh` is run |
+| **This version** | Tag **`data-model-choice-policy-v0.1.7`** — not yet released; latest published release remains [data-model-choice-policy-v0.1.6](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.1.6) until `./scripts/release-data-pack.sh` is run |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.1.5  # latest RELEASED tag; v0.1.6 is working-tree only until released
+TAG=data-model-choice-policy-v0.1.6  # latest RELEASED tag; v0.1.7 is working-tree only until released
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -64,6 +64,10 @@ Waspflow resolves from (first hit):
 | `grok.explore-only` | grok / grok-4.5 / high |
 
 ## Changelog
+
+### v0.1.7 — 2026-09-05
+
+- Pin catalog **v0.5.4**. Operating-point recommendations are unchanged.
 
 ### v0.1.6 — 2026-08-02
 

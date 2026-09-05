@@ -9,7 +9,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | Tag **`data-model-catalog-v0.5.3`** — not yet released; latest published release remains [data-model-catalog-v0.5.2](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.2) until `./scripts/release-data-pack.sh` is run |
+| **This version** | Tag **`data-model-catalog-v0.5.4`** — not yet released; latest published release remains [data-model-catalog-v0.5.3](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.3) until `./scripts/release-data-pack.sh` is run |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -18,7 +18,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.5.2  # latest RELEASED tag; v0.5.3 is working-tree only until released
+TAG=data-model-catalog-v0.5.3  # latest RELEASED tag; v0.5.4 is working-tree only until released
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -74,6 +74,12 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 5. **Validate before shipping:** `./scripts/validate_data_pack.py model-catalog`
 
 ## Changelog
+
+### v0.5.4 — 2026-09-05
+
+- Added current, rendered original-publisher snapshots for Terminal-Bench 2.1 and Artificial Analysis Intelligence Index v4.2; preserved earlier board reads as separate historical observations.
+- Rechecked the fixed ARC GPT-5.6 table and the public Scale SWE-Bench Pro table; their stored rows still match the publisher pages.
+- Closed the remaining model-label, metric-id, and local-eval source-id joins without treating board labels or vendor table configurations as new comparable model runs.
 
 ### v0.5.3 — 2026-08-02
 

@@ -19,7 +19,7 @@
     "aa-fable-vs-grok-4-3-2026-07-09",
     "aa-coding-index-2026-07-09"
   ],
-  "notes": "Independent Artificial Analysis composites. Keep launch-article Index 64.9 separate from live FAQ 60 (index composition changed). Coding Index \u2260 Coding Agent Index. GPT-5.6 vendor-reported Index scores live in openai-gpt-5-6-launch (not AA-published at retrieval). Re-reviewed 2026-09-05: the original current page is v4.2, so these rows remain dated July observations; artificial-analysis-intelligence-index-2026-09.json holds the separate current v4.2 snapshot.",
+  "notes": "Independent Artificial Analysis composites. Keep launch-article Index 64.9 separate from live FAQ 60 (index composition changed). Coding Index ≠ Coding Agent Index. GPT-5.6 vendor-reported Index scores live in openai-gpt-5-6-launch (not AA-published at retrieval). Re-reviewed 2026-09-05: the original current page is v4.2, so these rows remain dated July observations; artificial-analysis-intelligence-index-2026-09.json holds the separate current v4.2 snapshot.",
   "scores": [
     {
       "model": "claude-fable-5",
@@ -82,7 +82,7 @@
       "unit": "other",
       "source_id": "aa-fable-5-launch-2026-06-09",
       "effort": "max",
-      "caveat": "2026-06-09 launch article \u2014 may predate index composition change; do not merge with live 60 without version field",
+      "caveat": "2026-06-09 launch article — may predate index composition change; do not merge with live 60 without version field",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
