@@ -508,7 +508,8 @@
       "valid_efforts": [
         "low",
         "medium",
-        "high"
+        "high",
+        "xhigh"
       ],
       "default_effort": "high",
       "unsupported_behavior": "hard_fail",
@@ -519,9 +520,10 @@
         }
       ],
       "source_ids": [
+        "xai-grok-4-6-detail-2026-09-05",
         "xai-reasoning-2026-07-09"
       ],
-      "notes": "Cannot disable reasoning"
+      "notes": "Cannot disable reasoning 2026-09-05: xhigh ADDED — current xAI docs document low/medium/high/xhigh for 4.5 as well as 4.6; the prior row listed only low/medium/high. NOTE grok-4.5 is absent from the current models page, so its runtime availability is UNVERIFIED (absence from a list is not proof of retirement)."
     },
     {
       "provider": "xai",
@@ -850,6 +852,73 @@
         "google-gemini-thinking-2026-09-05"
       ],
       "notes": "Defaults to minimal, unlike the Flash line."
+    },
+    {
+      "provider": "xai",
+      "model": "grok-4.6",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard",
+          "notes": "Reasoning CANNOT be disabled — there is no none/minimal level."
+        }
+      ],
+      "source_ids": [
+        "xai-grok-4-6-detail-2026-09-05"
+      ],
+      "notes": "500k context (SMALLER than grok-4.3/4.20 at 1M). Docs state the qualitative tradeoff only; no measured effort curve exists in xAI primary docs."
+    },
+    {
+      "provider": "other",
+      "model": "glm-5.1",
+      "surface": "api",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking_enabled",
+          "notes": "Default for GLM 5.1. When enabled the model thinks compulsorily."
+        },
+        {
+          "mode_id": "thinking_disabled"
+        }
+      ],
+      "source_ids": [
+        "zai-glm-api-2026-09-05"
+      ],
+      "notes": "BINARY thinking.type enabled|disabled — deliberately NOT expressed as effort levels, because it is a mode switch, not a discrete reasoning ladder. valid_efforts is empty by design."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.8-max",
+      "surface": "api",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking"
+        },
+        {
+          "mode_id": "non_thinking"
+        }
+      ],
+      "source_ids": [
+        "alibaba-model-studio-pricing-2026-09-05"
+      ],
+      "notes": "Per-request enable_thinking (hybrid), NOT a discrete effort ladder. 1M context. This audit did not establish that no effort parameter exists on some other Qwen surface — only that none is documented here."
     }
   ],
   "missing": [
@@ -860,6 +929,10 @@
     "Whether Codex CLI honors `max` as a literal model_reasoning_effort config value for the GPT-5.6 pins specifically. PARTIALLY RESOLVED 2026-09-05: `codex exec -c model_reasoning_effort=ultra --model gpt-5.6-terra` completed a turn while a bogus value returned HTTP 400, proving the -c surface does accept levels beyond the old published enum; `max` itself was not separately probed per-model.",
     "Google: no published same-model thinking-level performance/cost curve for the new Flash line — thinking levels and thinking-token pricing are documented, but no effort-vs-quality series. Do NOT manufacture a Gemini effort recommendation from family launch claims.",
     "Google gemini-2.5 line uses numeric thinking_budget rather than Gemini 3 thinkingLevel; no surface recorded here because the two are not the same control.",
-    "Anthropic: no same-model effort curves for sonnet-4-5/4-6, haiku-4-5, or opus-4-5..4-8."
+    "Anthropic: no same-model effort curves for sonnet-4-5/4-6, haiku-4-5, or opus-4-5..4-8.",
+    "xAI: no measured per-effort score/token/cost/latency curve exists in primary docs for any Grok model — only the qualitative claim that xhigh costs latency.",
+    "Alibaba/Qwen: no matched primary capability-vs-cost or capability-vs-latency curve across thinking/non-thinking modes.",
+    "Z.AI/GLM: no independently reproduced thinking-enabled-vs-disabled performance or cost curve; vendor claims only (e.g. KernelBench 3.6x geometric-mean speedup).",
+    "xAI grok-4.5/4.3/4.20-*/build-0.1 runtime availability: absent from the current models page but NOT proven retired; needs an API probe before any status change."
   ]
 }

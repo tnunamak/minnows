@@ -211,6 +211,20 @@
       "aliases": []
     },
     {
+      "id": "glm-5.2",
+      "provider": "other",
+      "family": "glm",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "glm-5.3",
+      "provider": "other",
+      "family": "glm",
+      "status": "ga",
+      "aliases": []
+    },
+    {
       "id": "gpt-5.3-codex",
       "provider": "openai",
       "family": "gpt-5.3",
@@ -478,6 +492,15 @@
       "status": "ga",
       "aliases": [
         "qwen3.7-plus-2026-05-26"
+      ]
+    },
+    {
+      "id": "qwen3.8-max",
+      "provider": "alibaba",
+      "family": "qwen3-max",
+      "status": "ga",
+      "aliases": [
+        "qwen3.8-max-0902"
       ]
     },
     {

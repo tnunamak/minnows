@@ -604,6 +604,36 @@
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
       "notes": "Gemini 3.x uses discrete thinkingLevel; Gemini 2.5 uses a numeric thinking_budget — DIFFERENT control surfaces, not interchangeable. 3.8/3.7-flash accept low/medium/high (minimal errors), default medium. 3.6-flash and the flash-lite line accept minimal/low/medium/high."
+    },
+    {
+      "id": "xai-grok-4-6-detail-2026-09-05",
+      "url": "https://docs.x.ai/developers/models/grok-4.6",
+      "title": "Grok 4.6 model detail",
+      "publisher": "xAI",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "vendor_docs",
+      "notes": "reasoning_effort accepts low/medium/high(default)/xhigh; reasoning CANNOT be disabled. 500k context, text+image in, text-only out. Tiered price: <200k 2.00/0.50/6.00, >=200k 4.00/1.00/12.00 USD per MTok. Docs give the qualitative tradeoff (xhigh higher latency) but NO score/token/cost/latency-by-effort numbers. The current models page lists grok-4.6 ONLY — 4.5/4.3/4.20/build are absent from it, which does NOT prove they are retired at runtime."
+    },
+    {
+      "id": "zai-glm-api-2026-09-05",
+      "url": "https://docs.z.ai/",
+      "title": "Z.AI GLM API docs and pricing",
+      "publisher": "Z.AI",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "vendor_docs",
+      "notes": "GLM 5.1 direct API: 1.40 input / 0.26 cached / 4.40 output USD per MTok, cache storage temporarily free, web search 0.01/use. 200k context, 128k max output. thinking.type is BINARY enabled|disabled (default enabled for 5.1; compulsory thinking when enabled) — NOT a discrete effort ladder. GLM 5.2 and 5.3 are current successors at the same rates; 5.2 switchable/default-on, 5.3 forced-on. Direct Z.AI price differs from Alibaba Model Studio reseller pricing — keep separate, do not merge."
+    },
+    {
+      "id": "alibaba-model-studio-pricing-2026-09-05",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/models",
+      "title": "Alibaba Model Studio model pricing",
+      "publisher": "Alibaba Cloud",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "vendor_docs",
+      "notes": "qwen3.8-max is GA (snapshot qwen3.8-max-0902), superseding the preview-only assertion. REGIONAL DIVERGENCE, both facts real: Hong Kong/Frankfurt/US-Virginia/Tokyo list qwen3.8-max and qwen3.7-max at 1.65 in / 4.951 out per MTok up to 1M, while legacy Singapore shows 2.50/7.50. Long-context tiers confirmed for International rows: qwen3.7-plus 0.40/1.60 to 256k then 1.20/4.80 to 1M; qwen3.6-plus 0.50/3.00 then 2.00/6.00; qwen3.6-flash 0.25/1.50 then 1.00/6.00. The 20% labels are TEMPORARY regional promotions — not list price. Qwen exposes per-request enable_thinking (hybrid/thinking-only), not a discrete effort ladder."
     }
   ]
 }

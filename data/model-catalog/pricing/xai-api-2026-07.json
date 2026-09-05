@@ -9,10 +9,11 @@
     "https://docs.x.ai/developers/models"
   ],
   "source_ids": [
+    "xai-grok-4-6-detail-2026-09-05",
     "xai-models-2026-07-09",
     "xai-models-2026-09-05"
   ],
-  "notes": "Chat/Code API USD per 1M tokens. cache_read/write not published as separate lines — set 0. Imagine/voice SKUs are non-token and omitted from models{} (see SOURCES notes). 2026-09-05 refresh: NEW grok-4.6 (released 2026-08-12, after this file's original retrieval) at 2.00 in / 0.50 cached / 6.00 out, 500k context — xAI describes it as \"the most intelligent and fastest model\". CORRECTED: every model previously carried cache_read_per_m=0, but docs.x.ai publishes real cached-input rates (0.20-0.50); base input/output rates re-verified UNCHANGED for all pre-existing models. NOT MODELED (documented, deliberately out of scope for this flat-rate schema): a >=200k-token tier that doubles input and output for every xAI model.",
+  "notes": "Chat/Code API USD per 1M tokens. cache_read/write not published as separate lines — set 0. Imagine/voice SKUs are non-token and omitted from models{} (see SOURCES notes). 2026-09-05 refresh: NEW grok-4.6 (released 2026-08-12, after this file's original retrieval) at 2.00 in / 0.50 cached / 6.00 out, 500k context — xAI describes it as \"the most intelligent and fastest model\". CORRECTED: every model previously carried cache_read_per_m=0, but docs.x.ai publishes real cached-input rates (0.20-0.50); base input/output rates re-verified UNCHANGED for all pre-existing models. NOT MODELED (documented, deliberately out of scope for this flat-rate schema): a >=200k-token tier that doubles input and output for every xAI model. 2026-09-05: grok-4.6 long-context tier VERIFIED at >=200k: 4.00 in / 1.00 cached / 12.00 out (the stored flat row is the <200k tier). Primary evidence proves this for 4.6 ONLY — the earlier blanket note claiming the tier applies to every xAI model is not established per-model and should not be generalized until each model page is checked. grok-4.5/4.3/4.20-*/build-0.1 are absent from the current models page; their rows are RETAINED because absence from a list does not prove runtime retirement.",
   "models": {
     "grok-4.5": {
       "fresh_input_per_m": 2.0,
