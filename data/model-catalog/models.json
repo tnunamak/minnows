@@ -150,7 +150,8 @@
       "provider": "google",
       "family": "gemini-3",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "notes": "AVAILABILITY UNVERIFIED (2026-09-05): this id is NOT on Google's current text-model roster at ai.google.dev/gemini-api/docs/models. The live page lists gemini-3-pro-image, a separately scoped image model — do NOT treat that as a rename of this id. No retirement is claimed: absence from a roster page is not a deprecation notice, and Google's deprecations page was not shown to list this id. Status left as ga and existing historical benchmark rows (lmarena-text-2026-07, terminal-bench-2026-07) are RETAINED as valid past observations. Re-verify against a model-list endpoint before dispatching to it."
     },
     {
       "id": "gemini-3.1-flash-lite",
@@ -493,6 +494,27 @@
       "aliases": [
         "qwen3.7-plus-2026-05-26"
       ]
+    },
+    {
+      "id": "qwen3.8-2.4t-a95b",
+      "provider": "alibaba",
+      "family": "qwen3-open",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "qwen3.8-27b",
+      "provider": "alibaba",
+      "family": "qwen3-open",
+      "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "qwen3.8-flash",
+      "provider": "alibaba",
+      "family": "qwen3-flash",
+      "status": "ga",
+      "aliases": []
     },
     {
       "id": "qwen3.8-max",

@@ -634,6 +634,36 @@
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
       "notes": "qwen3.8-max is GA (snapshot qwen3.8-max-0902), superseding the preview-only assertion. REGIONAL DIVERGENCE, both facts real: Hong Kong/Frankfurt/US-Virginia/Tokyo list qwen3.8-max and qwen3.7-max at 1.65 in / 4.951 out per MTok up to 1M, while legacy Singapore shows 2.50/7.50. Long-context tiers confirmed for International rows: qwen3.7-plus 0.40/1.60 to 256k then 1.20/4.80 to 1M; qwen3.6-plus 0.50/3.00 then 2.00/6.00; qwen3.6-flash 0.25/1.50 then 1.00/6.00. The 20% labels are TEMPORARY regional promotions — not list price. Qwen exposes per-request enable_thinking (hybrid/thinking-only), not a discrete effort ladder."
+    },
+    {
+      "id": "openai-gpt-5-6-launch-svg-2026-09-05",
+      "url": "https://openai.com/index/gpt-5-6/",
+      "title": "GPT-5.6 launch page — Agents Last Exam chart (SVG labels)",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "vendor_blog",
+      "notes": "Exact values from the live-rendered SVG accessible labels, not pixel digitization. Recovered via a root-owned browser session after an earlier Cloudflare challenge and a Playwright user-data lock blocked retrieval. Covers six models at up to five efforts on Agents Last Exam. IMPORTANT: the chart labels the axis \"API cost (USD)\" but does NOT state the denominator — values range $24 to $3,985 and the chart does not state what the figure is per. Recorded with cost unit \"other\" rather than usd_per_task, and NO denominator is inferred; do not divide these values or compare them against per-task figures from other sources."
+    },
+    {
+      "id": "artificialanalysis-opus5-briefcase-2026-09-05",
+      "url": "https://artificialanalysis.ai/articles/claude-opus-5-leader-agentic-knowledge-work",
+      "title": "Artificial Analysis — Claude Opus 5 agentic knowledge work",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "third_party_eval",
+      "notes": "INDEPENDENT (non-vendor) effort ladder for claude-opus-5 on AA's own Briefcase eval: low 1223, medium 1470, high 1606, xhigh 1693, max 1720 Elo. Cost and median runtime published for the TOP THREE ONLY — high $10.41/25.7min, xhigh $14.26/34.3min, max $17.79/36.2min. Low and medium cost/latency are NOT published; recorded as absent rather than interpolated. AA's Fable 5 analysis gives a max-level point only, not a five-level Fable ladder."
+    },
+    {
+      "id": "anthropic-effort-guide-2026-09-05",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort — Anthropic docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "vendor_docs",
+      "notes": "Direct authority for request semantics. Five levels low/medium/high/xhigh/max, default high. Per-message effort update (beta) on fable-5-1, mythos-5-1, opus-5; fable-5 is top-level only. opus-4.5 and sonnet-4.5 are compatibility-listed without a full matrix; haiku-4.5 is absent from the five-level table. Lifecycle floors from the model-deprecations page: fable-5-1 2027-09-01, fable-5 2027-06-09, opus-5 2027-07-24, opus-4.8/4.7/4.6 2027-05-28/2027-04-16/2027-02-05, opus-4.5 2026-11-24, sonnet-5 2027-06-30, sonnet-4.6 2027-02-17, sonnet-4.5 2026-09-29, haiku-4.5 2026-10-15."
     }
   ]
 }

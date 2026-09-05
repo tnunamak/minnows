@@ -17,6 +17,7 @@
   "source_ids": [
     "anthropic-claude-code-model-config-2026-07-09",
     "anthropic-effort-docs-2026-07-09",
+    "anthropic-effort-guide-2026-09-05",
     "anthropic-fable-mythos-5-1-2026-09-01",
     "anthropic-opus-5-2026-07-24",
     "google-gemini-thinking-2026-09-05",
@@ -51,9 +52,10 @@
         }
       ],
       "source_ids": [
-        "anthropic-effort-docs-2026-07-09"
+        "anthropic-effort-docs-2026-07-09",
+        "anthropic-effort-guide-2026-09-05"
       ],
-      "notes": "Adaptive thinking always on"
+      "notes": "Adaptive thinking always on Per-message effort update NOT supported — top-level only, unlike Fable 5.1. Lifecycle: no retirement before 2027-06-09."
     },
     {
       "provider": "anthropic",
@@ -79,8 +81,10 @@
         }
       ],
       "source_ids": [
-        "anthropic-claude-code-model-config-2026-07-09"
-      ]
+        "anthropic-claude-code-model-config-2026-07-09",
+        "anthropic-effort-guide-2026-09-05"
+      ],
+      "notes": " Per-message effort update NOT supported — top-level only, unlike Fable 5.1. Lifecycle: no retirement before 2027-06-09."
     },
     {
       "provider": "anthropic",
@@ -182,9 +186,10 @@
       ],
       "source_ids": [
         "anthropic-effort-docs-2026-07-09",
+        "anthropic-effort-guide-2026-09-05",
         "anthropic-opus-5-2026-07-24"
       ],
-      "notes": "Adaptive thinking; no fixed extended-thinking mode (thinking.type:enabled not supported)."
+      "notes": "Adaptive thinking; no fixed extended-thinking mode (thinking.type:enabled not supported). Per-message effort update supported (beta). Lifecycle: no retirement before 2027-07-24."
     },
     {
       "provider": "anthropic",
@@ -207,8 +212,10 @@
       ],
       "source_ids": [
         "anthropic-claude-code-model-config-2026-07-09",
+        "anthropic-effort-guide-2026-09-05",
         "anthropic-opus-5-2026-07-24"
-      ]
+      ],
+      "notes": " Per-message effort update supported (beta). Lifecycle: no retirement before 2027-07-24."
     },
     {
       "provider": "anthropic",
@@ -733,10 +740,11 @@
         }
       ],
       "source_ids": [
+        "anthropic-effort-guide-2026-09-05",
         "anthropic-fable-mythos-5-1-2026-09-01",
         "anthropic-pricing-2026-09-05"
       ],
-      "notes": "All five levels measured in the launch curves. The claude-fable-5 surface is NOT the authority for its successor."
+      "notes": "All five levels measured in the launch curves. The claude-fable-5 surface is NOT the authority for its successor. Per-message effort update supported (beta). Lifecycle: no retirement before 2027-09-01. Context 1M, max output 128k; Mythos 5.1 shares Fable 5.1 specifications and price."
     },
     {
       "provider": "anthropic",
@@ -759,9 +767,10 @@
         }
       ],
       "source_ids": [
+        "anthropic-effort-guide-2026-09-05",
         "anthropic-fable-mythos-5-1-2026-09-01"
       ],
-      "notes": "Access-restricted. Do not duplicate Fable 5.1 scores as independent Mythos measurements."
+      "notes": "Access-restricted. Do not duplicate Fable 5.1 scores as independent Mythos measurements. Per-message effort update supported (beta). Lifecycle: no retirement before 2027-09-01. Context 1M, max output 128k; Mythos 5.1 shares Fable 5.1 specifications and price."
     },
     {
       "provider": "google",
@@ -783,7 +792,7 @@
       "source_ids": [
         "google-gemini-thinking-2026-09-05"
       ],
-      "notes": "Gemini 3.x uses discrete thinkingLevel, NOT the numeric thinking_budget of 2.5 — different control surfaces. `minimal` errors on this model."
+      "notes": "Gemini 3.x uses discrete thinkingLevel, NOT the numeric thinking_budget of 2.5 — different control surfaces. `minimal` errors on this model. Limits: 1,000,000 input / 64,000 output."
     },
     {
       "provider": "google",
@@ -805,7 +814,7 @@
       "source_ids": [
         "google-gemini-thinking-2026-09-05"
       ],
-      "notes": "`minimal` errors on this model."
+      "notes": "`minimal` errors on this model. Limits: 1,048,576 input / 65,536 output."
     },
     {
       "provider": "google",
@@ -828,7 +837,7 @@
       "source_ids": [
         "google-gemini-thinking-2026-09-05"
       ],
-      "notes": "Accepts minimal, unlike 3.7/3.8."
+      "notes": "Accepts minimal, unlike 3.7/3.8. Limits: 1,048,576 input / 65,536 output."
     },
     {
       "provider": "google",
@@ -851,7 +860,7 @@
       "source_ids": [
         "google-gemini-thinking-2026-09-05"
       ],
-      "notes": "Defaults to minimal, unlike the Flash line."
+      "notes": "Defaults to minimal, unlike the Flash line. Limits: 1,048,576 input / 65,536 output."
     },
     {
       "provider": "xai",
@@ -919,20 +928,128 @@
         "alibaba-model-studio-pricing-2026-09-05"
       ],
       "notes": "Per-request enable_thinking (hybrid), NOT a discrete effort ladder. 1M context. This audit did not establish that no effort parameter exists on some other Qwen surface — only that none is documented here."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.8-flash",
+      "surface": "api",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "Default ON (hybrid)"
+        },
+        {
+          "mode_id": "non_thinking"
+        }
+      ],
+      "source_ids": [
+        "alibaba-model-studio-pricing-2026-09-05"
+      ],
+      "notes": "Hybrid thinking via enable_thinking, default enabled. 1M context. No discrete effort parameter is documented."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.8-27b",
+      "surface": "api",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "Default ON (hybrid)"
+        },
+        {
+          "mode_id": "non_thinking"
+        }
+      ],
+      "source_ids": [
+        "alibaba-model-studio-pricing-2026-09-05"
+      ],
+      "notes": "Open weights. Hybrid thinking, default enabled."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.8-2.4t-a95b",
+      "surface": "api",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "THINKING-ONLY — cannot be disabled, unlike the rest of the 3.8 family"
+        }
+      ],
+      "source_ids": [
+        "alibaba-model-studio-pricing-2026-09-05"
+      ],
+      "notes": "Open weights. Thinking-only; no non-thinking mode exists."
+    },
+    {
+      "provider": "other",
+      "model": "glm-5.2",
+      "surface": "api",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking_enabled",
+          "notes": "Default; can be disabled"
+        },
+        {
+          "mode_id": "thinking_disabled"
+        }
+      ],
+      "source_ids": [
+        "zai-glm-api-2026-09-05"
+      ],
+      "notes": "Binary switchable thinking, default enabled."
+    },
+    {
+      "provider": "other",
+      "model": "glm-5.3",
+      "surface": "api",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking_forced",
+          "notes": "FORCED — cannot be disabled, unlike 5.1 and 5.2"
+        }
+      ],
+      "source_ids": [
+        "zai-glm-api-2026-09-05"
+      ],
+      "notes": "Forced thinking; no disable path."
     }
   ],
   "missing": [
-    "Google Gemini thinking-budget enum as effort surface",
+    "Google Gemini 2.5 thinking_budget (numeric) as an effort surface — still unrecorded. Gemini 3.x thinkingLevel surfaces ARE now recorded for 3.5-flash-lite/3.6/3.7/3.8-flash; the 2.5 line uses a different control and was deliberately not inferred from them.",
     "Astra: whether reasoning effort changes the per-token credit RATE or only token volume — vendor pricing page still does not say. (Per-effort TIME data EXISTS in the raw launch capture for Terminal-Bench 4.0, FrontierCode 1.1 and the AA Coding Agent Index, but is NOT ingested: the payload key is latency_s while the labels read minutes, and TB4.0 calls it SIMULATED time. Unit must be settled before any row claims it.)",
     "Astra: whether ultra's subagent delegation multiplies billed tokens beyond the single-agent run (behavioural, not just deeper reasoning — cost model may differ in kind)",
     "Vendor docs (2026-09-05) list ultra for gpt-5.6-sol/terra/luna and default=medium for sol, but this host's live `codex debug models` shows luna WITHOUT ultra and sol default=low — unresolved docs-vs-auth-scoped-catalog disagreement",
     "Whether Codex CLI honors `max` as a literal model_reasoning_effort config value for the GPT-5.6 pins specifically. PARTIALLY RESOLVED 2026-09-05: `codex exec -c model_reasoning_effort=ultra --model gpt-5.6-terra` completed a turn while a bogus value returned HTTP 400, proving the -c surface does accept levels beyond the old published enum; `max` itself was not separately probed per-model.",
     "Google: no published same-model thinking-level performance/cost curve for the new Flash line — thinking levels and thinking-token pricing are documented, but no effort-vs-quality series. Do NOT manufacture a Gemini effort recommendation from family launch claims.",
     "Google gemini-2.5 line uses numeric thinking_budget rather than Gemini 3 thinkingLevel; no surface recorded here because the two are not the same control.",
-    "Anthropic: no same-model effort curves for sonnet-4-5/4-6, haiku-4-5, or opus-4-5..4-8.",
+    "Anthropic: no same-model effort curves for sonnet-4-5/4-6, haiku-4-5, or opus-4-5..4-8. (opus-5 is now COVERED by an independent AA Briefcase ladder and by the existing digitized launch charts; fable-5-1 by its launch curves.)",
     "xAI: no measured per-effort score/token/cost/latency curve exists in primary docs for any Grok model — only the qualitative claim that xhigh costs latency.",
-    "Alibaba/Qwen: no matched primary capability-vs-cost or capability-vs-latency curve across thinking/non-thinking modes.",
-    "Z.AI/GLM: no independently reproduced thinking-enabled-vs-disabled performance or cost curve; vendor claims only (e.g. KernelBench 3.6x geometric-mean speedup).",
-    "xAI grok-4.5/4.3/4.20-*/build-0.1 runtime availability: absent from the current models page but NOT proven retired; needs an API probe before any status change."
+    "Alibaba/Qwen: no matched primary capability-vs-cost or capability-vs-latency curve across thinking/non-thinking modes, and no source in this pass names a DISCRETE effort parameter for any Qwen model (mode toggle only).",
+    "Z.AI/GLM: no same-version thinking-enabled-vs-disabled curve. AA does provide independent CROSS-MODEL measurements (5.3 max Index 60, 5.2 max 53, 5.2 non-reasoning 35), but that varies model AND mode together, so it cannot isolate the value of toggling thinking on one version.",
+    "xAI grok-4.5/4.3/4.20-*/build-0.1 runtime availability: absent from the current models page but NOT proven retired; needs an API probe before any status change.",
+    "Anthropic: per-message effort-update support is established only for fable-5-1/mythos-5-1/opus-5 (yes, beta) and fable-5 (no). For opus-4.5..4.8, sonnet-4.5/4.6 and haiku-4.5 it is NOT established.",
+    "Anthropic: claude-opus-4-5 and claude-sonnet-4-5 are compatibility-listed in the effort guide without a full level matrix; claude-haiku-4-5 is absent from the five-level table entirely.",
+    "xAI: AA reports Grok 4.6 high (Index 51) and Grok 4.5 high (Index 45) plus a separate 4.6 view at Index 61 / $0.84 per task — these are DIFFERENT AA configurations and must not be merged into one curve. No matched low/medium/high/xhigh series on one task set exists, so Grok effort value is undetermined.",
+    "Z.AI/GLM: AA measures GLM 5.3 max at Index 60 and GLM 5.2 max at 53, and a GLM 5.2 non-reasoning setting at Index 35 — but these are CROSS-MODEL comparisons, not a same-version thinking-on/off experiment. The AA displayed $0.90 is its 7:2:1 token-mix effective price, NOT a replacement for Z.AI direct list pricing."
   ]
 }

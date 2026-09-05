@@ -9,6 +9,16 @@
   ],
   "metrics": [
     {
+      "id": "aa-briefcase-elo",
+      "name": "Artificial Analysis Briefcase (Elo)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "elo",
+      "comparable": false,
+      "notes": "Independent AA evaluation reporting Elo by effort. AA published cost and median runtime for high/xhigh/max only; low/medium cells are NOT published and must not be interpolated."
+    },
+    {
       "id": "aa-cost-per-intelligence-index-task-usd",
       "name": "AA cost-per-intelligence-index-task-USD",
       "direction": "context_dependent",

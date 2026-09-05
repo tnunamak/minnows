@@ -1,0 +1,128 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "schema_version": 1,
+  "id": "artificialanalysis-opus5-briefcase-2026-09",
+  "kind": "performance",
+  "provider": "anthropic",
+  "retrieved_at": "2026-09-05",
+  "source_ids": [
+    "artificialanalysis-opus5-briefcase-2026-09-05"
+  ],
+  "source_urls": [
+    "https://artificialanalysis.ai/articles/claude-opus-5-leader-agentic-knowledge-work"
+  ],
+  "notes": "INDEPENDENT effort ladder for claude-opus-5 — a genuine third-party measurement, unlike the vendor launch charts elsewhere in this pack. Elo is MONOTONIC across all five levels (1223/1470/1606/1693/1720), with no plateau or inversion; the marginal gain does flatten (xhigh->max is +27 Elo for +$3.53/task). Cost and median runtime exist for high/xhigh/max ONLY; the low/medium rows deliberately carry NO cost field rather than an interpolated one. Median runtimes 25.7/34.3/36.2 minutes are recorded here in prose because the row schema has no latency field.",
+  "claims": [],
+  "missing": [
+    "AA cost and median runtime for Opus 5 at low and medium effort — not published",
+    "A five-level independent ladder for claude-fable-5 or claude-fable-5-1: AA's Fable analysis publishes a max-level point only",
+    "A latency field in the row schema; the 25.7/34.3/36.2-minute medians are held only in these notes"
+  ],
+  "scores": [
+    {
+      "model": "claude-opus-5",
+      "metric": "Artificial Analysis Briefcase (Elo)",
+      "score": 1223,
+      "unit": "elo",
+      "effort": "low",
+      "harness": null,
+      "source_id": "artificialanalysis-opus5-briefcase-2026-09-05",
+      "caveat": "AA did not publish cost or runtime for this effort level; absent, NOT interpolated.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-05",
+      "effort_verbatim": "low",
+      "task_family": "mixed",
+      "metric_id": "aa-briefcase-elo",
+      "comparable": false,
+      "comparability_group": "aa-briefcase-opus5"
+    },
+    {
+      "model": "claude-opus-5",
+      "metric": "Artificial Analysis Briefcase (Elo)",
+      "score": 1470,
+      "unit": "elo",
+      "effort": "medium",
+      "harness": null,
+      "source_id": "artificialanalysis-opus5-briefcase-2026-09-05",
+      "caveat": "AA did not publish cost or runtime for this effort level; absent, NOT interpolated.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-05",
+      "effort_verbatim": "medium",
+      "task_family": "mixed",
+      "metric_id": "aa-briefcase-elo",
+      "comparable": false,
+      "comparability_group": "aa-briefcase-opus5"
+    },
+    {
+      "model": "claude-opus-5",
+      "metric": "Artificial Analysis Briefcase (Elo)",
+      "score": 1606,
+      "unit": "elo",
+      "effort": "high",
+      "harness": null,
+      "source_id": "artificialanalysis-opus5-briefcase-2026-09-05",
+      "caveat": "AA-published cost per task and median runtime.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-05",
+      "effort_verbatim": "high",
+      "task_family": "mixed",
+      "metric_id": "aa-briefcase-elo",
+      "comparable": false,
+      "comparability_group": "aa-briefcase-opus5",
+      "cost": {
+        "value": 10.41,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "claude-opus-5",
+      "metric": "Artificial Analysis Briefcase (Elo)",
+      "score": 1693,
+      "unit": "elo",
+      "effort": "xhigh",
+      "harness": null,
+      "source_id": "artificialanalysis-opus5-briefcase-2026-09-05",
+      "caveat": "AA-published cost per task and median runtime.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-05",
+      "effort_verbatim": "xhigh",
+      "task_family": "mixed",
+      "metric_id": "aa-briefcase-elo",
+      "comparable": false,
+      "comparability_group": "aa-briefcase-opus5",
+      "cost": {
+        "value": 14.26,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "claude-opus-5",
+      "metric": "Artificial Analysis Briefcase (Elo)",
+      "score": 1720,
+      "unit": "elo",
+      "effort": "max",
+      "harness": null,
+      "source_id": "artificialanalysis-opus5-briefcase-2026-09-05",
+      "caveat": "AA-published cost per task and median runtime.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-05",
+      "effort_verbatim": "max",
+      "task_family": "mixed",
+      "metric_id": "aa-briefcase-elo",
+      "comparable": false,
+      "comparability_group": "aa-briefcase-opus5",
+      "cost": {
+        "value": 17.79,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    }
+  ]
+}

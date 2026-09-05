@@ -14,7 +14,7 @@
     "alibaba-model-studio-pricing-2026-09-05",
     "alibaba-pricing-2026-07"
   ],
-  "notes": "USD per 1M tokens, International region. List prices (not promo). Explicit context caching: cache_read = 10% of input, cache_write = 125% of input (5-min TTL, 1024-token min). Implicit caching: read = 20% of input, write = 100% (no extra fee, indeterminate TTL). qwen3.8-max-preview is Token Plan only (no public per-token pricing). qwen3-coder-plus and qwen3-coder-next are Coding Plan subscription only. 2026-09-05 audit (delegated researcher, MEDIUM confidence — primary-source fetch was incomplete and several figures rest on secondary aggregators). NOT APPLIED pending direct verification: (a) qwen3.8-max is reportedly now GA with public per-token pricing (~2.00 in / 6.00 out, Singapore), which would supersede this file's note that qwen3.8-max-preview is Token-Plan-only — unresolved whether the preview graduated under a new id; (b) a reported 20% promo on qwen3.7-max was NOT confirmed on the primary page; (c) context-length tiering exists for qwen3.6-plus/3.6-flash where this file records only the base tier. Existing rows are left UNCHANGED: none were shown to be wrong, only under-specified. 2026-09-05: qwen3.8-max ADDED as GA (snapshot qwen3.8-max-0902), superseding this file's earlier preview-only/Token-Plan-only assertion. Rate 1.65/4.951 is the Hong Kong/Frankfurt/US-Virginia/Tokyo row up to 1M tokens. REGIONAL DIVERGENCE IS REAL AND UNRESOLVED IN THIS SCHEMA: legacy Singapore lists qwen3.8-max and qwen3.7-max at 2.50/7.50, and the existing qwen3.7-max row here carries that Singapore figure. Both are true of different regions; this flat schema has no region field, so the qwen3.7-max row is left UNCHANGED rather than silently switched to a different region's price. LONG-CONTEXT TIERS confirmed but not modeled: qwen3.7-plus 0.40/1.60 to 256k then 1.20/4.80 to 1M; qwen3.6-plus 0.50/3.00 then 2.00/6.00; qwen3.6-flash 0.25/1.50 then 1.00/6.00. The 20% labels are TEMPORARY regional promotions, deliberately NOT encoded as list price.",
+  "notes": "USD per 1M tokens, International region. List prices (not promo). Explicit context caching: cache_read = 10% of input, cache_write = 125% of input (5-min TTL, 1024-token min). Implicit caching: read = 20% of input, write = 100% (no extra fee, indeterminate TTL). qwen3.8-max-preview is Token Plan only (no public per-token pricing). qwen3-coder-plus and qwen3-coder-next are Coding Plan subscription only. 2026-09-05 audit (delegated researcher, MEDIUM confidence — primary-source fetch was incomplete and several figures rest on secondary aggregators). NOT APPLIED pending direct verification: (a) qwen3.8-max is reportedly now GA with public per-token pricing (~2.00 in / 6.00 out, Singapore), which would supersede this file's note that qwen3.8-max-preview is Token-Plan-only — unresolved whether the preview graduated under a new id; (b) a reported 20% promo on qwen3.7-max was NOT confirmed on the primary page; (c) context-length tiering exists for qwen3.6-plus/3.6-flash where this file records only the base tier. Existing rows are left UNCHANGED: none were shown to be wrong, only under-specified. 2026-09-05: qwen3.8-max ADDED as GA (snapshot qwen3.8-max-0902), superseding this file's earlier preview-only/Token-Plan-only assertion. Rate 1.65/4.951 is the Hong Kong/Frankfurt/US-Virginia/Tokyo row up to 1M tokens. REGIONAL DIVERGENCE IS REAL AND UNRESOLVED IN THIS SCHEMA: legacy Singapore lists qwen3.8-max and qwen3.7-max at 2.50/7.50, and the existing qwen3.7-max row here carries that Singapore figure. Both are true of different regions; this flat schema has no region field, so the qwen3.7-max row is left UNCHANGED rather than silently switched to a different region's price. LONG-CONTEXT TIERS confirmed but not modeled: qwen3.7-plus 0.40/1.60 to 256k then 1.20/4.80 to 1M; qwen3.6-plus 0.50/3.00 then 2.00/6.00; qwen3.6-flash 0.25/1.50 then 1.00/6.00. The 20% labels are TEMPORARY regional promotions, deliberately NOT encoded as list price. 2026-09-05 follow-up: ADDED qwen3.8-flash (0.15/0.47 SINGAPORE tier; HK/Frankfurt/US-Virginia/Tokyo are cheaper at 0.113/0.382 — the regional split again, and this schema stores the Singapore figure to match the file's existing regional basis), plus open-weights qwen3.8-2.4t-a95b (2.00/6.00) and qwen3.8-27b (0.50/3.00), both Singapore, each with 1M request capacity. REASONING SURFACES DIFFER WITHIN THE 3.8 FAMILY: max, flash and 27b are hybrid thinking (default ON, enable_thinking toggleable); 2.4t-a95b is THINKING-ONLY and cannot be disabled. No source in this pass names a discrete effort parameter for any Qwen model — the earlier blanket wording about an absent Qwen ladder was over-broad and is corrected here.",
   "models": {
     "qwen3.7-max": {
       "fresh_input_per_m": 2.5,
@@ -59,6 +59,30 @@
       "output_per_m": 4.951,
       "confidence": "high",
       "valid_from": "2026-09-05"
+    },
+    "qwen3.8-flash": {
+      "fresh_input_per_m": 0.15,
+      "cache_read_per_m": 0.015,
+      "cache_write_per_m": 0,
+      "output_per_m": 0.47,
+      "confidence": "high",
+      "valid_from": "2026-09-05"
+    },
+    "qwen3.8-2.4t-a95b": {
+      "fresh_input_per_m": 2.0,
+      "cache_read_per_m": 0.2,
+      "cache_write_per_m": 0,
+      "output_per_m": 6.0,
+      "confidence": "high",
+      "valid_from": "2026-09-05"
+    },
+    "qwen3.8-27b": {
+      "fresh_input_per_m": 0.5,
+      "cache_read_per_m": 0.05,
+      "cache_write_per_m": 0,
+      "output_per_m": 3.0,
+      "confidence": "high",
+      "valid_from": "2026-09-05"
     }
   },
   "match": [
@@ -92,6 +116,18 @@
     {
       "pattern": "qwen3.8-max",
       "model": "qwen3.8-max"
+    },
+    {
+      "pattern": "qwen3.8-flash",
+      "model": "qwen3.8-flash"
+    },
+    {
+      "pattern": "qwen3.8-2.4t-a95b",
+      "model": "qwen3.8-2.4t-a95b"
+    },
+    {
+      "pattern": "qwen3.8-27b",
+      "model": "qwen3.8-27b"
     }
   ],
   "role": "operational"
