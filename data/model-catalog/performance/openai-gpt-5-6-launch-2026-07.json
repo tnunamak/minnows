@@ -11,7 +11,7 @@
   "source_ids": [
     "openai-gpt-5-6-2026-07-09"
   ],
-  "notes": "Full vendor eval tables transcribed from the GPT-5.6 GA post (2026-07-09). Scores without effort are the published Sol/Terra/Luna columns (table default; not always max). Rows with effort=ultra are multi-agent. Independent replications may differ. Percent metrics stored as 0\u20131 accuracy/pass fractions; Elo and AA index scores keep published scale (unit other|elo). Cross-check ARC-AGI-3 effort ladders against arcprize-gpt-5-6-2026-07.json (third-party verified).",
+  "notes": "Full vendor eval tables transcribed from the GPT-5.6 GA post (2026-07-09). Scores without effort are the published Sol/Terra/Luna columns (table default; not always max). Rows with effort=ultra are multi-agent. Independent replications may differ. Percent metrics stored as 0–1 accuracy/pass fractions; Elo and AA index scores keep published scale (unit other|elo). Cross-check ARC-AGI-3 effort ladders against arcprize-gpt-5-6-2026-07.json (third-party verified).",
   "scores": [
     {
       "model": "gpt-5.6-sol",
@@ -25,7 +25,7 @@
         "claude-opus-4-8": 0.452,
         "gemini-3.1-pro-preview": 0.321
       },
-      "caveat": "Table value 52.7%. Prose elsewhere on same page cites 53.6 for Sol \u2014 keep table as primary.",
+      "caveat": "Table value 52.7%. Prose elsewhere on same page cites 53.6 for Sol — keep table as primary.",
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
@@ -327,7 +327,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "deepswe-v1-1"
+      "metric_id": "deepswe-v1-1",
+      "comparable": false,
+      "comparability_group": "vendor-launch-table-deepswe-v1-1-gpt-5-6"
     },
     {
       "model": "gpt-5.6-terra",
@@ -339,7 +341,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "deepswe-v1-1"
+      "metric_id": "deepswe-v1-1",
+      "comparable": false,
+      "comparability_group": "vendor-launch-table-deepswe-v1-1-gpt-5-6"
     },
     {
       "model": "gpt-5.6-luna",
@@ -351,7 +355,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "deepswe-v1-1"
+      "metric_id": "deepswe-v1-1",
+      "comparable": false,
+      "comparability_group": "vendor-launch-table-deepswe-v1-1-gpt-5-6"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1679,7 +1685,7 @@
         "cost"
       ],
       "statement": "OpenAI introduces max (beyond xhigh) and ultra (default four parallel agents) as higher-compute operating points that shift score-latency frontiers on BrowseComp, SEC-Bench Pro, Terminal-Bench 2.1.",
-      "implication": "Effort is multi-step: low\u2026xhigh, plus max/ultra \u2014 not a single 3-rung cheap/default/max profile.",
+      "implication": "Effort is multi-step: low…xhigh, plus max/ultra — not a single 3-rung cheap/default/max profile.",
       "source_id": "openai-gpt-5-6-2026-07-09"
     },
     {
@@ -1694,7 +1700,7 @@
       "axes": [
         "cost"
       ],
-      "statement": "API pricing: Sol $5/$30, Terra $2.50/$15, Luna $1/$6 per 1M input/output; cache writes 1.25\u00d7 uncached input; cache reads 90% discount for GPT-5.6+.",
+      "statement": "API pricing: Sol $5/$30, Terra $2.50/$15, Luna $1/$6 per 1M input/output; cache writes 1.25× uncached input; cache reads 90% discount for GPT-5.6+.",
       "implication": "Use pricing/openai-api-2026-07.json for $/MTok; this claim is narrative cross-check only.",
       "source_id": "openai-gpt-5-6-2026-07-09"
     },
@@ -1716,7 +1722,7 @@
     }
   ],
   "missing": [
-    "Full effort ladder (low\u2026max) for every coding/professional metric (only some Ultra columns published).",
+    "Full effort ladder (low…max) for every coding/professional metric (only some Ultra columns published).",
     "Digitized cost/latency series from page charts (estimates only; not tabular).",
     "Independent third-party re-runs of the same tables (except ARC Prize for ARC-AGI)."
   ]

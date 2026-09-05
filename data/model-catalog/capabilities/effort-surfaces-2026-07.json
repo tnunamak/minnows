@@ -27,7 +27,7 @@
     "waspflow-codex-ultra-probe-2026-09-05",
     "xai-reasoning-2026-07-09"
   ],
-  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort.",
+  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed.",
   "surfaces": [
     {
       "provider": "anthropic",
@@ -712,8 +712,7 @@
   ],
   "missing": [
     "Google Gemini thinking-budget enum as effort surface",
-    "Astra: any benchmark score at any effort. PROVISIONAL — an earlier absence check in this session searched only this pack's performance/ files and found none; that is NOT evidence that no official guidance or third-party board reading exists. Reopened 2026-09-05 pending a dedicated source search; do not cite the absence as settled.",
-    "Astra: per-effort latency, and whether reasoning effort changes the per-token credit RATE or only token volume (vendor pricing page does not say)",
+    "Astra: whether reasoning effort changes the per-token credit RATE or only token volume — vendor pricing page still does not say. (Per-effort LATENCY is now HELD: openai-gpt-6-astra-launch-2026-09 carries latency_s for Terminal-Bench 4.0, FrontierCode 1.1 and the AA Coding Agent Index.)",
     "Astra: whether ultra's subagent delegation multiplies billed tokens beyond the single-agent run (behavioural, not just deeper reasoning — cost model may differ in kind)",
     "Vendor docs (2026-09-05) list ultra for gpt-5.6-sol/terra/luna and default=medium for sol, but this host's live `codex debug models` shows luna WITHOUT ultra and sol default=low — unresolved docs-vs-auth-scoped-catalog disagreement",
     "Whether Codex CLI honors `max` as a literal model_reasoning_effort config value for the GPT-5.6 pins specifically. PARTIALLY RESOLVED 2026-09-05: `codex exec -c model_reasoning_effort=ultra --model gpt-5.6-terra` completed a turn while a bogus value returned HTTP 400, proving the -c surface does accept levels beyond the old published enum; `max` itself was not separately probed per-model."

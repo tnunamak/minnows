@@ -514,6 +514,46 @@
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
       "notes": "Verified directly by this session. Short-context USD/MTok: gpt-6-astra 10.00/1.00/50.00; gpt-5.6-sol 4.00/0.40/20.00; terra 2.00/0.20/12.00; luna 0.20/0.02/1.20; gpt-5.5 5.00/0.50/30.00. Long context (>272k) roughly doubles. gpt-5.3-codex IS still listed and priced here (1.75/0.175/14.00) even though the deprecations page records a 2026-07-23 shutdown — an unresolved conflict between two official OpenAI pages."
+    },
+    {
+      "id": "openai-gpt-6-astra-launch-2026-09-05",
+      "url": "https://openai.com/index/gpt-6-astra/",
+      "title": "GPT-6 Astra launch page (chart payloads)",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "vendor_blog",
+      "notes": "Numbers parsed from the page's public Next.js hydration payload (vegaLiteSpec), NOT digitized from images — exact values, not chart reads. Nine benchmark charts with effort_display labels and x_metric rows for api_cost_usd, latency_s and output_tokens. Method + raw capture: minnows/tmp/workstreams/astra-launch-chart-evidence-2026-09-05.json. VENDOR-published, so grade C even where a chart is named after a third-party benchmark."
+    },
+    {
+      "id": "arcprize-gpt-6-astra-2026-09-05",
+      "url": "https://arcprize.org/results/openai-gpt-6-astra",
+      "title": "ARC Prize — OpenAI GPT-6 Astra results",
+      "publisher": "ARC Prize",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "third_party_eval",
+      "notes": "Original publisher page, fetched and verified directly by the owner. 12 harness configurations across all six effort variants. TWO harnesses that must not be merged: Standard (provider-neutral) and Provider Adapter (OpenAI adapter retains opaque reasoning state and compacts context). Under Standard, max is BOTH best-scoring and cheapest in total suite cost — ARC attributes this to fewer actions, hence fewer model calls; a direct counterexample to treating effort as a cost multiplier."
+    },
+    {
+      "id": "capitalandcompute-tbench4-2026-09-04",
+      "url": "https://capitalandcompute.net/blog/terminal-bench-4-0/",
+      "title": "Terminal-Bench 4.0 audit (secondary)",
+      "publisher": "Capital & Compute",
+      "published": "2026-09-04",
+      "retrieved_at": "2026-09-05",
+      "kind": "third_party_eval",
+      "notes": "SECONDARY audit reading of the tbench.ai board timestamped 2026-09-03 21:34 UTC; tbench.ai renders results client-side so the rows were not directly fetchable. Reports 330 trials/entry with 95% CIs and total cost. Its numbers DIFFER from the OpenAI launch-chart TB4.0 numbers — the two are recorded as separate rows and must never be merged or presented as one independent reading."
+    },
+    {
+      "id": "artificialanalysis-gpt-6-astra-2026-09-05",
+      "url": "https://artificialanalysis.ai/pt/models/releases/gpt-6-astra",
+      "title": "Artificial Analysis — GPT-6 Astra Intelligence Index v4.2",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "third_party_eval",
+      "notes": "Independently measured aggregate of 10 evaluations, monotonic in both capability and cost across efforts. Its $/task is a weighted reconstruction across a mixed task basket, NOT a production task price."
     }
   ]
 }

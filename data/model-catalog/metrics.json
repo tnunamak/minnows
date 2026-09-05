@@ -4,7 +4,7 @@
   "schema_version": 1,
   "generated_at": "2026-07-09",
   "notes": [
-    "Metric registry \u2014 distinct metric_ids are not comparable unless same id.",
+    "Metric registry — distinct metric_ids are not comparable unless same id.",
     "Official boards, re-runs, and vendor tables must not share an id."
   ],
   "metrics": [
@@ -72,7 +72,7 @@
       "steward": "third_party_board",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "arc-agi-cost-per-task-usd",
@@ -97,6 +97,16 @@
       "harness": null,
       "steward": "vendor_table",
       "unit_default": "other"
+    },
+    {
+      "id": "artificial-analysis-coding-agent-index-v1-4",
+      "name": "Artificial Analysis Coding Agent Index v1.4",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other",
+      "comparable": false,
+      "notes": "Rows sourced from the OpenAI LAUNCH PAGE chart carry evidence_grade C (vendor), even though the benchmark is named after Artificial Analysis — the publisher of the number here is OpenAI, not AA. An AA-published reading would be a separate row."
     },
     {
       "id": "artificial-analysis-coding-index-model-level",
@@ -137,6 +147,16 @@
       "harness": null,
       "steward": "vendor_table",
       "unit_default": "other"
+    },
+    {
+      "id": "artificial-analysis-intelligence-index-v4-2",
+      "name": "Artificial Analysis Intelligence Index v4.2",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other",
+      "comparable": false,
+      "notes": "Aggregate of 10 evaluations across a MIXED task basket; its $/task is a weighted reconstruction, not a production task price. Do not cross-rank against single-benchmark metric_ids."
     },
     {
       "id": "automationbench",
@@ -186,7 +206,7 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "capture-the-flag-challenges",
@@ -221,14 +241,6 @@
       "unit_default": "accuracy"
     },
     {
-      "id": "deepswe-v1-1",
-      "name": "DeepSWE v1.1",
-      "direction": "higher_better",
-      "harness": null,
-      "steward": "vendor_table",
-      "unit_default": "accuracy"
-    },
-    {
       "id": "deepswe-leaderboard-datacurve",
       "name": "DeepSWE Leaderboard (datacurve.ai)",
       "direction": "higher_better",
@@ -236,6 +248,14 @@
       "steward": "third_party_board",
       "unit_default": "pass_rate",
       "notes": "Distinct from deepswe-v1-1 (OpenAI's internal vendor table). Independently-run leaderboard, 113 long-horizon coding tasks / 91 repos / 5 languages, mini-swe-agent harness (NOT Codex's native harness)."
+    },
+    {
+      "id": "deepswe-v1-1",
+      "name": "DeepSWE v1.1",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
     },
     {
       "id": "expert-swe-internal",
@@ -296,8 +316,18 @@
       "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
     },
     {
+      "id": "frontiercode-1-1-extended",
+      "name": "FrontierCode 1.1 Extended",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vendor launch-chart metric; no independent board reading held in this pack."
+    },
+    {
       "id": "frontiermath-tier-1-3",
-      "name": "FrontierMath Tier 1\u20133",
+      "name": "FrontierMath Tier 1–3",
       "direction": "higher_better",
       "harness": null,
       "steward": "vendor_table",
@@ -351,7 +381,7 @@
       "steward": "digitized_chart",
       "unit_default": "elo",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "gdpval-wins-or-ties",
@@ -425,7 +455,7 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "humanity-s-last-exam-with-tools",
@@ -435,7 +465,7 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "internal-research-debugging-evaluation",
@@ -476,7 +506,7 @@
       "harness": "waspflow",
       "steward": "harness_smoke",
       "unit_default": "pass_rate",
-      "notes": "Not a quality metric \u2014 harness smoke observation only"
+      "notes": "Not a quality metric — harness smoke observation only"
     },
     {
       "id": "local-implement-standard-oracle-v1",
@@ -485,7 +515,7 @@
       "harness": "waspflow",
       "steward": "harness_smoke",
       "unit_default": "pass_rate",
-      "notes": "Not a quality metric \u2014 harness smoke observation only"
+      "notes": "Not a quality metric — harness smoke observation only"
     },
     {
       "id": "local-review-audit-oracle-v1",
@@ -494,7 +524,7 @@
       "harness": "waspflow",
       "steward": "harness_smoke",
       "unit_default": "pass_rate",
-      "notes": "Not a quality metric \u2014 harness smoke observation only"
+      "notes": "Not a quality metric — harness smoke observation only"
     },
     {
       "id": "management-consulting-tasks-internal",
@@ -592,7 +622,7 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "posttrainbench-lite",
@@ -680,7 +710,7 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "swe-bench-pro-public",
@@ -746,7 +776,17 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
+    },
+    {
+      "id": "terminal-bench-4-0",
+      "name": "Terminal-Bench 4.0",
+      "direction": "higher_better",
+      "harness": "codex",
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "MIXED provenance under this id — do NOT cross-rank without checking source_type. Vendor launch-chart rows (openai.com GPT-6 Astra page) and secondary-audit rows (capitalandcompute.net reading of the 2026-09-03 board) report DIFFERENT numbers for the same nominal benchmark and must not be merged or averaged. Result is Astra+Codex+TB4.0, not a model-only score."
     },
     {
       "id": "terminal-bench-v2-1-aa-terminus-2",

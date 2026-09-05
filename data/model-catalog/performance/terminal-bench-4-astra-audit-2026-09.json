@@ -1,0 +1,163 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "schema_version": 1,
+  "id": "terminal-bench-4-astra-audit-2026-09",
+  "kind": "performance",
+  "provider": "openai",
+  "retrieved_at": "2026-09-05",
+  "source_ids": [
+    "capitalandcompute-tbench4-2026-09-04"
+  ],
+  "source_urls": [
+    "https://capitalandcompute.net/blog/terminal-bench-4-0/",
+    "https://www.tbench.ai/"
+  ],
+  "notes": "SECONDARY audit reading of Terminal-Bench 4.0 (tbench.ai renders client-side; rows were not directly fetchable). Result is Astra+Codex+TB4.0 — an agent-system score, not model-only. cost_per_solved is derived arithmetic (published total ÷ solved trials), not a published field. These numbers DIFFER from the vendor launch-chart TB4.0 rows in performance/openai-gpt-6-astra-launch-2026-09.json and must not be merged with them or presented as one independent reading. KEY: high->max is +0.30 points at +43% cost per solved task, and that gap is far inside both runs 95% CI half-widths (±2.98, ±2.79) — the board does NOT establish max as more capable than high here. high dominates xhigh outright (identical 57.88%, $0.43 more per solved task). DIVERGENCE (measured after ingest): the two TB4.0 readings agree closely at high (0.57879 vs 0.5788), medium and xhigh, but DISAGREE IN DIRECTION at max — the vendor launch chart shows max BELOW high (0.5667 < 0.5788), while the secondary board audit shows max ABOVE high (0.5818 > 0.5788). Any high-vs-max recommendation therefore depends on which source is trusted, and neither is decisive: the launch chart publishes no CI, and the audit's own +0.30pt gap sits far inside its ±2.98/±2.79 CI half-widths.",
+  "claims": [],
+  "missing": [
+    "Direct fetch of the tbench.ai board itself — only a secondary audit was retrievable",
+    "Whether ultra was run on this board"
+  ],
+  "scores": [
+    {
+      "model": "gpt-6-astra",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.5061,
+      "unit": "accuracy",
+      "effort": "low",
+      "harness": "codex",
+      "source_id": "capitalandcompute-tbench4-2026-09-04",
+      "caveat": "330 trials (66 tasks x 5). 95% CI half-width ±2.83 points. SECONDARY audit of the tbench.ai board (2026-09-03 21:34 UTC); differs from the OpenAI launch-chart reading of the same nominal benchmark.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-03",
+      "effort_verbatim": "low",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "cost": {
+        "value": 9.33,
+        "unit": "usd_per_solved_task",
+        "basis": "api_usd"
+      },
+      "cost_total": {
+        "value": 1557.30,
+        "unit": "usd_total_suite",
+        "basis": "api_usd"
+      },
+      "comparable": false,
+      "comparability_group": "tb4-secondary-board-audit"
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.5424,
+      "unit": "accuracy",
+      "effort": "medium",
+      "harness": "codex",
+      "source_id": "capitalandcompute-tbench4-2026-09-04",
+      "caveat": "330 trials (66 tasks x 5). 95% CI half-width ±2.74 points. SECONDARY audit of the tbench.ai board (2026-09-03 21:34 UTC); differs from the OpenAI launch-chart reading of the same nominal benchmark.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-03",
+      "effort_verbatim": "medium",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "cost": {
+        "value": 10.70,
+        "unit": "usd_per_solved_task",
+        "basis": "api_usd"
+      },
+      "cost_total": {
+        "value": 1914.80,
+        "unit": "usd_total_suite",
+        "basis": "api_usd"
+      },
+      "comparable": false,
+      "comparability_group": "tb4-secondary-board-audit"
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.5788,
+      "unit": "accuracy",
+      "effort": "high",
+      "harness": "codex",
+      "source_id": "capitalandcompute-tbench4-2026-09-04",
+      "caveat": "330 trials (66 tasks x 5). 95% CI half-width ±2.98 points. SECONDARY audit of the tbench.ai board (2026-09-03 21:34 UTC); differs from the OpenAI launch-chart reading of the same nominal benchmark.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-03",
+      "effort_verbatim": "high",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "cost": {
+        "value": 11.88,
+        "unit": "usd_per_solved_task",
+        "basis": "api_usd"
+      },
+      "cost_total": {
+        "value": 2269.42,
+        "unit": "usd_total_suite",
+        "basis": "api_usd"
+      },
+      "comparable": false,
+      "comparability_group": "tb4-secondary-board-audit"
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.5788,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "harness": "codex",
+      "source_id": "capitalandcompute-tbench4-2026-09-04",
+      "caveat": "330 trials (66 tasks x 5). 95% CI half-width ±2.71 points. SECONDARY audit of the tbench.ai board (2026-09-03 21:34 UTC); differs from the OpenAI launch-chart reading of the same nominal benchmark.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-03",
+      "effort_verbatim": "xhigh",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "cost": {
+        "value": 12.31,
+        "unit": "usd_per_solved_task",
+        "basis": "api_usd"
+      },
+      "cost_total": {
+        "value": 2350.51,
+        "unit": "usd_total_suite",
+        "basis": "api_usd"
+      },
+      "comparable": false,
+      "comparability_group": "tb4-secondary-board-audit"
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.5818,
+      "unit": "accuracy",
+      "effort": "max",
+      "harness": "codex",
+      "source_id": "capitalandcompute-tbench4-2026-09-04",
+      "caveat": "330 trials (66 tasks x 5). 95% CI half-width ±2.79 points. SECONDARY audit of the tbench.ai board (2026-09-03 21:34 UTC); differs from the OpenAI launch-chart reading of the same nominal benchmark.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-03",
+      "effort_verbatim": "max",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "cost": {
+        "value": 17.02,
+        "unit": "usd_per_solved_task",
+        "basis": "api_usd"
+      },
+      "cost_total": {
+        "value": 3267.18,
+        "unit": "usd_total_suite",
+        "basis": "api_usd"
+      },
+      "comparable": false,
+      "comparability_group": "tb4-secondary-board-audit"
+    }
+  ]
+}
