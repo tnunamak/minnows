@@ -484,6 +484,26 @@
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
       "notes": "Credit rates per 1M tokens. gpt-6-astra 250 in / 25 cached / 1250 out. gpt-5.6-sol 100/10/500 with the note \"GPT-5.6 Sol's promotional pricing is available at least through November 21, 2026\" — a RATE CUT vs the 250/25/1500 recorded in codex-credits-2026-07. terra 50/5/300, luna 5/0.5/30. \"Fast mode applies a 2.5x multiplier to Astra's Standard rate.\" Page does NOT state whether reasoning effort changes the per-token RATE or only token volume — recorded as unknown, not assumed. USD/MTok not published on this page (separate rate cards by plan)."
+    },
+    {
+      "id": "anthropic-pricing-2026-09-05",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "title": "Pricing – Anthropic",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "vendor_docs",
+      "notes": "Verified directly by this session (not only by a delegated researcher). Sonnet 5 intro pricing made PERMANENT: \"the previously scheduled increase to $3/$15 ... on September 1, 2026 will not occur.\" Fable/Mythos 5.1 cache reads are 0.025x base ($0.25/MTok) vs the standard 0.1x. Claude Code effort levels are low/medium/high/xhigh/max — there is NO ultra; \"ultracode\" is a Claude Code orchestration setting that sends xhigh, not a sixth effort level."
+    },
+    {
+      "id": "xai-models-2026-09-05",
+      "url": "https://docs.x.ai/developers/models",
+      "title": "Models – xAI",
+      "publisher": "xAI",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "vendor_docs",
+      "notes": "Verified directly by this session. grok-4.6: 2.00 in / 0.50 cached / 6.00 out, 500k context (SMALLER than grok-4.3/4.20 at 1M), knowledge cutoff 2026-02-01. All models carry a >=200k tier doubling input and output. Page states no explicit GA/deprecation status for any model."
     }
   ]
 }

@@ -4,7 +4,7 @@
   "schema_version": 1,
   "kind": "api_usd",
   "agent": "claude-code",
-  "retrieved_at": "2026-07-25",
+  "retrieved_at": "2026-09-05",
   "source_urls": [
     "https://platform.claude.com/docs/en/about-claude/pricing",
     "https://platform.claude.com/docs/en/about-claude/models/overview",
@@ -12,12 +12,13 @@
     "https://www.anthropic.com/news/claude-opus-5"
   ],
   "source_ids": [
-    "anthropic-pricing-2026-07-09",
     "anthropic-models-overview-2026-07-09",
-    "anthropic-sonnet-5-2026-06-30",
-    "anthropic-opus-5-2026-07-24"
+    "anthropic-opus-5-2026-07-24",
+    "anthropic-pricing-2026-07-09",
+    "anthropic-pricing-2026-09-05",
+    "anthropic-sonnet-5-2026-06-30"
   ],
-  "notes": "USD per 1M tokens from Anthropic Pricing docs. cache_write_per_m = 5-minute cache write (1.25\u00d7 base input). 1h cache write is 2\u00d7 (not stored as separate field). cache_read = 0.1\u00d7 base. Sonnet 5 intro through 2026-08-31 as claude-sonnet-5-intro. Fast mode Opus 4.8 and Opus 5 are a mode not a separate model id ($10/$50, ~2\u00d7 price/~2.5\u00d7 speed) \u2014 see claims in capabilities. model.claude-sonnet-5-intro.valid_until=2026-08-31 (machine field). Opus 5 pricing matches Opus 4.8 ($5/$25); 1M ctx, 128k max output (300k via batch beta).",
+  "notes": "USD per 1M tokens from Anthropic Pricing docs. cache_write_per_m = 5-minute cache write (1.25× base input). 1h cache write is 2× (not stored as separate field). cache_read = 0.1× base. Sonnet 5 intro through 2026-08-31 as claude-sonnet-5-intro. Fast mode Opus 4.8 and Opus 5 are a mode not a separate model id ($10/$50, ~2× price/~2.5× speed) — see claims in capabilities. model.claude-sonnet-5-intro.valid_until=2026-08-31 (machine field). Opus 5 pricing matches Opus 4.8 ($5/$25); 1M ctx, 128k max output (300k via batch beta). 2026-09-05 refresh: claude-sonnet-5 CHANGED 3/0.3/3.75/15 -> 2/0.2/2.5/10. Vendor note verbatim: \"The $2/$10 per million input/output token pricing for Claude Sonnet 5, announced at launch as introductory pricing through August 31, 2026, is now the standard price. The previously scheduled increase to $3/$15 per million input/output tokens on September 1, 2026 will not occur.\" The claude-sonnet-5-intro promo row is therefore DELETED rather than expired — it did not lapse, it became the standard rate, so retaining it as historical would misrepresent what happened. NEW: claude-fable-5-1 and claude-mythos-5-1 (10/50) whose cache reads are 0.025x base ($0.25), not the usual 0.1x. Re-verified UNCHANGED: opus-5, opus-4-8/4-7/4-6, fable-5, mythos-5, sonnet-4-6/4-5, haiku-4-5.",
   "models": {
     "claude-opus-5": {
       "fresh_input_per_m": 5,
@@ -56,18 +57,10 @@
       "output_per_m": 25
     },
     "claude-sonnet-5": {
-      "fresh_input_per_m": 3,
-      "cache_read_per_m": 0.3,
-      "cache_write_per_m": 3.75,
-      "output_per_m": 15
-    },
-    "claude-sonnet-5-intro": {
       "fresh_input_per_m": 2,
       "cache_read_per_m": 0.2,
       "cache_write_per_m": 2.5,
-      "output_per_m": 10,
-      "valid_from": "2026-06-30",
-      "valid_until": "2026-08-31"
+      "output_per_m": 10
     },
     "claude-sonnet-4-6": {
       "fresh_input_per_m": 3,
@@ -86,6 +79,18 @@
       "cache_read_per_m": 0.1,
       "cache_write_per_m": 1.25,
       "output_per_m": 5
+    },
+    "claude-fable-5-1": {
+      "fresh_input_per_m": 10,
+      "cache_read_per_m": 0.25,
+      "cache_write_per_m": 12.5,
+      "output_per_m": 50
+    },
+    "claude-mythos-5-1": {
+      "fresh_input_per_m": 10,
+      "cache_read_per_m": 0.25,
+      "cache_write_per_m": 12.5,
+      "output_per_m": 50
     }
   },
   "match": [
@@ -126,10 +131,6 @@
     {
       "pattern": "opus-4-7",
       "model": "claude-opus-4-7"
-    },
-    {
-      "pattern": "sonnet-5-intro",
-      "model": "claude-sonnet-5-intro"
     },
     {
       "pattern": "sonnet-5",

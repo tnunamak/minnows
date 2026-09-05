@@ -11,7 +11,7 @@
   "source_ids": [
     "google-gemini-pricing-2026-07-09"
   ],
-  "notes": "Standard paid tier USD/1MTok for prompts \u2264200k where tiered. Long-context higher rates on source page not separate model ids. cache_write_per_m=0 (storage billed hourly, not write multiplier). Batch/Flex often ~50% off \u2014 not modeled here. role=reference: priced for lookup only; no waspflow provider and no policy ops. Do not treat as integrated.",
+  "notes": "Standard paid tier USD/1MTok for prompts ≤200k where tiered. Long-context higher rates on source page not separate model ids. cache_write_per_m=0 (storage billed hourly, not write multiplier). Batch/Flex often ~50% off — not modeled here. role=reference: priced for lookup only; no waspflow provider and no policy ops. Do not treat as integrated. 2026-09-05 audit (delegated researcher, primary source ai.google.dev): all existing rows re-verified UNCHANGED — gemini-3.1-pro-preview, 3.5-flash, 3-flash-preview, 3.1-flash-lite, 2.5-pro, 2.5-flash, 2.5-flash-lite. NOT APPLIED, needs direct verification before entry: (a) a >200k-token tier for gemini-3.1-pro-preview (4.00/18.00) and gemini-2.5-pro (2.50/15.00) which this flat-rate schema does not model; (b) new Flash models 3.6/3.7/3.8-flash and 3.5-flash-lite reported promo-priced through 2026-12-31; (c) the researcher flagged as surprising that no Pro model newer than 3.1-pro-preview was found while the Flash line advanced to 3.8 — treat as unconfirmed until re-checked.",
   "models": {
     "gemini-3.1-pro-preview": {
       "fresh_input_per_m": 2.0,

@@ -13,7 +13,7 @@
     "alibaba-pricing-2026-07",
     "alibaba-context-cache-2026-07"
   ],
-  "notes": "USD per 1M tokens, International region. List prices (not promo). Explicit context caching: cache_read = 10% of input, cache_write = 125% of input (5-min TTL, 1024-token min). Implicit caching: read = 20% of input, write = 100% (no extra fee, indeterminate TTL). qwen3.8-max-preview is Token Plan only (no public per-token pricing). qwen3-coder-plus and qwen3-coder-next are Coding Plan subscription only.",
+  "notes": "USD per 1M tokens, International region. List prices (not promo). Explicit context caching: cache_read = 10% of input, cache_write = 125% of input (5-min TTL, 1024-token min). Implicit caching: read = 20% of input, write = 100% (no extra fee, indeterminate TTL). qwen3.8-max-preview is Token Plan only (no public per-token pricing). qwen3-coder-plus and qwen3-coder-next are Coding Plan subscription only. 2026-09-05 audit (delegated researcher, MEDIUM confidence — primary-source fetch was incomplete and several figures rest on secondary aggregators). NOT APPLIED pending direct verification: (a) qwen3.8-max is reportedly now GA with public per-token pricing (~2.00 in / 6.00 out, Singapore), which would supersede this file's note that qwen3.8-max-preview is Token-Plan-only — unresolved whether the preview graduated under a new id; (b) a reported 20% promo on qwen3.7-max was NOT confirmed on the primary page; (c) context-length tiering exists for qwen3.6-plus/3.6-flash where this file records only the base tier. Existing rows are left UNCHANGED: none were shown to be wrong, only under-specified.",
   "models": {
     "qwen3.7-max": {
       "fresh_input_per_m": 2.5,
@@ -53,12 +53,33 @@
     }
   },
   "match": [
-    { "pattern": "qwen3.7-max", "model": "qwen3.7-max", "family_default": true },
-    { "pattern": "qwen3-max", "model": "qwen3-max-2026-01-23" },
-    { "pattern": "qwen3.7-plus", "model": "qwen3.7-plus", "family_default": true },
-    { "pattern": "qwen3.6-plus", "model": "qwen3.6-plus" },
-    { "pattern": "qwen3.5-plus", "model": "qwen3.5-plus" },
-    { "pattern": "qwen3.6-flash", "model": "qwen3.6-flash", "family_default": true }
+    {
+      "pattern": "qwen3.7-max",
+      "model": "qwen3.7-max",
+      "family_default": true
+    },
+    {
+      "pattern": "qwen3-max",
+      "model": "qwen3-max-2026-01-23"
+    },
+    {
+      "pattern": "qwen3.7-plus",
+      "model": "qwen3.7-plus",
+      "family_default": true
+    },
+    {
+      "pattern": "qwen3.6-plus",
+      "model": "qwen3.6-plus"
+    },
+    {
+      "pattern": "qwen3.5-plus",
+      "model": "qwen3.5-plus"
+    },
+    {
+      "pattern": "qwen3.6-flash",
+      "model": "qwen3.6-flash",
+      "family_default": true
+    }
   ],
   "role": "operational"
 }

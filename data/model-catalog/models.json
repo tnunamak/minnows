@@ -98,13 +98,6 @@
       ]
     },
     {
-      "id": "claude-sonnet-5-intro",
-      "provider": "anthropic",
-      "family": "claude-sonnet",
-      "status": "promo",
-      "aliases": []
-    },
-    {
       "id": "gemini-2.5-flash",
       "provider": "google",
       "family": "gemini-2.5",
@@ -438,6 +431,33 @@
       "family": "gpt-5.6",
       "status": "historical",
       "aliases": []
+    },
+    {
+      "id": "claude-fable-5-1",
+      "provider": "anthropic",
+      "family": "claude-fable",
+      "status": "ga",
+      "aliases": [
+        "Claude Fable 5.1"
+      ]
+    },
+    {
+      "id": "claude-mythos-5-1",
+      "provider": "anthropic",
+      "family": "claude-mythos",
+      "status": "ga",
+      "aliases": [
+        "Claude Mythos 5.1"
+      ]
+    },
+    {
+      "id": "grok-4.6",
+      "provider": "xai",
+      "family": "grok-4",
+      "status": "ga",
+      "aliases": [
+        "Grok 4.6"
+      ]
     }
   ],
   "resolution_rules": {

@@ -4,50 +4,57 @@
   "schema_version": 1,
   "kind": "api_usd",
   "agent": "grok",
-  "retrieved_at": "2026-07-09",
+  "retrieved_at": "2026-09-05",
   "source_urls": [
     "https://docs.x.ai/developers/models"
   ],
   "source_ids": [
-    "xai-models-2026-07-09"
+    "xai-models-2026-07-09",
+    "xai-models-2026-09-05"
   ],
-  "notes": "Chat/Code API USD per 1M tokens. cache_read/write not published as separate lines \u2014 set 0. Imagine/voice SKUs are non-token and omitted from models{} (see SOURCES notes).",
+  "notes": "Chat/Code API USD per 1M tokens. cache_read/write not published as separate lines — set 0. Imagine/voice SKUs are non-token and omitted from models{} (see SOURCES notes). 2026-09-05 refresh: NEW grok-4.6 (released 2026-08-12, after this file's original retrieval) at 2.00 in / 0.50 cached / 6.00 out, 500k context — xAI describes it as \"the most intelligent and fastest model\". CORRECTED: every model previously carried cache_read_per_m=0, but docs.x.ai publishes real cached-input rates (0.20-0.50); base input/output rates re-verified UNCHANGED for all pre-existing models. NOT MODELED (documented, deliberately out of scope for this flat-rate schema): a >=200k-token tier that doubles input and output for every xAI model.",
   "models": {
     "grok-4.5": {
       "fresh_input_per_m": 2.0,
-      "cache_read_per_m": 0,
+      "cache_read_per_m": 0.30,
       "cache_write_per_m": 0,
       "output_per_m": 6.0
     },
     "grok-4.3": {
       "fresh_input_per_m": 1.25,
-      "cache_read_per_m": 0,
+      "cache_read_per_m": 0.20,
       "cache_write_per_m": 0,
       "output_per_m": 2.5
     },
     "grok-4.20-0309-reasoning": {
       "fresh_input_per_m": 1.25,
-      "cache_read_per_m": 0,
+      "cache_read_per_m": 0.20,
       "cache_write_per_m": 0,
       "output_per_m": 2.5
     },
     "grok-4.20-0309-non-reasoning": {
       "fresh_input_per_m": 1.25,
-      "cache_read_per_m": 0,
+      "cache_read_per_m": 0.20,
       "cache_write_per_m": 0,
       "output_per_m": 2.5
     },
     "grok-4.20-multi-agent-0309": {
       "fresh_input_per_m": 1.25,
-      "cache_read_per_m": 0,
+      "cache_read_per_m": 0.20,
       "cache_write_per_m": 0,
       "output_per_m": 2.5
     },
     "grok-build-0.1": {
       "fresh_input_per_m": 1.0,
-      "cache_read_per_m": 0,
+      "cache_read_per_m": 0.20,
       "cache_write_per_m": 0,
       "output_per_m": 2.0
+    },
+    "grok-4.6": {
+      "fresh_input_per_m": 2.0,
+      "cache_read_per_m": 0.5,
+      "cache_write_per_m": 0,
+      "output_per_m": 6.0
     }
   },
   "match": [
@@ -77,8 +84,12 @@
     },
     {
       "pattern": "grok",
-      "model": "grok-4.5",
+      "model": "grok-4.6",
       "family_default": true
+    },
+    {
+      "pattern": "grok-4.6",
+      "model": "grok-4.6"
     }
   ],
   "role": "operational"
