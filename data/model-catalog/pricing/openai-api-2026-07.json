@@ -4,7 +4,7 @@
   "schema_version": 1,
   "kind": "api_usd",
   "agent": "codex",
-  "retrieved_at": "2026-07-09",
+  "retrieved_at": "2026-09-05",
   "source_urls": [
     "https://developers.openai.com/api/docs/pricing",
     "https://openai.com/index/gpt-5-6/",
@@ -12,28 +12,33 @@
   ],
   "source_ids": [
     "openai-api-pricing-2026-07-09",
-    "openai-gpt-5-6-2026-07-09",
-    "openai-gpt-5-5-2026-04-23"
+    "openai-api-pricing-2026-09-05",
+    "openai-gpt-5-5-2026-04-23",
+    "openai-gpt-5-6-2026-07-09"
   ],
-  "notes": "Standard short-context rates USD/1MTok. GPT-5.6 cache_write = 1.25\u00d7 fresh; cache_read = 0.1\u00d7. Long-context rates (higher) exist on pricing page but are not separate model ids here \u2014 see notes. GPT-5.5/5.4 cache_write left 0 when not published as write line.",
+  "notes": "Standard short-context rates USD/1MTok. GPT-5.6 cache_write = 1.25× fresh; cache_read = 0.1×. Long-context rates (higher) exist on pricing page but are not separate model ids here — see notes. GPT-5.5/5.4 cache_write left 0 when not published as write line. 2026-09-05 refresh (API USD rate card — DISTINCT from Codex subscription credits in codex-credits-2026-07.json; do not conflate). CHANGED: sol 5/0.5/30 -> 4/0.40/20 (promotional, vendor floor at least through 2026-11-21; list price remains 5/30 after), terra 2.5/0.25/15 -> 2/0.20/12, luna 1/0.1/6 -> 0.20/0.02/1.20. Superseded values retained as *-2026-07 rows with valid_from/valid_until. NEW gpt-6-astra 10/1.00/50 short-context. UNCHANGED, re-verified: gpt-5.5, gpt-5.5-pro, gpt-5.4, gpt-5.4-mini, gpt-5.4-nano, gpt-5.4-pro. NOT MODELED by this flat-rate schema (documented): a long-context tier above ~272k tokens that roughly doubles input and raises output, and a 1.1x data-residency uplift for models released on/after 2026-03-05. UNRESOLVED SOURCE CONFLICT, left as-is deliberately: gpt-5.3-codex appears on the deprecations page with a 2026-07-23 shutdown AND is still priced at 1.75/0.175/14.00 on the live pricing page; the row is unchanged pending resolution rather than deleted on one page's authority. Source URL note: platform.openai.com/docs/pricing now 301-redirects to developers.openai.com/api/docs/pricing.",
   "models": {
     "gpt-5.6-sol": {
-      "fresh_input_per_m": 5.0,
-      "cache_read_per_m": 0.5,
-      "cache_write_per_m": 6.25,
-      "output_per_m": 30.0
+      "fresh_input_per_m": 4.0,
+      "cache_read_per_m": 0.40,
+      "cache_write_per_m": 5.0,
+      "output_per_m": 20.0,
+      "valid_from": "2026-09-05",
+      "valid_until": "2026-11-21"
     },
     "gpt-5.6-terra": {
-      "fresh_input_per_m": 2.5,
-      "cache_read_per_m": 0.25,
-      "cache_write_per_m": 3.125,
-      "output_per_m": 15.0
+      "fresh_input_per_m": 2.0,
+      "cache_read_per_m": 0.20,
+      "cache_write_per_m": 2.5,
+      "output_per_m": 12.0,
+      "valid_from": "2026-09-05"
     },
     "gpt-5.6-luna": {
-      "fresh_input_per_m": 1.0,
-      "cache_read_per_m": 0.1,
-      "cache_write_per_m": 1.25,
-      "output_per_m": 6.0
+      "fresh_input_per_m": 0.20,
+      "cache_read_per_m": 0.02,
+      "cache_write_per_m": 0.25,
+      "output_per_m": 1.20,
+      "valid_from": "2026-09-05"
     },
     "gpt-5.5": {
       "fresh_input_per_m": 5.0,
@@ -76,6 +81,37 @@
       "cache_read_per_m": 0.175,
       "cache_write_per_m": 0.0,
       "output_per_m": 14.0
+    },
+    "gpt-5.6-sol-2026-07": {
+      "fresh_input_per_m": 5.0,
+      "cache_read_per_m": 0.5,
+      "cache_write_per_m": 6.25,
+      "output_per_m": 30.0,
+      "valid_from": "2026-07-09",
+      "valid_until": "2026-09-05"
+    },
+    "gpt-5.6-terra-2026-07": {
+      "fresh_input_per_m": 2.5,
+      "cache_read_per_m": 0.25,
+      "cache_write_per_m": 3.125,
+      "output_per_m": 15.0,
+      "valid_from": "2026-07-09",
+      "valid_until": "2026-09-05"
+    },
+    "gpt-5.6-luna-2026-07": {
+      "fresh_input_per_m": 1.0,
+      "cache_read_per_m": 0.1,
+      "cache_write_per_m": 1.25,
+      "output_per_m": 6.0,
+      "valid_from": "2026-07-09",
+      "valid_until": "2026-09-05"
+    },
+    "gpt-6-astra": {
+      "fresh_input_per_m": 10.0,
+      "cache_read_per_m": 1.0,
+      "cache_write_per_m": 12.5,
+      "output_per_m": 50.0,
+      "valid_from": "2026-09-05"
     }
   },
   "match": [
@@ -133,6 +169,10 @@
     {
       "pattern": "gpt-5.3-codex",
       "model": "gpt-5.3-codex"
+    },
+    {
+      "pattern": "gpt-6-astra",
+      "model": "gpt-6-astra"
     }
   ],
   "role": "operational"

@@ -18,6 +18,15 @@
       "aliases": []
     },
     {
+      "id": "claude-fable-5-1",
+      "provider": "anthropic",
+      "family": "claude-fable",
+      "status": "ga",
+      "aliases": [
+        "Claude Fable 5.1"
+      ]
+    },
+    {
       "id": "claude-haiku-4-5",
       "provider": "anthropic",
       "family": "claude-haiku",
@@ -31,6 +40,15 @@
       "status": "ga",
       "aliases": [
         "claude-mythos-preview"
+      ]
+    },
+    {
+      "id": "claude-mythos-5-1",
+      "provider": "anthropic",
+      "family": "claude-mythos",
+      "status": "ga",
+      "aliases": [
+        "Claude Mythos 5.1"
       ]
     },
     {
@@ -223,10 +241,24 @@
       "aliases": []
     },
     {
+      "id": "gpt-5.6-luna-2026-07",
+      "provider": "openai",
+      "family": "gpt-5.6",
+      "status": "historical",
+      "aliases": []
+    },
+    {
       "id": "gpt-5.6-sol",
       "provider": "openai",
       "family": "gpt-5.6",
       "status": "ga",
+      "aliases": []
+    },
+    {
+      "id": "gpt-5.6-sol-2026-07",
+      "provider": "openai",
+      "family": "gpt-5.6",
+      "status": "historical",
       "aliases": []
     },
     {
@@ -235,6 +267,23 @@
       "family": "gpt-5.6",
       "status": "ga",
       "aliases": []
+    },
+    {
+      "id": "gpt-5.6-terra-2026-07",
+      "provider": "openai",
+      "family": "gpt-5.6",
+      "status": "historical",
+      "aliases": []
+    },
+    {
+      "id": "gpt-6-astra",
+      "provider": "openai",
+      "family": "gpt-6",
+      "status": "ga",
+      "aliases": [
+        "Astra",
+        "GPT-6-Astra"
+      ]
     },
     {
       "id": "grok-4.20-0309-non-reasoning",
@@ -275,6 +324,15 @@
       "aliases": []
     },
     {
+      "id": "grok-4.6",
+      "provider": "xai",
+      "family": "grok-4",
+      "status": "ga",
+      "aliases": [
+        "Grok 4.6"
+      ]
+    },
+    {
       "id": "grok-build-0.1",
       "provider": "xai",
       "family": "grok-build",
@@ -282,20 +340,27 @@
       "aliases": []
     },
     {
-      "id": "qwen3.8-max-preview",
+      "id": "qwen3-coder-480b",
       "provider": "alibaba",
-      "family": "qwen-max",
+      "family": "qwen-coder",
+      "status": "ga",
+      "aliases": [
+        "Qwen3-Coder-480B-A35B-Instruct"
+      ]
+    },
+    {
+      "id": "qwen3-coder-next",
+      "provider": "alibaba",
+      "family": "qwen-coder",
       "status": "preview",
       "aliases": []
     },
     {
-      "id": "qwen3.7-max",
+      "id": "qwen3-coder-plus",
       "provider": "alibaba",
-      "family": "qwen-max",
+      "family": "qwen-coder",
       "status": "ga",
-      "aliases": [
-        "qwen3.7-max-2026-05-20"
-      ]
+      "aliases": []
     },
     {
       "id": "qwen3-max-2026-01-23",
@@ -307,21 +372,39 @@
       ]
     },
     {
-      "id": "qwen3.7-plus",
+      "id": "qwen3.5-122b-a10b",
       "provider": "alibaba",
-      "family": "qwen-plus",
+      "family": "qwen3.5",
       "status": "ga",
       "aliases": [
-        "qwen3.7-plus-2026-05-26"
+        "Qwen3.5-122B-A10B"
       ]
     },
     {
-      "id": "qwen3.6-plus",
+      "id": "qwen3.5-27b",
       "provider": "alibaba",
-      "family": "qwen-plus",
+      "family": "qwen3.5",
       "status": "ga",
       "aliases": [
-        "qwen3.6-plus-2026-04-02"
+        "Qwen3.5-27B"
+      ]
+    },
+    {
+      "id": "qwen3.5-35b-a3b",
+      "provider": "alibaba",
+      "family": "qwen3.5",
+      "status": "ga",
+      "aliases": [
+        "Qwen3.5-35B-A3B"
+      ]
+    },
+    {
+      "id": "qwen3.5-9b",
+      "provider": "alibaba",
+      "family": "qwen3.5",
+      "status": "ga",
+      "aliases": [
+        "Qwen3.5-9B"
       ]
     },
     {
@@ -343,121 +426,38 @@
       ]
     },
     {
-      "id": "qwen3-coder-plus",
+      "id": "qwen3.6-plus",
       "provider": "alibaba",
-      "family": "qwen-coder",
+      "family": "qwen-plus",
       "status": "ga",
-      "aliases": []
+      "aliases": [
+        "qwen3.6-plus-2026-04-02"
+      ]
     },
     {
-      "id": "qwen3-coder-next",
+      "id": "qwen3.7-max",
       "provider": "alibaba",
-      "family": "qwen-coder",
+      "family": "qwen-max",
+      "status": "ga",
+      "aliases": [
+        "qwen3.7-max-2026-05-20"
+      ]
+    },
+    {
+      "id": "qwen3.7-plus",
+      "provider": "alibaba",
+      "family": "qwen-plus",
+      "status": "ga",
+      "aliases": [
+        "qwen3.7-plus-2026-05-26"
+      ]
+    },
+    {
+      "id": "qwen3.8-max-preview",
+      "provider": "alibaba",
+      "family": "qwen-max",
       "status": "preview",
       "aliases": []
-    },
-    {
-      "id": "qwen3.5-35b-a3b",
-      "provider": "alibaba",
-      "family": "qwen3.5",
-      "status": "ga",
-      "aliases": [
-        "Qwen3.5-35B-A3B"
-      ]
-    },
-    {
-      "id": "qwen3.5-9b",
-      "provider": "alibaba",
-      "family": "qwen3.5",
-      "status": "ga",
-      "aliases": [
-        "Qwen3.5-9B"
-      ]
-    },
-    {
-      "id": "qwen3-coder-480b",
-      "provider": "alibaba",
-      "family": "qwen-coder",
-      "status": "ga",
-      "aliases": [
-        "Qwen3-Coder-480B-A35B-Instruct"
-      ]
-    },
-    {
-      "id": "qwen3.5-27b",
-      "provider": "alibaba",
-      "family": "qwen3.5",
-      "status": "ga",
-      "aliases": [
-        "Qwen3.5-27B"
-      ]
-    },
-    {
-      "id": "qwen3.5-122b-a10b",
-      "provider": "alibaba",
-      "family": "qwen3.5",
-      "status": "ga",
-      "aliases": [
-        "Qwen3.5-122B-A10B"
-      ]
-    },
-    {
-      "id": "gpt-6-astra",
-      "provider": "openai",
-      "family": "gpt-6",
-      "status": "ga",
-      "aliases": [
-        "Astra",
-        "GPT-6-Astra"
-      ]
-    },
-    {
-      "id": "gpt-5.6-sol-2026-07",
-      "provider": "openai",
-      "family": "gpt-5.6",
-      "status": "historical",
-      "aliases": []
-    },
-    {
-      "id": "gpt-5.6-terra-2026-07",
-      "provider": "openai",
-      "family": "gpt-5.6",
-      "status": "historical",
-      "aliases": []
-    },
-    {
-      "id": "gpt-5.6-luna-2026-07",
-      "provider": "openai",
-      "family": "gpt-5.6",
-      "status": "historical",
-      "aliases": []
-    },
-    {
-      "id": "claude-fable-5-1",
-      "provider": "anthropic",
-      "family": "claude-fable",
-      "status": "ga",
-      "aliases": [
-        "Claude Fable 5.1"
-      ]
-    },
-    {
-      "id": "claude-mythos-5-1",
-      "provider": "anthropic",
-      "family": "claude-mythos",
-      "status": "ga",
-      "aliases": [
-        "Claude Mythos 5.1"
-      ]
-    },
-    {
-      "id": "grok-4.6",
-      "provider": "xai",
-      "family": "grok-4",
-      "status": "ga",
-      "aliases": [
-        "Grok 4.6"
-      ]
     }
   ],
   "resolution_rules": {

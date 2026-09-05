@@ -504,6 +504,16 @@
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
       "notes": "Verified directly by this session. grok-4.6: 2.00 in / 0.50 cached / 6.00 out, 500k context (SMALLER than grok-4.3/4.20 at 1M), knowledge cutoff 2026-02-01. All models carry a >=200k tier doubling input and output. Page states no explicit GA/deprecation status for any model."
+    },
+    {
+      "id": "openai-api-pricing-2026-09-05",
+      "url": "https://developers.openai.com/api/docs/pricing",
+      "title": "API Pricing – OpenAI",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "vendor_docs",
+      "notes": "Verified directly by this session. Short-context USD/MTok: gpt-6-astra 10.00/1.00/50.00; gpt-5.6-sol 4.00/0.40/20.00; terra 2.00/0.20/12.00; luna 0.20/0.02/1.20; gpt-5.5 5.00/0.50/30.00. Long context (>272k) roughly doubles. gpt-5.3-codex IS still listed and priced here (1.75/0.175/14.00) even though the deprecations page records a 2026-07-23 shutdown — an unresolved conflict between two official OpenAI pages."
     }
   ]
 }

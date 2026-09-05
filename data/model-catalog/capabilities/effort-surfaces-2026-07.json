@@ -355,10 +355,12 @@
       ],
       "source_ids": [
         "openai-codex-config-2026-07-09",
+        "openai-codex-debug-models-2026-09-05",
         "openai-codex-models-2026-08-02",
+        "openai-codex-models-2026-09-05",
         "openai-gpt-5-6-2026-07-09"
       ],
-      "notes": "CONFIRMED 2026-08-02: the config-reference (config file / model_reasoning_effort key) does not list max; Codex's separate Models doc describes Max as an opt-in UI-level toggle layered on top of a chosen model/effort (\"Max mode\"), not a model_reasoning_effort value, and says most tasks do not need it. Treat max as UI-toggle-gated, not config-settable, until a newer primary source says otherwise. See ~/code/dotfiles/ai/research/model-routing/gpt-5-6-luna-at-max-effort-is-a-defensible-not-dominant-codex-value-pick.md."
+      "notes": "CONFIRMED 2026-08-02: the config-reference (config file / model_reasoning_effort key) does not list max; Codex's separate Models doc describes Max as an opt-in UI-level toggle layered on top of a chosen model/effort (\"Max mode\"), not a model_reasoning_effort value, and says most tasks do not need it. Treat max as UI-toggle-gated, not config-settable, until a newer primary source says otherwise. See ~/code/dotfiles/ai/research/model-routing/gpt-5-6-luna-at-max-effort-is-a-defensible-not-dominant-codex-value-pick.md. 2026-09-05: vendor docs now list this model with Low/Medium/High/Extra High/Max/Ultra and default Medium. NOT applied to valid_efforts because this host's live `codex debug models` disagrees for luna (no ultra) and for sol (default=low) — the docs-vs-auth-scoped-catalog conflict is recorded in missing[] rather than resolved by picking a side."
     },
     {
       "provider": "openai",
@@ -381,9 +383,11 @@
       ],
       "source_ids": [
         "openai-codex-config-2026-07-09",
-        "openai-codex-models-2026-08-02"
+        "openai-codex-debug-models-2026-09-05",
+        "openai-codex-models-2026-08-02",
+        "openai-codex-models-2026-09-05"
       ],
-      "notes": "Inferred from the same config-reference enum as gpt-5.6-sol (no per-model override documented). Max mode is a UI toggle per openai-codex-models-2026-08-02, not confirmed as a config_reference value for this model specifically."
+      "notes": "Inferred from the same config-reference enum as gpt-5.6-sol (no per-model override documented). Max mode is a UI toggle per openai-codex-models-2026-08-02, not confirmed as a config_reference value for this model specifically. 2026-09-05: vendor docs now list this model with Low/Medium/High/Extra High/Max/Ultra and default Medium. NOT applied to valid_efforts because this host's live `codex debug models` disagrees for luna (no ultra) and for sol (default=low) — the docs-vs-auth-scoped-catalog conflict is recorded in missing[] rather than resolved by picking a side."
     },
     {
       "provider": "openai",
@@ -406,9 +410,11 @@
       ],
       "source_ids": [
         "openai-codex-config-2026-07-09",
-        "openai-codex-models-2026-08-02"
+        "openai-codex-debug-models-2026-09-05",
+        "openai-codex-models-2026-08-02",
+        "openai-codex-models-2026-09-05"
       ],
-      "notes": "Codex default (\"Power\") tier is gpt-5.6-sol@medium; selecting Luna requires opening Advanced settings (openai-codex-models-2026-08-02). Inferred from the same config-reference enum as gpt-5.6-sol (no per-model override documented). Max mode is a UI toggle, not confirmed as a config_reference value for this model specifically — the 'Luna at max' operating point evaluated in deepswe-leaderboard-gpt-5-6-2026-08.json used the API/leaderboard harness, not a verified Codex CLI config_reference max setting."
+      "notes": "Codex default (\"Power\") tier is gpt-5.6-sol@medium; selecting Luna requires opening Advanced settings (openai-codex-models-2026-08-02). Inferred from the same config-reference enum as gpt-5.6-sol (no per-model override documented). Max mode is a UI toggle, not confirmed as a config_reference value for this model specifically — the 'Luna at max' operating point evaluated in deepswe-leaderboard-gpt-5-6-2026-08.json used the API/leaderboard harness, not a verified Codex CLI config_reference max setting. 2026-09-05: vendor docs now list this model with Low/Medium/High/Extra High/Max/Ultra and default Medium. NOT applied to valid_efforts because this host's live `codex debug models` disagrees for luna (no ultra) and for sol (default=low) — the docs-vs-auth-scoped-catalog conflict is recorded in missing[] rather than resolved by picking a side."
     },
     {
       "provider": "openai",
@@ -705,12 +711,11 @@
     }
   ],
   "missing": [
-    "Whether 'max' is ever a literal model_reasoning_effort config value for any GPT-5.6 Codex pin, vs. always a separate UI Max-mode toggle layered on top (config-reference silent 2026-07-09 and re-checked 2026-08-02; only the Models doc's UI description confirms max exists at all in Codex)",
-    "Codex CLI effort enum specifically for gpt-5.6-terra / gpt-5.6-luna (inferred from the shared config-reference enum, not independently verified per-model)",
     "Google Gemini thinking-budget enum as effort surface",
     "Astra: any benchmark score at any effort — no vendor table and no third-party board reading exists yet (no ARC/DeepSWE/Terminal-Bench entry for gpt-6-astra)",
     "Astra: per-effort latency, and whether reasoning effort changes the per-token credit RATE or only token volume (vendor pricing page does not say)",
     "Astra: whether ultra's subagent delegation multiplies billed tokens beyond the single-agent run (behavioural, not just deeper reasoning — cost model may differ in kind)",
-    "Vendor docs (2026-09-05) list ultra for gpt-5.6-sol/terra/luna and default=medium for sol, but this host's live `codex debug models` shows luna WITHOUT ultra and sol default=low — unresolved docs-vs-auth-scoped-catalog disagreement"
+    "Vendor docs (2026-09-05) list ultra for gpt-5.6-sol/terra/luna and default=medium for sol, but this host's live `codex debug models` shows luna WITHOUT ultra and sol default=low — unresolved docs-vs-auth-scoped-catalog disagreement",
+    "Whether Codex CLI honors `max` as a literal model_reasoning_effort config value for the GPT-5.6 pins specifically. PARTIALLY RESOLVED 2026-09-05: `codex exec -c model_reasoning_effort=ultra --model gpt-5.6-terra` completed a turn while a bogus value returned HTTP 400, proving the -c surface does accept levels beyond the old published enum; `max` itself was not separately probed per-model."
   ]
 }
