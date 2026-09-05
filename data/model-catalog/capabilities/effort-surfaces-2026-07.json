@@ -712,7 +712,7 @@
   ],
   "missing": [
     "Google Gemini thinking-budget enum as effort surface",
-    "Astra: any benchmark score at any effort — no vendor table and no third-party board reading exists yet (no ARC/DeepSWE/Terminal-Bench entry for gpt-6-astra)",
+    "Astra: any benchmark score at any effort. PROVISIONAL — an earlier absence check in this session searched only this pack's performance/ files and found none; that is NOT evidence that no official guidance or third-party board reading exists. Reopened 2026-09-05 pending a dedicated source search; do not cite the absence as settled.",
     "Astra: per-effort latency, and whether reasoning effort changes the per-token credit RATE or only token volume (vendor pricing page does not say)",
     "Astra: whether ultra's subagent delegation multiplies billed tokens beyond the single-agent run (behavioural, not just deeper reasoning — cost model may differ in kind)",
     "Vendor docs (2026-09-05) list ultra for gpt-5.6-sol/terra/luna and default=medium for sol, but this host's live `codex debug models` shows luna WITHOUT ultra and sol default=low — unresolved docs-vs-auth-scoped-catalog disagreement",
