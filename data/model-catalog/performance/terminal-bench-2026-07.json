@@ -4,7 +4,7 @@
   "schema_version": 1,
   "kind": "performance",
   "provider": "other",
-  "retrieved_at": "2026-07-09",
+  "retrieved_at": "2026-09-05",
   "source_urls": [
     "https://www.tbench.ai/leaderboard/terminal-bench/2.1",
     "https://artificialanalysis.ai/evaluations/terminalbench-v2-1"
@@ -13,7 +13,7 @@
     "tbench-2-1-2026-07-09",
     "aa-terminalbench-v2-1-2026-07-09"
   ],
-  "notes": "Independent Terminal-Bench leaderboards. Official TB 2.1 rows encode agent@model because harness dominates. AA rows use AA's Terminus 2 protocol \u2014 not interchangeable with vendor-reported Terminal-Bench 2.1 on OpenAI launch posts.",
+  "notes": "Independent Terminal-Bench leaderboards. Official TB 2.1 rows encode agent@model because harness dominates. AA rows use AA's Terminus 2 protocol \u2014 not interchangeable with vendor-reported Terminal-Bench 2.1 on OpenAI launch posts. Re-reviewed 2026-09-05 in an isolated original-publisher browser session: this document retains the dated July observations and terminal-bench-2-1-2026-09.json holds the separate current official-board snapshot.",
   "scores": [
     {
       "model": "gpt-5.5",

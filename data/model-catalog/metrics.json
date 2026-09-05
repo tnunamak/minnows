@@ -827,6 +827,86 @@
       "unit_default": "accuracy"
     },
     {
+      "id": "ifeval",
+      "name": "IFEval",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vendor model-card row; configuration is not normalized against other IFEval reports."
+    },
+    {
+      "id": "hle-with-cot",
+      "name": "HLE w/ CoT",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vendor model-card chain-of-thought configuration; do not cross-rank with other HLE variants."
+    },
+    {
+      "id": "livecodebench-v6",
+      "name": "LiveCodeBench v6",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vendor model-card row; evaluation protocol is not captured as a shared board run."
+    },
+    {
+      "id": "matharena-aime-2026",
+      "name": "MathArena AIME 2026",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vendor model-card row; benchmark-year and prompt configuration are part of the metric identity."
+    },
+    {
+      "id": "mmlu-pro",
+      "name": "MMLU-Pro",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vendor model-card row; do not infer identical prompting or few-shot configuration."
+    },
+    {
+      "id": "mmmu",
+      "name": "MMMU",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vendor model-card multimodal row; protocol details are not normalized across sources."
+    },
+    {
+      "id": "swe-bench-verified",
+      "name": "SWE-bench Verified",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "pass_rate",
+      "comparable": false,
+      "notes": "Vendor model-card row; agent scaffold and test-time configuration are not fully specified."
+    },
+    {
+      "id": "tau2-bench",
+      "name": "TAU2-Bench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vendor model-card row; this is distinct from the catalog's TAU2 Telecom original-prompts metric."
+    },
+    {
       "id": "toolathlon",
       "name": "Toolathlon",
       "direction": "higher_better",

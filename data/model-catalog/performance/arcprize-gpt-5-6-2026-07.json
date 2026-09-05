@@ -4,7 +4,7 @@
   "schema_version": 1,
   "kind": "performance",
   "provider": "openai",
-  "retrieved_at": "2026-07-09",
+  "retrieved_at": "2026-09-05",
   "source_urls": [
     "https://arcprize.org/results/openai-gpt-5-6",
     "https://arcprize.org/leaderboard"
@@ -13,7 +13,7 @@
     "arcprize-gpt-5-6-2026-07-09",
     "arcprize-leaderboard-2026-07-09"
   ],
-  "notes": "Third-party ARC Prize verified scores + leaderboard Cost/Task. Effort labels Max/Extra High/High/Medium/Low mapped to max/xhigh/high/medium/low. Includes multi-vendor peer rows from leaderboard for Pareto cost/quality context. Fable 5 not present on extracted board.",
+  "notes": "Third-party ARC Prize verified scores + leaderboard Cost/Task. Effort labels Max/Extra High/High/Medium/Low mapped to max/xhigh/high/medium/low. Includes multi-vendor peer rows from leaderboard for Pareto cost/quality context. Fable 5 not present on extracted board. Original GPT-5.6 result page was re-read 2026-09-05; all 45 stored GPT-5.6 score cells match its current verified table. Peer leaderboard rows remain their dated July observations because they are a live board.",
   "scores": [
     {
       "model": "gpt-5.6-sol",

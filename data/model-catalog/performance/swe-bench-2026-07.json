@@ -4,7 +4,7 @@
   "schema_version": 1,
   "kind": "performance",
   "provider": "other",
-  "retrieved_at": "2026-07-09",
+  "retrieved_at": "2026-09-05",
   "source_urls": [
     "https://labs.scale.com/leaderboard/swe_bench_pro_public",
     "https://vals.ai/benchmarks/swebench",
@@ -15,7 +15,7 @@
     "vals-swebench-2026-07-09",
     "swebench-verified-2026-07-09"
   ],
-  "notes": "CRITICAL: SEAL SWE-Bench Pro Public standardized board tops ~59% (GPT-5.4 xhigh). Vendor Pro claims ~80% (Fable) are NOT on that board. vals.ai SWE-bench Verified numbers are third-party re-runs and can be much higher than older official mini-SWE snapshots \u2014 keep metric names distinct.",
+  "notes": "CRITICAL: SEAL SWE-Bench Pro Public standardized board tops ~59% (GPT-5.4 xhigh). Vendor Pro claims ~80% (Fable) are NOT on that board. vals.ai SWE-bench Verified numbers are third-party re-runs and can be much higher than older official mini-SWE snapshots \u2014 keep metric names distinct. Original Scale public leaderboard was re-read 2026-09-05: its five stored rows still match the displayed current values. The vals.ai and official SWE-bench snapshot rows remain dated July observations; they were not re-derived from the Scale board.",
   "scores": [
     {
       "model": "gpt-5.4",

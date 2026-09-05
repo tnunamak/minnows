@@ -211,8 +211,9 @@
       "title": "GPT-5.6 Series — ARC-AGI Results",
       "publisher": "ARC Prize",
       "published": "2026-07-09",
-      "retrieved_at": "2026-07-09",
-      "kind": "third_party_eval"
+      "retrieved_at": "2026-09-05",
+      "kind": "third_party_eval",
+      "notes": "Original result page re-read 2026-09-05. Its fifteen GPT-5.6 effort rows match the stored values exactly (including Sol Max 96.5/92.5/7.78, Terra Max 96.5/83.9/0.80, Luna Max 88.0/59.5/0.18 for ARC-AGI 1/2/3). This verifies that fixed result page; it is not a new leaderboard run."
     },
     {
       "id": "arcprize-leaderboard-2026-07-09",
@@ -230,9 +231,9 @@
       "title": "Artificial Analysis Intelligence Index",
       "publisher": "Artificial Analysis",
       "published": null,
-      "retrieved_at": "2026-07-09",
+      "retrieved_at": "2026-09-05",
       "kind": "third_party_eval",
-      "notes": "Live FAQ top scores; index version matters (v4.1)."
+      "notes": "Live FAQ top scores; index version matters (v4.1). Current original page re-read 2026-09-05 is Intelligence Index v4.2 and no longer exposes the July model-row table in static content. The July scores remain dated historical observations; do not treat them as current v4.2 values."
     },
     {
       "id": "aa-fable-5-launch-2026-06-09",
@@ -286,8 +287,9 @@
       "title": "terminal-bench@2.1 Leaderboard",
       "publisher": "Terminal-Bench",
       "published": null,
-      "retrieved_at": "2026-07-09",
-      "kind": "third_party_eval"
+      "retrieved_at": "2026-09-05",
+      "kind": "third_party_eval",
+      "notes": "Current original URL re-read 2026-09-05 redirects to the Terminal-Bench home page and provides no static v2.1 score table. Stored rows remain the dated July snapshot, not a current-board claim."
     },
     {
       "id": "tbench-2-0-2026-07-09",
@@ -304,9 +306,9 @@
       "title": "SWE-Bench Pro (Public Dataset)",
       "publisher": "Scale AI SEAL",
       "published": null,
-      "retrieved_at": "2026-07-09",
+      "retrieved_at": "2026-09-05",
       "kind": "third_party_eval",
-      "notes": "Standardized mini-swe-agent harness; uncapped cost, 250 turns."
+      "notes": "Standardized mini-swe-agent harness; uncapped cost, 250 turns. Original public leaderboard re-read 2026-09-05: stored rows still match its current values (gpt-5.4 xHigh 59.10±3.56, Opus 4.6 thinking 51.90±3.61, Gemini 3.1 Pro thinking 46.10±3.60, Opus 4.5 45.89±3.60, Sonnet 4.5 43.60±3.60)."
     },
     {
       "id": "swebench-verified-2026-07-09",
@@ -654,6 +656,26 @@
       "retrieved_at": "2026-09-05",
       "kind": "third_party_eval",
       "notes": "INDEPENDENT (non-vendor) effort ladder for claude-opus-5 on AA's own Briefcase eval: low 1223, medium 1470, high 1606, xhigh 1693, max 1720 Elo. Cost and median runtime published for the TOP THREE ONLY — high $10.41/25.7min, xhigh $14.26/34.3min, max $17.79/36.2min. Low and medium cost/latency are NOT published; recorded as absent rather than interpolated. AA's Fable 5 analysis gives a max-level point only, not a five-level Fable ladder."
+    },
+    {
+      "id": "terminal-bench-2-1-2026-09-05",
+      "url": "https://www.tbench.ai/?version=2.1",
+      "title": "Terminal-Bench 2.1 leaderboard",
+      "publisher": "Terminal-Bench",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "third_party_eval",
+      "notes": "Original publisher's rendered 2.1 table recovered in an isolated fresh Playwright/Chrome profile. Records the current rows for catalog models only; the page also lists unregistered models (Muse Spark 1.1). Resolution rate is reported with a 95% confidence interval. This source supersedes neither the dated July snapshot nor its agent/harness distinction."
+    },
+    {
+      "id": "artificial-analysis-intelligence-index-2026-09-05",
+      "url": "https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index",
+      "title": "Artificial Analysis Intelligence Index v4.2",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "third_party_eval",
+      "notes": "Original publisher's rendered v4.2 chart recovered in an isolated fresh Playwright/Chrome profile. Records the current displayed scores for catalog models only. V4.2 is a ten-evaluation composite and is not comparable to the July v4.1 FAQ rows; metric identity is distinct."
     },
     {
       "id": "anthropic-effort-guide-2026-09-05",

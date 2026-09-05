@@ -8,7 +8,7 @@
     "Harness-suffixed score ids (model@harness) resolve to the base id.",
     "Effort-in-id suffixes (-thinking, -high) are aliases where listed.",
     "aliases[] map third-party/board naming drift onto canonical pricing ids.",
-    "REGISTRY-JOIN NOTE (2026-09-05): ten model strings used in performance rows do not resolve against this registry — claude-mythos-preview, claude-opus-4-6/4-7/4-8-thinking, claude-sonnet-5-high, gemini-3-flash, gemini-3.1-pro, gpt-5.5-high, grok-4.20, grok-4.20-beta-0309-reasoning. All PRE-EXIST the 2026-09-05 pass and appear only in files it did not create. Most are variant-suffixed board labels (a -thinking or -high mode appended to a registered base id) rather than distinct models; the validator does not require the join. Left unmodified: resolving them means deciding per label whether it is an alias of a registered id or a separate model, which needs the original board mapping, not a guess."
+    "REGISTRY-JOIN REVIEW (2026-09-05): all ten previously unresolved performance labels now resolve through source-backed aliases: claude-mythos-preview; Claude `-thinking` labels for Opus 4.6/4.7/4.8; claude-sonnet-5-high; gemini-3-flash; gemini-3.1-pro; gpt-5.5-high; grok-4.20; and grok-4.20-beta-0309-reasoning. These aliases denote documented board mode/snapshot labels, not new canonical API models."
   ],
   "models": [
     {
