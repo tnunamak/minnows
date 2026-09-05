@@ -446,24 +446,44 @@
       "notes": "Thinking mode support (enable_thinking parameter), model capabilities from Qwen blog and local CLI configuration."
     },
     {
-      "id": "openai-codex-debug-models-2026-08-30",
+      "id": "openai-codex-debug-models-2026-09-05",
       "url": "https://github.com/tnunamak/minnows/tree/main/data/model-catalog",
       "title": "codex debug models (live auth-scoped catalog)",
       "publisher": "OpenAI",
       "published": null,
-      "retrieved_at": "2026-08-30",
+      "retrieved_at": "2026-09-05",
       "kind": "local_eval",
-      "notes": "Command: `codex debug models` (installed @openai/codex CLI, node 24.19.0 vendor build), run locally 2026-08-30. Live query of the installed Codex CLI (@openai/codex, node 24.19.0 vendor build) on Tim's host. Lists gpt-6-astra (new, default medium, visibility=list) and adds an `ultra` reasoning level to gpt-6-astra, gpt-5.6-sol and gpt-5.6-terra; gpt-5.6-luna does NOT list ultra. gpt-5.6-sol default_reasoning_level is `low` here, not medium. Auth-scoped: availability reflects this account, so treat as host-local evidence rather than a universal vendor claim."
+      "notes": "Command: `codex debug models` (installed @openai/codex CLI, node 24.19.0 vendor build), run locally 2026-09-05. Live query of the installed Codex CLI (@openai/codex, node 24.19.0 vendor build) on Tim's host. Lists gpt-6-astra (new, default medium, visibility=list) and adds an `ultra` reasoning level to gpt-6-astra, gpt-5.6-sol and gpt-5.6-terra; gpt-5.6-luna does NOT list ultra. gpt-5.6-sol default_reasoning_level is `low` here, not medium. Auth-scoped: availability reflects this account, so treat as host-local evidence rather than a universal vendor claim."
     },
     {
-      "id": "waspflow-codex-ultra-probe-2026-08-30",
+      "id": "waspflow-codex-ultra-probe-2026-09-05",
       "url": "https://github.com/tnunamak/minnows/tree/main/data/model-catalog",
       "title": "Live verification that Codex honors reasoning effort `ultra`",
       "publisher": "local",
       "published": null,
-      "retrieved_at": "2026-08-30",
+      "retrieved_at": "2026-09-05",
       "kind": "local_eval",
-      "notes": "Command: `codex exec --skip-git-repo-check -c model_reasoning_effort=ultra --model gpt-5.6-terra`, run locally 2026-08-30. Ran `codex exec --skip-git-repo-check -c model_reasoning_effort=ultra --model gpt-5.6-terra` — completed a turn (14,330 tokens). Control with model_reasoning_effort=bogus on the same command returned HTTP 400, which rules out the value being silently ignored/defaulted. Establishes `ultra` is accepted by the CLI config surface, not only advertised by the catalog API."
+      "notes": "Command: `codex exec --skip-git-repo-check -c model_reasoning_effort=ultra --model gpt-5.6-terra`, run locally 2026-09-05. Ran `codex exec --skip-git-repo-check -c model_reasoning_effort=ultra --model gpt-5.6-terra` — completed a turn (14,330 tokens). Control with model_reasoning_effort=bogus on the same command returned HTTP 400, which rules out the value being silently ignored/defaulted. Establishes `ultra` is accepted by the CLI config surface, not only advertised by the catalog API."
+    },
+    {
+      "id": "openai-codex-models-2026-09-05",
+      "url": "https://learn.chatgpt.com/docs/models",
+      "title": "Models – Codex (learn.chatgpt.com)",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "vendor_docs",
+      "notes": "NOTE: developers.openai.com/codex/models now 308-redirects here; the old SOURCES url for openai-codex-models-2026-08-02 is stale. Documents gpt-6-astra (Astra, GPT-6) with reasoning levels Low/Medium/High/Extra High/Max/Ultra, default Medium, positioned \"Our most capable model for complex work across code, apps, and research\". Ultra: \"Ultra mode goes beyond a single-agent run. It uses subagents to accelerate complex work, making it useful for larger tasks that can be split across subagents.\" Recommended default tier: \"Terra or Sol, depending on task complexity.\" Docs list Ultra for sol/terra/luna as well, which DISAGREES with this host's live `codex debug models` (luna lacks ultra; sol default=low). Treat docs as the vendor claim and the live catalog as auth-scoped availability."
+    },
+    {
+      "id": "openai-codex-pricing-2026-09-05",
+      "url": "https://learn.chatgpt.com/docs/pricing",
+      "title": "Pricing – Codex (credit rates)",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-05",
+      "kind": "vendor_docs",
+      "notes": "Credit rates per 1M tokens. gpt-6-astra 250 in / 25 cached / 1250 out. gpt-5.6-sol 100/10/500 with the note \"GPT-5.6 Sol's promotional pricing is available at least through November 21, 2026\" — a RATE CUT vs the 250/25/1500 recorded in codex-credits-2026-07. terra 50/5/300, luna 5/0.5/30. \"Fast mode applies a 2.5x multiplier to Astra's Standard rate.\" Page does NOT state whether reasoning effort changes the per-token RATE or only token volume — recorded as unknown, not assumed. USD/MTok not published on this page (separate rate cards by plan)."
     }
   ]
 }
