@@ -1,8 +1,8 @@
 {
   "id": "model-choice-policy",
   "schema_version": 1,
-  "policy_version": "0.1.7",
-  "generated_at": "2026-09-05",
+  "policy_version": "0.1.8",
+  "generated_at": "2026-09-09",
   "catalog_ref": "data-model-catalog-v0.5.4",
   "doctrine": [
     "Task-shaped operating points, not cheap/default/max ladders",
@@ -216,8 +216,8 @@
       "constraint_family": "accuracy-first",
       "expands_to": {
         "provider": "codex",
-        "model": "gpt-5.6-sol",
-        "effort": "xhigh",
+        "model": "gpt-6-astra",
+        "effort": "high",
         "mode": "standard"
       },
       "frontier_assumption": {
@@ -228,9 +228,9 @@
         "frontier_status": "likely_efficient_when_failure_is_expensive"
       },
       "evidence_refs": [
-        "catalog://performance/openai-gpt-5-6-launch-2026-07",
+        "catalog://performance/openai-gpt-6-astra-launch-2026-09",
         "catalog://pricing/openai-api-2026-07",
-        "source://openai-gpt-5-6-2026-07-09"
+        "catalog://pricing/codex-credits-2026-07"
       ],
       "use_when": [
         "Hard implementation where rework is costly",
@@ -247,7 +247,8 @@
         "implement.standard"
       ],
       "known_gaps": [
-        "Vendor harnesses not cross-vendor comparable; local eval pending"
+        "Vendor harnesses not cross-vendor comparable; local eval pending",
+        "Model swapped gpt-5.6-sol → gpt-6-astra on owner-policy/GA basis, not new local evidence; evidence_confidence held at medium rather than raised"
       ],
       "override_policy": "explicit_flags_win"
     },
@@ -257,8 +258,8 @@
       "constraint_family": "accuracy-first",
       "expands_to": {
         "provider": "codex",
-        "model": "gpt-5.6-sol",
-        "effort": "xhigh",
+        "model": "gpt-6-astra",
+        "effort": "high",
         "mode": "standard"
       },
       "frontier_assumption": {
@@ -270,7 +271,7 @@
         "basis": "expert_prior_plus_harness_smoke"
       },
       "evidence_refs": [
-        "catalog://performance/openai-quality-2026-07",
+        "catalog://performance/terminal-bench-4-astra-audit-2026-09",
         "catalog://pricing/codex-credits-2026-07",
         "catalog://performance/local-evals-2026-07"
       ],
@@ -288,7 +289,8 @@
       ],
       "known_gaps": [
         "Local harness smoke only (answer-contaminated single seed) \u2014 not grade-A quality evidence (Sol+Fable P0.2)",
-        "Prefer different provider than implementer when possible \u2014 still operator choice"
+        "Prefer different provider than implementer when possible \u2014 still operator choice",
+        "Model swapped gpt-5.6-sol \u2192 gpt-6-astra and effort xhigh \u2192 high on owner-policy basis (never xhigh/max by default); the cited terminal-bench-4-astra-audit-2026-09 evidence is graded C (secondary/indirect board read, comparable=false) \u2014 evidence_confidence held at medium, not raised, on the model swap alone"
       ],
       "override_policy": "explicit_flags_win"
     },
@@ -335,19 +337,19 @@
       "constraint_family": "balanced",
       "expands_to": {
         "provider": "codex",
-        "model": "gpt-5.6-sol",
-        "effort": "high",
+        "model": "gpt-6-astra",
+        "effort": "medium",
         "mode": "standard"
       },
       "frontier_assumption": {
-        "cost_basis": "medium_high",
-        "quota_basis": "medium_high",
+        "cost_basis": "medium",
+        "quota_basis": "medium",
         "expected_strength": "computer_use_and_frontend",
         "evidence_confidence": "medium",
         "frontier_status": "unknown_locally"
       },
       "evidence_refs": [
-        "catalog://performance/openai-gpt-5-6-launch-2026-07"
+        "catalog://performance/openai-gpt-6-astra-launch-2026-09"
       ],
       "use_when": [
         "UI / browser / OSWorld-style computer use",
@@ -363,7 +365,8 @@
         "implement.standard"
       ],
       "known_gaps": [
-        "Local computer-use success rate unmeasured"
+        "Local computer-use success rate unmeasured",
+        "Model swapped gpt-5.6-sol → gpt-6-astra on owner-policy/GA basis (mechanical work defaults to medium effort); no new local computer-use evidence, so evidence_confidence held at medium"
       ],
       "override_policy": "explicit_flags_win"
     },
@@ -408,18 +411,5 @@
       "notes": "Visible exploration point; not a recommended default."
     }
   ],
-  "preferred_over": [
-    {
-      "prefer": {
-        "provider": "codex",
-        "model": "gpt-5.6-luna"
-      },
-      "over": {
-        "provider": "codex",
-        "model": "gpt-5.4-mini"
-      },
-      "reason": "authored 2026-07-15: gpt-5.6 family supersedes gpt-5.4 for cheap-tier work (owner order 2026-07-10, a point-in-time snapshot). THIS EDGE IS EXPECTED TO ROT: retire or re-ratify when a GA family newer than gpt-5.6 ships \u2014 `waspflow doctor` warns when that happens.",
-      "ratified": true
-    }
-  ]
+  "preferred_over": []
 }
