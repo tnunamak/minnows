@@ -3,7 +3,7 @@
   "name": "model-choice-policy",
   "schema_version": 1,
   "tag": "data-model-choice-policy-v0.1.8",
-  "generated_at": "2026-09-09",
+  "generated_at": "2026-09-10",
   "description": "Task-shaped operating points. Pins catalog v0.5.4; moves Codex ops (review.audit, implement.accuracy-first, ui.computer-use) to GA gpt-6-astra per owner model policy; retires the rotted gpt-5.6-luna-over-gpt-5.4-mini preferred_over edge; evidence_confidence remains medium for top-3 ops.",
   "files": [
     "README.md",
