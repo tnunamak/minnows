@@ -248,6 +248,7 @@ def validate_pricing(
     errors: Errors,
     registry: set[str] | None = None,
     model_registry: dict[str, str] | None = None,
+    model_status: dict[str, str] | None = None,
 ) -> None:
     data = load_json(path, errors)
     if not isinstance(data, dict):
@@ -302,7 +303,12 @@ def validate_pricing(
         vu = rates.get("valid_until")
         if isinstance(vu, str) and DATE_RE.match(vu):
             try:
-                if date.fromisoformat(vu) < date.today():
+                is_historical = False
+                if model_registry is not None and model_status is not None:
+                    canonical = resolve_model_id(mid, model_registry)
+                    if canonical is not None and model_status.get(canonical) == "historical":
+                        is_historical = True
+                if not is_historical and date.fromisoformat(vu) < date.today():
                     errors.add(rp, f"pricing expired valid_until={vu} (remove or update promo rates)")
             except ValueError:
                 pass
@@ -470,16 +476,20 @@ def validate_capabilities(
 
 
 
-def load_model_registry(pack_dir: Path, errors: Errors) -> dict[str, str]:
-    """Return map of resolvable id/alias -> canonical id. Empty if models.json missing."""
+def load_model_registry(
+    pack_dir: Path, errors: Errors
+) -> tuple[dict[str, str], dict[str, str]]:
+    """Return (resolve, status) maps. resolve: id/alias -> canonical id.
+    status: canonical id -> status (e.g. "ga", "historical"). Empty if models.json missing.
+    """
     path = pack_dir / "models.json"
     p = str(path.relative_to(REPO))
     if not path.is_file():
         errors.add(p, "models.json missing — L0 model registry required")
-        return {}
+        return {}, {}
     data = load_json(path, errors)
     if not isinstance(data, dict):
-        return {}
+        return {}, {}
     require_keys(data, ("id", "schema_version", "generated_at", "models"), p, errors)
     if data.get("schema_version") != 1:
         errors.add(p, "schema_version must be 1")
@@ -489,9 +499,10 @@ def load_model_registry(pack_dir: Path, errors: Errors) -> dict[str, str]:
         errors.add(p, "generated_at must be YYYY-MM-DD")
     models = data.get("models")
     resolve: dict[str, str] = {}
+    status: dict[str, str] = {}
     if not isinstance(models, list) or not models:
         errors.add(p, "models must be a non-empty array")
-        return resolve
+        return resolve, status
     seen_ids: set[str] = set()
     for i, m in enumerate(models):
         mp = f"{p}#models[{i}]"
@@ -511,6 +522,8 @@ def load_model_registry(pack_dir: Path, errors: Errors) -> dict[str, str]:
         for k in ("provider", "family", "status"):
             if k not in m:
                 errors.add(mp, f"missing {k}")
+        if isinstance(m.get("status"), str):
+            status[mid] = m["status"]
         aliases = m.get("aliases") or []
         if aliases is not None and not isinstance(aliases, list):
             errors.add(mp, "aliases must be an array")
@@ -523,7 +536,7 @@ def load_model_registry(pack_dir: Path, errors: Errors) -> dict[str, str]:
                 errors.add(mp, f"alias {a!r} already maps to {resolve[a]!r}")
             else:
                 resolve[a] = mid
-    return resolve
+    return resolve, status
 
 
 def resolve_model_id(mid: str, registry: dict[str, str]) -> str | None:
@@ -554,7 +567,7 @@ def check_model_id(
 def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
     validate_pack_envelope(pack_dir, errors)
     source_registry = load_source_registry(pack_dir, errors)
-    model_registry = load_model_registry(pack_dir, errors)
+    model_registry, model_status = load_model_registry(pack_dir, errors)
     metric_ids: set[str] = set()
     mpath = pack_dir / "metrics.json"
     if mpath.is_file():
@@ -570,7 +583,7 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
         if not paths:
             errors.add(str(pack_dir.relative_to(REPO)), "pricing/ has no JSON tables")
         for path in paths:
-            validate_pricing(path, errors, source_registry, model_registry)
+            validate_pricing(path, errors, source_registry, model_registry, model_status)
     else:
         errors.add(str(pack_dir.relative_to(REPO)), "missing pricing/")
     if perf_dir.is_dir():
@@ -689,10 +702,10 @@ def validate_policy_pack(pack_dir: Path, errors: Errors) -> None:
     catalog_file_ids: set[str] = set()  # stem of pricing/performance json
     effort_surfaces: list[dict] = []
     if catalog_dir.is_dir():
-        model_registry = load_model_registry(catalog_dir, Errors())  # soft: don't double-count models.json errors
+        model_registry, _ = load_model_registry(catalog_dir, Errors())  # soft: don't double-count models.json errors
         # re-load models without polluting if already validated; if empty, try direct
         if not model_registry and (catalog_dir / "models.json").is_file():
-            model_registry = load_model_registry(catalog_dir, errors)
+            model_registry, _ = load_model_registry(catalog_dir, errors)
         src = load_json(catalog_dir / "SOURCES.json", Errors())
         if isinstance(src, dict):
             for s in src.get("sources") or []:

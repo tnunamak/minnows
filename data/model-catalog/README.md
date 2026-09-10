@@ -80,6 +80,7 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 - Added current, rendered original-publisher snapshots for Terminal-Bench 2.1 and Artificial Analysis Intelligence Index v4.2; preserved earlier board reads as separate historical observations.
 - Rechecked the fixed ARC GPT-5.6 table and the public Scale SWE-Bench Pro table; their stored rows still match the publisher pages.
 - Closed the remaining model-label, metric-id, and local-eval source-id joins without treating board labels or vendor table configurations as new comparable model runs.
+- **Fixed (validator, no data change):** `scripts/validate_data_pack.py`'s `valid_until` expiry check was flagging the six intentionally-retained `gpt-5.6-{sol,terra,luna}-2026-07` pricing rows in `pricing/openai-api-2026-07.json` and `pricing/codex-credits-2026-07.json` as "expired" — these are closed historical windows (their `models.json` entries already carry `status: "historical"`, added when the current rows were introduced), not live promos that lapsed unnoticed. The check now skips the expiry error when the row's model resolves to a `status: "historical"` entry in `models.json`; it still fails loudly for any non-historical model whose `valid_until` has passed. Re-verified against live vendor pages 2026-09-09: current `gpt-5.6-sol/terra/luna` and `gpt-6-astra` rows in both files match published rates exactly (OpenAI API pricing docs and `learn.chatgpt.com/docs/pricing`); no rates changed.
 
 ### v0.5.3 — 2026-08-02
 
