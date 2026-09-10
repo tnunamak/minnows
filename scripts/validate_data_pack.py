@@ -596,7 +596,7 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
 
 
     # Comparability: metric_ids that mix source_type or harness must set comparable=false on rows
-    by_mid: dict[str, list[tuple[str, str, str | None]]] = {}
+    by_mid: dict[str, list[tuple[str, str, str | None, object]]] = {}
     for path in sorted((pack_dir / "performance").glob("*.json")) if (pack_dir / "performance").is_dir() else []:
         data = load_json(path, Errors())
         if not isinstance(data, dict):
