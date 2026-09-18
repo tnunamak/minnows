@@ -1,0 +1,5 @@
+curl is used in command lines and scripts to transfer data. It is free and open source software that exists thanks to thousands of contributors.
+
+curl supports HTTP, HTTPS, FTP, SFTP, IMAP, SMTP, LDAP and around twenty other protocols. It runs on every modern operating system and is installed in over twenty billion instances, in cars, televisions, routers, printers and phones.
+
+The curl project produces two products: the curl command-line tool and libcurl, the transfer library. Both are released under an MIT-style licence.

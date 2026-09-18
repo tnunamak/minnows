@@ -1,5 +1,14 @@
 [
   {
+    "case": "atproto",
+    "n_before": 6,
+    "n_after": 1,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
     "case": "generic-saas",
     "n_before": 9,
     "n_after": 6,
@@ -10,20 +19,29 @@
   },
   {
     "case": "solid",
-    "n_before": 2,
-    "n_after": 2,
+    "n_before": 3,
+    "n_after": 3,
     "preferred": "before",
     "lost_needed": false,
     "truncated": false,
     "lost_what": "none"
   },
   {
-    "case": "x402-hero",
-    "n_before": 6,
-    "n_after": 0,
+    "case": "vendor-standard",
+    "n_before": 10,
+    "n_after": 2,
     "preferred": "after",
     "lost_needed": false,
     "truncated": false,
     "lost_what": "none"
+  },
+  {
+    "case": "x402-hero",
+    "n_before": 5,
+    "n_after": 0,
+    "preferred": "after",
+    "lost_needed": true,
+    "truncated": false,
+    "lost_what": "The specific mechanism of using HTTP 402 responses to enable direct payment transactions."
   }
 ]

@@ -1,0 +1,7 @@
+The AT Protocol is an open, decentralized network for building social applications.
+
+Over 40 million users. 2.4 billion posts. Join the fastest-growing open social network and start building the future of social media today.
+
+Our vision is a world where social media is not controlled by any single company. We are building the infrastructure that will power the next generation of social experiences, empowering developers and creators everywhere to own their audience.
+
+Start building in minutes with our comprehensive SDK.
