@@ -30,7 +30,7 @@ import statistics
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from jevgate import CHECKS  # noqa: E402
+from jevgate import load_rules  # noqa: E402
 
 
 def score_dir(d, kind):

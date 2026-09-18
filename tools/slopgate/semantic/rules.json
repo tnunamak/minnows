@@ -1,0 +1,292 @@
+{
+  "$comment": "Rule bank for slopgate's semantic layer. Edit freely: add, remove, retune. Each rule is a yes/no question where YES means the defect is present. Write an exact observable condition, not a virtue -- the model answers the question you wrote, not the one you meant. The `kinds` list scopes a rule to artifact types. Rules carrying a `note` about audience are the ones that do NOT transfer to website copy -- add a `web` kind only after calibrating against web references.",
+  "rules": {
+    "repeats_itself": {
+      "question": "Does this text state the same point more than once in different words, for example making a claim and then restating it later as a summary or a recap?",
+      "threshold": 0.6,
+      "severity": "high",
+      "suggestion": "say it once; delete the restatement",
+      "kinds": [
+        "pr",
+        "doc"
+      ],
+      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages"
+    },
+    "editorial_tone": {
+      "question": "Does this text tell the reader how to feel about the subject, using words that praise, sell, or dramatize, such as powerful, exciting, critical, revolutionary, seamless, or significant?",
+      "threshold": 0.55,
+      "severity": "high",
+      "suggestion": "neutral tone: state the fact and let the reader judge",
+      "kinds": [
+        "pr",
+        "doc"
+      ],
+      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages"
+    },
+    "negative_framing": {
+      "question": "Does this text define something by what it is NOT, what it lacks, or what would add little value, rather than stating positively what it is or what it does?",
+      "threshold": 0.55,
+      "severity": "medium",
+      "suggestion": "state it positively: say what it is and what it steers toward",
+      "kinds": [
+        "pr",
+        "doc"
+      ],
+      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages"
+    },
+    "unsourced_assertion": {
+      "question": "Does this text make factual claims about external systems, standards, or other parties without citing where those facts come from?",
+      "threshold": 0.6,
+      "severity": "medium",
+      "suggestion": "cite the source, or mark the claim as unverified",
+      "kinds": [
+        "pr",
+        "doc"
+      ],
+      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages"
+    },
+    "overexplains": {
+      "question": "Does this text explain more than a reader needs to follow the point, restating context the reader already has or walking through reasoning that could be stated as a conclusion?",
+      "threshold": 0.6,
+      "severity": "medium",
+      "suggestion": "give the conclusion; cut the walk-through",
+      "kinds": [
+        "pr",
+        "doc"
+      ],
+      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages"
+    },
+    "teaches_the_project": {
+      "question": "Does this text explain what this project, protocol, or repository IS, or what its main artifacts are for, as background rather than as part of describing the specific change?",
+      "threshold": 0.87,
+      "severity": "high",
+      "suggestion": "the reader works here; delete the orientation and start at the defect",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes a reader who already works here; on a public website teaching, repeating and promising are the job, not the defect"
+    },
+    "defines_external_standard": {
+      "question": "Does this text explain what a published external standard, RFC, or specification says or means, beyond simply citing it?",
+      "threshold": 0.18,
+      "severity": "high",
+      "suggestion": "cite it and move on; the reader can open the RFC",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes a reader who already works here; on a public website teaching, repeating and promising are the job, not the defect"
+    },
+    "glosses_own_terms": {
+      "question": "Does this text stop to define its own domain terms mid-sentence, for example with a dash or parenthesis explaining what a named component is?",
+      "threshold": 0.9,
+      "severity": "high",
+      "suggestion": "use the repo's terms unglossed; a reader who works here knows them",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes a reader who already works here; on a public website teaching, repeating and promising are the job, not the defect"
+    },
+    "length_exceeds_change": {
+      "question": "Is this text far longer than the change it describes needs, spending many paragraphs where a few would carry the same decision?",
+      "threshold": 0.64,
+      "severity": "high",
+      "suggestion": "cut to the defect, the fix, and what is unverified",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes the artifact describes a code change"
+    },
+    "unearned_benefit": {
+      "question": "Does this text claim a benefit such as improved robustness, better maintainability, a clearer interface, easier customization, or improved performance, WITHOUT stating the concrete change that produces it?",
+      "threshold": 0.64,
+      "severity": "high",
+      "suggestion": "name the mechanism, or cut the claim",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ]
+    },
+    "guarantee_language": {
+      "question": "Does this text guarantee an outcome in absolute terms, for example that something is now correct, safe, robust, or can no longer fail?",
+      "threshold": 0.26,
+      "severity": "high",
+      "suggestion": "state what the change does; drop the guarantee",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ]
+    },
+    "restates_without_reason": {
+      "question": "Does this text describe the edit that was made without saying what situation made the edit necessary?",
+      "threshold": 0.81,
+      "severity": "high",
+      "suggestion": "open with the problem: what went wrong, under what condition",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes the artifact describes a code change"
+    },
+    "summary_closer": {
+      "question": "Does the final sentence restate what the text already said, rather than adding new information?",
+      "threshold": 0.48,
+      "severity": "medium",
+      "suggestion": "delete the closing restatement",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ]
+    },
+    "explains_the_obvious": {
+      "question": "Does this text explain what a widely known construct or component does, in a way a maintainer of this codebase would not need?",
+      "threshold": 0.39,
+      "severity": "medium",
+      "suggestion": "assume the reader works here; cut the tutorial sentence",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes a reader who already works here; on a public website teaching, repeating and promising are the job, not the defect"
+    },
+    "process_narration": {
+      "question": "Does this text describe the authoring or verification process, such as which tests were run, which review rounds happened, or which tools were used, rather than describing the change itself?",
+      "threshold": 0.67,
+      "severity": "high",
+      "suggestion": "describe the change, not how you arrived at it",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes the artifact describes a code change"
+    },
+    "gate_status_evidence": {
+      "question": "Does this text report a bare pass or fail status, such as tests passing, a suite being green, or a count of passing checks, without saying what situation the test actually covers?",
+      "threshold": 0.19,
+      "severity": "medium",
+      "suggestion": "say what the test proves about a concrete scenario, or cut it",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes the artifact describes a code change"
+    },
+    "hedged_behavior": {
+      "question": "Does this text describe what the code does using may, might, could, or is intended to, where it could state plainly what the code does?",
+      "threshold": 0.91,
+      "severity": "medium",
+      "suggestion": "state the behavior plainly, or say explicitly that it is unverified",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ]
+    },
+    "abstract_subject": {
+      "question": "Do most sentences in this text take an abstract subject such as this change, the implementation, the system, or the solution, rather than a concrete code entity or an actor?",
+      "threshold": 0.81,
+      "severity": "low",
+      "suggestion": "make the code entity the subject of the sentence",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ]
+    },
+    "tricolon": {
+      "question": "Does this text contain a list of exactly three parallel items used for rhetorical effect rather than because there are exactly three things?",
+      "threshold": 0.43,
+      "severity": "medium",
+      "suggestion": "keep the items that carry information",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ]
+    },
+    "copula_avoidance": {
+      "question": "Does this text use verbs such as serves as, functions as, represents, provides, enables, or ensures where a plain is or are would say the same thing?",
+      "threshold": 0.81,
+      "severity": "low",
+      "suggestion": "use is or are",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ]
+    },
+    "no_tradeoff": {
+      "question": "Is this text free of any acknowledgement that the approach has a cost, a limitation, or something left unverified?",
+      "threshold": 0.88,
+      "severity": "low",
+      "suggestion": "if something is untested or traded away, say so",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ]
+    },
+    "buried_lede": {
+      "question": "Is the single most consequential fact in this text \u2014 the concrete failure, cost, or outcome that makes it matter \u2014 placed somewhere other than the opening? Answer yes if a reader would have to reach the middle or end to find the thing that would change their decision.",
+      "threshold": 0.6,
+      "severity": "high",
+      "suggestion": "move the consequential fact to the opening; the reader may stop at any point",
+      "kinds": [
+        "pr",
+        "doc"
+      ]
+    },
+    "empty_section": {
+      "question": "Does this text contain a section or paragraph that announces a topic without carrying specific information about it \u2014 for example listing considerations, factors, or goals in general terms without saying what any of them resolve to?",
+      "threshold": 0.6,
+      "severity": "high",
+      "suggestion": "delete the section, or replace it with the specific content it promises",
+      "kinds": [
+        "pr",
+        "doc"
+      ]
+    },
+    "uniform_section_shape": {
+      "question": "Are the sections of this text built to the same pattern as one another, each of a similar size and opening the same way, rather than sized according to how much each one actually has to say?",
+      "threshold": 0.7,
+      "severity": "medium",
+      "suggestion": "let each section be as long as its content warrants",
+      "kinds": [
+        "doc"
+      ]
+    },
+    "scaffolding_headings": {
+      "question": "Do the headings in this text name generic document furniture \u2014 Overview, Background, Introduction, Considerations, Details, Approach, Impact, Summary, Conclusion \u2014 rather than naming the specific thing each section says?",
+      "threshold": 0.55,
+      "severity": "medium",
+      "suggestion": "make each heading state that section's actual claim",
+      "kinds": [
+        "doc"
+      ]
+    },
+    "context_before_point": {
+      "question": "Does this text spend its opening on history, background, or how things came to be, before stating what it is actually about?",
+      "threshold": 0.6,
+      "severity": "medium",
+      "suggestion": "open with the point; move history later or cut it",
+      "kinds": [
+        "pr",
+        "doc"
+      ]
+    }
+  }
+}

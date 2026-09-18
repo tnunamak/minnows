@@ -27,9 +27,10 @@ import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
-from jevgate import CHECKS, KIND_STATE  # noqa: E402
+from jevgate import KIND_STATE, load_rules  # noqa: E402
 
 HERE = pathlib.Path(__file__).parent
+CHECKS = load_rules("doc")
 
 
 def score(text, kind):
