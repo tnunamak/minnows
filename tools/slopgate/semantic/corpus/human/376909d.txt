@@ -1,0 +1,3 @@
+Fixed #37140 -- Documented NULL handling of __in lookups.
+
+Thanks Lilian Tran and Raffaella Suardini for reviews.

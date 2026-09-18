@@ -1,0 +1,3 @@
+Refactor mail backend tests to instantiate backends directly
+
+This change removes the reliance on `override_settings` and `mail.get_connection()` within the shared email backend test suite. Instead, it introduces a `create_backend()` method that allows subclasses to define their `backend_class` and provide default kwargs. This simplifies the test setup and makes the tests more explicit about which backend instance is being used.

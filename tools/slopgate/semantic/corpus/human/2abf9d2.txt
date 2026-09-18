@@ -1,0 +1,5 @@
+Refs #37348 -- Added test for excluding on a nullable GeneratedField.
+
+Negated lookups rely on `Field.null` to match rows where the value is
+`NULL`. This behavior was lost when `null=True` was removed from
+`GeneratedField` definitions to silence `fields.W225`.

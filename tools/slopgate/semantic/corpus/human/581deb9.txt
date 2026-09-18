@@ -1,0 +1,6 @@
+Fixed #37339 -- Allowed ipaddress objects in GenericIPAddressField.
+
+get_prep_value() tested for ":" before coercing the value to a string,
+which crashed with a TypeError for non-string values such as
+ipaddress.IPv4Address and ipaddress.IPv6Address instances, even though
+to_python() accepts them.

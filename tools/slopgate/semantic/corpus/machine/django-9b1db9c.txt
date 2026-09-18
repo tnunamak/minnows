@@ -1,0 +1,14 @@
+docs: Remove custom djangohtml builder and template builtins JS
+
+This commit removes the custom `djangohtml` Sphinx builder and the associated
+JavaScript that dynamically hyperlinks template tags and filters. The documentation
+now uses the standard `html` builder.
+
+Changes:
+- Update `docs/Makefile` to use `-b html` instead of `-b djangohtml`.
+- Remove `DjangoStandaloneHTMLBuilder` and `templatebuiltins.js` generation logic
+  from `docs/_ext/djangodocs.py`.
+- Refactor `djangodocs.py` to use `builder-inited` event to set the translator
+  for any HTML-format builder, rather than checking for specific builder names.
+- Remove jQuery-based template builtins linking and console tab switching
+  JavaScript from `docs/_theme/djangodocs/layout.html`.

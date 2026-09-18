@@ -1,0 +1,12 @@
+fix(gis): prevent file write and request forgery via spatial lookups
+
+Security issue (CVE-2026-15307): Spatial lookups allowed `str` and `dict` lookup values to be passed to `GDALRaster`, which could lead to server-side file writes or network request forgery. This was reachable by staff users with view permission on models containing spatial fields via the admin changelist.
+
+This commit introduces `DisallowedRasterLookup` to raise an exception when `str`, `Path`, or `dict` values are used in spatial lookups without being explicitly wrapped in `GDALRaster`. This requires developers to explicitly trust such values by wrapping them, mitigating the risk of untrusted input triggering file operations or network requests.
+
+Changes:
+- Add `DisallowedRasterLookup` exception in `gdal/raster/source.py`.
+- Add `check_raster_lookup_value` to `GDALRaster` to validate inputs.
+- Update `RasterField.get_prep_value` to catch and handle `DisallowedRasterLookup`, ensuring valid geometries are still processed while blocking unsafe raster lookups.
+- Update documentation to explain the security considerations and the new requirement to wrap raster values in lookups.
+- Add release notes for Django 5.2.17 and 6.0.8 detailing the security fix.

@@ -1,0 +1,11 @@
+docs: Add guidance on safely formatting email addresses
+
+The previous documentation on preventing header injection focused primarily on CRLF injection and did not adequately address the risks of constructing email addresses with display names from variable content. This could lead to address header injection vulnerabilities.
+
+This commit:
+- Adds a new "Formatting email addresses" section to the email documentation.
+- Recommends using `email.headerregistry.Address` instead of string formatting to safely build addresses with display names.
+- Explains that Django's email backends support `Address` objects directly, with `str()` as a fallback.
+- Updates the "Preventing header injection" section to distinguish between address syntax injection and CRLF injection.
+- Adds cross-references in `settings.txt` for `ADMINS`, `DEFAULT_FROM_EMAIL`, and `SERVER_EMAIL` pointing to the new guidance.
+- Updates the `send_mail` documentation to reference the new section.

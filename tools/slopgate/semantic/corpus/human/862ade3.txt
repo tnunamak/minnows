@@ -1,0 +1,7 @@
+De-emphasized typo fixes in contributing docs.
+
+As part of adding useful friction in front of unwanted agentic contributions,
+all new contributors are being nudged to have tickets for their PRs. Update
+the contribution docs with this current practice.
+
+Co-authored-by: nessita <124304+nessita@users.noreply.github.com>

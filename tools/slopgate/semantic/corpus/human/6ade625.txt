@@ -1,0 +1,3 @@
+Fixed #37344 -- Enabled FETCH_PEERS batching for instances loaded by select_related.
+
+Thank you to Mykhailo Havelia for the report.

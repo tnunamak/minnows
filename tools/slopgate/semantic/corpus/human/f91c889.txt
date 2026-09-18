@@ -1,0 +1,3 @@
+Restored timeout in GeoDjango CI workflow.
+
+Unintentionally removed in f2f522893f2732a6ed7b6f00382f5f0697085e57.

@@ -1,0 +1,3 @@
+Fixed #37286 -- Preserved unique constraints when removing db_index.
+
+Thank you Clifford Gama for the review.

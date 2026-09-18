@@ -1,0 +1,8 @@
+Refactor mail backend tests to improve clarity and maintainability
+
+- Replace manual state tracking with `mock.Mock` in `test_connection_can_be_used_as_contextmanager`
+- Extract file handling logic into helper methods in `FileBackendTests`
+- Split `test_file_sessions` into focused tests for file creation, reuse, and reopening
+- Update tests to use `EmailMessage` and `backend.send_messages` directly instead of `send_mail`
+- Use `assertIs` for boolean assertions to be more explicit
+- Mock `smtplib.SMTP.login` in `test_auth_attempted` to verify login behavior

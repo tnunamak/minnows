@@ -1,0 +1,1 @@
+Modeled a safer mechanism for installing a git hook for backports.

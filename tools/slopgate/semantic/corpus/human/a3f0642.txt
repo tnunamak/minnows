@@ -1,0 +1,5 @@
+Refs #36947 -- Added missing max_length in GeneratedField test for Oracle.
+
+This was missed because the model was defined inline without running system checks.
+
+Follow-up to 64edef37e7b419dd584307d84650a192fb47dc4c.

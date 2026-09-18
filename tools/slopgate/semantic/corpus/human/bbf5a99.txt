@@ -1,0 +1,5 @@
+Fixed #37261 -- Documented error reporting migration to MAILERS.
+
+Documented specifics for migrating AdminEmailHandler and
+BrokenLinkEmailsMiddleware to MAILERS when relying on fail_silently with
+an unreliable email backend connection.

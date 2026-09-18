@@ -1,0 +1,7 @@
+Fixed #37348 -- Reverted "Fixed #36806 -- Added system check for null kwarg in GeneratedField.".
+
+This reverts commit 6025eab3c509b4de922117e16866bbfe0ee99aa6, includes a
+release note for 6.1.2, and keeps fields.W225 documented as removed.
+
+Thanks to Michal Porteš for the report, and to Jacob Walls and
+Simon Charette for reviews.

@@ -1,0 +1,8 @@
+Fixed #36947 -- Avoided altering column type when only db_comment changes.
+
+Backends that allow altering column comments without altering the column
+type should set supports_independent_comment_alteration=True.
+
+Thanks Alex Fischer for the report.
+
+Co-authored-by: Adam Johnson <me@adamj.eu>

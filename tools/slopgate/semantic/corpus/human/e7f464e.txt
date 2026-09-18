@@ -1,0 +1,3 @@
+Refs #37348 -- Reverted "Refs #36806 -- Removed unnecessary null=True from GeneratedField in test models.".
+
+This reverts commit 968f3f96373e028f1486d135e38331fcd0e3a0ca.
