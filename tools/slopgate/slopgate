@@ -165,7 +165,7 @@ def main():
     c = sub.add_parser("check", help="check a draft for slop")
     c.add_argument("--file")
     c.add_argument("--stdin", action="store_true")
-    c.add_argument("--kind", default="doc", choices=["commit", "pr", "doc"])
+    c.add_argument("--kind", default="doc", choices=["commit", "pr", "doc", "web"])
     c.add_argument("--json", action="store_true")
     c.add_argument("--fast", action="store_true",
                    help="deterministic layer only; no API call")

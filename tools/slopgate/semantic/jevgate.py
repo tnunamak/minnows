@@ -102,6 +102,7 @@ KIND_STATE = {
     "commit": "commit_message",
     "pr": "pr_description",
     "doc": "document",
+    "web": "web_page",
 }
 
 
