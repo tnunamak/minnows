@@ -30,12 +30,16 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from jevgate import KIND_STATE, load_rules  # noqa: E402
 
 HERE = pathlib.Path(__file__).parent
-CHECKS = load_rules("doc")
+ALL_RULES = load_rules("doc")
+# Decoys assert per-rule probabilities, so only yes/no rules apply here.
+# Choice and Score rules return a label or a level, not a probability.
+CHECKS = {k: v for k, v in ALL_RULES.items()
+          if not v.get("choices") and not v.get("levels")}
 
 
 def score(text, kind):
     from typesafe_sdk import Noul, TypeSafeClient
-    qs = {k: Noul(instructions=v[0]) for k, v in CHECKS.items()}
+    qs = {k: Noul(instructions=v["question"]) for k, v in CHECKS.items()}
     with TypeSafeClient() as client:
         r = client.system_one(
             state={KIND_STATE.get(kind, "document"): text}, questions=qs)

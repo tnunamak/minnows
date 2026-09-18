@@ -77,8 +77,25 @@ def load_rules(kind="doc"):
         q = r.get("question")
         if not q:
             continue
-        out[name] = (q, float(r.get("threshold", 0.5)),
-                     r.get("severity", "medium"), r.get("suggestion", ""))
+        out[name] = {"question": q,
+                     "threshold": float(r.get("threshold", 0.5)),
+                     "severity": r.get("severity", "medium"),
+                     "suggestion": r.get("suggestion", ""),
+                     # A Choice rule names mutually exclusive diagnoses and
+                     # reports which one applies, rather than firing a separate
+                     # yes/no per candidate. `flag` lists the options that are
+                     # defects; any other option is the healthy case.
+                     "choices": r.get("choices"),
+                     "flag": r.get("flag") or [],
+                     # A Score rule rates a document on ordered levels and fires
+                     # when the rating falls at or below `max_level` (0-indexed
+                     # from the worst level). Use it where the defect is a
+                     # matter of degree rather than presence, and where the
+                     # levels can be described as concrete situations -- the
+                     # Score docs warn that degree words like "moderately" score
+                     # far worse than a described situation.
+                     "levels": r.get("levels"),
+                     "max_level": r.get("max_level")}
     return out
 
 KIND_STATE = {
@@ -90,7 +107,7 @@ KIND_STATE = {
 
 def run(text, kind="doc"):
     try:
-        from typesafe_sdk import Noul, TypeSafeClient
+        from typesafe_sdk import Choice, Noul, Score, TypeSafeClient
     except ImportError:
         return None, "typesafe_sdk not installed"
     if not os.environ.get("TYPESAFE_API_KEY"):
@@ -98,7 +115,15 @@ def run(text, kind="doc"):
     checks = load_rules(kind)
     if not checks:
         return None, "no rules loaded (check rules.json)"
-    qs = {k: Noul(instructions=v[0]) for k, v in checks.items()}
+    qs = {}
+    for k, v in checks.items():
+        if v["choices"]:
+            qs[k] = Choice(instructions=v["question"],
+                           criteria={c: None for c in v["choices"]})
+        elif v["levels"]:
+            qs[k] = Score(instructions=v["question"], criteria=v["levels"])
+        else:
+            qs[k] = Noul(instructions=v["question"])
     try:
         with TypeSafeClient() as client:
             r = client.system_one(
@@ -107,18 +132,41 @@ def run(text, kind="doc"):
         return None, f"{type(e).__name__}: {str(e)[:120]}"
 
     findings = []
-    for key, (_q, thresh, sev, fix) in checks.items():
+    for key, v in checks.items():
+        if v["choices"]:
+            picked = r.choices[key].choice
+            if picked not in v["flag"]:
+                continue
+            findings.append({
+                "type": "semantic",
+                "rule": key.replace("_", "-"),
+                "diagnosis": picked,
+                "severity": v["severity"],
+                "suggestion": v["suggestion"],
+            })
+            continue
+        if v["levels"]:
+            lvl = r.scores[key].score
+            if v["max_level"] is not None and lvl <= v["max_level"]:
+                findings.append({
+                    "type": "semantic",
+                    "rule": key.replace("_", "-"),
+                    "level": round(lvl, 2),
+                    "severity": v["severity"],
+                    "suggestion": v["suggestion"],
+                })
+            continue
         p = r.nouls[key].noul
-        if p >= thresh:
+        if p >= v["threshold"]:
             findings.append({
                 "type": "semantic",
                 "rule": key.replace("_", "-"),
                 "probability": round(p, 3),
-                "severity": sev,
-                "suggestion": fix,
+                "severity": v["severity"],
+                "suggestion": v["suggestion"],
             })
     order = {"high": 0, "medium": 1, "low": 2}
-    findings.sort(key=lambda f: (order[f["severity"]], -f["probability"]))
+    findings.sort(key=lambda f: (order[f["severity"]], -f.get("probability", 1.0)))
     return findings, None
 
 

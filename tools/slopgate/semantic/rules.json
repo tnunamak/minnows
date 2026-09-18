@@ -1,5 +1,5 @@
 {
-  "$comment": "Rule bank for slopgate's semantic layer. Edit freely: add, remove, retune. Each rule is a yes/no question where YES means the defect is present. Write an exact observable condition, not a virtue -- the model answers the question you wrote, not the one you meant. The `kinds` list scopes a rule to artifact types. Rules carrying a `note` about audience are the ones that do NOT transfer to website copy -- add a `web` kind only after calibrating against web references.",
+  "$comment": "Rule bank for slopgate's semantic layer. Edit freely: add, remove, retune. Each rule is a yes/no question where YES means the defect is present. Write an exact observable condition, not a virtue -- the model answers the question you wrote, not the one you meant. The `kinds` list scopes a rule to artifact types. Rules carrying a `note` about audience are the ones that do NOT transfer to website copy -- add a `web` kind only after calibrating against web references. A rule may be a yes/no question (default, uses `threshold`) or a Choice with `choices` + `flag` naming which options are defects. A rule may also be a Score with `levels` (ordered, worst first) and `max_level`, firing when the rating falls at or below that bar.",
   "rules": {
     "repeats_itself": {
       "question": "Does this text state the same point more than once in different words, for example making a claim and then restating it later as a summary or a recap?",
@@ -287,6 +287,45 @@
         "pr",
         "doc"
       ]
+    },
+    "document_shape": {
+      "question": "What best describes how this document is organised? Choose the single closest match.",
+      "choices": [
+        "leads with the consequential fact, then explains it",
+        "leads with background or history before reaching the point",
+        "is a flat inventory of items with no single through-line",
+        "announces topics in sections without saying what they resolve to"
+      ],
+      "flag": [
+        "leads with background or history before reaching the point",
+        "is a flat inventory of items with no single through-line",
+        "announces topics in sections without saying what they resolve to"
+      ],
+      "severity": "high",
+      "suggestion": "restructure: open with what the reader needs to decide, then support it",
+      "kinds": [
+        "pr",
+        "doc"
+      ],
+      "note": "a Choice rather than several Nouls because these shapes are mutually exclusive; asking them as independent yes/no questions lets two contradictory diagnoses both fire"
+    },
+    "grounding": {
+      "question": "How well grounded are this text's claims in things a reader could check? Rate the document as a whole.",
+      "levels": [
+        "claims are general statements with no number, name, date, file or identifier anywhere",
+        "a few claims name something specific; most are stated without anything to check",
+        "most claims name a specific thing, but the consequential ones are unsupported",
+        "the claims that matter carry a number, name or identifier a reader could look up",
+        "every load-bearing claim is checkable, and claims that are not are marked as unverified"
+      ],
+      "max_level": 1.5,
+      "severity": "high",
+      "suggestion": "attach a number, name or identifier to the claims that matter, or mark them unverified",
+      "kinds": [
+        "pr",
+        "doc"
+      ],
+      "note": "a Score rather than a Noul because grounding is a matter of degree, not presence"
     }
   }
 }
