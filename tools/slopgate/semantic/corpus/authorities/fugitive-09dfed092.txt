@@ -1,0 +1,8 @@
+Use forward slashes for non-Fugitive URLs on win32
+
+Might do this for everything but let's start here.  I initially went
+with backslashes for URLs because that's how Vim on win32 normalizes
+buffer names, and figured it might simplify things like equality checks.
+But Vim itself breaks in some places.  Editing a `file://` URL doesn't
+work if backslashes are in use, and Vim unescapes incorrectly when
+constructing <q-args> (see 6356bbc4a761757b3ed2886d6808da5c1f4b2d75).

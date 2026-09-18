@@ -1,0 +1,6 @@
+Provide FugitiveActualDir()
+
+This is intended to free up FugitiveGitDir() to refer to the ".git" file
+in that work tree and submodule repositories use.  I wish I had better
+names for these two.  Settling for "Actual" as that at least has a
+pleasing 6 letter symmetry with "Common".

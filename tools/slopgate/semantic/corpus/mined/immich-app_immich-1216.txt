@@ -1,0 +1,10 @@
+This PR adds the functionality of #408.
+
+To achieve this, the following was done as part of the changes:
+* A drag event was added to the `main` tag
+* A new `UploadCover` component was created
+* Body and main were set to always cover the whole web browser screen
+* File uploader was changed to add uploaded photos to albums directly from there if an upload is for an album
+* Album upload asset store was removed. I felt removing this was a good idea as it added additional complexity to upload process and there was no need for it. The consequence of this is that when multiple images are uploaded to an album at once, each of them are added separately, not all at once, but as this is not a large request, it should not cause any problems. On the contrary, if there was an issue with upload of any of the selected images, the first successful ones would be still added to the album.
+
+I'd be happy to hear any comments and suggestions. Although I have been working with FE for some time, I only have experience with React, so please excuse any dumb Svelte mistakes or incorrect approaches.

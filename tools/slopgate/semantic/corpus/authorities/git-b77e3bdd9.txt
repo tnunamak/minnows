@@ -1,0 +1,43 @@
+symbolic-ref: teach "--[no-]recurse" option
+
+Suppose you are managing many maintenance tracks in your project,
+and some of the more recent ones are maint-2.36 and maint-2.37.
+Further imagine that your project recently tagged the official 2.38
+release, which means you would need to start maint-2.38 track soon,
+by doing:
+
+  $ git checkout -b maint-2.38 v2.38.0^0
+  $ git branch --list 'maint-2.3[6-9]'
+  * maint-2.38
+    maint-2.36
+    maint-2.37
+
+So far, so good.  But it also is reasonable to want not to have to
+worry about which maintenance track is the latest, by pointing a
+more generic-sounding 'maint' branch at it, by doing:
+
+  $ git symbolic-ref refs/heads/maint refs/heads/maint-2.38
+
+which would allow you to say "whichever it is, check out the latest
+maintenance track", by doing:
+
+  $ git checkout maint
+  $ git branch --show-current
+  maint-2.38
+
+It is arguably better to say that we are on 'maint-2.38' rather than
+on 'maint', and "git merge/pull" would record "into maint-2.38" and
+not "into maint", so I think what we have is a good behaviour.
+
+One thing that is slightly irritating, however, is that I do not
+think there is a good way (other than "cat .git/HEAD") to learn that
+you checked out 'maint' to get into that state.  Just like the output
+of "git branch --show-current" shows above, "git symbolic-ref HEAD"
+would report 'refs/heads/maint-2.38', bypassing the intermediate
+symbolic ref at 'refs/heads/maint' that is pointed at by HEAD.
+
+The internal resolve_ref() API already has the necessary support for
+stopping after resolving a single level of a symbolic-ref, and we
+can expose it by adding a "--[no-]recurse" option to the command.
+
+Signed-off-by: Junio C Hamano <gitster@pobox.com>

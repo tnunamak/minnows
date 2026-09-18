@@ -1,0 +1,12 @@
+environ: explain Boolean environment variables
+
+Many environment variables use the git_env_bool() API to parse their
+values, and allow the usual "true/yes/on are true, false/no/off are
+false. In addition non-zero numbers are true and zero is false.  An
+empty string is also false." set of values.
+
+Mark them as such, and consistently say "true" or "false", instead
+of random mixes of '1', '0', 'yes', 'true', etc. in their
+description.
+
+Signed-off-by: Junio C Hamano <gitster@pobox.com>

@@ -1,0 +1,12 @@
+Cluster: introduce data_received field.
+
+We want to send pings and pongs at specific intervals, since our packets
+also contain information about the configuration of the cluster and are
+used for gossip. However since our cluster bus is used in a mixed way
+for data (such as Pub/Sub or modules cluster messages) and metadata,
+sometimes a very busy channel may delay the reception of pong packets.
+So after discussing it in #7216, this commit introduces a new field that
+is not exposed in the cluster, is only an internal information about
+the last time we received any data from a given node: we use this field
+in order to avoid detecting failures, claiming data reception of new
+data from the node is a proof of liveness.

@@ -1,0 +1,11 @@
+This PR expands the existing suite of rubocops that enforce the use of `on_system` blocks over `if` statements. Now, the style checks will catch more cases that slipped through before.
+
+Most importantly, this PR adds the ability to check for `if MacOS.version` conditionals in casks. This is the last major step needed before we can switch the cask API loading to JSON files instead of from source.
+
+Big thanks to @bevanjkay and @p-linnane for doing most of the work to get the cask repos switched over.
+
+---
+
+I know that there is one formula (`vtk`) that is still in the process of being updated. Once https://github.com/Homebrew/homebrew-core/pull/119246 is merged, though, this PR should be ready.
+
+I'm going to mark this PR as `critical` so we get the checks in ASAP and don't risk new changes being made in the wrong style. Since this is just a rubocop change, I don't think this will be a big deal. We can always make changes later if needed.

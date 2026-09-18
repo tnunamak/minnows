@@ -1,0 +1,12 @@
+ci: add address and undefined sanitizer tasks
+
+The current code is clean with these two sanitizers, and we would
+like to keep it that way by running the checks for any new code.
+
+The signal of "passed with asan, but not ubsan" (or vice versa) is
+not that useful in practice, so it is tempting to run both santizers
+in a single task, but it seems to take forever, so tentatively let's
+try having two separate ones.
+
+Helped-by: Jeff King <peff@peff.net>
+Signed-off-by: Junio C Hamano <gitster@pobox.com>

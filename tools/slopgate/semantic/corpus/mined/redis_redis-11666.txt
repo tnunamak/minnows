@@ -1,0 +1,30 @@
+This can happen when a key almost equal or larger than the
+client output buffer limit of the replica is written.
+
+Example:
+1. DB is empty
+2. Backlog size is 1 MB
+3. Client out put buffer limit is 2 MB
+4. Client writes a 3 MB key
+5. The shared replication buffer will have a single node which contains
+the key written above, and it exceeds the backlog size.
+
+At this point the client output buffer usage calculation will report the
+replica buffer to be 3 MB (or more) even after sending all the data to
+the replica.
+The primary drops the replica connection for exceeding the limits,
+the replica reconnects and successfully executes partial sync but the
+primary will drop the connection again because the buffer usage is still
+3 MB. This happens over and over.
+
+To mitigate the problem, this fix limits the maximum size of a single
+backlog node to be (repl_backlog_size/16). This way a single node can't
+exceed the limits of the COB (the COB has to be larger than the
+backlog).
+It also means that if the backlog has some excessive data it can't trim,
+it would be at most about 6% overuse.
+
+other notes:
+1. a loop was added in feedReplicationBuffer which caused a massive LOC
+  change due to indentation, the actual changes are just the `min(max` and the loop.
+3. an unrelated change in an existing test to speed up a server termination which took 10 seconds.

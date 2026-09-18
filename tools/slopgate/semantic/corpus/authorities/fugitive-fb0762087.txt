@@ -1,0 +1,8 @@
+Retool $GIT_INDEX_FILE handling
+
+* Don't attempt to handle relative paths, as there's no guarantee the
+  current working directory is the one Vim was started with.  In
+  practice, the only relative path I've seen is `.git/index`, which is
+  already the default and thus harmless to ignore.
+* Cache the result of FugitiveVimPath(), to allow for slow
+  implementations.

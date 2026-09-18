@@ -1,0 +1,15 @@
+Make summary buffer available at fugitive:// URL
+
+Using $GIT_DIR/index for the summary buffer has 2 problems:
+
+* It requires a BufReadCmd for all files named "index", necessitating
+  special handling for false positives.
+* It forces us to resolve ".git" files and symlinks, decoupling us from
+  the worktree and thus forcing us to depend on `core.worktree`.  Git
+  always sets this when necessary, but users and third-party tooling
+  sometimes do not.
+
+Using a fugitive:// URL for the buffer solves both.
+
+This is a large, breaking change, so let's leave $GIT_DIR/index as the
+default for now.

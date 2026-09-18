@@ -1,0 +1,10 @@
+Restore popular fugitive#repo() functions
+
+I'm quite eager to kill the "chomp" functions, as they're the last use
+of system().  However, the successor, FugitiveExecute(),  is only a year
+old, and isn't a drop-in replacement.  So let's bring them back for
+awhile to avoid the need for a massive conditional to give backwards
+compatibility.
+
+The rest are pretty benign to support, so I guess they can stick around
+until the band-aid is officially ripped off.

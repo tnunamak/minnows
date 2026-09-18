@@ -1,0 +1,29 @@
+#### Prerequisites checklist
+
+
+#### What is the purpose of this pull request? (put an "X" next to an item)
+
+
+
+[ ] Documentation update
+[X] Bug fix ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/bug-report.md))
+[ ] New rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-proposal.md))
+[ ] Changes an existing rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-change-proposal.md))
+[ ] Add autofix to a rule
+[ ] Add a CLI option
+[ ] Add something to the core
+[ ] Other, please explain:
+
+
+Fixes #16718
+
+
+
+
+#### What changes did you make? (Give an overview)
+
+Changed the autofix behavior of the `prefer-arrow-callback` rule. When converting a regular function to an arrow-style function, the fix will now add an arrow (`=>`) right after the closing parenthesis of the parameter list rather than before the function body.
+
+This serves to avoid a syntax error when the function body starts on a new line, because in JavaScript (unlike in TypeScript as it seems) a line terminator after the parameter list of an arrow function is not allowed ([spec link](https://262.ecma-international.org/13.0/#sec-arrow-function-definitions)).
+
+#### Is there anything you'd like reviewers to focus on?

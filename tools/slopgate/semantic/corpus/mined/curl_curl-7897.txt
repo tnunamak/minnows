@@ -1,0 +1,18 @@
+Sorry for being a little late with this, but I finally got to implementing the necessary workflows and successfully tested them in my curl repository fork with a fake "hacktober**T**est" set of labels.
+
+If this PR is accepted/approved for merge, I will also go ahead and retroactively add the labels to all relevant PRs for this years Hacktoberfest once via the GitHub CLI.
+
+--
+
+Automatically add hacktoberfest-accepted label to PRs opened between
+September 30th and November 1st once a commit with a close reference
+to it is pushed onto the master branch.
+
+With this workflow we can participate in Hacktoberfest while not
+relying on GitHub to identify PRs as merged due to our rebasing.
+
+Requires hacktoberfest-accepted labels to exist for PRs on the
+participating repository. Also requires hacktoberfest topic on
+the participating repository to avoid applying to forked repos.
+
+Fixes #7865

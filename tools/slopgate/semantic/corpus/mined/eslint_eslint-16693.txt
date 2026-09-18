@@ -1,0 +1,73 @@
+#### Prerequisites checklist
+
+
+#### What is the purpose of this pull request? (put an "X" next to an item)
+
+
+
+[ ] Documentation update
+[x] Bug fix ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/bug-report.md))
+[ ] New rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-proposal.md))
+[ ] Changes an existing rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-change-proposal.md))
+[ ] Add autofix to a rule
+[ ] Add a CLI option
+[ ] Add something to the core
+[ ] Other, please explain:
+
+
+
+**Tell us about your environment:**
+
+* **ESLint Version:** `main` branch
+* **Node Version:** v16.14.0
+* **npm Version:** 8.3.1
+
+**What parser (default, `@babel/eslint-parser`, `@typescript-eslint/parser`, etc.) are you using?**
+
+default
+
+**Please show your full configuration:**
+
+<details>
+<summary>Configuration</summary>
+
+
+```js
+module.exports = {
+    parserOptions: {
+        ecmaVersion: 2015
+    },
+    rules: {
+        "no-underscore-dangle": ["error", { allowInArrayDestructuring: false, allowInObjectDestructuring: false }]
+    }
+};
+```
+
+</details>
+
+**What did you do? Please include the actual source code causing the issue.**
+
+```js
+const [_foo = 1] = arr;
+
+const { _bar = 1 } = obj;
+
+```
+
+**What did you expect to happen?**
+
+Two `no-underscore-dangle` errors, on `_foo` and `_bar`.
+
+**What actually happened? Please include the actual, raw output from ESLint.**
+
+No errors.
+
+
+
+
+
+#### What changes did you make? (Give an overview)
+
+In the `no-underscore-dangle` rule, the code that checks destructuring patterns in `VariableDeclarator` nodes didn't account for  `AssignmentPattern` nodes. I simplified the code by using scope analysis (in particular, `context.getDeclaredVariables`), and after the change it correctly accounts for `AssignmentPattern` nodes.
+
+#### Is there anything you'd like reviewers to focus on?

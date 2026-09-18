@@ -1,0 +1,18 @@
+This PR adds user managed API keys.
+
+Overview:
+- The key is generated from `crypto.randomBytes` and a hashed version is stored in the database.
+- The original key is returned to the web and shown to the user (once) upon creation.
+- A new passport strategy looks up and validates a  key sent in the `x-api-key` header.
+- The actual "key" included in each request is of the form `Base64(id:key)`.
+- Validating a key includes: (1) looking it up by id, (2) comparing the key vs hashed value, (3) returning the associated user.
+
+TODO:
+
+
+
+
+
+Example of creating, updating, and deleting an API key:
+
+https://user-images.githubusercontent.com/4334196/210162180-8dfaeb8e-b2a3-464d-ab4a-aeef8952e07f.mp4

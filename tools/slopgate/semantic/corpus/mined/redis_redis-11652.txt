@@ -1,0 +1,5 @@
+TLDR: solve a problem introduce in Redis 7.0.6 (#11541) with RM_CommandFilterArgInsert being called from scripts, which can lead to memory corruption.
+
+Libc realloc can return the same pointer even if the size was changed. The code in freeLuaRedisArgv had an assumption that if the pointer didn't change, then the allocation didn't change, and the cache can still be reused.
+However, if rewriteClientCommandArgument or RM_CommandFilterArgInsert were used, it could be that we realloced the argv array, and the pointer didn't change, then a consecutive command being executed from Lua can use that argv cache reaching beyond its size.
+This was actually only possible with modules, since the decision to realloc was based on argc, rather than argv_len.

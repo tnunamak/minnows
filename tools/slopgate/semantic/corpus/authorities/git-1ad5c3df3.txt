@@ -1,0 +1,21 @@
+ci: use DC_SHA1=YesPlease on osx-clang job for CI
+
+7b8cfe34 (Merge branch 'ed/fsmonitor-on-networked-macos',
+2022-10-17) broke the build on macOS with sha1dc by bypassing our
+hash abstraction (git_SHA_CTX etc.), but it wasn't caught before the
+problematic topic was merged down to the 'master' branch.  Nobody
+was even compile testing with DC_SHA1 set, although it is the
+recommended choice in these days for folks when they use SHA-1.
+
+This was because the default for macOS uses Apple Common Crypto, and
+both of the two CI jobs did not override the default.  Tweak one of
+them to use DC_SHA1 to improve the coverage.
+
+We may want to give similar diversity for Linux jobs so that some of
+them build with other implementations of SHA-1; they currently all
+build and test with DC_SHA1 as that is the default on everywhere
+other than macOS.
+
+But let's start small to fill only the immediate need.
+
+Signed-off-by: Junio C Hamano <gitster@pobox.com>

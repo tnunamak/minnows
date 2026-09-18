@@ -1,0 +1,10 @@
+Consistently handle missing command jobs across platforms
+
+* On UNIX, jobs proceed normally, and exit with status 122.
+* On Windows, jobs fail early, and no callbacks run.
+* On Neovim, an exception is thrown.
+
+Normalize the second and third cases to behave like the first, as that
+was my assumed behavior during the initial implementation.
+
+References: https://github.com/tpope/vim-fugitive/issues/1815

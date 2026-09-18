@@ -1,0 +1,106 @@
+The current redis-cli does not support the real PSYNC command, the older
+version of redis-cli can support PSYNC is because that we actually issue
+the SYNC command instead of PSYNC, so it act like SYNC (always full-sync).
+Noted that in this case we will send the SYNC first (triggered by sendSync),
+then send the PSYNC (the one in redis-cli input).
+
+Didn't bother to find which version that the order changed, we send PSYNC
+first (the one in redis-cli input), and then send the SYNC (the one triggered
+by sendSync). So even full-sync is not working anymore, and it will result
+this output (mentioned in issue #11246):
+```
+psync dummy 0
+Entering replica output mode...  (press Ctrl-C to quit)
+SYNC with master, discarding bytes of bulk transfer until EOF marker...
+Error reading RDB payload while SYNCing
+```
+
+This PR adds PSYNC support to redis-cli, which can handle +FULLRESYNC and
++CONTINUE responses, and some examples will follow.
+
+SYNC command:
+```
+127.0.0.1:6379> sync
+Entering replica output mode...  (press Ctrl-C to quit)
+Full resync with master, discarding 177 bytes of bulk transfer...
+Full resync done. Logging commands from master.
+"ping"
+"SELECT","0"
+"incr","counter"
+```
+
+SYNC command with EOF marker:
+```
+127.0.0.1:6379> REPLCONF CAPA EOF
+OK
+127.0.0.1:6379> sync
+Entering replica output mode...  (press Ctrl-C to quit)
+Full resync with master, discarding bytes of bulk transfer until EOF marker...
+Full resync done after 233 bytes. Logging commands from master.
+sending REPLCONF ACK 0
+"SELECT","0"
+"incr","counter"
+```
+
+PSYNC command with +FULLRESYNC:
+```
+127.0.0.1:6379> psync dummy 0
+Entering replica output mode...  (press Ctrl-C to quit)
+PSYNC replied +FULLRESYNC 188d44f21759cf12551e0fd36a696bab81c0d794 128
+Full resync with master, discarding 194 bytes of bulk transfer...
+Full resync done. Logging commands from master.
+"ping"
+"SELECT","0"
+"incr","counter"
+```
+
+PSYNC command with +FULLRESYNC, with EOF marker:
+```
+127.0.0.1:6379> REPLCONF CAPA EOF
+OK
+127.0.0.1:6379> psync dummy 0
+Entering replica output mode...  (press Ctrl-C to quit)
+PSYNC replied +FULLRESYNC 188d44f21759cf12551e0fd36a696bab81c0d794 206
+Full resync with master, discarding bytes of bulk transfer until EOF marker...
+Full resync done after 234 bytes. Logging commands from master.
+sending REPLCONF ACK 0
+"ping"
+"SELECT","1"
+"incr","counter"
+```
+
+PSYNC command with +CONTINUE:
+```
+127.0.0.1:6379> psync 188d44f21759cf12551e0fd36a696bab81c0d794 206
+Entering replica output mode...  (press Ctrl-C to quit)
+PSYNC replied +CONTINUE
+Partial resync with master...
+Partial resync done. Logging commands from master.
+"SELECT"
+"0"
+"incr","counter"
+"ping"
+"ping"
+"SELECT","1"
+"incr","counter"
+```
+
+PYSNC COMMAND with +CONTINUE replid:
+```
+127.0.0.1:6379> REPLCONF CAPA PSYNC2
+OK
+127.0.0.1:6379> psync 188d44f21759cf12551e0fd36a696bab81c0d794 206
+Entering replica output mode...  (press Ctrl-C to quit)
+PSYNC replied +CONTINUE 188d44f21759cf12551e0fd36a696bab81c0d794
+Partial resync with master...
+Partial resync done. Logging commands from master.
+"SELECT"
+"0"
+"incr","counter"
+"ping"
+"ping"
+"SELECT","1"
+"incr","counter"
+```
+
+Fixes #11246

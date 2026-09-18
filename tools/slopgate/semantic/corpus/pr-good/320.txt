@@ -1,0 +1,11 @@
+## Summary
+
+Remove obsolete GitHub Actions configuration—the repository's continuous-integration automation—that fails checks whenever five directories moved out of `PDP-Connect/pdpp`, the main PDPP repository, reappear there.
+
+During Move B, the repository transfer that moved `reference-implementation` (the server implementation directory), `apps/console` (the dashboard directory), `packages/cli` (the command-line package), `packages/mcp-server` (the Model Context Protocol service package), and `packages/read-core` (the data-reading package) to `PDP-Connect/data-connect`, the data-connect implementation repository, this configuration prevented a second copy from being introduced. It now does only one thing: fail checks when any of those five directories exists in this repository. Keeping it creates a misleading CI failure and blocks intentional future changes to those paths from normal review.
+
+This PR deletes only `.github/workflows/reference-implementation.yml`; it does not restore any moved path or change application behavior. I have not exercised the running data-connect implementation because this CI-only deletion does not modify it.
+
+Validation: searched the remaining GitHub Actions configuration and confirmed that none still fails checks solely because one of the five moved directories exists in `PDP-Connect/pdpp`. This proves the deletion removes the obsolete failure without changing another directory-presence check.
+
+Assisted-by: AI

@@ -1,0 +1,7 @@
+-----
+
+This PR fixes `brew prof` again. There were two problems.
+1. `brew prof` was not working with the latest version of the `ruby-prof` gem since it now requires Ruby >= 2.7 ([source](https://github.com/ruby-prof/ruby-prof/blob/5d9ca2d9cf64fdba345f2afb6c5a8f86f87e7461/CHANGES#L6-L19)). Specifying the version was enough to fix that.
+2. `brew prof --stackprof` hasn't been working for a bit and the problem was related to not being able to require the gem after installing it locally and then shelling out to brew again. By requiring the `rubygems` gem we are able to pick up the `GEM_HOME` and `GEM_PATH` environment variables that we set during the gem installation/setup process.
+
+I also added some integration tests to make sure we get notified if these gems start failing again. I'm not sure they're really worth it though to be honest. This command is not used very frequently and it might just be better to deal with any problems whenever we want to use it instead of adding tests which are expensive not only because they are integration tests but also because they involve installing these gems in the process.

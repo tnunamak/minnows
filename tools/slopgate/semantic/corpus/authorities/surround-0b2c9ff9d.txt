@@ -1,0 +1,10 @@
+surround.vim 2.0
+
+* Fix vs with selection=exclusive.
+* Remove `unnamedplus' from clipboard in addition to `unnamed'.
+* Kill vs.
+* Bump to Vim 7.
+* Add support for repeating ys commands.
+* Add support for repeating tags.
+* Don't save deleted surrounding in unnamed register.
+* Fix deletion of delimiters on their own lines.

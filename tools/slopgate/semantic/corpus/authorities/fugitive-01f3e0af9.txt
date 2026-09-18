@@ -1,0 +1,23 @@
+Account for escaping differences when expanding on win32
+
+The core issue here is that on UNIX, fnameescape() always doubles
+backslashes, while on Windows, it leaves them be.  But it's a lot more
+complicated than that, because Vim also avoids escaping other
+characters, to minimize ambiguity.  This can mostly be compensated for
+by removing the corresponding characters from s:fnameescape, including
+backslash itself.  I'm a little worried that removing backslash will
+have other implications, so keep an eye out for regressions here.
+
+One character we can't remove is "!", because we need a way to escape
+our own "the commit owning the current file" syntax.  As a long term
+strategy to address this, I'm introducing new !% and !# variations to
+replace it.  This is a bit on the ugly side, so I'm going to hold off on
+committing to it as a documented interface until I've had more time to
+muse on alternatives.
+
+See also 6356bbc4a761757b3ed2886d6808da5c1f4b2d75, wherein I fixed a bug
+with the exact same description.  This suggests a change in Vim prompted
+this new variation, but then again, there's no proof that I actually
+tested my fix on Windows.
+
+Resolves: https://github.com/tpope/vim-fugitive/issues/2071

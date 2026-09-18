@@ -1,0 +1,10 @@
+Cache master without checking of deferred close flags.
+
+The context is issue #7205: since the introduction of threaded I/O we close
+clients asynchronously by default from readQueryFromClient(). So we
+should no longer prevent the caching of the master client, to later
+PSYNC incrementally, if such flags are set. However we also don't want
+the master client to be cached with such flags (would be closed
+immediately after being restored). And yet we want a way to understand
+if a master was closed because of a protocol error, and in that case
+prevent the caching.

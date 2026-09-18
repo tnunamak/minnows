@@ -1,0 +1,7 @@
+A Supporter whose signing form was incomplete, rate-limited, unavailable, or closed could be sent to a browser page containing raw API JSON instead of a recoverable form state. This change separates browser and API behavior: browser submissions now use Post/Redirect/Get, so `/api/sign` returns a 303 to the Principles form with an explicit outcome; clients that request `application/json` still receive machine-readable errors.
+
+The Principles page renders short status copy for submission, confirmation, and withdrawal outcomes, including invalid or expired links. A ten-minute HTTP-only cookie restores non-email fields after a failed submission, so no email address enters a URL. The journey oracle now asserts the redirect contract instead of expecting raw JSON for browser submissions.
+
+Response tests assert every browser state redirects to the form and JSON is opt-in; static-markup tests assert each state has visible copy. `pnpm --filter pdpp-site verify` passed types, 213 tests, generated-artifact checks, and a production build, with four existing style warnings in unrelated sandbox files. A standalone site build also passed.
+
+Assisted-by: AI

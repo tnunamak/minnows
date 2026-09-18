@@ -1,0 +1,45 @@
+#### Prerequisites checklist
+
+
+#### What is the purpose of this pull request? (put an "X" next to an item)
+
+
+
+[ ] Documentation update
+[ ] Bug fix ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/bug-report.md))
+[ ] New rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-proposal.md))
+[ ] Changes an existing rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-change-proposal.md))
+[ ] Add autofix to a rule
+[ ] Add a CLI option
+[ ] Add something to the core
+[ ] Other, please explain:
+
+
+
+
+
+
+
+#### What changes did you make? (Give an overview)
+
+Peoples can switch to the zh-hans site from the documentation page
+
+<table>
+  <tr>
+    <th>Before</th>
+    <th>After</th>
+  </tr>
+
+  <tr>
+    <td>
+<img width="244" alt="image" src="https://user-images.githubusercontent.com/45708948/208681424-90a5dadd-09ec-41b0-a93f-293b28051fe3.png">
+</td>
+    <td>
+<img width="223" alt="image" src="https://user-images.githubusercontent.com/45708948/208681322-431312c0-b9d0-4e6d-9aaa-824c36e5a51b.png">
+</td>
+  </tr>
+</table>
+
+#### Is there anything you'd like reviewers to focus on?
+
+`sites/zh-hans.yml` no longer continues to be maintained in the `zh-hans.docs.eslint.org` repository, and has been moved to this repository instead.

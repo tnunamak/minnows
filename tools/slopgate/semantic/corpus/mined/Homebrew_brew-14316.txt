@@ -1,0 +1,12 @@
+-----
+
+Introduce a new `reproducible_gzip` helper function which can be used by formulae. The inputs and outputs of this function are the same as `Utils.gzip`. However, the resulting gz file produced by `reproducible_gzip` has its `mtime` set to `SOURCE_DATE_EPOCH`.
+
+This allows for gz files produced at different times, on different CI instances or end user machines, and with different operating systems to still have the same checksum.
+
+So far, I have identified five formulae in `homebrew-core` that the bottles probably only differ due to different mtimes in gzipped files (either manpages or data files). Introducing this usage in those instances should allow an `all` bottle to be built.
+
+Notes and other considerations:
+- As noted in the comment in `Utils.reproducible_gzip`, this currently requires `SOURCE_DATE_EPOCH` env var to be set (which it should be in the formula build environment). I originally planned to use an mtime of 0 if `SOURCE_DATE_EPOCH` is not set, but there's a bug in the Zlib gem which has been fixed but doesn't seem to have made it to us yet.
+- The Gzip buffer size of `64 * 1024` is currently left as a magic number in the function. I'm open to making it a constant at the top of the file if that's preferred. Note that the same constant is also used in https://github.com/Homebrew/brew/blob/master/Library/Homebrew/dev-cmd/bottle.rb, so not sure if it would make sense to unify the constant somewhere else.
+- I've implemented this as a separate function from `Utils.gzip` to avoid changing the existing functionality, and since this imposes additional requirements for usage (i.e. `SOURCE_DATE_EPOCH` must be set). I'm also open to simply amending the existing `Utils.gzip` function with this feature if that's preferred (i.e. non-reproducible behavior if `SOURCE_DATE_EPOCH` is not set; reproducible behavior if it is set).

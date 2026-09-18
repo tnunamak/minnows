@@ -1,0 +1,9 @@
+-----
+
+This check was added in four years ago in https://github.com/Homebrew/brew/pull/5614. We were seeing problems at the time with users not being able to download packages correctly when running BitDefender (https://github.com/Homebrew/brew/issues/4579 and https://github.com/Homebrew/brew/issues/5558).
+
+Those issues were apparently resolved by BitDefender and we got an issue in mid 2020 asking us to remove the check since it was no longer necessary (https://github.com/Homebrew/brew/issues/7452). Since that point we haven't received anymore issues or complaints related to BitDefender in either the main `brew` repo or in the discussions (I just searched for `bitdefender` in both places).
+
+Also, anecdotally, I haven't had any problems using `brew` and `BitDefender` at the same time on my local system.
+
+CC: @MikeMcQuaid since you added the check and were involved in previous discussions.

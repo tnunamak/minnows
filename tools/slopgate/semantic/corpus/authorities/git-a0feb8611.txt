@@ -1,0 +1,11 @@
+Merge a handful of topics from the 'master' front
+
+As the 'master' front will soon tag a preview and then release
+candidates for 2.38, it is unknown if we are going to issue another
+maintenance release on the 2.37.x track, but as we have accumulated
+enough material there, let's prepare a draft for it.
+
+Even if we end up not tagging 2.37.4, it would help motivated distro
+packagers to maintain their slightly older and "more stable" versions.
+
+Signed-off-by: Junio C Hamano <gitster@pobox.com>

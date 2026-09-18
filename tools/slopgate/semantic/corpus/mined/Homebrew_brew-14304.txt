@@ -1,0 +1,10 @@
+This PR updates the method for loading casks when `HOMEBREW_INSTALL_FROM_API` is set. Now, casks are loaded directly from the JSON API in the same way that formulae are. I've started to test this out locally and haven't had any issues so far (outside of the ones listed below).
+
+It's worth noting that the old `cask-source` API is still being used to write the cask source to the `.metadata` folder. This is similar to the way that formula bottles also contain the formula file, except that the source for casks are retrieved using the API rather than a bottle.
+
+Also, a nice little side effect of this PR is that `brew edit` now works for casks with `HOMEBREW_INSTALL_FROM_API` (while the taps are installed, of course)
+
+---
+
+Here are some known issues:
+- Casks with `{uninstall_,}{pre,post}flight` stanzas will currently ignore those when installing and uninstalling. This can cause issues in casks like `vlc` which rely on these blocks to create files that will be referenced by the regular artifact stanzas. This is a relatively significant issue that is probably worth brainstorming about sooner rather than later since it does technically cause a regression from the old API-install behavior for casks.

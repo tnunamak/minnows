@@ -1,0 +1,17 @@
+I just learned about a new capability that terminals have gained in the last
+few years, namely the ability to create clickable hyperlinks on the terminal
+with arbitrary text.  Many terminals already turn URLs on screen into clickable
+links but there are times when curl could supply links that aren't displayed on
+screen.
+
+This PR adds the ability for curl to create hyperlinks for Location: redirects.
+There is not enough information for a terminal to do this automatically for
+relative URLs, but curl has enough information to do it. This is enabled when
+--styled-output is turned on and a Location: header is displayed. 
+
+There are probably other cases when curl could enhance the output with links
+like this, so this is mostly a proof of concept to see how easy and useful it
+is. It turns out that this marginal feature takes a surprising amount of code
+to accomplish due to CURLINFO_REDIRECT_URL being unavailable. I won't take it
+personally if the end result is rejection this PR for a too-low
+price/performance ratio.

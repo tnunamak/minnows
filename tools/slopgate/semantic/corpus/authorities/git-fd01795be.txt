@@ -1,0 +1,10 @@
+environ: GIT_FLUSH should be made a usual Boolean
+
+This uses atoi() and checks if the result is not zero to decide what
+to do.  Turning it into the usual Boolean environment variable to
+use git_env_bool() would not break those who have been using "set to
+0, or set to non-zero, that can be parsed with atoi()" values, but
+will match the expectation of those who expected "true" to mean
+"yes".
+
+Signed-off-by: Junio C Hamano <gitster@pobox.com>

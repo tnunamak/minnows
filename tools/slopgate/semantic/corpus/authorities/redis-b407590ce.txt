@@ -1,0 +1,20 @@
+Fix #7306 less aggressively.
+
+Citing from the issue:
+
+btw I suggest we change this fix to something else:
+* We revert the fix.
+* We add a call that disconnects chained replicas in the place where we trim the replica (that is a master i this case) offset.
+This way we can avoid disconnections when there is no trimming of the backlog.
+
+Note that we now want to disconnect replicas asynchronously in
+disconnectSlaves(), because it's in general safer now that we can call
+it from freeClient(). Otherwise for instance the command:
+
+    CLIENT KILL TYPE master
+
+May crash: clientCommand() starts running the linked of of clients,
+looking for clients to kill. However it finds the master, kills it
+calling freeClient(), but this in turn calls replicationCacheMaster()
+that may also call disconnectSlaves() now. So the linked list iterator
+of the clientCommand() will no longer be valid.

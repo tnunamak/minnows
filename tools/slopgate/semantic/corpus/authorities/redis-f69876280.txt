@@ -1,0 +1,10 @@
+Speedup INFO by counting client memory incrementally.
+
+Related to #5145.
+
+Design note: clients may change type when they turn into replicas or are
+moved into the Pub/Sub category and so forth. Moreover the recomputation
+of the bytes used is problematic for obvious reasons: it changes
+continuously, so as a conservative way to avoid accumulating errors,
+each client remembers the contribution it gave to the sum, and removes
+it when it is freed or before updating it with the new memory usage.

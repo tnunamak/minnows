@@ -1,0 +1,13 @@
+Hello!
+
+There is no method to be able to use plain LOGIN (Plain LOGIN vs. SASL LOGIN) if an IMAP server advertises SASL capabilities. However, this may be desirable for e.g. a misconfigured server.
+
+Per: https://www.ietf.org/rfc/rfc5092.html#section-3.2
+
+";AUTH=<enc-auth-type>" looks to be the correct way to specify what authenication method to use, regardless of SASL or not.
+
+Since https://www.rfc-editor.org/rfc/rfc3501.html#section-6.1.1 provides no way to have no SASL mechanisms, "XNONE" looks to be the best RFC compliant way of doing it.
+
+While this does provide a method for cleartext password being sent, a user must expliciticly call `AUTH=XNONE` to excerise this.
+
+I should note I originally thought of adding this in `Curl_sasl_parse_url_auth_option()` to add a more general way of disabling SASL authentication (it did not break any scripts), but I wasn't sure which would be more appropriate.

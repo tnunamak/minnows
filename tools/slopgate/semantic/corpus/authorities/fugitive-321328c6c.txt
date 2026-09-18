@@ -1,0 +1,8 @@
+Avoid I/O from ":p" when handling temp files
+
+This isn't a big deal for temp files themselves, but if we're checking
+an arbitrary buffer, it's possible we'll end up hitting a slow network
+share just to find out if the path is relative.
+
+This new s:AbsoluteVimPath() helper could potentially be reused in a lot
+of places.  But this diff is big enough as is; save that for later.

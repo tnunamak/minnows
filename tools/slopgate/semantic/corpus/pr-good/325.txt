@@ -1,0 +1,11 @@
+The supporters publisher can leave a refreshed branch without a pull request when repository policy forbids GitHub Actions from creating one. A withdrawal can also leave a stale branch and review open after the rebuilt register returns to `main`. This change keeps the allowlist-only register build, the DCO signed bot commit, and the generated `publish/supporters` branch out of direct `main` writes.
+
+The workflow compares rebuilt content with both `main` and the generated branch. It force-pushes a changed register, retires a branch and PR when the register returns to `main`, and otherwise attempts PR management whenever the generated branch still differs from `main`. A forbidden creation exits successfully with the branch, compare URL, and maintainer command.
+
+## Round 2
+
+The PR-management tests now run from `scripts/` in the repository’s scratch-owned test workflow, rather than as a raw `node --test` command in the scheduled publisher; this fixes the canonical-entrypoint CI failure without adding dependency installation to publication runs. The unchanged-branch path now re-runs PR management, so a forbidden creation re-emits its maintainer handoff every night until resolved. A regression test covers that retry, and another verifies POSIX quoting for apostrophes in the printed command.
+
+Focused tests cover creation, update, forbidden creation, withdrawal retirement, retry, and quoting. I have not exercised the organization’s live Actions setting.
+
+Assisted-by: AI

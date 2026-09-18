@@ -1,0 +1,16 @@
+adjust_shared_perm(): leave g+s alone when the group does not matter
+
+Julien Moutinho reports that in an environment where directory does
+not have BSD group semantics and requires the g+s to be set (aka
+FORCE_DIR_SET_GID), but the system forbids chmod() to touch the g+s
+bit, adjust_shared_perm() fails even when the repository is for
+private use with perm = 0600, because we unconditionally try to set
+the g+s bit.
+
+When we grant extra access based on group membership (i.e. the
+directory has either g+r or g+w bit set), which group the directory
+and its contents are owned by matters.  But otherwise (e.g. perm is
+set to 0600, in Julien's case), flipping g+s bit is not necessary.
+
+Reported-by: Julien Moutinho <julm+git@sourcephile.fr>
+Signed-off-by: Junio C Hamano <gitster@pobox.com>

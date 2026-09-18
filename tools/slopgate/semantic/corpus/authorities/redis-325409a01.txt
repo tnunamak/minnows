@@ -1,0 +1,7 @@
+Set a protocol error if master use the inline protocol.
+
+We want to react a bit more aggressively if we sense that the master is
+sending us some corrupted stream. By setting the protocol error we both
+ensure that the replica will disconnect, and avoid caching the master so
+that a full SYNC will be required. This is protective against
+replication bugs.

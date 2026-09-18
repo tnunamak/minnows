@@ -1,0 +1,9 @@
+getRandomBytes(): use HMAC-SHA256.
+
+Now that we have an interface to use this API directly, via ACL GENPASS,
+we are no longer sure what people could do with it. So why don't make it
+a strong primitive exported by Redis in order to create unique IDs and
+so forth?
+
+The implementation was tested against the test vectors that can
+be found in RFC4231.

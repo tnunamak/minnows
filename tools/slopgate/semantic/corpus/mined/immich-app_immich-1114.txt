@@ -1,0 +1,10 @@
+Make user business logic reusable by using `user.domain` from other services
+than `user.service`
+
+This is a simple approach to be able to reuse business logic in related services. These changes include moving the business logic for create / update user from the `user.service` to a new module `user.domain`. User domain then is used in user.service, oauth.service and auth.service.
+
+Move some user logic from user-repository to user.service. The business logic should not be in the repositories, the repository is outside the domain (is an adapter) and it could be hard to test logic inside there.
+ 
+Fix user.service tests not awaiting promises. When we have tests with expectations on Promises (rejects, resolves) we need to `await` then or we would have leaking state between tests.
+
+Add `jest-when` lib to make testing easier. This is a nice library I found which we can use to not having to `mockImplementation` in a specific order for the test to pass

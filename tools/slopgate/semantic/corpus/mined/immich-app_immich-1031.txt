@@ -1,0 +1,11 @@
+This greatly reduces the network traffic by app/web.
+
+Before this change:
+
+- Assets cached locally are only valid for 5 minutes. Every time you re-open Immich after a few minutes, the app downloads all images (also thumbs) again when scrolling through the asset grid or looking at individual images. This creates considerable network traffic that uses up your mobile data quite a lot.
+- API requests are always send over the wire.
+
+With this change:
+
+- As long as the assets did not change on the server (and images currently never change), Immich (app&web) reuses the cached images indefinitely. As long as the local cache can hold your assets, almost no network traffic is generated when using Immich (after the cache is filled once).
+- API requests are only send over the wire if their content changed (works for all requests on the web, but currently only for the most important "getAllAssets" on mobile)

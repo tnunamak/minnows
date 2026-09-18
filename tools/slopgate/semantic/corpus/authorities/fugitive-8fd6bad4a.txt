@@ -1,0 +1,10 @@
+Handle URL-unsafe characters in :GBrowse API
+
+Of the 8 :GBrowse providers listed in the README, 7 make no attempt to
+handle URL encoding.  So it makes sense for Fugitive to take
+responsibility for this.  By transposing "%" and "~" in API parameters
+and then reversing the process on the generated URL, we can accommodate
+both usages.  This is transitional and will later be ditched in favor of
+straightforward URL encoding.
+
+References: https://github.com/cedarbaum/fugitive-azure-devops.vim/issues/3

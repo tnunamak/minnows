@@ -1,0 +1,7 @@
+Fixes [ticket 34205]( https://code.djangoproject.com/ticket/34205).
+
+As noted in that ticket, the constraint check for an empty ArrayField was failing, first spotted when upgrading to Django 4.1 that now does this validation on model save.
+
+I've added a test as suggested in `postgres_tests.test_constraints.SchemaTests`. I hope it's roughly what you were after, but as this is my first merge request for this project it took a bit of time and head scratching to work out how to get the test suite setup (especially for postgres).
+
+I've also tested that this works with my project where I first spotted the issue.

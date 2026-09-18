@@ -1,0 +1,29 @@
+Remove the client from CLOSE_ASAP list before caching the master.
+
+This was broken in 1a7cd2c: we identified a crash in the CI, what
+was happening before the fix should be like that:
+
+1. The client gets in the async free list.
+2. However freeClient() gets called again against the same client
+   which is a master.
+3. The client arrived in freeClient() with the CLOSE_ASAP flag set.
+4. The master gets cached, but NOT removed from the CLOSE_ASAP linked
+   list.
+5. The master client that was cached was immediately removed since it
+   was still in the list.
+6. Redis accessed a freed cached master.
+
+This is how the crash looked like:
+
+=== REDIS BUG REPORT START: Cut & paste starting from here ===
+1092:S 16 May 2020 11:44:09.731 # Redis 999.999.999 crashed by signal: 11
+1092:S 16 May 2020 11:44:09.731 # Crashed running the instruction at: 0x447e18
+1092:S 16 May 2020 11:44:09.731 # Accessing address: 0xffffffffffffffff
+1092:S 16 May 2020 11:44:09.731 # Failed assertion:  (:0)
+
+------ STACK TRACE ------
+EIP:
+src/redis-server 127.0.0.1:21300(readQueryFromClient+0x48)[0x447e18]
+
+And the 0xffff address access likely comes from accessing an SDS that is
+set to NULL (we go -1 offset to read the header).

@@ -1,0 +1,11 @@
+Revert "Avoid IO from ":p" during detection"
+
+This change failed to account for the directory edge case, where ":p:h"
+has the very nice property of giving us back the original input, due to
+":p" appending a trailing slash.  Without this, we fail to detect when
+editing the root of the repository.
+
+This reverts commit 1b811b88a45ff7b906ea9314adf016883ce5cd9e.
+
+Resolves: https://github.com/tpope/vim-fugitive/issues/1978
+Resolves: https://github.com/tpope/vim-fugitive/issues/1979

@@ -1,0 +1,21 @@
+**Fixed #32813** - Display development server address after server bind
+
+If a user selects port ```0``` for runserver command, which is a wildcard port:
+
+```
+$ ./manage.py runserver 127.0.0.1:0
+...
+Starting development server at http://127.0.0.1:0/
+Quit the server with CONTROL-C.
+```
+The app will not be running in the given link ```http://127.0.0.1:0/```, because the operating system selects a port.
+
+After this change Django will be able to display the correct port:
+
+```
+$ ./manage.py runserver 127.0.0.1:0
+...
+Starting development server at http://127.0.0.1:37337/
+Quit the server with CONTROL-C.
+```
+The original PR [#14250](https://github.com/django/django/pull/14250)  was closed. The current PR [#15748](https://github.com/django/django/pull/15748) for the ticket has been inactive and also requires some changes due to the merged PR [#16145](https://github.com/django/django/pull/16145). I have added the changes and updated the test case.

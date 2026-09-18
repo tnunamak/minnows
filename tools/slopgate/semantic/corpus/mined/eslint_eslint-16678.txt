@@ -1,0 +1,47 @@
+#### Prerequisites checklist
+
+
+#### What is the purpose of this pull request? (put an "X" next to an item)
+
+
+
+[ ] Documentation update
+[ ] Bug fix ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/bug-report.md))
+[ ] New rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-proposal.md))
+[ ] Changes an existing rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-change-proposal.md))
+[ ] Add autofix to a rule
+[ ] Add a CLI option
+[ ] Add something to the core
+[x] Other, please explain:
+
+After https://github.com/eslint/eslint/pull/16579, `docs/**` ignore pattern matches directory `docs/`, so `!docs/.eleventy.js` doesn't really unignore `docs/.eleventy.js` file because the file is in an ignored directory.
+
+This is observable in our CI: https://github.com/eslint/eslint/actions/runs/3717239694/jobs/6304407905
+
+```text
+Run node Makefile lintDocsJS
+Validating JavaScript files in the docs directory
+
+/home/runner/work/eslint/eslint/docs/.eleventy.js
+Warning:   0:0  warning  File ignored by default.  Use a negated ignore pattern (like "--ignore-pattern '!<relative/path/to/filename>'") to override
+
+✖ 1 problem (0 errors, 1 warning)
+
+```
+
+This PR updates ignore patterns in our `eslint.config.js` to re-enable linting `docs/.eleventy.js`, and makes a few other updates related to ignore patterns.
+
+
+
+
+
+
+
+#### What changes did you make? (Give an overview)
+
+* Changed `docs/**` ignore pattern to `docs/*`. In combination with `!docs/.eleventy.js`, this means that everything under `docs/` is still ignored, except for `docs/.eleventy.js`.
+* Removed `!.eslintrc.js` ignore pattern as it had no effect because the flat config system does not ignore dotfiles by default.
+* Updated glob pattern we use to lint docs js files, from `docs/.eleventy.js` to `docs`. The command still lints only `docs/.eleventy.js` file, but it was supposed to have the whole `docs` directory as the target while the config file controls which files should be linted. Specifying the exact file in the command was only a temporary solution at a point when this didn't work well.
+* Updated two test titles, per https://github.com/eslint/eslint/pull/16579#discussion_r1050651254 and https://github.com/eslint/eslint/pull/16579#discussion_r1050651701.
+
+#### Is there anything you'd like reviewers to focus on?

@@ -1,0 +1,11 @@
+environ: document GIT_SSL_NO_VERIFY
+
+Even though the name of the environment variable is mentioned in
+"git config --help" from http.sslVerify, there is no description for
+it.  Add one.
+
+Note that this is not a usual Boolean environment variable whose
+value can be yes/true/on vs no/false/off; the existence of it is
+enough to trigger the feature named by the variable.
+
+Signed-off-by: Junio C Hamano <gitster@pobox.com>

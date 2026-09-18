@@ -1,0 +1,46 @@
+ticket-33735 (see comment:8 particularly)
+
+Minimal usage: 
+
+```python
+# urls.py
+import asyncio
+
+from django.http import StreamingHttpResponse
+from django.urls import path
+
+
+async def a_streaming_view(request):
+    async def response_content():
+        for i in range(1, 6):
+            await asyncio.sleep(1)
+            yield f"Chunk {i}\n"
+
+    return StreamingHttpResponse(response_content())
+
+
+urlpatterns = [
+    path('a-streaming-view/', a_streaming_view)
+]
+```
+
+Tested with both Daphne and Uvicorn. 
+
+```
+curl --no-buffer http://127.0.0.1:8000/a-streaming-view/
+```
+
+... correctly streams the response. 
+
+# WIP. (Outdated)
+
+Initial pass adds `__aiter__()`  to StreamingHttpResponse and consumes the _wrong kind_ of iterator (with warnings) depending on whether `__iter__` or `__aiter__` is called. 
+
+Adjusts `ASGIHandler` to use `async for`. 
+
+**Does not yet** handle `streaming_content` in both modes. `streaming_content` is used by e.g. middleware. 
+It would be nice to pull up the `__aiter__` implementation to just return `streaming_content`. I think this is likely feasible. (Maybe 😜) We may need/want to add an `is_async` marker so middleware would know how to wrap, but you shouldn't actually consume `streaming_content`, so … . (If branching get too heavy, moving to a strategy chosen at `__init__` would maybe help.) 
+
+Also needs to think about when/whether we need to use `aclosing` to call `close` on generators when done. 
+
+**Update**: these points now all addressed.

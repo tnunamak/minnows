@@ -1,0 +1,12 @@
+LCS -> STRALGO LCS.
+
+STRALGO should be a container for mostly read-only string
+algorithms in Redis. The algorithms should have two main
+characteristics:
+
+1. They should be non trivial to compute, and often not part of
+programming language standard libraries.
+2. They should be fast enough that it is a good idea to have optimized C
+implementations.
+
+Next thing I would love to see? A small strings compression algorithm.

@@ -1,0 +1,30 @@
+branch: do not fail a no-op --edit-desc
+
+Imagine running "git branch --edit-description" while on a branch
+without the branch description, and then exit the editor after
+emptying the edit buffer, which is the way to tell the command that
+you changed your mind and you do not want the description after all.
+
+The command should just happily oblige, adding no branch description
+for the current branch, and exit successfully.  But it fails to do
+so:
+
+    $ git init -b main
+    $ git commit --allow-empty -m commit
+    $ GIT_EDITOR=: git branch --edit-description
+    fatal: could not unset 'branch.main.description'
+
+The end result is OK in that the configuration variable does not
+exist in the resulting repository, but we should do better.  If we
+know we didn't have a description, and if we are asked not to have a
+description by the editor, we can just return doing nothing.
+
+This of course introduces TOCTOU.  If you add a branch description
+to the same branch from another window, while you had the editor
+open to edit the description, and then exit the editor without
+writing anything there, we'd end up not removing the description you
+added in the other window.  But you are fooling yourself in your own
+repository at that point, and if it hurts, you'd be better off not
+doing so ;-).
+
+Signed-off-by: Junio C Hamano <gitster@pobox.com>

@@ -1,0 +1,12 @@
+Documentation: add lint-fsck-msgids
+
+During the initial development of the fsck-msgids.txt feature, it
+has become apparent that it is very much error prone to make sure
+the description in the documentation file are sorted and correctly
+match what is in the fsck.h header file.
+
+Add a quick-and-dirty Perl script and doc-lint target to sanity
+check that the fsck-msgids.txt is consistent with the error type
+list in the fsck.h header file.
+
+Signed-off-by: Junio C Hamano <gitster@pobox.com>

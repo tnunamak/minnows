@@ -1,0 +1,5 @@
+Description - When the server crashes we print the bug report of it, in that we print the SERVER INFO , but we dont print the CLUSTER INFO (if the server is cluster enabled), This data can be very helpful with crashes that occur on enabled servers, and espaciialy if the crash is related to the cluser enabled feature.
+
+I just finished debugging such a bug and if i had this info it would have been really helpful.
+
+This PR , adds the CLUSTER INFO and CLUSTER NODES to the bug report string.

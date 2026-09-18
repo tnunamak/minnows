@@ -1,0 +1,5 @@
+Hey, I am from AWS Elasticache Team.
+
+This change increase the frequency of the failover log from 5 minutes to 10 seconds. This log is only emitted when a replica has an outstanding election is progress, and waiting 5 minutes for the next log makes debugging and alarming on the log messages too slow. It also now prints out the number of votes the replica has currently received as well as the number of votes it needs to achieve quorum so that we can track the progress if it's running slowly.
+
+Harry Lin

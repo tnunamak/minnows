@@ -1,0 +1,24 @@
+Make disconnectSlaves() synchronous in the base case.
+
+Otherwise we run into that:
+
+Backtrace:
+src/redis-server 127.0.0.1:21322(logStackTrace+0x45)[0x479035]
+src/redis-server 127.0.0.1:21322(sigsegvHandler+0xb9)[0x4797f9]
+/lib/x86_64-linux-gnu/libpthread.so.0(+0x11390)[0x7fd373c5e390]
+src/redis-server 127.0.0.1:21322(_serverAssert+0x6a)[0x47660a]
+src/redis-server 127.0.0.1:21322(freeReplicationBacklog+0x42)[0x451282]
+src/redis-server 127.0.0.1:21322[0x4552d4]
+src/redis-server 127.0.0.1:21322[0x4c5593]
+src/redis-server 127.0.0.1:21322(aeProcessEvents+0x2e6)[0x42e786]
+src/redis-server 127.0.0.1:21322(aeMain+0x1d)[0x42eb0d]
+src/redis-server 127.0.0.1:21322(main+0x4c5)[0x42b145]
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xf0)[0x7fd3738a3830]
+src/redis-server 127.0.0.1:21322(_start+0x29)[0x42b409]
+
+Since we disconnect all the replicas and free the replication backlog in
+certain replication paths, and the code that will free the replication
+backlog expects that no replica is connected.
+
+However we still need to free the replicas asynchronously in certain
+cases, as documented in the top comment of disconnectSlaves().
