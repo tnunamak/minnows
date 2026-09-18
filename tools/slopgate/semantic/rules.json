@@ -10,7 +10,10 @@
         "pr",
         "doc"
       ],
-      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages"
+      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages",
+      "thresholds": {
+        "pr": 0.85
+      }
     },
     "editorial_tone": {
       "question": "Does this text tell the reader how to feel about the subject, using words that praise, sell, or dramatize, such as powerful, exciting, critical, revolutionary, seamless, or significant?",
@@ -22,7 +25,10 @@
         "doc",
         "web"
       ],
-      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages"
+      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages",
+      "thresholds": {
+        "pr": 0.88
+      }
     },
     "negative_framing": {
       "question": "Does this text define something by what it is NOT, what it lacks, or what would add little value, rather than stating positively what it is or what it does?",
@@ -34,7 +40,10 @@
         "doc",
         "web"
       ],
-      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages"
+      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages",
+      "thresholds": {
+        "pr": 0.57
+      }
     },
     "unsourced_assertion": {
       "question": "Does this text make factual claims about external systems, standards, or other parties without citing where those facts come from?",
@@ -45,7 +54,10 @@
         "pr",
         "doc"
       ],
-      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages"
+      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages",
+      "thresholds": {
+        "pr": 0.93
+      }
     },
     "overexplains": {
       "question": "Does this text explain more than a reader needs to follow the point, restating context the reader already has or walking through reasoning that could be stated as a conclusion?",
@@ -57,7 +69,10 @@
         "doc",
         "web"
       ],
-      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages"
+      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages",
+      "thresholds": {
+        "pr": 0.74
+      }
     },
     "teaches_the_project": {
       "question": "Does this text explain what this project, protocol, or repository IS, or what its main artifacts are for, as background rather than as part of describing the specific change?",
@@ -81,7 +96,10 @@
         "pr",
         "doc"
       ],
-      "note": "assumes a reader who already works here; on a public website teaching, repeating and promising are the job, not the defect"
+      "note": "assumes a reader who already works here; on a public website teaching, repeating and promising are the job, not the defect",
+      "thresholds": {
+        "pr": 0.86
+      }
     },
     "glosses_own_terms": {
       "question": "Does this text stop to define its own domain terms mid-sentence, for example with a dash or parenthesis explaining what a named component is?",
@@ -188,7 +206,10 @@
         "pr",
         "doc"
       ],
-      "note": "assumes the artifact describes a code change"
+      "note": "assumes the artifact describes a code change",
+      "thresholds": {
+        "pr": 0.25
+      }
     },
     "hedged_behavior": {
       "question": "Does this text describe what the code does using may, might, could, or is intended to, where it could state plainly what the code does?",
@@ -254,7 +275,10 @@
       "kinds": [
         "pr",
         "doc"
-      ]
+      ],
+      "thresholds": {
+        "pr": 0.84
+      }
     },
     "empty_section": {
       "question": "Does this text contain a section or paragraph that announces a topic without carrying specific information about it \u2014 for example listing considerations, factors, or goals in general terms without saying what any of them resolve to?",
@@ -264,7 +288,10 @@
       "kinds": [
         "pr",
         "doc"
-      ]
+      ],
+      "thresholds": {
+        "pr": 0.8
+      }
     },
     "uniform_section_shape": {
       "question": "Are the sections of this text built to the same pattern as one another, each of a similar size and opening the same way, rather than sized according to how much each one actually has to say?",
@@ -292,7 +319,10 @@
       "kinds": [
         "pr",
         "doc"
-      ]
+      ],
+      "thresholds": {
+        "pr": 0.84
+      }
     },
     "document_shape": {
       "question": "What best describes how this document is organised? Choose the single closest match.",

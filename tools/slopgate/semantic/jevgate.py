@@ -77,8 +77,15 @@ def load_rules(kind="doc"):
         q = r.get("question")
         if not q:
             continue
+        # A rule may carry per-kind thresholds. The same defect needs a
+        # different bar in different registers: a maintainer asserting a fact
+        # about their own code without a citation is correct in a pull request
+        # and a defect in a document, so `unsourced_assertion` sits at 0.93 for
+        # pr and 0.60 for doc. Measured on 30 pre-2023 human-written PR bodies,
+        # where the doc bar fired on 22 of them.
+        thresholds = r.get("thresholds") or {}
         out[name] = {"question": q,
-                     "threshold": float(r.get("threshold", 0.5)),
+                     "threshold": float(thresholds.get(kind, r.get("threshold", 0.5))),
                      "severity": r.get("severity", "medium"),
                      "suggestion": r.get("suggestion", ""),
                      # A Choice rule names mutually exclusive diagnoses and
