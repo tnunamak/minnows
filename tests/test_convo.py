@@ -1217,6 +1217,101 @@ class ShowFromUserQueuedCommandAttachmentTests(unittest.TestCase):
         ])
 
 
+class CorruptJsonlToleranceTests(unittest.TestCase):
+    """A JSONL source with isolated bad lines must not become entirely unreadable.
+
+    Regression for: `convo show` raised ValueError("corrupt JSONL at ...") and dropped a
+    2600+ turn real session because 3 out of 100k+ lines were malformed (two interleaved
+    writes torn together). The direct/raw readers (list/show/grep) must skip a malformed
+    COMPLETE line, keep parsing to EOF, and report the loss honestly on stderr instead of
+    hiding the whole session or the loss.
+    """
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.root = Path(self.directory.name)
+        self.original_root = convo.HARNESSES["claude"]["root"]
+        self.original_roots_fn = convo.HARNESSES["claude"]["roots_fn"]
+        convo.HARNESSES["claude"]["root"] = self.root / "claude"
+        convo.HARNESSES["claude"]["roots_fn"] = None
+        self.path = self.root / "claude" / "project" / "session.jsonl"
+        rows = [
+            {"type": "user", "timestamp": "2026-08-01T00:00:00Z", "cwd": "/project",
+             "isMeta": False, "message": {"content": "first good question"}},
+            {"type": "assistant", "timestamp": "2026-08-01T00:00:01Z",
+             "message": {"content": [{"type": "text", "text": "first good answer"}]}},
+        ]
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        lines = [json.dumps(r) for r in rows]
+        # A malformed line: two JSON objects torn together on one line, mid-file — the
+        # real-world shape seen in the corrupt session that motivated this fix.
+        bad_line = (json.dumps({"type": "user", "message": {"content": "truncated"}})[:-1]
+                    + json.dumps({"type": "user", "message": {"content": "torn-in"}}))
+        lines.append(bad_line)
+        lines.append(json.dumps({"type": "user", "timestamp": "2026-08-01T00:00:02Z",
+                                  "cwd": "/project", "isMeta": False,
+                                  "message": {"content": "second good question"}}))
+        lines.append(json.dumps({"type": "assistant", "timestamp": "2026-08-01T00:00:03Z",
+                                  "message": {"content": [{"type": "text", "text": "second good answer"}]}}))
+        self.path.write_text("".join(line + "\n" for line in lines), encoding="utf-8")
+
+    def tearDown(self):
+        convo.HARNESSES["claude"]["root"] = self.original_root
+        convo.HARNESSES["claude"]["roots_fn"] = self.original_roots_fn
+        self.directory.cleanup()
+
+    def run_convo(self, *args: str) -> tuple[str, str, int]:
+        stdout, stderr = io.StringIO(), io.StringIO()
+        code = 0
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            try:
+                convo.main(list(args))
+            except SystemExit as exc:
+                code = int(exc.code) if isinstance(exc.code, int) else 1
+        return stdout.getvalue(), stderr.getvalue(), code
+
+    def test_show_recovers_good_messages_around_a_bad_line(self):
+        out, err, code = self.run_convo("show", str(self.path), "--mode", "final")
+        self.assertEqual(code, 0, err)
+        self.assertIn("first good question", out)
+        self.assertIn("first good answer", out)
+        self.assertIn("second good question", out)
+        self.assertIn("second good answer", out)
+
+    def test_show_reports_the_loss_honestly_on_stderr(self):
+        _, err, code = self.run_convo("show", str(self.path), "--mode", "final")
+        self.assertEqual(code, 0, err)
+        self.assertIn("partial session", err)
+        self.assertIn(str(self.path), err)
+        self.assertIn("1 unparseable line(s) skipped", err)
+        self.assertIn("2 user message(s) recovered", err)
+
+    def test_grep_still_finds_matches_around_the_bad_line(self):
+        out, err, code = self.run_convo("grep", "second good", "--harness", "claude", "--all-projects")
+        self.assertEqual(code, 0, err)
+        self.assertIn("second good question", out)
+        self.assertIn("partial session", err)
+
+    def test_list_shows_the_session_instead_of_dropping_it(self):
+        out, err, code = self.run_convo("list", "--harness", "claude", "--all-projects")
+        self.assertEqual(code, 0, err)
+        self.assertIn(self.path.stem, out)
+        self.assertIn("partial session", err)
+
+    def test_clean_file_reports_no_partial_diagnostic(self):
+        clean_path = self.path.parent / "clean.jsonl"
+        write_jsonl(clean_path, [
+            {"type": "user", "timestamp": "2026-08-01T00:00:00Z", "cwd": "/project",
+             "isMeta": False, "message": {"content": "only good question"}},
+            {"type": "assistant", "timestamp": "2026-08-01T00:00:01Z",
+             "message": {"content": [{"type": "text", "text": "only good answer"}]}},
+        ])
+        out, err, code = self.run_convo("show", str(clean_path), "--mode", "final")
+        self.assertEqual(code, 0, err)
+        self.assertNotIn("partial session", err)
+        self.assertNotIn("corrupt/unreadable session skipped", err)
+
+
 class PackagingBoundaryTests(unittest.TestCase):
     def test_convo_private_ledger_is_not_vendored_with_uncompact(self):
         self.assertTrue((REPO / "tools" / "convo" / "lib" / "convo_ledger.py").is_file())

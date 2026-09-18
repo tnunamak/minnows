@@ -110,6 +110,11 @@ class Session:
     # clearly attributed as a DISTINCT source rather than silently merged or dropped.
     parent_session_id: Optional[str] = None
     agent_tag: Optional[str] = None
+    # Non-empty when one or more JSONL rows were malformed and skipped while loading this
+    # source (the "partial" case: isolated bad lines, not a wholly unreadable file). Each
+    # entry is a human-readable "line N: <reason>" diagnostic. Direct/raw readers
+    # (list/show/grep) surface this honestly on stderr instead of dropping the session.
+    parse_errors: list = field(default_factory=list)
 
     @property
     def started(self) -> Optional[str]:
@@ -188,8 +193,19 @@ def _looks_like_meta_user(text: str) -> bool:
 # Loaders — one per harness, each returns a Session (or None)
 # --------------------------------------------------------------------------------------
 
-def _read_jsonl(path: Path) -> Iterable[dict]:
-    """Parse JSONL; tolerate only a torn final line from an active writer."""
+def _read_jsonl(path: Path, *, parse_errors: Optional[list] = None) -> Iterable[dict]:
+    """Parse JSONL, tolerating isolated malformed rows.
+
+    A malformed COMPLETE row (a full line that isn't valid JSON — e.g. two interleaved
+    writes torn together mid-file) is skipped rather than aborting the whole source: one
+    bad line must not make an otherwise-good multi-thousand-line session unreadable. When
+    `parse_errors` is given, each skip is recorded there as "line N: <reason>" so the
+    caller can report the loss honestly instead of hiding it.
+
+    An unterminated FINAL line (the writer is still mid-write) is treated as in-progress
+    and silently dropped, matching prior behavior — that's the "pending" case, not a
+    parse failure worth reporting.
+    """
     with open(path, "r", encoding="utf-8", errors="replace") as fh:
         pending = None
         for line_no, line in enumerate(fh, 1):
@@ -200,10 +216,12 @@ def _read_jsonl(path: Path) -> Iterable[dict]:
                     try:
                         yield json.loads(prior)
                     except json.JSONDecodeError as exc:
-                        raise ValueError(f"corrupt JSONL at {path}:{prior_no}: {exc.msg}") from exc
+                        if parse_errors is None:
+                            raise ValueError(f"corrupt JSONL at {path}:{prior_no}: {exc.msg}") from exc
+                        parse_errors.append(f"line {prior_no}: {exc.msg}")
             pending = (line_no, line)
         if pending is not None:
-            _, line = pending
+            prior_no, line = pending
             terminated = line.endswith("\n")
             line = line.strip()
             if not line:
@@ -211,12 +229,15 @@ def _read_jsonl(path: Path) -> Iterable[dict]:
             try:
                 yield json.loads(line)
             except json.JSONDecodeError as exc:
-                if terminated:
-                    raise ValueError(f"corrupt JSONL at {path}:{pending[0]}: {exc.msg}") from exc
-                return
+                if not terminated:
+                    return
+                if parse_errors is None:
+                    raise ValueError(f"corrupt JSONL at {path}:{prior_no}: {exc.msg}") from exc
+                parse_errors.append(f"line {prior_no}: {exc.msg}")
 
 
-def _parse_claude_jsonl_turns(path: Path, *, want_sidechain: bool) -> tuple[Optional[str], list[Turn]]:
+def _parse_claude_jsonl_turns(path: Path, *, want_sidechain: bool,
+                               parse_errors: Optional[list] = None) -> tuple[Optional[str], list[Turn]]:
     """Shared row-walk for Claude Code's per-turn JSONL schema.
 
     `want_sidechain` selects which rows to keep: False for a main-thread session file
@@ -228,7 +249,7 @@ def _parse_claude_jsonl_turns(path: Path, *, want_sidechain: bool) -> tuple[Opti
     cwd = None
     turns: list[Turn] = []
 
-    for row in _read_jsonl(path):
+    for row in _read_jsonl(path, parse_errors=parse_errors):
         rtype = row.get("type")
         if bool(row.get("isSidechain")) != want_sidechain:
             continue
@@ -327,10 +348,12 @@ def _parse_claude_jsonl_turns(path: Path, *, want_sidechain: bool) -> tuple[Opti
 def load_claude(path: Path) -> Optional[Session]:
     """Claude Code: ~/.claude/projects/<slug>/<sessionId>.jsonl"""
     session_id = path.stem
-    cwd, turns = _parse_claude_jsonl_turns(path, want_sidechain=False)
+    parse_errors: list = []
+    cwd, turns = _parse_claude_jsonl_turns(path, want_sidechain=False, parse_errors=parse_errors)
     if not turns:
         return None
-    return Session("claude", session_id, str(path), cwd, path.stat().st_mtime, turns)
+    return Session("claude", session_id, str(path), cwd, path.stat().st_mtime, turns,
+                    parse_errors=parse_errors)
 
 
 def _claude_agent_meta(path: Path) -> dict:
@@ -355,7 +378,8 @@ def load_claude_agent(path: Path) -> Optional[Session]:
     """
     agent_id = path.stem.removeprefix("agent-")
     parent_session_id = path.parent.parent.name  # <session-id>/subagents/agent-*.jsonl
-    cwd, turns = _parse_claude_jsonl_turns(path, want_sidechain=True)
+    parse_errors: list = []
+    cwd, turns = _parse_claude_jsonl_turns(path, want_sidechain=True, parse_errors=parse_errors)
     if not turns:
         return None
     meta = _claude_agent_meta(path)
@@ -363,7 +387,8 @@ def load_claude_agent(path: Path) -> Optional[Session]:
     description = meta.get("description") or ""
     label = f"{parent_session_id}/agent-{agent_id}"
     tag = f"[{agent_type}] {description}".strip()
-    session = Session("claude-agent", label, str(path), cwd, path.stat().st_mtime, turns)
+    session = Session("claude-agent", label, str(path), cwd, path.stat().st_mtime, turns,
+                       parse_errors=parse_errors)
     session.parent_session_id = parent_session_id
     session.agent_tag = tag
     return session
@@ -375,8 +400,9 @@ def load_codex(path: Path) -> Optional[Session]:
     cwd = None
     turns: list[Turn] = []
     seen_first_user = False
+    parse_errors: list = []
 
-    for row in _read_jsonl(path):
+    for row in _read_jsonl(path, parse_errors=parse_errors):
         if row.get("type") == "session_meta":
             p = row.get("payload", {})
             cwd = p.get("cwd") or p.get("cwd_path") or cwd
@@ -428,7 +454,8 @@ def load_codex(path: Path) -> Optional[Session]:
 
     if not turns:
         return None
-    return Session("codex", session_id, str(path), cwd, path.stat().st_mtime, turns)
+    return Session("codex", session_id, str(path), cwd, path.stat().st_mtime, turns,
+                    parse_errors=parse_errors)
 
 
 def load_gemini(path: Path) -> Optional[Session]:
@@ -477,8 +504,9 @@ def load_qwen(path: Path) -> Optional[Session]:
     session_id = path.stem
     cwd = None
     turns: list[Turn] = []
+    parse_errors: list = []
 
-    for row in _read_jsonl(path):
+    for row in _read_jsonl(path, parse_errors=parse_errors):
         if cwd is None and row.get("cwd"):
             cwd = row["cwd"]
         rtype = row.get("type")
@@ -546,7 +574,8 @@ def load_qwen(path: Path) -> Optional[Session]:
 
     if not turns:
         return None
-    return Session("qwen", session_id, str(path), cwd, path.stat().st_mtime, turns)
+    return Session("qwen", session_id, str(path), cwd, path.stat().st_mtime, turns,
+                    parse_errors=parse_errors)
 
 
 # --------------------------------------------------------------------------------------
@@ -614,6 +643,7 @@ class Peek:
     user_msgs: int       # exact for small files, lower-bound (capped) for huge ones
     truncated: bool      # True if we stopped scanning before EOF
     agent_tag: Optional[str] = None   # "[agentType] description" — claude-agent sources only
+    parse_error_count: int = 0        # isolated malformed JSONL rows skipped while peeking
 
 
 _PEEK_MAX_LINES = 4000   # scan cap for huge JSONL rollouts
@@ -624,7 +654,8 @@ def peek_claude(path: Path) -> Optional[Peek]:
     first_user = ""
     user_msgs = 0
     truncated = False
-    for i, row in enumerate(_read_jsonl(path)):
+    parse_errors: list = []
+    for i, row in enumerate(_read_jsonl(path, parse_errors=parse_errors)):
         if i >= _PEEK_MAX_LINES:
             truncated = True
             break
@@ -641,7 +672,7 @@ def peek_claude(path: Path) -> Optional[Peek]:
     if user_msgs == 0 and not first_user:
         return None
     return Peek("claude", path.stem, str(path), cwd, path.stat().st_mtime,
-                first_user, user_msgs, truncated)
+                first_user, user_msgs, truncated, parse_error_count=len(parse_errors))
 
 
 def peek_claude_agent(path: Path) -> Optional[Peek]:
@@ -651,7 +682,7 @@ def peek_claude_agent(path: Path) -> Optional[Peek]:
         return None
     return Peek("claude-agent", s.session_id, s.path, s.project, s.mtime,
                 s.first_user_text, sum(1 for t in s.turns if t.role == "user"), False,
-                agent_tag=s.agent_tag)
+                agent_tag=s.agent_tag, parse_error_count=len(s.parse_errors))
 
 
 def peek_codex(path: Path) -> Optional[Peek]:
@@ -659,7 +690,8 @@ def peek_codex(path: Path) -> Optional[Peek]:
     first_user = ""
     user_msgs = 0
     truncated = False
-    for i, row in enumerate(_read_jsonl(path)):
+    parse_errors: list = []
+    for i, row in enumerate(_read_jsonl(path, parse_errors=parse_errors)):
         if i >= _PEEK_MAX_LINES:
             truncated = True
             break
@@ -679,7 +711,8 @@ def peek_codex(path: Path) -> Optional[Peek]:
     if user_msgs == 0 and not first_user:
         return None
     return Peek("codex", path.stem.replace("rollout-", ""), str(path), cwd,
-                path.stat().st_mtime, first_user, user_msgs, truncated)
+                path.stat().st_mtime, first_user, user_msgs, truncated,
+                parse_error_count=len(parse_errors))
 
 
 def peek_gemini(path: Path) -> Optional[Peek]:
@@ -696,7 +729,8 @@ def peek_qwen(path: Path) -> Optional[Peek]:
     first_user = ""
     user_msgs = 0
     truncated = False
-    for i, row in enumerate(_read_jsonl(path)):
+    parse_errors: list = []
+    for i, row in enumerate(_read_jsonl(path, parse_errors=parse_errors)):
         if i >= _PEEK_MAX_LINES:
             truncated = True
             break
@@ -716,7 +750,7 @@ def peek_qwen(path: Path) -> Optional[Peek]:
     if user_msgs == 0 and not first_user:
         return None
     return Peek("qwen", path.stem, str(path), cwd, path.stat().st_mtime,
-                first_user, user_msgs, truncated)
+                first_user, user_msgs, truncated, parse_error_count=len(parse_errors))
 
 
 # --------------------------------------------------------------------------------------
@@ -1877,7 +1911,12 @@ def cmd_list(args):
             "harness": pk.harness, "session_id": pk.session_id, "path": pk.path,
             "project": pk.project, "mtime": pk.mtime, "user_msgs": pk.user_msgs,
             "user_msgs_truncated": pk.truncated, "first_user": pk.first_user[:200],
+            "parse_error_count": pk.parse_error_count,
         } for pk in peeks], indent=2))
+        for pk in peeks:
+            if pk.parse_error_count:
+                print(f"convo: partial session {pk.path}: {pk.parse_error_count} "
+                      f"unparseable line(s) skipped, content still shown", file=sys.stderr)
         for error in errors:
             print(f"convo: corrupt/unreadable session skipped: {error}", file=sys.stderr)
         if errors:
@@ -1897,6 +1936,10 @@ def cmd_list(args):
         print("convo: '+msg' means the message COUNT above is a lower bound (this list scan "
               "stopped early on a huge session file) — `convo show <id>` still reads the full "
               "session, nothing is dropped there.", file=sys.stderr)
+    for pk in peeks:
+        if pk.parse_error_count:
+            print(f"convo: partial session {pk.path}: {pk.parse_error_count} "
+                  f"unparseable line(s) skipped, content still shown", file=sys.stderr)
     for error in errors:
         print(f"convo: corrupt/unreadable session skipped: {error}", file=sys.stderr)
     if errors:
@@ -1964,8 +2007,26 @@ def _user_turns(session: Session, n: Optional[int]) -> list[Turn]:
     return _tail([t for t in session.turns if t.role == "user" and t.text.strip()], n)
 
 
+def _report_partial_session(s: Session) -> None:
+    """Honestly report isolated bad JSONL rows a session recovered around, on stderr.
+
+    This is the "partial" case: unlike a wholly unreadable source (permissions, a genuine
+    mid-write truncation), the loader above already skipped the bad line(s) and kept
+    parsing to EOF, so recovered content is still printed on stdout. Silence here would
+    hide real data loss from the user; dropping the whole session (the old behavior)
+    would hide far more.
+    """
+    if not s.parse_errors:
+        return
+    n = len(s.parse_errors)
+    recovered = sum(1 for t in s.turns if t.role == "user" and t.text.strip())
+    print(f"convo: partial session {s.path}: {n} unparseable line(s) skipped, "
+          f"{recovered} user message(s) recovered", file=sys.stderr)
+
+
 def cmd_show(args):
     s = _pick_session(args)
+    _report_partial_session(s)
     if getattr(args, "from_user", False):
         turns = _user_turns(s, args.n)
         if args.json:
@@ -2024,6 +2085,8 @@ def cmd_grep(args):
                           force_full=frozenset(empty_harnesses))
         sessions.extend(load_sessions(wider, proj, errors))
     sessions.sort(key=lambda s: s.mtime, reverse=True)
+    for s in sessions:
+        _report_partial_session(s)
 
     # `--limit` is a documented per-harness scan bound (not "search everything"). A hit
     # count within that bound must never look identical to a full-corpus search: tell the

@@ -1,0 +1,42 @@
+{
+  "skill_name": "convo-history",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use convo to summarize this full session across compaction boundaries. List only things that were done, use the fewest real epics, and write no more than one short single-line bullet per key action.",
+      "expected_output": "A source-grounded action summary with minimal genuine epics, 5–12 short unnested bullets, current states where relevant, and no discussion-only events.",
+      "files": [],
+      "expectations": [
+        "The response contains 5–12 unnested bullets.",
+        "Each bullet describes an action taken rather than advice, intent, or background.",
+        "Each bullet is one logical line and approximately 18 words or fewer.",
+        "The response uses no more epic headings than the evidence requires.",
+        "Current state is included only where it materially qualifies an action."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "What did we actually get done in yesterday's agent session? Keep it brief and leave out advice, conclusions, and progress updates.",
+      "expected_output": "A concise list of completed or materially attempted actions retrieved with convo, excluding advice, conclusions, requests, and repeated status commentary.",
+      "files": [],
+      "expectations": [
+        "Every bullet identifies completed or materially attempted work.",
+        "The response excludes requests, advice, conclusions, and progress commentary.",
+        "The response contains no table, nested bullets, or narrative recap.",
+        "Each bullet is short and contains one action."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Give me the key events from our previous session, grouped into epics if there were multiple, and be clear about the current state.",
+      "expected_output": "An action-led summary that interprets key events as actions, uses only genuinely distinct workstreams, keeps each bullet short, and verifies unstable current state when possible.",
+      "files": [],
+      "expectations": [
+        "The response reports actions rather than general events or discussion topics.",
+        "Epic headings appear only for distinct workstreams with multiple actions.",
+        "Unstable current-state claims are verified or explicitly qualified.",
+        "Each bullet is one short logical line without sub-bullets."
+      ]
+    }
+  ]
+}

@@ -214,7 +214,7 @@ class ConvoCliOracleTests(unittest.TestCase):
         self.assertIn("claude-remote", {entry["session_id"] for entry in entries})
         self.assertTrue(all(set(entry) == {
             "harness", "session_id", "path", "project", "mtime", "user_msgs",
-            "user_msgs_truncated", "first_user",
+            "user_msgs_truncated", "first_user", "parse_error_count",
         } for entry in entries))
 
     def test_show_json_shape_and_clean_exchange_for_each_harness(self):
@@ -274,7 +274,12 @@ class ConvoCliOracleTests(unittest.TestCase):
         self.assertIn("safe prefix", result.stdout)
         self.assertNotIn("incomplete", result.stdout)
 
-    def test_corrupt_terminated_jsonl_row_is_reported_with_exit_two(self):
+    def test_corrupt_terminated_jsonl_row_is_recovered_as_partial_not_dropped(self):
+        """An isolated malformed row must not take out the whole session (regression:
+        this used to raise ValueError and drop `claude-corrupt` entirely with exit 2).
+        The good rows around the bad line are still recovered and shown; the loss is
+        reported honestly via `parse_error_count` and on stderr, but list still succeeds.
+        """
         path = self.home / ".claude" / "projects" / claude_slug(self.project) / "claude-corrupt.jsonl"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
@@ -288,9 +293,12 @@ class ConvoCliOracleTests(unittest.TestCase):
 
         result = self.run_cli("list", "--all-projects", "--harness", "claude", "--limit", "20", "--json")
 
-        self.assertEqual(result.returncode, 2)
-        self.assertIn("claude-target", {entry["session_id"] for entry in json.loads(result.stdout)})
-        self.assertIn("corrupt/unreadable session skipped", result.stderr)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        entries = {entry["session_id"]: entry for entry in json.loads(result.stdout)}
+        self.assertIn("claude-target", entries)
+        self.assertIn("claude-corrupt", entries)
+        self.assertEqual(entries["claude-corrupt"]["parse_error_count"], 1)
+        self.assertIn("partial session", result.stderr)
         self.assertIn("claude-corrupt.jsonl", result.stderr)
 
     def test_human_output_removes_terminal_control_bytes(self):

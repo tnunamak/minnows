@@ -78,6 +78,15 @@ normalized assistant reply is retained in ordered chunks and marks the source `p
 shows the diagnostic. Progress is interactive-only; JSON reports observed corpus bytes separately from
 source bytes parsed during this run and the rare live-prefix verification bytes.
 
+The direct/raw readers (`list`/`show`/`grep`) apply the same tolerance to Claude, Codex,
+and Qwen JSONL sources: an isolated malformed row (e.g. two interleaved writes torn
+together on one line) is skipped, not fatal — parsing continues to EOF and recovered
+messages are still printed on stdout. A `convo: partial session ...` line on stderr (and
+`parse_error_count` in `list --json`) reports how many rows were unparseable and how many
+messages were recovered, so the loss is visible rather than hidden. Only a genuinely
+unreadable source (permissions, a truncation mid-write with no valid trailing row) is
+skipped entirely, with a `corrupt/unreadable session skipped` message.
+
 ### Flags for direct/raw read commands (`list`, `show`, `grep`)
 - `--harness claude|codex|gemini|qwen|claude-agent|all` (aliases `cc,cx,gm,qw,cca`; default
   **all**, which deliberately EXCLUDES `claude-agent` — see Subagent transcripts below).
