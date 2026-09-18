@@ -53,6 +53,11 @@ Rules:
   sentence and carry its specifics into the replacement.
 - Do not invent facts. Anything you state must already be in the text.
 - Length should follow content. If the text is padded, it should get shorter.
+- Write full sentences, averaging roughly twenty words. Do not chop prose into
+  short fragments: measured against real maintainer writing, every revision that
+  drifted away from how good technical prose reads did so by over-compressing,
+  not by staying too long. Fixing repetition means removing the repeated idea,
+  not shortening the sentence that survives.
 
 TEXT:
 ---
@@ -218,6 +223,10 @@ def main():
         after = llm(REVISE.format(text=before, problems=problems),
                     max_tokens=budget)
         fa = check(after, kind)
+        # Persist revisions so the non-LLM drift check can compare distributions.
+        outdir = HERE / "loop_revisions"
+        outdir.mkdir(exist_ok=True)
+        (outdir / f"{f.stem}.txt").write_text(after)
 
         # Judged, not counted. An earlier version counted vanished tokens and
         # reported 58 losses on a padded document whose "facts" were mostly line

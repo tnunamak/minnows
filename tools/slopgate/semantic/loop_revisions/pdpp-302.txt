@@ -1,0 +1,35 @@
+## Problem
+
+The `polyfill-connectors` package (`packages/polyfill-connectors/`) runs its full test suite on every change, even a one-line edit to a single connector, via `node --test`. As the connector count grows, this makes the local dev loop and CI slower than they need to be.
+
+This PR adds a related-test selector: a script that reads `git diff` output, builds a static import graph, walks that graph from each changed file, and picks only the `*.test.ts` files that actually depend on what changed. It is opt-in, run via `pnpm test:related` — the full suite, run via the existing `pnpm test`, is unchanged and still the default for CI.
+
+## Why it's safe to narrow the test run
+
+A test selector that's wrong in the "run fewer tests than you should" direction is worse than not having one — it hides regressions instead of catching them. Every non-obvious code path in this selector is designed to fail toward running the *full* suite (`FULL_SUITE`, a sentinel meaning "give up narrowing, run everything") rather than guessing:
+
+- A changed file with no entry in the import graph — e.g. a syntax error that stops the selector's own graph-construction step from parsing it — forces `FULL_SUITE` instead of being silently skipped.
+- A file containing a dynamic `import()` or `require()` forces `FULL_SUITE`, because the static graph can't see what that import will actually load at runtime.
+- File deletions and renames force `FULL_SUITE`. Git reports a rename as a delete-plus-add; naively resolving that produces stale test coverage for the old path, so the selector doesn't try — it treats any delete or rename as unresolvable and falls back.
+- An unresolved state in Git's index or working tree (e.g. a merge conflict, where `git status --porcelain` reports a path with the two-letter code `UU`) forces `FULL_SUITE` rather than parsing a diff for a file that isn't in a normal committed-or-clean state.
+- Uncommitted changes are included in the diff the selector reads, not just the last commit — both changes staged in Git's index and changes still only in the working tree — so local iteration is covered, not just CI's clean-checkout diffs.
+
+## What each commit fixes, in the order they were found
+
+The selector started as a single commit (`25ae5f200`) with its own test suite. The remaining seven commits are fixes found by adversarially testing that first version against real Git behavior, in the order the bugs surfaced:
+
+- **`47f3732a7`** — the CLI only read `git diff` against a base ref, missing uncommitted changes. Fixed to include the working tree and index, matching how a developer actually iterates.
+- **`821d1302a`** — fixture files under `fixtures/`/`__fixtures__/` were being counted as test files by the accounting that tracks how many tests ran, inflating the count.
+- **`e0f3e8367`** — a follow-on to the above: fixture *test templates* were stored with a `.test.ts` suffix, which made them indistinguishable from real tests to any tooling that globs by extension. Renamed to a non-`.test.ts` suffix so they're only test files once actually materialized.
+- **`68a83012b`** — `git diff` was called without `--no-renames`. By default Git tries to detect renames itself: if an old path's content and a new path's content are similar enough, Git reports it as one rename instead of a separate delete-and-add. A rename whose content changed enough to still cross that similarity bar was reported as a rename, letting it skip the deletion fallback in `de706bc46` below (which only fires when Git reports a plain delete). Passing `--no-renames` makes Git always report a delete-plus-add instead, so the fallback always sees it.
+- **`de706bc46`** — deletions and renames weren't forcing `FULL_SUITE` yet; added the fallback described above.
+- **`d36681ee8`** — a merge conflict (the `UU` state described above) wasn't being detected as an unresolved-state case, so the selector could run against a half-resolved conflict and pick tests based on incomplete diff data.
+- **`2c3e2879f`** — a test fixture in the selector's own test suite asserted the pre-`d36681ee8` behavior (empty selection on a real conflict); updated to assert the fail-closed `FULL_SUITE` behavior instead, and corrected a `git diff HEAD` semantics detail the old fixture had gotten backwards (`git diff HEAD` reports a conflicted file's working-tree content as modified, in addition to the separate unmerged-index signal — the assertion now checks both).
+
+## What I verified
+
+Ran the selector's own test suite (`node --test scripts/related-tests/*.test.ts`) on this branch: 25/25 pass, including the real-Git-repository rename/deletion/conflict cases listed above (these tests create actual Git repos in a temp dir and run real `git mv`/`git rm`/merge-conflict operations against them, not mocked Git output — so a pass here means the selector reacted correctly to real Git output, not a simulated approximation of it). Also ran `tsc --noEmit` and `biome check` against the new files: both clean, no errors or warnings.
+
+## What I have not verified
+
+This PR only adds the selector script and its own tests — it does not wire `test:related` into CI, so the full suite still runs on every CI job today. Turning it on for CI (and picking a rollback plan if it ever narrows incorrectly in practice) is a separate decision I'm leaving to a follow-up rather than bundling into this PR.

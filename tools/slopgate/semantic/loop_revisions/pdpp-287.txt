@@ -1,0 +1,23 @@
+## Summary
+
+The certification gate runs its largest test suite with a hardcoded file concurrency cap of 2, regardless of available CPU cores. On a 24-core machine, this limited parallelism caused the suite to take roughly 11 minutes. This PR changes the cap in `reference-implementation/scripts/run-tests.ts` from `Math.min(2, availableParallelism(), testFiles.length)` to `Math.min(8, availableParallelism(), testFiles.length)`. No other test logic, assertions, or isolation mechanisms change.
+
+The runner already isolates each test file in a separate child process with unique, randomly generated database names, ensuring no collisions occur at higher concurrency. Raising the cap from 2 to 8 allows more of these isolated processes to run concurrently without altering their safety properties.
+
+## Evidence
+
+Equivalence was verified by running the identical suite at the same commit with both caps, confirming identical results: same test list, pass/fail/skip counts, and `manifest_sha256`. The original measurement showed `ri-default/memory-default` dropping from 649.5s to 224.8s (65.3% reduction), while the full gate (16 suites) went from 1,202s to 899s (25.2% reduction). Both runs reported 10,240 assertions, 9,887 passed, 0 failed, 353 skipped, and 1,031/1,031 files completed.
+
+I independently reproduced this on a separate clone under heavier load: cap=2 took 1,079s, cap=8 took 431s (60.1% reduction). Receipts matched exactly, including the `manifest_sha256` (`f1645c5c45a19140...`), confirming the same suite configuration was executed.
+
+## What was NOT measured
+
+- **The `ri-default`/PostgreSQL profile** was not re-measured under the new cap because a shared test-database container was in use by another session. While the per-file database-naming logic suggests safety, this profile’s code path was not directly tested under the new concurrency.
+- **Other host configurations.** Measurements were taken on 24-core development machines, not the production CI runner. Users can still override the default via the `PDPP_TEST_CONCURRENCY` environment variable, which remains unchanged.
+- **A systematic search for the best cap value.** Only 2 and 8 were compared; values like 4, 6, 12, or 16 were not tested, so 8 is not claimed to be optimal, only a clear improvement over 2.
+
+## Next bottleneck
+
+The largest remaining contributor to gate time is `polyfill-connectors` (roughly 450s), which caps its own internal test concurrency independently of the `run-tests.ts` cap changed here. Further speedups require adjusting that suite’s internal limits, not this one.
+
+Assisted-by: AI

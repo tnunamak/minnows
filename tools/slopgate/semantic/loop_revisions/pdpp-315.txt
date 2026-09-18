@@ -1,0 +1,108 @@
+## The problem
+
+A spec edit can weaken a requirement without anyone noticing.
+
+`spec-core.md` currently reads: "This section is normative: a compliant resource server must implement this interface for cross-deployment interoperability." The sentence announces itself as normative, but the keyword is lowercase. RFC 2119 and RFC 8174, cited by our specs as BCP 14, define that these words carry force "only when they appear in all capitals". So that lowercase `must` requires nothing. An implementation that skips the resource server interface entirely still conforms, and a reviewer reading the sentence in good faith would not catch it.
+
+The same failure has a second shape. `spec-core.md` declares the document "normative except where content is explicitly marked as an example, a note, or otherwise non-normative". Two notes in the specs contain capitalized keywords anyway, which states a requirement the document has already disclaimed.
+
+Neither defect is visible to the checks we run today. `pnpm spec:check` compares the ten `spec-*.md` files against their published copies but does not read the prose. Neither does `pnpm spec:dates`, which only checks that each file's `Date:` header is not stale.
+
+## What this adds
+
+`scripts/spec-prose-lint.mjs` is a Node script with no dependencies. It reads the ten root `spec-*.md` files and reports six faults with `file:line`. Each rule cites a published style authority:
+
+| Rule | Authority |
+| --- | --- |
+| `hard-wrap` — prose broken mid-sentence and continued on the next line | RFC 7322 §2 |
+| `lowercase-normative` — a lowercase `must`/`shall` governing a protocol role | RFC 8174 |
+| `keyword-in-note` — a capitalized keyword inside a note | W3C Manual of Style |
+| `long-sentence` — over 40 words | W3C Manual of Style; ASD-STE100 rule 3.2 |
+| `filler` — meta-commentary and unfalsifiable adjectives | *On Writing Well* ch. 2-3; ASD-STE100 §1 |
+| `duplicate-paragraph` — a paragraph repeated within one file | RFC 7322 §2 |
+
+Two package scripts invoke it: `pnpm spec:prose` reports findings, and `pnpm spec:prose:fix` applies the only repair safe to automate, which is rejoining hard-wrapped lines.
+
+`.github/workflows/spec-prose-gate.yml` defines a single job, `spec-prose-gate`, which appears on a pull request. I call that check "the gate" throughout. "The ratchet" is the gate's policy of comparing against the merge-base.
+
+`docs/reference/spec-writing-rubric.md` carries ten criteria for a human or grader pass. Five have no mechanical counterpart: whether an obligation names the role that has to carry it out; whether abbreviations are spelled out on first use (RFC 7322 §3.6); whether cross-references name a section rather than pointing vaguely (§3.5); whether a registry section documents its registration policy (RFC 8126 §2.2); and whether a passage describes the protocol rather than our particular implementation.
+
+Reading the specs against the rubric turned up one gap, recorded there rather than fixed: `spec-core.md` Appendix A lists a name, governance and initial entries, but no policy for accepting future entries and no list of what a registrant must supply. That is a spec fix, not a linter fix, so it is written down rather than acted on here.
+
+## Why the keyword rule is narrower than it sounds
+
+Flagging every lowercase `must`, `should` and `may` would have contradicted RFC 8174, which states that lowercase keywords are ordinary English. A blanket rule had far too much to say: `spec-core.md` alone contains 47 lowercase occurrences of these keywords, and `spec-collection-profile.md` another 145, the overwhelming majority on correct prose.
+
+Two narrowings apply. First, obligation verbs only: lowercase `may` is almost always descriptive, and including it gave nine false positives for every true one. Second, only where a named protocol role governs the verb. The mechanism is a single regular expression requiring one of a hardcoded list of role nouns — authorization server, resource server, personal server, client, connector, implementation, implementer, producer, consumer — optionally preceded by an article, immediately before the verb. So "these must not be conflated" is quiet because no role precedes `must`, and "the connector must apply those constraints" fires because one does.
+
+Narrowed this way, the rule reports five findings across all ten files — one in `spec-core.md` and four in `spec-collection-profile.md` — instead of the hundreds a blanket match would surface, and all five are the real defect shape.
+
+## The gate is a ratchet, and this is the part that changed
+
+An earlier version of this PR failed CI on *any* finding in a touched spec file. That was the wrong design: run against all ten spec files as they stand, the linter reports 61 findings that nobody in this PR wrote. If the gate blocks on those, the next person to fix a typo in `spec-collection-profile.md` inherits that file's 46 findings, none of which they caused, and the realistic outcome is that someone deletes the workflow file.
+
+Worse, most of those findings cannot be fixed mechanically at all. Promoting "a compliant resource server must implement this interface" to `MUST` adds an obligation to a normative document; demoting the sentence to descriptive prose removes one. Splitting a 53-word requirement decides which clause each obligation attaches to. Those are spec editors' decisions that need their own review, and demanding them from whoever next touches the file is how a gate gets turned off.
+
+So the gate now blocks only on findings that are new relative to the merge-base. Concretely, the `spec-prose-gate` job checks out the merge-base into a throwaway git worktree, runs the same linter over the same files there, and reduces each finding it sees to a fingerprint — a short hash standing in for that finding's identity. That set of fingerprints is the baseline. A finding whose fingerprint is already in the baseline prints as a warning and does not fail the job. Anything else fails it. The effect is that the specs cannot get worse, and no PR inherits a backlog it did not create.
+
+One rule is exempt from the waiver and always fails: `hard-wrap`. `pnpm spec:prose:fix` repairs it by rejoining lines and changes no word, so there is no editorial decision to defer and no reason to let the style drift back.
+
+A fingerprint is a hash of three things: the rule that fired, the file, and the offending text with every whitespace run collapsed and the letters lowercased. Deliberately **not** the line number. Line numbers move when anything above them is edited, so keying on position would report the whole tail of a file as newly introduced by an unrelated insertion. For the same reason the fingerprint strips two derived prefixes the linter puts in its output: the word count that leads a `long-sentence` finding and the `duplicate of line N` reference that leads a `duplicate-paragraph` one.
+
+## The reflow, and the bug it exposed
+
+Four of the ten spec files hard-wrapped prose mid-sentence at roughly 90 columns; the other six already kept one line per paragraph. Under that mixed style, editing one word in a wrapped paragraph reflows every line below it, so a one-word change arrives as a ten-line diff and a reviewer cannot see the edit inside the whitespace churn. The first commit here runs `pnpm spec:prose:fix` over those four — `spec-collection-profile.md`, `spec-core.md`, `spec-data-query-api.md` and `spec-reference-implementation-examples.md` — which takes `hard-wrap` from 270 findings to zero.
+
+That reflow surfaced a real bug in the ratchet. A hard-wrapped sentence is **invisible** to the `long-sentence` rule, because that rule only ever sees one line at a time and no single line is 40 words. Unwrap the paragraph and the rule fires — on a sentence that was always too long. Baselining the merge-base as-is therefore blamed the reflow for introducing 13 long sentences it merely revealed — all 13 in `spec-collection-profile.md`, a subset of the 42 that file carries in total. Building the baseline instead from the merge-base text *reflowed in memory* makes the two sides comparable, and the count goes to zero. `scripts/spec-prose-lint.test.mjs` pins this with a test that asserts wrapping hides the finding, unwrapping shows it, and the ratchet still reports nothing new.
+
+## The reflow also broke a neighbouring check, which is fixed here
+
+`pnpm spec:dates` compares each spec's `Date:` header against the date of the last commit that changed that file substantively, and fails when the header is older. It is meant to ignore changes that alter no content.
+
+It did not ignore this reflow. The whitespace test examines one line at a time and asks whether that line is blank once the diff's leading `+`/`-` is stripped. Rejoining a wrapped paragraph deletes three lines of real prose and adds one, so every line in the hunk has content, none of them looks blank, and the hunk reads as a revision. The check then demanded a `Date:` stamp on four specs whose wording had not changed.
+
+The fix compares the two sides of a hunk as a whole: if the removed and added text are identical once every whitespace run collapses to a single space, only the wrapping moved. Pure insertions and deletions are excluded so they cannot be mistaken for a reflow. Two tests cover it, and the second is the one that matters: a reflow that also changes one word from "every" to "each" still fails the check, which proves the guard reads the whole hunk rather than merely noticing the line count changed.
+
+Separately, `spec-reference-implementation-examples.md` carried a `Date:` of 2026-08-29 while its last real edit was 2026-09-02, in #238. That header was already stale on `main` and `pnpm spec:dates` already failed on it there; my reflow only pulled the file into the set that a pull-request-scoped run examines. I set the header to 2026-09-02 by hand rather than running `pnpm spec:dates -- --write`, because `--write` stamps the newest commit date and would have claimed the spec was revised today when only its line breaks moved.
+
+## Evidence
+
+**The reflow changes no words.** `git diff --word-diff --ignore-all-space` over the four files emits no change markers at all — only context lines. Independently, each file is byte-identical to its parent after collapsing every whitespace run to a single space. `pnpm spec:check` passes, so the published website copies still match.
+
+**The ratchet waives the old and blocks the new.** I ran the job's shell step verbatim on this branch. It exits 0 and reports no new findings. It reports 54 pre-existing ones as warnings: that is the count for the four files this branch touches, which are the only files the job examines, and it is the subset of the 61 whole-repository findings that those four files carry (46 in `spec-collection-profile.md` plus 8 in `spec-core.md`; the reflow left the other two touched files clean). Then I committed a deliberately bad sentence — "It is worth noting that a resource server must leverage this robust and seamless interface in order to deliver best-in-class results" — on a scratch branch based on this one. The step exits 1 and names seven new findings on that one line, while still waiving the pre-existing backlog. Splitting one sentence in `spec-core.md` back across two lines also fails the step, confirming `hard-wrap` ignores the baseline.
+
+**28 unit tests across two files**, all passing. Fourteen are in `scripts/spec-prose-lint.test.mjs`. Eight cover the six rules: one test each for `lowercase-normative`, `keyword-in-note`, `long-sentence`, `filler` and `duplicate-paragraph`, two for `hard-wrap`, and one asserting that `--fix` rejoins lines without altering a word. Each carries the negative case that would break it: `hard-wrap` stays quiet on tables, lists, fenced code, and the `Status:` and `Date:` metadata lines each spec carries under its title; `long-sentence` does not count inline code, link targets or URLs as words, and does not read `v0.1` or `e.g.` as a sentence end. Six new ones cover the ratchet: that `hard-wrap` is the only rule absent from the waivable set; that a fingerprint survives a finding moving 890 lines down the file but still distinguishes different text, rules and files; that a baselined finding is waived while a fresh one blocks; that `hard-wrap` is never waived even when it appears in the baseline; that supplying no baseline blocks everything; and the reflow-invariance case above. The job runs these before it lints anything. The remaining fourteen are in `scripts/spec-date-check.test.ts`, twelve of them pre-existing and two new for the reflow guard described above; they drive the real command against a throwaway git repository rather than calling a helper.
+
+## Current findings, and who owes what
+
+After the reflow, 61 findings remain across all ten spec files. Every one is inherited from `main`, so the gate waives all of them and reports them as warnings. Only the first two rows below are in files this branch touches, which is why the job on this PR reports 54 rather than 61.
+
+| File | Touched here? | lowercase | note-kw | long-sentence | duplicate | total |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| `spec-collection-profile.md` | yes | 4 | 0 | 42 | 0 | **46** |
+| `spec-core.md` | yes | 1 | 2 | 5 | 0 | **8** |
+| `spec-deferred.md` | no | 0 | 0 | 4 | 2 | **6** |
+| `spec-auth-design.md` | no | 0 | 0 | 1 | 0 | **1** |
+| **Total** | | **5** | **2** | **52** | **2** | **61** |
+
+The other six spec files are clean, including the two this branch reflowed but that had no other findings. `hard-wrap` and `filler` are both zero everywhere — `hard-wrap` because this PR fixed it, `filler` because the rule reports zero across all ten files today, so it guards against a regression rather than fixing a present problem.
+
+The 42 long sentences in `spec-collection-profile.md` are concentrated in the sections defining `STREAM_EVIDENCE`; several of those sentences run past 80 words. Those are the clearest candidates for a dedicated editorial pass, which this PR deliberately does not attempt.
+
+## Also in this diff
+
+`docs/retained-js-mjs-boundaries.json` is a ledger this repository keeps of every `.js`/`.mjs` file it tolerates outside the TypeScript build, each entry naming an owner and the reason the file cannot be TypeScript. A repository check fails if a file is missing from it. The two new files are registered there: the linter is hand-written ESM rather than TypeScript because it has to run before any dependency is installed, and because the ratchet runs it inside a detached merge-base worktree that has no `node_modules`, so `tsx` is not available to it.
+
+The second commit on this branch routes the unit tests through `pnpm test:scratch`, a wrapper that gives each test run an isolated scratch directory so a test cannot leave state behind for the next one. The repository has a check that rejects any package script or workflow line calling `node --test` directly. That is why the workflow installs dependencies at all: the wrapper needs `tsx` even though the linter itself needs nothing.
+
+## What I have not verified
+
+- **The gate has never failed a real PR.** Both the pass and fail paths are exercised — the fail path by hand, on a scratch branch, as described above — but no pull request other than this one has run the job in CI. The merge-base worktree step in particular has only run on my machine.
+- **I did not run Biome** over the new files; the repository exposes no `lint` script I could find, and I did not track down its invocation. The files follow the formatting of the existing `scripts/*.mjs`.
+- **`pnpm spec:dates` fails on this branch**, reporting a stale `Date:` header in `spec-reference-implementation-examples.md`. I confirmed it fails identically on unmodified `origin/main` spec files, so the reflow did not cause it, and I left it alone as unrelated. It will need stamping by whoever owns that file.
+- **`pnpm retained-js-mjs:check` still fails** — that is the command enforcing the ledger described above — listing 11 files missing from it. All 11 are missing on `origin/main` too; my two additions are no longer among them. Fixing the other 11 is a separate repository-wide cleanup.
+- **The 40-word threshold is a judgement call, not a measurement.** W3C says "break long sentences" without a number and ASD-STE100 says 25. I picked 40 to keep the finding count survivable; a stricter setting would be defensible and would raise the count.
+- **The fingerprint collapses identical findings within one file.** Two copies of the same over-long sentence in one file share a fingerprint, so adding a second copy of an already-baselined sentence would be waived. That errs toward under-reporting rather than toward blocking a PR for prose it did not write, and `duplicate-paragraph` catches the case that matters, but it is a real limit.
+- **The rubric's ten criteria have not been run against a real diff by a grader.** They are written to be gradeable, but that loop has not been exercised end to end.
+
+Assisted-by: AI

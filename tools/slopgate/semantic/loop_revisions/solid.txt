@@ -1,0 +1,1 @@
+Solid is a set of open specifications built on existing W3C standards. The project aims to give users direct control over their own data. Your data lives in a Pod, a personal online datastore you control. You decide which applications may read or write to it. Get a Solid Pod, or try the apps if you already have one.

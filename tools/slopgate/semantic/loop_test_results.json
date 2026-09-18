@@ -2,7 +2,7 @@
   {
     "case": "315",
     "n_before": 10,
-    "n_after": 8,
+    "n_after": 10,
     "preferred": "after",
     "lost_needed": false,
     "truncated": false,
@@ -11,17 +11,17 @@
   {
     "case": "318",
     "n_before": 8,
-    "n_after": 6,
+    "n_after": 4,
     "preferred": "after",
-    "lost_needed": false,
+    "lost_needed": true,
     "truncated": false,
-    "lost_what": "none"
+    "lost_what": "The specific root cause that `@semantic-release/release-notes-generator` and `@semantic-release/commit-analyzer` declare `conventional-changelog-writer: ^8.0.0`"
   },
   {
     "case": "django-3ef48ca",
     "n_before": 2,
     "n_after": 3,
-    "preferred": "after",
+    "preferred": "before",
     "lost_needed": false,
     "truncated": false,
     "lost_what": "none"
@@ -29,7 +29,7 @@
   {
     "case": "django-b461519",
     "n_before": 4,
-    "n_after": 2,
+    "n_after": 3,
     "preferred": "before",
     "lost_needed": false,
     "truncated": false,
@@ -47,7 +47,7 @@
   {
     "case": "pdpp-287",
     "n_before": 8,
-    "n_after": 3,
+    "n_after": 5,
     "preferred": "after",
     "lost_needed": false,
     "truncated": false,
@@ -55,7 +55,7 @@
   },
   {
     "case": "pdpp-302",
-    "n_before": 6,
+    "n_before": 5,
     "n_after": 5,
     "preferred": "after",
     "lost_needed": false,
@@ -65,16 +65,16 @@
   {
     "case": "pdpp-315",
     "n_before": 10,
-    "n_after": 7,
-    "preferred": "before",
+    "n_after": 8,
+    "preferred": "after",
     "lost_needed": true,
     "truncated": false,
-    "lost_what": "The specific definition of the \"grant\" artifact (recording streams, fields, and time range consented to by a person) and the definition of \"this interface\" (the"
+    "lost_what": "The specific definition of a \"grant\" (the artifact recording which streams, fields, and time range a person consented to share) and the definition of \"resource "
   },
   {
     "case": "pdpp-318",
     "n_before": 8,
-    "n_after": 5,
+    "n_after": 6,
     "preferred": "after",
     "lost_needed": false,
     "truncated": false,
@@ -82,7 +82,7 @@
   },
   {
     "case": "pdpp-319",
-    "n_before": 9,
+    "n_before": 8,
     "n_after": 7,
     "preferred": "after",
     "lost_needed": false,
@@ -91,17 +91,17 @@
   },
   {
     "case": "pdpp-321",
-    "n_before": 10,
-    "n_after": 6,
-    "preferred": "after",
-    "lost_needed": false,
+    "n_before": 11,
+    "n_after": 5,
+    "preferred": "before",
+    "lost_needed": true,
     "truncated": false,
-    "lost_what": "none"
+    "lost_what": "The specific list of local commands and test suites that were executed to verify the fix (semantic-release dependency installs, drift validation, retired-output"
   },
   {
     "case": "pdpp-347",
-    "n_before": 8,
-    "n_after": 6,
+    "n_before": 7,
+    "n_after": 8,
     "preferred": "before",
     "lost_needed": false,
     "truncated": false,
@@ -110,7 +110,7 @@
   {
     "case": "synthetic-slop",
     "n_before": 15,
-    "n_after": 5,
+    "n_after": 6,
     "preferred": "after",
     "lost_needed": false,
     "truncated": false,
@@ -118,8 +118,8 @@
   },
   {
     "case": "synthetic-structure",
-    "n_before": 8,
-    "n_after": 6,
+    "n_before": 9,
+    "n_after": 4,
     "preferred": "after",
     "lost_needed": false,
     "truncated": false,

@@ -1,0 +1,52 @@
+## Why
+
+Newcomers encounter failing commands and 404 links because two code moves occurred without doc updates. The reference implementation moved to `PDP-Connect/data-connect` in #284, and connector source now begins in `PDP-Connect/data-connectors`. This repository's copy under `packages/polyfill-connectors/connectors/` is frozen.
+
+| File | Stale claim | Effect |
+|---|---|---|
+| `README.md` "Reference implementation" | Four `pnpm` scripts; two links to `reference-implementation/README.md` | `ERR_PNPM_NO_SCRIPT` failures; 404s |
+| `CONTRIBUTING.md` intro | Invites code here | Wrong repository; write-freeze guard failure |
+| `CONTRIBUTING.md` closing | Dead `reference-implementation/README.md` link | 404 |
+| `docs/reference/connector-authoring-guide.md` | Describes this repo for connectors | Wrong repository |
+| `.github/workflows/polyfill-connectors.yml:32` | Cites missing `DUALHOME-AUDIT.md` | Freeze cites nothing |
+
+## What changed
+
+`README.md` points to `PDP-Connect/data-connect` and drops dead commands. It links the local collector runbook. `CONTRIBUTING.md` names both repositories and paths in `data-connect`. It explains the write-freeze guard and the `connector-write-freeze-override` label. The dead link is repointed.
+
+`docs/reference/connector-authoring-guide.md` states connector source begins in `data-connectors`. `.github/workflows/polyfill-connectors.yml` removes the citation to the missing file. The unverified `~150 consuming files` figure is dropped. The edit is comment-only.
+
+## What did not change
+
+No code, workflow step, or guard behavior changed. The frozen connector copy remains in place.
+
+## Verification
+
+```
+pnpm spec:check
+  → spec:check passed (9 canonical pairs, 3 site-only extensions, 1 reference-only root spec)
+  → git status: only the 4 intended files modified (no generated drift)
+
+git grep -n "](reference-implementation/" -- '*.md'
+  → (no output — no dead relative markdown link remains; bare-text mentions are not covered by this pattern)
+
+python3 -c "yaml.safe_load(open('.github/workflows/polyfill-connectors.yml'))"
+  → YAML OK — jobs: write-freeze-guard, verify
+
+curl -o /dev/null -w '%{http_code}' -L <each new link>
+  → 200  https://github.com/PDP-Connect/data-connect
+  → 200  https://github.com/PDP-Connect/data-connectors
+  → 200  https://github.com/PDP-Connect/data-connect/blob/main/reference-implementation/README.md
+
+git ls-tree -d --name-only origin/main apps/console reference-implementation   # in a data-connect checkout
+  → apps/console
+  → reference-implementation
+```
+
+The `curl` results confirm new links return 200, replacing previous 404s. `git ls-tree` confirms the named directories exist on `data-connect`'s `main`. `spec:check` passes, ensuring documentation edits did not desynchronize the generated site.
+
+## Left alone on purpose
+
+Two nearby claims are not defects here. The local collector runbook correctly lists Signal and Slack connectors, which exist in this repository. The self-host page has linked the runbook since `849ced2477` (2026-08-07) at `apps/site/src/app/(concept)/self-host/page.tsx:130`. The broken `@pdpp/local-collector` package (pdpp#266) is out of scope.
+
+Assisted-by: AI

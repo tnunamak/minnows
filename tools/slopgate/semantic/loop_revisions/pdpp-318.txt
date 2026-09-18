@@ -1,0 +1,7 @@
+A release from `main` failed because `conventional-changelog-conventionalcommits` 10.4.0 requires `conventional-changelog-writer` 9 or newer, but pnpm resolved 8.4.0. This pins `conventional-changelog-writer` to 9.2.1 in `pnpm-workspace.yaml`, updating the lockfile to share that version across semantic-release modules. It also deletes the obsolete `SEMREL-REPORT.md` while keeping the untracked `SEMREL-318-REPORT.md`.
+
+`npm view` and `pnpm why` confirm the registry and local graph now use writer 9.2.1. A local dry-run against a `v99.0.0` tag generated a 99.0.1 patch release, proving the note-generation path works with the new writer. This does not verify the GitHub Actions workflow.
+
+Standard project checks pass, as recorded in `SEMREL-318-REPORT.md`. The reference-contract, release-policy, and Ultracite checks still fail for pre-existing issues unrelated to this change.
+
+Assisted-by: AI
