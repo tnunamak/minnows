@@ -1,0 +1,14 @@
+tests: Use FailingEmailBackend and OptionsCapturingBackend for email tests
+
+Refactor tests to use the new FailingEmailBackend and OptionsCapturingBackend
+from mail.custombackend instead of monkeypatching or using local custom
+backends. This simplifies test setup and allows for more robust assertions
+on email sending behavior, specifically verifying that fail_silently is
+set to True when appropriate.
+
+- Remove MyEmailBackend from logging_tests/logconfig.py
+- Update logging_tests/tests.py to use OptionsCapturingBackend and
+  FailingEmailBackend
+- Update auth_tests/test_forms.py to use FailingEmailBackend
+- Update middleware/tests.py to use FailingEmailBackend
+- Add helper method make_log_record to reduce duplication in logging tests

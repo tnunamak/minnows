@@ -1,0 +1,65 @@
+[
+  {
+    "case": "pdpp-287",
+    "n_before": 5,
+    "n_after": 3,
+    "preferred": "after",
+    "lost_needed": true,
+    "truncated": false,
+    "lost_what": "The specific mechanism for database name collision prevention (random ID plus a counter) and the explicit confirmation that the `manifest_sha256` check validate"
+  },
+  {
+    "case": "pdpp-302",
+    "n_before": 2,
+    "n_after": 1,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "pdpp-318",
+    "n_before": 5,
+    "n_after": 3,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "pdpp-319",
+    "n_before": 4,
+    "n_after": 3,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "pdpp-321",
+    "n_before": 6,
+    "n_after": 0,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "pdpp-323",
+    "n_before": 2,
+    "n_after": 1,
+    "preferred": "before",
+    "lost_needed": true,
+    "truncated": false,
+    "lost_what": "The definition of the `Signed-off-by` line as \"the trailer certifying who authored a change\" and the definition of the token payload as \"the base64url-encoded s"
+  },
+  {
+    "case": "pdpp-347",
+    "n_before": 3,
+    "n_after": 2,
+    "preferred": "before",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  }
+]

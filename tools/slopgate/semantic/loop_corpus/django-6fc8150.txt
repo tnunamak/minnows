@@ -1,0 +1,10 @@
+Fix thread sensitivity for error responses in async request path
+
+Error responses (such as those rendered by handler404 and handler500) were
+previously rendered on a shared thread pool (thread_sensitive=False) in the
+asynchronous request path. This change ensures they are rendered on the
+request's thread-sensitive thread (thread_sensitive=True), so that database
+connections used during error handling are properly managed by
+close_old_connections().
+
+This fix applies to both the core ASGI handler and the staticfiles handler.

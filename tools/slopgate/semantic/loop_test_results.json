@@ -1,0 +1,128 @@
+[
+  {
+    "case": "315",
+    "n_before": 10,
+    "n_after": 8,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "318",
+    "n_before": 8,
+    "n_after": 6,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "django-3ef48ca",
+    "n_before": 2,
+    "n_after": 3,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "django-b461519",
+    "n_before": 4,
+    "n_after": 2,
+    "preferred": "before",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "django-c8fefeb",
+    "n_before": 4,
+    "n_after": 1,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "pdpp-287",
+    "n_before": 8,
+    "n_after": 3,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "pdpp-302",
+    "n_before": 6,
+    "n_after": 5,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "pdpp-315",
+    "n_before": 10,
+    "n_after": 7,
+    "preferred": "before",
+    "lost_needed": true,
+    "truncated": false,
+    "lost_what": "The specific definition of the \"grant\" artifact (recording streams, fields, and time range consented to by a person) and the definition of \"this interface\" (the"
+  },
+  {
+    "case": "pdpp-318",
+    "n_before": 8,
+    "n_after": 5,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "pdpp-319",
+    "n_before": 9,
+    "n_after": 7,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "pdpp-321",
+    "n_before": 10,
+    "n_after": 6,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "pdpp-347",
+    "n_before": 8,
+    "n_after": 6,
+    "preferred": "before",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "synthetic-slop",
+    "n_before": 15,
+    "n_after": 5,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "synthetic-structure",
+    "n_before": 8,
+    "n_after": 6,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  }
+]

@@ -1,0 +1,15 @@
+Fix DISTINCT ON with duplicated selected columns and ordering
+
+When using distinct(*fields) with order_by() and values(), PostgreSQL
+binds expression references in the DISTINCT ON clause to the first
+position where the expression is selected. However, the ORDER BY clause
+could reference a later position if the same expression was selected
+multiple times (e.g., via different lookup paths resolving to the same
+column). This mismatch caused incorrect results or crashes.
+
+This commit ensures that ordering references the first selection position
+for expressions used in DISTINCT ON, while preserving correct behavior
+for annotations (which are referenced by alias) and RawSQL expressions
+(which are not interchangeable).
+
+Refs #37222

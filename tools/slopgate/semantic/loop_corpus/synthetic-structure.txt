@@ -1,0 +1,17 @@
+# Connector runtime migration
+
+## Background
+
+The connector subsystem has existed since early 2025. It was originally designed for three connectors and has grown to twenty three. The original design assumed connectors were trusted. Over time we added retry logic, then rate limiting, then a cursor store. Each addition was reasonable on its own.
+
+## Considerations
+
+There are several factors to weigh. Memory isolation matters. Startup cost matters. Operational complexity matters. Debuggability matters.
+
+## Details of the approach
+
+Each connector will run in its own process. The supervisor will enforce limits. The limits will be configurable.
+
+## Impact
+
+The Amazon connector leaked a file descriptor on 2026-08-14 and took down eleven unrelated syncs for four hours.

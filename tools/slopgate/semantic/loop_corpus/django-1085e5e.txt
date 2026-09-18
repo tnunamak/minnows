@@ -1,0 +1,9 @@
+Fix RemoteUserMiddleware to not prefix HTTP_ for custom headers under ASGI
+
+Under ASGI, RemoteUserMiddleware was incorrectly prefixing the HTTP_ string
+when looking up custom header values in request.META. This change restores
+the behavior prior to Django 5.2, where custom headers (e.g., HTTP_AUTHUSER)
+are looked up directly without the additional prefix. The default REMOTE_USER
+header behavior remains unchanged.
+
+Refs #35883

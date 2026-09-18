@@ -1,0 +1,5 @@
+Lets personal data move freely, with consent. Decide what an app can see, for what, and for how long.
+
+PDPP is an open protocol for personal data portability. Your data lives where you choose. Apps ask for what they need. You decide.
+
+Build on it. The specification is open, the reference implementation is Apache-2.0, and the conformance suite is executable.

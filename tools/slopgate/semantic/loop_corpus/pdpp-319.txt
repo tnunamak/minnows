@@ -1,0 +1,20 @@
+A supporter who opens the website’s emailed confirmation link, the link that finalizes a pending supporter signature by creating its private record, could receive a failure if the private GitHub repository that stores supporter records uses its default Git branch. The daily GitHub Actions job, GitHub’s hosted workflow runner for repository automation, that copies safe fields into the public supporter list could also be blocked if it wrote directly to the protected default branch, `main`.
+
+The website now sends every private repository file mutation through GitHub’s Contents API, the endpoint used here to create or delete files, to `PDPP_PRIVATE_REPO_BRANCH`, the deployment environment variable that names the target private-repository branch; it defaults to `signatures`. A failed private write becomes `SigningUnavailableError`, the website error type that returns a safe unavailable-service response instead of exposing the GitHub failure. The public publisher, the GitHub Actions job that copies only `country`, `principlesVersion`, `publicName`, `signedOn`, and `type`, checks out the private `signatures` branch and opens a pull request that updates only the generated public supporter register rather than writing `main`.
+
+## Round 2
+
+The workflow resets its generated-output branch from the selected base branch, creates a signed bot commit, and force-pushes only that branch. Provider tests, the tests for the website module that writes supporter records to GitHub, mock GitHub API responses. They prove that the Contents API PUT request carries the configured branch and Developer Certificate of Origin (DCO) sign-off trailer, that an unset branch chooses `signatures`, and that withdrawal, the operation that removes a previously confirmed supporter record, does not search possible record-file paths after the configured branch lookup fails. The public-register test fixture, a sample private supporter record, includes an IP address and nested private data but asserts that neither reaches the five named public fields.
+
+## Round 3
+
+The site verification command, `pnpm --filter pdpp-site verify`, runs type checking, all site tests, source-style checks, generated-artifact validation, and the production build. It previously failed because the new provider tests violated five source-style rules: the repository’s automated checks for import order, destructuring, top-level regular expressions, formatter output, and related formatting constraints. Those tests retain the same branch-failure scenarios and now satisfy those rules; the full command passes.
+
+`publish/supporters`, the fixed branch that holds generated public-register changes, is no longer a manual-dispatch input. Before checkout, the workflow compares that publisher branch, `publish/supporters`, with the repository default branch, the branch GitHub treats as its main merge target, and fails with a clear error if they are equal; publication therefore cannot be directed to `main` or another arbitrary branch. The publisher only opens or updates its fixed-title pull request, the single reusable PR used for generated public-register updates. After the repository’s required pull-request checks pass, a maintainer uses GitHub’s **Squash and merge** control to merge that pull request as one commit. The workflow makes no auto-merge request because the repository disables auto-merge.
+
+The credential the workflow uses to read the private supporter repository is `PDPP_PRIVATE_REPO_TOKEN`: a fine-grained personal access token, a GitHub token restricted to selected repository permissions, owned by maintainer account `tnunamak`. It is scoped to `PDP-Connect/supporters-private` with Contents read and write and is stored as the `pdpp` repository Actions secret. The token itself is neither branch-limited nor read-only; the workflow limits its own checkout to `signatures`, does not persist its credential, and has no private-repository write step.
+
+`actionlint`, the GitHub Actions workflow validator, accepted the workflow. The branch guard accepted `publish/supporters` and rejected `main`. PR #319's checks are green.
+
+Assisted-by: AI
+

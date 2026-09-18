@@ -1,0 +1,26 @@
+# Connector Runtime Migration
+
+## Overview
+
+This document provides a comprehensive overview of the connector runtime migration.
+The migration significantly improves the reliability and maintainability of the
+connector subsystem, and enables a more scalable architecture going forward.
+
+## Background
+
+A connector is a component that fetches data from an external provider. The runtime
+is the process that executes connectors. Currently, connectors run in a shared
+process, which is not ideal.
+
+## The Change
+
+We are migrating to a per-connector sandbox. This provides better isolation,
+improves security, and ensures correctness across all execution paths. The new
+approach is not just safer, but also more performant.
+
+Tests pass. CI is green. Coverage remains at 84%.
+
+## Summary
+
+In summary, this migration significantly improves the connector runtime by
+providing better isolation and improved maintainability.

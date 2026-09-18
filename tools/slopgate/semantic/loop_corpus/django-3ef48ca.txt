@@ -1,0 +1,15 @@
+tests.mail: Add tests for long lines, IDN, lazy addresses, and html_message
+
+Add a `get_outbox_message()` helper to `MailTestsMixin` to simplify
+retrieving and asserting on sent messages.
+
+Add tests for:
+- RFC 5322 line length limits (quoted-printable/base64 encoding)
+- IDNA encoding for non-ASCII domains in address headers
+- Lazy email addresses in `EmailMessage` and `send_mail`
+- Unicode display names in `from_email`
+- `html_message` parameter in `send_mail`, `mail_admins`, and `mail_managers`
+- Lazy subjects in `mail_admins` and `mail_managers`
+
+Refactor `SendMailTests` and `MailAdminsAndManagersTests` to use
+`MailTestsMixin` and move relevant tests from `EmailMessageTests`.

@@ -1,0 +1,30 @@
+A grant is the durable record of consent, but it never had to say which privacy policy and terms the owner was shown before approving. If the owner later disputes what the client did with their data, neither side can establish which documents were on screen at approval. This adds the display and recording obligations in `spec-core.md` and corrects a prior-art entry in `spec-deferred.md`. Three obligations change, each at a different confidence.
+
+## Client terms links
+
+`policy_uri` and `tos_uri` rise from MAY-display to SHOULD-display. RFC 7591 Section 2, which Core cites as the source of these two field names, already says the AS SHOULD display each URL when provided, so Core stated a weaker obligation than the vocabulary it reuses.
+
+The AS MUST now record the exact displayed values in the grant's `client.client_display`, and MUST NOT record a resolved-but-undisplayed value as displayed. That way the grant captures the consent surface rather than the server's lookup. The text also bounds what the record is worth: a recorded URI establishes which documents the owner was pointed at, not what they said, because the target is under client control and can change after issuance. Retaining a snapshot or digest stays a SHOULD, citing ISO/IEC 29184:2020 §5.2.8 as the stronger bar, because fetching and storing third-party documents is a deployment cost and a new outbound-fetch surface rather than an authorization semantic.
+
+Last, an `ai_training` request MUST have `policy_uri` in resolved metadata or the AS rejects it. Core already treats that purpose as the only one with protocol-level mandatory consent, and this attaches the policy link to it. No outside regime I found names AI training as a trigger for a heightened policy requirement, so this rests entirely on Core's own decision to single that purpose out. Push back here first.
+
+## MyTerms and the agreement standards
+
+The deferred entry for this prior art named the wrong body and the wrong status: it is IEEE 7012-2025, published January 2026, not "ISO MyTerms".
+
+No protocol field is added. An optional grant-level `agreement` object was considered and rejected: nothing publishes accepted terms today and no acceptance step exists, so the field would fix the shape of a record before the flow that produces it. Instead the entry records the two-sided design a future version should implement — the client publishes the rostered terms it accepts, the AS holds the term the owner chose, and the AS matches the two at grant time with no negotiation round trip.
+
+The entry also rules out `purpose_code` as the route to a rostered term. An agreement URI is a syntactically valid purpose code, so that route is legal and still wrong: the `ai_training` rule switches on that field's value, and an agreement URI there defeats it.
+
+Three citation rows are added, each explaining a rule Core now carries or naming a bar Core is measured against. ISO/IEC 29184 is why a recorded URI is weaker evidence than a retained version. ISO/IEC TS 27560 is named as a deferred export mapping. IEEE 7012 is why a PDPP grant records an authorization rather than an agreement.
+
+## Not verified
+
+The reference implementation is untouched. `packages/operator-ui/src/components/pdpp/consent-card.tsx` renders neither link today, so the new SHOULD-display rule describes work that surface has not done, and this PR adds no conformance test for it.
+
+Every standards citation here is second-hand, read through public previews and DPV's published mapping guide rather than the paywalled normative text, and each row is written to survive that. None makes a conformance claim: the TS 27560 row names four sections and defers the mapping rather than citing a clause, and the IEEE 7012 row states a relationship only.
+
+`pnpm spec:check` and `pnpm spec:dates` pass on a rebase onto `origin/main`.
+
+Assisted-by: AI
+

@@ -1,0 +1,13 @@
+Fix admin changelist search for BooleanField and fields with choices
+
+The admin changelist search previously used `formfield().to_python()` to validate search terms against model fields. This caused two issues:
+
+1. `BooleanField` form fields coerced almost any truthy string to `True`, meaning arbitrary search terms would match all rows with a `True` value.
+2. `TypedChoiceField` (used for fields with `choices`) could crash when a search term was not a valid choice, as `to_python()` raises `ValidationError` for invalid choices, which was not handled correctly in all cases.
+
+This commit introduces `StrictBooleanField` and `StrictNullBooleanField` in `django.contrib.admin.formfields` to provide stricter parsing for boolean fields in the admin search context. It also updates `construct_search` in `django.contrib.admin.options` to use these strict fields for boolean lookups and to use `formfield.clean()` for `TypedChoiceField` and `TypedMultipleChoiceField` to properly handle invalid choices.
+
+Tests are added to verify that:
+- Boolean field searches are case-insensitive and do not match arbitrary strings.
+- Explicit "None" strings are handled correctly for nullable boolean fields.
+- Search terms that are not valid choices for fields with `choices` are skipped without crashing the changelist.

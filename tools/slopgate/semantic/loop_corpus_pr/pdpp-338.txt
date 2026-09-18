@@ -1,0 +1,20 @@
+Closes #246.
+
+Section 1's standards table said PDPP v0.1 "uses OAuth 2.0 + RFC 9396" and that a future version "should evaluate whether GNAP is a better foundation." The same section already says Sections 4-8 are evaluated independently of any one authorization protocol, so a reader gets two answers about whether building against a different protocol is in bounds.
+
+The GNAP row now states that PDPP separates its core artifacts from authorization-protocol bindings. OAuth 2.0 and RFC 9396 define the v0.1 binding, and other bindings including GNAP may be specified as adoption warrants. The four GNAP design points, the `client_display` credit, and the DPoP v0.2 note are unchanged.
+
+The UMA row dropped the sentence deriving PDPP's authorization protocol from OAuth 2.0 and RFC 9396, which is the same foundation claim in weaker form. It now says what PDPP takes from UMA: the user-managed, standing, revocable access model, applied to personal-data access through source declarations, grants, and resource-server enforcement.
+
+The third edit is outside the two rows #246 names. The "Why a profile" paragraph four lines below the table repeated "GNAP is a candidate future foundation," so leaving it would have made the paragraph contradict the table above it. Drop that hunk if you want a strictly two-row change.
+
+No section added, removed, or renumbered. No normative requirement changed and no RFC 2119 keyword introduced, so an implementer reading only the normative text sees the same requirements as before.
+
+## Verification
+
+`pnpm spec:check` passes, so the site pages regenerate from the edited root file with no drift. `git grep "better foundation\|candidate future foundation"` returns nothing in `spec-core.md`, which is what catches the paragraph below the table.
+
+`apps/site-blume-spike/content/specification/spec-core.md` still carries the old wording. It is a stale tracked copy: `spec:check` does not cover it and `sync-spec-docs.mjs` does not write it. Probably wants deleting, separately.
+
+Assisted-by: AI
+

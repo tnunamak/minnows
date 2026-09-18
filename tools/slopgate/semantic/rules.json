@@ -214,13 +214,14 @@
     "hedged_behavior": {
       "question": "Does this text describe what the code does using may, might, could, or is intended to, where it could state plainly what the code does?",
       "threshold": 0.91,
-      "severity": "medium",
+      "severity": "low",
       "suggestion": "state the behavior plainly, or say explicitly that it is unverified",
       "kinds": [
         "commit",
         "pr",
         "doc"
-      ]
+      ],
+      "note": "ABLATION 2026-09-18: the register group reached 0 of 14 drafts on its own and so contributed nothing to whether a revision was preferred. Kept at low severity because low findings do not count toward the action floor; structure and economy carry the result."
     },
     "abstract_subject": {
       "question": "Do most sentences in this text take an abstract subject such as this change, the implementation, the system, or the solution, rather than a concrete code entity or an actor?",
@@ -231,19 +232,21 @@
         "commit",
         "pr",
         "doc"
-      ]
+      ],
+      "note": "ABLATION 2026-09-18: the register group reached 0 of 14 drafts on its own and so contributed nothing to whether a revision was preferred. Kept at low severity because low findings do not count toward the action floor; structure and economy carry the result."
     },
     "tricolon": {
       "question": "Does this text contain a list of exactly three parallel items used for rhetorical effect rather than because there are exactly three things?",
       "threshold": 0.43,
-      "severity": "medium",
+      "severity": "low",
       "suggestion": "keep the items that carry information",
       "kinds": [
         "commit",
         "pr",
         "doc",
         "web"
-      ]
+      ],
+      "note": "ABLATION 2026-09-18: the register group reached 0 of 14 drafts on its own and so contributed nothing to whether a revision was preferred. Kept at low severity because low findings do not count toward the action floor; structure and economy carry the result."
     },
     "copula_avoidance": {
       "question": "Does this text use verbs such as serves as, functions as, represents, provides, enables, or ensures where a plain is or are would say the same thing?",
@@ -254,7 +257,8 @@
         "commit",
         "pr",
         "doc"
-      ]
+      ],
+      "note": "ABLATION 2026-09-18: the register group reached 0 of 14 drafts on its own and so contributed nothing to whether a revision was preferred. Kept at low severity because low findings do not count toward the action floor; structure and economy carry the result."
     },
     "no_tradeoff": {
       "question": "Is this text free of any acknowledgement that the approach has a cost, a limitation, or something left unverified?",

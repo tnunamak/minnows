@@ -1,0 +1,5 @@
+Solid: your data, your choice. Advancing the Web to empower people and communities.
+
+Today's web often prioritises profits over people. Solid returns the web to its roots by giving everyone direct control over their own data. Your data lives in a Pod, a personal online datastore you control, and you decide which applications may read or write to it.
+
+Solid is a set of open specifications built on existing W3C standards. Get a Solid Pod, or try the apps if you already have one.

@@ -1,0 +1,1 @@
+x402 is an open, neutral standard for internet-native payments. It absolves the Internet's original sin by natively making payments possible between clients and servers, creating win-win economies that empower agentic payments at scale. x402 exists to build a more free and fair internet.
