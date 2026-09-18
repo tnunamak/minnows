@@ -35,6 +35,7 @@ import argparse
 import json
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -92,6 +93,45 @@ def run_semantic(text, kind):
         return [], "semantic layer returned unparseable output"
 
 
+def check_rhythm(text):
+    """Deterministic guard against over-compression. Free, no model call.
+
+    Measured from authority prose (antirez, Tim Pope, git maintainers): mean
+    sentence length 20.8 words, sd 6.3, 0.6 very short sentences per document.
+
+    This exists because the semantic layer cannot see it. A revise loop fixing
+    repetition once chopped a document from 5 fragments to 13 while every
+    semantic finding improved, and an LLM judge preferred the result. Chopping
+    prose into fragments is the documented Goodhart failure of any rule that
+    rewards concision, so the check has to be a distribution, not a judgement.
+    """
+    body = re.sub(r"```.*?```", " ", text, flags=re.S)
+    body = re.sub(r"^\s*[|>#].*$", " ", body, flags=re.M)
+    body = re.sub(r"^\s*([-*+]|\d+[.)])\s.*$", " ", body, flags=re.M)
+    sents = [s.strip() for s in re.split(r"(?<=[.!?])\s+", body) if len(s.split()) > 3]
+    if len(sents) < 6:
+        return []
+    wl = [len(s.split()) for s in sents]
+    mean = sum(wl) / len(wl)
+    frags = sum(1 for w in wl if w <= 6)
+    out = []
+    if mean < 12.0:
+        out.append({"type": "rhythm", "rule": "over-compressed", "severity": "high",
+                    "suggestion": f"mean sentence length is {mean:.1f} words against "
+                                  f"about 21 in comparable human writing; join the "
+                                  f"fragments back into sentences"})
+    # Gate from data, not intuition. Across 27 real human documents (authority
+    # commits plus mined pre-2023 PR bodies) the highest fragment COUNT is 5,
+    # while the ratio reaches 0.45 -- so the count discriminates and the ratio
+    # does not. A 13-fragment revision sat at 15% and would have passed a ratio
+    # test while being the exact over-compression this guard exists to catch.
+    if frags > 6:
+        out.append({"type": "rhythm", "rule": "fragment-pileup", "severity": "high",
+                    "suggestion": f"{frags} sentences are six words or fewer; the "
+                                  f"most in any comparable human document is 5"})
+    return out
+
+
 def cmd_check(a):
     if a.file:
         try:
@@ -106,6 +146,9 @@ def cmd_check(a):
         return 0
 
     findings, notes = [], []
+    # Always runs: free, deterministic, and it catches the one failure mode the
+    # semantic layer is structurally blind to.
+    findings += check_rhythm(text)
     if not a.semantic_only:
         f, n = run_deterministic(text, a.kind)
         findings += f
@@ -165,7 +208,7 @@ def main():
     c = sub.add_parser("check", help="check a draft for slop")
     c.add_argument("--file")
     c.add_argument("--stdin", action="store_true")
-    c.add_argument("--kind", default="doc", choices=["commit", "pr", "doc"])
+    c.add_argument("--kind", default="doc", choices=["commit", "pr", "doc", "web"])
     c.add_argument("--json", action="store_true")
     c.add_argument("--fast", action="store_true",
                    help="deterministic layer only; no API call")

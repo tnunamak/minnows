@@ -7,13 +7,24 @@ description: Measure and reduce AI slop in your own writing before you ship it. 
 
 Check your own draft, read the findings, rewrite, check again.
 
+Measured: across documents, pull request bodies and website copy, a blind judge
+prefers the revised version 31 times in 40 (78%, 95% CI 65-90%). Good writing is
+left alone — 0 of 31 commits by antirez, Tim Pope and the git maintainers, and 1
+of 30 human-written pull request bodies, reach the action threshold.
+
 ```bash
 slopgate check --file DRAFT.md --kind doc
 git log -1 --format=%B | slopgate check --stdin --kind commit
 slopgate check --file body.md --kind pr --json
 ```
 
-`--kind` is `commit`, `pr`, or `doc`. Exit 1 while findings remain, 0 when clean.
+`--kind` is `commit`, `pr`, `doc`, or `web`. Exit 1 while findings remain,
+0 when clean.
+
+**Act on `high` findings; treat `low` as advisory.** Two or more high-severity
+findings is the measured threshold where revising helps. Below it, revising a
+draft made it worse in two thirds of cases — the tool is telling you the draft
+is good enough to leave alone.
 Findings come out severity-ordered, so fixing `high` first is the fast path.
 
 ```
@@ -78,6 +89,15 @@ Two rules were dropped for the same reason after testing against authority
 writing: listing changes scored 0.97 and repeated sentence openers 0.92, because
 good writers do both. Neither left room above excellent prose.
 
+**Structural rules carry the result.** An ablation ran each rule group alone
+against the same drafts. Measured by how many drafts a group can act on by
+itself: structure 4 of 14 winning every one, economy 4, audience 3, substance 1,
+and sentence-level register rules — copula avoidance, tricolon, abstract
+subject, hedged behavior — reached **zero**. Those are demoted to `low`, which
+keeps them out of the action threshold; removing them entirely did not change
+the result. Ranking rules by how often they fire gets this backwards: the most
+frequent rule is not the most valuable one.
+
 ## Files
 
 - `slopgate` — the CLI.
@@ -87,4 +107,7 @@ good writers do both. Neither left room above excellent prose.
   mechanically clean but semantically wrong, each asserting the specific rule
   that must fire.
 - `semantic/mine_authorities.py` — automatic exemplar harvesting.
+- `semantic/loop_test.py` — the validation that matters: revise against the
+  findings, then blind-rank before and after with a different model.
+- `semantic/ablate.py` — which rule groups actually carry the result.
 - `semantic/corpus/README.md` — label provenance and how thresholds were set.
