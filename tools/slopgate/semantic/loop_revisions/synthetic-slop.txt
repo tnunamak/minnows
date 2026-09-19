@@ -2,20 +2,14 @@
 
 ## Overview
 
-This document details the migration of the connector runtime to a per-connector sandbox architecture.
+The connector runtime migration moves execution from a shared process to per-connector sandboxes. This change improves isolation and maintainability for the connector subsystem.
 
 ## Background
 
-Connectors fetch data from external providers, and the runtime process executes them. Currently, all connectors share a single process, which limits isolation and complicates debugging.
+Connectors fetch data from external providers, and the runtime executes them. Currently, all connectors run within a single shared process.
 
 ## The Change
 
-The migration moves each connector into its own sandboxed process. This mechanism isolates memory and file system access, preventing one connector's failure from crashing the shared runtime.
+The migration isolates each connector in its own sandbox. This mechanism prevents cross-connector interference and restricts resource access.
 
-## Verification
-
-Unit tests pass for the new sandbox initialization logic. CI reports green status, and code coverage remains at 84%. These results verify the sandbox setup but do not confirm long-term stability under load.
-
-## Summary
-
-The connector runtime now executes each connector in an isolated sandbox, improving fault containment and security.
+Tests pass for the migration suite. CI is green. Coverage remains at 84%.

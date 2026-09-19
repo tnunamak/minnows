@@ -40,6 +40,7 @@ same contract slopgate uses.
 """
 import argparse
 import json
+import math
 import os
 import pathlib
 import sys
@@ -113,6 +114,24 @@ KIND_STATE = {
 }
 
 
+def quality_score(probs):
+    """P(reads like human-expert writing), from the fitted model. None if absent."""
+    mp = pathlib.Path(__file__).resolve().parent / "quality_model.json"
+    if not mp.exists():
+        return None
+    try:
+        m = json.loads(mp.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    z = m["b"]
+    for j, c in enumerate(m["cols"]):
+        v = probs.get(c)
+        if v is None:
+            continue
+        z += m["w"][j] * ((v - m["mu"][j]) / (m["sd"][j] or 1.0))
+    return 1 / (1 + math.exp(-max(-30, min(30, z))))
+
+
 def run(text, kind="doc"):
     try:
         from typesafe_sdk import Choice, Noul, Score, TypeSafeClient
@@ -173,7 +192,23 @@ def run(text, kind="doc"):
                 "severity": v["severity"],
                 "suggestion": v["suggestion"],
             })
-    order = {"high": 0, "medium": 1, "low": 2}
+    # A learned score over the same probabilities, alongside the rule findings.
+    # Thresholding each rule separately discards the magnitudes and cannot learn
+    # that two rules together mean something neither means alone; on 92 labelled
+    # documents the fitted model reaches 88% leave-one-out against 64% for the
+    # thresholds. It is reported, never used to gate: the rules say WHAT to fix,
+    # this says how far the draft is from writing we want to approximate.
+    # Scoped: the model saw only commits and PR bodies, and misreads web copy.
+    score = None if kind == "web" else quality_score({k: (r.nouls[k].noul if not checks[k]["choices"]
+                               and not checks[k]["levels"] else None)
+                           for k in checks})
+    if score is not None:
+        findings.append({"type": "model", "rule": "reads-as-human",
+                         "probability": round(score, 3), "severity": "info",
+                         "suggestion": f"learned score {score:.2f}; 1.0 reads like "
+                                       f"expert human writing, 0.0 like a machine draft"})
+
+    order = {"high": 0, "medium": 1, "low": 2, "info": 3}
     findings.sort(key=lambda f: (order[f["severity"]], -f.get("probability", 1.0)))
     return findings, None
 

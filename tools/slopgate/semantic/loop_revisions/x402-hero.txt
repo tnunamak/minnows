@@ -1,1 +1,0 @@
-x402 is an open standard for HTTP-based payments. It enables direct client-to-server transactions using a defined protocol. This mechanism supports automated payment flows between agents and services.

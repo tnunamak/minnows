@@ -1,11 +1,9 @@
-tests.mail: Add tests for long lines, IDN, lazy addresses, and html_message
-
-Previously, the test suite lacked coverage for RFC 5322 line length limits, IDNA encoding, lazy addresses, and html_message parameters.
+Long lines, IDN domains, lazy addresses, and `html_message` parameters lacked test coverage.
 
 Add a `get_outbox_message()` helper to `MailTestsMixin` to simplify retrieving and asserting on sent messages.
 
 Add tests for:
-- RFC 5322 line length limits (quoted-printable/base64 encoding)
+- Line length limits (quoted-printable/base64 encoding)
 - IDNA encoding for non-ASCII domains in address headers
 - Lazy email addresses in `EmailMessage` and `send_mail`
 - Unicode display names in `from_email`

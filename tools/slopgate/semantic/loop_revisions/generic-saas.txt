@@ -1,7 +1,0 @@
-The Platform for Modern Data Teams
-
-Our solution helps organizations manage their data ecosystem. The architecture integrates with existing stacks to support scale.
-
-The platform supports both startups and enterprises. Thousands of teams use it to manage data workflows. To start, sign up, connect your sources, and build.
-
-Industry leaders use the platform.

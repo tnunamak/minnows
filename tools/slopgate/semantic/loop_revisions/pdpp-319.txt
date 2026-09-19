@@ -1,10 +1,10 @@
-A supporter opening the emailed confirmation link could receive a failure if the private GitHub repository uses its default Git branch. The daily GitHub Actions job copying safe fields into the public supporter list could also be blocked if it wrote directly to the protected default branch, `main`.
+A supporter clicking the emailed confirmation link could receive a failure if the private GitHub repository uses its default Git branch. The daily GitHub Actions job copying safe fields to the public list could also be blocked if it wrote directly to the protected default branch, `main`.
 
 The website now sends every private repository file mutation through GitHub’s Contents API to `PDPP_PRIVATE_REPO_BRANCH`, which defaults to `signatures`. A failed private write becomes `SigningUnavailableError`, returning a safe unavailable-service response instead of exposing the GitHub failure. The public publisher checks out the private `signatures` branch and opens a pull request updating only the generated public supporter register, rather than writing `main`.
 
 ## Round 2
 
-The workflow resets its generated-output branch from the selected base branch, creates a signed bot commit, and force-pushes only that branch. Provider tests mock GitHub API responses to prove that the Contents API PUT request carries the configured branch and Developer Certificate of Origin (DCO) sign-off trailer. They verify that an unset branch chooses `signatures`, and that withdrawal does not search possible record-file paths after the configured branch lookup fails. The public-register test fixture includes an IP address and nested private data but asserts that neither reaches the five named public fields.
+The workflow resets its generated-output branch from the selected base branch, creates a signed bot commit, and force-pushes only that branch. Provider tests mock GitHub API responses to prove the Contents API PUT request carries the configured branch and Developer Certificate of Origin (DCO) sign-off trailer. They verify that an unset branch chooses `signatures` and that withdrawal does not search possible record-file paths after the configured branch lookup fails. The public-register test fixture includes an IP address and nested private data but asserts that neither reaches the five named public fields: `country`, `principlesVersion`, `publicName`, `signedOn`, and `type`.
 
 ## Round 3
 

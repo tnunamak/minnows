@@ -1,7 +1,0 @@
-The AT Protocol is an open, decentralized network for building social applications.
-
-The network currently hosts over 40 million users and 2.4 billion posts. Developers can build applications on this infrastructure to manage user data and interactions.
-
-The protocol distributes control across multiple servers rather than a single company. This architecture allows developers to host their own instances and manage audience relationships directly.
-
-The SDK provides tools for client implementation, requiring developers to configure server connections and handle authentication flows.

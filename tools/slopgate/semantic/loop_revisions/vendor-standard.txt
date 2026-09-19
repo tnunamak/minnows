@@ -1,1 +1,0 @@
-Legacy data formats fail to support modern AI-driven workflows. This protocol defines a schema for exchanging structured data between applications and databases. It standardizes field types and validation rules to ensure consistent parsing. The specification is available in the public registry.

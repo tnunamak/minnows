@@ -1,10 +1,1 @@
-The mail backend tests relied on manual state tracking and high-level wrappers, obscuring specific failure modes. This refactor replaces that approach with explicit mocks and direct backend calls to improve clarity.
-
-- Replace manual state tracking with `mock.Mock` in `test_connection_can_be_used_as_contextmanager`.
-- Extract file handling logic into helper methods within `FileBackendTests` to reduce duplication.
-- Split `test_file_sessions` into focused tests covering file creation, reuse, and reopening.
-- Update tests to use `EmailMessage` and `backend.send_messages` directly instead of `send_mail`.
-- Use `assertIs` for boolean assertions to make expectations more explicit.
-- Mock `smtplib.SMTP.login` in `test_auth_attempted` to verify login behavior.
-
-This change does not verify production SMTP server behavior, as network calls remain mocked.
+The mail backend tests were opaque and brittle, making maintenance difficult. This refactor improves clarity by replacing manual state tracking with `mock.Mock` in `test_connection_can_be_used_as_contextmanager`. We extracted file handling logic into helper methods within `FileBackendTests` to reduce duplication. The monolithic `test_file_sessions` test was split into focused tests for file creation, reuse, and reopening. Tests now use `EmailMessage` and `backend.send_messages` directly instead of `send_mail`. We replaced boolean assertions with `assertIs` to be more explicit. `test_auth_attempted` now mocks `smtplib.SMTP.login` to verify login behavior. No new functionality was added, and existing coverage remains unchanged.

@@ -2,12 +2,12 @@
 
 ## The Amazon connector failure necessitates process isolation
 
-On 2026-08-14, the Amazon connector leaked a file descriptor, causing eleven unrelated syncs to fail for four hours. This incident demonstrates that the current shared-process architecture creates unacceptable operational risk for the broader system.
+On 2026-08-14, the Amazon connector leaked a file descriptor, which took down eleven unrelated syncs for four hours. This incident demonstrates that the current shared-process architecture creates unacceptable operational risk. We must migrate each connector to its own process to prevent single-point failures from cascading across the system.
 
-## Proposed architecture
+## Current architecture lacks isolation and limits
 
-Each connector will run in its own isolated process. A supervisor will enforce configurable resource limits to prevent a single connector from exhausting system resources or affecting other components.
+The connector subsystem has existed since early 2025, growing from three to twenty-three connectors. It was originally designed assuming connectors were trusted, but we have since added retry logic, rate limiting, and a cursor store. These additions were reasonable individually, yet they increased complexity without providing memory isolation, startup cost control, or debuggability.
 
-## Historical context
+## Proposed supervisor-enforced process model
 
-The connector subsystem has existed since early 2025. It was originally designed for three connectors but has grown to twenty-three. The original design assumed connectors were trusted. Over time, we added retry logic, rate limiting, and a cursor store. Each addition was reasonable in isolation, but the cumulative complexity now demands stronger isolation boundaries.
+Each connector will run in its own process under a supervisor that enforces configurable limits. This approach isolates memory and resources, ensuring that one connector’s failure cannot impact others. We have not yet verified how this model affects overall startup latency or long-term operational complexity.
