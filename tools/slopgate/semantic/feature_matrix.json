@@ -38,7 +38,19 @@
       "benefit_without_mechanism": 0.34,
       "false_ease": 0.04,
       "scope_overclaim": 0.24,
-      "necessary_jargon_carveout": 0.66
+      "necessary_jargon_carveout": 0.66,
+      "explicit_boundary_condition": 0.54,
+      "contradicts_initial_intuition": 0.45,
+      "identifies_specific_actor": 0.4,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.78,
+      "cites_specific_version_or_env": 0.27,
+      "specific_failure_mode": 0.69,
+      "implicit_omission_of_alternatives": 0.19,
+      "temporal_causality_link": 0.76,
+      "negative_constraint_statement": 0.87,
+      "asymmetric_detail_level": 0.84,
+      "explicit_state_transition": 0.26
     }
   },
   "corpus/authorities/fugitive-097ce939d": {
@@ -80,7 +92,19 @@
       "benefit_without_mechanism": 0.28,
       "false_ease": 0.04,
       "scope_overclaim": 0.25,
-      "necessary_jargon_carveout": 0.66
+      "necessary_jargon_carveout": 0.66,
+      "explicit_boundary_condition": 0.53,
+      "contradicts_initial_intuition": 0.45,
+      "identifies_specific_actor": 0.32,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.75,
+      "cites_specific_version_or_env": 0.76,
+      "specific_failure_mode": 0.74,
+      "implicit_omission_of_alternatives": 0.68,
+      "temporal_causality_link": 0.77,
+      "negative_constraint_statement": 0.66,
+      "asymmetric_detail_level": 0.74,
+      "explicit_state_transition": 0.23
     }
   },
   "corpus/authorities/fugitive-09dfed092": {
@@ -122,7 +146,19 @@
       "benefit_without_mechanism": 0.39,
       "false_ease": 0.13,
       "scope_overclaim": 0.2,
-      "necessary_jargon_carveout": 0.6
+      "necessary_jargon_carveout": 0.6,
+      "explicit_boundary_condition": 0.76,
+      "contradicts_initial_intuition": 0.71,
+      "identifies_specific_actor": 0.51,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.74,
+      "cites_specific_version_or_env": 0.46,
+      "specific_failure_mode": 0.93,
+      "implicit_omission_of_alternatives": 0.9,
+      "temporal_causality_link": 0.74,
+      "negative_constraint_statement": 0.58,
+      "asymmetric_detail_level": 0.71,
+      "explicit_state_transition": 0.25
     }
   },
   "corpus/authorities/fugitive-321328c6c": {
@@ -164,7 +200,19 @@
       "benefit_without_mechanism": 0.46,
       "false_ease": 0.27,
       "scope_overclaim": 0.25,
-      "necessary_jargon_carveout": 0.72
+      "necessary_jargon_carveout": 0.72,
+      "explicit_boundary_condition": 0.33,
+      "contradicts_initial_intuition": 0.09,
+      "identifies_specific_actor": 0.22,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.7,
+      "cites_specific_version_or_env": 0.06,
+      "specific_failure_mode": 0.62,
+      "implicit_omission_of_alternatives": 0.29,
+      "temporal_causality_link": 0.66,
+      "negative_constraint_statement": 0.76,
+      "asymmetric_detail_level": 0.62,
+      "explicit_state_transition": 0.1
     }
   },
   "corpus/authorities/fugitive-3485e22a0": {
@@ -206,7 +254,19 @@
       "benefit_without_mechanism": 0.34,
       "false_ease": 0.16,
       "scope_overclaim": 0.16,
-      "necessary_jargon_carveout": 0.71
+      "necessary_jargon_carveout": 0.71,
+      "explicit_boundary_condition": 0.11,
+      "contradicts_initial_intuition": 0.33,
+      "identifies_specific_actor": 0.43,
+      "quantifies_performance_impact": 0.05,
+      "omits_trivial_steps": 0.6,
+      "cites_specific_version_or_env": 0.1,
+      "specific_failure_mode": 0.08,
+      "implicit_omission_of_alternatives": 0.87,
+      "temporal_causality_link": 0.71,
+      "negative_constraint_statement": 0.43,
+      "asymmetric_detail_level": 0.61,
+      "explicit_state_transition": 0.12
     }
   },
   "corpus/authorities/fugitive-5bf3fd40f": {
@@ -248,7 +308,19 @@
       "benefit_without_mechanism": 0.42,
       "false_ease": 0.04,
       "scope_overclaim": 0.16,
-      "necessary_jargon_carveout": 0.56
+      "necessary_jargon_carveout": 0.56,
+      "explicit_boundary_condition": 0.04,
+      "contradicts_initial_intuition": 0.14,
+      "identifies_specific_actor": 0.15,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.62,
+      "cites_specific_version_or_env": 0.04,
+      "specific_failure_mode": 0.09,
+      "implicit_omission_of_alternatives": 0.09,
+      "temporal_causality_link": 0.34,
+      "negative_constraint_statement": 0.12,
+      "asymmetric_detail_level": 0.53,
+      "explicit_state_transition": 0.14
     }
   },
   "corpus/authorities/fugitive-66a921bbe": {
@@ -290,7 +362,19 @@
       "benefit_without_mechanism": 0.43,
       "false_ease": 0.03,
       "scope_overclaim": 0.22,
-      "necessary_jargon_carveout": 0.69
+      "necessary_jargon_carveout": 0.69,
+      "explicit_boundary_condition": 0.77,
+      "contradicts_initial_intuition": 0.23,
+      "identifies_specific_actor": 0.56,
+      "quantifies_performance_impact": 0.03,
+      "omits_trivial_steps": 0.74,
+      "cites_specific_version_or_env": 0.11,
+      "specific_failure_mode": 0.78,
+      "implicit_omission_of_alternatives": 0.04,
+      "temporal_causality_link": 0.62,
+      "negative_constraint_statement": 0.41,
+      "asymmetric_detail_level": 0.61,
+      "explicit_state_transition": 0.4
     }
   },
   "corpus/authorities/fugitive-8fd6bad4a": {
@@ -332,7 +416,19 @@
       "benefit_without_mechanism": 0.25,
       "false_ease": 0.08,
       "scope_overclaim": 0.41,
-      "necessary_jargon_carveout": 0.69
+      "necessary_jargon_carveout": 0.69,
+      "explicit_boundary_condition": 0.15,
+      "contradicts_initial_intuition": 0.5,
+      "identifies_specific_actor": 0.66,
+      "quantifies_performance_impact": 0.07,
+      "omits_trivial_steps": 0.77,
+      "cites_specific_version_or_env": 0.06,
+      "specific_failure_mode": 0.48,
+      "implicit_omission_of_alternatives": 0.1,
+      "temporal_causality_link": 0.72,
+      "negative_constraint_statement": 0.57,
+      "asymmetric_detail_level": 0.7,
+      "explicit_state_transition": 0.38
     }
   },
   "corpus/authorities/fugitive-b04708af2": {
@@ -374,7 +470,19 @@
       "benefit_without_mechanism": 0.23,
       "false_ease": 0.04,
       "scope_overclaim": 0.15,
-      "necessary_jargon_carveout": 0.61
+      "necessary_jargon_carveout": 0.61,
+      "explicit_boundary_condition": 0.94,
+      "contradicts_initial_intuition": 0.16,
+      "identifies_specific_actor": 0.18,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.74,
+      "cites_specific_version_or_env": 0.12,
+      "specific_failure_mode": 0.93,
+      "implicit_omission_of_alternatives": 0.31,
+      "temporal_causality_link": 0.82,
+      "negative_constraint_statement": 0.42,
+      "asymmetric_detail_level": 0.76,
+      "explicit_state_transition": 0.51
     }
   },
   "corpus/authorities/fugitive-fb0762087": {
@@ -416,7 +524,19 @@
       "benefit_without_mechanism": 0.32,
       "false_ease": 0.08,
       "scope_overclaim": 0.2,
-      "necessary_jargon_carveout": 0.65
+      "necessary_jargon_carveout": 0.65,
+      "explicit_boundary_condition": 0.68,
+      "contradicts_initial_intuition": 0.22,
+      "identifies_specific_actor": 0.31,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.76,
+      "cites_specific_version_or_env": 0.18,
+      "specific_failure_mode": 0.57,
+      "implicit_omission_of_alternatives": 0.61,
+      "temporal_causality_link": 0.4,
+      "negative_constraint_statement": 0.94,
+      "asymmetric_detail_level": 0.67,
+      "explicit_state_transition": 0.23
     }
   },
   "corpus/authorities/git-1ad5c3df3": {
@@ -458,7 +578,19 @@
       "benefit_without_mechanism": 0.22,
       "false_ease": 0.19,
       "scope_overclaim": 0.15,
-      "necessary_jargon_carveout": 0.65
+      "necessary_jargon_carveout": 0.65,
+      "explicit_boundary_condition": 0.47,
+      "contradicts_initial_intuition": 0.37,
+      "identifies_specific_actor": 0.5,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.54,
+      "cites_specific_version_or_env": 0.93,
+      "specific_failure_mode": 0.73,
+      "implicit_omission_of_alternatives": 0.14,
+      "temporal_causality_link": 0.94,
+      "negative_constraint_statement": 0.62,
+      "asymmetric_detail_level": 0.72,
+      "explicit_state_transition": 0.13
     }
   },
   "corpus/authorities/git-1c0962c0c": {
@@ -500,7 +632,19 @@
       "benefit_without_mechanism": 0.32,
       "false_ease": 0.09,
       "scope_overclaim": 0.14,
-      "necessary_jargon_carveout": 0.6
+      "necessary_jargon_carveout": 0.6,
+      "explicit_boundary_condition": 0.18,
+      "contradicts_initial_intuition": 0.45,
+      "identifies_specific_actor": 0.24,
+      "quantifies_performance_impact": 0.03,
+      "omits_trivial_steps": 0.54,
+      "cites_specific_version_or_env": 0.1,
+      "specific_failure_mode": 0.11,
+      "implicit_omission_of_alternatives": 0.93,
+      "temporal_causality_link": 0.53,
+      "negative_constraint_statement": 0.34,
+      "asymmetric_detail_level": 0.61,
+      "explicit_state_transition": 0.06
     }
   },
   "corpus/authorities/git-29491ca5f": {
@@ -542,7 +686,19 @@
       "benefit_without_mechanism": 0.18,
       "false_ease": 0.04,
       "scope_overclaim": 0.07,
-      "necessary_jargon_carveout": 0.59
+      "necessary_jargon_carveout": 0.59,
+      "explicit_boundary_condition": 0.28,
+      "contradicts_initial_intuition": 0.9,
+      "identifies_specific_actor": 0.2,
+      "quantifies_performance_impact": 0.01,
+      "omits_trivial_steps": 0.52,
+      "cites_specific_version_or_env": 0.71,
+      "specific_failure_mode": 0.09,
+      "implicit_omission_of_alternatives": 0.04,
+      "temporal_causality_link": 0.83,
+      "negative_constraint_statement": 0.71,
+      "asymmetric_detail_level": 0.75,
+      "explicit_state_transition": 0.29
     }
   },
   "corpus/authorities/git-3882a0d3a": {
@@ -584,7 +740,19 @@
       "benefit_without_mechanism": 0.28,
       "false_ease": 0.53,
       "scope_overclaim": 0.14,
-      "necessary_jargon_carveout": 0.69
+      "necessary_jargon_carveout": 0.69,
+      "explicit_boundary_condition": 0.06,
+      "contradicts_initial_intuition": 0.07,
+      "identifies_specific_actor": 0.17,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.6,
+      "cites_specific_version_or_env": 0.06,
+      "specific_failure_mode": 0.31,
+      "implicit_omission_of_alternatives": 0.04,
+      "temporal_causality_link": 0.61,
+      "negative_constraint_statement": 0.1,
+      "asymmetric_detail_level": 0.46,
+      "explicit_state_transition": 0.07
     }
   },
   "corpus/authorities/git-671bbf7b9": {
@@ -626,7 +794,19 @@
       "benefit_without_mechanism": 0.22,
       "false_ease": 0.04,
       "scope_overclaim": 0.16,
-      "necessary_jargon_carveout": 0.61
+      "necessary_jargon_carveout": 0.61,
+      "explicit_boundary_condition": 0.91,
+      "contradicts_initial_intuition": 0.14,
+      "identifies_specific_actor": 0.66,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.7,
+      "cites_specific_version_or_env": 0.91,
+      "specific_failure_mode": 0.91,
+      "implicit_omission_of_alternatives": 0.06,
+      "temporal_causality_link": 0.77,
+      "negative_constraint_statement": 0.94,
+      "asymmetric_detail_level": 0.76,
+      "explicit_state_transition": 0.43
     }
   },
   "corpus/authorities/git-80f0b3f39": {
@@ -668,7 +848,19 @@
       "benefit_without_mechanism": 0.21,
       "false_ease": 0.04,
       "scope_overclaim": 0.16,
-      "necessary_jargon_carveout": 0.58
+      "necessary_jargon_carveout": 0.58,
+      "explicit_boundary_condition": 0.76,
+      "contradicts_initial_intuition": 0.07,
+      "identifies_specific_actor": 0.15,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.48,
+      "cites_specific_version_or_env": 0.14,
+      "specific_failure_mode": 0.07,
+      "implicit_omission_of_alternatives": 0.03,
+      "temporal_causality_link": 0.1,
+      "negative_constraint_statement": 0.36,
+      "asymmetric_detail_level": 0.48,
+      "explicit_state_transition": 0.11
     }
   },
   "corpus/authorities/git-a0feb8611": {
@@ -710,7 +902,19 @@
       "benefit_without_mechanism": 0.63,
       "false_ease": 0.03,
       "scope_overclaim": 0.11,
-      "necessary_jargon_carveout": 0.68
+      "necessary_jargon_carveout": 0.68,
+      "explicit_boundary_condition": 0.21,
+      "contradicts_initial_intuition": 0.09,
+      "identifies_specific_actor": 0.39,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.39,
+      "cites_specific_version_or_env": 0.66,
+      "specific_failure_mode": 0.03,
+      "implicit_omission_of_alternatives": 0.05,
+      "temporal_causality_link": 0.68,
+      "negative_constraint_statement": 0.2,
+      "asymmetric_detail_level": 0.22,
+      "explicit_state_transition": 0.04
     }
   },
   "corpus/authorities/git-b77e3bdd9": {
@@ -752,7 +956,19 @@
       "benefit_without_mechanism": 0.42,
       "false_ease": 0.12,
       "scope_overclaim": 0.21,
-      "necessary_jargon_carveout": 0.65
+      "necessary_jargon_carveout": 0.65,
+      "explicit_boundary_condition": 0.15,
+      "contradicts_initial_intuition": 0.38,
+      "identifies_specific_actor": 0.41,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.61,
+      "cites_specific_version_or_env": 0.78,
+      "specific_failure_mode": 0.16,
+      "implicit_omission_of_alternatives": 0.45,
+      "temporal_causality_link": 0.81,
+      "negative_constraint_statement": 0.67,
+      "asymmetric_detail_level": 0.82,
+      "explicit_state_transition": 0.67
     }
   },
   "corpus/authorities/git-e288b3de3": {
@@ -794,7 +1010,19 @@
       "benefit_without_mechanism": 0.38,
       "false_ease": 0.1,
       "scope_overclaim": 0.15,
-      "necessary_jargon_carveout": 0.7
+      "necessary_jargon_carveout": 0.7,
+      "explicit_boundary_condition": 0.91,
+      "contradicts_initial_intuition": 0.36,
+      "identifies_specific_actor": 0.58,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.6,
+      "cites_specific_version_or_env": 0.51,
+      "specific_failure_mode": 0.93,
+      "implicit_omission_of_alternatives": 0.06,
+      "temporal_causality_link": 0.93,
+      "negative_constraint_statement": 0.82,
+      "asymmetric_detail_level": 0.78,
+      "explicit_state_transition": 0.71
     }
   },
   "corpus/authorities/git-fd01795be": {
@@ -836,7 +1064,19 @@
       "benefit_without_mechanism": 0.28,
       "false_ease": 0.06,
       "scope_overclaim": 0.15,
-      "necessary_jargon_carveout": 0.62
+      "necessary_jargon_carveout": 0.62,
+      "explicit_boundary_condition": 0.27,
+      "contradicts_initial_intuition": 0.74,
+      "identifies_specific_actor": 0.25,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.77,
+      "cites_specific_version_or_env": 0.55,
+      "specific_failure_mode": 0.18,
+      "implicit_omission_of_alternatives": 0.08,
+      "temporal_causality_link": 0.46,
+      "negative_constraint_statement": 0.65,
+      "asymmetric_detail_level": 0.54,
+      "explicit_state_transition": 0.22
     }
   },
   "corpus/authorities/redis-00a3bc435": {
@@ -878,7 +1118,19 @@
       "benefit_without_mechanism": 0.27,
       "false_ease": 0.03,
       "scope_overclaim": 0.18,
-      "necessary_jargon_carveout": 0.66
+      "necessary_jargon_carveout": 0.66,
+      "explicit_boundary_condition": 0.45,
+      "contradicts_initial_intuition": 0.24,
+      "identifies_specific_actor": 0.21,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.77,
+      "cites_specific_version_or_env": 0.07,
+      "specific_failure_mode": 0.78,
+      "implicit_omission_of_alternatives": 0.07,
+      "temporal_causality_link": 0.87,
+      "negative_constraint_statement": 0.88,
+      "asymmetric_detail_level": 0.8,
+      "explicit_state_transition": 0.45
     }
   },
   "corpus/authorities/redis-1a7cd2c0e": {
@@ -920,7 +1172,19 @@
       "benefit_without_mechanism": 0.38,
       "false_ease": 0.03,
       "scope_overclaim": 0.19,
-      "necessary_jargon_carveout": 0.61
+      "necessary_jargon_carveout": 0.61,
+      "explicit_boundary_condition": 0.81,
+      "contradicts_initial_intuition": 0.19,
+      "identifies_specific_actor": 0.49,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.75,
+      "cites_specific_version_or_env": 0.44,
+      "specific_failure_mode": 0.87,
+      "implicit_omission_of_alternatives": 0.24,
+      "temporal_causality_link": 0.89,
+      "negative_constraint_statement": 0.95,
+      "asymmetric_detail_level": 0.79,
+      "explicit_state_transition": 0.28
     }
   },
   "corpus/authorities/redis-30adc6223": {
@@ -962,7 +1226,19 @@
       "benefit_without_mechanism": 0.53,
       "false_ease": 0.23,
       "scope_overclaim": 0.32,
-      "necessary_jargon_carveout": 0.71
+      "necessary_jargon_carveout": 0.71,
+      "explicit_boundary_condition": 0.04,
+      "contradicts_initial_intuition": 0.06,
+      "identifies_specific_actor": 0.16,
+      "quantifies_performance_impact": 0.96,
+      "omits_trivial_steps": 0.72,
+      "cites_specific_version_or_env": 0.11,
+      "specific_failure_mode": 0.09,
+      "implicit_omission_of_alternatives": 0.06,
+      "temporal_causality_link": 0.63,
+      "negative_constraint_statement": 0.51,
+      "asymmetric_detail_level": 0.49,
+      "explicit_state_transition": 0.18
     }
   },
   "corpus/authorities/redis-325409a01": {
@@ -1004,7 +1280,19 @@
       "benefit_without_mechanism": 0.26,
       "false_ease": 0.03,
       "scope_overclaim": 0.33,
-      "necessary_jargon_carveout": 0.58
+      "necessary_jargon_carveout": 0.58,
+      "explicit_boundary_condition": 0.69,
+      "contradicts_initial_intuition": 0.1,
+      "identifies_specific_actor": 0.8,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.73,
+      "cites_specific_version_or_env": 0.06,
+      "specific_failure_mode": 0.63,
+      "implicit_omission_of_alternatives": 0.04,
+      "temporal_causality_link": 0.75,
+      "negative_constraint_statement": 0.59,
+      "asymmetric_detail_level": 0.56,
+      "explicit_state_transition": 0.69
     }
   },
   "corpus/authorities/redis-624742d9b": {
@@ -1046,7 +1334,19 @@
       "benefit_without_mechanism": 0.24,
       "false_ease": 0.03,
       "scope_overclaim": 0.11,
-      "necessary_jargon_carveout": 0.7
+      "necessary_jargon_carveout": 0.7,
+      "explicit_boundary_condition": 0.6,
+      "contradicts_initial_intuition": 0.09,
+      "identifies_specific_actor": 0.74,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.77,
+      "cites_specific_version_or_env": 0.28,
+      "specific_failure_mode": 0.97,
+      "implicit_omission_of_alternatives": 0.03,
+      "temporal_causality_link": 0.95,
+      "negative_constraint_statement": 0.78,
+      "asymmetric_detail_level": 0.83,
+      "explicit_state_transition": 0.89
     }
   },
   "corpus/authorities/redis-8a7f255cd": {
@@ -1088,7 +1388,19 @@
       "benefit_without_mechanism": 0.53,
       "false_ease": 0.11,
       "scope_overclaim": 0.26,
-      "necessary_jargon_carveout": 0.61
+      "necessary_jargon_carveout": 0.61,
+      "explicit_boundary_condition": 0.03,
+      "contradicts_initial_intuition": 0.12,
+      "identifies_specific_actor": 0.09,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.54,
+      "cites_specific_version_or_env": 0.05,
+      "specific_failure_mode": 0.04,
+      "implicit_omission_of_alternatives": 0.04,
+      "temporal_causality_link": 0.1,
+      "negative_constraint_statement": 0.62,
+      "asymmetric_detail_level": 0.51,
+      "explicit_state_transition": 0.07
     }
   },
   "corpus/authorities/redis-9ae8254e2": {
@@ -1130,7 +1442,19 @@
       "benefit_without_mechanism": 0.37,
       "false_ease": 0.04,
       "scope_overclaim": 0.54,
-      "necessary_jargon_carveout": 0.69
+      "necessary_jargon_carveout": 0.69,
+      "explicit_boundary_condition": 0.04,
+      "contradicts_initial_intuition": 0.09,
+      "identifies_specific_actor": 0.19,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.7,
+      "cites_specific_version_or_env": 0.09,
+      "specific_failure_mode": 0.09,
+      "implicit_omission_of_alternatives": 0.06,
+      "temporal_causality_link": 0.68,
+      "negative_constraint_statement": 0.14,
+      "asymmetric_detail_level": 0.53,
+      "explicit_state_transition": 0.08
     }
   },
   "corpus/authorities/redis-adc5df1bc": {
@@ -1172,7 +1496,19 @@
       "benefit_without_mechanism": 0.3,
       "false_ease": 0.03,
       "scope_overclaim": 0.13,
-      "necessary_jargon_carveout": 0.68
+      "necessary_jargon_carveout": 0.68,
+      "explicit_boundary_condition": 0.4,
+      "contradicts_initial_intuition": 0.17,
+      "identifies_specific_actor": 0.35,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.75,
+      "cites_specific_version_or_env": 0.09,
+      "specific_failure_mode": 0.95,
+      "implicit_omission_of_alternatives": 0.08,
+      "temporal_causality_link": 0.82,
+      "negative_constraint_statement": 0.65,
+      "asymmetric_detail_level": 0.76,
+      "explicit_state_transition": 0.51
     }
   },
   "corpus/authorities/redis-b407590ce": {
@@ -1214,7 +1550,19 @@
       "benefit_without_mechanism": 0.39,
       "false_ease": 0.04,
       "scope_overclaim": 0.23,
-      "necessary_jargon_carveout": 0.66
+      "necessary_jargon_carveout": 0.66,
+      "explicit_boundary_condition": 0.74,
+      "contradicts_initial_intuition": 0.2,
+      "identifies_specific_actor": 0.77,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.75,
+      "cites_specific_version_or_env": 0.09,
+      "specific_failure_mode": 0.95,
+      "implicit_omission_of_alternatives": 0.29,
+      "temporal_causality_link": 0.92,
+      "negative_constraint_statement": 0.75,
+      "asymmetric_detail_level": 0.82,
+      "explicit_state_transition": 0.63
     }
   },
   "corpus/authorities/redis-f69876280": {
@@ -1256,7 +1604,19 @@
       "benefit_without_mechanism": 0.31,
       "false_ease": 0.11,
       "scope_overclaim": 0.16,
-      "necessary_jargon_carveout": 0.7
+      "necessary_jargon_carveout": 0.7,
+      "explicit_boundary_condition": 0.33,
+      "contradicts_initial_intuition": 0.15,
+      "identifies_specific_actor": 0.69,
+      "quantifies_performance_impact": 0.03,
+      "omits_trivial_steps": 0.8,
+      "cites_specific_version_or_env": 0.05,
+      "specific_failure_mode": 0.79,
+      "implicit_omission_of_alternatives": 0.66,
+      "temporal_causality_link": 0.91,
+      "negative_constraint_statement": 0.43,
+      "asymmetric_detail_level": 0.86,
+      "explicit_state_transition": 0.72
     }
   },
   "corpus/authorities/surround-0b2c9ff9d": {
@@ -1298,7 +1658,19 @@
       "benefit_without_mechanism": 0.5,
       "false_ease": 0.02,
       "scope_overclaim": 0.15,
-      "necessary_jargon_carveout": 0.62
+      "necessary_jargon_carveout": 0.62,
+      "explicit_boundary_condition": 0.47,
+      "contradicts_initial_intuition": 0.06,
+      "identifies_specific_actor": 0.11,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.7,
+      "cites_specific_version_or_env": 0.93,
+      "specific_failure_mode": 0.69,
+      "implicit_omission_of_alternatives": 0.05,
+      "temporal_causality_link": 0.07,
+      "negative_constraint_statement": 0.87,
+      "asymmetric_detail_level": 0.27,
+      "explicit_state_transition": 0.48
     }
   },
   "corpus/mined/Homebrew_brew-14300": {
@@ -1340,7 +1712,19 @@
       "benefit_without_mechanism": 0.39,
       "false_ease": 0.04,
       "scope_overclaim": 0.15,
-      "necessary_jargon_carveout": 0.66
+      "necessary_jargon_carveout": 0.66,
+      "explicit_boundary_condition": 0.18,
+      "contradicts_initial_intuition": 0.12,
+      "identifies_specific_actor": 0.46,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.26,
+      "cites_specific_version_or_env": 0.1,
+      "specific_failure_mode": 0.22,
+      "implicit_omission_of_alternatives": 0.08,
+      "temporal_causality_link": 0.86,
+      "negative_constraint_statement": 0.23,
+      "asymmetric_detail_level": 0.31,
+      "explicit_state_transition": 0.05
     }
   },
   "corpus/mined/Homebrew_brew-14301": {
@@ -1382,7 +1766,19 @@
       "benefit_without_mechanism": 0.49,
       "false_ease": 0.7,
       "scope_overclaim": 0.36,
-      "necessary_jargon_carveout": 0.69
+      "necessary_jargon_carveout": 0.69,
+      "explicit_boundary_condition": 0.41,
+      "contradicts_initial_intuition": 0.09,
+      "identifies_specific_actor": 0.59,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.6,
+      "cites_specific_version_or_env": 0.42,
+      "specific_failure_mode": 0.12,
+      "implicit_omission_of_alternatives": 0.05,
+      "temporal_causality_link": 0.92,
+      "negative_constraint_statement": 0.59,
+      "asymmetric_detail_level": 0.6,
+      "explicit_state_transition": 0.13
     }
   },
   "corpus/mined/Homebrew_brew-14304": {
@@ -1424,7 +1820,19 @@
       "benefit_without_mechanism": 0.46,
       "false_ease": 0.06,
       "scope_overclaim": 0.22,
-      "necessary_jargon_carveout": 0.7
+      "necessary_jargon_carveout": 0.7,
+      "explicit_boundary_condition": 0.8,
+      "contradicts_initial_intuition": 0.62,
+      "identifies_specific_actor": 0.39,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.62,
+      "cites_specific_version_or_env": 0.94,
+      "specific_failure_mode": 0.88,
+      "implicit_omission_of_alternatives": 0.05,
+      "temporal_causality_link": 0.74,
+      "negative_constraint_statement": 0.78,
+      "asymmetric_detail_level": 0.77,
+      "explicit_state_transition": 0.35
     }
   },
   "corpus/mined/Homebrew_brew-14313": {
@@ -1466,7 +1874,19 @@
       "benefit_without_mechanism": 0.26,
       "false_ease": 0.18,
       "scope_overclaim": 0.17,
-      "necessary_jargon_carveout": 0.78
+      "necessary_jargon_carveout": 0.78,
+      "explicit_boundary_condition": 0.61,
+      "contradicts_initial_intuition": 0.2,
+      "identifies_specific_actor": 0.4,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.69,
+      "cites_specific_version_or_env": 0.95,
+      "specific_failure_mode": 0.81,
+      "implicit_omission_of_alternatives": 0.44,
+      "temporal_causality_link": 0.85,
+      "negative_constraint_statement": 0.29,
+      "asymmetric_detail_level": 0.79,
+      "explicit_state_transition": 0.41
     }
   },
   "corpus/mined/Homebrew_brew-14316": {
@@ -1508,7 +1928,19 @@
       "benefit_without_mechanism": 0.26,
       "false_ease": 0.04,
       "scope_overclaim": 0.32,
-      "necessary_jargon_carveout": 0.72
+      "necessary_jargon_carveout": 0.72,
+      "explicit_boundary_condition": 0.92,
+      "contradicts_initial_intuition": 0.15,
+      "identifies_specific_actor": 0.46,
+      "quantifies_performance_impact": 0.05,
+      "omits_trivial_steps": 0.71,
+      "cites_specific_version_or_env": 0.96,
+      "specific_failure_mode": 0.72,
+      "implicit_omission_of_alternatives": 0.8,
+      "temporal_causality_link": 0.84,
+      "negative_constraint_statement": 0.79,
+      "asymmetric_detail_level": 0.84,
+      "explicit_state_transition": 0.75
     }
   },
   "corpus/mined/curl_curl-10041": {
@@ -1550,7 +1982,19 @@
       "benefit_without_mechanism": 0.28,
       "false_ease": 0.05,
       "scope_overclaim": 0.32,
-      "necessary_jargon_carveout": 0.59
+      "necessary_jargon_carveout": 0.59,
+      "explicit_boundary_condition": 0.7,
+      "contradicts_initial_intuition": 0.61,
+      "identifies_specific_actor": 0.72,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.66,
+      "cites_specific_version_or_env": 0.8,
+      "specific_failure_mode": 0.26,
+      "implicit_omission_of_alternatives": 0.39,
+      "temporal_causality_link": 0.46,
+      "negative_constraint_statement": 0.86,
+      "asymmetric_detail_level": 0.74,
+      "explicit_state_transition": 0.13
     }
   },
   "corpus/mined/curl_curl-7897": {
@@ -1592,7 +2036,19 @@
       "benefit_without_mechanism": 0.36,
       "false_ease": 0.07,
       "scope_overclaim": 0.28,
-      "necessary_jargon_carveout": 0.71
+      "necessary_jargon_carveout": 0.71,
+      "explicit_boundary_condition": 0.8,
+      "contradicts_initial_intuition": 0.36,
+      "identifies_specific_actor": 0.41,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.67,
+      "cites_specific_version_or_env": 0.67,
+      "specific_failure_mode": 0.26,
+      "implicit_omission_of_alternatives": 0.44,
+      "temporal_causality_link": 0.93,
+      "negative_constraint_statement": 0.78,
+      "asymmetric_detail_level": 0.66,
+      "explicit_state_transition": 0.57
     }
   },
   "corpus/mined/curl_curl-7963": {
@@ -1634,7 +2090,19 @@
       "benefit_without_mechanism": 0.41,
       "false_ease": 0.11,
       "scope_overclaim": 0.35,
-      "necessary_jargon_carveout": 0.71
+      "necessary_jargon_carveout": 0.71,
+      "explicit_boundary_condition": 0.79,
+      "contradicts_initial_intuition": 0.14,
+      "identifies_specific_actor": 0.59,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.53,
+      "cites_specific_version_or_env": 0.93,
+      "specific_failure_mode": 0.16,
+      "implicit_omission_of_alternatives": 0.34,
+      "temporal_causality_link": 0.73,
+      "negative_constraint_statement": 0.59,
+      "asymmetric_detail_level": 0.65,
+      "explicit_state_transition": 0.17
     }
   },
   "corpus/mined/curl_curl-8035": {
@@ -1676,7 +2144,19 @@
       "benefit_without_mechanism": 0.29,
       "false_ease": 0.04,
       "scope_overclaim": 0.18,
-      "necessary_jargon_carveout": 0.73
+      "necessary_jargon_carveout": 0.73,
+      "explicit_boundary_condition": 0.32,
+      "contradicts_initial_intuition": 0.16,
+      "identifies_specific_actor": 0.62,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.74,
+      "cites_specific_version_or_env": 0.17,
+      "specific_failure_mode": 0.24,
+      "implicit_omission_of_alternatives": 0.13,
+      "temporal_causality_link": 0.87,
+      "negative_constraint_statement": 0.34,
+      "asymmetric_detail_level": 0.7,
+      "explicit_state_transition": 0.21
     }
   },
   "corpus/mined/curl_curl-8049": {
@@ -1718,7 +2198,19 @@
       "benefit_without_mechanism": 0.32,
       "false_ease": 0.03,
       "scope_overclaim": 0.24,
-      "necessary_jargon_carveout": 0.61
+      "necessary_jargon_carveout": 0.61,
+      "explicit_boundary_condition": 0.61,
+      "contradicts_initial_intuition": 0.12,
+      "identifies_specific_actor": 0.22,
+      "quantifies_performance_impact": 0.11,
+      "omits_trivial_steps": 0.61,
+      "cites_specific_version_or_env": 0.07,
+      "specific_failure_mode": 0.77,
+      "implicit_omission_of_alternatives": 0.15,
+      "temporal_causality_link": 0.81,
+      "negative_constraint_statement": 0.53,
+      "asymmetric_detail_level": 0.63,
+      "explicit_state_transition": 0.41
     }
   },
   "corpus/mined/django_django-16266": {
@@ -1760,7 +2252,19 @@
       "benefit_without_mechanism": 0.46,
       "false_ease": 0.13,
       "scope_overclaim": 0.3,
-      "necessary_jargon_carveout": 0.72
+      "necessary_jargon_carveout": 0.72,
+      "explicit_boundary_condition": 0.46,
+      "contradicts_initial_intuition": 0.18,
+      "identifies_specific_actor": 0.32,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.75,
+      "cites_specific_version_or_env": 0.09,
+      "specific_failure_mode": 0.6,
+      "implicit_omission_of_alternatives": 0.88,
+      "temporal_causality_link": 0.85,
+      "negative_constraint_statement": 0.55,
+      "asymmetric_detail_level": 0.74,
+      "explicit_state_transition": 0.2
     }
   },
   "corpus/mined/django_django-16292": {
@@ -1802,7 +2306,19 @@
       "benefit_without_mechanism": 0.34,
       "false_ease": 0.05,
       "scope_overclaim": 0.16,
-      "necessary_jargon_carveout": 0.69
+      "necessary_jargon_carveout": 0.69,
+      "explicit_boundary_condition": 0.43,
+      "contradicts_initial_intuition": 0.68,
+      "identifies_specific_actor": 0.44,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.64,
+      "cites_specific_version_or_env": 0.91,
+      "specific_failure_mode": 0.66,
+      "implicit_omission_of_alternatives": 0.44,
+      "temporal_causality_link": 0.75,
+      "negative_constraint_statement": 0.83,
+      "asymmetric_detail_level": 0.72,
+      "explicit_state_transition": 0.71
     }
   },
   "corpus/mined/django_django-16319": {
@@ -1844,7 +2360,19 @@
       "benefit_without_mechanism": 0.48,
       "false_ease": 0.04,
       "scope_overclaim": 0.14,
-      "necessary_jargon_carveout": 0.74
+      "necessary_jargon_carveout": 0.74,
+      "explicit_boundary_condition": 0.85,
+      "contradicts_initial_intuition": 0.34,
+      "identifies_specific_actor": 0.9,
+      "quantifies_performance_impact": 0.03,
+      "omits_trivial_steps": 0.71,
+      "cites_specific_version_or_env": 0.51,
+      "specific_failure_mode": 0.68,
+      "implicit_omission_of_alternatives": 0.58,
+      "temporal_causality_link": 0.93,
+      "negative_constraint_statement": 0.25,
+      "asymmetric_detail_level": 0.6,
+      "explicit_state_transition": 0.69
     }
   },
   "corpus/mined/django_django-16376": {
@@ -1886,7 +2414,19 @@
       "benefit_without_mechanism": 0.56,
       "false_ease": 0.04,
       "scope_overclaim": 0.15,
-      "necessary_jargon_carveout": 0.72
+      "necessary_jargon_carveout": 0.72,
+      "explicit_boundary_condition": 0.9,
+      "contradicts_initial_intuition": 0.12,
+      "identifies_specific_actor": 0.27,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.6,
+      "cites_specific_version_or_env": 0.86,
+      "specific_failure_mode": 0.73,
+      "implicit_omission_of_alternatives": 0.03,
+      "temporal_causality_link": 0.83,
+      "negative_constraint_statement": 0.16,
+      "asymmetric_detail_level": 0.37,
+      "explicit_state_transition": 0.15
     }
   },
   "corpus/mined/django_django-16384": {
@@ -1928,7 +2468,19 @@
       "benefit_without_mechanism": 0.4,
       "false_ease": 0.16,
       "scope_overclaim": 0.32,
-      "necessary_jargon_carveout": 0.7
+      "necessary_jargon_carveout": 0.7,
+      "explicit_boundary_condition": 0.25,
+      "contradicts_initial_intuition": 0.17,
+      "identifies_specific_actor": 0.45,
+      "quantifies_performance_impact": 0.03,
+      "omits_trivial_steps": 0.63,
+      "cites_specific_version_or_env": 0.14,
+      "specific_failure_mode": 0.56,
+      "implicit_omission_of_alternatives": 0.14,
+      "temporal_causality_link": 0.53,
+      "negative_constraint_statement": 0.91,
+      "asymmetric_detail_level": 0.83,
+      "explicit_state_transition": 0.25
     }
   },
   "corpus/mined/eslint_eslint-16678": {
@@ -1970,7 +2522,19 @@
       "benefit_without_mechanism": 0.26,
       "false_ease": 0.05,
       "scope_overclaim": 0.16,
-      "necessary_jargon_carveout": 0.74
+      "necessary_jargon_carveout": 0.74,
+      "explicit_boundary_condition": 0.54,
+      "contradicts_initial_intuition": 0.34,
+      "identifies_specific_actor": 0.33,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.7,
+      "cites_specific_version_or_env": 0.47,
+      "specific_failure_mode": 0.72,
+      "implicit_omission_of_alternatives": 0.22,
+      "temporal_causality_link": 0.94,
+      "negative_constraint_statement": 0.81,
+      "asymmetric_detail_level": 0.8,
+      "explicit_state_transition": 0.52
     }
   },
   "corpus/mined/eslint_eslint-16686": {
@@ -2012,7 +2576,19 @@
       "benefit_without_mechanism": 0.51,
       "false_ease": 0.04,
       "scope_overclaim": 0.15,
-      "necessary_jargon_carveout": 0.6
+      "necessary_jargon_carveout": 0.6,
+      "explicit_boundary_condition": 0.06,
+      "contradicts_initial_intuition": 0.08,
+      "identifies_specific_actor": 0.21,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.55,
+      "cites_specific_version_or_env": 0.08,
+      "specific_failure_mode": 0.06,
+      "implicit_omission_of_alternatives": 0.08,
+      "temporal_causality_link": 0.78,
+      "negative_constraint_statement": 0.48,
+      "asymmetric_detail_level": 0.41,
+      "explicit_state_transition": 0.34
     }
   },
   "corpus/mined/eslint_eslint-16693": {
@@ -2054,7 +2630,19 @@
       "benefit_without_mechanism": 0.29,
       "false_ease": 0.38,
       "scope_overclaim": 0.18,
-      "necessary_jargon_carveout": 0.65
+      "necessary_jargon_carveout": 0.65,
+      "explicit_boundary_condition": 0.38,
+      "contradicts_initial_intuition": 0.29,
+      "identifies_specific_actor": 0.4,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.71,
+      "cites_specific_version_or_env": 0.84,
+      "specific_failure_mode": 0.58,
+      "implicit_omission_of_alternatives": 0.05,
+      "temporal_causality_link": 0.84,
+      "negative_constraint_statement": 0.74,
+      "asymmetric_detail_level": 0.69,
+      "explicit_state_transition": 0.22
     }
   },
   "corpus/mined/eslint_eslint-16717": {
@@ -2096,7 +2684,19 @@
       "benefit_without_mechanism": 0.27,
       "false_ease": 0.04,
       "scope_overclaim": 0.11,
-      "necessary_jargon_carveout": 0.66
+      "necessary_jargon_carveout": 0.66,
+      "explicit_boundary_condition": 0.06,
+      "contradicts_initial_intuition": 0.06,
+      "identifies_specific_actor": 0.44,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.61,
+      "cites_specific_version_or_env": 0.1,
+      "specific_failure_mode": 0.07,
+      "implicit_omission_of_alternatives": 0.06,
+      "temporal_causality_link": 0.9,
+      "negative_constraint_statement": 0.1,
+      "asymmetric_detail_level": 0.54,
+      "explicit_state_transition": 0.22
     }
   },
   "corpus/mined/eslint_eslint-16722": {
@@ -2138,7 +2738,19 @@
       "benefit_without_mechanism": 0.23,
       "false_ease": 0.03,
       "scope_overclaim": 0.16,
-      "necessary_jargon_carveout": 0.68
+      "necessary_jargon_carveout": 0.68,
+      "explicit_boundary_condition": 0.81,
+      "contradicts_initial_intuition": 0.38,
+      "identifies_specific_actor": 0.41,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.71,
+      "cites_specific_version_or_env": 0.46,
+      "specific_failure_mode": 0.88,
+      "implicit_omission_of_alternatives": 0.06,
+      "temporal_causality_link": 0.93,
+      "negative_constraint_statement": 0.9,
+      "asymmetric_detail_level": 0.73,
+      "explicit_state_transition": 0.53
     }
   },
   "corpus/mined/immich-app_immich-1031": {
@@ -2180,7 +2792,19 @@
       "benefit_without_mechanism": 0.5,
       "false_ease": 0.07,
       "scope_overclaim": 0.55,
-      "necessary_jargon_carveout": 0.78
+      "necessary_jargon_carveout": 0.78,
+      "explicit_boundary_condition": 0.8,
+      "contradicts_initial_intuition": 0.1,
+      "identifies_specific_actor": 0.46,
+      "quantifies_performance_impact": 0.28,
+      "omits_trivial_steps": 0.57,
+      "cites_specific_version_or_env": 0.13,
+      "specific_failure_mode": 0.12,
+      "implicit_omission_of_alternatives": 0.03,
+      "temporal_causality_link": 0.94,
+      "negative_constraint_statement": 0.79,
+      "asymmetric_detail_level": 0.61,
+      "explicit_state_transition": 0.43
     }
   },
   "corpus/mined/immich-app_immich-1044": {
@@ -2222,7 +2846,19 @@
       "benefit_without_mechanism": 0.51,
       "false_ease": 0.52,
       "scope_overclaim": 0.27,
-      "necessary_jargon_carveout": 0.73
+      "necessary_jargon_carveout": 0.73,
+      "explicit_boundary_condition": 0.34,
+      "contradicts_initial_intuition": 0.14,
+      "identifies_specific_actor": 0.6,
+      "quantifies_performance_impact": 0.62,
+      "omits_trivial_steps": 0.69,
+      "cites_specific_version_or_env": 0.17,
+      "specific_failure_mode": 0.08,
+      "implicit_omission_of_alternatives": 0.05,
+      "temporal_causality_link": 0.8,
+      "negative_constraint_statement": 0.38,
+      "asymmetric_detail_level": 0.58,
+      "explicit_state_transition": 0.15
     }
   },
   "corpus/mined/immich-app_immich-1114": {
@@ -2264,7 +2900,19 @@
       "benefit_without_mechanism": 0.39,
       "false_ease": 0.82,
       "scope_overclaim": 0.29,
-      "necessary_jargon_carveout": 0.77
+      "necessary_jargon_carveout": 0.77,
+      "explicit_boundary_condition": 0.12,
+      "contradicts_initial_intuition": 0.22,
+      "identifies_specific_actor": 0.33,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.78,
+      "cites_specific_version_or_env": 0.05,
+      "specific_failure_mode": 0.8,
+      "implicit_omission_of_alternatives": 0.1,
+      "temporal_causality_link": 0.48,
+      "negative_constraint_statement": 0.8,
+      "asymmetric_detail_level": 0.62,
+      "explicit_state_transition": 0.09
     }
   },
   "corpus/mined/immich-app_immich-1216": {
@@ -2306,7 +2954,19 @@
       "benefit_without_mechanism": 0.39,
       "false_ease": 0.4,
       "scope_overclaim": 0.17,
-      "necessary_jargon_carveout": 0.76
+      "necessary_jargon_carveout": 0.76,
+      "explicit_boundary_condition": 0.76,
+      "contradicts_initial_intuition": 0.37,
+      "identifies_specific_actor": 0.42,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.65,
+      "cites_specific_version_or_env": 0.05,
+      "specific_failure_mode": 0.44,
+      "implicit_omission_of_alternatives": 0.78,
+      "temporal_causality_link": 0.69,
+      "negative_constraint_statement": 0.61,
+      "asymmetric_detail_level": 0.76,
+      "explicit_state_transition": 0.62
     }
   },
   "corpus/mined/immich-app_immich-1244": {
@@ -2348,7 +3008,19 @@
       "benefit_without_mechanism": 0.24,
       "false_ease": 0.05,
       "scope_overclaim": 0.16,
-      "necessary_jargon_carveout": 0.72
+      "necessary_jargon_carveout": 0.72,
+      "explicit_boundary_condition": 0.09,
+      "contradicts_initial_intuition": 0.04,
+      "identifies_specific_actor": 0.61,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.79,
+      "cites_specific_version_or_env": 0.05,
+      "specific_failure_mode": 0.06,
+      "implicit_omission_of_alternatives": 0.02,
+      "temporal_causality_link": 0.65,
+      "negative_constraint_statement": 0.29,
+      "asymmetric_detail_level": 0.73,
+      "explicit_state_transition": 0.55
     }
   },
   "corpus/mined/redis_redis-11647": {
@@ -2390,7 +3062,19 @@
       "benefit_without_mechanism": 0.3,
       "false_ease": 0.06,
       "scope_overclaim": 0.2,
-      "necessary_jargon_carveout": 0.68
+      "necessary_jargon_carveout": 0.68,
+      "explicit_boundary_condition": 0.42,
+      "contradicts_initial_intuition": 0.4,
+      "identifies_specific_actor": 0.52,
+      "quantifies_performance_impact": 0.04,
+      "omits_trivial_steps": 0.74,
+      "cites_specific_version_or_env": 0.59,
+      "specific_failure_mode": 0.88,
+      "implicit_omission_of_alternatives": 0.18,
+      "temporal_causality_link": 0.95,
+      "negative_constraint_statement": 0.5,
+      "asymmetric_detail_level": 0.7,
+      "explicit_state_transition": 0.49
     }
   },
   "corpus/mined/redis_redis-11652": {
@@ -2432,7 +3116,19 @@
       "benefit_without_mechanism": 0.24,
       "false_ease": 0.06,
       "scope_overclaim": 0.27,
-      "necessary_jargon_carveout": 0.68
+      "necessary_jargon_carveout": 0.68,
+      "explicit_boundary_condition": 0.86,
+      "contradicts_initial_intuition": 0.66,
+      "identifies_specific_actor": 0.6,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.78,
+      "cites_specific_version_or_env": 0.91,
+      "specific_failure_mode": 0.97,
+      "implicit_omission_of_alternatives": 0.05,
+      "temporal_causality_link": 0.89,
+      "negative_constraint_statement": 0.51,
+      "asymmetric_detail_level": 0.81,
+      "explicit_state_transition": 0.46
     }
   },
   "corpus/mined/redis_redis-11656": {
@@ -2474,7 +3170,19 @@
       "benefit_without_mechanism": 0.46,
       "false_ease": 0.05,
       "scope_overclaim": 0.2,
-      "necessary_jargon_carveout": 0.66
+      "necessary_jargon_carveout": 0.66,
+      "explicit_boundary_condition": 0.59,
+      "contradicts_initial_intuition": 0.08,
+      "identifies_specific_actor": 0.24,
+      "quantifies_performance_impact": 0.01,
+      "omits_trivial_steps": 0.57,
+      "cites_specific_version_or_env": 0.17,
+      "specific_failure_mode": 0.14,
+      "implicit_omission_of_alternatives": 0.02,
+      "temporal_causality_link": 0.52,
+      "negative_constraint_statement": 0.36,
+      "asymmetric_detail_level": 0.45,
+      "explicit_state_transition": 0.26
     }
   },
   "corpus/mined/redis_redis-11665": {
@@ -2516,7 +3224,19 @@
       "benefit_without_mechanism": 0.38,
       "false_ease": 0.1,
       "scope_overclaim": 0.12,
-      "necessary_jargon_carveout": 0.67
+      "necessary_jargon_carveout": 0.67,
+      "explicit_boundary_condition": 0.74,
+      "contradicts_initial_intuition": 0.08,
+      "identifies_specific_actor": 0.41,
+      "quantifies_performance_impact": 0.9,
+      "omits_trivial_steps": 0.59,
+      "cites_specific_version_or_env": 0.06,
+      "specific_failure_mode": 0.13,
+      "implicit_omission_of_alternatives": 0.05,
+      "temporal_causality_link": 0.75,
+      "negative_constraint_statement": 0.36,
+      "asymmetric_detail_level": 0.64,
+      "explicit_state_transition": 0.21
     }
   },
   "corpus/mined/redis_redis-11666": {
@@ -2558,7 +3278,19 @@
       "benefit_without_mechanism": 0.33,
       "false_ease": 0.08,
       "scope_overclaim": 0.28,
-      "necessary_jargon_carveout": 0.73
+      "necessary_jargon_carveout": 0.73,
+      "explicit_boundary_condition": 0.85,
+      "contradicts_initial_intuition": 0.12,
+      "identifies_specific_actor": 0.84,
+      "quantifies_performance_impact": 0.79,
+      "omits_trivial_steps": 0.74,
+      "cites_specific_version_or_env": 0.45,
+      "specific_failure_mode": 0.94,
+      "implicit_omission_of_alternatives": 0.04,
+      "temporal_causality_link": 0.93,
+      "negative_constraint_statement": 0.59,
+      "asymmetric_detail_level": 0.82,
+      "explicit_state_transition": 0.77
     }
   },
   "corpus/machine/django-00dca6f": {
@@ -2600,7 +3332,19 @@
       "benefit_without_mechanism": 0.28,
       "false_ease": 0.02,
       "scope_overclaim": 0.21,
-      "necessary_jargon_carveout": 0.66
+      "necessary_jargon_carveout": 0.66,
+      "explicit_boundary_condition": 0.62,
+      "contradicts_initial_intuition": 0.1,
+      "identifies_specific_actor": 0.35,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.82,
+      "cites_specific_version_or_env": 0.09,
+      "specific_failure_mode": 0.93,
+      "implicit_omission_of_alternatives": 0.08,
+      "temporal_causality_link": 0.88,
+      "negative_constraint_statement": 0.61,
+      "asymmetric_detail_level": 0.82,
+      "explicit_state_transition": 0.36
     }
   },
   "corpus/machine/django-1085e5e": {
@@ -2642,7 +3386,19 @@
       "benefit_without_mechanism": 0.2,
       "false_ease": 0.02,
       "scope_overclaim": 0.15,
-      "necessary_jargon_carveout": 0.65
+      "necessary_jargon_carveout": 0.65,
+      "explicit_boundary_condition": 0.37,
+      "contradicts_initial_intuition": 0.2,
+      "identifies_specific_actor": 0.52,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.79,
+      "cites_specific_version_or_env": 0.9,
+      "specific_failure_mode": 0.62,
+      "implicit_omission_of_alternatives": 0.03,
+      "temporal_causality_link": 0.88,
+      "negative_constraint_statement": 0.91,
+      "asymmetric_detail_level": 0.68,
+      "explicit_state_transition": 0.37
     }
   },
   "corpus/machine/django-21dcd9a": {
@@ -2684,7 +3440,19 @@
       "benefit_without_mechanism": 0.28,
       "false_ease": 0.58,
       "scope_overclaim": 0.19,
-      "necessary_jargon_carveout": 0.69
+      "necessary_jargon_carveout": 0.69,
+      "explicit_boundary_condition": 0.27,
+      "contradicts_initial_intuition": 0.04,
+      "identifies_specific_actor": 0.21,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.75,
+      "cites_specific_version_or_env": 0.53,
+      "specific_failure_mode": 0.14,
+      "implicit_omission_of_alternatives": 0.4,
+      "temporal_causality_link": 0.3,
+      "negative_constraint_statement": 0.53,
+      "asymmetric_detail_level": 0.53,
+      "explicit_state_transition": 0.2
     }
   },
   "corpus/machine/django-3e0190a": {
@@ -2726,7 +3494,19 @@
       "benefit_without_mechanism": 0.21,
       "false_ease": 0.62,
       "scope_overclaim": 0.19,
-      "necessary_jargon_carveout": 0.68
+      "necessary_jargon_carveout": 0.68,
+      "explicit_boundary_condition": 0.03,
+      "contradicts_initial_intuition": 0.05,
+      "identifies_specific_actor": 0.35,
+      "quantifies_performance_impact": 0.01,
+      "omits_trivial_steps": 0.74,
+      "cites_specific_version_or_env": 0.06,
+      "specific_failure_mode": 0.06,
+      "implicit_omission_of_alternatives": 0.17,
+      "temporal_causality_link": 0.5,
+      "negative_constraint_statement": 0.56,
+      "asymmetric_detail_level": 0.56,
+      "explicit_state_transition": 0.13
     }
   },
   "corpus/machine/django-3ef48ca": {
@@ -2768,7 +3548,19 @@
       "benefit_without_mechanism": 0.26,
       "false_ease": 0.37,
       "scope_overclaim": 0.1,
-      "necessary_jargon_carveout": 0.69
+      "necessary_jargon_carveout": 0.69,
+      "explicit_boundary_condition": 0.29,
+      "contradicts_initial_intuition": 0.04,
+      "identifies_specific_actor": 0.12,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.74,
+      "cites_specific_version_or_env": 0.07,
+      "specific_failure_mode": 0.36,
+      "implicit_omission_of_alternatives": 0.02,
+      "temporal_causality_link": 0.1,
+      "negative_constraint_statement": 0.07,
+      "asymmetric_detail_level": 0.6,
+      "explicit_state_transition": 0.1
     }
   },
   "corpus/machine/django-6fc8150": {
@@ -2810,7 +3602,19 @@
       "benefit_without_mechanism": 0.15,
       "false_ease": 0.02,
       "scope_overclaim": 0.2,
-      "necessary_jargon_carveout": 0.66
+      "necessary_jargon_carveout": 0.66,
+      "explicit_boundary_condition": 0.23,
+      "contradicts_initial_intuition": 0.09,
+      "identifies_specific_actor": 0.49,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.8,
+      "cites_specific_version_or_env": 0.2,
+      "specific_failure_mode": 0.78,
+      "implicit_omission_of_alternatives": 0.03,
+      "temporal_causality_link": 0.89,
+      "negative_constraint_statement": 0.23,
+      "asymmetric_detail_level": 0.75,
+      "explicit_state_transition": 0.49
     }
   },
   "corpus/machine/django-9b1db9c": {
@@ -2852,7 +3656,19 @@
       "benefit_without_mechanism": 0.19,
       "false_ease": 0.03,
       "scope_overclaim": 0.13,
-      "necessary_jargon_carveout": 0.59
+      "necessary_jargon_carveout": 0.59,
+      "explicit_boundary_condition": 0.04,
+      "contradicts_initial_intuition": 0.1,
+      "identifies_specific_actor": 0.18,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.71,
+      "cites_specific_version_or_env": 0.37,
+      "specific_failure_mode": 0.06,
+      "implicit_omission_of_alternatives": 0.07,
+      "temporal_causality_link": 0.34,
+      "negative_constraint_statement": 0.61,
+      "asymmetric_detail_level": 0.54,
+      "explicit_state_transition": 0.33
     }
   },
   "corpus/machine/django-b461519": {
@@ -2894,7 +3710,19 @@
       "benefit_without_mechanism": 0.26,
       "false_ease": 0.03,
       "scope_overclaim": 0.21,
-      "necessary_jargon_carveout": 0.72
+      "necessary_jargon_carveout": 0.72,
+      "explicit_boundary_condition": 0.46,
+      "contradicts_initial_intuition": 0.23,
+      "identifies_specific_actor": 0.48,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.8,
+      "cites_specific_version_or_env": 0.19,
+      "specific_failure_mode": 0.87,
+      "implicit_omission_of_alternatives": 0.03,
+      "temporal_causality_link": 0.83,
+      "negative_constraint_statement": 0.72,
+      "asymmetric_detail_level": 0.76,
+      "explicit_state_transition": 0.32
     }
   },
   "corpus/machine/django-c8fefeb": {
@@ -2936,7 +3764,19 @@
       "benefit_without_mechanism": 0.31,
       "false_ease": 0.03,
       "scope_overclaim": 0.08,
-      "necessary_jargon_carveout": 0.73
+      "necessary_jargon_carveout": 0.73,
+      "explicit_boundary_condition": 0.05,
+      "contradicts_initial_intuition": 0.03,
+      "identifies_specific_actor": 0.2,
+      "quantifies_performance_impact": 0.01,
+      "omits_trivial_steps": 0.73,
+      "cites_specific_version_or_env": 0.03,
+      "specific_failure_mode": 0.11,
+      "implicit_omission_of_alternatives": 0.04,
+      "temporal_causality_link": 0.13,
+      "negative_constraint_statement": 0.14,
+      "asymmetric_detail_level": 0.36,
+      "explicit_state_transition": 0.12
     }
   },
   "corpus/machine/django-f1949c1": {
@@ -2978,7 +3818,19 @@
       "benefit_without_mechanism": 0.26,
       "false_ease": 0.03,
       "scope_overclaim": 0.34,
-      "necessary_jargon_carveout": 0.69
+      "necessary_jargon_carveout": 0.69,
+      "explicit_boundary_condition": 0.59,
+      "contradicts_initial_intuition": 0.13,
+      "identifies_specific_actor": 0.67,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.76,
+      "cites_specific_version_or_env": 0.82,
+      "specific_failure_mode": 0.92,
+      "implicit_omission_of_alternatives": 0.03,
+      "temporal_causality_link": 0.84,
+      "negative_constraint_statement": 0.94,
+      "asymmetric_detail_level": 0.75,
+      "explicit_state_transition": 0.25
     }
   },
   "corpus/machine/django-f3f9601": {
@@ -3020,7 +3872,19 @@
       "benefit_without_mechanism": 0.26,
       "false_ease": 0.04,
       "scope_overclaim": 0.22,
-      "necessary_jargon_carveout": 0.63
+      "necessary_jargon_carveout": 0.63,
+      "explicit_boundary_condition": 0.16,
+      "contradicts_initial_intuition": 0.1,
+      "identifies_specific_actor": 0.21,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.59,
+      "cites_specific_version_or_env": 0.11,
+      "specific_failure_mode": 0.85,
+      "implicit_omission_of_alternatives": 0.1,
+      "temporal_causality_link": 0.59,
+      "negative_constraint_statement": 0.63,
+      "asymmetric_detail_level": 0.68,
+      "explicit_state_transition": 0.15
     }
   },
   "corpus/machine/django-fe81969": {
@@ -3062,7 +3926,19 @@
       "benefit_without_mechanism": 0.25,
       "false_ease": 0.02,
       "scope_overclaim": 0.22,
-      "necessary_jargon_carveout": 0.69
+      "necessary_jargon_carveout": 0.69,
+      "explicit_boundary_condition": 0.85,
+      "contradicts_initial_intuition": 0.11,
+      "identifies_specific_actor": 0.52,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.82,
+      "cites_specific_version_or_env": 0.05,
+      "specific_failure_mode": 0.96,
+      "implicit_omission_of_alternatives": 0.11,
+      "temporal_causality_link": 0.89,
+      "negative_constraint_statement": 0.89,
+      "asymmetric_detail_level": 0.83,
+      "explicit_state_transition": 0.33
     }
   },
   "loop_revisions/315": {
@@ -3104,7 +3980,19 @@
       "benefit_without_mechanism": 0.36,
       "false_ease": 0.06,
       "scope_overclaim": 0.42,
-      "necessary_jargon_carveout": 0.78
+      "necessary_jargon_carveout": 0.78,
+      "explicit_boundary_condition": 0.91,
+      "contradicts_initial_intuition": 0.82,
+      "identifies_specific_actor": 0.7,
+      "quantifies_performance_impact": 0.51,
+      "omits_trivial_steps": 0.68,
+      "cites_specific_version_or_env": 0.68,
+      "specific_failure_mode": 0.93,
+      "implicit_omission_of_alternatives": 0.89,
+      "temporal_causality_link": 0.95,
+      "negative_constraint_statement": 0.97,
+      "asymmetric_detail_level": 0.92,
+      "explicit_state_transition": 0.74
     }
   },
   "loop_revisions/318": {
@@ -3146,7 +4034,19 @@
       "benefit_without_mechanism": 0.26,
       "false_ease": 0.03,
       "scope_overclaim": 0.17,
-      "necessary_jargon_carveout": 0.74
+      "necessary_jargon_carveout": 0.74,
+      "explicit_boundary_condition": 0.75,
+      "contradicts_initial_intuition": 0.13,
+      "identifies_specific_actor": 0.49,
+      "quantifies_performance_impact": 0.05,
+      "omits_trivial_steps": 0.68,
+      "cites_specific_version_or_env": 0.96,
+      "specific_failure_mode": 0.81,
+      "implicit_omission_of_alternatives": 0.06,
+      "temporal_causality_link": 0.95,
+      "negative_constraint_statement": 0.92,
+      "asymmetric_detail_level": 0.82,
+      "explicit_state_transition": 0.82
     }
   },
   "loop_revisions/atproto": {
@@ -3230,7 +4130,19 @@
       "benefit_without_mechanism": 0.3,
       "false_ease": 0.25,
       "scope_overclaim": 0.12,
-      "necessary_jargon_carveout": 0.71
+      "necessary_jargon_carveout": 0.71,
+      "explicit_boundary_condition": 0.16,
+      "contradicts_initial_intuition": 0.03,
+      "identifies_specific_actor": 0.12,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.76,
+      "cites_specific_version_or_env": 0.05,
+      "specific_failure_mode": 0.34,
+      "implicit_omission_of_alternatives": 0.02,
+      "temporal_causality_link": 0.12,
+      "negative_constraint_statement": 0.12,
+      "asymmetric_detail_level": 0.59,
+      "explicit_state_transition": 0.1
     }
   },
   "loop_revisions/django-b461519": {
@@ -3272,7 +4184,19 @@
       "benefit_without_mechanism": 0.28,
       "false_ease": 0.03,
       "scope_overclaim": 0.24,
-      "necessary_jargon_carveout": 0.7
+      "necessary_jargon_carveout": 0.7,
+      "explicit_boundary_condition": 0.41,
+      "contradicts_initial_intuition": 0.17,
+      "identifies_specific_actor": 0.44,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.79,
+      "cites_specific_version_or_env": 0.12,
+      "specific_failure_mode": 0.87,
+      "implicit_omission_of_alternatives": 0.03,
+      "temporal_causality_link": 0.83,
+      "negative_constraint_statement": 0.55,
+      "asymmetric_detail_level": 0.73,
+      "explicit_state_transition": 0.31
     }
   },
   "loop_revisions/django-c8fefeb": {
@@ -3314,7 +4238,19 @@
       "benefit_without_mechanism": 0.25,
       "false_ease": 0.04,
       "scope_overclaim": 0.14,
-      "necessary_jargon_carveout": 0.73
+      "necessary_jargon_carveout": 0.73,
+      "explicit_boundary_condition": 0.05,
+      "contradicts_initial_intuition": 0.04,
+      "identifies_specific_actor": 0.25,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.68,
+      "cites_specific_version_or_env": 0.04,
+      "specific_failure_mode": 0.1,
+      "implicit_omission_of_alternatives": 0.06,
+      "temporal_causality_link": 0.32,
+      "negative_constraint_statement": 0.92,
+      "asymmetric_detail_level": 0.52,
+      "explicit_state_transition": 0.14
     }
   },
   "loop_revisions/generic-saas": {
@@ -3398,7 +4334,19 @@
       "benefit_without_mechanism": 0.25,
       "false_ease": 0.07,
       "scope_overclaim": 0.17,
-      "necessary_jargon_carveout": 0.79
+      "necessary_jargon_carveout": 0.79,
+      "explicit_boundary_condition": 0.73,
+      "contradicts_initial_intuition": 0.11,
+      "identifies_specific_actor": 0.57,
+      "quantifies_performance_impact": 0.98,
+      "omits_trivial_steps": 0.6,
+      "cites_specific_version_or_env": 0.82,
+      "specific_failure_mode": 0.3,
+      "implicit_omission_of_alternatives": 0.16,
+      "temporal_causality_link": 0.9,
+      "negative_constraint_statement": 0.95,
+      "asymmetric_detail_level": 0.8,
+      "explicit_state_transition": 0.27
     }
   },
   "loop_revisions/pdpp-302": {
@@ -3440,7 +4388,19 @@
       "benefit_without_mechanism": 0.31,
       "false_ease": 0.06,
       "scope_overclaim": 0.19,
-      "necessary_jargon_carveout": 0.77
+      "necessary_jargon_carveout": 0.77,
+      "explicit_boundary_condition": 0.96,
+      "contradicts_initial_intuition": 0.29,
+      "identifies_specific_actor": 0.69,
+      "quantifies_performance_impact": 0.05,
+      "omits_trivial_steps": 0.73,
+      "cites_specific_version_or_env": 0.73,
+      "specific_failure_mode": 0.95,
+      "implicit_omission_of_alternatives": 0.19,
+      "temporal_causality_link": 0.95,
+      "negative_constraint_statement": 0.98,
+      "asymmetric_detail_level": 0.93,
+      "explicit_state_transition": 0.64
     }
   },
   "loop_revisions/pdpp-315": {
@@ -3482,7 +4442,19 @@
       "benefit_without_mechanism": 0.41,
       "false_ease": 0.08,
       "scope_overclaim": 0.38,
-      "necessary_jargon_carveout": 0.76
+      "necessary_jargon_carveout": 0.76,
+      "explicit_boundary_condition": 0.94,
+      "contradicts_initial_intuition": 0.81,
+      "identifies_specific_actor": 0.68,
+      "quantifies_performance_impact": 0.49,
+      "omits_trivial_steps": 0.66,
+      "cites_specific_version_or_env": 0.81,
+      "specific_failure_mode": 0.94,
+      "implicit_omission_of_alternatives": 0.94,
+      "temporal_causality_link": 0.94,
+      "negative_constraint_statement": 0.97,
+      "asymmetric_detail_level": 0.93,
+      "explicit_state_transition": 0.72
     }
   },
   "loop_revisions/pdpp-318": {
@@ -3524,7 +4496,19 @@
       "benefit_without_mechanism": 0.27,
       "false_ease": 0.04,
       "scope_overclaim": 0.23,
-      "necessary_jargon_carveout": 0.76
+      "necessary_jargon_carveout": 0.76,
+      "explicit_boundary_condition": 0.76,
+      "contradicts_initial_intuition": 0.12,
+      "identifies_specific_actor": 0.59,
+      "quantifies_performance_impact": 0.04,
+      "omits_trivial_steps": 0.65,
+      "cites_specific_version_or_env": 0.96,
+      "specific_failure_mode": 0.8,
+      "implicit_omission_of_alternatives": 0.06,
+      "temporal_causality_link": 0.95,
+      "negative_constraint_statement": 0.91,
+      "asymmetric_detail_level": 0.82,
+      "explicit_state_transition": 0.85
     }
   },
   "loop_revisions/pdpp-319": {
@@ -3566,7 +4550,19 @@
       "benefit_without_mechanism": 0.3,
       "false_ease": 0.05,
       "scope_overclaim": 0.25,
-      "necessary_jargon_carveout": 0.74
+      "necessary_jargon_carveout": 0.74,
+      "explicit_boundary_condition": 0.91,
+      "contradicts_initial_intuition": 0.13,
+      "identifies_specific_actor": 0.86,
+      "quantifies_performance_impact": 0.02,
+      "omits_trivial_steps": 0.79,
+      "cites_specific_version_or_env": 0.75,
+      "specific_failure_mode": 0.96,
+      "implicit_omission_of_alternatives": 0.36,
+      "temporal_causality_link": 0.96,
+      "negative_constraint_statement": 0.98,
+      "asymmetric_detail_level": 0.88,
+      "explicit_state_transition": 0.74
     }
   },
   "loop_revisions/pdpp-321": {
@@ -3608,7 +4604,19 @@
       "benefit_without_mechanism": 0.37,
       "false_ease": 0.04,
       "scope_overclaim": 0.21,
-      "necessary_jargon_carveout": 0.73
+      "necessary_jargon_carveout": 0.73,
+      "explicit_boundary_condition": 0.78,
+      "contradicts_initial_intuition": 0.11,
+      "identifies_specific_actor": 0.61,
+      "quantifies_performance_impact": 0.22,
+      "omits_trivial_steps": 0.73,
+      "cites_specific_version_or_env": 0.21,
+      "specific_failure_mode": 0.89,
+      "implicit_omission_of_alternatives": 0.43,
+      "temporal_causality_link": 0.91,
+      "negative_constraint_statement": 0.96,
+      "asymmetric_detail_level": 0.85,
+      "explicit_state_transition": 0.86
     }
   },
   "loop_revisions/pdpp-323": {
@@ -3692,7 +4700,19 @@
       "benefit_without_mechanism": 0.31,
       "false_ease": 0.04,
       "scope_overclaim": 0.18,
-      "necessary_jargon_carveout": 0.76
+      "necessary_jargon_carveout": 0.76,
+      "explicit_boundary_condition": 0.48,
+      "contradicts_initial_intuition": 0.18,
+      "identifies_specific_actor": 0.45,
+      "quantifies_performance_impact": 0.2,
+      "omits_trivial_steps": 0.44,
+      "cites_specific_version_or_env": 0.53,
+      "specific_failure_mode": 0.56,
+      "implicit_omission_of_alternatives": 0.15,
+      "temporal_causality_link": 0.92,
+      "negative_constraint_statement": 0.98,
+      "asymmetric_detail_level": 0.82,
+      "explicit_state_transition": 0.57
     }
   },
   "loop_revisions/solid": {
@@ -3776,7 +4796,19 @@
       "benefit_without_mechanism": 0.34,
       "false_ease": 0.04,
       "scope_overclaim": 0.41,
-      "necessary_jargon_carveout": 0.76
+      "necessary_jargon_carveout": 0.76,
+      "explicit_boundary_condition": 0.04,
+      "contradicts_initial_intuition": 0.06,
+      "identifies_specific_actor": 0.29,
+      "quantifies_performance_impact": 0.33,
+      "omits_trivial_steps": 0.6,
+      "cites_specific_version_or_env": 0.05,
+      "specific_failure_mode": 0.1,
+      "implicit_omission_of_alternatives": 0.03,
+      "temporal_causality_link": 0.44,
+      "negative_constraint_statement": 0.55,
+      "asymmetric_detail_level": 0.27,
+      "explicit_state_transition": 0.18
     }
   },
   "loop_revisions/synthetic-structure": {
@@ -3818,7 +4850,19 @@
       "benefit_without_mechanism": 0.42,
       "false_ease": 0.04,
       "scope_overclaim": 0.3,
-      "necessary_jargon_carveout": 0.78
+      "necessary_jargon_carveout": 0.78,
+      "explicit_boundary_condition": 0.34,
+      "contradicts_initial_intuition": 0.14,
+      "identifies_specific_actor": 0.67,
+      "quantifies_performance_impact": 0.21,
+      "omits_trivial_steps": 0.31,
+      "cites_specific_version_or_env": 0.06,
+      "specific_failure_mode": 0.76,
+      "implicit_omission_of_alternatives": 0.05,
+      "temporal_causality_link": 0.85,
+      "negative_constraint_statement": 0.57,
+      "asymmetric_detail_level": 0.55,
+      "explicit_state_transition": 0.1
     }
   },
   "loop_revisions/vendor-standard": {

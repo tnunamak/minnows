@@ -1,0 +1,30 @@
+{
+  "kept": [
+    {
+      "name": "contradicts_initial_intuition",
+      "question": "Does the text explicitly acknowledge that the described behavior or solution contradicts a common expectation, intuition, or standard practice?"
+    },
+    {
+      "name": "temporal_causality_link",
+      "question": "Does the text use precise temporal or causal language (e.g., 'before', 'after', 'triggers', 'results in') to describe the sequence of events or dependencies between components, rather than just listing them?"
+    },
+    {
+      "name": "negative_constraint_statement",
+      "question": "Does the text include a constraint defined by what is NOT allowed or NOT done (e.g., 'does not modify', 'must not call', 'excludes') to clarify scope or safety boundaries?"
+    },
+    {
+      "name": "asymmetric_detail_level",
+      "question": "Does the text provide significantly more detail on the complex or non-obvious parts of the system while remaining concise on standard or boilerplate operations, rather than treating all steps with uniform granularity?"
+    }
+  ],
+  "rejected": [
+    "explicit_boundary_condition",
+    "identifies_specific_actor",
+    "quantifies_performance_impact",
+    "omits_trivial_steps",
+    "cites_specific_version_or_env",
+    "specific_failure_mode",
+    "implicit_omission_of_alternatives",
+    "explicit_state_transition"
+  ]
+}
