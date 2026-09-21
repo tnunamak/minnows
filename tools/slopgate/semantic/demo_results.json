@@ -1,0 +1,29 @@
+[
+  {
+    "case": "pdpp-315",
+    "n_before": 8,
+    "n_after": 8,
+    "preferred": "after",
+    "lost_needed": true,
+    "truncated": false,
+    "lost_what": "The specific definition of the `lowercase-normative` rule's scope (that it flags only obligation verbs governed by a named protocol role and ignores descriptive"
+  },
+  {
+    "case": "pdpp-318",
+    "n_before": 6,
+    "n_after": 3,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "pdpp-321",
+    "n_before": 7,
+    "n_after": 1,
+    "preferred": "after",
+    "lost_needed": true,
+    "truncated": false,
+    "lost_what": "The specific list of local commands and tests that were executed to verify the fix (dependency installs, drift validation, guard, spec comparison, script tests,"
+  }
+]

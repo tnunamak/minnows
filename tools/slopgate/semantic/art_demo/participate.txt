@@ -1,0 +1,21 @@
+Follow the work, sign the Principles, or build something and get it verified.
+
+Discord, mailing list, comments. Nothing to sign, so regulators can take part off the record.
+
+Sign the Principles and go on the public list. Opening shortly, once we have confirmed where the register will live.
+
+Get an implementation verified. Partners get drafts early, sit in working groups and vote. Organisations only, from 14 November.
+
+Open a pull request from the template for your role and attach your evidence. A machine checks it. Pass, and you are Conformant.
+
+For Verified, the technical committee reviews in public and votes, and you prove your organisation exists through a recognised trust registry. You get reasons either way, and can resubmit.
+
+Your status is published with the date and version. Any Verified status makes you a Partner.
+
+Published by the platform that holds the data. Committee review, identity via a recognised trust registry
+
+Legal attestation, liability on a named entity. Committee review, identity via a recognised trust registry
+
+Passes the test suite, then full committee review. Identity via a recognised trust registry
+
+A wrong description, a name that should not be listed, anything about a status. Answered within five working days.

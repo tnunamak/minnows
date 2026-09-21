@@ -1,0 +1,29 @@
+The specification, a reference server you can run today, and guidance for the three roles.
+
+You have data, on a platform or in a connector, and you want apps to be able to ask for it with consent. You need to write a source declaration that validates against the source declaration section, then serve records through a resource server that conforms to the resource server interface.
+
+Start with the record model and the source declaration, then the declaration schema and the validator.
+
+You are building an app or agent that needs someone's data. You ask for exactly what you need with a selection request, receive a grant, and query within it. If you have done OAuth, this is OAuth with a stricter scope.
+
+Start with the selection request and the grant, then the client example in the reference implementation.
+
+You run the authorization server, the resource server, or both. Yours is the code that records the grant and refuses anything outside it. The resource server interface is your contract, and the conformance section is what the test suite will check.
+
+Start by running the reference implementation, then read the resource server interface against it.
+
+How do I get data out of a platform and into a declaration?
+
+The Collection Profile is one worked approach to collection, scheduling and refresh for connector-backed sources. Use it if you do not already have a pipeline. If you do, you conform as long as your declaration validates and your server answers queries.
+
+How does my server find a platform's declaration, and know it is real?
+
+Discovery and Trust walks through locating a provider-native declaration under RFC 9728 and what to check before accepting it. The requirements themselves are in Core, under declaration acceptance, and this document is the how-to.
+
+Which purpose code do I put in my request?
+
+Every grant names a purpose from the registry. Most requests fit an existing code, and ai_training is the one that triggers a protocol-level consent step. If nothing fits you can propose one, and proposals are considered on a published cycle.
+
+Core can't express the query I need. Now what?
+
+Extension profiles add lexical search, aggregation and semantic query on top of Core without changing what Core means. Check whether one already covers your case before writing your own; an extension that weakens Core semantics is rejected.

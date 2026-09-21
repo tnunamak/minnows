@@ -1,0 +1,20 @@
+[
+  {
+    "case": "architecture",
+    "n_before": 6,
+    "n_after": 8,
+    "preferred": "after",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  },
+  {
+    "case": "connector-ecosystem",
+    "n_before": 8,
+    "n_after": 6,
+    "preferred": "before",
+    "lost_needed": false,
+    "truncated": false,
+    "lost_what": "none"
+  }
+]
