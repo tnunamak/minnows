@@ -34,9 +34,19 @@ Findings come out severity-ordered, so fixing `high` first is the fast path.
   [medium] gate-status-evidence (p=0.88) -> say what the test proves about a concrete scenario, or cut it
 ```
 
-Each finding names a specific defect and what to do about it. Rewrite against
-them rather than regenerating the draft: targeted fixes converge, full rewrites
-reintroduce old problems at the rate they fix new ones.
+## The loop, in three rules
+
+1. **Act only at two or more `high` findings.** Below that, leave the draft
+   alone: revising a nearly-clean draft made it worse in two thirds of measured
+   cases. A short findings list is the tool saying the draft is good enough.
+2. **Rewrite against the findings; do not regenerate.** Targeted fixes converge.
+   A full rewrite reintroduces old problems at the rate it fixes new ones.
+3. **Check the diff for dropped specifics before shipping.** The tool removes
+   inline glossing reliably and occasionally takes a version number, error code
+   or command name with the padding. Measured: 2 of 3 real pull request bodies
+   lost one such detail, each recoverable by reading the diff.
+
+Re-run until it exits 0, or until findings stop decreasing.
 
 ## Two layers
 
