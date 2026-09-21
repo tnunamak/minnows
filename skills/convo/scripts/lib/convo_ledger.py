@@ -480,6 +480,11 @@ class Ledger:
                 "live_sources": live,
                 "oversized_sources": oversized}
 
+    def known_source_paths(self) -> set[str]:
+        """Every path this ledger has ever recorded, of any status — for a staleness diff."""
+        conn = self._connect()
+        return {row["path"] for row in conn.execute("SELECT path FROM source_files")}
+
     @staticmethod
     def _fts_query(query: str) -> Optional[str]:
         # FTS syntax is deliberately not exposed in V1: only Unicode word terms become

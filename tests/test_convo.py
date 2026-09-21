@@ -300,6 +300,18 @@ class SubagentTranscriptTests(unittest.TestCase):
         self.assertIn("CCA", with_flag)
         self.assertIn("subagent of parent-sess", with_flag)
 
+    def test_grep_zero_hits_hints_at_unsearched_subagent_transcripts(self):
+        _, err_without, code_without = self.run_convo(
+            "grep", "subagent-only finding", "--harness", "claude", "--all-projects", "--limit", "10")
+        self.assertEqual(code_without, 1)
+        self.assertIn("--include-subagents", err_without)
+
+        _, err_with_flag, code_with = self.run_convo(
+            "grep", "no-such-text-anywhere", "--harness", "claude", "--include-subagents",
+            "--all-projects", "--limit", "10")
+        self.assertEqual(code_with, 1)
+        self.assertNotIn("--include-subagents", err_with_flag)
+
     def test_show_reads_the_full_subagent_transcript_by_agent_id(self):
         out, err, code = self.run_convo("show", "agent-cafef00d1", "--harness", "claude-agent")
         self.assertEqual(code, 0, err)
@@ -723,6 +735,36 @@ class LedgerTests(unittest.TestCase):
         self.assertNotIn("convo show unsafe;", stdout)
         self.assertIn("next: convo show 'unsafe; touch /tmp/nope[31m", stdout)
 
+    def test_stale_ledger_warns_on_search_but_still_returns_results_with_unchanged_exit_code(self):
+        self.write_claude(self.claude_path("indexed.jsonl"), "already indexed topic", "answer")
+        self.run_convo("sync")
+        self.write_claude(self.claude_path("unindexed.jsonl"), "brand new topic", "answer")
+        stdout, stderr, code = self.run_convo("search", "already indexed topic")
+        self.assertEqual(code, 0)
+        self.assertIn("ledger is stale", stderr)
+        self.assertIn("1 source(s)", stderr)
+        self.assertIn("run 'convo sync'", stderr)
+        self.assertIn("already indexed topic", stdout)
+        self.assertNotIn("stale", stdout)
+
+    def test_stale_ledger_warning_goes_to_stderr_only_so_json_stays_parseable(self):
+        self.write_claude(self.claude_path("indexed.jsonl"), "json stays clean", "answer")
+        self.run_convo("sync")
+        self.write_claude(self.claude_path("unindexed.jsonl"), "another topic", "answer")
+        stdout, stderr, code = self.run_convo("search", "json stays clean", "--json")
+        self.assertEqual(code, 0)
+        self.assertIn("ledger is stale", stderr)
+        payload = json.loads(stdout)
+        self.assertEqual(payload["results"][0]["text"], "json stays clean")
+
+    def test_fresh_ledger_search_is_silent_on_stderr(self):
+        self.write_claude(self.claude_path(), "fresh ledger topic", "answer")
+        self.run_convo("sync")
+        stdout, stderr, code = self.run_convo("search", "fresh ledger topic")
+        self.assertEqual(code, 0)
+        self.assertEqual(stderr, "")
+        self.assertIn("fresh ledger topic", stdout)
+
     def test_same_size_rewrite_with_restored_mtime_reindexes_from_stat_identity(self):
         path = self.claude_path()
         self.write_claude(path, "same-size alpha", "answer")
@@ -836,6 +878,33 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(code, 2)
         hit = self.ledger().search("prior rewrite snapshot")[0]
         self.assertEqual(hit["source_status"], "corrupt")
+
+    def test_status_leads_with_stale_verdict_and_json_adds_fields_without_restructuring(self):
+        self.write_claude(self.claude_path("indexed.jsonl"), "status topic", "answer")
+        self.run_convo("sync")
+        self.write_claude(self.claude_path("unindexed.jsonl"), "unseen topic", "answer")
+
+        stdout, _, code = self.run_convo("status")
+        self.assertEqual(code, 0)
+        self.assertTrue(stdout.startswith("convo: ledger is stale"))
+
+        json_stdout, _, json_code = self.run_convo("status", "--json")
+        self.assertEqual(json_code, 0)
+        payload = json.loads(json_stdout)
+        self.assertTrue(payload["stale"])
+        self.assertEqual(payload["unindexed_sources"], 1)
+        # existing keys are untouched — machine consumers keyed on them still work.
+        self.assertEqual(payload["messages"], 2)
+        self.assertIn("sources", payload)
+
+    def test_status_reports_fresh_when_every_disk_source_is_indexed(self):
+        self.write_claude(self.claude_path(), "everything synced", "answer")
+        self.run_convo("sync")
+        stdout, _, code = self.run_convo("status")
+        self.assertEqual(code, 0)
+        self.assertTrue(stdout.startswith("convo: ledger is fresh"))
+        json_stdout, _, _ = self.run_convo("status", "--json")
+        self.assertFalse(json.loads(json_stdout)["stale"])
 
     def test_future_schema_version_is_not_downgraded_and_status_fails_cleanly(self):
         self.ledger().status()

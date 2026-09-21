@@ -1212,6 +1212,29 @@ def _require_ledger():
     return ledger_lib.Ledger()
 
 
+def _ledger_staleness(ledger) -> dict:
+    """How far the ledger has drifted from disk, right now.
+
+    "Stale" means: candidate source files exist on disk that this ledger has never
+    recorded at all (any status, including 'missing' — once seen is still known).
+    This is a different question from `status()`'s per-source-status counts, which
+    describe sources the ledger DOES know about.
+
+    Cost: one glob-only pass over every harness root (`_ledger_sources()`, no file
+    reads or parsing) plus one indexed path SELECT. Both are the same bounded
+    operations `sync` already performs on every run, so paying it again on `search`/
+    `status` is proportional to a full sync, not to a fresh full scan of file
+    contents. On a real ~8.7k-source tree this took ~0.2s. If that ever becomes the
+    bottleneck for a much larger tree, cap it (e.g. stop after N unknown paths)
+    rather than skipping it, since a skipped check reintroduces the exact silent
+    false-negative this exists to prevent.
+    """
+    on_disk = {str(path) for _harness, path in _ledger_sources()}
+    known = ledger.known_source_paths()
+    unknown = len(on_disk - known)
+    return {"stale": unknown > 0, "unindexed_sources": unknown, "sources_on_disk": len(on_disk)}
+
+
 def _normalized_source(harness: str, path: Path, session: Session, stat_result) -> object:
     """Adapt the existing clean-turn parser to the ledger's narrow persistence contract."""
     messages = tuple(
@@ -1824,12 +1847,22 @@ def cmd_sync(args):
         raise SystemExit(2) from exc
 
 
+def _stale_warning(staleness: dict) -> str:
+    return (f"convo: ledger is stale — {staleness['unindexed_sources']} source(s) on disk are not "
+            f"indexed; run 'convo sync'")
+
+
 def cmd_status(args):
     with _require_ledger() as ledger:
         status = ledger.status()
+        staleness = _ledger_staleness(ledger)
+        status["stale"] = staleness["stale"]
+        status["unindexed_sources"] = staleness["unindexed_sources"]
         if args.json:
             print(json.dumps(status, sort_keys=True))
             return
+        verdict = _stale_warning(staleness) if staleness["stale"] else "convo: ledger is fresh — all sources on disk are indexed"
+        print(verdict)
         source_counts = ", ".join(f"{key}={value}" for key, value in sorted(status["sources"].items())) or "none"
         print(f"convo ledger: {status['messages']} messages; sources: {source_counts}; "
               f"parser-failures={status['parser_failures']}; partial={status['partial_sources']}; "
@@ -1845,6 +1878,9 @@ def cmd_search(args):
     if args.limit < 1:
         sys.exit("convo: --limit must be at least 1")
     with _require_ledger() as ledger:
+        staleness = _ledger_staleness(ledger)
+        if staleness["stale"]:
+            print(_stale_warning(staleness), file=sys.stderr)
         results = ledger.search(args.query, args.limit, args.context)
         if args.json:
             print(json.dumps({"schema_version": ledger_lib.SCHEMA_VERSION, "results": results}, indent=2))
@@ -2138,6 +2174,9 @@ def cmd_grep(args):
             sys.exit(2)
         # grep convention: no match is exit 1 (not an error, just nothing found).
         print("convo: no matches.", file=sys.stderr)
+        if not getattr(args, "include_subagents", False):
+            print("convo: subagent transcripts were not searched — add --include-subagents "
+                  "if the content you're looking for may be in one", file=sys.stderr)
         sys.exit(1)
     color = sys.stdout.isatty() and not args.no_color
     for s, ti, t in hits:
