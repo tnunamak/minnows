@@ -124,12 +124,14 @@ def quality_score(probs):
     except (OSError, json.JSONDecodeError):
         return None
     z = m["b"]
+    linear = m.get("target") == "graded"
     for j, c in enumerate(m["cols"]):
         v = probs.get(c)
         if v is None:
             continue
         z += m["w"][j] * ((v - m["mu"][j]) / (m["sd"][j] or 1.0))
-    return 1 / (1 + math.exp(-max(-30, min(30, z))))
+    # A graded model is a regression on [0,1]; only a classifier needs the squash.
+    return max(0.0, min(1.0, z)) if linear else 1 / (1 + math.exp(-max(-30, min(30, z))))
 
 
 def run(text, kind="doc"):
@@ -199,14 +201,25 @@ def run(text, kind="doc"):
     # thresholds. It is reported, never used to gate: the rules say WHAT to fix,
     # this says how far the draft is from writing we want to approximate.
     # Scoped: the model saw only commits and PR bodies, and misreads web copy.
-    score = None if kind == "web" else quality_score({k: (r.nouls[k].noul if not checks[k]["choices"]
-                               and not checks[k]["levels"] else None)
-                           for k in checks})
+    # Build the full feature row the model was fitted on: Noul probabilities,
+    # Score levels, and one column per Choice option. Passing only the Nouls
+    # silently computed the sum over the wrong subset and inverted the score.
+    feats = {}
+    for k, v in checks.items():
+        if v["choices"]:
+            picked = r.choices[k].choice
+            for opt in v["choices"]:
+                feats[f"{k}::{opt[:28]}"] = 1.0 if opt == picked else 0.0
+        elif v["levels"]:
+            feats[k] = float(r.scores[k].score)
+        else:
+            feats[k] = float(r.nouls[k].noul)
+    score = None if kind == "web" else quality_score(feats)
     if score is not None:
-        findings.append({"type": "model", "rule": "reads-as-human",
+        findings.append({"type": "model", "rule": "quality-score",
                          "probability": round(score, 3), "severity": "info",
-                         "suggestion": f"learned score {score:.2f}; 1.0 reads like "
-                                       f"expert human writing, 0.0 like a machine draft"})
+                         "suggestion": f"quality score {score:.2f} of 1.0, from a model "
+                                       f"fitted to pairwise quality comparisons"})
 
     order = {"high": 0, "medium": 1, "low": 2, "info": 3}
     findings.sort(key=lambda f: (order[f["severity"]], -f.get("probability", 1.0)))
