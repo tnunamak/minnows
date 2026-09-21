@@ -52,6 +52,21 @@ for name in "${shipped[@]}"; do
     [[ -d "$src/$extra" ]] && cp -R "$src/$extra" "$dst/$extra"
   done
 
+  # Runtime dirs a tool's executable resolves RELATIVE TO ITSELF must land next
+  # to the vendored script, not at the skill root. slopgate looks for
+  # detector/cli.mjs and semantic/jevgate.py beside its own path; without these
+  # the vendored copy finds neither layer and silently reports every document
+  # clean, which is worse than failing.
+  for runtime in detector semantic; do
+    if [[ -d "$src/$runtime" ]]; then
+      cp -R "$src/$runtime" "$dst/scripts/$runtime"
+      rm -rf "$dst/scripts/$runtime/__pycache__"
+      # Corpora and recorded runs are development evidence, not shipped payload.
+      rm -rf "$dst/scripts/$runtime"/{corpus,loop_corpus*,demo_corpus,site_*,art_demo,loop_revisions,rejected*}
+      rm -f  "$dst/scripts/$runtime"/{feature_matrix.json,pairwise_judgments.json,*_results.json,decoy_scores.json,calibration.json}
+    fi
+  done
+
   echo "  ✓ $name -> $dst (self-contained)"
 done
 

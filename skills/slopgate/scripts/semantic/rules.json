@@ -1,0 +1,456 @@
+{
+  "$comment": "Rule bank for slopgate's semantic layer. Edit freely: add, remove, retune. Each rule is a yes/no question where YES means the defect is present. Write an exact observable condition, not a virtue -- the model answers the question you wrote, not the one you meant. The `kinds` list scopes a rule to artifact types. Rules carrying a `note` about audience are the ones that do NOT transfer to website copy -- add a `web` kind only after calibrating against web references. A rule may be a yes/no question (default, uses `threshold`) or a Choice with `choices` + `flag` naming which options are defects. A rule may also be a Score with `levels` (ordered, worst first) and `max_level`, firing when the rating falls at or below that bar. Rules carrying kind `web` are for public website copy, where the reader is a stranger: teaching, repeating and promising are the job there, not defects, so the insider rules are deliberately excluded. Some rules are kept at low severity specifically because a fitted model showed they mark HUMAN writing; they inform the learned score without driving revision.",
+  "rules": {
+    "repeats_itself": {
+      "question": "Does this text state the same point more than once in different words, for example making a claim and then restating it later as a summary or a recap?",
+      "threshold": 0.6,
+      "severity": "high",
+      "suggestion": "say it once; delete the restatement",
+      "kinds": [
+        "pr",
+        "doc"
+      ],
+      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages",
+      "thresholds": {
+        "pr": 0.85
+      }
+    },
+    "editorial_tone": {
+      "question": "Does this text tell the reader how to feel about the subject, using words that praise, sell, or dramatize, such as powerful, exciting, critical, revolutionary, seamless, or significant?",
+      "threshold": 0.55,
+      "severity": "high",
+      "suggestion": "neutral tone: state the fact and let the reader judge",
+      "kinds": [
+        "pr",
+        "doc",
+        "web"
+      ],
+      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages",
+      "thresholds": {
+        "pr": 0.88
+      }
+    },
+    "negative_framing": {
+      "question": "Does this text define something by what it is NOT, what it lacks, or what would add little value, rather than stating positively what it is or what it does?",
+      "threshold": 0.55,
+      "severity": "medium",
+      "suggestion": "state it positively: say what it is and what it steers toward",
+      "kinds": [
+        "pr",
+        "doc",
+        "web"
+      ],
+      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages",
+      "thresholds": {
+        "pr": 0.57
+      }
+    },
+    "unsourced_assertion": {
+      "question": "Does this text make factual claims about external systems, standards, or other parties without citing where those facts come from?",
+      "threshold": 0.6,
+      "severity": "medium",
+      "suggestion": "cite the source, or mark the claim as unverified",
+      "kinds": [
+        "pr",
+        "doc"
+      ],
+      "note": "authored from document steering and calibrated on docs; firing it on commits produced 17/31 false positives against authority-written commit messages",
+      "thresholds": {
+        "pr": 0.93
+      }
+    },
+    "overexplains": {
+      "question": "Does this text explain more than a reader needs to follow the point, restating context the reader already has or walking through reasoning that could be stated as a conclusion?",
+      "threshold": 0.6,
+      "severity": "low",
+      "suggestion": "give the conclusion; cut the walk-through",
+      "kinds": [
+        "pr",
+        "doc",
+        "web"
+      ],
+      "note": "MEASURED INVERSION 2026-09-18: fitting a model to Jev's probabilities over 92 labelled documents shows this rule is HIGHER on human-expert writing than on machine drafts (raw means: human 0.50, machine 0.48). Firing on it pushes prose AWAY from how skilled engineers actually write. Demoted to low so it cannot reach the action floor; kept for the feature vector, where its weight is learned rather than assumed.",
+      "thresholds": {
+        "pr": 0.74
+      }
+    },
+    "teaches_the_project": {
+      "question": "Does this text explain what this project, protocol, or repository IS, or what its main artifacts are for, as background rather than as part of describing the specific change?",
+      "threshold": 0.87,
+      "severity": "high",
+      "suggestion": "the reader works here; delete the orientation and start at the defect",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes a reader who already works here; on a public website teaching, repeating and promising are the job, not the defect"
+    },
+    "defines_external_standard": {
+      "question": "Does this text explain what a published external standard, RFC, or specification says or means, beyond simply citing it?",
+      "threshold": 0.18,
+      "severity": "high",
+      "suggestion": "cite it and move on; the reader can open the RFC",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes a reader who already works here; on a public website teaching, repeating and promising are the job, not the defect",
+      "thresholds": {
+        "pr": 0.86
+      }
+    },
+    "glosses_own_terms": {
+      "question": "Does this text stop to define its own domain terms mid-sentence, for example with a dash or parenthesis explaining what a named component is?",
+      "threshold": 0.9,
+      "severity": "high",
+      "suggestion": "use the repo's terms unglossed; a reader who works here knows them",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes a reader who already works here; on a public website teaching, repeating and promising are the job, not the defect"
+    },
+    "length_exceeds_change": {
+      "question": "Is this text far longer than the change it describes needs, spending many paragraphs where a few would carry the same decision?",
+      "threshold": 0.64,
+      "severity": "high",
+      "suggestion": "cut to the defect, the fix, and what is unverified",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes the artifact describes a code change"
+    },
+    "unearned_benefit": {
+      "question": "Does this text claim a benefit such as improved robustness, better maintainability, a clearer interface, easier customization, or improved performance, WITHOUT stating the concrete change that produces it?",
+      "threshold": 0.64,
+      "severity": "high",
+      "suggestion": "name the mechanism, or cut the claim",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc",
+        "web"
+      ]
+    },
+    "guarantee_language": {
+      "question": "Does this text guarantee an outcome in absolute terms, for example that something is now correct, safe, robust, or can no longer fail?",
+      "threshold": 0.26,
+      "severity": "high",
+      "suggestion": "state what the change does; drop the guarantee",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc",
+        "web"
+      ]
+    },
+    "restates_without_reason": {
+      "question": "Does this text describe the edit that was made without saying what situation made the edit necessary?",
+      "threshold": 0.81,
+      "severity": "high",
+      "suggestion": "open with the problem: what went wrong, under what condition",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes the artifact describes a code change"
+    },
+    "summary_closer": {
+      "question": "Does the final sentence restate what the text already said, rather than adding new information?",
+      "threshold": 0.48,
+      "severity": "medium",
+      "suggestion": "delete the closing restatement",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ]
+    },
+    "explains_the_obvious": {
+      "question": "Does this text explain what a widely known construct or component does, in a way a maintainer of this codebase would not need?",
+      "threshold": 0.39,
+      "severity": "medium",
+      "suggestion": "assume the reader works here; cut the tutorial sentence",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes a reader who already works here; on a public website teaching, repeating and promising are the job, not the defect"
+    },
+    "process_narration": {
+      "question": "Does this text describe the authoring or verification process, such as which tests were run, which review rounds happened, or which tools were used, rather than describing the change itself?",
+      "threshold": 0.67,
+      "severity": "high",
+      "suggestion": "describe the change, not how you arrived at it",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes the artifact describes a code change"
+    },
+    "gate_status_evidence": {
+      "question": "Does this text report a bare pass or fail status, such as tests passing, a suite being green, or a count of passing checks, without saying what situation the test actually covers?",
+      "threshold": 0.19,
+      "severity": "medium",
+      "suggestion": "say what the test proves about a concrete scenario, or cut it",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "assumes the artifact describes a code change",
+      "thresholds": {
+        "pr": 0.25
+      }
+    },
+    "hedged_behavior": {
+      "question": "Does this text describe what the code does using may, might, could, or is intended to, where it could state plainly what the code does?",
+      "threshold": 0.91,
+      "severity": "low",
+      "suggestion": "state the behavior plainly, or say explicitly that it is unverified",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "MEASURED INVERSION 2026-09-18: fitting a model to Jev's probabilities over 92 labelled documents shows this rule is HIGHER on human-expert writing than on machine drafts (raw means: human 0.45, machine 0.29). Firing on it pushes prose AWAY from how skilled engineers actually write. Demoted to low so it cannot reach the action floor; kept for the feature vector, where its weight is learned rather than assumed."
+    },
+    "abstract_subject": {
+      "question": "Do most sentences in this text take an abstract subject such as this change, the implementation, the system, or the solution, rather than a concrete code entity or an actor?",
+      "threshold": 0.81,
+      "severity": "low",
+      "suggestion": "make the code entity the subject of the sentence",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "ABLATION 2026-09-18: the register group reached 0 of 14 drafts on its own and so contributed nothing to whether a revision was preferred. Kept at low severity because low findings do not count toward the action floor; structure and economy carry the result."
+    },
+    "tricolon": {
+      "question": "Does this text contain a list of exactly three parallel items used for rhetorical effect rather than because there are exactly three things?",
+      "threshold": 0.43,
+      "severity": "low",
+      "suggestion": "keep the items that carry information",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc",
+        "web"
+      ],
+      "note": "ABLATION 2026-09-18: the register group reached 0 of 14 drafts on its own and so contributed nothing to whether a revision was preferred. Kept at low severity because low findings do not count toward the action floor; structure and economy carry the result."
+    },
+    "copula_avoidance": {
+      "question": "Does this text use verbs such as serves as, functions as, represents, provides, enables, or ensures where a plain is or are would say the same thing?",
+      "threshold": 0.81,
+      "severity": "low",
+      "suggestion": "use is or are",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ],
+      "note": "ABLATION 2026-09-18: the register group reached 0 of 14 drafts on its own and so contributed nothing to whether a revision was preferred. Kept at low severity because low findings do not count toward the action floor; structure and economy carry the result."
+    },
+    "no_tradeoff": {
+      "question": "Is this text free of any acknowledgement that the approach has a cost, a limitation, or something left unverified?",
+      "threshold": 0.88,
+      "severity": "low",
+      "suggestion": "if something is untested or traded away, say so",
+      "kinds": [
+        "commit",
+        "pr",
+        "doc"
+      ]
+    },
+    "buried_lede": {
+      "question": "Is the single most consequential fact in this text \u2014 the concrete failure, cost, or outcome that makes it matter \u2014 placed somewhere other than the opening? Answer yes if a reader would have to reach the middle or end to find the thing that would change their decision.",
+      "threshold": 0.6,
+      "severity": "low",
+      "suggestion": "move the consequential fact to the opening; the reader may stop at any point",
+      "kinds": [
+        "pr",
+        "doc"
+      ],
+      "thresholds": {
+        "pr": 0.84
+      },
+      "note": "MEASURED INVERSION 2026-09-18: fitting a model to Jev's probabilities over 92 labelled documents shows this rule is HIGHER on human-expert writing than on machine drafts (raw means: human 0.50, machine 0.29). Firing on it pushes prose AWAY from how skilled engineers actually write. Demoted to low so it cannot reach the action floor; kept for the feature vector, where its weight is learned rather than assumed."
+    },
+    "empty_section": {
+      "question": "Does this text contain a section or paragraph that announces a topic without carrying specific information about it \u2014 for example listing considerations, factors, or goals in general terms without saying what any of them resolve to?",
+      "threshold": 0.6,
+      "severity": "high",
+      "suggestion": "delete the section, or replace it with the specific content it promises",
+      "kinds": [
+        "pr",
+        "doc"
+      ],
+      "thresholds": {
+        "pr": 0.8
+      }
+    },
+    "uniform_section_shape": {
+      "question": "Are the sections of this text built to the same pattern as one another, each of a similar size and opening the same way, rather than sized according to how much each one actually has to say?",
+      "threshold": 0.7,
+      "severity": "medium",
+      "suggestion": "let each section be as long as its content warrants",
+      "kinds": [
+        "doc"
+      ]
+    },
+    "scaffolding_headings": {
+      "question": "Do the headings in this text name generic document furniture \u2014 Overview, Background, Introduction, Considerations, Details, Approach, Impact, Summary, Conclusion \u2014 rather than naming the specific thing each section says?",
+      "threshold": 0.55,
+      "severity": "medium",
+      "suggestion": "make each heading state that section's actual claim",
+      "kinds": [
+        "doc"
+      ]
+    },
+    "context_before_point": {
+      "question": "Does this text spend its opening on history, background, or how things came to be, before stating what it is actually about?",
+      "threshold": 0.6,
+      "severity": "medium",
+      "suggestion": "open with the point; move history later or cut it",
+      "kinds": [
+        "pr",
+        "doc"
+      ],
+      "thresholds": {
+        "pr": 0.84
+      }
+    },
+    "document_shape": {
+      "question": "What best describes how this document is organised? Choose the single closest match.",
+      "choices": [
+        "leads with the consequential fact, then explains it",
+        "leads with background or history before reaching the point",
+        "is a flat inventory of items with no single through-line",
+        "announces topics in sections without saying what they resolve to"
+      ],
+      "flag": [
+        "leads with background or history before reaching the point",
+        "is a flat inventory of items with no single through-line",
+        "announces topics in sections without saying what they resolve to"
+      ],
+      "severity": "high",
+      "suggestion": "restructure: open with what the reader needs to decide, then support it",
+      "kinds": [
+        "pr",
+        "doc"
+      ],
+      "note": "a Choice rather than several Nouls because these shapes are mutually exclusive; asking them as independent yes/no questions lets two contradictory diagnoses both fire"
+    },
+    "grounding": {
+      "question": "How well grounded are this text's claims in things a reader could check? Rate the document as a whole.",
+      "levels": [
+        "claims are general statements with no number, name, date, file or identifier anywhere",
+        "a few claims name something specific; most are stated without anything to check",
+        "most claims name a specific thing, but the consequential ones are unsupported",
+        "the claims that matter carry a number, name or identifier a reader could look up",
+        "every load-bearing claim is checkable, and claims that are not are marked as unverified"
+      ],
+      "max_level": 1.5,
+      "severity": "high",
+      "suggestion": "attach a number, name or identifier to the claims that matter, or mark them unverified",
+      "kinds": [
+        "pr",
+        "doc"
+      ],
+      "note": "a Score rather than a Noul because grounding is a matter of degree, not presence"
+    },
+    "benefit_without_mechanism": {
+      "question": "Does this text claim a benefit, capability or outcome without naming, in the same or the next sentence, the concrete mechanism that produces it? A named mechanism is a protocol, format, component, or step a reader could go look up.",
+      "threshold": 0.6,
+      "severity": "high",
+      "suggestion": "name the mechanism next to the claim, or cut the claim",
+      "kinds": [
+        "web",
+        "doc",
+        "pr"
+      ],
+      "note": "the load-bearing rule: credible protocol copy grounds a benefit in a named mechanism within an adjacent sentence. RFC 6749 'enables a third-party application to obtain limited access' bounds the object; x402's 'empower agentic payments at scale' does not"
+    },
+    "unfalsifiable_values_claim": {
+      "question": "Does this text make a claim about values, mission or the state of the world that could not be shown false by any observation, and that is disconnected from what the thing being described actually does?",
+      "threshold": 0.6,
+      "severity": "high",
+      "suggestion": "cut it, or replace with what the thing does",
+      "kinds": [
+        "web"
+      ],
+      "note": "x402's 'exists to build a more free and fair internet'; Solid's 'prioritises profits over people'"
+    },
+    "unearned_superlative": {
+      "question": "Does this text use a superlative or scale claim without attaching a number or naming the class it is being compared against? A superlative backed by a figure or a named comparison class does NOT count.",
+      "threshold": 0.6,
+      "severity": "medium",
+      "suggestion": "attach a number or name the comparison class, or drop the superlative",
+      "kinds": [
+        "web"
+      ],
+      "note": "must NOT fire on curl's 'over twenty billion installations' or OpenAPI's 'world's most widely used API description standard' \u2014 both carry a figure or a rankable class"
+    },
+    "false_ease": {
+      "question": "Does this text assert that something is simple, easy, quick or takes only a moment, without evidence for that difficulty claim?",
+      "threshold": 0.6,
+      "severity": "medium",
+      "suggestion": "describe what it takes instead of asserting it is easy",
+      "kinds": [
+        "web",
+        "doc"
+      ],
+      "note": "Google's developer style guide bans 'simply', 'it's easy', 'quickly' as unproven difficulty claims"
+    },
+    "abstract_collective_noun": {
+      "question": "Does this text use a collective abstraction \u2014 ecosystem, platform, solution, landscape, community, stack \u2014 without naming its concrete members nearby?",
+      "threshold": 0.65,
+      "severity": "medium",
+      "suggestion": "name the members, as in 'people, organizations, apps and devices'",
+      "kinds": [
+        "web"
+      ],
+      "note": "DIF names four members in the same breath; x402's 'win-win economies' names none"
+    },
+    "adoption_as_argument": {
+      "question": "Does this text use adopter counts, user numbers, funding or customer logos as the reason to take it seriously, rather than as neutral factual background?",
+      "threshold": 0.6,
+      "severity": "medium",
+      "suggestion": "a neutral protocol argues from mechanism; move adoption to a registry or a note",
+      "kinds": [
+        "web"
+      ],
+      "note": "0 of 9 neutral protocol sites use adopter counts as argument; AT Protocol's growth dashboard is growth marketing wearing a protocol's clothes"
+    },
+    "scope_overclaim": {
+      "question": "Does this text claim a scope broader than the mechanism it describes can deliver \u2014 for example presenting a narrow technical contract as solving a general category of problem?",
+      "threshold": 0.6,
+      "severity": "high",
+      "suggestion": "state the scope the mechanism actually covers",
+      "kinds": [
+        "web",
+        "doc"
+      ]
+    },
+    "necessary_jargon_carveout": {
+      "question": "Does this text use a technical term that a plain synonym could replace WITHOUT losing precision? Answer no for terms of art such as authorization server, grant, resource owner, or claim, which are necessary and carry exact meaning.",
+      "threshold": 0.7,
+      "severity": "low",
+      "suggestion": "use the plain word where it loses nothing",
+      "kinds": [
+        "web",
+        "doc"
+      ],
+      "note": "plainlanguage.gov separates jargon by INTENT and NECESSITY, not a word list: 'we're not advocating leaving out necessary technical terms'. This rule exists to make that carve-out explicit so precise terms are not penalised"
+    }
+  }
+}
