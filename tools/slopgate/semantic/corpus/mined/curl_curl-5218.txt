@@ -1,0 +1,14 @@
+- tests/server: move all signal handling routines to util.[ch]:
+  Avoid code duplication to prepare for portability enhancements.
+- tests/server: add CTRL event handler for Win32 consoles:
+  Forward CTRL events as signals to existing signal event handler.
+- tests/server: add hidden window to gracefully handle WM_CLOSE:
+  Forward Window events as signals to existing signal event handler.
+
+Reasoing:
+- the Perl testsuite uses taskkill to gracefully (without /f) and forcefully (with /f) terminate test servers, but the graceful case is currently not handled by the test servers themselves, due to:
+  > SIGINT is not supported for any Win32 application. When a CTRL+C interrupt occurs, Win32 operating systems generate a new thread to specifically handle that interrupt. This can cause a single-thread application, such as one in UNIX, to become multithreaded and cause unexpected behavior.
+  > ...
+  > The SIGILL and SIGTERM signals are not generated under Windows. They are included for ANSI compatibility. Therefore, you can set signal handlers for these signals by using signal, and you can also explicitly generate these signals by calling raise.
+  Source: https://docs.microsoft.com/de-de/cpp/c-runtime-library/reference/signal?view=vs-2019
+- therefore this PR implements Console and Window based event handler to receive the graceful WM_CLOSE message and CTRL_C_EVENT, CTRL_CLOSE_EVENT and CTRL_BREAK_EVENT events.

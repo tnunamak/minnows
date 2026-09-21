@@ -1,0 +1,31 @@
+### I did this
+
+(This affects upcoming 7.71.0, not earlier versions)
+
+Since 148534d the curl tool on Windows will fall back on [CURLSSLOPT_NATIVE_CA](https://curl.haxx.se/libcurl/c/CURLOPT_SSL_OPTIONS.html) if it could not find a certificate bundle.  CURLSSLOPT_NATIVE_CA overrides the certificate bundle location. This would appear to not be a problem since the curl tool only falls back if it can't find a location, however libcurl may have its own [hardcoded location](https://github.com/curl/curl/blob/148534d/lib/url.c#L523-L532) and CURLSSLOPT_NATIVE_CA also overrides that. Because CURLSSLOPT_NATIVE_CA only affects OpenSSL, this issue only affects curl w/OpenSSL on Windows.
+
+### I expected the following
+
+Not sure. It is already the behavior that if curl w/ OpenSSL on Windows finds a certificate bundle at runtime then that is set via CURLOPT_CAINFO which sets the bundle location (ie replaces any compile-time hardcoded location). However now if there is no found certificate bundle then this is a change in behavior because the OS certificate store is used instead of the hard coded bundle.
+
+One way to handle this would be don't [fall back on the OS cert store](https://github.com/curl/curl/blob/fa4fbc5/src/tool_operate.c#L2419-L2426). Another way would be use the bundle location even when CURLSSLOPT_NATIVE_CA is set (ie allow CURLOPT_CAINFO) . I've tested this by removing the [`else`](https://github.com/curl/curl/blob/fa4fbc5/lib/vtls/openssl.c#L2965) that makes it one or the other. Another way would be do nothing, that it is intended, which it may very well be.
+
+### curl/libcurl version
+
+~~~
+curl 7.71.0-DEV (i386-pc-win32) libcurl/7.71.0-DEV OpenSSL/1.0.2t nghttp2/1.40.0
+Release-Date: [unreleased]
+Protocols: dict file ftp ftps gopher http https imap imaps ldap ldaps pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+Features: AsynchDNS Debug HTTP2 HTTPS-proxy IPv6 Largefile NTLM SSL UnixSockets alt-svc
+~~~
+
+### operating system
+
+Windows 7 Enterprise
+
+---
+
+Ref: #4346
+Ref: https://curl.haxx.se/mail/lib-2020-06/0068.html
+
+/cc @gvollant

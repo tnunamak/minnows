@@ -1,0 +1,61 @@
+`lpCompare()` in `quicklistCompare()` will call `lpGet()` again, which would be a waste.
+The change will result in a boost for all commands that use `quicklistCompre()`, including `linsert`, `lpos` and `lrem`.
+
+BTW, since the comparison of integers requires a call to `string2ll()` each time, perhaps we could convert the `robj` being compared to a number outside the loop, as lpFind does, but this will also lead to reduced readability.
+Like following:
+```c
+    unsigned char *vstr;
+    size_t vlen;
+    long long lval;
+    vstr = TRY_CONVERT_OBJ(argv[3], &vlen, &lval);
+    while (listTypeNext(iter,&entry)) {
+        if (listTypeEqual(&entry,vstr,vlen,lval) {
+            ...
+        }
+    }
+```
+
+## Compare with string
+Prepare data: `eval 'for i=1,10000,1 do redis.call("rpush", "mylist", "hello"..i) end' 0`
+Benchmark command: `memtier_benchmark --hide-histogram -n 1000 --pipeline=10 --command="lpos mylist hello5000"`
+
+Unstable
+```
+==================================================================================================
+Type         Ops/sec    Avg. Latency     p50 Latency     p99 Latency   p99.9 Latency       KB/sec 
+--------------------------------------------------------------------------------------------------
+Lposs       12944.07       163.12055       166.91100       261.11900       286.71900       606.75 
+Totals      12944.07       163.12055       166.91100       261.11900       286.71900       606.75 
+```
+
+This PR (+21%)
+```
+==================================================================================================
+Type         Ops/sec    Avg. Latency     p50 Latency     p99 Latency   p99.9 Latency       KB/sec 
+--------------------------------------------------------------------------------------------------
+Lposs       15736.97       126.74563       126.97500       218.11100       240.63900       737.67 
+Totals      15736.97       126.74563       126.97500       218.11100       240.63900       737.67 
+```
+
+## Compare with integer
+Prepare data: `eval 'for i=1,10000,1 do redis.call("rpush", "mylist", i) end' 0`
+Benchmark command: `memtier_benchmark --hide-histogram -n 1000 --pipeline=10 --command="lpos mylist 5000"`
+
+
+Unstable
+```
+==================================================================================================
+Type         Ops/sec    Avg. Latency     p50 Latency     p99 Latency   p99.9 Latency       KB/sec 
+--------------------------------------------------------------------------------------------------
+Lposs       11670.68       180.00900       184.31900       294.91100       331.77500       490.08 
+Totals      11670.68       180.00900       184.31900       294.91100       331.77500       490.08 
+```
+
+This PR (+20%)
+```
+==================================================================================================
+Type         Ops/sec    Avg. Latency     p50 Latency     p99 Latency   p99.9 Latency       KB/sec 
+--------------------------------------------------------------------------------------------------
+Lposs       14082.41       147.90192       160.76700       230.39900       254.97500       591.35 
+Totals      14082.41       147.90192       160.76700       230.39900       254.97500       591.35 
+```

@@ -1,0 +1,62 @@
+#### Prerequisites checklist
+
+
+#### What is the purpose of this pull request? (put an "X" next to an item)
+
+
+
+[ ] Documentation update
+[ ] Bug fix ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/bug-report.md))
+[ ] New rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-proposal.md))
+[ ] Changes an existing rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-change-proposal.md))
+[ ] Add autofix to a rule
+[ ] Add a CLI option
+[ ] Add something to the core
+[X] Other, please explain:
+
+
+
+
+
+
+
+#### What changes did you make? (Give an overview)
+
+This is a test-only PR that helps prepare for:
+* RFC: [RFC-85](https://github.com/eslint/rfcs/tree/main/designs/2021-schema-object-rules) (https://github.com/eslint/rfcs/pull/85)
+* RFC implementation: https://github.com/eslint/eslint/pull/16614
+
+This PR only touches tests (and minor change to rule tester). It updates HUNDREDS of test cases that were using function-style rules to object-style rules. I did much of this manually but fixed a few hundred instances by writing a codemod. There were over 500 test cases needing to be updated ahead of the RFC implementation PR.
+
+By merging these test updates first, the actual RFC implementation PR (focused on the breaking changes) linked to above will become dramatically smaller and easier to review. This will reduce the chance of ending up with substantial merge conflicts by the time the RFC breaking change PR can be merged for ESLint v9, and these test improvements are good to get in regardless. This will finally pay down the tech debt of still using hundreds of function-style rules in so many of our test cases. Updating and fixing these tests was ~6 hours of work but hopefully we're close to being done with function-style rules for good after this!
+
+I recommend ignoring whitespace when reviewing.
+
+Very rough jscodeshift codemod I wrote for limited parts of this (this is not at all complete, needs a lot of tweaking to handle a few different situations):
+
+```js
+module.exports = function(fileInfo, api) {
+    const j = api.jscodeshift;
+
+    return api.jscodeshift(fileInfo.source)
+        .find(j.CallExpression, {
+            callee: {
+                property: {
+                    name: "defineRule"
+                }
+            }
+        })
+        .forEach(path => {
+            if (path.value.arguments.length === 2 && path.value.arguments[1].type === "ArrowFunctionExpression") {
+                path.value.arguments[1] = j.objectExpression(
+                    [j.objectProperty(j.literal("create"),
+                        j.functionExpression(null, [], j.blockStatement([j.returnStatement(path.value.arguments[1].body)])))
+                    ]
+                );
+            }
+        })
+        .toSource();
+};
+```
+
+#### Is there anything you'd like reviewers to focus on?

@@ -1,0 +1,18 @@
+During a diskless sync, if the master main process crashes, the child would
+have hung in `write`. This fix closes the read fd on the child side, so that if the
+parent crashes, the child will get a write error and exit.
+
+This change also fixes disk-based replication, BGSAVE and AOFRW.
+In that case the child wouldn't have been hang, it would have just kept
+running until done which may be pointless.
+
+There is a certain degree of risk here. in case there's a BGSAVE child that could
+maybe succeed and the parent dies for some reason, the old code would have let
+the child keep running and maybe succeed and avoid data loss.
+On the other hand, if the parent is restarted, it would have loaded an old rdb file
+(or none), and then the child could reach the end and rename the rdb file (data
+conflicting with what the parent has), or also have a race with another BGSAVE
+child that the new parent started.
+
+Note that i removed a comment saying a write error will be ignored in the child
+and handled by the parent (this comment was very old and i don't think relevant).

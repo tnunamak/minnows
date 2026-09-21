@@ -1,0 +1,33 @@
+#### Prerequisites checklist
+
+
+#### What is the purpose of this pull request? (put an "X" next to an item)
+
+
+
+[ ] Documentation update
+[x] Bug fix ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/bug-report.md))
+[ ] New rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-proposal.md))
+[ ] Changes an existing rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-change-proposal.md))
+[ ] Add autofix to a rule
+[ ] Add a CLI option
+[ ] Add something to the core
+[ ] Other, please explain:
+
+
+
+
+
+
+
+#### What changes did you make? (Give an overview)
+
+Previously, glob patterns didn't match dot files and couldn't be changed while we were using globby for flat config. Because we moved to our own glob search, we can now include dot files in our searches automatically.
+
+Note that `ConfigArray` was [already matching](https://github.com/humanwhocodes/config-array/blob/main/src/config-array.js#L26) patterns against dot files. This change brings our glob search into alignment with how `ConfigArray` works.
+
+Fixes #16265
+
+#### Is there anything you'd like reviewers to focus on?
+
+I had to adjust some existing tests because they had dot files in the directories they were running in. Please double-check those changes.

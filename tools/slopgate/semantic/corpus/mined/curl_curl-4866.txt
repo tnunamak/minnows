@@ -1,0 +1,14 @@
+This PR adds new Azure Pipelines builds using Docker Containers running MinGW and MinGW-w64 using MSYS1 and MSYS2.
+
+The intent is to replace the broken Windows builds on curlbuild.uxnr.de with these.
+
+The Docker Containers are hosted in a separate Git repository which I intent to move to the curl organisation on Github, even though they may also be useful for the libssh2 project:
+https://github.com/mback2k/curl-docker-winbuildenv
+
+As you can see here the builds are currently looking fine, even though I had to disable some test cases which have always been failing on Windows, especially with Schannel instead of OpenSSL:
+https://mback2k.visualstudio.com/curl/_build/results?buildId=723&view=results
+
+Of course I will re-enable the Linux and Mac OS X builds once ready while I am rebasing and merging this PR myself if it is approved. I would also suggest to separate the builds into stages, so that the longer running builds are only performed if the short builds completed successful:
+https://docs.microsoft.com/en-us/azure/devops/pipelines/process/stages?view=azure-devops
+
+What do you think? @bagder @jay @MarcelRaad

@@ -1,0 +1,9 @@
+Adjusting WhereNode.as_sql ensures that inlined references to full match conditions are properly handled even when not directly selected.
+
+~It could also have been solved by introducing a new FullResultSet exception but the usage of a constant string seemed less invasive as there might usage of `WhereNode` in the wild that don't expect a new exception to be raised.~
+
+After tinkering with it a bit it seems that basing the work on a `FullResultSet` exception makes a way nicer interface which also makes it clear in which location full matches are not appropriately handled. That's how I discovered the lack of coverage for full matches in `Aggregate.filter`.
+
+Raising exceptions also make it possible to optimize `CASE WHEN` in a nicer way when dealing with cases full matches.
+
+I kept the string constant based approach as the second commit to demonstrate the alternative approach (it passes the whole suite including Oracle) but I greatly prefer the exception based one so commits likely need to be squashed.

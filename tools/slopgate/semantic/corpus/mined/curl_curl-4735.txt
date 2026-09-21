@@ -1,0 +1,24 @@
+- Remove our cb_update_key in favor of ngtcp2's new
+  ngtcp2_crypto_update_key_cb which does the same thing.
+
+Several days ago the ngtcp2_update_key callback function prototype was
+changed in ngtcp2/ngtcp2@42ce09c. Though it would be possible to
+fix up our cb_update_key for that change they also added
+ngtcp2_crypto_update_key_cb which does the same thing so we'll use that
+instead.
+
+Ref: https://github.com/ngtcp2/ngtcp2/commit/42ce09c
+
+Closes #xxxx
+
+---
+
+Disclaimer: I'm not yet using HTTP/3. This is an attempt to fix [this CI error](https://travis-ci.org/curl/curl/jobs/626681962#L7651):
+
+~~~
+  CC       vquic/libcurl_la-ngtcp2.lo
+vquic/ngtcp2.c:559:3: error: initialization of ‘int (*)(ngtcp2_conn *, uint8_t *, uint8_t *, uint8_t *, uint8_t *, uint8_t *, uint8_t *, const uint8_t *, const uint8_t *, size_t,  void *)’ {aka ‘int (*)(struct ngtcp2_conn *, unsigned char *, unsigned char *, unsigned char *, unsigned char *, unsigned char *, unsigned char *, const unsigned char *, const unsigned char *, long unsigned int,  void *)’} from incompatible pointer type ‘int (*)(ngtcp2_conn *, uint8_t *, uint8_t *, uint8_t *, uint8_t *, void *)’ {aka ‘int (*)(struct ngtcp2_conn *, unsigned char *, unsigned char *, unsigned char *, unsigned char *, void *)’} [-Werror=incompatible-pointer-types]
+   cb_update_key, /* update_key */
+   ^~~~~~~~~~~~~
+vquic/ngtcp2.c:559:3: note: (near initialization for ‘ng_callbacks.update_key’)
+~~~

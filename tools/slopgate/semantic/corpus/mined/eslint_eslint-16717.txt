@@ -1,0 +1,33 @@
+#### Prerequisites checklist
+
+
+#### What is the purpose of this pull request? (put an "X" next to an item)
+
+
+
+[x] Documentation update
+[ ] Bug fix ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/bug-report.md))
+[ ] New rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-proposal.md))
+[ ] Changes an existing rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-change-proposal.md))
+[ ] Add autofix to a rule
+[ ] Add a CLI option
+[ ] Add something to the core
+[ ] Other, please explain:
+
+
+
+
+
+
+
+#### What changes did you make? (Give an overview)
+
+The sponsors data in the README hasn't been updated since we switched over to the new website. We were previously running the README update from the old website repo.
+
+This PR updates the script to fetch data from the new eslint.org repo and also adds a workflow that goes off each night (after the website update) to check for new data.
+
+Additionally, I've run the script once to update the current README.
+
+#### Is there anything you'd like reviewers to focus on?
+
+I created a new npm script called "build:readme". Based on our current conventions it seemed like that was the most appropriate, but please let me know if it should be named something else.

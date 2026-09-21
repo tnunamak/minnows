@@ -1,0 +1,8 @@
+Also avoid an unnecessary pushdown when aggregating over a query that doesn't have aggregate annotations.
+
+---
+
+This optimizes the `Query.get_aggregation` in the following way:
+
+1. Only perform a subquery wrapping if there are pre-existing aggregations annotation at the time `aggregate` is called. If there aren't existing aggregates (as opposed to pre-existing aggregation previously) then as long as the non-summarized aggregates (the ones passed to `.aggregate`) have their references to other annotations inlined the latter can be pruned.
+2. In cases where a subquery wrapping is still required (e.g. pre-existing aggregations), make sure that all unreferenced annotations are pruned from the inner query.

@@ -1,0 +1,18 @@
+curl now iterates over all the environment variables
+trying to access the file in question until it finds it. Last resort is
+then getpwuid() if available. Previously it would first try to find a
+home directory and if that was set, insist on checking only that
+directory for the file.
+
+The Windows specific checks are now done differently too and in this
+order:
+
+1 - %USERPROFILE%
+2 - %APPDATA%
+3 - %USERPROFILE%\\Application Data\\
+
+The windows order is modified to match how the Windows 10 ssh tool works
+when it searches for .ssh/known_hosts.
+
+Reported-by: jeffrson on github
+Fixes #8033

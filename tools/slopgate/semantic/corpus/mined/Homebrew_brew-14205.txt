@@ -1,0 +1,7 @@
+-----
+
+The `ElectronBuilder` strategy uses `YAML#safe_load` to parse YAML content and this [limits deserialization to appropriate classes](https://ruby-doc.org/stdlib-2.6.10/libdoc/psych/rdoc/Psych.html#method-c-safe_load). We [recently encountered a `Tried to load unspecified class: Time` error](https://github.com/Homebrew/homebrew-cask/pull/137011) when using the `ElectronBuilder` strategy on a `latest-mac.yml` file containing `releaseDate: 2022-12-01T02:02:46.419Z`.
+
+The electron-builder YAML files we usually encounter use single quotes around the `releaseDate` value to ensure it's treated as a string (e.g., `releaseDate: '2022-10-12T17:55:26.718Z'`) and this is what we do in `electron_builder_spec.rb`. The aforementioned YAML file doesn't use single quotes around the value, so it's treated as a timestamp and apparently this makes Psych use `Time` (which `#safe_load` doesn't allow by default).
+
+There's something to be said for upstream simply using single quotes around this value (the electron-builder documentation seems to suggest the value should be a string) but that's not something we can directly control and we may encounter other files like this in the future. With that in mind, this PR modifies the related `#safe_load` call to allow `Time` (and `Date` for good measure), which will resolve the aforementioned error and allow the `ElectronBuilder` strategy to work as expected in this scenario.

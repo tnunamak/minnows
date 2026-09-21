@@ -1,0 +1,35 @@
+We have several tests that were ignored back when we were waiting for fast-glob fixes. Because we no longer use fast-glob, the tests now work.
+
+
+
+#### Prerequisites checklist
+
+
+#### What is the purpose of this pull request? (put an "X" next to an item)
+
+
+
+[ ] Documentation update
+[ ] Bug fix ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/bug-report.md))
+[ ] New rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-proposal.md))
+[ ] Changes an existing rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-change-proposal.md))
+[ ] Add autofix to a rule
+[ ] Add a CLI option
+[ ] Add something to the core
+[x] Other, please explain:
+
+Test updates
+
+
+
+
+
+
+
+#### What changes did you make? (Give an overview)
+
+There were several tests that we were ignoring for `FlatESLint` due to bugs in `fast-glob`. Now that we no longer use `fast-glob`, we can make these tests run.
+
+#### Is there anything you'd like reviewers to focus on?
+
+I changed the last test a bit because `ignores` works a bit differently than `ignorePatterns` did. Please double-check that change.

@@ -1,0 +1,31 @@
+#### Prerequisites checklist
+
+
+#### What is the purpose of this pull request? (put an "X" next to an item)
+
+
+
+
+
+
+
+
+#### What changes did you make? (Give an overview)
+
+Switch from the 🛠 (hammer and wrench) to 🔧 (wrench) emoji to represent auto-fixable rules.
+
+Why?
+
+- The wrench could be considered simpler, "less busy", and a "more straightforward" emoji to indicate the desired meaning
+- I used [eslint-ecosystem-analyzer](https://github.com/bmish/eslint-ecosystem-analyzer) to count usages of each emoji across the top 1,000 ESLint plugins, and found the wrench to be vastly more popular:
+
+| Emoji | Number of Files in Top 1,000 ESLint Plugins | 
+| --- | --- | 
+| 🔧 | 607 |
+| 🛠 | 15 | 
+
+As a result of the greater popularity of the wrench emoji, I have also adopted it in [eslint-doc-generator](https://github.com/bmish/eslint-doc-generator) which is used in the top 15+ ESLint plugins ([example output](https://github.com/jest-community/eslint-plugin-jest#rules)).
+
+This is a great opportunity to finish standardizing the entire ESLint ecosystem on the wrench emoji by adopting it inside ESLint core as well.
+
+#### Is there anything you'd like reviewers to focus on?

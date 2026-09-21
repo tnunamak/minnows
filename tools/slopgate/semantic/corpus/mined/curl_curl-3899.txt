@@ -1,0 +1,18 @@
+This enables the use of Windows Subsystem for Linux to run the
+testsuite against Windows binaries while using Linux servers.
+
+This PR introduces the following environment variables:
+- CURL_TEST_EXE_EXT: set the executable extension for all components
+- CURL_TEST_EXE_EXT_TOOL: set it for the curl tool only
+- CURL_TEST_EXE_EXT_SSH: set it for the SSH tools only
+- CURL_TEST_EXE_EXT_SRV: set it for the test servers only
+
+Later testcurl.pl could be adjusted to make use of those variables.
+
+Example usage:
+
+`CURL_TEST_EXE_EXT_TOOL=.exe CURL_TEST_EXE_EXT_SRV=.exe ./runtests.pl -a`
+
+This will use .exe variants for the curl tool and the test servers, but not for OpenSSH commands and therefore enables testing Windows curl against known good Linux OpenSSH (instead of a Windows port).
+
+This PR requires #3290 and therefore currently carries b9f8937afa936be7fbc503aa02ace28ef6c74206 with it until #3290 is merged.

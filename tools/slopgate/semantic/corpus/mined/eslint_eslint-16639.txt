@@ -1,0 +1,37 @@
+#### Prerequisites checklist
+
+
+#### What is the purpose of this pull request? (put an "X" next to an item)
+
+
+
+[ ] Documentation update
+[ ] Bug fix ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/bug-report.md))
+[ ] New rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-proposal.md))
+[ ] Changes an existing rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-change-proposal.md))
+[ ] Add autofix to a rule
+[ ] Add a CLI option
+[x] Add something to the core
+[ ] Other, please explain:
+
+
+
+
+
+
+
+#### What changes did you make? (Give an overview)
+
+Fixes #15735.
+
+RFC (approved): https://github.com/eslint/rfcs/pull/101
+
+In rule tester, check for parsing errors in suggestion fixes, and throw an error if a suggestion yielded invalid output.
+
+This is a breaking change for plugin developers who may have had invalid suggestions.
+
+#### Is there anything you'd like reviewers to focus on?
+
+
+
+This PR is ready on my side. I'm lining this PR up now so that it's ready for the v9 release.

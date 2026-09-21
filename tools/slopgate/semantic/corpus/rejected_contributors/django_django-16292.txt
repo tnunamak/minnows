@@ -1,0 +1,10 @@
+The `as_div()` output style is recommended, and will become the default in Django 5.0. 
+
+This PR updates the form api docs to use this style. 
+
+I've not yet updated the outputs which just call `str` as that will still default to the table output until the switch is made in 5.0. 
+
+A couple of items were maybe a little surprising. 
+
+- The override of `label` doesn't work anymore (it's stored on the BoundField when the class is created). So I switched to changing the suffix. 
+- `->` is escaped. Is this right?

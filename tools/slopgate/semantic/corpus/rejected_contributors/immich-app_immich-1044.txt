@@ -1,0 +1,5 @@
+This PR makes the "three-stage loading" configurable. The user can now configure whether to load the preview and/or original image. This PR greatly reduces the data use (both network and cache on device!).
+
+Previous default: The detail viewer loads the thumbnail, then loads the original image (easily 8mb+). This takes quite long uses a lot of data. The user could not disable loading the large image.
+
+New default: The detail viewer loads the thumbnail, then loads the preview image (usually less than 1 mb). This is fast, looks (almost) identical when not zooming (except maybe on high-res tablets). The user can still opt-in to always load the original in the app settings.

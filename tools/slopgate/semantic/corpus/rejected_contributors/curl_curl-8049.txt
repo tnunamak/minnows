@@ -1,0 +1,15 @@
+Previously, the return code CURLUE_MALFORMED_INPUT was used for almost
+30 different URL format violations. This made it hard for users to
+understand why a particular URL was not acceptable. Since the API cannot
+point out a specific position within the URL for the problem, this now
+instead introduces a number of additional and more fine-grained error
+codes to allow the API to return more exactly in what "part" or section
+of the URL a problem was detected.
+
+Also bug-fixes curl_url_get() with CURLUPART_ZONEID, which previously
+returned CURLUE_OK even if no zoneid existed.
+
+Test cases in 1560 have been adjusted and extended. Tests 1538 and 1559
+have been updated.
+
+Updated libcurl-errors.3 and curl_url_strerror() accordingly.

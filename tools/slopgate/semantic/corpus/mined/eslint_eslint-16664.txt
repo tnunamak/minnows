@@ -1,0 +1,31 @@
+#### Prerequisites checklist
+
+
+#### What is the purpose of this pull request? (put an "X" next to an item)
+
+
+
+[ ] Documentation update
+[ ] Bug fix ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/bug-report.md))
+[ ] New rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-proposal.md))
+[ ] Changes an existing rule ([template](https://raw.githubusercontent.com/eslint/eslint/HEAD/templates/rule-change-proposal.md))
+[ ] Add autofix to a rule
+[ ] Add a CLI option
+[ ] Add something to the core
+[x] Other, please explain:
+
+On the recently released Node v19.3.0, we're getting a lot of errors related to loading `eslint-plugin-internal-rules`, which is in our package.json specified as `"eslint-plugin-internal-rules": "file:tools/internal-rules"`. Node v19.3.0 is the first version that includes npm v9, and the cause of the problem seems to be the new default value `true` for the option [`install-links`](https://docs.npmjs.com/cli/v9/commands/npm-install#install-links). 
+
+
+
+
+
+
+
+#### What changes did you make? (Give an overview)
+
+In `.npmrc`, I added `install-links = false` to restore pre-v9 npm behavior.
+
+#### Is there anything you'd like reviewers to focus on?
+
+I'm not sure why exactly it doesn't work with the default `install-links = true`.

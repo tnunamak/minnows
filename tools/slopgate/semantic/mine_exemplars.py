@@ -15,9 +15,16 @@ rediscovering.
 
 So the ground truth here is PROVENANCE, not judgement:
 
-  positive  a merged PR body from a project whose review culture is documented
-            (in the corpus) to enforce description quality, written by a human
-            account, before the LLM era where possible.
+  positive  a merged PR body written by a MAINTAINER of that project -- someone
+            with write access, whose own writing sets the project's bar --
+            before the LLM era where possible.
+
+            Requiring maintainer authorship rather than merely "merged" is the
+            correction that matters. An earlier version accepted any non-bot
+            contributor, which put twenty six PR bodies by random contributors
+            into a corpus labelled expert writing, four of them empty templates.
+            "Merged into a good repo" measures the project's review standards,
+            not the author's writing.
 
   negative  a PR body from the same domain that a maintainer actually asked to
             be rewritten, or a machine-generated draft.
@@ -96,6 +103,12 @@ def mine(repo, per_repo, before):
         num, user = parts
         if BOT.search(user):
             continue
+        # Maintainer check: author_association is OWNER or MEMBER for someone
+        # with write access, CONTRIBUTOR or NONE for an outside submitter.
+        assoc = gh(["api", f"repos/{repo}/pulls/{num}",
+                    "--jq", ".author_association"])
+        if not assoc or assoc.strip() not in ("OWNER", "MEMBER", "COLLABORATOR"):
+            continue
         body = gh(["api", f"repos/{repo}/pulls/{num}", "--jq", ".body"])
         if not body or body.strip() in ("", "null"):
             continue
@@ -104,6 +117,14 @@ def mine(repo, per_repo, before):
         if not (90 <= w <= 500):
             continue
         if len(BOILERPLATE.findall(body)) >= 2:
+            continue
+        # Reject template scaffolding regardless of who wrote it. A maintainer
+        # filling in a checklist has not written prose, and three such bodies
+        # survived the word-count and boilerplate filters: they clear 90 words
+        # on headings and checkboxes alone. Require real sentences.
+        prose_lines = [l.strip() for l in body.splitlines()
+                       if len(l.split()) > 8 and not l.strip().startswith(("#", "-", "*", "["))]
+        if len(prose_lines) < 3:
             continue
         out.append({"repo": repo, "number": num, "user": user,
                     "created": "", "words": w, "body": body})
