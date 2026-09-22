@@ -9,7 +9,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | Tag **`data-model-catalog-v0.5.5`** — not yet released; latest published release remains [data-model-catalog-v0.5.3](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.3) until `./scripts/release-data-pack.sh` is run |
+| **This version** | [data-model-catalog-v0.5.5](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.5) — published by CI on push to main |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -18,7 +18,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.5.3  # latest RELEASED tag; v0.5.4 is working-tree only until released
+TAG=data-model-catalog-v0.5.5
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz

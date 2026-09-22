@@ -11,14 +11,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | Tag **`data-model-choice-policy-v0.1.9`** — not yet released; latest published release remains [data-model-choice-policy-v0.1.6](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.1.6) until `./scripts/release-data-pack.sh` is run |
+| **This version** | [data-model-choice-policy-v0.1.9](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.1.9) — published by CI on push to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.1.6  # latest RELEASED tag; v0.1.9 is working-tree only until released
+TAG=data-model-choice-policy-v0.1.9
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
