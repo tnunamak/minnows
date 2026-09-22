@@ -33,12 +33,13 @@
         "value": 8.39,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "comparable": false
     },
     {
       "model": "gpt-5.6-terra",
       "metric": "DeepSWE Leaderboard (datacurve.ai)",
-      "score": 0.70,
+      "score": 0.7,
       "unit": "pass_rate",
       "effort": "max",
       "harness": "mini-swe-agent",
@@ -54,7 +55,8 @@
         "value": 3.96,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "comparable": false
     },
     {
       "model": "gpt-5.6-luna",
@@ -75,7 +77,8 @@
         "value": 0.61,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "comparable": false
     }
   ],
   "claims": [
