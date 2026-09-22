@@ -11,7 +11,7 @@
     "operating-points.json"
   ],
   "related": {
-    "catalog": "data-model-catalog-v0.5.4",
+    "catalog": "data-model-catalog-v0.5.5",
     "doctrine": "Operating Point Resolver — task-shaped ops, not cheap/default/max, not silent auto-routing"
   }
 }

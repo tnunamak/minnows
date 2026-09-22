@@ -9,7 +9,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | Tag **`data-model-catalog-v0.5.4`** — not yet released; latest published release remains [data-model-catalog-v0.5.3](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.3) until `./scripts/release-data-pack.sh` is run |
+| **This version** | Tag **`data-model-catalog-v0.5.5`** — not yet released; latest published release remains [data-model-catalog-v0.5.3](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.3) until `./scripts/release-data-pack.sh` is run |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -74,6 +74,13 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 5. **Validate before shipping:** `./scripts/validate_data_pack.py model-catalog`
 
 ## Changelog
+
+### v0.5.5 — 2026-09-22
+
+- **Added Claude Opus 5.5** (launched 2026-09-22): `models.json` entry (family `claude-opus`, GA, aliases "Claude Opus 5.5"/"Opus 5.5"); pricing row in `pricing/anthropic-api-2026-07.json` ($4/$20 input/output, cache read $0.20 at a 0.05x-base override multiplier, cache write $5 at 1.25x, fast mode $8/$40 Claude-API-first-party-only); `capabilities/effort-surfaces-2026-07.json` api surface (levels low/medium/high/xhigh/max, **default medium** — different from Opus 5's default high; thinking cannot be disabled at ANY effort level, stricter than Opus 5's xhigh/max-only restriction; forced `tool_choice` any/tool return a 400 error; computer use requires `computer_toolset_20260801` on the Claude API/Google Cloud). `claude-opus-5` is **not** marked historical — it remains served.
+- **New:** `performance/anthropic-opus-5-5-launch-2026-09.json` — the launch page's headline benchmark table (Opus 5.5 / Fable 5.1 / Opus 5 / GPT-6 Astra / GPT-5.6 Sol) across Terminal-Bench 4.0, FrontierCode v1.1 (Main), CursorBench 4.0, GDPval-AA v2.1, AutomationBench, Humanity's Last Exam (with tools), Terminal-Bench-Science 0.1, OSWorld 2.0, and Chartography, plus the page's own vendor claims (cost-per-quality comparisons vs Opus 5/GPT-6 Astra/GPT-5.6 Sol, and a customer-quote claim about BigFinance Bench). Five new `metric_id`s registered in `metrics.json` for the launch table's own versions of Terminal-Bench 4.0/FrontierCode/CursorBench/GDPval-AA (kept separate from this pack's existing OpenAI-launch and secondary-audit readings of similarly-named benchmarks — different publishers, not comparable) plus `chartography`. Full per-effort curves from the same page's inline-SVG charts are intentionally **not** ingested here (separate chart-digitization scope) — only the headline best-score-per-model row per benchmark.
+- **New SOURCES:** `anthropic-opus-5-5-2026-09-22` (launch post), `anthropic-pricing-2026-09-22`, `anthropic-models-overview-2026-09-22`, `anthropic-effort-guide-2026-09-22` (re-retrievals confirming the above).
+- Not recorded (no source found): a tokenizer-identity claim for Opus 5.5 vs Opus 5, and an Opus 5.5 lifecycle/retirement floor.
 
 ### v0.5.4 — 2026-09-05
 

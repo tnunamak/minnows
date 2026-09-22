@@ -913,6 +913,56 @@
       "harness": null,
       "steward": "vendor_table",
       "unit_default": "accuracy"
+    },
+    {
+      "id": "terminal-bench-4-0-anthropic-opus-5-5-launch",
+      "name": "Terminal-Bench 4.0 (Anthropic Opus 5.5 launch table)",
+      "direction": "higher_better",
+      "harness": "claude_code",
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Anthropic's own Opus 5.5 launch-page reading of Terminal-Bench 4.0. Distinct metric_id from the pack's existing terminal-bench-4-0 (OpenAI GPT-6 Astra launch chart + secondary tbench.ai audit) — three different publishers report different numbers for the same nominal benchmark name; do not merge or average across metric_ids."
+    },
+    {
+      "id": "frontiercode-1-1-main-anthropic-opus-5-5-launch",
+      "name": "FrontierCode v1.1 (Main) (Anthropic Opus 5.5 launch table)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Anthropic's own Opus 5.5 launch-page reading. Distinct from the pack's existing frontiercode-1-1-extended (a different vendor launch-chart metric); versions/labels differ (v1.1 Main vs 1.1 Extended) and must not be cross-ranked."
+    },
+    {
+      "id": "cursorbench-4-0-anthropic-opus-5-5-launch",
+      "name": "CursorBench 4.0 (Anthropic Opus 5.5 launch table)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Anthropic's own Opus 5.5 launch-page reading of CursorBench 4.0 — a newer CursorBench version than the pack's existing cursorbench-3-2-0; not comparable across versions."
+    },
+    {
+      "id": "gdpval-aa-v2-1",
+      "name": "GDPval-AA v2.1",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "elo",
+      "comparable": false,
+      "notes": "Anthropic Opus 5.5 launch-page reading. A newer version than the pack's existing gdpval-aa-v2; not comparable across versions."
+    },
+    {
+      "id": "chartography",
+      "name": "Chartography",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Visual chart recognition benchmark, from the Anthropic Opus 5.5 launch table. 'With tools' qualifier per source."
     }
   ]
 }

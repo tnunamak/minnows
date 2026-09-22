@@ -686,6 +686,46 @@
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
       "notes": "Direct authority for request semantics. Five levels low/medium/high/xhigh/max, default high. Per-message effort update (beta) on fable-5-1, mythos-5-1, opus-5; fable-5 is top-level only. opus-4.5 and sonnet-4.5 are compatibility-listed without a full matrix; haiku-4.5 is absent from the five-level table. Lifecycle floors from the model-deprecations page: fable-5-1 2027-09-01, fable-5 2027-06-09, opus-5 2027-07-24, opus-4.8/4.7/4.6 2027-05-28/2027-04-16/2027-02-05, opus-4.5 2026-11-24, sonnet-5 2027-06-30, sonnet-4.6 2027-02-17, sonnet-4.5 2026-09-29, haiku-4.5 2026-10-15."
+    },
+    {
+      "id": "anthropic-opus-5-5-2026-09-22",
+      "url": "https://www.anthropic.com/news/claude-opus-5-5",
+      "title": "Introducing Claude Opus 5.5",
+      "publisher": "Anthropic",
+      "published": "2026-09-22",
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_blog",
+      "notes": "Launch post, model id claude-opus-5-5. $4/$20 input/output, cache read $0.20 (0.05x base, called out same as Fable/Mythos's 0.025x pattern), cache write $5 (1.25x, 5-minute), fast mode $8/$40 (Claude API first-party only per pricing docs; launch post phrases this as \"available in Claude Code and the Claude Platform\"). Pricing table verbatim: \"Input and output tokens are $4 and $20 per million, 20% less than Opus 5. Cache reads ... are $0.20 per million tokens, 60% less than Opus 5.\" Launch table (headline table, read from server-rendered <table> cells, columns Opus 5.5/Fable 5.1/Opus 5/GPT-6 Astra/GPT-5.6 Sol) plus a duplicate/consistent set of exact values recovered from inline SVG chart aria-labels per effort level low/medium/high/xhigh/max on Terminal-Bench 4.0, FrontierCode v1.1 (Main), CursorBench 4.0, GDPval-AA v2.1, AutomationBench, and WANDR — used for the single headline-table performance doc in this pack; the SVG effort-curve series is NOT digitized/ingested here (owned by a separate chart-digitization pass). Footnote 1 verbatim: \"Terminal-Bench 4.0: The standard error is ±2.6 pts for Claude Opus 5.5 and ±1.6–2 pts for the other Claude models. The public leaderboard (5 trials/task, Claude Code harness) reports Claude Opus 5 at 51.8%; our setup reproduces it at 52.3%, within noise. GPT-6 Astra and GPT-5.6 Sol figures are as reported by OpenAI.\" Footnote 2 (AutomationBench) verbatim: \"AutomationBench results were run and reported by Zapier. These runs were performed without fallback models, so safeguard interventions were considered failures—this resulted in a lower score than Claude Opus 5.5 would achieve in practice. Claude Opus 5.5 results come from Zapier's own evaluation during early access. Results for Opus 5, GPT-5.6 Sol, and GPT-6 Astra come from Zapier's public leaderboard.\" Footnote 3 (Terminal-Bench-Science 0.1) verbatim: \"The standard error is ±3.5–5 pts per model. The public leaderboard (3 trials/task, Claude Code harness) reports Claude Opus 5 at 30.0%; our setup reproduces it at 29.0%, within noise. The GPT-6 Astra figure is as reported by OpenAI.\" Header note verbatim: \"Unless otherwise noted, all Claude Opus 5.5 results use adaptive thinking at max effort. Terminal-Bench 4.0 results are reported for Claude Opus 5.5 at xhigh effort and GPT-6 Astra at high effort, as reported by OpenAI; these represent each model's highest score. Claude Opus 5.5 was evaluated with its production safeguards enabled. When they intervened, cybersecurity tasks were completed by Claude Opus 4.8, and biology and frontier LLM development tasks were completed by Claude Opus 5.\" Vendor claim verbatim (Terminal-Bench 4.0 section): \"Opus 5.5 at default effort beats Opus 5 at max effort for about a fifth of the cost. It matches GPT-6 Astra at about 40% of the cost.\" Vendor claim verbatim (FrontierCode section): \"At default effort (medium), Opus 5.5 scores 54.6%, higher than all other models, beating GPT-6 Astra's top score (53.3%) for about a fifth of the cost per task.\" Vendor claim verbatim (CursorBench section): \"At default effort (medium), Opus 5.5 scores 52.5%, compared to 51.8% for Fable 5.1 (max) and 46.6% for Opus 5 (max). It beats GPT-5.6 Sol's top score (41.7%) by 11 points for about a third of the cost per task.\" Customer-quote claim verbatim (BigFinance Bench, NOT a vendor benchmark claim about GPT-6 Astra as the brief's prior summary implied): \"Financial firms need outputs that are consistently correct. At its lowest effort setting, Claude Opus 5.5 beat Opus 5 at high effort on our BigFinance Bench with about 60% fewer output tokens. Its answers are shorter and better structured, and its slides come out denser, more in line with industry standards.\" No 1M-context/128K-max-output or tokenizer claim is stated on this page; those come from the models-overview doc, and no tokenizer claim was found in any fetched source."
+    },
+    {
+      "id": "anthropic-pricing-2026-09-22",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "title": "Pricing — Anthropic docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_docs",
+      "notes": "Re-retrieved for Opus 5.5 launch. Confirms claude-opus-5-5 rates: input $4/MTok, output $20/MTok, 5-minute cache write 1.25x base = $5/MTok, cache read 0.05x base = $0.20/MTok (Opus 5.5's own special cache-read multiplier, distinct from the 0.025x used by Fable 5.1/Mythos 5.1 and the standard 0.1x elsewhere). Verbatim: \"Cache read (hit) 0.1x base input price (0.025x on Claude Fable 5.1 and Claude Mythos 5.1; 0.05x on Claude Opus 5.5)\". Fast mode verbatim: \"Fast mode, in research preview, provides significantly faster output for Claude Opus 5.5, Claude Opus 5, and Claude Opus 4.8 at premium pricing. Fast mode pricing applies across the full context window, including requests over 200k input tokens. Fast mode is available on the Claude API (first-party) only; it is not available on Claude Platform on AWS or partner-operated cloud platforms.\" Fast mode rate for Opus 5.5 not machine-extracted from this fetch (table row not captured in raw text pass); brief's stated $8/$40 matches the launch post's prose statement and is recorded there."
+    },
+    {
+      "id": "anthropic-models-overview-2026-09-22",
+      "url": "https://platform.claude.com/docs/en/about-claude/models/overview",
+      "title": "Models overview — Anthropic docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_docs",
+      "notes": "Re-retrieved for Opus 5.5 launch. Confirms model id claude-opus-5-5. Comparison table (columns Fable 5.1 / Opus 5.5 / Sonnet 5 / Haiku 4.5): Thinking \"Adaptive (always on)\" for Fable 5.1 and Opus 5.5; Default effort medium for Opus 5.5 (high for Fable 5.1, high for Sonnet 5, \"Not supported\" for Haiku 4.5); Context window 1M tokens for Fable 5.1/Opus 5.5/Sonnet 5, 200K for Haiku 4.5; Max output 128K tokens for Fable 5.1/Opus 5.5/Sonnet 5, 64K for Haiku 4.5. Positioning verbatim: \"If you're unsure which model to use, start with Claude Opus 5.5 for most workloads. Use Claude Fable 5.1 for demanding reasoning and long-horizon agentic work, or when your evals on Claude Opus 5.5 at higher effort still fall short.\" No tokenizer claim found on this page or any other fetched source."
+    },
+    {
+      "id": "anthropic-effort-guide-2026-09-22",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort — Anthropic docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_docs",
+      "notes": "Re-retrieved for Opus 5.5 launch. Verbatim: \"Requests that set thinking: {\\\"type\\\": \\\"disabled\\\"} return a 400 error at every effort level\" for Claude Opus 5.5 — this is STRICTER than Opus 5, where thinking can only not be disabled at xhigh/max (verbatim: \"On Claude Opus 5, thinking cannot be disabled at xhigh or max effort: requests that set thinking: {\\\"type\\\": \\\"disabled\\\"} at those levels return a 400 error\"). Effort levels low/medium/high/xhigh/max apply to Opus 5.5. Per-message effort (beta) supported on Opus 5.5 via beta header mid-conversation-output-config-2026-07-01; verbatim: \"Claude Opus 5.5 also supports changing effort mid-conversation with a per-message output_config\". Forced tool_choice (source: tool-use implement-tool-use doc, same 2026-09-22 fetch session): verbatim table row — \"Claude Opus 5.5, Claude Fable 5.1, and Claude Mythos 5.1\" under forced tool use support: \"any and tool return a 400 error\"; \"auto or none\" still work. Computer use (source: computer-use-tool doc, same fetch session): Opus 5.5 requires computer_toolset_20260801 on the Claude API and Google Cloud (does not accept the older computer_20251124 toolset there); on Amazon Bedrock it still accepts computer_20251124."
     }
   ]
 }
