@@ -856,6 +856,16 @@
       "retrieved_at": "2026-09-22",
       "kind": "third_party_eval",
       "notes": "Listed live on launch day: $4/M input, $20/M output, cache read $0.20/M, cache write $5.00/M ($8.00/M for 1h). 1M token context, 128K max completion. This is PRICING/availability confirmation, not a quality board reading; no throughput (tokens/sec) figure was retrievable from this fetch."
+    },
+    {
+      "id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "url": "https://deploymentsafety.openai.com/gpt-6-astra",
+      "title": "GPT-6 Astra System Card - OpenAI Deployment Safety Hub",
+      "publisher": "OpenAI",
+      "published": "2026-09-03",
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_blog",
+      "notes": "Full system card (change log dated through 2026-09-22). Fetched via headless-browser capture (page is behind a Cloudflare JS challenge; plain curl/WebFetch return 403) and converted to text with html2text. This document is safety/preparedness-focused: production-benchmark safe-completion rates, U18 evaluations, agentic safe-completion, vision safety, jailbreak/prompt-injection robustness, HealthBench (length-adjusted), hallucination reduction, alignment/misaligned-outcome rates, monitorability/CoT-controllability, and Preparedness Framework capability evaluations (biological/chemical, cybersecurity, AI self-improvement) plus safeguard/refusal evaluations. It contains NO general capability benchmark tables (no SWE-bench, Terminal-Bench, FrontierCode, GDPval, etc.) -- those live in the separate GPT-6 Astra launch page already captured in performance/openai-gpt-6-astra-launch-2026-09.json. Per the 2026-09-22 change-log entries, this card's Section 11 ('GPT-6 Sol, GPT-6 Luna') is an appendix ADDED on 2026-09-22 -- the same day GPT-6 Sol and GPT-6 Luna launched -- and explicitly states these models are covered by this card, not a separate one: \"we've implemented the same set of safeguards for GPT-6 Sol and GPT-6 Luna that are detailed in the GPT-5.6 System Card for GPT-5.6 Sol and GPT-5.6 Luna.\" Many figures in this card are bar/line charts with no printed axis values in the extracted text; per pack rule 2 ('never invent rates or scores'), only prose-stated or table-printed numbers are recorded as scores, chart-only series are listed in missing[]."
     }
   ]
 }
