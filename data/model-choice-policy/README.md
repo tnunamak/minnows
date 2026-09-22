@@ -11,14 +11,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | Tag **`data-model-choice-policy-v0.1.8`** — not yet released; latest published release remains [data-model-choice-policy-v0.1.6](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.1.6) until `./scripts/release-data-pack.sh` is run |
+| **This version** | Tag **`data-model-choice-policy-v0.1.9`** — not yet released; latest published release remains [data-model-choice-policy-v0.1.6](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.1.6) until `./scripts/release-data-pack.sh` is run |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.1.6  # latest RELEASED tag; v0.1.8 is working-tree only until released
+TAG=data-model-choice-policy-v0.1.6  # latest RELEASED tag; v0.1.9 is working-tree only until released
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -57,13 +57,24 @@ Waspflow resolves from (first hit):
 | `docs.lookup` | claude / sonnet-5 / low |
 | `implement.standard` | claude / sonnet-5 / medium |
 | `implement.quota-tight` | claude / sonnet-5 / low |
-| `implement.accuracy-first` | codex / gpt-6-astra / high |
+| `implement.accuracy-first` | claude / opus-5-5 / high |
 | `review.audit` | codex / gpt-6-astra / high |
-| `advisor.deep` | claude / sonnet-5 / high |
+| `advisor.deep` | claude / opus-5-5 / high |
 | `ui.computer-use` | codex / gpt-6-astra / medium |
 | `grok.explore-only` | grok / grok-4.5 / high |
 
 ## Changelog
+
+### v0.1.9 — 2026-09-22
+
+- Move `advisor.deep` (sonnet-5/high) and `implement.accuracy-first` (codex gpt-6-astra/high) to **claude-opus-5-5 / high**. Evidence, all in catalog v0.5.5:
+  - AA Intelligence Index v4.3.2 (grade B, one snapshot): Opus 5.5 57.6 at max, 54 at high ($1.82/task), 51.2 at medium. Fable 5.1 53.4, GPT-6 Astra 52.7, Opus 5 50.8 (all at max). Sonnet 5 is not in the top 32.
+  - vals.ai Terminal-Bench 4.0 (grade C): Opus 5.5 61.6%, GPT-6 Astra 57.1%, Fable 5.1 49.5%, Opus 5 45.5%, Sonnet 5 8.1%.
+  - Vendor effort curves (grade C): Terminal-Bench 4.0 at high, Opus 5.5 64.2% for $3.88/task vs GPT-6 Astra 57.9% for $7.21/task.
+- `implement.accuracy-first → review.audit` now crosses model families (Claude implements, Codex audits). Before this change it was a same-arm edge that waspflow skipped.
+- `evidence_confidence` stays **medium**: the independent evidence is one AA snapshot and one secondary board, with no local eval.
+- The Sonnet 5 ops are unchanged. No benchmark compares Sonnet 5 with Opus 5.5 on bounded edits or reading tasks.
+- Catalog pin: **v0.5.5**.
 
 ### v0.1.8 — 2026-09-09
 
