@@ -1,0 +1,154 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "deepswe-digitized-full-roster-2026-09-22",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-09-22",
+  "source_urls": [
+    "https://deepswe.datacurve.ai/"
+  ],
+  "source_ids": [
+    "deepswe-datacurve-digitized-chart-2026-09-22"
+  ],
+  "notes": "LOWER-RELIABILITY FILE — READ THIS BEFORE USING ANY ROW BELOW. DeepSWE's homepage renders a client-side scatter chart (avg cost/task on the x-axis, DeepSWE score % on the y-axis, per-point effort labels) via headless-browser render (grab.py). This chart's SVG text labels include gpt-6-astra, claude-sonnet-5, gpt-5.6-sol, gpt-5.6-luna, grok-4.6, and claude-fable-5 (base, NOT fable-5-1) as real, distinct plotted points. HOWEVER: this session independently confirmed, via THREE separate fetch methods (direct curl, a captured browser network response, and a cache-busted curl with no-cache headers) of the page's own underlying data artifact at https://deepswe.datacurve.ai/artifacts/v1/leaderboard-live.json (HTTP 200, Vercel edge cache HIT, last-modified header showing TODAY 2026-09-22 06:44 UTC, yet an internal generated_at field frozen at 2026-06-20T17:27:24 and a 21-model roster with NONE of the six SVG-visible candidates), that this specific JSON endpoint does NOT contain the data the chart is displaying. No second JSON endpoint, XHR, or fetch call was found in a full network-request capture of the page load (30 requests total, exactly one JSON artifact). The six models' JS bundle DOES reference them by slug in a small 'default effort to show in UI' lookup table unrelated to score data, confirming DeepSWE's frontend build is genuinely aware of these models even though the fetched JSON isn't. CONCLUSION: this file's score rows were produced by DIGITIZING the rendered SVG chart directly — reading each point's pixel x/y position and converting to (cost, score) using an axis calibration derived from the chart's own gridline labels (x-axis: $0 -> 890.0px, $5.00 -> 587.514942367293px, $10 -> 285.02988473458606px; y-axis: 0% -> 546.0px, 80% -> 44.0px; both linear scales; the calibration self-checks exactly against the $10 gridline, recovering 9.999999999999998 when applied to its own defining point). This is a DIGITIZED-CHART read (source_type digitized_chart, evidence_grade D per this pack's grade convention — see e.g. performance/anthropic-sonnet5-digitized-2026-07.json), meaningfully LESS reliable than a raw-JSON-payload read elsewhere in this pack, and its numbers actively CONTRADICT the co-hosted machine-readable artifact on the same domain. Treat every score below as approximate (single-pixel-cluster reads, no stated error bars) and flag this file for a mandatory recheck once DeepSWE's leaderboard-live.json artifact is confirmed re-synced to match its own displayed chart (recheck no earlier than 2026-09-29, consistent with this pack's other board-recheck cadence).",
+  "claims": [
+    {
+      "models": [
+        "claude-opus-5-5",
+        "claude-haiku-4-5",
+        "claude-fable-5-1",
+        "gpt-6-sol",
+        "gpt-6-luna",
+        "gpt-5.6-terra"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality",
+        "cost"
+      ],
+      "statement": "CONFIRMED ABSENT from the DeepSWE homepage scatter chart (58 text labels in the rendered SVG checked in full, both as chart points and axis/legend text): claude-opus-5-5, claude-haiku-4-5, claude-fable-5-1 (only the BASE 'claude-fable-5' point exists, not fable-5-1), gpt-6-sol, gpt-6-luna, gpt-5.6-terra. gpt-6-astra, claude-sonnet-5, gpt-5.6-sol, gpt-5.6-luna, grok-4.6, and claude-fable-5 all appear as real plotted points (digitized below) on the SAME chart, which rules out a wholesale rendering failure for this reading.",
+      "implication": "Do not treat this as a settled 'DeepSWE has not ingested GPT-6 Sol/Luna or Opus 5.5/Haiku 4.5/Fable 5.1' claim with the same confidence as this pack's raw-JSON-backed absence claims elsewhere — the chart-vs-artifact discrepancy documented in this file's notes means DeepSWE's true current roster could not be fully resolved by either method this pass.",
+      "source_id": "deepswe-datacurve-digitized-chart-2026-09-22"
+    }
+  ],
+  "scores": [
+    {
+      "model": "gpt-6-astra",
+      "metric": "DeepSWE leaderboard (datacurve.ai)",
+      "score": 77.62,
+      "unit": "other",
+      "effort": "xhigh",
+      "source_id": "deepswe-datacurve-digitized-chart-2026-09-22",
+      "caveat": "DIGITIZED from chart pixel position (622.05, 58.93); score is a percentage on DeepSWE's own 0-100 scale (not accuracy/pass_rate per this schema's stricter enum — recorded as unit 'other'). Digitized cost/task ~$4.43.",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-09-22",
+      "effort_verbatim": "XHIGH",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "comparable": false,
+      "comparability_group": "deepswe-datacurve-digitized-chart-2026-09-22",
+      "cost": {
+        "value": 4.43,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "claude-sonnet-5",
+      "metric": "DeepSWE leaderboard (datacurve.ai)",
+      "score": 51.74,
+      "unit": "other",
+      "effort": "high",
+      "source_id": "deepswe-datacurve-digitized-chart-2026-09-22",
+      "caveat": "DIGITIZED from chart pixel position (440.78, 221.36). Digitized cost/task ~$7.43. First DeepSWE-board recording of claude-sonnet-5 in this pack.",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-09-22",
+      "effort_verbatim": "HIGH",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "comparable": false,
+      "comparability_group": "deepswe-datacurve-digitized-chart-2026-09-22",
+      "cost": {
+        "value": 7.43,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "DeepSWE leaderboard (datacurve.ai)",
+      "score": 66.8,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "deepswe-datacurve-digitized-chart-2026-09-22",
+      "caveat": "DIGITIZED from chart pixel position (811.35, 126.84). Digitized cost/task ~$1.30.",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-09-22",
+      "effort_verbatim": "MEDIUM",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "comparable": false,
+      "comparability_group": "deepswe-datacurve-digitized-chart-2026-09-22",
+      "cost": {
+        "value": 1.3,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "DeepSWE leaderboard (datacurve.ai)",
+      "score": 14.79,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "deepswe-datacurve-digitized-chart-2026-09-22",
+      "caveat": "DIGITIZED from chart pixel position (887.38, 453.20). Digitized cost/task ~$0.04. Contradicted by the (stale) leaderboard-live.json artifact's gpt-5.6-luna absence — see file notes.",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-09-22",
+      "effort_verbatim": "MEDIUM",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "comparable": false,
+      "comparability_group": "deepswe-datacurve-digitized-chart-2026-09-22",
+      "cost": {
+        "value": 0.04,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "grok-4.6",
+      "metric": "DeepSWE leaderboard (datacurve.ai)",
+      "score": 70.25,
+      "unit": "other",
+      "effort": "xhigh",
+      "source_id": "deepswe-datacurve-digitized-chart-2026-09-22",
+      "caveat": "DIGITIZED from chart pixel position (557.41, 105.20). Digitized cost/task ~$5.50.",
+      "source_type": "digitized_chart",
+      "evidence_grade": "D",
+      "observed_at": "2026-09-22",
+      "effort_verbatim": "XHIGH",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "comparable": false,
+      "comparability_group": "deepswe-datacurve-digitized-chart-2026-09-22",
+      "cost": {
+        "value": 5.5,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    }
+  ],
+  "missing": [
+    "claude-opus-5-5, claude-haiku-4-5, claude-fable-5-1, gpt-6-sol, gpt-6-luna, gpt-5.6-terra on the DeepSWE chart — CONFIRMED ABSENT from the rendered SVG's 58 text labels this pass, but see file-level notes on why this reading is lower-confidence than this pack's other absence claims (chart-vs-JSON-artifact discrepancy unresolved).",
+    "A genuinely fresh (post-2026-06-20) read of https://deepswe.datacurve.ai/artifacts/v1/leaderboard-live.json — three fetch attempts this session (plain curl, browser-network capture, cache-busted curl with no-cache headers) all returned byte-identical stale content despite an HTTP last-modified header claiming today's date; the root cause (CDN edge inconsistency vs. a genuine upstream data-pipeline bug at DataCurve) was not determined.",
+    "claude-fable-5-1's specific chart position — only the OLDER claude-fable-5 (no '-1' suffix) point was found; whether DeepSWE has simply not re-run Fable 5.1 or plots it under an unexpected label was not resolved."
+  ]
+}
