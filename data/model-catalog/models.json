@@ -35,7 +35,8 @@
       "family": "claude-haiku",
       "status": "ga",
       "tier": "haiku",
-      "aliases": []
+      "aliases": [],
+      "effort_parameter": false
     },
     {
       "id": "claude-mythos-5",
@@ -45,7 +46,8 @@
       "tier": "mythos",
       "aliases": [
         "claude-mythos-preview"
-      ]
+      ],
+      "access": "restricted"
     },
     {
       "id": "claude-mythos-5-1",
@@ -55,7 +57,8 @@
       "tier": "mythos",
       "aliases": [
         "Claude Mythos 5.1"
-      ]
+      ],
+      "access": "restricted"
     },
     {
       "id": "claude-opus-4-5",
