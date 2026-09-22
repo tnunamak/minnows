@@ -4,14 +4,14 @@
   "schema_version": 1,
   "tag": "data-model-choice-policy-v0.1.10",
   "generated_at": "2026-09-22",
-  "description": "Task-shaped operating points. Pins catalog v0.5.5. advisor.deep and implement.accuracy-first run on claude-opus-5-5/high; review.audit and ui.computer-use on gpt-6-astra; bounded Claude work on claude-sonnet-5; grok.explore-only on grok-4.6. evidence_confidence stays medium.",
+  "description": "Task-shaped operating points. Pins catalog v0.5.6. advisor.deep and implement.accuracy-first run on claude-opus-5-5/high; review.audit and ui.computer-use on gpt-6-astra; bounded Claude work on claude-sonnet-5; grok.explore-only on grok-4.6. evidence_confidence stays medium.",
   "files": [
     "README.md",
     "SCHEMA.md",
     "operating-points.json"
   ],
   "related": {
-    "catalog": "data-model-catalog-v0.5.5",
+    "catalog": "data-model-catalog-v0.5.6",
     "doctrine": "Operating Point Resolver — task-shaped ops, not cheap/default/max, not silent auto-routing"
   }
 }

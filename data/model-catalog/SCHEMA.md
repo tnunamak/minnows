@@ -6,7 +6,7 @@ Contracts for every JSON file in this pack. **Validated by**
 | Schema | Applies to |
 |--------|------------|
 | [`sources-v1.schema.json`](schemas/sources-v1.schema.json) | `SOURCES.json` |
-| `models.json` (stdlib-validated) | L0 model registry — join key for the pack |
+| [`models-v1.schema.json`](schemas/models-v1.schema.json) | `models.json` (stdlib-validated; schema is documentation, not enforced under `--require-jsonschema`) — L0 model registry — join key for the pack |
 | [`pricing-v1.schema.json`](schemas/pricing-v1.schema.json) | `pricing/*.json` |
 | [`performance-v1.schema.json`](schemas/performance-v1.schema.json) | `performance/*.json` |
 | [`capabilities-v1.schema.json`](schemas/capabilities-v1.schema.json) | `capabilities/*.json` |
@@ -24,6 +24,22 @@ Contracts for every JSON file in this pack. **Validated by**
    - Document: `retrieved_at` + `source_urls[]` + `source_ids[]`
    - Registry: `SOURCES.json` (canonical id → url / publisher / kind)
    - Row (recommended): `source_id` on each score/claim
+
+## Model registry (`models.json`)
+
+Each entry: `id`, `provider`, `family`, `status` (`ga` | `preview` | `historical` |
+`third_party_board_only`), `aliases[]`, and an optional `tier`.
+
+`tier` — **capability tier**: vendors ship concurrent tiers on separate cadences; policy
+picks a tier per task, then the newest GA model in that tier. Populated for OpenAI,
+Anthropic, and xAI models:
+
+- **openai**: `astra` | `sol` | `terra` | `luna` | `pro` | `mini` | `nano` | `codex` | `base`
+  (`base` = the flagship generation id with no tier suffix, e.g. `gpt-5.5`, `gpt-5.4`)
+- **anthropic**: `fable` | `mythos` | `opus` | `sonnet` | `haiku`
+- **xai**: the vendor's own tiering if documented, else omitted — xAI does not currently
+  publish a named capability-tier scheme (`grok-4.x` numbering only), so `tier` is omitted
+  for all xAI rows as of 2026-09-22.
 
 ## Provenance (`SOURCES.json`)
 

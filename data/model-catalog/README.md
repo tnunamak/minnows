@@ -9,7 +9,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | [data-model-catalog-v0.5.5](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.5) — published by CI on push to main |
+| **This version** | [data-model-catalog-v0.5.6](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.6) — published by CI on push to main |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -18,7 +18,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.5.5
+TAG=data-model-catalog-v0.5.6
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -74,6 +74,16 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 5. **Validate before shipping:** `./scripts/validate_data_pack.py model-catalog`
 
 ## Changelog
+
+### v0.5.6 — 2026-09-22
+
+- **Added GPT-6 Sol and GPT-6 Luna** (launched 2026-09-22, 19 days after GPT-6 Astra on 2026-09-03): `models.json` entries (family `gpt-6`, GA); API USD pricing (`pricing/openai-api-2026-07.json`: sol $2.00/$0.20/$2.50/$10.00, luna $0.10/$0.01/$0.125/$0.50 — short-context, input/cached/cache-write/output per 1M, same 1.25×/0.1× cache-write/read ratio as gpt-6-astra); Codex credit pricing (`pricing/codex-credits-2026-07.json`: sol 50/5/0/250, luna 2.5/0.25/0/12.5 credits per 1M). GPT-5.6 Sol/Terra/Luna and gpt-6-astra rates re-verified UNCHANGED against the same pages on this date in both files — no rate changed today except the two new additions. Fixed a pre-existing gap while touching `codex-credits-2026-07.json`: `gpt-6-astra` had a `models{}` row but no `match[]` rule (unresolvable by substring match); added alongside the new sol/luna rules.
+- **New `tier` field** on the L0 model registry (`models.json`, documented in `SCHEMA.md`, new `schemas/models-v1.schema.json` — documentation contract, not enforced under `--require-jsonschema` since `models.json` is stdlib-validated): "capability tier — vendors ship concurrent tiers on separate cadences; policy picks a tier per task, then the newest GA model in that tier." Populated for every OpenAI (`astra|sol|terra|luna|pro|mini|nano|codex|base`), Anthropic (`fable|mythos|opus|sonnet|haiku`), and xAI model; xAI rows are left without a `tier` because no vendor-documented capability-tier naming scheme was found in this pack's xAI sources (only `grok-4.x` version numbering). GPT-5.6 models are **not** marked historical — they remain served and listed in Codex.
+- `capabilities/effort-surfaces-2026-07.json`: `api` surfaces for gpt-6-sol/gpt-6-luna from their dedicated model-reference pages — `reasoning.effort` supports none/low/medium(default)/high/xhigh/max, with **no `minimal` level** (unlike gpt-5.6's api surface, which lists `minimal`). `codex_cli` surfaces added but left EMPTY (valid_efforts `[]`, default_effort `null`): this host's live `codex debug models` (codex-cli 0.154.0, checked 2026-09-22, same day as launch) does not list either slug yet — recorded as an auth-scoped rollout gap, not a capability negation, consistent with this pack's existing docs-vs-live-catalog convention for GPT-5.6.
+- **New:** `performance/openai-gpt-6-sol-luna-launch-2026-09.json` — the launch post's two `<table>` elements (an API-pricing summary and an AutomationBench score/cost-per-task table: GPT-6 Sol xhigh 33.2%/$0.27, GPT-6 Astra low 30.3%, Claude Opus 5 max 26.9%, Claude Fable 5.1 w/ Opus 5 Fallback max 31.4%) plus the page's vendor claims verbatim (AutomationBench: "GPT-6 Sol at xhigh effort outperforms Claude Opus 5 at max effort at just 9% of Opus 5's cost per task"; Luna: "+5.4 percentage points at 58% lower cost per task" vs GPT-5.6 Luna). The page's 11 vegaLite interactive charts are explicitly NOT ingested here (separate chart-digitization lane). Claude Opus 5's 26.9% score matches the independently-published value on Anthropic's own Opus 5.5 launch table exactly — cross-vendor corroboration, kept in a separate `comparability_group` per this pack's mixed-provenance convention rather than merged.
+- **Cache facts** from `better-prompt-caching-for-gpt-6.html` folded into pricing notes: GPT-6's improved caching system gives "discounts of up to 90% on cached input tokens" (matches the stored 0.1× cache-read ratio) and now caches eligible shared prefixes for a **30-minute reuse window by default**; reasoning effort can be changed between responses without breaking cache via `configuration_update`.
+- Observed, not acted on (flagged for a future pricing-audit pass, out of this lane's scope): GPT-5.6 Terra and GPT-5.6 Luna model rows are no longer present anywhere on the live `developers.openai.com/api/docs/pricing` page as of 2026-09-22 (only `gpt-5.6-sol` and `gpt-5.6-cyber` remain listed under "All models"). GPT-5.6 Sol's own rate and promotional-pricing footnote ("available at least through November 21, 2026") are unchanged.
+- **New SOURCES:** `openai-gpt-6-sol-luna-2026-09-22` (launch post), `openai-api-pricing-2026-09-22`, `openai-codex-pricing-2026-09-22`, `openai-gpt-6-prompt-caching-2026-09-22`, `openai-api-reasoning-2026-09-22`, `openai-api-model-page-gpt-6-sol-2026-09-22`, `openai-api-model-page-gpt-6-luna-2026-09-22`, `openai-codex-debug-models-2026-09-22`.
 
 ### v0.5.5 — 2026-09-22
 
