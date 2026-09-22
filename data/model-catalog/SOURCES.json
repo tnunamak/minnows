@@ -686,6 +686,16 @@
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
       "notes": "Direct authority for request semantics. Five levels low/medium/high/xhigh/max, default high. Per-message effort update (beta) on fable-5-1, mythos-5-1, opus-5; fable-5 is top-level only. opus-4.5 and sonnet-4.5 are compatibility-listed without a full matrix; haiku-4.5 is absent from the five-level table. Lifecycle floors from the model-deprecations page: fable-5-1 2027-09-01, fable-5 2027-06-09, opus-5 2027-07-24, opus-4.8/4.7/4.6 2027-05-28/2027-04-16/2027-02-05, opus-4.5 2026-11-24, sonnet-5 2027-06-30, sonnet-4.6 2027-02-17, sonnet-4.5 2026-09-29, haiku-4.5 2026-10-15."
+    },
+    {
+      "id": "anthropic-opus-5-5-2026-09-22",
+      "url": "https://www.anthropic.com/news/claude-opus-5-5",
+      "title": "Introducing Claude Opus 5.5",
+      "publisher": "Anthropic",
+      "published": "2026-09-22",
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_blog",
+      "notes": "Same evidence class as the Fable 5.1 and GPT-6 Astra launch captures: six same-model effort curves (Terminal-Bench 4.0, FrontierCode v1.1 main set, CursorBench 4.0, GDPval-AA v2.1, AutomationBench, WANDR) read as EXACT values from the page's inline chart-module SVG aria-labels (\"Model · effort: score% $cost\"), not pixel digitization. No misaligned-behavior or other bar-chart figure with numeric labels is present on this page (Alignment section is qualitative prose only, no chart). The page's BenchmarkGrid headline table and pricing table are out of scope for this document (owned by a separate models.json/pricing/capabilities integration pass)."
     }
   ]
 }

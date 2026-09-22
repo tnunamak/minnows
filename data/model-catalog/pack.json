@@ -32,6 +32,7 @@
     "performance/alibaba-qwen-2026-07.json",
     "performance/anthropic-effort-quality-2026-07.json",
     "performance/anthropic-fable-mythos-5-1-2026-09.json",
+    "performance/anthropic-opus5-5-digitized-2026-09.json",
     "performance/anthropic-opus5-digitized-2026-07.json",
     "performance/anthropic-sonnet5-digitized-2026-07.json",
     "performance/arcprize-aa-gpt-6-astra-2026-09.json",
