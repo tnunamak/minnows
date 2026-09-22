@@ -1,0 +1,142 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "artificial-analysis-gpt-6-sol-luna-2026-09",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "openai",
+  "retrieved_at": "2026-09-22",
+  "source_urls": [
+    "https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index",
+    "https://artificialanalysis.ai/models/gpt-6-sol",
+    "https://artificialanalysis.ai/models/gpt-6-luna"
+  ],
+  "source_ids": [
+    "artificial-analysis-intelligence-index-gpt-6-sol-luna-2026-09-22",
+    "artificialanalysis-gpt-6-sol-model-page-2026-09-22",
+    "artificialanalysis-gpt-6-luna-model-page-2026-09-22"
+  ],
+  "notes": "LAUNCH-DAY read (2026-09-22) of Artificial Analysis Intelligence Index v4.3.2 for GPT-6 Sol and GPT-6 Luna, released the same day. Same metric_id/comparability_group as performance/artificial-analysis-intelligence-index-opus-5-5-2026-09.json (same v4.3.2 snapshot, same underlying embedded roster array) — this file adds the gpt-6-sol/gpt-6-luna rows that file's notes flagged as not-yet-resolved at Opus-5.5-launch-time. TECHNIQUE: direct curl (browser UA, no headless browser needed — artificialanalysis.ai is NOT behind a Cloudflare JS challenge) of the raw evaluations-index page HTML found a Next.js RSC self.__next_f.push chunk (chunk index 25 of 223 total chunks in the raw response) containing a full model roster array (NOT a top-N chart cutoff on this reading of the array — gpt-6-sol, gpt-6-luna, and gpt-6-astra all resolved from a single array traversal, unlike the Opus-5.5-launch file's earlier note about a 32-model cutoff on a *different* embedded Dataset structure used for cost/token/time charts) with per-model 'slug', 'intelligenceIndex' (full float precision), 'price1mInputTokens', 'price1mOutputTokens', 'cacheHitPrice', 'cacheWritePrice', 'cacheHitRate', and 'medianCanonicalAnswerOutputSpeed' fields. The two model-detail pages (gpt-6-sol, gpt-6-luna) were separately fetched the same way; their own embedded RSC payload (chunk index 10, ~2.7M chars raw) contains a per-model 'intelligenceIndexEvaluations' array breaking the aggregate index down into the 10 underlying evaluations (aa-briefcase, gdpval-aa, automationbench-aa, terminalbench-4-0, scicode, humanitys-last-exam, gdp-pdf, critpt, omniscience, artificial-analysis-long-context-reasoning) each with its own score/outputTokensPerTask/costPerTask/timePerTask (minutes) at full float precision — this is a DEEPER read than the Opus 5.5 file achieved (that file could not resolve a per-eval breakdown for Opus 5.5 at all; here the model-detail-page route supplied it directly). GPT-6 Sol and GPT-6 Luna each appear on the roster ONLY as a single '(max)' row (slugs 'gpt-6-sol' and 'gpt-6-luna', no separate -xhigh/-high/-medium/-low slug variants found anywhere in the embedded payload, unlike gpt-6-astra which has both a base 'gpt-6-astra' row and a 'gpt-6-astra-xhigh' row, and unlike claude-opus-5-5 which has medium/high/xhigh/max variants) — recorded in missing[], not fabricated as a flat line across efforts. claude-sonnet-5, claude-haiku-4-5, and gpt-5.6-terra were confirmed ABSENT from the roster array by direct string search of the same embedded payload (not merely absent from a fetch summary).",
+  "claims": [],
+  "scores": [
+    {
+      "model": "gpt-6-sol",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 47.5276426437724,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-intelligence-index-gpt-6-sol-luna-2026-09-22",
+      "caveat": "Displayed label 'GPT-6 Sol (max)'. releaseDate in payload: 2026-09-22 (launch day). No lower-effort variant found on the roster. Median canonical answer output speed (tokens/sec, AA's own measurement, separate from OpenRouter's request-telemetry throughput): 115.79.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparable": false,
+      "comparability_group": "aa-intelligence-index-v4-3-2"
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 37.2559686869738,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-intelligence-index-gpt-6-sol-luna-2026-09-22",
+      "caveat": "Displayed label 'GPT-6 Luna (max)'. releaseDate in payload: 2026-09-22 (launch day). No lower-effort variant found on the roster. Median canonical answer output speed: 154.96 tokens/sec.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparable": false,
+      "comparability_group": "aa-intelligence-index-v4-3-2"
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.439393939393939,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "artificialanalysis-gpt-6-sol-model-page-2026-09-22",
+      "caveat": "AA's own per-evaluation breakdown of the Intelligence Index composite, read from the gpt-6-sol model-detail page's embedded intelligenceIndexEvaluations array (slug 'terminalbench-4-0'). Output tokens/task: 97371.98. Cost/task: $4.003379. Time/task: 840.97 minutes (14.0 hours). This is an AA-run reading of Terminal-Bench 4.0, DISTINCT harness/methodology from the official tbench.ai board and from vals.ai's secondary reading (see performance/artificial-analysis-gpt-6-sol-luna-2026-09.json's comparability_group vs those files' own groups) — not comparable, do not cross-rank against terminal-bench-4-0 rows from other sources despite the shared metric_id.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "terminal-bench-4-0-aa-index-breakdown-2026-09-22",
+      "cost": {
+        "value": 4.003379,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.126262626262626,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "artificialanalysis-gpt-6-luna-model-page-2026-09-22",
+      "caveat": "AA's own per-evaluation breakdown of the Intelligence Index composite, read from the gpt-6-luna model-detail page's embedded intelligenceIndexEvaluations array (slug 'terminalbench-4-0'). Output tokens/task: 140973.76. Cost/task: $0.236211. Time/task: 909.76 minutes (15.2 hours). Same comparability caveat as the gpt-6-sol row above: AA's own harness, not comparable to the official tbench.ai board or vals.ai's secondary reading.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "terminal-bench-4-0-aa-index-breakdown-2026-09-22",
+      "cost": {
+        "value": 0.236211,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Humanity's Last Exam",
+      "score": 0.479147358665431,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "artificialanalysis-gpt-6-sol-model-page-2026-09-22",
+      "caveat": "AA per-evaluation breakdown (slug 'humanitys-last-exam'). Output tokens/task: 11908.88. Cost/task: $0.119720. Time/task: 102.85 minutes. Not registered as a distinct metric_id in this pack's metrics.json prior to this file; recorded under a generic metric label since no existing metric_id maps to AA's specific HLE reading (Anthropic's own HLE-with-tools metric_id in the Opus 5.5 system card file is a different harness/condition, not reused here per the 'do not merge different questions under one id' rule).",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "reasoning",
+      "comparable": false,
+      "comparability_group": "aa-hle-index-breakdown-2026-09-22",
+      "cost": {
+        "value": 0.11972,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Humanity's Last Exam",
+      "score": 0.385078776645042,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "artificialanalysis-gpt-6-luna-model-page-2026-09-22",
+      "caveat": "AA per-evaluation breakdown (slug 'humanitys-last-exam'). Output tokens/task: 23561.93. Cost/task: $0.011812. Time/task: 152.05 minutes. Same non-registered-metric caveat as the gpt-6-sol HLE row above.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "reasoning",
+      "comparable": false,
+      "comparability_group": "aa-hle-index-breakdown-2026-09-22",
+      "cost": {
+        "value": 0.011812,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    }
+  ],
+  "missing": [
+    "gpt-6-sol / gpt-6-luna Intelligence Index v4.3.2 at effort levels other than max — CONFIRMED absent from the embedded roster array (only a single '(max)' slug exists for each; no '-xhigh'/'-high'/'-medium'/'-low' variant found), unlike gpt-6-astra (has a base + '-xhigh' row) and claude-opus-5-5 (has medium/high/xhigh/max). AA may not have published lower-effort runs for Sol/Luna yet, or GPT-6 Sol/Luna may not expose a configurable reasoning-effort parameter the way GPT-5.6 does — not independently confirmed either way in this pass.",
+    "gpt-6-sol / gpt-6-luna AA-Briefcase, GDPval-AA, AutomationBench-AA, GDP.pdf, CritPt, AA-Omniscience, and AA-LCR v1.1 individual scores were all present in the embedded intelligenceIndexEvaluations array (see the raw payload) but NOT recorded as separate rows here beyond Terminal-Bench 4.0 and HLE, to keep this file's scope bounded given time budget — the raw per-eval numbers are real and available in the source payload for a future pass, not fabricated or omitted from the underlying source.",
+    "claude-sonnet-5, claude-haiku-4-5, gpt-5.6-terra — CONFIRMED absent from the same roster array by direct string search; not tested-and-zero, simply not present in this chart/roster reading.",
+    "OpenRouter-style throughput (tokens/sec at p50/p90/etc) for gpt-6-sol/gpt-6-luna from AA's own telemetry — AA reports only a single 'medianCanonicalAnswerOutputSpeed' figure per model, already recorded above; no percentile breakdown available from this source."
+  ]
+}
