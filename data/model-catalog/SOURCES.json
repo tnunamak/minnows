@@ -6,6 +6,16 @@
   "description": "Canonical provenance registry. Every pricing/performance/capabilities payload should reference these ids via source_ids[].",
   "sources": [
     {
+      "id": "anthropic-opus-5-5-system-card-2026-09-22",
+      "url": "https://www-cdn.anthropic.com/fc1b44717c85dc068bc6ba5024219938094694bd/Claude%20Opus%205.5%20System%20Card.pdf",
+      "title": "System Card: Claude Opus 5.5",
+      "publisher": "Anthropic",
+      "published": "2026-09-22",
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_docs",
+      "notes": "230-page PDF, redirected from https://www.anthropic.com/claude-opus-5-5-system-card (a.k.a. https://www.anthropic.com/document/claude-opus-5-5-system-card). Extracted with pdftotext -layout. Table 8.1.A (capability evaluation summary) and per-benchmark prose sections (8.2-8.17) give exact printed numbers; the automated-behavioral-audit figures in Section 6.4 (misaligned-behavior family, character traits, honesty/dishonesty metrics) are bar charts with no printed axis values in the extracted text and are NOT digitized here (see missing[] on the performance doc) -- only figures/sections with printed numeric text in the prose are recorded as scores."
+    },
+    {
       "id": "anthropic-sonnet-5-2026-06-30",
       "url": "https://www.anthropic.com/news/claude-sonnet-5",
       "title": "Introducing Claude Sonnet 5",
