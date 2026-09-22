@@ -1,0 +1,1790 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "openai-gpt-6-astra-system-card-2026-09",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "openai",
+  "retrieved_at": "2026-09-22",
+  "source_urls": [
+    "https://deploymentsafety.openai.com/gpt-6-astra"
+  ],
+  "source_ids": [
+    "openai-gpt-6-astra-system-card-2026-09-22"
+  ],
+  "notes": "GPT-6 Astra System Card (deploymentsafety.openai.com/gpt-6-astra), captured 2026-09-22 via headless browser (page is behind a Cloudflare JS challenge; plain curl/WebFetch return 403), converted to text with html2text, change log current through 2026-09-22. This card is safety/preparedness-focused: it contains NO general-capability benchmark tables (no SWE-bench, Terminal-Bench, FrontierCode, GDPval, HLE, OSWorld, etc.) -- those live in the separate GPT-6 Astra launch page (performance/openai-gpt-6-astra-launch-2026-09.json). Scored rows here cover: (1) safe-completion/robustness/health/hallucination/alignment/monitorability evaluations for GPT-6 Astra (Sections 4-9), and (2) the same evaluation families for GPT-6 Sol and GPT-6 Luna via the card's Section 11 appendix. IMPORTANT on Sol/Luna coverage: the safety hub (deploymentsafety.openai.com) listed NO separate GPT-6 Sol or GPT-6 Luna system card as of 2026-09-22 -- /gpt-6-sol and /gpt-6-sol-and-luna both return 'Page not found' (captured: gpt-6-sol.html, gpt-6-sol-and-luna.html). This is NOT an omission: per this card's own 2026-09-22 change-log entry ('We added an Appendix with information about GPT-6 Sol and GPT-6 Luna'), Sol and Luna are intentionally folded into THIS card's Section 11 appendix rather than published as standalone cards. Section 11 opens: 'Based on that assessment, we've implemented the same set of safeguards for GPT-6 Sol and GPT-6 Luna that are detailed in the GPT-5.6 System Card for GPT-5.6 Sol and GPT-5.6 Luna,' and states Preparedness capability determinations explicitly (High cyber, High bio/chem, below-High self-improvement for both Sol and Luna). All Sol/Luna scores below carry source_id back to this same system card. Many figures throughout the card (most of Section 9 Monitorability, most Preparedness capability figures, several Section 11 Sol/Luna figures) are bar/line charts with no printed axis values in the extracted text; per pack rule 2 ('never invent rates or scores') these are NOT digitized here -- only prose-stated or table-printed numbers are recorded as scores. Chart-only series are listed in missing[]. Where a table used a 0-100 scale (HealthBench length-adjusted scores) rather than 0-1, score is recorded on that native scale with unit 'other' and the scale is noted in caveat.",
+  "claims": [
+    {
+      "models": [
+        "gpt-6-astra",
+        "gpt-5.6-sol"
+      ],
+      "task_families": [
+        "safety",
+        "alignment"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Per Section 1 Safety Overview: 'GPT-6 Astra is a significant step up in cyber capabilities and meets our Critical threshold. This means that, with the right tools and access, GPT-6 Astra can find previously unknown security flaws and develop new ways to exploit them across many well-protected systems without a person guiding each step.' Also: 'GPT-6 Astra is better aligned than GPT-5.6 Sol... In a simulation using more than 54,000 internal Codex tasks, Astra also received roughly half as many flags for higher-severity misaligned behavior as Sol.' Also: 'GPT-6 Astra's monitorability has decreased relative to GPT-5.6 Sol... In adversarial settings (where we push the model to evade our monitors) we find that the model is able to remain undetected when strategically underperforming in evaluations (sandbagging) and can sometimes evade our internal monitors when asked to perform certain sabotage tasks.'",
+      "implication": "Astra is OpenAI's first Critical-cyber-capability model under its Preparedness Framework, is measurably better-aligned than GPT-5.6 Sol on offline/deployment-simulation evaluations, but is simultaneously harder to monitor via chain-of-thought under adversarial conditions -- a real, disclosed capability/oversight tradeoff, not a strict improvement.",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22"
+    },
+    {
+      "models": [
+        "gpt-6-astra",
+        "gpt-5.6-sol"
+      ],
+      "task_families": [
+        "safety"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Per Section 5.2: 'On a benchmark of 1,810 curated attacks from Gray Swan's IPI Arena, Astra's safeguards-enabled checkpoint showed improved robustness relative to GPT-5.6 Sol. The estimated attack success rate across 15 attempts per scenario was 8.5%, compared with 27.0% for GPT-5.6 Sol.' Also, on internal instruction-hierarchy evaluations: 'robustness climbed from 96.23% to 99.79%... Astra has now also saturated robustness at 99.99%.'",
+      "implication": "Astra is substantially more robust to prompt injection than GPT-5.6 Sol on both an external third-party benchmark (Gray Swan) and OpenAI's internal instruction-hierarchy evaluation.",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22"
+    },
+    {
+      "models": [
+        "gpt-6-astra"
+      ],
+      "task_families": [
+        "cyber"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Per Section 10.1.2: 'Astra represents a significant increase in cybersecurity capabilities compared to GPT-5.6 Sol: it is both significantly more token efficient and more capable at vulnerability identification and exploit development. Based on our evaluations, we believe that Astra meets the Critical cybersecurity threshold.' Also, per Section 10: 'Based on the findings described here, we determined that Astra reaches the Critical level in Cybersecurity capability, and the High level in the Biological and Chemical category. In AI Self-Improvement, Astra does not reach our High threshold.'",
+      "implication": "GPT-6 Astra is treated as Critical cybersecurity capability (the first OpenAI model to reach this Preparedness Framework tier) and High biological/chemical capability; GPT-6 Sol and GPT-6 Luna are both treated as High (not Critical) in cyber and bio/chem, and below-High in self-improvement -- the same tier assignments as their GPT-5.6 predecessors (Section 11.8).",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22"
+    },
+    {
+      "models": [
+        "gpt-6-sol",
+        "gpt-5.6-sol",
+        "gpt-6-luna",
+        "gpt-5.6-luna"
+      ],
+      "task_families": [
+        "safety"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Per Section 11.3.1: 'On both the static and multiturn jailbreak evaluations, GPT-6 Sol and GPT-6 Luna achieve substantially higher defender success rates than GPT-5.6 Sol or GPT-5.5 Thinking.' Per Section 11.2.1.3: 'GPT-6 Sol is generally better than GPT-5.6 Sol at recognizing potential harms in agentic requests and avoiding taking harmful actions.'",
+      "implication": "Both GPT-6 Sol and GPT-6 Luna show broad safety/robustness improvements over their GPT-5.6 namesakes, mirroring (at smaller scale) the Astra-vs-Sol pattern in the main card.",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22"
+    }
+  ],
+  "missing": [
+    "PROVISIONAL, dated 2026-09-22: no standalone GPT-6 Sol or GPT-6 Luna system card exists on deploymentsafety.openai.com as a distinct page -- both /gpt-6-sol and /gpt-6-sol-and-luna return 'Page not found' (captured: ~/.tmp/gpt6/gpt-6-sol.html, ~/.tmp/gpt6/gpt-6-sol-and-luna.html), and the safety hub index (deploymentsafety.openai.com, captured hub.html) lists only the GPT-6 Astra card. This appears intentional, not an oversight-in-progress: the Astra card's own 2026-09-22 change log says 'We added an Appendix with information about GPT-6 Sol and GPT-6 Luna,' and Section 11 of that same card ('GPT-6 Sol, GPT-6 Luna') supplies the safety/preparedness evaluation tables for both models (recorded as scores below, source_id openai-gpt-6-astra-system-card-2026-09-22). Recheck guidance: re-fetch https://deploymentsafety.openai.com/gpt-6-sol and the hub index in a future pass in case OpenAI later publishes standalone Sol/Luna cards; if so, reconcile against this file's Section-11-sourced rows rather than assuming duplication.",
+    "Section 9 (Monitorability) aggregate and per-environment findings (Figures 22-41) -- reported only as bar/line charts with no printed axis values in extracted text; not digitized here.",
+    "Figure 3 (multiturn jailbreak defender success rate vs. attacker budget curve) and Figure 58 (GPT-6 family multiturn jailbreak curve) -- chart-only, no printed values.",
+    "Figure 1/2 Safety Pareto charts (safe-completion rate vs. overrefusal rate) for Astra and the GPT-6 family -- chart-only.",
+    "Figure 6/60 hallucination rate reductions (response-level and reproduced-error rates) -- described only qualitatively ('substantially fewer factual errors... particularly pronounced at very low latency and reasoning settings'), no printed percentages.",
+    "Figures 7-21 (Alignment section: Respecting Auto-Review, Respecting Warnings, Honeypot decline rate charts, Coding Deception, Broken Search Tool, agent-to-agent Figure 12 partial exception noted below, Codex-traffic misalignment-flag-rate curves Figures 13-16, Verbalized Metagaming Figures 17-21) -- chart-only except where prose gives an explicit number (recorded as scores/claims below).",
+    "Preparedness capability figures with no printed values: Figure 42-45 (bio/chem High-threshold MCQ/open-ended score bars beyond the prose-stated headline numbers, which ARE recorded below), Figures 46-51 (ExploitBench, ExploitBench-Internal-Port, SEC-Bench Pro, ExploitGym, SRE-Bench curves for Astra beyond the prose-stated headline numbers recorded below), Figures 52-56 (AI Self-Improvement eval curves for KernelGen 1P, PostTrainBench Lite, MLE-Bench Revised -- no printed scores at all in extracted text for these three; NanoGPT and Internal Research Debugging headline numbers ARE recorded below).",
+    "Section 11 Sol/Luna preparedness figures with no printed axis values: Figures 71-78 (CoT controllability full curves beyond the one prose-stated 750-1250-token-window comparison recorded below; Monitor Evasion OAI-repo Sabotage v2 curves), Figure 79 (ExploitBench effort curve beyond the max-effort headline numbers recorded below), Figures 80-85 (SEC-Bench Pro/ExploitGym/Sandbox Bench/Internal Research Debugging/KernelGen 1P curves for Sol/Luna beyond the prose-stated headline numbers recorded below).",
+    "Exact refusal-adjusted vs. raw score breakdowns for every bio/chem High-threshold eval on GPT-6 Sol and GPT-6 Luna individually (Table 33 reports only pass@1/cons@32 without a refusal-adjustment column, unlike the Astra-only figures in Section 10.1.1.1 which report both raw and refusal-adjusted)."
+  ],
+  "scores": [
+    {
+      "model": "gpt-6-astra",
+      "metric": "Production Benchmarks with Challenging Prompts: Violent Illicit behavior",
+      "score": 0.99,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 1, Section 4.1.1. Safe completion rate on challenging production-derived prompts, no system-level safeguards, deliberately difficult/adversarial set.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-production-benchmark-violent-illicit",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table1-violent-illicit",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.961,
+        "gpt-5.5-thinking": 0.94,
+        "gpt-5.6-sol": 0.934
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Production Benchmarks with Challenging Prompts: Non-Violent Illicit behavior",
+      "score": 0.997,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 1, Section 4.1.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-production-benchmark-nonviolent-illicit",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table1-nonviolent-illicit",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.99,
+        "gpt-5.5-thinking": 0.987,
+        "gpt-5.6-sol": 0.987
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Production Benchmarks with Challenging Prompts: Extremism",
+      "score": 0.981,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 1, Section 4.1.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-production-benchmark-extremism",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table1-extremism",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.943,
+        "gpt-5.5-thinking": 0.925,
+        "gpt-5.6-sol": 0.962
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Production Benchmarks with Challenging Prompts: Hate",
+      "score": 1.0,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 1, Section 4.1.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-production-benchmark-hate",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table1-hate",
+      "comparisons": {
+        "gpt-5.4-thinking": 1.0,
+        "gpt-5.5-thinking": 1.0,
+        "gpt-5.6-sol": 0.982
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Production Benchmarks with Challenging Prompts: Self-harm (standard)",
+      "score": 0.992,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 1, Section 4.1.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-production-benchmark-self-harm",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table1-self-harm",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.959,
+        "gpt-5.5-thinking": 0.917,
+        "gpt-5.6-sol": 0.945
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Production Benchmarks with Challenging Prompts: Gore",
+      "score": 0.898,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 1, Section 4.1.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-production-benchmark-gore",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table1-gore",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.823,
+        "gpt-5.5-thinking": 0.803,
+        "gpt-5.6-sol": 0.785
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Production Benchmarks with Challenging Prompts: Sexual",
+      "score": 0.98,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 1, Section 4.1.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-production-benchmark-sexual",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table1-sexual",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.909,
+        "gpt-5.5-thinking": 0.919,
+        "gpt-5.6-sol": 0.915
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Production Benchmarks with Challenging Prompts: Sexual/minors",
+      "score": 0.974,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 1, Section 4.1.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-production-benchmark-sexual-minors",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table1-sexual-minors",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.947,
+        "gpt-5.5-thinking": 0.938,
+        "gpt-5.6-sol": 0.973
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "U18 Evaluation: Age-restricted goods/services/activities",
+      "score": 0.918,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 2, Section 4.1.2. Higher is better.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-u18-age-restricted",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table2-age-restricted",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.752,
+        "gpt-5.5-thinking": 0.711,
+        "gpt-5.6-sol": 0.719
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "U18 Evaluation: Sexual Content",
+      "score": 0.991,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 2, Section 4.1.2.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-u18-sexual-content",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table2-sexual-content",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.94,
+        "gpt-5.5-thinking": 0.935,
+        "gpt-5.6-sol": 0.929
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "U18 Evaluation: Eating Disorders",
+      "score": 0.921,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 2, Section 4.1.2.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-u18-eating-disorders",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table2-eating-disorders",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.673,
+        "gpt-5.5-thinking": 0.639,
+        "gpt-5.6-sol": 0.71
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "U18 Evaluation: Emotional Reliance",
+      "score": 0.944,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 2, Section 4.1.2.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-u18-emotional-reliance",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table2-emotional-reliance",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.935,
+        "gpt-5.5-thinking": 0.914,
+        "gpt-5.6-sol": 0.931
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "U18 Evaluation: Self Harm",
+      "score": 0.995,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 2, Section 4.1.2.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-u18-self-harm",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table2-self-harm",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.987,
+        "gpt-5.5-thinking": 0.977,
+        "gpt-5.6-sol": 0.982
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "U18 Evaluation: Gore",
+      "score": 0.898,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 2, Section 4.1.2.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-u18-gore",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table2-gore",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.823,
+        "gpt-5.5-thinking": 0.803,
+        "gpt-5.6-sol": 0.785
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Agentic Safe Completion: Codex prod - Age-restricted actions",
+      "score": 0.811,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 3, Section 4.1.3.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-agentic-safe-completion-age-restricted",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table3-age-restricted",
+      "comparisons": {
+        "gpt-5.6-sol": 0.603
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Agentic Safe Completion: Codex prod - Non-violent Wrongdoing",
+      "score": 0.954,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 3, Section 4.1.3.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-agentic-safe-completion-nonviolent-wrongdoing",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table3-nonviolent-wrongdoing",
+      "comparisons": {
+        "gpt-5.6-sol": 0.906
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Agentic Safe Completion: Codex prod - Violent Wrongdoing",
+      "score": 0.907,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 3, Section 4.1.3.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-agentic-safe-completion-violent-wrongdoing",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table3-violent-wrongdoing",
+      "comparisons": {
+        "gpt-5.6-sol": 0.689
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Agentic Safe Completion: Codex prod - Sensitive personal data",
+      "score": 0.763,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 3, Section 4.1.3.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-agentic-safe-completion-sensitive-data",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table3-sensitive-data",
+      "comparisons": {
+        "gpt-5.6-sol": 0.765
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Agentic Safe Completion: Human red-teaming - Codex",
+      "score": 0.977,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 3, Section 4.1.3.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-agentic-safe-completion-human-redteam-codex",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table3-human-redteam-codex",
+      "comparisons": {
+        "gpt-5.6-sol": 0.851
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Agentic Safe Completion: Human red-teaming - Chat Plugins",
+      "score": 1.0,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 3, Section 4.1.3.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-agentic-safe-completion-human-redteam-plugins",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table3-human-redteam-plugins",
+      "comparisons": {
+        "gpt-5.6-sol": 0.766
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Static Jailbreak Evaluation: Bio high risk",
+      "score": 0.973,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 5, Section 5.1.1. Refusal rate on adversarial jailbreak prompts, no production safeguards. Higher is better.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-static-jailbreak-bio-high-risk",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table5-bio-high-risk",
+      "comparisons": {
+        "gpt-5.5-thinking": 0.115,
+        "gpt-5.6-sol": 0.058
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Static Jailbreak Evaluation: Bio severe",
+      "score": 0.982,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 5, Section 5.1.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-static-jailbreak-bio-severe",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table5-bio-severe",
+      "comparisons": {
+        "gpt-5.5-thinking": 0.121,
+        "gpt-5.6-sol": 0.103
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Static Jailbreak Evaluation: Violence moderate",
+      "score": 0.947,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 5, Section 5.1.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-static-jailbreak-violence-moderate",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table5-violence-moderate",
+      "comparisons": {
+        "gpt-5.5-thinking": 0.223,
+        "gpt-5.6-sol": 0.216
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Static Jailbreak Evaluation: Violence severe",
+      "score": 0.983,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 5, Section 5.1.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-static-jailbreak-violence-severe",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table5-violence-severe",
+      "comparisons": {
+        "gpt-5.5-thinking": 0.38,
+        "gpt-5.6-sol": 0.483
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Static Jailbreak Evaluation: Cyber",
+      "score": 0.915,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 5, Section 5.1.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-static-jailbreak-cyber",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table5-cyber",
+      "comparisons": {
+        "gpt-5.5-thinking": 0.57,
+        "gpt-5.6-sol": 0.59
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Gray Swan IPI Arena attack success rate",
+      "score": 0.085,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 5.2, Figure 5: 1,810 curated attacks from Gray Swan's Q1/Q2 2026 IPI arenas, coding/computer-use/tool-use scenarios, 15 attempts/scenario, safeguards-enabled checkpoint. Lower is better (this is an attack success rate, not a defense rate).",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gray-swan-ipi-arena-asr",
+      "comparisons": {
+        "gpt-5.6-sol": 0.27
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "HealthBench Professional (length-adjusted)",
+      "score": 64.7,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 6, Section 6.1. 0-100 scale (not 0-1). Unadjusted score 68.2, mean response length 3185 characters. 2026-09-22 revision corrected a prior misconfiguration in this Astra figure.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "knowledge",
+      "metric_id": "healthbench-professional",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table6-healthbench-professional-length-adj",
+      "comparisons": {
+        "gpt-5.5": 51.8,
+        "gpt-5.6-sol": 60.5,
+        "gpt-5.6-terra": 57.7,
+        "gpt-5.6-luna": 55.7
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "HealthBench (length-adjusted)",
+      "score": 58.3,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 6, Section 6.1. 0-100 scale. Unadjusted score 56.9, mean response length 1760 characters.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "knowledge",
+      "metric_id": "healthbench",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table6-healthbench-length-adj",
+      "comparisons": {
+        "gpt-5.5": 56.5,
+        "gpt-5.6-sol": 57.0,
+        "gpt-5.6-terra": 57.0,
+        "gpt-5.6-luna": 55.8
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "HealthBench Hard (length-adjusted)",
+      "score": 36.6,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 6, Section 6.1. 0-100 scale. Unadjusted score 34.2, mean response length 1697 characters.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "knowledge",
+      "metric_id": "healthbench-hard",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table6-healthbench-hard-length-adj",
+      "comparisons": {
+        "gpt-5.5": 31.5,
+        "gpt-5.6-sol": 33.1,
+        "gpt-5.6-terra": 32.7,
+        "gpt-5.6-luna": 32.0
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "HealthBench Consensus (length-adjusted)",
+      "score": 95.5,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 6, Section 6.1. 0-100 scale. Unadjusted score 95.4, mean response length 1742 characters.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "knowledge",
+      "metric_id": "healthbench-consensus",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table6-healthbench-consensus-length-adj",
+      "comparisons": {
+        "gpt-5.5": 95.6,
+        "gpt-5.6-sol": 95.5,
+        "gpt-5.6-terra": 95.1,
+        "gpt-5.6-luna": 95.1
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Dynamic Mental Health Benchmark: Mental health",
+      "score": 1.0,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 7, Section 6.2. Share of policy-compliant assistant messages across adversarial-user-simulated multi-turn conversations.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-dynamic-mental-health",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table7-mental-health",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.914,
+        "gpt-5.5-thinking": 0.82,
+        "gpt-5.6-sol": 0.991
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Dynamic Mental Health Benchmark: Emotional reliance",
+      "score": 0.993,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 7, Section 6.2.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-dynamic-emotional-reliance",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table7-emotional-reliance",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.976,
+        "gpt-5.5-thinking": 0.915,
+        "gpt-5.6-sol": 0.953
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Dynamic Mental Health Benchmark: Self-harm",
+      "score": 0.989,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 7, Section 6.2.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-dynamic-self-harm",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table7-self-harm",
+      "comparisons": {
+        "gpt-5.4-thinking": 0.975,
+        "gpt-5.5-thinking": 0.868,
+        "gpt-5.6-sol": 0.856
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Misaligned outcomes in realistic work environments (overall, base model, without confirmation policy)",
+      "score": 0.034,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 8, Section 8.4. Lower is better. Base model configuration = no confirmation policy exposed to the agent.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "agentic",
+      "metric_id": "gpt6-misaligned-outcome-rate-base",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table8-base-overall",
+      "comparisons": {
+        "gpt-5.6-luna": 0.197,
+        "gpt-5.6-terra": 0.135,
+        "gpt-5.6-sol": 0.188
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Misaligned outcomes in realistic work environments (overall, with confirmation policy)",
+      "score": 0.03,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 8, Section 8.4. Lower is better. Confirmation policy = default configuration for users, model must pause for approval before consequential actions.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "agentic",
+      "metric_id": "gpt6-misaligned-outcome-rate-confirmation",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table8-confirmation-overall",
+      "comparisons": {
+        "gpt-5.6-luna": 0.072,
+        "gpt-5.6-terra": 0.057,
+        "gpt-5.6-sol": 0.08
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Unintended agent-to-agent engagement rate (message board honeypot)",
+      "score": 0.27,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 8.5.2, Figure 12: rate at which the model engaged with an unrequested simulated message board and, separately, followed its embedded unauthorized instructions (0% for Astra vs. 52% for GPT-5.6 Sol). Board discovery was >=97.5% for both models. Lower engagement is safer.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "agentic",
+      "metric_id": "gpt6-agent-to-agent-engagement-rate",
+      "comparisons": {
+        "gpt-5.6-sol": 0.84
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Internal Research Debugging Evaluation",
+      "score": 0.7805,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 10.1.3.1: 41 real internal-research bugs plus 6 alignment-auditing tasks; original human fixes took hours to days. Below the indicative High-capability threshold.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "agentic",
+      "metric_id": "internal-research-debugging-eval"
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "AAV Capsid Packaging Prediction (Spearman correlation)",
+      "score": 0.528,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 12, Section 10.1.1.2.1. Indicative Critical threshold 0.600 (not crossed). ESM-2 open-weight baseline scores 0.288.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "aav-capsid-packaging-prediction",
+      "comparisons": {
+        "gpt-5.6-sol": 0.529
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "SHP2 Protein Function Prediction (mean R2)",
+      "score": 0.4,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 13, Section 10.1.1.2.2. Indicative Critical threshold 0.60 (not crossed). Maximum of standard and a helpful-only checkpoint (helpful-only scored 0.35); table reports the max.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "shp2-protein-function-prediction",
+      "comparisons": {
+        "gpt-5.6-sol": 0.3
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Coronavirus-ACE2 Cell-Entry Screen (composite score)",
+      "score": 0.45,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 14, Section 10.1.1.2.3. Helpful-only checkpoint. Indicative Critical threshold 0.75 (not crossed).",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "coronavirus-ace2-cell-entry-screen",
+      "comparisons": {
+        "gpt-5.6-sol": 0.43
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Phage-plasmid co-evolution (NLL, lower is better)",
+      "score": 12.58,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 15, Section 10.1.1.2.4. Helpful-only checkpoint. Indicative Critical threshold <=9.40 (not crossed; lower is better).",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "phage-plasmid-coevolution-nll",
+      "comparisons": {
+        "gpt-5.6-sol": 11.35
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Multimodal Troubleshooting Virology (pass@1)",
+      "score": 0.5578,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 10.1.1.1.1: 322 SecureBio virology questions. Refusal-adjusted score 63.11%. Indicative High threshold 31% (80th-percentile expert). Astra exceeds the threshold.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "multimodal-troubleshooting-virology"
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "ProtocolQA Open-Ended (pass@1)",
+      "score": 0.4136,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 10.1.1.1.2: 108 open-ended protocol-troubleshooting questions. Refusal-adjusted score 45.37%. Indicative High threshold 54% (80th-percentile expert, 19 PhD scientists). Astra scored below threshold.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "protocolqa-open-ended"
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Tacit Knowledge and Troubleshooting (cons@32)",
+      "score": 0.6333,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 10.1.1.1.3: 60 MCQ, Gryphon Scientific. Refusal-adjusted score 90.00%. Indicative High threshold 80% (consensus expert baseline). Astra crosses threshold only after refusal-adjustment.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "tacit-knowledge-and-troubleshooting"
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "TroubleshootingBench (pass@1)",
+      "score": 0.4844,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 10.1.1.1.4: 52 protocols x 3 questions (156 total). Refusal-adjusted score 63.46%. Indicative High threshold 36.4% (80th-percentile expert, 12 PhD scientists). Astra exceeds the threshold.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "troubleshootingbench"
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "ExploitBench (Cap%)",
+      "score": 1.0,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 10.1.2.1: 41 V8 N-day vulnerabilities, Cap Percent metric (capability-flag coverage, full credit for any arbitrary-code-execution success). Astra achieves full score even at the lowest reasoning effort tested. Card notes possible inflation from historical-CVE contamination.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "cyber",
+      "metric_id": "exploitbench-cap-pct"
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "SRE-Bench (pass@4)",
+      "score": 0.992,
+      "unit": "pass_rate",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 10.1.2.3: 262 binary reverse-engineering instances from 19 privately developed programs, new in this card. pass@4, using about 1/4 as many output tokens as GPT-5.6 Sol.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "cyber",
+      "metric_id": "sre-bench",
+      "comparisons": {
+        "gpt-5.6-sol": 0.687
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Sandbox Bench (targets solved)",
+      "score": 0.4545,
+      "unit": "pass_rate",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 10.1.2.4: new internal 22-target CTF-style benchmark (runtimes/parsers/egress proxies). Astra solved 10/22 (4/5 runtime, 5/14 parser, 1/3 egress proxy). GPT-5.6 Sol solved 1/22 (one runtime target only).",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "cyber",
+      "metric_id": "sandbox-bench",
+      "comparisons": {
+        "gpt-5.6-sol": 0.0455
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Irregular FrontierCyber (challenges solved)",
+      "score": 86,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 10.1.2.6: 86/226 challenges solved (raw count, not a fraction; denominator 226), Irregular's third-party offensive-cyber suite, sandboxed without public internet. Neither model solved any of the 7 Elite challenges.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "cyber",
+      "metric_id": "irregular-frontiercyber",
+      "comparisons": {
+        "gpt-5.6-sol": 34
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Irregular CyScenarioBench (challenges solved at least once)",
+      "score": 9,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 10.1.2.6: 9/10 challenges (raw count, denominator 10); average success rate 59% (a 32-point increase over GPT-5.6 Sol).",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "cyber",
+      "metric_id": "irregular-cyscenariobench",
+      "comparisons": {
+        "gpt-5.6-sol": 6
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Biology Model Refusal Evaluation: Severe (safe rate)",
+      "score": 0.998,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 19, Section 10.2.2.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-biology-refusal-severe",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table19-severe",
+      "comparisons": {
+        "gpt-5.5-thinking": 0.958,
+        "gpt-5.6-sol": 0.943
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Biology Model Refusal Evaluation: Dual Use (safe rate)",
+      "score": 0.97,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 19, Section 10.2.2.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-biology-refusal-dual-use",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table19-dual-use",
+      "comparisons": {
+        "gpt-5.5-thinking": 0.926,
+        "gpt-5.6-sol": 0.911
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Biology Model Refusal Evaluation: Benign (not-overrefuse rate)",
+      "score": 0.978,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 19, Section 10.2.2.1. This category is 'higher is better' for not overrefusing benign prompts.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-biology-refusal-benign",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table19-benign",
+      "comparisons": {
+        "gpt-5.5-thinking": 0.917,
+        "gpt-5.6-sol": 0.989
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Misuse Monitor Performance: Safety Reasoner - Biology (recall)",
+      "score": 0.809,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 22, Section 10.2.3.3. End-to-end recall on a challenging, subject-matter-expert-validated evaluation set.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-misuse-monitor-safety-reasoner-biology"
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Misuse Monitor Performance: Safety Reasoner - Cybersecurity (recall)",
+      "score": 0.869,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 22, Section 10.2.3.3.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-misuse-monitor-safety-reasoner-cyber"
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Production Benchmarks with Challenging Prompts: Violent Illicit behavior",
+      "score": 0.988,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 23, Section 11.2.1.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-production-benchmark-violent-illicit",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table1-violent-illicit",
+      "comparisons": {
+        "gpt-5.6-sol": 0.934,
+        "gpt-5.6-luna": 0.94,
+        "gpt-6-astra": 0.99
+      }
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Production Benchmarks with Challenging Prompts: Violent Illicit behavior",
+      "score": 0.986,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 23, Section 11.2.1.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-production-benchmark-violent-illicit",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table1-violent-illicit",
+      "comparisons": {
+        "gpt-5.6-sol": 0.934,
+        "gpt-5.6-luna": 0.94,
+        "gpt-6-astra": 0.99
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "U18 Evaluation: Age-restricted goods/services/activities",
+      "score": 0.861,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 24, Section 11.2.1.2.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-u18-age-restricted",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table2-age-restricted",
+      "comparisons": {
+        "gpt-5.6-sol": 0.719,
+        "gpt-5.6-luna": 0.76,
+        "gpt-6-astra": 0.918
+      }
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "U18 Evaluation: Age-restricted goods/services/activities",
+      "score": 0.848,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 24, Section 11.2.1.2.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-u18-age-restricted",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table2-age-restricted",
+      "comparisons": {
+        "gpt-5.6-sol": 0.719,
+        "gpt-5.6-luna": 0.76,
+        "gpt-6-astra": 0.918
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Agentic Safe Completion: Codex prod - Age-restricted actions",
+      "score": 0.755,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 25, Section 11.2.1.3.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-agentic-safe-completion-age-restricted",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table3-age-restricted",
+      "comparisons": {
+        "gpt-5.6-sol": 0.603,
+        "gpt-6-astra": 0.811
+      }
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Agentic Safe Completion: Codex prod - Age-restricted actions",
+      "score": 0.687,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 25, Section 11.2.1.3.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-agentic-safe-completion-age-restricted",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table3-age-restricted",
+      "comparisons": {
+        "gpt-5.6-sol": 0.603,
+        "gpt-6-astra": 0.811
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Static Jailbreak Evaluation: Bio high risk",
+      "score": 0.858,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 27, Section 11.3.1. 95% CI (81.8, 88.9).",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-static-jailbreak-bio-high-risk",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table5-bio-high-risk",
+      "comparisons": {
+        "gpt-5.5-thinking": 0.115,
+        "gpt-5.6-sol": 0.058,
+        "gpt-6-astra": 0.973
+      }
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Static Jailbreak Evaluation: Bio high risk",
+      "score": 0.738,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 27, Section 11.3.1. 95% CI (69.1, 77.9).",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-static-jailbreak-bio-high-risk",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table5-bio-high-risk",
+      "comparisons": {
+        "gpt-5.5-thinking": 0.115,
+        "gpt-5.6-sol": 0.058,
+        "gpt-6-astra": 0.973
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Instruction hierarchy robustness (defender success rate)",
+      "score": 0.9997,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 28, Section 11.3.2.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-instruction-hierarchy-robustness",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table28-instruction-hierarchy",
+      "comparisons": {
+        "gpt-6-astra": 0.9999
+      }
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Instruction hierarchy robustness (defender success rate)",
+      "score": 0.9997,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 28, Section 11.3.2.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-instruction-hierarchy-robustness",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table28-instruction-hierarchy",
+      "comparisons": {
+        "gpt-6-astra": 0.9999
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "HealthBench Professional (length-adjusted)",
+      "score": 60.8,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 29, Section 11.4.1. 0-100 scale. Unadjusted 59.5, mean response length 1573 characters. +0.3 vs GPT-5.6 Sol.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "knowledge",
+      "metric_id": "healthbench-professional",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table6-healthbench-professional-length-adj",
+      "comparisons": {
+        "gpt-5.6-sol": 60.5,
+        "gpt-6-astra": 64.7
+      }
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "HealthBench Professional (length-adjusted)",
+      "score": 60.8,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 29, Section 11.4.1. 0-100 scale. Unadjusted 61.2, mean response length 2119 characters. +5.1 vs GPT-5.6 Luna.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "knowledge",
+      "metric_id": "healthbench-professional",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table6-healthbench-professional-length-adj",
+      "comparisons": {
+        "gpt-5.6-luna": 55.7,
+        "gpt-6-astra": 64.7
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "HealthBench (length-adjusted)",
+      "score": 53.2,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 29, Section 11.4.1. 0-100 scale. -3.8 vs GPT-5.6 Sol; mean answer length down ~45% vs GPT-5.6 Sol.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "knowledge",
+      "metric_id": "healthbench",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table6-healthbench-length-adj",
+      "comparisons": {
+        "gpt-5.6-sol": 57.0,
+        "gpt-6-astra": 58.3
+      }
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "HealthBench (length-adjusted)",
+      "score": 54.5,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 29, Section 11.4.1. 0-100 scale. -1.3 vs GPT-5.6 Luna; mean answer length down ~35%.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "knowledge",
+      "metric_id": "healthbench",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table6-healthbench-length-adj",
+      "comparisons": {
+        "gpt-5.6-luna": 55.8,
+        "gpt-6-astra": 58.3
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Forecast: severity-3-or-higher misalignment flags in internal Codex traffic",
+      "score": 0.00083,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 11.6.5, Figure 67: deployment simulation, 50,319 matched tasks. GPT-6 Sol received 42 severity-3+ flags (0.083%) vs 66 (0.131%) for GPT-5.6 Sol -- a 36% relative reduction. Neither run produced a severity-4 flag. Lower is better.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "agentic",
+      "metric_id": "gpt6-codex-traffic-severity3-flag-rate",
+      "comparisons": {
+        "gpt-5.6-sol": 0.00131
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "CoT controllability (750-1250 token CoTs, instruction-following rate)",
+      "score": 0.232,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 11.7.1.1. Fraction of CoTs in the 750-1250 token length window that successfully follow a requested CoT-content instruction. Higher indicates the model can more freely steer/hide its CoT (a controllability/monitorability tradeoff, not a pure quality metric).",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-cot-controllability-750-1250tok",
+      "comparisons": {
+        "gpt-5.6-sol": 0.161,
+        "gpt-5.5-thinking": 0.017,
+        "gpt-6-astra": 0.609
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "ExploitBench (Cap%, max reasoning effort)",
+      "score": 0.817,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 11.8.1.2.1. Same possible-contamination caveat as the Astra ExploitBench row applies.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "cyber",
+      "metric_id": "exploitbench-cap-pct"
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "ExploitBench (Cap%, max reasoning effort)",
+      "score": 0.434,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 11.8.1.2.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "cyber",
+      "metric_id": "exploitbench-cap-pct"
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "ExploitBench - Internal Port (Jun-Aug 2026), max success rate",
+      "score": 0.055,
+      "unit": "pass_rate",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 11.8.1.2.2. Recently disclosed (post-cutoff) vulnerabilities. GPT-6 Astra scored 31.5% on this same benchmark (Section 10.1.2.2).",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "cyber",
+      "metric_id": "exploitbench-internal-port-jun-aug-2026",
+      "comparisons": {
+        "gpt-6-astra": 0.315
+      }
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "ExploitBench - Internal Port (Jun-Aug 2026), max success rate",
+      "score": 0.0,
+      "unit": "pass_rate",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 11.8.1.2.2. GPT-6 Luna did not successfully complete any challenges.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "cyber",
+      "metric_id": "exploitbench-internal-port-jun-aug-2026",
+      "comparisons": {
+        "gpt-6-astra": 0.315
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "SEC-Bench Pro",
+      "score": 0.663,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 11.8.1.2.2. V8/SpiderMonkey vulnerability discovery. GPT-6 Astra scores 85.4% on the same benchmark. GPT-6 Sol performs broadly comparably to GPT-5.6 Sol at similar token counts, though GPT-5.6 Sol reaches a higher max (79.1%) using more tokens.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "cyber",
+      "metric_id": "sec-bench-pro",
+      "comparisons": {
+        "gpt-6-astra": 0.854
+      }
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "SEC-Bench Pro",
+      "score": 0.342,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 11.8.1.2.2.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "cyber",
+      "metric_id": "sec-bench-pro",
+      "comparisons": {
+        "gpt-6-astra": 0.854
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "ExploitGym (intended-exploit rate)",
+      "score": 0.221,
+      "unit": "pass_rate",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 11.8.1.2.2: 869 challenges. GPT-6 Sol beats GPT-5.6 Sol at comparable token counts, but GPT-5.6 Sol reaches a higher max (30.3%) with substantially more tokens.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "cyber",
+      "metric_id": "exploitgym-intended-exploit-rate"
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "ExploitGym (intended-exploit rate)",
+      "score": 0.116,
+      "unit": "pass_rate",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 11.8.1.2.2: 869 challenges.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "cyber",
+      "metric_id": "exploitgym-intended-exploit-rate"
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Sandbox Bench (targets solved)",
+      "score": 0.0455,
+      "unit": "pass_rate",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 11.8.1.2.3: 1/22 targets (one runtime target only, no parser/proxy targets), same as GPT-5.6 Sol and GPT-6 Luna.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "cyber",
+      "metric_id": "sandbox-bench",
+      "comparisons": {
+        "gpt-6-astra": 0.4545,
+        "gpt-5.6-sol": 0.0455
+      }
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Sandbox Bench (targets solved)",
+      "score": 0.0455,
+      "unit": "pass_rate",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Section 11.8.1.2.3: 1/22 targets (one runtime target only, no parser/proxy targets).",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "cyber",
+      "metric_id": "sandbox-bench",
+      "comparisons": {
+        "gpt-6-astra": 0.4545,
+        "gpt-5.6-sol": 0.0455
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Multimodal Troubleshooting Virology (pass@1)",
+      "score": 0.506,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 33, Section 11.8.1.1.1. Indicative High threshold 31%.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "multimodal-troubleshooting-virology"
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Multimodal Troubleshooting Virology (pass@1)",
+      "score": 0.491,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 33, Section 11.8.1.1.1. Indicative High threshold 31%.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "multimodal-troubleshooting-virology"
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "ProtocolQA Open-Ended (pass@1)",
+      "score": 0.444,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 33, Section 11.8.1.1.1. Indicative High threshold 54%.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "protocolqa-open-ended"
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "ProtocolQA Open-Ended (pass@1)",
+      "score": 0.349,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 33, Section 11.8.1.1.1. Indicative High threshold 54%.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "protocolqa-open-ended"
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Tacit Knowledge and Troubleshooting (cons@32)",
+      "score": 0.792,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 33, Section 11.8.1.1.1. Indicative High threshold 80%.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "tacit-knowledge-and-troubleshooting"
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Tacit Knowledge and Troubleshooting (cons@32)",
+      "score": 0.692,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 33, Section 11.8.1.1.1. Indicative High threshold 80%.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "tacit-knowledge-and-troubleshooting"
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "TroubleshootingBench (pass@1)",
+      "score": 0.453,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 33, Section 11.8.1.1.1. Indicative High threshold 36.4%.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "troubleshootingbench"
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "TroubleshootingBench (pass@1)",
+      "score": 0.386,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 33, Section 11.8.1.1.1. Indicative High threshold 36.4%.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "troubleshootingbench"
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "AAV Capsid Packaging Prediction (Spearman correlation)",
+      "score": 0.534,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 34, Section 11.8.1.1.2. Indicative Critical threshold 0.600 (not crossed).",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "aav-capsid-packaging-prediction",
+      "comparisons": {
+        "gpt-5.6-sol": 0.529,
+        "gpt-6-astra": 0.528
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "SHP2 Protein Function Prediction (mean R2)",
+      "score": 0.273,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 34, Section 11.8.1.1.2. Indicative Critical threshold 0.60 (not crossed).",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "shp2-protein-function-prediction",
+      "comparisons": {
+        "gpt-5.6-sol": 0.3,
+        "gpt-6-astra": 0.4
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Coronavirus-ACE2 Cell-Entry Screen (composite score)",
+      "score": 0.463,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 34, Section 11.8.1.1.2. Indicative Critical threshold 0.75 (not crossed).",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "coronavirus-ace2-cell-entry-screen",
+      "comparisons": {
+        "gpt-5.6-sol": 0.43,
+        "gpt-6-astra": 0.45
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Phage-plasmid co-evolution (NLL, lower is better)",
+      "score": 12.9,
+      "unit": "other",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 34, Section 11.8.1.1.2. Indicative Critical threshold <=9.40 (not crossed; lower is better).",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "science",
+      "metric_id": "phage-plasmid-coevolution-nll",
+      "comparisons": {
+        "gpt-5.6-sol": 11.35,
+        "gpt-6-astra": 12.58
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Biology Model Refusal Evaluation: Severe (safe rate)",
+      "score": 0.998,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 35, Section 11.8.2.1.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-biology-refusal-severe",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table19-severe",
+      "comparisons": {
+        "gpt-5.5-thinking": 0.958,
+        "gpt-5.6-sol": 0.943,
+        "gpt-5.6-luna": 0.946,
+        "gpt-6-astra": 0.998
+      }
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Biology Model Refusal Evaluation: Severe (safe rate)",
+      "score": 0.985,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 35, Section 11.8.2.1.1.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-biology-refusal-severe",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table19-severe",
+      "comparisons": {
+        "gpt-5.5-thinking": 0.958,
+        "gpt-5.6-sol": 0.943,
+        "gpt-5.6-luna": 0.946,
+        "gpt-6-astra": 0.998
+      }
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Cybersecurity Safety Evaluation: Production Chat",
+      "score": 0.957,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 36, Section 11.8.2.1.2.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-cybersecurity-safety-production-chat",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table20-production-chat",
+      "comparisons": {
+        "gpt-5.5-thinking": 0.928,
+        "gpt-5.6-sol": 0.983,
+        "gpt-5.6-luna": 0.986,
+        "gpt-6-astra": 0.97
+      }
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Cybersecurity Safety Evaluation: Production Chat",
+      "score": 0.951,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-astra-system-card-2026-09-22",
+      "caveat": "Table 36, Section 11.8.2.1.2.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "task_family": "safety",
+      "metric_id": "gpt6-cybersecurity-safety-production-chat",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-astra-syscard-table20-production-chat",
+      "comparisons": {
+        "gpt-5.5-thinking": 0.928,
+        "gpt-5.6-sol": 0.983,
+        "gpt-5.6-luna": 0.986,
+        "gpt-6-astra": 0.97
+      }
+    }
+  ]
+}

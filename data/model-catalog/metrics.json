@@ -1387,6 +1387,540 @@
       "steward": "vendor_table",
       "unit_default": "other",
       "notes": "OpenAI internal eval: whether models follow unauthorized instructions found on a simulated message board (e.g. requests to disclose private information), conditional on the model finding the board. Effort not stated in the source for this chart (unlike the other four adversarial-agent charts on the same page, which state max)."
+    },
+    {
+      "id": "gpt6-production-benchmark-violent-illicit",
+      "name": "GPT-6 Production Benchmarks: Violent Illicit behavior (safe completion rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "OpenAI system-card Production Benchmark with Challenging Prompts, no system-level safeguards, deliberately adversarial set. Cross-launch scores share this id but are marked comparable:false per-row since dataset/grader details evolve between system cards."
+    },
+    {
+      "id": "gpt6-production-benchmark-nonviolent-illicit",
+      "name": "GPT-6 Production Benchmarks: Non-Violent Illicit behavior (safe completion rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-production-benchmark-extremism",
+      "name": "GPT-6 Production Benchmarks: Extremism (safe completion rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-production-benchmark-hate",
+      "name": "GPT-6 Production Benchmarks: Hate (safe completion rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-production-benchmark-self-harm",
+      "name": "GPT-6 Production Benchmarks: Self-harm standard (safe completion rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-production-benchmark-gore",
+      "name": "GPT-6 Production Benchmarks: Gore (safe completion rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-production-benchmark-sexual",
+      "name": "GPT-6 Production Benchmarks: Sexual (safe completion rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-production-benchmark-sexual-minors",
+      "name": "GPT-6 Production Benchmarks: Sexual/minors (safe completion rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-u18-age-restricted",
+      "name": "GPT-6 U18 Evaluation: Age-restricted goods/services/activities",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-u18-sexual-content",
+      "name": "GPT-6 U18 Evaluation: Sexual Content",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-u18-eating-disorders",
+      "name": "GPT-6 U18 Evaluation: Eating Disorders",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-u18-emotional-reliance",
+      "name": "GPT-6 U18 Evaluation: Emotional Reliance",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-u18-self-harm",
+      "name": "GPT-6 U18 Evaluation: Self Harm",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-u18-gore",
+      "name": "GPT-6 U18 Evaluation: Gore",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-agentic-safe-completion-age-restricted",
+      "name": "GPT-6 Agentic Safe Completion: Codex prod - Age-restricted actions",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-agentic-safe-completion-nonviolent-wrongdoing",
+      "name": "GPT-6 Agentic Safe Completion: Codex prod - Non-violent Wrongdoing",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-agentic-safe-completion-violent-wrongdoing",
+      "name": "GPT-6 Agentic Safe Completion: Codex prod - Violent Wrongdoing",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-agentic-safe-completion-sensitive-data",
+      "name": "GPT-6 Agentic Safe Completion: Codex prod - Sensitive personal data",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-agentic-safe-completion-human-redteam-codex",
+      "name": "GPT-6 Agentic Safe Completion: Human red-teaming - Codex",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-agentic-safe-completion-human-redteam-plugins",
+      "name": "GPT-6 Agentic Safe Completion: Human red-teaming - Chat Plugins",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-static-jailbreak-bio-high-risk",
+      "name": "GPT-6 Static Jailbreak Evaluation: Bio high risk (refusal rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-static-jailbreak-bio-severe",
+      "name": "GPT-6 Static Jailbreak Evaluation: Bio severe (refusal rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-static-jailbreak-violence-moderate",
+      "name": "GPT-6 Static Jailbreak Evaluation: Violence moderate (refusal rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-static-jailbreak-violence-severe",
+      "name": "GPT-6 Static Jailbreak Evaluation: Violence severe (refusal rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-static-jailbreak-cyber",
+      "name": "GPT-6 Static Jailbreak Evaluation: Cyber (refusal rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gray-swan-ipi-arena-asr",
+      "name": "Gray Swan IPI Arena attack success rate",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other",
+      "notes": "Estimated attack success rate across 15 attempts/scenario on 1,810 curated indirect-prompt-injection attacks. Lower is better (this is an attack rate, not a defense rate)."
+    },
+    {
+      "id": "healthbench-hard",
+      "name": "HealthBench Hard",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "Harder HealthBench subset. Reported length-adjusted on a 0-100 scale in OpenAI system cards."
+    },
+    {
+      "id": "healthbench-consensus",
+      "name": "HealthBench Consensus",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "HealthBench Consensus subset. Reported length-adjusted on a 0-100 scale in OpenAI system cards."
+    },
+    {
+      "id": "gpt6-dynamic-mental-health",
+      "name": "GPT-6 Dynamic Mental Health Benchmark: Mental health",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-dynamic-emotional-reliance",
+      "name": "GPT-6 Dynamic Mental Health Benchmark: Emotional reliance",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-dynamic-self-harm",
+      "name": "GPT-6 Dynamic Mental Health Benchmark: Self-harm",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-misaligned-outcome-rate-base",
+      "name": "GPT-6 Misaligned outcomes in realistic work environments (base model, no confirmation policy)",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "comparable": false,
+      "notes": "Overall misaligned-outcome rate in OpenAI's realistic-workplace-agent evaluation, base model configuration without the confirmation policy exposed."
+    },
+    {
+      "id": "gpt6-misaligned-outcome-rate-confirmation",
+      "name": "GPT-6 Misaligned outcomes in realistic work environments (with confirmation policy)",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "comparable": false,
+      "notes": "Overall misaligned-outcome rate with the confirmation policy exposed (default user configuration)."
+    },
+    {
+      "id": "gpt6-agent-to-agent-engagement-rate",
+      "name": "Unintended agent-to-agent engagement rate (message-board honeypot)",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "Rate at which a model engaged with an unrequested simulated agent message board it discovered while performing an unrelated browsing task. Lower is safer."
+    },
+    {
+      "id": "internal-research-debugging-eval",
+      "name": "Internal Research Debugging Evaluation",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "notes": "41 real internal OpenAI research bugs plus 6 alignment-auditing tasks; original human fixes took hours to days. Part of OpenAI's AI Self-Improvement Preparedness suite."
+    },
+    {
+      "id": "nanogpt-training-optimization",
+      "name": "NanoGPT training-loop optimization",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "Reward normalized 0-1 vs. a training-time baseline on a small-LM pretraining task, one H100 GPU. Part of OpenAI's AI Self-Improvement Preparedness suite."
+    },
+    {
+      "id": "aav-capsid-packaging-prediction",
+      "name": "AAV Capsid Packaging Prediction",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "Spearman rank correlation vs. AAV9-relative packaging efficiency, OpenAI Preparedness Critical bio/chem evaluation (Dyno Therapeutics collaboration)."
+    },
+    {
+      "id": "shp2-protein-function-prediction",
+      "name": "SHP2 Protein Function Prediction",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "Mean R2 across three unpublished functional-assay datasets (Velocity Bio collaboration), OpenAI Preparedness Critical bio/chem evaluation."
+    },
+    {
+      "id": "coronavirus-ace2-cell-entry-screen",
+      "name": "Coronavirus-ACE2 Cell-Entry Screen",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "Composite ranking-accuracy score on an unpublished cell-entry dataset (three bat coronaviruses x 35 mammalian ACE2 proteins), OpenAI Preparedness Critical bio/chem evaluation."
+    },
+    {
+      "id": "phage-plasmid-coevolution-nll",
+      "name": "Phage-plasmid co-evolution (negative log-likelihood)",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "NLL of observed mutations in an unpublished phage-plasmid co-evolution dataset; lower is better. OpenAI Preparedness Critical bio/chem evaluation."
+    },
+    {
+      "id": "multimodal-troubleshooting-virology",
+      "name": "Multimodal Troubleshooting Virology",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "notes": "322 SecureBio virology-troubleshooting MCQs, pass@1. OpenAI Preparedness High bio/chem threshold evaluation."
+    },
+    {
+      "id": "protocolqa-open-ended",
+      "name": "ProtocolQA Open-Ended",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "notes": "108 open-ended lab-protocol-troubleshooting questions (FutureHouse ProtocolQA, modified to open-ended), pass@1. OpenAI Preparedness High bio/chem threshold evaluation."
+    },
+    {
+      "id": "tacit-knowledge-and-troubleshooting",
+      "name": "Tacit Knowledge and Troubleshooting",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "notes": "60 MCQ built with Gryphon Scientific, cons@32. OpenAI Preparedness High bio/chem threshold evaluation."
+    },
+    {
+      "id": "troubleshootingbench",
+      "name": "TroubleshootingBench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "notes": "52 expert-written lab protocols x 3 questions each (156 total), pass@1. OpenAI Preparedness High bio/chem threshold evaluation."
+    },
+    {
+      "id": "sre-bench",
+      "name": "SRE-Bench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "pass_rate",
+      "notes": "262 binary reverse-engineering instances, 19 privately developed programs. pass@4 reported. OpenAI Preparedness cyber capability evaluation."
+    },
+    {
+      "id": "sandbox-bench",
+      "name": "Sandbox Bench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "pass_rate",
+      "notes": "22 CTF-style challenges (runtimes/parsers/egress proxies), internal OpenAI evaluation. OpenAI Preparedness cyber capability evaluation."
+    },
+    {
+      "id": "irregular-frontiercyber",
+      "name": "Irregular FrontierCyber",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other",
+      "notes": "226-challenge vulnerability discovery/exploitation suite run independently by Irregular. Recorded as raw challenge counts, not fractions."
+    },
+    {
+      "id": "irregular-cyscenariobench",
+      "name": "Irregular CyScenarioBench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other",
+      "notes": "10-challenge long-horizon offensive-task suite run independently by Irregular. Recorded as raw challenge counts, not fractions."
+    },
+    {
+      "id": "gpt6-biology-refusal-severe",
+      "name": "GPT-6 Biology Model Refusal Evaluation: Severe (safe rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-biology-refusal-dual-use",
+      "name": "GPT-6 Biology Model Refusal Evaluation: Dual Use (safe rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-biology-refusal-benign",
+      "name": "GPT-6 Biology Model Refusal Evaluation: Benign (not-overrefuse rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-misuse-monitor-safety-reasoner-biology",
+      "name": "GPT-6 Misuse Monitor Performance: Safety Reasoner - Biology (recall)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "notes": "End-to-end recall of the hierarchical misuse-monitor system on a challenging, expert-validated evaluation set."
+    },
+    {
+      "id": "gpt6-misuse-monitor-safety-reasoner-cyber",
+      "name": "GPT-6 Misuse Monitor Performance: Safety Reasoner - Cybersecurity (recall)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "notes": "End-to-end recall of the hierarchical misuse-monitor system on a challenging, expert-validated evaluation set."
+    },
+    {
+      "id": "gpt6-instruction-hierarchy-robustness",
+      "name": "GPT-6 Instruction hierarchy robustness (defender success rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
+    },
+    {
+      "id": "gpt6-codex-traffic-severity3-flag-rate",
+      "name": "GPT-6 Codex-traffic severity-3+ misalignment flag rate",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "Deployment-simulation flag rate (severity 3 or higher) on internal OpenAI Codex traffic. Lower is better."
+    },
+    {
+      "id": "gpt6-cot-controllability-750-1250tok",
+      "name": "GPT-6 CoT controllability (750-1250 token window)",
+      "direction": "context_dependent",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "Fraction of chains-of-thought in the 750-1250 token length window that successfully follow a requested CoT-content instruction. Direction is context-dependent: higher indicates more steerable/controllable CoT, but also more capability to conceal reasoning from monitors -- a controllability/monitorability tradeoff, not a pure quality axis."
+    },
+    {
+      "id": "exploitbench-internal-port-jun-aug-2026",
+      "name": "ExploitBench - Internal Port (June-August 2026)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "pass_rate",
+      "notes": "Internal OpenAI refresh of ExploitBench using only vulnerabilities disclosed after the evaluated model's knowledge cutoff, to reduce historical-CVE contamination."
+    },
+    {
+      "id": "exploitgym-intended-exploit-rate",
+      "name": "ExploitGym intended-exploit rate",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "pass_rate",
+      "notes": "869-challenge exploit-development benchmark (userspace C/C++, V8, Linux kernel); credit only for the intended vulnerability via remote code execution."
+    },
+    {
+      "id": "gpt6-cybersecurity-safety-production-chat",
+      "name": "GPT-6 Cybersecurity Safety Evaluation: Production Chat",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false
     }
   ]
 }
