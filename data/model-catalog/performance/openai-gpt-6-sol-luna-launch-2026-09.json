@@ -1,0 +1,135 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "schema_version": 1,
+  "id": "openai-gpt-6-sol-luna-launch-2026-09",
+  "kind": "performance",
+  "provider": "openai",
+  "retrieved_at": "2026-09-22",
+  "source_ids": [
+    "openai-gpt-6-sol-luna-2026-09-22"
+  ],
+  "source_urls": [
+    "https://openai.com/index/introducing-gpt-6-sol-and-luna/"
+  ],
+  "notes": "GPT-6 Sol/Luna launch post (2026-09-22, 19 days after GPT-6 Astra). Two <table> elements parsed verbatim from the fetched HTML (BeautifulSoup, not chart digitization): (1) an API-pricing summary table (short-context input/output for Sol and Luna vs their GPT-5.6 predecessors, vendor-labelled 'price reduction') — duplicated here as a claims row since the authoritative pricing facts already live in pricing/openai-api-2026-07.json; (2) an AutomationBench score/cost-per-task table. The page's 11 vegaLite interactive charts are OUT OF SCOPE for this file (separate chart-digitization lane; do not add chart-derived score rows here). All rows are vendor-published (evidence_grade C) even where the benchmark (AutomationBench) carries a third-party name — OpenAI is the publisher of THESE numbers. The 'Claude Opus 5 (max) 26.9%' cell in this OpenAI table matches the independently-reported claude-opus-5 AutomationBench value (0.269) in performance/anthropic-opus-5-5-launch-2026-09.json's own table — cross-vendor corroboration on the same headline number, kept as a SEPARATE comparability_group per this pack's mixed-provenance convention (do not merge rows across publisher tables even when they happen to agree).",
+  "claims": [
+    {
+      "models": ["gpt-6-sol"],
+      "task_families": ["general"],
+      "axes": ["cost"],
+      "statement": "GPT‑5.6 Sol → GPT‑6 Sol: Input $4 → $2, Output $20 → $10 (50% cheaper). [Launch post pricing-summary table; short-context USD/1M tokens.]",
+      "source_id": "openai-gpt-6-sol-luna-2026-09-22"
+    },
+    {
+      "models": ["gpt-6-luna"],
+      "task_families": ["general"],
+      "axes": ["cost"],
+      "statement": "GPT‑5.6 Luna → GPT‑6 Luna: Input $0.20 → $0.10, Output $1.20 → $0.50 (50% cheaper). [Launch post pricing-summary table; short-context USD/1M tokens.]",
+      "source_id": "openai-gpt-6-sol-luna-2026-09-22"
+    },
+    {
+      "models": ["gpt-6-sol", "claude-opus-5"],
+      "task_families": ["agentic_business_workflows"],
+      "axes": ["quality", "cost", "effort"],
+      "statement": "\"On AutomationBench, a test of business workflows across apps, GPT‑6 Sol at xhigh effort outperforms Claude Opus 5 at max effort at just 9% of Opus 5's cost per task.\"",
+      "implication": "Vendor cost-per-quality claim; verify against the source table (GPT-6 Sol xhigh $0.27/task vs Claude Opus 5 max reported as 11.1x GPT-6 Sol's cost, i.e. ~$3.00/task) before treating 9% as authoritative — 1/11.1 = 9.0%, internally consistent with the table.",
+      "source_id": "openai-gpt-6-sol-luna-2026-09-22"
+    },
+    {
+      "models": ["gpt-6-luna", "gpt-5.6-luna"],
+      "task_families": ["agentic_business_workflows"],
+      "axes": ["quality", "cost", "effort"],
+      "statement": "\"At high effort, GPT‑6 Luna improves on its predecessor by 5.4 percentage points at 58% lower cost per task.\"",
+      "implication": "AutomationBench, high effort, GPT-6 Luna vs GPT-5.6 Luna. No absolute score/cost pair for this specific comparison is printed on the page (the table's Luna row, if any, was not present in the parsed <table> — only Sol/Astra/Opus 5/Fable 5.1 rows are printed); recorded as a claim, not a score.",
+      "source_id": "openai-gpt-6-sol-luna-2026-09-22"
+    },
+    {
+      "models": ["gpt-6-sol", "claude-fable-5-1"],
+      "task_families": ["agentic_business_workflows"],
+      "axes": ["quality", "cost"],
+      "statement": "\"GPT‑6 Sol also exceeds Claude Fable 5.1 at far lower cost, and even bests low-effort GPT‑6 Astra.\" Footnote: \"The datapoint for Claude Fable 5.1 understates its actual cost, as it omits the cost of the Opus 5 fallbacks, which occurred on ~40% of tasks.\"",
+      "source_id": "openai-gpt-6-sol-luna-2026-09-22"
+    }
+  ],
+  "scores": [
+    {
+      "model": "gpt-6-sol",
+      "metric": "AutomationBench",
+      "score": 0.332,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "source_id": "openai-gpt-6-sol-luna-2026-09-22",
+      "caveat": "Table row 'GPT‑6 Sol (xhigh)'. Cost recorded in cost{} as the table's own absolute value.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "effort_verbatim": "xhigh",
+      "task_family": "agentic_business_workflows",
+      "metric_id": "automationbench",
+      "cost": {
+        "value": 0.27,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-sol-luna-launch-automationbench"
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "AutomationBench",
+      "score": 0.303,
+      "unit": "accuracy",
+      "effort": "low",
+      "source_id": "openai-gpt-6-sol-luna-2026-09-22",
+      "caveat": "Table row 'GPT‑6 Astra (low)'. Cost given relatively as '3.9x GPT‑6 Sol' (i.e. ~3.9x $0.27 ≈ $1.05/task); NOT recorded as cost{} since the table prints a ratio, not an absolute dollar figure, and this pack does not invent derived numbers.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "effort_verbatim": "low",
+      "task_family": "agentic_business_workflows",
+      "metric_id": "automationbench",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-sol-luna-launch-automationbench"
+    },
+    {
+      "model": "claude-opus-5",
+      "metric": "AutomationBench",
+      "score": 0.269,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "openai-gpt-6-sol-luna-2026-09-22",
+      "caveat": "Table row 'Claude Opus 5 (max)'. Cost given relatively as '11.1x GPT‑6 Sol' (i.e. ~11.1x $0.27 ≈ $3.00/task); NOT recorded as cost{} since the table prints a ratio, not an absolute dollar figure. This same 0.269 value is independently reported by Anthropic's own launch page for claude-opus-5 on AutomationBench (performance/anthropic-opus-5-5-launch-2026-09.json) — cross-vendor agreement, kept in a separate comparability_group per house convention.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "effort_verbatim": "max",
+      "task_family": "agentic_business_workflows",
+      "metric_id": "automationbench",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-sol-luna-launch-automationbench"
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "AutomationBench",
+      "score": 0.314,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "openai-gpt-6-sol-luna-2026-09-22",
+      "caveat": "Table row 'Claude Fable 5.1 w/ Opus 5 Fallback (max)'. This is a FALLBACK-CONFIGURED run (Opus 5 fallback triggered on ~40% of tasks per the page's own footnote), not a pure Fable 5.1 run — do not treat as directly comparable to other claude-fable-5-1 rows in this pack without checking configuration. Cost given as '>8.9x GPT‑6 Sol (fallback cost not reported)' — a lower bound only, NOT recorded as cost{} since it is explicitly incomplete (fallback cost omitted) and not an absolute figure.",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-22",
+      "effort_verbatim": "max",
+      "task_family": "agentic_business_workflows",
+      "metric_id": "automationbench",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-sol-luna-launch-automationbench"
+    }
+  ],
+  "missing": [
+    "GPT-6 Luna's own AutomationBench score/cost row at high effort — only the delta claim ('+5.4pp at 58% lower cost') is printed, no absolute score/cost pair for Luna is in the parsed table.",
+    "Absolute cost-per-task USD for GPT-6 Astra (low), Claude Opus 5 (max), and Claude Fable 5.1 w/ Opus 5 Fallback (max) — the table prints these as multiples of GPT-6 Sol's cost, not dollar figures; derived dollar values are deliberately NOT computed/stored here.",
+    "The 11 vegaLite interactive charts on this launch page (effort-stratified curves for AutomationBench, Agents' Last Exam, FrontierCode 1.1, DeepSWE v1.1, OSWorld 2.0, factuality, etc.) — explicitly out of scope for this file per the lane split; owned by a separate chart-digitization lane.",
+    "FrontierCode 1.1 Main, DeepSWE v1.1, OSWorld 2.0 offline, and Agents' Last Exam V1 absolute score/cost figures mentioned in launch-post prose (e.g. 'GPT-6 Sol at max effort scores 68.8% on DeepSWE v1.1') — recorded only where a <table> cell exists; prose-only figures outside the two parsed tables are not ingested as scores in this pass."
+  ]
+}

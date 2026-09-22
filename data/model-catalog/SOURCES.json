@@ -6,6 +6,86 @@
   "description": "Canonical provenance registry. Every pricing/performance/capabilities payload should reference these ids via source_ids[].",
   "sources": [
     {
+      "id": "openai-gpt-6-sol-luna-2026-09-22",
+      "url": "https://openai.com/index/introducing-gpt-6-sol-and-luna/",
+      "title": "Introducing GPT-6 Sol and Luna",
+      "publisher": "OpenAI",
+      "published": "2026-09-22",
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_blog",
+      "notes": "Launch post, 19 days after GPT-6 Astra (2026-09-03). Fetched via headless browser (plain fetch returns a Cloudflare JS challenge, HTTP 403). Two <table> elements parsed: an API-pricing summary table (short-context input/output for Sol and Luna, vendor-labelled 'price reduction' vs GPT-5.6) and an AutomationBench score/cost-per-task table (GPT-6 Sol xhigh / GPT-6 Astra low / Claude Opus 5 max / Claude Fable 5.1 w/ Opus 5 Fallback max). Prose claims recorded verbatim; the page's 11 vegaLite interactive charts are explicitly out of scope for this file (separate chart-digitization lane)."
+    },
+    {
+      "id": "openai-api-pricing-2026-09-22",
+      "url": "https://developers.openai.com/api/docs/pricing",
+      "title": "Pricing | OpenAI API",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_docs",
+      "notes": "Fetched via headless browser (Cloudflare JS challenge blocks plain fetch/curl). Standard-processing table gives short/long-context input, cached-input, cache-write, output rates for gpt-6-astra, gpt-6-sol, gpt-6-luna (plus Batch/Flex/Fast-mode tabs, not ingested here — only Standard short-context rates are used per this pack's flat-rate schema, matching precedent). Confirms the GPT-5.6 Sol promotional-pricing footnote ('available at least through November 21, 2026') is still present unchanged. Note: GPT-5.6 Terra and GPT-5.6 Luna model rows are no longer present anywhere on this page as of this retrieval (only gpt-5.6-sol and gpt-5.6-cyber remain under 'All models'); GPT-5.6 Sol's own rate is unchanged. Not investigated further — out of this lane's scope (GPT-6 Sol/Luna addition), flagged for a future pricing-audit pass rather than acted on here."
+    },
+    {
+      "id": "openai-codex-pricing-2026-09-22",
+      "url": "https://learn.chatgpt.com/docs/pricing",
+      "title": "Pricing | ChatGPT Learn",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_docs",
+      "notes": "Fetched via headless browser (Cloudflare JS challenge blocks plain fetch/curl). Codex credit-per-1M-token table lists gpt-6-astra 250/25/1250, gpt-6-sol 50/5/250, gpt-6-luna 2.5/0.25/12.5 (input/cached-input/output; cache-write not separately billed, consistent with prior gpt-5.6/gpt-6-astra rows). GPT-5.6 sol/terra/luna rows re-verified UNCHANGED at 100/10/500, 50/5/300, 5/0.5/30 respectively (matches the currently-stored catalog rows exactly — no 5.6 credit rate changed on this date). Footnote: 'Fast mode uses 2.5x the Standard credit rate for GPT-6 Astra, Sol, and Luna where available.'"
+    },
+    {
+      "id": "openai-api-reasoning-2026-09-22",
+      "url": "https://developers.openai.com/api/docs/guides/reasoning",
+      "title": "Reasoning models | OpenAI API",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_docs",
+      "notes": "Fetched via headless browser (Cloudflare JS challenge blocks plain fetch/curl). General reasoning.effort enum: none|minimal|low|medium|high|xhigh|max, but 'supported values are model-dependent... check the relevant model page before choosing a setting'. Confirms 'GPT-6 Sol and Luna also default to medium reasoning effort' (same default as gpt-6-astra). Per-model supported efforts sourced from the model-specific pages instead (openai-api-model-page-gpt-6-sol-2026-09-22, openai-api-model-page-gpt-6-luna-2026-09-22)."
+    },
+    {
+      "id": "openai-api-model-page-gpt-6-sol-2026-09-22",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6-sol",
+      "title": "GPT-6 Sol Model | OpenAI API",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_docs",
+      "notes": "Fetched via headless browser. Verbatim: 'reasoning.effort supports none, low, medium (default), high, xhigh, and max.' — NO minimal level, unlike gpt-5.6-sol's api surface (which lists minimal). 1,050,000 context window; 128,000 max output tokens; Apr 20, 2026 knowledge cutoff. Chat Completions supports function calling only with reasoning_effort set to none; Responses API required for built-in tools/function calling otherwise. Pricing on-page ($2.00 input / $0.20 cached / $10.00 output per 1M) matches developers.openai.com/api/docs/pricing exactly."
+    },
+    {
+      "id": "openai-api-model-page-gpt-6-luna-2026-09-22",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+      "title": "GPT-6 Luna Model | OpenAI API",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_docs",
+      "notes": "Fetched via headless browser. Verbatim: 'reasoning.effort supports none, low, medium (default), high, xhigh, and max.' — NO minimal level, matching gpt-6-sol's surface (both differ from gpt-5.6's api surface, which lists minimal). 1,050,000 context window; 128,000 max output tokens; May 18, 2026 knowledge cutoff. Pricing on-page ($0.10 input / $0.01 cached / $0.50 output per 1M) matches developers.openai.com/api/docs/pricing exactly."
+    },
+    {
+      "id": "openai-codex-debug-models-2026-09-22",
+      "url": "https://github.com/tnunamak/minnows/tree/main/data/model-catalog",
+      "title": "codex debug models (live, auth-scoped host output)",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "other",
+      "notes": "Not a public URL (url field reuses the repo per the openai-codex-debug-models-2026-09-05 precedent) — this is a local `codex debug models` command output (codex-cli 0.154.0) on this host, not a fetched page. It lists gpt-6-astra, gpt-reserve, gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna, gpt-5.5, codex-auto-review — gpt-6-sol and gpt-6-luna slugs are ABSENT from this host's live, auth-scoped model catalog as of 2026-09-22 (same day as launch), unlike gpt-6-astra which was already present from its 2026-09-03 launch. Recorded as an auth-scoped/rollout-timing gap, not a capability negation — the vendor docs (openai-api-model-page-gpt-6-sol/luna-2026-09-22) are the authority for what the api surface supports; Codex CLI rollout may lag launch day, consistent with the precedent noted for gpt-5.6 (docs-vs-live-catalog conflicts recorded in missing[], not resolved by picking a side)."
+    },
+    {
+      "id": "openai-gpt-6-prompt-caching-2026-09-22",
+      "url": "https://openai.com/index/better-prompt-caching-for-gpt-6/",
+      "title": "Better prompt caching for GPT-6",
+      "publisher": "OpenAI",
+      "published": "2026-09-22",
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_blog",
+      "notes": "Fetched via headless browser (Cloudflare JS challenge blocks plain fetch/curl). Cost-relevant facts only (no charts/tables ingested here): 'discounts of up to 90% on cached input tokens' (consistent with the 0.1x cache_read_per_m ratio already recorded for gpt-6-astra/sol/luna); 'we now give cache discounts for eligible shared prefixes reused within a 30-minute window' (new default TTL for the improved GPT-6 caching system, described as higher cache-hit-rate-by-default vs the prior system); reasoning effort can now be changed between responses without breaking cache via a configuration_update, leaving request-level effort unchanged."
+    },
+    {
       "id": "anthropic-opus-5-5-system-card-2026-09-22",
       "url": "https://www-cdn.anthropic.com/fc1b44717c85dc068bc6ba5024219938094694bd/Claude%20Opus%205.5%20System%20Card.pdf",
       "title": "System Card: Claude Opus 5.5",

@@ -10,6 +10,8 @@
     "https://developers.openai.com/codex/config-reference",
     "https://developers.openai.com/codex/models",
     "https://developers.openai.com/api/docs/guides/reasoning",
+    "https://developers.openai.com/api/docs/models/gpt-6-sol",
+    "https://developers.openai.com/api/docs/models/gpt-6-luna",
     "https://docs.x.ai/developers/model-capabilities/text/reasoning",
     "https://openai.com/index/gpt-5-6/",
     "https://www.anthropic.com/news/claude-opus-5",
@@ -29,12 +31,16 @@
     "openai-codex-debug-models-2026-09-05",
     "openai-codex-models-2026-08-02",
     "openai-codex-models-2026-09-05",
+    "openai-codex-debug-models-2026-09-22",
+    "openai-api-reasoning-2026-09-22",
+    "openai-api-model-page-gpt-6-sol-2026-09-22",
+    "openai-api-model-page-gpt-6-luna-2026-09-22",
     "openai-gpt-5-6-2026-07-09",
     "openai-reasoning-2026-07-09",
     "waspflow-codex-ultra-probe-2026-09-05",
     "xai-reasoning-2026-07-09"
   ],
-  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking.",
+  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking. 2026-09-22: added gpt-6-sol/gpt-6-luna api surfaces from their model pages (none/low/medium(default)/high/xhigh/max — no minimal, unlike gpt-5.6's api surface) and codex_cli surfaces recording that this host's live `codex debug models` does not yet list either slug (auth-scoped rollout gap, not a capability negation — left empty rather than inferring parity with gpt-6-astra).",
   "surfaces": [
     {
       "provider": "anthropic",
@@ -755,6 +761,94 @@
       "notes": "Astra has NO minimal level (unlike gpt-5.5/5.6 codex_cli rows). Live catalog agrees with docs on efforts and default=medium."
     },
     {
+      "provider": "openai",
+      "model": "gpt-6-sol",
+      "surface": "api",
+      "valid_efforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        },
+        {
+          "mode_id": "pro",
+          "notes": "reasoning.mode pro bills more work at model rates (GPT-5.6 and GPT-6 models support standard/pro reasoning mode independently of effort)"
+        }
+      ],
+      "source_ids": [
+        "openai-api-model-page-gpt-6-sol-2026-09-22",
+        "openai-api-reasoning-2026-09-22"
+      ],
+      "notes": "Model page verbatim: 'reasoning.effort supports none, low, medium (default), high, xhigh, and max.' NO minimal level — differs from gpt-5.6-sol's api surface (which lists minimal). Chat Completions supports function calling only with reasoning_effort=none; otherwise use the Responses API for built-in tools/function calling."
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "surface": "api",
+      "valid_efforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        },
+        {
+          "mode_id": "pro",
+          "notes": "reasoning.mode pro bills more work at model rates (GPT-5.6 and GPT-6 models support standard/pro reasoning mode independently of effort)"
+        }
+      ],
+      "source_ids": [
+        "openai-api-model-page-gpt-6-luna-2026-09-22",
+        "openai-api-reasoning-2026-09-22"
+      ],
+      "notes": "Model page verbatim: 'reasoning.effort supports none, low, medium (default), high, xhigh, and max.' NO minimal level — differs from gpt-5.6-luna's api surface (which lists minimal). Chat Completions supports function calling only with reasoning_effort=none; otherwise use the Responses API for built-in tools/function calling."
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-6-sol",
+      "surface": "codex_cli",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [],
+      "source_ids": [
+        "openai-codex-debug-models-2026-09-22"
+      ],
+      "notes": "AUTH-SCOPED GAP, not a capability negation: this host's live `codex debug models` (codex-cli 0.154.0, checked 2026-09-22, same day as launch) does NOT list a gpt-6-sol slug at all — only gpt-6-astra, gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna, gpt-5.5, gpt-reserve, codex-auto-review. valid_efforts/default_effort/modes left empty rather than inferring parity with gpt-6-astra's codex_cli row or the api surface. Re-check once the Codex CLI catalog rolls out gpt-6-sol on this host."
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "surface": "codex_cli",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [],
+      "source_ids": [
+        "openai-codex-debug-models-2026-09-22"
+      ],
+      "notes": "AUTH-SCOPED GAP, not a capability negation: this host's live `codex debug models` (codex-cli 0.154.0, checked 2026-09-22, same day as launch) does NOT list a gpt-6-luna slug at all — only gpt-6-astra, gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna, gpt-5.5, gpt-reserve, codex-auto-review. valid_efforts/default_effort/modes left empty rather than inferring parity with gpt-6-astra's codex_cli row or the api surface. Re-check once the Codex CLI catalog rolls out gpt-6-luna on this host."
+    },
+    {
       "provider": "anthropic",
       "model": "claude-fable-5-1",
       "surface": "api",
@@ -1085,6 +1179,7 @@
     "Anthropic: claude-opus-4-5 and claude-sonnet-4-5 are compatibility-listed in the effort guide without a full level matrix; claude-haiku-4-5 is absent from the five-level table entirely.",
     "xAI: AA reports Grok 4.6 high (Index 51) and Grok 4.5 high (Index 45) plus a separate 4.6 view at Index 61 / $0.84 per task — these are DIFFERENT AA configurations and must not be merged into one curve. No matched low/medium/high/xhigh series on one task set exists, so Grok effort value is undetermined.",
     "Z.AI/GLM: AA measures GLM 5.3 max at Index 60 and GLM 5.2 max at 53, and a GLM 5.2 non-reasoning setting at Index 35 — but these are CROSS-MODEL comparisons, not a same-version thinking-on/off experiment. The AA displayed $0.90 is its 7:2:1 token-mix effective price, NOT a replacement for Z.AI direct list pricing.",
-    "Anthropic: claude-opus-5-5 claude_code surface not recorded (no Claude Code-specific model-config doc content fetched for it this pass). Tokenizer identity vs claude-opus-5 (\"same tokenizer\") was not found in any fetched source and is NOT recorded as fact anywhere in this pack. Opus 5.5 lifecycle/retirement floor not found in fetched sources."
+    "Anthropic: claude-opus-5-5 claude_code surface not recorded (no Claude Code-specific model-config doc content fetched for it this pass). Tokenizer identity vs claude-opus-5 (\"same tokenizer\") was not found in any fetched source and is NOT recorded as fact anywhere in this pack. Opus 5.5 lifecycle/retirement floor not found in fetched sources.",
+    "gpt-6-sol / gpt-6-luna codex_cli surface: this host's live `codex debug models` (2026-09-22, launch day) does not list either slug, unlike gpt-6-astra which was present from its own launch day. valid_efforts/default_effort/modes left empty rather than assumed; re-probe once the Codex CLI catalog includes them."
   ]
 }
