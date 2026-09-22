@@ -1,0 +1,111 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "terminal-bench-4-vals-opus-5-5-2026-09",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-09-22",
+  "source_urls": [
+    "https://www.vals.ai/benchmarks/terminal-bench-4"
+  ],
+  "source_ids": [
+    "vals-ai-terminal-bench-4-2026-09-21"
+  ],
+  "notes": "SECONDARY board: vals.ai's own reading of Terminal-Bench 4.0, not a direct tbench.ai fetch (tbench.ai itself renders client-side and returned no rows to WebFetch here, consistent with prior pack notes on that site). Page shows 'Updated 9/21/2026' — one day before the 2026-09-22 official Opus 5.5 launch, plausibly an embargo-lifted pre-briefing read (AA also published launch-day numbers). Category breakdown (ML, operations, media, hardware, science, software, security) is recorded from search-engine synthesis of this page's text, not a raw table extraction, and is therefore NOT included as separate score rows here — only the overall scores are recorded, each individually confirmed in the synthesis output. Distinct comparability_group from performance/terminal-bench-2-1-2026-09.json (different benchmark version) and from performance/terminal-bench-4-astra-audit-2026-09.json (different secondary source, different date).",
+  "claims": [
+    {
+      "models": ["claude-opus-5-5", "gpt-6-astra"],
+      "task_families": ["coding"],
+      "axes": ["quality"],
+      "statement": "Claude Opus 5.5 leads Terminal-Bench 4.0 at 61.62%, four and a half points clear of GPT-6 Astra (57.07%); Opus 5.5 leads or ties for the lead in six of seven categories.",
+      "source_id": "vals-ai-terminal-bench-4-2026-09-21"
+    }
+  ],
+  "scores": [
+    {
+      "model": "claude-opus-5-5",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.6162,
+      "unit": "accuracy",
+      "source_id": "vals-ai-terminal-bench-4-2026-09-21",
+      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Snapshot dated 9/21/2026, one day before official launch.",
+      "source_type": "other",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "tb4-vals-ai-secondary-2026-09-21"
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.5707,
+      "unit": "accuracy",
+      "source_id": "vals-ai-terminal-bench-4-2026-09-21",
+      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Same 9/21/2026 snapshot as the Opus 5.5 row.",
+      "source_type": "other",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "tb4-vals-ai-secondary-2026-09-21"
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.4949,
+      "unit": "accuracy",
+      "source_id": "vals-ai-terminal-bench-4-2026-09-21",
+      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Same 9/21/2026 snapshot as the Opus 5.5 row.",
+      "source_type": "other",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "tb4-vals-ai-secondary-2026-09-21"
+    },
+    {
+      "model": "claude-opus-5",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.4545,
+      "unit": "accuracy",
+      "source_id": "vals-ai-terminal-bench-4-2026-09-21",
+      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Same 9/21/2026 snapshot as the Opus 5.5 row.",
+      "source_type": "other",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "tb4-vals-ai-secondary-2026-09-21"
+    },
+    {
+      "model": "claude-sonnet-5",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.0808,
+      "unit": "accuracy",
+      "source_id": "vals-ai-terminal-bench-4-2026-09-21",
+      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Cost $21.37/task reported. Same 9/21/2026 snapshot as the Opus 5.5 row.",
+      "source_type": "other",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "tb4-vals-ai-secondary-2026-09-21",
+      "cost": {
+        "value": 21.37,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    }
+  ],
+  "missing": [
+    "Direct tbench.ai fetch of the same board (client-rendered, no rows retrievable)",
+    "Per-category (ML/operations/media/hardware/science/software/security) row-level breakdown as raw data",
+    "Agent/harness label for these rows — not present in the retrievable page text"
+  ]
+}

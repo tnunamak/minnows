@@ -1321,6 +1321,16 @@
       "steward": "vendor_table",
       "unit_default": "other",
       "notes": "Fraction of transcripts where white-box probing finds the model internally suspects it is being evaluated. Direction is context-dependent: high awareness can undermine the reliability of behavioral evaluations (bad for measurement validity) independent of whether the model's actual behavior is good."
+    },
+    {
+      "id": "artificial-analysis-intelligence-index-v4-3-2",
+      "name": "Artificial Analysis Intelligence Index v4.3.2",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other",
+      "comparable": false,
+      "notes": "Aggregate of 10 evaluations (AA-Briefcase v1.1, GDPval-AA v2.1, AutomationBench-AA, Terminal-Bench 4.0, SciCode, Humanity's Last Exam, GDP.pdf, CritPt, AA-Omniscience, AA-LCR v1.1). Distinct metric identity from v4.2/v4.1; do not cross-rank."
     }
   ]
 }
