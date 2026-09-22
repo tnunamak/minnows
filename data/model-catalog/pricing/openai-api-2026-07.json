@@ -8,16 +8,35 @@
   "source_urls": [
     "https://developers.openai.com/api/docs/pricing",
     "https://openai.com/index/gpt-5-6/",
-    "https://openai.com/index/introducing-gpt-5-5/"
+    "https://openai.com/index/introducing-gpt-5-5/",
+    "https://openai.com/index/introducing-gpt-6-sol-and-luna/",
+    "https://openai.com/index/better-prompt-caching-for-gpt-6/"
   ],
   "source_ids": [
     "openai-api-pricing-2026-07-09",
     "openai-api-pricing-2026-09-05",
     "openai-gpt-5-5-2026-04-23",
-    "openai-gpt-5-6-2026-07-09"
+    "openai-gpt-5-6-2026-07-09",
+    "openai-api-pricing-2026-09-22",
+    "openai-gpt-6-sol-luna-2026-09-22",
+    "openai-gpt-6-prompt-caching-2026-09-22"
   ],
-  "notes": "Standard short-context rates USD/1MTok. GPT-5.6 cache_write = 1.25× fresh; cache_read = 0.1×. Long-context rates (higher) exist on pricing page but are not separate model ids here — see notes. GPT-5.5/5.4 cache_write left 0 when not published as write line. 2026-09-05 refresh (API USD rate card — DISTINCT from Codex subscription credits in codex-credits-2026-07.json; do not conflate). CHANGED: sol 5/0.5/30 -> 4/0.40/20 (promotional, vendor floor at least through 2026-11-21; list price remains 5/30 after), terra 2.5/0.25/15 -> 2/0.20/12, luna 1/0.1/6 -> 0.20/0.02/1.20. Superseded values retained as *-2026-07 rows with valid_from/valid_until. NEW gpt-6-astra 10/1.00/50 short-context. UNCHANGED, re-verified: gpt-5.5, gpt-5.5-pro, gpt-5.4, gpt-5.4-mini, gpt-5.4-nano, gpt-5.4-pro. NOT MODELED by this flat-rate schema (documented): a long-context tier above ~272k tokens that roughly doubles input and raises output, and a 1.1x data-residency uplift for models released on/after 2026-03-05. UNRESOLVED SOURCE CONFLICT, left as-is deliberately: gpt-5.3-codex appears on the deprecations page with a 2026-07-23 shutdown AND is still priced at 1.75/0.175/14.00 on the live pricing page; the row is unchanged pending resolution rather than deleted on one page's authority. Source URL note: platform.openai.com/docs/pricing now 301-redirects to developers.openai.com/api/docs/pricing.",
+  "notes": "Standard short-context rates USD/1MTok. GPT-5.6/GPT-6 cache_write = 1.25× fresh; cache_read = 0.1×. Long-context rates (higher) exist on pricing page but are not separate model ids here — see notes. GPT-5.5/5.4 cache_write left 0 when not published as write line. 2026-09-05 refresh (API USD rate card — DISTINCT from Codex subscription credits in codex-credits-2026-07.json; do not conflate). CHANGED: sol 5/0.5/30 -> 4/0.40/20 (promotional, vendor floor at least through 2026-11-21; list price remains 5/30 after), terra 2.5/0.25/15 -> 2/0.20/12, luna 1/0.1/6 -> 0.20/0.02/1.20. Superseded values retained as *-2026-07 rows with valid_from/valid_until. NEW gpt-6-astra 10/1.00/50 short-context. UNCHANGED, re-verified: gpt-5.5, gpt-5.5-pro, gpt-5.4, gpt-5.4-mini, gpt-5.4-nano, gpt-5.4-pro. NOT MODELED by this flat-rate schema (documented): a long-context tier above ~272k tokens that roughly doubles input and raises output, and a 1.1x data-residency uplift for models released on/after 2026-03-05. UNRESOLVED SOURCE CONFLICT, left as-is deliberately: gpt-5.3-codex appears on the deprecations page with a 2026-07-23 shutdown AND is still priced at 1.75/0.175/14.00 on the live pricing page; the row is unchanged pending resolution rather than deleted on one page's authority. Source URL note: platform.openai.com/docs/pricing now 301-redirects to developers.openai.com/api/docs/pricing. 2026-09-22 addition: NEW gpt-6-sol 2.00/0.20/2.50/10.00 and gpt-6-luna 0.10/0.01/0.125/0.50 short-context (developers.openai.com/api/docs/pricing Standard tab, verified 2026-09-22 — same 1.25x cache-write / 0.1x cache-read ratios as gpt-6-astra). Long-context rows for the same three models observed on the same page (2x short-context input/cache-write/cache-read, 1.5x output for astra/sol, 1.5x output for luna — see raw table: astra 20/2/25/75, sol 4/0.4/5/15, luna 0.20/0.02/0.25/0.75) but NOT modeled as separate ids here, consistent with the pre-existing long-context note. GPT-5.6 Sol re-verified UNCHANGED at 4/0.40/5.00/20.00 on this date (promotional-pricing footnote 'available at least through November 21, 2026' still present); no other GPT-5.6 API USD rate changed today. Prompt caching (openai-gpt-6-prompt-caching-2026-09-22): GPT-6's improved caching system gives 'discounts of up to 90% on cached input tokens' (matches the stored 0.1x cache_read ratio) and caches eligible shared prefixes for a 30-minute reuse window by default (new vs the prior caching generation); reasoning effort can now change between responses without invalidating the cache. OBSERVED, not acted on (out of this lane's scope): GPT-5.6 Terra and GPT-5.6 Luna model rows are absent from the live pricing page as of 2026-09-22 (only gpt-5.6-sol and gpt-5.6-cyber remain listed) — flagged for a future pricing-audit pass, not treated as a rate change since no new rate was published for them.",
   "models": {
+    "gpt-6-sol": {
+      "fresh_input_per_m": 2.00,
+      "cache_read_per_m": 0.20,
+      "cache_write_per_m": 2.50,
+      "output_per_m": 10.00,
+      "valid_from": "2026-09-22"
+    },
+    "gpt-6-luna": {
+      "fresh_input_per_m": 0.10,
+      "cache_read_per_m": 0.01,
+      "cache_write_per_m": 0.125,
+      "output_per_m": 0.50,
+      "valid_from": "2026-09-22"
+    },
     "gpt-5.6-sol": {
       "fresh_input_per_m": 4.0,
       "cache_read_per_m": 0.40,
@@ -173,6 +192,14 @@
     {
       "pattern": "gpt-6-astra",
       "model": "gpt-6-astra"
+    },
+    {
+      "pattern": "gpt-6-sol",
+      "model": "gpt-6-sol"
+    },
+    {
+      "pattern": "gpt-6-luna",
+      "model": "gpt-6-luna"
     }
   ],
   "role": "operational"
