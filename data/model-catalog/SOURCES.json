@@ -856,6 +856,16 @@
       "retrieved_at": "2026-09-22",
       "kind": "third_party_eval",
       "notes": "Listed live on launch day: $4/M input, $20/M output, cache read $0.20/M, cache write $5.00/M ($8.00/M for 1h). 1M token context, 128K max completion. This is PRICING/availability confirmation, not a quality board reading; no throughput (tokens/sec) figure was retrievable from this fetch."
+    },
+    {
+      "id": "openai-gpt-6-sol-luna-launch-2026-09-22",
+      "url": "https://openai.com/index/introducing-gpt-6-sol-and-luna/",
+      "title": "Introducing GPT-6 Sol and Luna",
+      "publisher": "OpenAI",
+      "published": "2026-09-22",
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_blog",
+      "notes": "Numbers parsed from the page's public Next.js hydration payload (11 vegaLiteSpec objects in self.__next_f.push chunks), NOT digitized from images — exact values, not chart reads. Six same-model effort x cost x quality curves (AutomationBench 1.0.6, Agents' Last Exam V1, Factual error rate on difficult prompts, FrontierCode 1.1 Main, DeepSWE 1.1, OSWorld 2.0 offline-set partial reward) with x-axis always 'Cost per task' (USD, log scale) and y-axis 'Score' (fraction, 0-1) or a named rate; plus five single-point-per-model adversarial-safety bar charts (coding deception, broken-search non-disclosure, Codex reviewer-bypass attempts, warning circumvention, unauthorized message-board action), four of which state effort fixed at maximum in their captions and one (unauthorized agent interaction) with no stated effort. VENDOR-published, so grade C even where a chart's benchmark name/harness is third-party (AutomationBench, FrontierCode, DeepSWE, OSWorld). Point count cross-checked against the page's rendered aria-label point list for the one chart (AutomationBench) whose SVG was present in the raw fetched HTML (31 vegaLiteSpec points == 38 aria-labels - 7 duplicated first-points, exact match); the other 10 charts were not yet client-rendered in this fetch and have no aria-label list to cross-check, so their evidence rests solely on the hydration payload."
     }
   ]
 }

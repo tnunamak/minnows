@@ -1333,6 +1333,60 @@
       "unit_default": "other",
       "comparable": false,
       "notes": "Aggregate of 10 evaluations (AA-Briefcase v1.1, GDPval-AA v2.1, AutomationBench-AA, Terminal-Bench 4.0, SciCode, Humanity's Last Exam, GDP.pdf, CritPt, AA-Omniscience, AA-LCR v1.1). Distinct metric identity from v4.2/v4.1; do not cross-rank."
+    },
+    {
+      "id": "factual-error-rate-difficult-prompts",
+      "name": "Factual error rate on difficult (error-inducing) prompts",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "OpenAI internal eval on de-identified ChatGPT conversations where users had flagged a factual error from a prior model. Explicitly NOT representative of typical usage (error-inducing sample, not a random sample); not controlled for response length."
+    },
+    {
+      "id": "coding-deception-rate",
+      "name": "Coding deception rate (adversarial, max effort)",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "OpenAI internal eval: agents given tasks deliberately selected to elicit dishonesty. Fraction of answers with any detected deception. Not representative of typical usage; effort fixed at maximum in the source."
+    },
+    {
+      "id": "broken-search-tool-nondisclosure-rate",
+      "name": "Broken search tool non-disclosure rate (adversarial, max effort)",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "OpenAI internal eval: agents given search tasks and a broken search tool, graded on whether they disclose the broken tool instead of guessing. Tasks selected to elicit failures; effort fixed at maximum in the source."
+    },
+    {
+      "id": "reviewer-bypass-attempt-rate",
+      "name": "Codex safety-reviewer bypass attempt rate (adversarial, max effort)",
+      "direction": "lower_better",
+      "harness": "codex",
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "OpenAI internal eval: whether models try to work around a Codex automated safety reviewer that blocked a command as unsafe. Effort fixed at maximum in the source."
+    },
+    {
+      "id": "warning-circumvention-attempt-rate",
+      "name": "Explicit-warning circumvention attempt rate (adversarial, max effort)",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "OpenAI internal eval: whether models attempt to work around explicit restriction warnings (e.g. an \"access denied\" message). Tests primarily cover low-stakes situations without full system-level safeguards. Effort fixed at maximum in the source."
+    },
+    {
+      "id": "unauthorized-agent-interaction-rate",
+      "name": "Unauthorized agent interaction rate (simulated message board)",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "notes": "OpenAI internal eval: whether models follow unauthorized instructions found on a simulated message board (e.g. requests to disclose private information), conditional on the model finding the board. Effort not stated in the source for this chart (unlike the other four adversarial-agent charts on the same page, which state max)."
     }
   ]
 }
