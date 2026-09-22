@@ -4,7 +4,7 @@
   "schema_version": 1,
   "generated_at": "2026-07-09",
   "notes": [
-    "Metric registry — distinct metric_ids are not comparable unless same id.",
+    "Metric registry \u2014 distinct metric_ids are not comparable unless same id.",
     "Official boards, re-runs, and vendor tables must not share an id."
   ],
   "metrics": [
@@ -82,7 +82,7 @@
       "steward": "third_party_board",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "arc-agi-cost-per-task-usd",
@@ -116,7 +116,7 @@
       "steward": "third_party_board",
       "unit_default": "other",
       "comparable": false,
-      "notes": "Rows sourced from the OpenAI LAUNCH PAGE chart carry evidence_grade C (vendor), even though the benchmark is named after Artificial Analysis — the publisher of the number here is OpenAI, not AA. An AA-published reading would be a separate row."
+      "notes": "Rows sourced from the OpenAI LAUNCH PAGE chart carry evidence_grade C (vendor), even though the benchmark is named after Artificial Analysis \u2014 the publisher of the number here is OpenAI, not AA. An AA-published reading would be a separate row."
     },
     {
       "id": "artificial-analysis-coding-index-model-level",
@@ -216,7 +216,7 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "capture-the-flag-challenges",
@@ -333,7 +333,7 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "frontiercode-1-1-extended",
@@ -347,7 +347,7 @@
     },
     {
       "id": "frontiermath-tier-1-3",
-      "name": "FrontierMath Tier 1–3",
+      "name": "FrontierMath Tier 1\u20133",
       "direction": "higher_better",
       "harness": null,
       "steward": "vendor_table",
@@ -401,7 +401,7 @@
       "steward": "digitized_chart",
       "unit_default": "elo",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "gdpval-wins-or-ties",
@@ -475,7 +475,7 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "humanity-s-last-exam-with-tools",
@@ -485,7 +485,7 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "internal-research-debugging-evaluation",
@@ -526,7 +526,7 @@
       "harness": "waspflow",
       "steward": "harness_smoke",
       "unit_default": "pass_rate",
-      "notes": "Not a quality metric — harness smoke observation only"
+      "notes": "Not a quality metric \u2014 harness smoke observation only"
     },
     {
       "id": "local-implement-standard-oracle-v1",
@@ -535,7 +535,7 @@
       "harness": "waspflow",
       "steward": "harness_smoke",
       "unit_default": "pass_rate",
-      "notes": "Not a quality metric — harness smoke observation only"
+      "notes": "Not a quality metric \u2014 harness smoke observation only"
     },
     {
       "id": "local-review-audit-oracle-v1",
@@ -544,7 +544,7 @@
       "harness": "waspflow",
       "steward": "harness_smoke",
       "unit_default": "pass_rate",
-      "notes": "Not a quality metric — harness smoke observation only"
+      "notes": "Not a quality metric \u2014 harness smoke observation only"
     },
     {
       "id": "management-consulting-tasks-internal",
@@ -642,7 +642,7 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "posttrainbench-lite",
@@ -730,7 +730,7 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "swe-bench-pro-public",
@@ -796,7 +796,7 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id — do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
     },
     {
       "id": "terminal-bench-4-0",
@@ -806,7 +806,7 @@
       "steward": "third_party_board",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED provenance under this id — do NOT cross-rank without checking source_type. Vendor launch-chart rows (openai.com GPT-6 Astra page) and secondary-audit rows (capitalandcompute.net reading of the 2026-09-03 board) report DIFFERENT numbers for the same nominal benchmark and must not be merged or averaged. Result is Astra+Codex+TB4.0, not a model-only score."
+      "notes": "MIXED provenance under this id \u2014 do NOT cross-rank without checking source_type. Vendor launch-chart rows (openai.com GPT-6 Astra page) and secondary-audit rows (capitalandcompute.net reading of the 2026-09-03 board) report DIFFERENT numbers for the same nominal benchmark and must not be merged or averaged. Result is Astra+Codex+TB4.0, not a model-only score."
     },
     {
       "id": "terminal-bench-science-0-1",
@@ -913,6 +913,16 @@
       "harness": null,
       "steward": "vendor_table",
       "unit_default": "accuracy"
+    },
+    {
+      "id": "artificial-analysis-intelligence-index-v4-3-2",
+      "name": "Artificial Analysis Intelligence Index v4.3.2",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other",
+      "comparable": false,
+      "notes": "Aggregate of 10 evaluations (AA-Briefcase v1.1, GDPval-AA v2.1, AutomationBench-AA, Terminal-Bench 4.0, SciCode, Humanity's Last Exam, GDP.pdf, CritPt, AA-Omniscience, AA-LCR v1.1). Distinct metric identity from v4.2/v4.1; do not cross-rank."
     }
   ]
 }

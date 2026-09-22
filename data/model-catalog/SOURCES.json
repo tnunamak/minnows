@@ -2,7 +2,7 @@
   "$schema": "schemas/sources-v1.schema.json",
   "schema_version": 1,
   "id": "model-catalog-sources",
-  "retrieved_at": "2026-07-09",
+  "retrieved_at": "2026-09-22",
   "description": "Canonical provenance registry. Every pricing/performance/capabilities payload should reference these ids via source_ids[].",
   "sources": [
     {
@@ -33,7 +33,7 @@
       "published": "2026-07-24",
       "retrieved_at": "2026-07-25",
       "kind": "vendor_blog",
-      "notes": "$5/$25; 1M ctx; 128k out; effort low..max default high; adaptive thinking; qualitative benchmarks only (Frontier-Bench v0.1, CursorBench 3.2, ARC-AGI 3, GDPval-AA v2, OSWorld 2.0) — no exact numeric scores published on primary pages."
+      "notes": "$5/$25; 1M ctx; 128k out; effort low..max default high; adaptive thinking; qualitative benchmarks only (Frontier-Bench v0.1, CursorBench 3.2, ARC-AGI 3, GDPval-AA v2, OSWorld 2.0) \u2014 no exact numeric scores published on primary pages."
     },
     {
       "id": "anthropic-opus-5-system-card-2026-07-24",
@@ -131,7 +131,7 @@
     {
       "id": "openai-codex-pricing-2026-07-09",
       "url": "https://learn.chatgpt.com/docs/pricing",
-      "title": "Pricing – Codex",
+      "title": "Pricing \u2013 Codex",
       "publisher": "OpenAI",
       "published": null,
       "retrieved_at": "2026-07-09",
@@ -141,7 +141,7 @@
     {
       "id": "openai-codex-config-2026-07-09",
       "url": "https://developers.openai.com/codex/config-reference",
-      "title": "Configuration Reference – Codex",
+      "title": "Configuration Reference \u2013 Codex",
       "publisher": "OpenAI",
       "published": null,
       "retrieved_at": "2026-07-09",
@@ -151,7 +151,7 @@
     {
       "id": "openai-codex-models-2026-08-02",
       "url": "https://developers.openai.com/codex/models",
-      "title": "Models – Codex",
+      "title": "Models \u2013 Codex",
       "publisher": "OpenAI",
       "published": null,
       "retrieved_at": "2026-08-02",
@@ -172,11 +172,11 @@
       "id": "majesticlabs-luna-max-2026-08-02",
       "url": "https://majesticlabs.dev/blog/202608/using-gpt-5-6-luna-at-max",
       "title": "Using GPT-5.6 Luna at Max in Codex",
-      "publisher": "Majestic Labs (David Paluy) — company blog, not OpenAI or an independent benchmark org",
+      "publisher": "Majestic Labs (David Paluy) \u2014 company blog, not OpenAI or an independent benchmark org",
       "published": "2026-08",
       "retrieved_at": "2026-08-02",
       "kind": "other",
-      "notes": "Secondary commentary on the DeepSWE leaderboard reading; explicitly notes overlapping confidence intervals and that DeepSWE used mini-swe-agent rather than Codex's native custom-agent harness. Directional practitioner opinion, not primary benchmark data — do not cite for numeric scores, only for the CI/methodology caveat."
+      "notes": "Secondary commentary on the DeepSWE leaderboard reading; explicitly notes overlapping confidence intervals and that DeepSWE used mini-swe-agent rather than Codex's native custom-agent harness. Directional practitioner opinion, not primary benchmark data \u2014 do not cite for numeric scores, only for the CI/methodology caveat."
     },
     {
       "id": "xai-models-2026-07-09",
@@ -208,7 +208,7 @@
     {
       "id": "arcprize-gpt-5-6-2026-07-09",
       "url": "https://arcprize.org/results/openai-gpt-5-6",
-      "title": "GPT-5.6 Series — ARC-AGI Results",
+      "title": "GPT-5.6 Series \u2014 ARC-AGI Results",
       "publisher": "ARC Prize",
       "published": "2026-07-09",
       "retrieved_at": "2026-09-05",
@@ -308,7 +308,7 @@
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "third_party_eval",
-      "notes": "Standardized mini-swe-agent harness; uncapped cost, 250 turns. Original public leaderboard re-read 2026-09-05: stored rows still match its current values (gpt-5.4 xHigh 59.10±3.56, Opus 4.6 thinking 51.90±3.61, Gemini 3.1 Pro thinking 46.10±3.60, Opus 4.5 45.89±3.60, Sonnet 4.5 43.60±3.60)."
+      "notes": "Standardized mini-swe-agent harness; uncapped cost, 250 turns. Original public leaderboard re-read 2026-09-05: stored rows still match its current values (gpt-5.4 xHigh 59.10\u00b13.56, Opus 4.6 thinking 51.90\u00b13.61, Gemini 3.1 Pro thinking 46.10\u00b13.60, Opus 4.5 45.89\u00b13.60, Sonnet 4.5 43.60\u00b13.60)."
     },
     {
       "id": "swebench-verified-2026-07-09",
@@ -465,12 +465,12 @@
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "local_eval",
-      "notes": "Command: `codex exec --skip-git-repo-check -c model_reasoning_effort=ultra --model gpt-5.6-terra`, run locally 2026-09-05. Ran `codex exec --skip-git-repo-check -c model_reasoning_effort=ultra --model gpt-5.6-terra` — completed a turn (14,330 tokens). Control with model_reasoning_effort=bogus on the same command returned HTTP 400, which rules out the value being silently ignored/defaulted. Establishes `ultra` is accepted by the CLI config surface, not only advertised by the catalog API."
+      "notes": "Command: `codex exec --skip-git-repo-check -c model_reasoning_effort=ultra --model gpt-5.6-terra`, run locally 2026-09-05. Ran `codex exec --skip-git-repo-check -c model_reasoning_effort=ultra --model gpt-5.6-terra` \u2014 completed a turn (14,330 tokens). Control with model_reasoning_effort=bogus on the same command returned HTTP 400, which rules out the value being silently ignored/defaulted. Establishes `ultra` is accepted by the CLI config surface, not only advertised by the catalog API."
     },
     {
       "id": "openai-codex-models-2026-09-05",
       "url": "https://learn.chatgpt.com/docs/models",
-      "title": "Models – Codex (learn.chatgpt.com)",
+      "title": "Models \u2013 Codex (learn.chatgpt.com)",
       "publisher": "OpenAI",
       "published": null,
       "retrieved_at": "2026-09-05",
@@ -480,27 +480,27 @@
     {
       "id": "openai-codex-pricing-2026-09-05",
       "url": "https://learn.chatgpt.com/docs/pricing",
-      "title": "Pricing – Codex (credit rates)",
+      "title": "Pricing \u2013 Codex (credit rates)",
       "publisher": "OpenAI",
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
-      "notes": "Credit rates per 1M tokens. gpt-6-astra 250 in / 25 cached / 1250 out. gpt-5.6-sol 100/10/500 with the note \"GPT-5.6 Sol's promotional pricing is available at least through November 21, 2026\" — a RATE CUT vs the 250/25/1500 recorded in codex-credits-2026-07. terra 50/5/300, luna 5/0.5/30. \"Fast mode applies a 2.5x multiplier to Astra's Standard rate.\" Page does NOT state whether reasoning effort changes the per-token RATE or only token volume — recorded as unknown, not assumed. USD/MTok not published on this page (separate rate cards by plan)."
+      "notes": "Credit rates per 1M tokens. gpt-6-astra 250 in / 25 cached / 1250 out. gpt-5.6-sol 100/10/500 with the note \"GPT-5.6 Sol's promotional pricing is available at least through November 21, 2026\" \u2014 a RATE CUT vs the 250/25/1500 recorded in codex-credits-2026-07. terra 50/5/300, luna 5/0.5/30. \"Fast mode applies a 2.5x multiplier to Astra's Standard rate.\" Page does NOT state whether reasoning effort changes the per-token RATE or only token volume \u2014 recorded as unknown, not assumed. USD/MTok not published on this page (separate rate cards by plan)."
     },
     {
       "id": "anthropic-pricing-2026-09-05",
       "url": "https://platform.claude.com/docs/en/about-claude/pricing",
-      "title": "Pricing – Anthropic",
+      "title": "Pricing \u2013 Anthropic",
       "publisher": "Anthropic",
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
-      "notes": "Verified directly by this session (not only by a delegated researcher). Sonnet 5 intro pricing made PERMANENT: \"the previously scheduled increase to $3/$15 ... on September 1, 2026 will not occur.\" Fable/Mythos 5.1 cache reads are 0.025x base ($0.25/MTok) vs the standard 0.1x. Claude Code effort levels are low/medium/high/xhigh/max — there is NO ultra; \"ultracode\" is a Claude Code orchestration setting that sends xhigh, not a sixth effort level."
+      "notes": "Verified directly by this session (not only by a delegated researcher). Sonnet 5 intro pricing made PERMANENT: \"the previously scheduled increase to $3/$15 ... on September 1, 2026 will not occur.\" Fable/Mythos 5.1 cache reads are 0.025x base ($0.25/MTok) vs the standard 0.1x. Claude Code effort levels are low/medium/high/xhigh/max \u2014 there is NO ultra; \"ultracode\" is a Claude Code orchestration setting that sends xhigh, not a sixth effort level."
     },
     {
       "id": "xai-models-2026-09-05",
       "url": "https://docs.x.ai/developers/models",
-      "title": "Models – xAI",
+      "title": "Models \u2013 xAI",
       "publisher": "xAI",
       "published": null,
       "retrieved_at": "2026-09-05",
@@ -510,12 +510,12 @@
     {
       "id": "openai-api-pricing-2026-09-05",
       "url": "https://developers.openai.com/api/docs/pricing",
-      "title": "API Pricing – OpenAI",
+      "title": "API Pricing \u2013 OpenAI",
       "publisher": "OpenAI",
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
-      "notes": "Verified directly by this session. Short-context USD/MTok: gpt-6-astra 10.00/1.00/50.00; gpt-5.6-sol 4.00/0.40/20.00; terra 2.00/0.20/12.00; luna 0.20/0.02/1.20; gpt-5.5 5.00/0.50/30.00. Long context (>272k) roughly doubles. gpt-5.3-codex IS still listed and priced here (1.75/0.175/14.00) even though the deprecations page records a 2026-07-23 shutdown — an unresolved conflict between two official OpenAI pages."
+      "notes": "Verified directly by this session. Short-context USD/MTok: gpt-6-astra 10.00/1.00/50.00; gpt-5.6-sol 4.00/0.40/20.00; terra 2.00/0.20/12.00; luna 0.20/0.02/1.20; gpt-5.5 5.00/0.50/30.00. Long context (>272k) roughly doubles. gpt-5.3-codex IS still listed and priced here (1.75/0.175/14.00) even though the deprecations page records a 2026-07-23 shutdown \u2014 an unresolved conflict between two official OpenAI pages."
     },
     {
       "id": "openai-gpt-6-astra-launch-2026-09-05",
@@ -525,17 +525,17 @@
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "vendor_blog",
-      "notes": "Numbers parsed from the page's public Next.js hydration payload (vegaLiteSpec), NOT digitized from images — exact values, not chart reads. Nine benchmark charts with effort_display labels and x_metric rows for api_cost_usd, output_tokens, and a time series keyed latency_s whose values are actually MINUTES (x_label: \"28.72 minutes\") and, on Terminal-Bench 4.0, SIMULATED time rather than wall-clock; the AA chart uses the same key with no label, so its unit is unconfirmed. Method + raw capture: minnows/tmp/workstreams/astra-launch-chart-evidence-2026-09-05.json. VENDOR-published, so grade C even where a chart is named after a third-party benchmark."
+      "notes": "Numbers parsed from the page's public Next.js hydration payload (vegaLiteSpec), NOT digitized from images \u2014 exact values, not chart reads. Nine benchmark charts with effort_display labels and x_metric rows for api_cost_usd, output_tokens, and a time series keyed latency_s whose values are actually MINUTES (x_label: \"28.72 minutes\") and, on Terminal-Bench 4.0, SIMULATED time rather than wall-clock; the AA chart uses the same key with no label, so its unit is unconfirmed. Method + raw capture: minnows/tmp/workstreams/astra-launch-chart-evidence-2026-09-05.json. VENDOR-published, so grade C even where a chart is named after a third-party benchmark."
     },
     {
       "id": "arcprize-gpt-6-astra-2026-09-05",
       "url": "https://arcprize.org/results/openai-gpt-6-astra",
-      "title": "ARC Prize — OpenAI GPT-6 Astra results",
+      "title": "ARC Prize \u2014 OpenAI GPT-6 Astra results",
       "publisher": "ARC Prize",
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "third_party_eval",
-      "notes": "Original publisher page, fetched and verified directly by the owner. 12 harness configurations across all six effort variants. TWO harnesses that must not be merged: Standard (provider-neutral) and Provider Adapter (OpenAI adapter retains opaque reasoning state and compacts context). Under Standard, max is BOTH best-scoring and cheapest in total suite cost — ARC attributes this to fewer actions, hence fewer model calls; a direct counterexample to treating effort as a cost multiplier."
+      "notes": "Original publisher page, fetched and verified directly by the owner. 12 harness configurations across all six effort variants. TWO harnesses that must not be merged: Standard (provider-neutral) and Provider Adapter (OpenAI adapter retains opaque reasoning state and compacts context). Under Standard, max is BOTH best-scoring and cheapest in total suite cost \u2014 ARC attributes this to fewer actions, hence fewer model calls; a direct counterexample to treating effort as a cost multiplier."
     },
     {
       "id": "capitalandcompute-tbench4-2026-09-04",
@@ -545,12 +545,12 @@
       "published": "2026-09-04",
       "retrieved_at": "2026-09-05",
       "kind": "third_party_eval",
-      "notes": "SECONDARY audit reading of the tbench.ai board timestamped 2026-09-03 21:34 UTC; tbench.ai renders results client-side so the rows were not directly fetchable. Reports 330 trials/entry with 95% CIs and total cost. Its numbers DIFFER from the OpenAI launch-chart TB4.0 numbers — the two are recorded as separate rows and must never be merged or presented as one independent reading."
+      "notes": "SECONDARY audit reading of the tbench.ai board timestamped 2026-09-03 21:34 UTC; tbench.ai renders results client-side so the rows were not directly fetchable. Reports 330 trials/entry with 95% CIs and total cost. Its numbers DIFFER from the OpenAI launch-chart TB4.0 numbers \u2014 the two are recorded as separate rows and must never be merged or presented as one independent reading."
     },
     {
       "id": "artificialanalysis-gpt-6-astra-2026-09-05",
       "url": "https://artificialanalysis.ai/pt/models/releases/gpt-6-astra",
-      "title": "Artificial Analysis — GPT-6 Astra Intelligence Index v4.2",
+      "title": "Artificial Analysis \u2014 GPT-6 Astra Intelligence Index v4.2",
       "publisher": "Artificial Analysis",
       "published": null,
       "retrieved_at": "2026-09-05",
@@ -565,7 +565,7 @@
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "third_party_eval",
-      "notes": "Live board fetched 2026-09-05, updated 2026-09-03. v1.1, 113 tasks, mini-swe-agent harness (NOT native Codex). Sol max 73% ±3 $6.46 60k out 61 steps; Luna max 67% ±4 $0.61 73k out 102 steps; GPT-5.5 xhigh 67% ±6 $7.23 46k out 82 steps. Sol's cost moved 8.39 -> 6.46 at an unchanged score vs the 2026-07-25 snapshot. Static response exposed selected rows only — no Terra row was retrieved, which is a RETRIEVAL LIMIT, not evidence Terra is absent from the board. Sol/Luna CIs overlap."
+      "notes": "Live board fetched 2026-09-05, updated 2026-09-03. v1.1, 113 tasks, mini-swe-agent harness (NOT native Codex). Sol max 73% \u00b13 $6.46 60k out 61 steps; Luna max 67% \u00b14 $0.61 73k out 102 steps; GPT-5.5 xhigh 67% \u00b16 $7.23 46k out 82 steps. Sol's cost moved 8.39 -> 6.46 at an unchanged score vs the 2026-07-25 snapshot. Static response exposed selected rows only \u2014 no Terra row was retrieved, which is a RETRIEVAL LIMIT, not evidence Terra is absent from the board. Sol/Luna CIs overlap."
     },
     {
       "id": "anthropic-fable-mythos-5-1-2026-09-01",
@@ -575,7 +575,7 @@
       "published": "2026-09-01",
       "retrieved_at": "2026-09-05",
       "kind": "vendor_blog",
-      "notes": "Effort-by-cost-by-quality values read from the page's server-rendered inline SVG accessible aria-labels — EXACT published values, not pixel digitization. Anthropic states Fable 5.1 and Mythos 5.1 are the SAME underlying model differing only in safeguards (Fable GA with cyber/bio safeguards, Mythos trusted-access), so they must not be treated as two independently benchmarked weights. Fable's displayed scores use production safeguards and can route to Opus on some restricted tasks. Anthropic states standard error ±3.5-4.5 points/model on Terminal-Bench Science."
+      "notes": "Effort-by-cost-by-quality values read from the page's server-rendered inline SVG accessible aria-labels \u2014 EXACT published values, not pixel digitization. Anthropic states Fable 5.1 and Mythos 5.1 are the SAME underlying model differing only in safeguards (Fable GA with cyber/bio safeguards, Mythos trusted-access), so they must not be treated as two independently benchmarked weights. Fable's displayed scores use production safeguards and can route to Opus on some restricted tasks. Anthropic states standard error \u00b13.5-4.5 points/model on Terminal-Bench Science."
     },
     {
       "id": "google-gemini-models-2026-09-05",
@@ -585,7 +585,7 @@
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
-      "notes": "Current text roster. GA: gemini-3.8-flash (2026-09-02), 3.7-flash (2026-08-13), 3.6-flash (2026-07-21), 3.5-flash, 3.5-flash-lite (2026-07-21), 3.1-flash-lite (earliest shutdown 2027-05-07). Preview: 3.1-pro-preview, 3-flash-preview (replacement 3.6-flash). NOTE gemini-3-pro is NOT on the current text roster; the live page has gemini-3-pro-image, a separate image model — do not rename one into the other."
+      "notes": "Current text roster. GA: gemini-3.8-flash (2026-09-02), 3.7-flash (2026-08-13), 3.6-flash (2026-07-21), 3.5-flash, 3.5-flash-lite (2026-07-21), 3.1-flash-lite (earliest shutdown 2027-05-07). Preview: 3.1-pro-preview, 3-flash-preview (replacement 3.6-flash). NOTE gemini-3-pro is NOT on the current text roster; the live page has gemini-3-pro-image, a separate image model \u2014 do not rename one into the other."
     },
     {
       "id": "google-gemini-pricing-2026-09-05",
@@ -605,7 +605,7 @@
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
-      "notes": "Gemini 3.x uses discrete thinkingLevel; Gemini 2.5 uses a numeric thinking_budget — DIFFERENT control surfaces, not interchangeable. 3.8/3.7-flash accept low/medium/high (minimal errors), default medium. 3.6-flash and the flash-lite line accept minimal/low/medium/high."
+      "notes": "Gemini 3.x uses discrete thinkingLevel; Gemini 2.5 uses a numeric thinking_budget \u2014 DIFFERENT control surfaces, not interchangeable. 3.8/3.7-flash accept low/medium/high (minimal errors), default medium. 3.6-flash and the flash-lite line accept minimal/low/medium/high."
     },
     {
       "id": "xai-grok-4-6-detail-2026-09-05",
@@ -615,7 +615,7 @@
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
-      "notes": "reasoning_effort accepts low/medium/high(default)/xhigh; reasoning CANNOT be disabled. 500k context, text+image in, text-only out. Tiered price: <200k 2.00/0.50/6.00, >=200k 4.00/1.00/12.00 USD per MTok. Docs give the qualitative tradeoff (xhigh higher latency) but NO score/token/cost/latency-by-effort numbers. The current models page lists grok-4.6 ONLY — 4.5/4.3/4.20/build are absent from it, which does NOT prove they are retired at runtime."
+      "notes": "reasoning_effort accepts low/medium/high(default)/xhigh; reasoning CANNOT be disabled. 500k context, text+image in, text-only out. Tiered price: <200k 2.00/0.50/6.00, >=200k 4.00/1.00/12.00 USD per MTok. Docs give the qualitative tradeoff (xhigh higher latency) but NO score/token/cost/latency-by-effort numbers. The current models page lists grok-4.6 ONLY \u2014 4.5/4.3/4.20/build are absent from it, which does NOT prove they are retired at runtime."
     },
     {
       "id": "zai-glm-api-2026-09-05",
@@ -625,7 +625,7 @@
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
-      "notes": "GLM 5.1 direct API: 1.40 input / 0.26 cached / 4.40 output USD per MTok, cache storage temporarily free, web search 0.01/use. 200k context, 128k max output. thinking.type is BINARY enabled|disabled (default enabled for 5.1; compulsory thinking when enabled) — NOT a discrete effort ladder. GLM 5.2 and 5.3 are current successors at the same rates; 5.2 switchable/default-on, 5.3 forced-on. Direct Z.AI price differs from Alibaba Model Studio reseller pricing — keep separate, do not merge."
+      "notes": "GLM 5.1 direct API: 1.40 input / 0.26 cached / 4.40 output USD per MTok, cache storage temporarily free, web search 0.01/use. 200k context, 128k max output. thinking.type is BINARY enabled|disabled (default enabled for 5.1; compulsory thinking when enabled) \u2014 NOT a discrete effort ladder. GLM 5.2 and 5.3 are current successors at the same rates; 5.2 switchable/default-on, 5.3 forced-on. Direct Z.AI price differs from Alibaba Model Studio reseller pricing \u2014 keep separate, do not merge."
     },
     {
       "id": "alibaba-model-studio-pricing-2026-09-05",
@@ -635,27 +635,27 @@
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
-      "notes": "qwen3.8-max is GA (snapshot qwen3.8-max-0902), superseding the preview-only assertion. REGIONAL DIVERGENCE, both facts real: Hong Kong/Frankfurt/US-Virginia/Tokyo list qwen3.8-max and qwen3.7-max at 1.65 in / 4.951 out per MTok up to 1M, while legacy Singapore shows 2.50/7.50. Long-context tiers confirmed for International rows: qwen3.7-plus 0.40/1.60 to 256k then 1.20/4.80 to 1M; qwen3.6-plus 0.50/3.00 then 2.00/6.00; qwen3.6-flash 0.25/1.50 then 1.00/6.00. The 20% labels are TEMPORARY regional promotions — not list price. Qwen exposes per-request enable_thinking (hybrid/thinking-only), not a discrete effort ladder."
+      "notes": "qwen3.8-max is GA (snapshot qwen3.8-max-0902), superseding the preview-only assertion. REGIONAL DIVERGENCE, both facts real: Hong Kong/Frankfurt/US-Virginia/Tokyo list qwen3.8-max and qwen3.7-max at 1.65 in / 4.951 out per MTok up to 1M, while legacy Singapore shows 2.50/7.50. Long-context tiers confirmed for International rows: qwen3.7-plus 0.40/1.60 to 256k then 1.20/4.80 to 1M; qwen3.6-plus 0.50/3.00 then 2.00/6.00; qwen3.6-flash 0.25/1.50 then 1.00/6.00. The 20% labels are TEMPORARY regional promotions \u2014 not list price. Qwen exposes per-request enable_thinking (hybrid/thinking-only), not a discrete effort ladder."
     },
     {
       "id": "openai-gpt-5-6-launch-svg-2026-09-05",
       "url": "https://openai.com/index/gpt-5-6/",
-      "title": "GPT-5.6 launch page — Agents Last Exam chart (SVG labels)",
+      "title": "GPT-5.6 launch page \u2014 Agents Last Exam chart (SVG labels)",
       "publisher": "OpenAI",
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "vendor_blog",
-      "notes": "Exact values from the live-rendered SVG accessible labels, not pixel digitization. Recovered via a root-owned browser session after an earlier Cloudflare challenge and a Playwright user-data lock blocked retrieval. Covers six models at up to five efforts on Agents Last Exam. IMPORTANT: the chart labels the axis \"API cost (USD)\" but does NOT state the denominator — values range $24 to $3,985 and the chart does not state what the figure is per. Recorded with cost unit \"other\" rather than usd_per_task, and NO denominator is inferred; do not divide these values or compare them against per-task figures from other sources."
+      "notes": "Exact values from the live-rendered SVG accessible labels, not pixel digitization. Recovered via a root-owned browser session after an earlier Cloudflare challenge and a Playwright user-data lock blocked retrieval. Covers six models at up to five efforts on Agents Last Exam. IMPORTANT: the chart labels the axis \"API cost (USD)\" but does NOT state the denominator \u2014 values range $24 to $3,985 and the chart does not state what the figure is per. Recorded with cost unit \"other\" rather than usd_per_task, and NO denominator is inferred; do not divide these values or compare them against per-task figures from other sources."
     },
     {
       "id": "artificialanalysis-opus5-briefcase-2026-09-05",
       "url": "https://artificialanalysis.ai/articles/claude-opus-5-leader-agentic-knowledge-work",
-      "title": "Artificial Analysis — Claude Opus 5 agentic knowledge work",
+      "title": "Artificial Analysis \u2014 Claude Opus 5 agentic knowledge work",
       "publisher": "Artificial Analysis",
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "third_party_eval",
-      "notes": "INDEPENDENT (non-vendor) effort ladder for claude-opus-5 on AA's own Briefcase eval: low 1223, medium 1470, high 1606, xhigh 1693, max 1720 Elo. Cost and median runtime published for the TOP THREE ONLY — high $10.41/25.7min, xhigh $14.26/34.3min, max $17.79/36.2min. Low and medium cost/latency are NOT published; recorded as absent rather than interpolated. AA's Fable 5 analysis gives a max-level point only, not a five-level Fable ladder."
+      "notes": "INDEPENDENT (non-vendor) effort ladder for claude-opus-5 on AA's own Briefcase eval: low 1223, medium 1470, high 1606, xhigh 1693, max 1720 Elo. Cost and median runtime published for the TOP THREE ONLY \u2014 high $10.41/25.7min, xhigh $14.26/34.3min, max $17.79/36.2min. Low and medium cost/latency are NOT published; recorded as absent rather than interpolated. AA's Fable 5 analysis gives a max-level point only, not a five-level Fable ladder."
     },
     {
       "id": "terminal-bench-2-1-2026-09-05",
@@ -680,12 +680,132 @@
     {
       "id": "anthropic-effort-guide-2026-09-05",
       "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
-      "title": "Effort — Anthropic docs",
+      "title": "Effort \u2014 Anthropic docs",
       "publisher": "Anthropic",
       "published": null,
       "retrieved_at": "2026-09-05",
       "kind": "vendor_docs",
       "notes": "Direct authority for request semantics. Five levels low/medium/high/xhigh/max, default high. Per-message effort update (beta) on fable-5-1, mythos-5-1, opus-5; fable-5 is top-level only. opus-4.5 and sonnet-4.5 are compatibility-listed without a full matrix; haiku-4.5 is absent from the five-level table. Lifecycle floors from the model-deprecations page: fable-5-1 2027-09-01, fable-5 2027-06-09, opus-5 2027-07-24, opus-4.8/4.7/4.6 2027-05-28/2027-04-16/2027-02-05, opus-4.5 2026-11-24, sonnet-5 2027-06-30, sonnet-4.6 2027-02-17, sonnet-4.5 2026-09-29, haiku-4.5 2026-10-15."
+    },
+    {
+      "id": "artificial-analysis-intelligence-index-2026-09-22",
+      "url": "https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index",
+      "title": "Artificial Analysis Intelligence Index v4.3.2",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Original publisher rendered chart, fetched launch day. Shows claude-opus-5-5 at max/xhigh/high effort only (58/56/54); low/medium rows and other-model comparison rows not resolvable from this fetch (chart truncated to Opus 5.5 series in the retrievable content). v4.3.2 composite differs in metric identity from the v4.2 rows already in this pack; not comparable."
+    },
+    {
+      "id": "artificialanalysis-opus-5-5-model-page-2026-09-22",
+      "url": "https://artificialanalysis.ai/models/claude-opus-5-5",
+      "title": "Claude Opus 5.5 (max with fallback) - Intelligence, Performance & Price Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Model detail page. Confirms Intelligence Index 58 at max effort, cost per Intelligence Index task $5.98, total suite cost $8,708.20, 260M output tokens, #1/212 ranking. Per-eval breakdown (HLE/SciCode/Briefcase/etc individual scores) renders as an interactive chart not extractable as raw numbers from this fetch; those specific numbers are recorded only via the secondary press citation below, not this primary page directly."
+    },
+    {
+      "id": "artificialanalysis-x-post-2026-09-22",
+      "url": "https://x.com/ArtificialAnlys/status/2102438210798514391",
+      "title": "Artificial Analysis on X: Claude Opus 5.5 launch-day read",
+      "publisher": "Artificial Analysis",
+      "published": "2026-09-22",
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Paywalled (HTTP 402 on direct fetch); content known only via search-engine synthesis, not a direct read. Cited ONLY for the claim text quoted in performance notes, not for any score row. Do not treat as equivalent to a direct fetch."
+    },
+    {
+      "id": "vals-ai-terminal-bench-4-2026-09-21",
+      "url": "https://www.vals.ai/benchmarks/terminal-bench-4",
+      "title": "Terminal-Bench 4.0 \u2014 vals.ai",
+      "publisher": "vals.ai",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Page shows \"Updated 9/21/2026\", one day before the 2026-09-22 official Opus 5.5 launch date \u2014 plausibly an embargo-lifted pre-briefing read, consistent with AA also publishing launch-day numbers. SECONDARY board (vals.ai reading of Terminal-Bench 4.0), not a direct tbench.ai fetch: tbench.ai itself renders client-side and returned no data rows to WebFetch. Full per-category breakdown (ML, operations, media, hardware, science, software, security) known via search-engine synthesis of this page, not a raw table extraction."
+    },
+    {
+      "id": "vals-ai-swebench-2026-09-01",
+      "url": "https://www.vals.ai/benchmarks/swebench",
+      "title": "SWE-bench \u2014 vals.ai",
+      "publisher": "vals.ai",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Page shows \"Updated 9/1/2026\", before the 2026-09-22 Opus 5.5 launch. No claude-opus-5-5 row present at this snapshot (confirmed absence, not a retrieval failure)."
+    },
+    {
+      "id": "steel-browsecomp-2026-09-22",
+      "url": "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+      "title": "BrowseComp \u2014 Steel leaderboard",
+      "publisher": "Steel",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Rechecked launch day. No claude-opus-5-5 row; most recent Anthropic row remains Claude Opus 5 (90.8%, Jul 2026)."
+    },
+    {
+      "id": "arcprize-leaderboard-2026-09-22",
+      "url": "https://arcprize.org/leaderboard",
+      "title": "ARC Prize Leaderboard",
+      "publisher": "ARC Prize",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Rechecked launch day. Retrieved content is a client-side-rendered shell with no data rows in the WebFetch response; absence of an Opus 5.5 row is a RETRIEVAL LIMIT here, corroborated by independent web search finding no coverage, not a confirmed direct-board negative."
+    },
+    {
+      "id": "arena-ai-leaderboard-2026-09-22",
+      "url": "https://arena.ai/leaderboard/",
+      "title": "Arena (LMArena) Leaderboard",
+      "publisher": "Arena",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "No direct fetch performed (client-rendered per prior pack notes); checked via web search only. No claude-opus-5-5 row found as of launch day; current top Anthropic rows remain claude-fable-5-1 and claude-opus-5 variants."
+    },
+    {
+      "id": "deepswe-datacurve-2026-09-22",
+      "url": "https://deepswe.datacurve.ai/",
+      "title": "DeepSWE Leaderboard",
+      "publisher": "Datacurve",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Checked via web search (site is client-rendered per prior pack notes). No claude-opus-5-5 row found; board still shows claude-opus-5[max] near the top (~74%) as of a Sept 22 snapshot referenced by a secondary aggregator."
+    },
+    {
+      "id": "epoch-ai-models-2026-09-22",
+      "url": "https://epoch.ai/models",
+      "title": "Epoch AI \u2014 models index",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Checked via web search only, no direct fetch performed. No Opus 5.5 / ECI score found as of launch day; Epoch typically lags new-model launches."
+    },
+    {
+      "id": "livebench-ai-2026-09-22",
+      "url": "https://livebench.ai/",
+      "title": "LiveBench",
+      "publisher": "LiveBench",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Direct fetch returned only the page header (client-rendered table body, no rows retrievable). Coverage status genuinely UNKNOWN \u2014 not confirmed present or absent."
+    },
+    {
+      "id": "openrouter-opus-5-5-2026-09-22",
+      "url": "https://openrouter.ai/anthropic/claude-opus-5.5",
+      "title": "Claude Opus 5.5 \u2014 API Pricing & Providers",
+      "publisher": "OpenRouter",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Listed live on launch day: $4/M input, $20/M output, cache read $0.20/M, cache write $5.00/M ($8.00/M for 1h). 1M token context, 128K max completion. This is PRICING/availability confirmation, not a quality board reading; no throughput (tokens/sec) figure was retrievable from this fetch."
     }
   ]
 }

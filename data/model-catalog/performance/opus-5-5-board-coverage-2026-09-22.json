@@ -1,0 +1,103 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "opus-5-5-board-coverage-2026-09-22",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-09-22",
+  "source_urls": [
+    "https://arcprize.org/leaderboard",
+    "https://arena.ai/leaderboard/",
+    "https://deepswe.datacurve.ai/",
+    "https://www.vals.ai/benchmarks/swebench",
+    "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+    "https://epoch.ai/models",
+    "https://livebench.ai/",
+    "https://openrouter.ai/anthropic/claude-opus-5.5"
+  ],
+  "source_ids": [
+    "arcprize-leaderboard-2026-09-22",
+    "arena-ai-leaderboard-2026-09-22",
+    "deepswe-datacurve-2026-09-22",
+    "vals-ai-swebench-2026-09-01",
+    "steel-browsecomp-2026-09-22",
+    "epoch-ai-models-2026-09-22",
+    "livebench-ai-2026-09-22",
+    "openrouter-opus-5-5-2026-09-22"
+  ],
+  "notes": "Board-by-board coverage check for claude-opus-5-5 on launch day (2026-09-22), following the house pattern established after the GPT-6 Astra evidence-absence retraction (commits 9f2c6fd / f824400): an absence found by searching only THIS pack is not evidence the board lacks the model, so every claim below is marked PROVISIONAL with retrieved_at and explicit recheck guidance, not stated as settled. Two distinct kinds of 'not found' are distinguished per row: (a) CONFIRMED ABSENT — direct or clearly-dated fetch shows the board's live table without an Opus 5.5 row (SWE-bench vals.ai, BrowseComp Steel); (b) RETRIEVAL LIMIT — the board renders client-side and no raw rows were extractable, so absence could not be directly confirmed, only corroborated by web search finding no coverage (ARC Prize, Arena/LMArena, DeepSWE, Epoch, LiveBench). Recheck guidance: new-model board ingestion at ARC Prize, LMArena, DeepSWE, and Epoch AI has historically taken 1-6 weeks after a vendor launch in this pack's prior GPT-6 Astra and Claude Opus 5 entries; recheck this file no earlier than 2026-09-29 and treat every row as stale after that date rather than editing in place (a later positive reading is a NEW file, per this pack's rule against overwriting snapshots).",
+  "claims": [
+    {
+      "models": ["claude-opus-5-5"],
+      "task_families": ["mixed"],
+      "axes": ["quality"],
+      "statement": "PROVISIONAL, checked 2026-09-22 (launch day): ARC Prize (arcprize.org/leaderboard, ARC-AGI-1/2/3) shows no claude-opus-5-5 row. RETRIEVAL LIMIT — the fetched leaderboard shell was client-rendered with no data rows in the response; corroborated only by web search finding no ARC Prize coverage of Opus 5.5. Not a confirmed direct-board negative.",
+      "implication": "Recheck arcprize.org directly (not via search) no earlier than 2026-09-29.",
+      "source_id": "arcprize-leaderboard-2026-09-22"
+    },
+    {
+      "models": ["claude-opus-5-5"],
+      "task_families": ["chat"],
+      "axes": ["quality"],
+      "statement": "PROVISIONAL, checked 2026-09-22: Arena (formerly LMArena) Text/agentic leaderboards show no claude-opus-5-5 row via web search; current top Anthropic rows remain claude-fable-5-1 and claude-opus-5 variants. No direct fetch was attempted (arena.ai is known client-rendered per this pack's July 2026 notes).",
+      "implication": "Recheck arena.ai directly no earlier than 2026-09-29.",
+      "source_id": "arena-ai-leaderboard-2026-09-22"
+    },
+    {
+      "models": ["claude-opus-5-5"],
+      "task_families": ["coding"],
+      "axes": ["quality"],
+      "statement": "PROVISIONAL, checked 2026-09-22: DeepSWE leaderboard (deepswe.datacurve.ai) shows no claude-opus-5-5 row via web search; claude-opus-5[max] remains near the top (~74%) as of a Sept 22 secondary-aggregator snapshot. No direct fetch attempted (site is client-rendered per this pack's prior notes).",
+      "implication": "Recheck deepswe.datacurve.ai directly no earlier than 2026-09-29.",
+      "source_id": "deepswe-datacurve-2026-09-22"
+    },
+    {
+      "models": ["claude-opus-5-5"],
+      "task_families": ["coding"],
+      "axes": ["quality"],
+      "statement": "CONFIRMED ABSENT at this snapshot: vals.ai's SWE-bench board (www.vals.ai/benchmarks/swebench) is marked 'Updated 9/1/2026' — before the 2026-09-22 launch — and its visible top rows contain no claude-opus-5-5 entry.",
+      "implication": "This board has not yet ingested Opus 5.5 as of its last update; recheck after the next vals.ai refresh.",
+      "source_id": "vals-ai-swebench-2026-09-01"
+    },
+    {
+      "models": ["claude-opus-5-5"],
+      "task_families": ["agentic_search"],
+      "axes": ["quality"],
+      "statement": "CONFIRMED ABSENT at this snapshot: the Steel BrowseComp leaderboard (leaderboard.steel.dev), directly fetched 2026-09-22, contains no claude-opus-5-5 row; the most recent Anthropic entry remains Claude Opus 5 at 90.8% (Jul 2026).",
+      "implication": "Recheck this board directly; do not assume the July Opus 5 row applies to Opus 5.5.",
+      "source_id": "steel-browsecomp-2026-09-22"
+    },
+    {
+      "models": ["claude-opus-5-5"],
+      "task_families": ["mixed"],
+      "axes": ["quality"],
+      "statement": "PROVISIONAL, checked 2026-09-22: Epoch AI's models index (epoch.ai/models, ECI leaderboard) shows no Opus 5.5 entry via web search; Epoch has historically lagged new-model launches by weeks in this pack's prior observations. No direct fetch attempted.",
+      "implication": "Recheck epoch.ai/models directly no earlier than 2026-09-29; Epoch AI is a load-bearing 'boards' tier source per FRESHNESS.md and should not be left stale past 45 days once it does list the model.",
+      "source_id": "epoch-ai-models-2026-09-22"
+    },
+    {
+      "models": ["claude-opus-5-5"],
+      "task_families": ["mixed"],
+      "axes": ["quality"],
+      "statement": "UNKNOWN, not RESOLVED either way: LiveBench (livebench.ai) coverage of claude-opus-5-5 could not be determined. Direct fetch returned only the page header; the table body renders client-side and no rows were retrievable. No corroborating web-search evidence was found in either direction.",
+      "implication": "Do not cite this file for a LiveBench absence claim — genuinely unchecked, not confirmed missing.",
+      "source_id": "livebench-ai-2026-09-22"
+    },
+    {
+      "models": ["claude-opus-5-5"],
+      "task_families": ["mixed"],
+      "axes": ["cost"],
+      "statement": "NOT a quality board, listed for completeness: OpenRouter (openrouter.ai/anthropic/claude-opus-5.5) lists claude-opus-5-5 live on launch day at $4/M input, $20/M output, cache read $0.20/M, cache write $5.00/M ($8.00/M for 1h), 1M token context, 128K max completion tokens.",
+      "implication": "Pricing/capabilities are the pricing-lane worker's remit; recorded here only as availability confirmation, not as a performance score.",
+      "source_id": "openrouter-opus-5-5-2026-09-22"
+    }
+  ],
+  "scores": [],
+  "missing": [
+    "Vals.ai / SWE-bench Verified board ingestion of claude-opus-5-5 (confirmed absent at the 9/1/2026 snapshot; likely to update)",
+    "Steel BrowseComp board ingestion of claude-opus-5-5 (confirmed absent at direct 2026-09-22 fetch)",
+    "ARC Prize, Arena/LMArena, DeepSWE, Epoch AI ingestion of claude-opus-5-5 — retrieval-limited, not confirmed either way by direct board fetch; corroborated only by web search",
+    "LiveBench coverage of claude-opus-5-5 — genuinely unknown, no signal in either direction",
+    "OpenRouter throughput (tokens/sec) figure for claude-opus-5-5 — not retrievable from this fetch"
+  ]
+}
