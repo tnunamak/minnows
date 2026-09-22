@@ -1,0 +1,57 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "openrouter-gpt-6-sol-luna-2026-09",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "openai",
+  "retrieved_at": "2026-09-22",
+  "source_urls": [
+    "https://openrouter.ai/openai/gpt-6-sol",
+    "https://openrouter.ai/openai/gpt-6-luna"
+  ],
+  "source_ids": [
+    "openrouter-gpt-6-sol-2026-09-22",
+    "openrouter-gpt-6-luna-2026-09-22"
+  ],
+  "notes": "NOT a quality board, listed for completeness (same pattern as the OpenRouter claim in performance/opus-5-5-board-coverage-2026-09-22.json). Both models are listed live on OpenRouter on launch day. Direct curl (no headless browser needed — openrouter.ai is not behind a Cloudflare JS challenge) recovered embedded Next.js RSC payload chunks with tiered per-token pricing (a <=272K-context tier and a >272K-context tier, each priced differently), context_length, provider permaslug (dated with the launch date, confirming freshness), and OpenRouter's own live request-telemetry throughput/latency percentiles (p50/p75/p90/p95/p99). The <=272K-context tier price matches the ground-context brief's OpenAI API short-context rates exactly (Sol: $2/$0.20/$10 input/cached/output per 1M; Luna: $0.10/$0.01/$0.50 per 1M) confirming OpenRouter is passing through OpenAI's own posted rates, not marking them up. The >272K tier is a DISTINCT, higher rate not mentioned in the ground-context brief (a long-context surcharge) — recorded here as new information.",
+  "claims": [
+    {
+      "models": ["gpt-6-sol"],
+      "task_families": ["mixed"],
+      "axes": ["cost"],
+      "statement": "OpenRouter lists gpt-6-sol live on launch day (permaslug openai/gpt-6-sol-20260922) at $2/M input tokens and $10/M output tokens for prompts <=272K tokens, rising to $4/M input and (per the output-price tier structure) a corresponding output-tier increase above 272K tokens; cache read $0.20/M (<=272K) / $0.40/M (>272K); cache write $2.50/M (<=272K) / $5.00/M (>272K); 1,050,000 token context window.",
+      "implication": "The <=272K tier matches the OpenAI API short-context rate given in ground context exactly; the >272K long-context tier is new information not previously captured in this pack.",
+      "source_id": "openrouter-gpt-6-sol-2026-09-22"
+    },
+    {
+      "models": ["gpt-6-luna"],
+      "task_families": ["mixed"],
+      "axes": ["cost"],
+      "statement": "OpenRouter lists gpt-6-luna live on launch day (permaslug openai/gpt-6-luna-20260922) at $0.10/M input tokens and $0.50/M output tokens for prompts <=272K tokens (rising above that threshold); cache read $0.01/M (<=272K); cache write $0.125/M (<=272K); 1,050,000 token context window. A separate 'gpt-6-luna-pro' variant slug also appears in the same payload but was not independently resolved in this pass.",
+      "implication": "The <=272K tier matches the OpenAI API short-context rate given in ground context exactly.",
+      "source_id": "openrouter-gpt-6-luna-2026-09-22"
+    },
+    {
+      "models": ["gpt-6-sol"],
+      "task_families": ["mixed"],
+      "axes": ["speed", "latency"],
+      "statement": "OpenRouter's own live request telemetry (30-minute rolling window, 1,332 requests) reports gpt-6-sol median (p50) throughput of 60 tokens/sec and p90 185 tokens/sec; p50 latency 1,649ms, p90 latency 3,302ms, p99 latency 13,465ms.",
+      "implication": "This is OpenRouter-proxy throughput/latency, not a vendor-reported or AA-measured figure; treat as a third-party operational reading, not a benchmark score.",
+      "source_id": "openrouter-gpt-6-sol-2026-09-22"
+    },
+    {
+      "models": ["gpt-6-luna"],
+      "task_families": ["mixed"],
+      "axes": ["speed", "latency"],
+      "statement": "OpenRouter's own live request telemetry (30-minute rolling window, 14,278 requests — a far larger sample than Sol's, consistent with Luna's much lower per-token price driving higher usage) reports gpt-6-luna median (p50) throughput of 87 tokens/sec and p90 169 tokens/sec; p50 latency 2,805ms, p90 latency 6,470ms, p99 latency 14,604ms.",
+      "implication": "Luna's higher request volume than Sol at launch is a usage signal, not a quality signal.",
+      "source_id": "openrouter-gpt-6-luna-2026-09-22"
+    }
+  ],
+  "scores": [],
+  "missing": [
+    "The exact >272K-context input/output price point for either model — the payload confirms a distinct higher tier exists (input jumps to $0.000004/token = $4/M for Sol above 272K) but the full output-price tier value above 272K was not cleanly isolated in this pass for either model.",
+    "gpt-6-luna-pro variant pricing/specs — a distinct slug appeared in the gpt-6-sol page's payload but was not fetched or resolved separately.",
+    "Any OpenRouter aggregate/composite quality score (OpenRouter does not publish one; it is a routing/pricing aggregator, not an eval board)."
+  ]
+}

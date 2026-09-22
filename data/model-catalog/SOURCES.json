@@ -710,7 +710,7 @@
     {
       "id": "anthropic-pricing-2026-09-22",
       "url": "https://platform.claude.com/docs/en/about-claude/pricing",
-      "title": "Pricing — Anthropic docs",
+      "title": "Pricing \u2014 Anthropic docs",
       "publisher": "Anthropic",
       "published": null,
       "retrieved_at": "2026-09-22",
@@ -720,7 +720,7 @@
     {
       "id": "anthropic-models-overview-2026-09-22",
       "url": "https://platform.claude.com/docs/en/about-claude/models/overview",
-      "title": "Models overview — Anthropic docs",
+      "title": "Models overview \u2014 Anthropic docs",
       "publisher": "Anthropic",
       "published": null,
       "retrieved_at": "2026-09-22",
@@ -730,12 +730,12 @@
     {
       "id": "anthropic-effort-guide-2026-09-22",
       "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
-      "title": "Effort — Anthropic docs",
+      "title": "Effort \u2014 Anthropic docs",
       "publisher": "Anthropic",
       "published": null,
       "retrieved_at": "2026-09-22",
       "kind": "vendor_docs",
-      "notes": "Re-retrieved for Opus 5.5 launch. Verbatim: \"Requests that set thinking: {\\\"type\\\": \\\"disabled\\\"} return a 400 error at every effort level\" for Claude Opus 5.5 — this is STRICTER than Opus 5, where thinking can only not be disabled at xhigh/max (verbatim: \"On Claude Opus 5, thinking cannot be disabled at xhigh or max effort: requests that set thinking: {\\\"type\\\": \\\"disabled\\\"} at those levels return a 400 error\"). Effort levels low/medium/high/xhigh/max apply to Opus 5.5. Per-message effort (beta) supported on Opus 5.5 via beta header mid-conversation-output-config-2026-07-01; verbatim: \"Claude Opus 5.5 also supports changing effort mid-conversation with a per-message output_config\". Forced tool_choice (source: tool-use implement-tool-use doc, same 2026-09-22 fetch session): verbatim table row — \"Claude Opus 5.5, Claude Fable 5.1, and Claude Mythos 5.1\" under forced tool use support: \"any and tool return a 400 error\"; \"auto or none\" still work. Computer use (source: computer-use-tool doc, same fetch session): Opus 5.5 requires computer_toolset_20260801 on the Claude API and Google Cloud (does not accept the older computer_20251124 toolset there); on Amazon Bedrock it still accepts computer_20251124."
+      "notes": "Re-retrieved for Opus 5.5 launch. Verbatim: \"Requests that set thinking: {\\\"type\\\": \\\"disabled\\\"} return a 400 error at every effort level\" for Claude Opus 5.5 \u2014 this is STRICTER than Opus 5, where thinking can only not be disabled at xhigh/max (verbatim: \"On Claude Opus 5, thinking cannot be disabled at xhigh or max effort: requests that set thinking: {\\\"type\\\": \\\"disabled\\\"} at those levels return a 400 error\"). Effort levels low/medium/high/xhigh/max apply to Opus 5.5. Per-message effort (beta) supported on Opus 5.5 via beta header mid-conversation-output-config-2026-07-01; verbatim: \"Claude Opus 5.5 also supports changing effort mid-conversation with a per-message output_config\". Forced tool_choice (source: tool-use implement-tool-use doc, same 2026-09-22 fetch session): verbatim table row \u2014 \"Claude Opus 5.5, Claude Fable 5.1, and Claude Mythos 5.1\" under forced tool use support: \"any and tool return a 400 error\"; \"auto or none\" still work. Computer use (source: computer-use-tool doc, same fetch session): Opus 5.5 requires computer_toolset_20260801 on the Claude API and Google Cloud (does not accept the older computer_20251124 toolset there); on Amazon Bedrock it still accepts computer_20251124."
     },
     {
       "id": "artificial-analysis-intelligence-index-2026-09-22",
@@ -856,6 +856,146 @@
       "retrieved_at": "2026-09-22",
       "kind": "third_party_eval",
       "notes": "Listed live on launch day: $4/M input, $20/M output, cache read $0.20/M, cache write $5.00/M ($8.00/M for 1h). 1M token context, 128K max completion. This is PRICING/availability confirmation, not a quality board reading; no throughput (tokens/sec) figure was retrievable from this fetch."
+    },
+    {
+      "id": "artificial-analysis-intelligence-index-gpt-6-sol-luna-2026-09-22",
+      "url": "https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index",
+      "title": "Artificial Analysis Intelligence Index",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Launch-day curl of raw page HTML; embedded Next.js RSC self.__next_f.push chunk (chunk index 25 of the raw response) contains a full model roster array with per-model intelligenceIndex score and price1mInputTokens/price1mOutputTokens/cacheHitPrice/cacheWritePrice/medianCanonicalAnswerOutputSpeed fields, at full float precision."
+    },
+    {
+      "id": "artificialanalysis-gpt-6-sol-model-page-2026-09-22",
+      "url": "https://artificialanalysis.ai/models/gpt-6-sol",
+      "title": "GPT-6 Sol - Intelligence, Performance & Price Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Model detail page; embedded RSC chunk (index 10) contains an intelligenceIndexEvaluations[] array with per-evaluation score/outputTokensPerTask/costPerTask/timePerTask for aa-briefcase, gdpval-aa, automationbench-aa, terminalbench-4-0, scicode, humanitys-last-exam, gdp-pdf, critpt, omniscience, artificial-analysis-long-context-reasoning."
+    },
+    {
+      "id": "artificialanalysis-gpt-6-luna-model-page-2026-09-22",
+      "url": "https://artificialanalysis.ai/models/gpt-6-luna",
+      "title": "GPT-6 Luna - Intelligence, Performance & Price Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Model detail page; embedded RSC chunk (index 10) contains an intelligenceIndexEvaluations[] array, same structure as the Sol model page."
+    },
+    {
+      "id": "arcprize-leaderboard-gpt-6-2026-09-22",
+      "url": "https://arcprize.org/leaderboard",
+      "title": "ARC Prize \u2014 Leaderboard",
+      "publisher": "ARC Prize",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Direct static fetch returned a client-rendered shell with no rows; a headless-browser render (playwright, domcontentloaded + settle wait) recovered the full table (AI System / ARC-AGI-1 / ARC-AGI-2 / ARC-AGI-3 columns, per-task and per-suite USD costs, Standard vs Provider Adapter harness) and the ARC-AGI-3 scatter-chart SVG. GPT-6 Luna and GPT-6 Astra rows present (6 effort levels each, x2 harnesses); no GPT-6 Sol row found anywhere in the rendered DOM."
+    },
+    {
+      "id": "openrouter-gpt-6-sol-2026-09-22",
+      "url": "https://openrouter.ai/openai/gpt-6-sol",
+      "title": "GPT-6 Sol \u2014 API Pricing & Providers",
+      "publisher": "OpenRouter",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Listed live on launch day. Embedded RSC chunks contain tiered per-token pricing (<=272K vs >272K context), context_length, permaslug (openai/gpt-6-sol-20260922), and live throughput percentiles (p50/p75/p90/p95/p99 tokens/sec, latency ms) from OpenRouter's own request telemetry."
+    },
+    {
+      "id": "openrouter-gpt-6-luna-2026-09-22",
+      "url": "https://openrouter.ai/openai/gpt-6-luna",
+      "title": "GPT-6 Luna \u2014 API Pricing & Providers",
+      "publisher": "OpenRouter",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Listed live on launch day. Same embedded-payload structure as the Sol page; permaslug openai/gpt-6-luna-20260922."
+    },
+    {
+      "id": "vals-ai-terminal-bench-4-gpt-6-2026-09-22",
+      "url": "https://www.vals.ai/benchmarks/terminal-bench-4",
+      "title": "vals.ai \u2014 Terminal-Bench 4.0",
+      "publisher": "vals.ai",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Direct curl of raw page HTML recovered an HTML-entity-encoded embedded JSON payload listing tracked models including openai/gpt-6-astra (accuracy 57.071) and openai/gpt-5.6-terra; the string 'gpt-6-sol' and 'gpt-6-luna' do not appear anywhere in the payload \u2014 confirmed absent, not a retrieval limit."
+    },
+    {
+      "id": "vals-ai-swebench-gpt-6-2026-09-22",
+      "url": "https://www.vals.ai/benchmarks/swebench",
+      "title": "vals.ai \u2014 SWE-bench",
+      "publisher": "vals.ai",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Direct curl of raw page HTML recovered an embedded JSON payload with a 'GPT-6 Astra' label and score 63.709 (time 1788393600000 epoch ms ~= 2026-09-01). No 'gpt-6-sol' or 'gpt-6-luna' string found anywhere in the payload \u2014 confirmed absent."
+    },
+    {
+      "id": "deepswe-datacurve-gpt-6-2026-09-22",
+      "url": "https://deepswe.datacurve.ai/",
+      "title": "DeepSWE Leaderboard",
+      "publisher": "datacurve.ai",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Headless-browser render (playwright) recovered real board content listing claude-fable-5, claude-opus-4.8, claude-opus-5, claude-sonnet-5, gpt-5.6-luna, gpt-5.6-sol, gpt-6-astra, grok-4.6 model slugs. No gpt-6-sol or gpt-6-luna slug present anywhere in the rendered DOM \u2014 confirmed absent, not a retrieval limit (unlike the 2026-09-22 Opus 5.5 board-coverage file's DeepSWE row, which WAS retrieval-limited)."
+    },
+    {
+      "id": "arena-ai-leaderboard-gpt-6-2026-09-22",
+      "url": "https://arena.ai/leaderboard/",
+      "title": "Arena (LMArena) \u2014 Leaderboard",
+      "publisher": "LMArena / Arena.ai",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Direct static curl fetch (no headless browser needed) returned a large (~5MB) response containing embedded per-category ELO leaderboard JSON with real gpt-6-astra-max entries (e.g. rank 1 on webdev-overall-raw at 1793.18 Elo, Codex harness). No 'gpt-6-sol' or 'gpt-6-luna' string anywhere in the response \u2014 confirmed absent, not a retrieval limit (unlike the 2026-09-22 Opus 5.5 board-coverage file's Arena row, which used only web search)."
+    },
+    {
+      "id": "steel-browsecomp-gpt-6-2026-09-22",
+      "url": "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+      "title": "Steel \u2014 BrowseComp Leaderboard",
+      "publisher": "Steel",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Direct static curl recovered an embedded JSON payload with a rank-2 'GPT-6 Astra' row (score 91.5, single-agent score at launch, sourceUrl openai.com/index/gpt-6-astra). No 'gpt-6-sol' or 'gpt-6-luna' string anywhere in the payload \u2014 confirmed absent."
+    },
+    {
+      "id": "tbench-ai-official-gpt-6-2026-09-22",
+      "url": "https://www.tbench.ai/leaderboard/terminal-bench/4.0",
+      "title": "Terminal-Bench \u2014 official 4.0 leaderboard",
+      "publisher": "Terminal-Bench (tbench.ai)",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Direct URL 308-redirects to the site root; headless-browser render of the redirected leaderboard recovered rank-1 'GPT-6 Astra (max)' via Codex harness at 58.18% +/- 2.8%. No 'gpt-6-sol' or 'gpt-6-luna' text anywhere in the rendered DOM \u2014 confirmed absent."
+    },
+    {
+      "id": "livebench-ai-gpt-6-2026-09-22",
+      "url": "https://livebench.ai/",
+      "title": "LiveBench",
+      "publisher": "LiveBench",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Static fetch returned only a client-rendered app shell (create-react-app bundle referencing ./static/js/main.*.js, table body renders client-side); no rows retrievable without a headless browser render, which was not attempted for this board given time budget. RETRIEVAL LIMIT, not a confirmed absence."
+    },
+    {
+      "id": "epoch-ai-models-gpt-6-2026-09-22",
+      "url": "https://epoch.ai/models/search",
+      "title": "Epoch AI \u2014 models index",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "https://epoch.ai/models 301-redirects to /models/search; direct fetch of that URL returned real page content (151KB) containing a 'gpt-6-astra' entry. No 'gpt-6-sol' or 'gpt-6-luna' string found \u2014 confirmed absent."
     }
   ]
 }

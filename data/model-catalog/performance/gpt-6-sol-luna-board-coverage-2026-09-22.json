@@ -1,0 +1,101 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "gpt-6-sol-luna-board-coverage-2026-09-22",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-09-22",
+  "source_urls": [
+    "https://www.vals.ai/benchmarks/terminal-bench-4",
+    "https://www.vals.ai/benchmarks/swebench",
+    "https://deepswe.datacurve.ai/",
+    "https://arena.ai/leaderboard/",
+    "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+    "https://www.tbench.ai/leaderboard/terminal-bench/4.0",
+    "https://livebench.ai/",
+    "https://epoch.ai/models/search"
+  ],
+  "source_ids": [
+    "vals-ai-terminal-bench-4-gpt-6-2026-09-22",
+    "vals-ai-swebench-gpt-6-2026-09-22",
+    "deepswe-datacurve-gpt-6-2026-09-22",
+    "arena-ai-leaderboard-gpt-6-2026-09-22",
+    "steel-browsecomp-gpt-6-2026-09-22",
+    "tbench-ai-official-gpt-6-2026-09-22",
+    "livebench-ai-gpt-6-2026-09-22",
+    "epoch-ai-models-gpt-6-2026-09-22"
+  ],
+  "notes": "Board-by-board GPT-6 Sol / GPT-6 Luna coverage check on launch day (2026-09-22), following this pack's CONFIRMED ABSENT vs RETRIEVAL LIMIT typing convention (established in performance/opus-5-5-board-coverage-2026-09-22.json). Every board below was checked by a DIRECT fetch of the live page (curl for static/embedded-payload sites; a headless-browser render via grab.py for client-rendered sites) — none of these rows rely on web search alone, which is a stronger evidentiary bar than several rows in the Opus-5.5-launch-day coverage file achieved for the same boards (that file's DeepSWE and Arena rows, for example, were PROVISIONAL/web-search-only; this file's DeepSWE and Arena rows are CONFIRMED ABSENT from a direct render/fetch). GPT-6 Astra (launched 2026-09-03, 19 days earlier) is present and correctly scored on every single board checked here, which is the control that makes each 'no gpt-6-sol/luna row' reading a genuine absence rather than a broken fetch: if the fetch/render had failed to reach real data, Astra would be missing too, and it is not. Recheck guidance: given this pack's own prior observation (see opus-5-5-board-coverage-2026-09-22.json) that ARC Prize/LMArena/DeepSWE/Epoch AI ingestion of a new model has historically taken 1-6 weeks after launch, do not treat any CONFIRMED ABSENT row below as a permanent state — recheck no earlier than 2026-09-29, and treat this file as stale (not to be edited in place) after that date; a later positive reading is a NEW file per this pack's rule against overwriting snapshots.",
+  "claims": [
+    {
+      "models": ["gpt-6-sol", "gpt-6-luna"],
+      "task_families": ["coding"],
+      "axes": ["quality"],
+      "statement": "CONFIRMED ABSENT: vals.ai's Terminal-Bench 4.0 board (www.vals.ai/benchmarks/terminal-bench-4), directly curled 2026-09-22 (raw HTML, not a fetch summary), contains an embedded JSON payload listing openai/gpt-6-astra (accuracy 57.071) and openai/gpt-5.6-terra among its tracked models. Neither the string 'gpt-6-sol' nor 'gpt-6-luna' appears anywhere in that payload.",
+      "implication": "This is a genuine ingestion gap on vals.ai's TB4.0 board specifically, given Astra is present and current (recorded separately in performance/terminal-bench-4-vals-opus-5-5-2026-09.json for the Opus 5.5/Astra/Fable/Sonnet comparison).",
+      "source_id": "vals-ai-terminal-bench-4-gpt-6-2026-09-22"
+    },
+    {
+      "models": ["gpt-6-sol", "gpt-6-luna"],
+      "task_families": ["coding"],
+      "axes": ["quality"],
+      "statement": "CONFIRMED ABSENT: vals.ai's SWE-bench board (www.vals.ai/benchmarks/swebench), directly curled 2026-09-22, contains an embedded JSON payload with a 'GPT-6 Astra' entry (score 63.709, dated ~2026-09-01). Neither 'gpt-6-sol' nor 'gpt-6-luna' appears anywhere in the payload.",
+      "implication": "Recheck after the next vals.ai SWE-bench refresh; this board updates on its own cadence independent of the Terminal-Bench 4.0 board.",
+      "source_id": "vals-ai-swebench-gpt-6-2026-09-22"
+    },
+    {
+      "models": ["gpt-6-sol", "gpt-6-luna"],
+      "task_families": ["coding"],
+      "axes": ["quality"],
+      "statement": "CONFIRMED ABSENT: the DeepSWE leaderboard (deepswe.datacurve.ai), fully rendered via headless browser 2026-09-22 (not merely web-searched, upgrading this pack's prior PROVISIONAL reading of the same board from the Opus-5.5-launch-day file), lists claude-fable-5, claude-opus-4.8, claude-opus-5, claude-sonnet-5, gpt-5.6-luna, gpt-5.6-sol, gpt-6-astra, and grok-4.6 among its tracked model slugs. Neither 'gpt-6-sol' nor 'gpt-6-luna' appears anywhere in the rendered DOM.",
+      "implication": "DeepSWE has ingested gpt-6-astra but not the two 2026-09-22 launches yet; also note claude-opus-5-5 is itself STILL absent from this board as of this same 2026-09-22 check (confirming the board updates on its own multi-week cadence, not same-day).",
+      "source_id": "deepswe-datacurve-gpt-6-2026-09-22"
+    },
+    {
+      "models": ["gpt-6-sol", "gpt-6-luna"],
+      "task_families": ["chat", "coding"],
+      "axes": ["quality"],
+      "statement": "CONFIRMED ABSENT: Arena (arena.ai/leaderboard/), directly curled 2026-09-22 WITHOUT a headless browser (a plain static fetch of this URL returns a ~5MB response with embedded per-category ELO leaderboard JSON, contradicting this pack's prior note that arena.ai is client-rendered), contains real gpt-6-astra-max entries across multiple category boards (e.g. rank 1 on webdev-overall-raw at 1793.18 Elo via the Codex harness). Neither 'gpt-6-sol' nor 'gpt-6-luna' appears anywhere in the response.",
+      "implication": "Upgrades this pack's prior Arena reading from PROVISIONAL/web-search-only to CONFIRMED ABSENT via a direct payload read; arena.ai's client-rendering behavior may be inconsistent across routes/sessions, worth re-verifying on a future pass.",
+      "source_id": "arena-ai-leaderboard-gpt-6-2026-09-22"
+    },
+    {
+      "models": ["gpt-6-sol", "gpt-6-luna"],
+      "task_families": ["agentic_search"],
+      "axes": ["quality"],
+      "statement": "CONFIRMED ABSENT: the Steel BrowseComp leaderboard (leaderboard.steel.dev/leaderboards/browsecomp/), directly curled 2026-09-22, contains an embedded JSON payload with a rank-2 'GPT-6 Astra' entry (score 91.5, described as its 'Single-agent score at launch'). Neither 'gpt-6-sol' nor 'gpt-6-luna' appears anywhere in the payload.",
+      "implication": "This is a fresher, stronger reading than the Opus-5.5-launch-day file's Steel row (which only confirmed absence of claude-opus-5-5, not GPT-6 Sol/Luna).",
+      "source_id": "steel-browsecomp-gpt-6-2026-09-22"
+    },
+    {
+      "models": ["gpt-6-sol", "gpt-6-luna"],
+      "task_families": ["coding"],
+      "axes": ["quality"],
+      "statement": "CONFIRMED ABSENT: the OFFICIAL Terminal-Bench leaderboard (tbench.ai, which 308-redirects www.tbench.ai/leaderboard/terminal-bench/4.0 to its root and renders the table client-side), rendered via headless browser 2026-09-22, shows rank-1 'GPT-6 Astra (max)' at 58.18% +/- 2.8% via the Codex harness, linking to developers.openai.com/api/docs/models/gpt-6-astra. Neither 'gpt-6-sol' nor 'gpt-6-luna' text appears anywhere in the rendered DOM.",
+      "implication": "This is a NEW board for this pack (not previously checked) — the official tbench.ai board, distinct from vals.ai's secondary Terminal-Bench 4.0 reading already in this pack.",
+      "source_id": "tbench-ai-official-gpt-6-2026-09-22"
+    },
+    {
+      "models": ["gpt-6-sol", "gpt-6-luna"],
+      "task_families": ["mixed"],
+      "axes": ["quality"],
+      "statement": "RETRIEVAL LIMIT, not resolved either way: LiveBench (livebench.ai) returned only a client-rendered create-react-app shell to a static fetch on 2026-09-22 (identical outcome to the Opus-5.5-launch-day check of the same board); a headless-browser render was not attempted for this board in this pass given time budget.",
+      "implication": "Do not cite this file for a LiveBench absence OR presence claim for gpt-6-sol/gpt-6-luna — genuinely unchecked beyond the static-shell attempt.",
+      "source_id": "livebench-ai-gpt-6-2026-09-22"
+    },
+    {
+      "models": ["gpt-6-sol", "gpt-6-luna"],
+      "task_families": ["mixed"],
+      "axes": ["quality"],
+      "statement": "CONFIRMED ABSENT: Epoch AI's models index (epoch.ai/models 301-redirects to epoch.ai/models/search), directly fetched 2026-09-22 (a real 151KB response, not a client shell), contains a 'gpt-6-astra' entry. Neither 'gpt-6-sol' nor 'gpt-6-luna' appears in the response.",
+      "implication": "Upgrades this pack's prior Epoch AI reading from PROVISIONAL/web-search-only to a direct-fetch CONFIRMED ABSENT.",
+      "source_id": "epoch-ai-models-gpt-6-2026-09-22"
+    }
+  ],
+  "scores": [],
+  "missing": [
+    "LiveBench coverage of gpt-6-sol/gpt-6-luna — genuinely unknown, a headless-browser render of this board was not attempted in this pass (time budget); recheck with grab.py-style rendering in a future pass.",
+    "vals.ai's separate SEAL-branded SWE-bench reading (if distinct from www.vals.ai/benchmarks/swebench) was not separately located or checked.",
+    "Any board's ingestion timing signal beyond this single 2026-09-22 snapshot — every CONFIRMED ABSENT row here is a same-day observation; none of these boards were rechecked at a later date within this task."
+  ]
+}
