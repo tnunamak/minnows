@@ -1316,6 +1316,116 @@
       "retrieved_at": "2026-09-22",
       "kind": "third_party_eval",
       "notes": "Headless-rendered leaderboard (grab.py), full roster snapshot for candidate models."
+    },
+    {
+      "id": "epoch-ai-model-page-gpt-6-astra-2026-09-22",
+      "url": "https://epoch.ai/models/gpt-6-astra",
+      "title": "GPT-6 Astra | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Epoch Capabilities Index (ECI) per-model page, distinct from the boards-lane check of epoch.ai/models (roster listing only); this is Epoch's own independently-run benchmark suite (Chess Puzzles, EBR-bench, Mystery Game Puzzles, FrontierMath Erdos/Tiers 1-3/Tier 4 v2, GPQA Diamond, MirrorCode, SimpleQA Verified), not a vendor table. Client-hydrated Astro page; rendered via headless browser (grab.py)."
+    },
+    {
+      "id": "epoch-ai-model-page-claude-sonnet-5-2026-09-22",
+      "url": "https://epoch.ai/models/claude-sonnet-5",
+      "title": "Claude Sonnet 5 | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Epoch Capabilities Index (ECI) per-model page for claude-sonnet-5, first ingested into this pack 2026-07-09; this Epoch evidence postdates that ingest. Rendered via headless browser (grab.py)."
+    },
+    {
+      "id": "epoch-ai-model-page-claude-haiku-4-5-2026-09-22",
+      "url": "https://epoch.ai/models/claude-haiku-4-5",
+      "title": "Claude Haiku 4.5 | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Epoch Capabilities Index (ECI) per-model page for claude-haiku-4-5, first ingested into this pack 2026-07-09; this Epoch evidence postdates that ingest. Rendered via headless browser (grab.py)."
+    },
+    {
+      "id": "epoch-ai-model-page-claude-opus-5-2026-09-22",
+      "url": "https://epoch.ai/models/claude-opus-5",
+      "title": "Claude Opus 5 | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Epoch Capabilities Index (ECI) per-model page for claude-opus-5, first ingested into this pack 2026-07-25; this Epoch evidence postdates that ingest. Rendered via headless browser (grab.py)."
+    },
+    {
+      "id": "epoch-ai-model-page-claude-fable-5-1-2026-09-22",
+      "url": "https://epoch.ai/models/claude-fable-5-1",
+      "title": "Claude Fable 5.1 | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Epoch Capabilities Index (ECI) per-model page for claude-fable-5-1, first ingested into this pack 2026-09-05; this Epoch evidence postdates that ingest. Rendered via headless browser (grab.py)."
+    },
+    {
+      "id": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22",
+      "url": "https://epoch.ai/models/gpt-5-6-sol",
+      "title": "GPT-5.6 Sol | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Epoch Capabilities Index (ECI) per-model page for gpt-5.6-sol, first ingested into this pack 2026-07-09; this Epoch evidence postdates that ingest. Rendered via headless browser (grab.py)."
+    },
+    {
+      "id": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22",
+      "url": "https://epoch.ai/models/gpt-5-6-terra",
+      "title": "GPT-5.6 Terra | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Epoch Capabilities Index (ECI) per-model page for gpt-5.6-terra, first ingested into this pack 2026-07-09; this Epoch evidence postdates that ingest. Rendered via headless browser (grab.py)."
+    },
+    {
+      "id": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22",
+      "url": "https://epoch.ai/models/gpt-5-6-luna",
+      "title": "GPT-5.6 Luna | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Epoch Capabilities Index (ECI) per-model page for gpt-5.6-luna, first ingested into this pack 2026-07-09; this Epoch evidence postdates that ingest. Rendered via headless browser (grab.py)."
+    },
+    {
+      "id": "epoch-ai-model-page-grok-4-6-2026-09-22",
+      "url": "https://epoch.ai/models/grok-4-6",
+      "title": "Grok 4.6 | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "Epoch Capabilities Index (ECI) per-model page for grok-4.6, first ingested into this pack 2026-09-05; this Epoch evidence postdates that ingest. Rendered via headless browser (grab.py). xAI models carry no vendor tier field per SCHEMA.md; unaffected here."
+    },
+    {
+      "id": "epoch-ai-model-page-coverage-2026-09-22",
+      "url": "https://epoch.ai/models/claude-opus-5-5",
+      "title": "Epoch AI per-model page coverage check (Opus 5.5 / GPT-6 Sol / GPT-6 Luna) — confirmed absent",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "third_party_eval",
+      "notes": "HTTP 404 confirmed for claude-opus-5-5, gpt-6-sol, and gpt-6-luna at https://epoch.ai/models/<slug> (same URL pattern that resolves 200 for all 9 lane target models plus gpt-6-astra) — Epoch AI has not yet published per-model ECI pages for these three as of 2026-09-22, a genuine coverage gap, not a broken fetch."
+    },
+    {
+      "id": "openai-deployment-safety-hub-gpt-5-6-august-update-2026-08-06",
+      "url": "https://deploymentsafety.openai.com/gpt-5-6-august-update",
+      "title": "GPT-5.6 — August Updates | OpenAI Deployment Safety Hub",
+      "publisher": "OpenAI",
+      "published": "2026-08-06",
+      "retrieved_at": "2026-09-22",
+      "kind": "vendor_docs",
+      "notes": "System-card addendum, NOT covered by the boards/catalog/syscard lanes (which fetched the GPT-6 Astra system card and the original July GPT-5.6 system card, not this August revision). Documents a distinct 'August' revision of GPT-5.6 Sol and GPT-5.6 Luna (ChatGPT-served, replacing GPT-5.5 Instant for Free/Go/Plus/Pro) that OpenAI explicitly distinguishes from the 'July' versions still served in Codex and ChatGPT Work -- this pack's gpt-5.6-sol/gpt-5.6-luna rows and pricing are the July versions and are NOT known to cover the August ChatGPT-surface revision. Both August Sol and Luna are rated High capability in Cybersecurity and Biological/Chemical under OpenAI's Preparedness Framework (neither reaches High in AI Self-Improvement). Full safety/capability score tables (disallowed-content, HealthBench, CVE-Bench, cyber range, bio/chem troubleshooting suites) were NOT extractable via static/headless fetch in this pass (client-rendered chart/table components did not yield row-level values to text extraction) -- flagged in missing[], not fabricated. Also contains a change-log correction: GPT-5.5's hard-negative protein binding prediction score was corrected 2026-08-19 from 0.4% (mislabeled pass@1) to 1.48% (pass@4)."
     }
   ]
 }
