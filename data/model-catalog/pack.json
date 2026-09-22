@@ -4,7 +4,7 @@
   "schema_version": 1,
   "tag": "data-model-catalog-v0.5.6",
   "generated_at": "2026-09-22",
-  "description": "Model economics catalog. v0.5.6: adds GPT-6 Sol and Luna 19 days after GPT-6 Astra — API + Codex credit pricing, api/codex_cli effort surfaces (codex_cli corrected mid-integration from a stale 0.154.0 read to a same-day 0.156.0 read), a new `tier` field on the L0 model registry (every OpenAI/Anthropic model carries one), the launch-post headline table + all 11 digitized effort x cost curves (212 rows, cross-checked 0 mismatches against the headline table), the GPT-6 Astra system card's Sol/Luna safety/preparedness appendix (97 score rows, 59 new metric ids), and third-party board coverage (AA Intelligence Index v4.3.2, ARC Prize, OpenRouter, 8 confirmed-absent boards) — on top of v0.5.5's Claude Opus 5.5 addition.",
+  "description": "Model economics catalog. v0.5.6: adds GPT-6 Sol and Luna 19 days after GPT-6 Astra \u2014 API + Codex credit pricing, api/codex_cli effort surfaces (codex_cli corrected mid-integration from a stale 0.154.0 read to a same-day 0.156.0 read), a new `tier` field on the L0 model registry (every OpenAI/Anthropic model carries one), the launch-post headline table + all 11 digitized effort x cost curves (212 rows, cross-checked 0 mismatches against the headline table), the GPT-6 Astra system card's Sol/Luna safety/preparedness appendix (97 score rows, 59 new metric ids), and third-party board coverage (AA Intelligence Index v4.3.2, ARC Prize, OpenRouter, 8 confirmed-absent boards) \u2014 on top of v0.5.5's Claude Opus 5.5 addition.",
   "files": [
     "FRESHNESS.md",
     "SCHEMA.md",
@@ -48,6 +48,7 @@
     "performance/browsecomp-2026-07.json",
     "performance/deepswe-leaderboard-2026-09.json",
     "performance/deepswe-leaderboard-gpt-5-6-2026-08.json",
+    "performance/epoch-ai-model-pages-2026-09.json",
     "performance/gpt-6-sol-luna-board-coverage-2026-09-22.json",
     "performance/lmarena-text-2026-07.json",
     "performance/local-evals-2026-07.json",

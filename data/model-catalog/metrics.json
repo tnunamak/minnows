@@ -1921,6 +1921,104 @@
       "steward": "vendor_table",
       "unit_default": "accuracy",
       "comparable": false
+    },
+    {
+      "id": "epoch-capabilities-index",
+      "name": "Epoch Capabilities Index (ECI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other",
+      "notes": "Epoch AI's own composite capability index across ~251 tracked models; not comparable to Artificial Analysis Intelligence Index (different composition/scale)."
+    },
+    {
+      "id": "epoch-simplebench",
+      "name": "SimpleBench (Epoch AI reading)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-chess-puzzles",
+      "name": "Chess Puzzles (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-mystery-game-puzzles",
+      "name": "Mystery Game Puzzles (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-earthborne-rangers-ebr-bench",
+      "name": "Earthborne Rangers (EBR-bench, Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-frontiermath-erdos",
+      "name": "FrontierMath Erdos (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-mirrorcode",
+      "name": "MirrorCode (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-otis-mock-aime",
+      "name": "OTIS Mock AIME 2024-2025 (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-simpleqa-verified",
+      "name": "SimpleQA Verified (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-vending-bench-2",
+      "name": "Vending-Bench 2 (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other",
+      "notes": "Net worth in simulated dollars; not an accuracy/pass_rate metric."
+    },
+    {
+      "id": "epoch-weirdml-v2",
+      "name": "WeirdML v2 (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-text-arena-coding",
+      "name": "Text Arena (Coding), Epoch AI reading",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "elo"
     }
   ]
 }
