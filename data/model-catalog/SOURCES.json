@@ -1096,6 +1096,16 @@
       "retrieved_at": "2026-09-22",
       "kind": "third_party_eval",
       "notes": "https://epoch.ai/models 301-redirects to /models/search; direct fetch of that URL returned real page content (151KB) containing a 'gpt-6-astra' entry. No 'gpt-6-sol' or 'gpt-6-luna' string found \u2014 confirmed absent."
+    },
+    {
+      "id": "openai-codex-debug-models-0-156-0-2026-09-22",
+      "url": "https://github.com/tnunamak/minnows/tree/main/data/model-catalog",
+      "title": "codex debug models (live, auth-scoped host output, codex-cli 0.156.0)",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-22",
+      "kind": "other",
+      "notes": "CORRECTS openai-codex-debug-models-2026-09-22 (codex-cli 0.154.0, same host, same day): that earlier read reported gpt-6-sol/gpt-6-luna absent from this host's live catalog. Re-read on codex-cli 0.156.0 (still 2026-09-22, same host) shows both present with visibility=list: gpt-6-sol supported_reasoning_levels low/medium/high/xhigh/max/ultra, default medium; gpt-6-luna supported_reasoning_levels low/medium/high/xhigh/max (no ultra), default medium. Not a public URL (url field reuses the repo per the openai-codex-debug-models-2026-09-05 precedent) \u2014 this is a local `codex debug models` command output, not a fetched page. The rollout gap in the 0.154.0 read was a genuine, short-lived CLI-version lag, not a capability negation \u2014 confirmed by this later read from the same host on the same day."
     }
   ]
 }

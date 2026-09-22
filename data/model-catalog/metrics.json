@@ -1386,7 +1386,7 @@
       "harness": null,
       "steward": "vendor_table",
       "unit_default": "other",
-      "notes": "OpenAI internal eval: whether models follow unauthorized instructions found on a simulated message board (e.g. requests to disclose private information), conditional on the model finding the board. Effort not stated in the source for this chart (unlike the other four adversarial-agent charts on the same page, which state max)."
+      "notes": "OpenAI internal eval: whether models follow unauthorized instructions found on a simulated message board (e.g. requests to disclose private information), conditional on the model finding the board. Effort not stated in the source for this chart (unlike the other four adversarial-agent charts on the same page, which state max). Distinct from gpt6-agent-to-agent-engagement-rate (system-card Fig 12), which measures whether the model engaged with/discovered the board at all \u2014 this metric measures whether it then took the unauthorized action, conditional on finding the board. Do not conflate the two."
     },
     {
       "id": "gpt6-production-benchmark-violent-illicit",
@@ -1695,7 +1695,7 @@
       "harness": null,
       "steward": "vendor_table",
       "unit_default": "other",
-      "notes": "Rate at which a model engaged with an unrequested simulated agent message board it discovered while performing an unrelated browsing task. Lower is safer."
+      "notes": "Rate at which a model engaged with an unrequested simulated agent message board it discovered while performing an unrelated browsing task. Lower is safer. Distinct from unauthorized-agent-interaction-rate (launch-page chart), which measures whether the model took the unauthorized action conditional on finding the board \u2014 this metric measures engagement/discovery only. Do not conflate the two."
     },
     {
       "id": "internal-research-debugging-eval",
