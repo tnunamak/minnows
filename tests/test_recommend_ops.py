@@ -456,3 +456,61 @@ def test_real_pack_is_deterministic():
         loaded = ro.load_requirements(pol / "op-requirements.json", catalog, set(points))
         outs.append(json.dumps(ro.recommend(catalog, loaded, points), sort_keys=True))
     assert outs[0] == outs[1]
+
+
+# ------------------------------------------- restricted access, effort-less models, ceiling rule
+
+
+def test_restricted_access_model_is_never_a_candidate(tmp_path):
+    models = MODELS + [{"id": "claude-secret-1", "provider": "anthropic", "family": "claude-secret", "status": "ga",
+                        "tier": "mythos", "access": "restricted"}]
+    surfaces = SURFACES + [{"model": "claude-secret-1", "surface": "api", "valid_efforts": EFFORTS}]
+    rows = [row("claude-cheap-2", "medium", 0.5, cost=1), row("claude-secret-1", "low", 0.9, cost=0.1)]
+    r = run(tmp_path, rows, [req("implement.standard")], models=models, surfaces=surfaces)["implement.standard"]
+    assert not any("claude-secret-1" in c for c in r["candidates"])
+    assert any(e["model"] == "claude-secret-1" and "restricted" in e["reason"] for e in r["excluded_models"])
+
+
+def test_effortless_model_gets_one_default_arm_and_null_effort_rows_map_to_it(tmp_path):
+    models = MODELS + [{"id": "claude-tiny-4", "provider": "anthropic", "family": "claude-tiny", "status": "ga",
+                        "tier": "haiku", "effort_parameter": False}]
+    rows = [row("claude-cheap-2", "medium", 0.50, cost=1.0), row("claude-tiny-4", None, 0.49, cost=0.1)]
+    r = run(tmp_path, rows, [req("implement.standard")], models=models)["implement.standard"]
+    assert "claude/claude-tiny-4/default" in r["candidates"]
+    assert arm(r, "g-board", "claude/claude-tiny-4/default")["score"] == 0.49
+    assert r["recommended"]["model"] == "claude-tiny-4"
+
+
+def test_ceiling_rule_excludes_model_whose_max_misses_an_independent_bar(tmp_path):
+    rows = [
+        row("claude-strong-2", "medium", 0.70, cost=1.0),
+        row("gpt-9-big", "medium", 0.69, cost=2.0),
+        # cheap model only measured at max (a disallowed effort): 0.40 is far below the 0.65 bar
+        row("claude-cheap-2", "max", 0.40, cost=5.0),
+    ]
+    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    assert not any(c.startswith("claude/claude-cheap-2/") for c in r["candidates"])
+    assert any(e["model"] == "claude-cheap-2" and "best measured effort" in e["reason"] for e in r["excluded_models"])
+    assert not any(m["model"] == "claude-cheap-2" for m in r["missing"])  # excluded, not "missing data"
+    assert any("ceiling rule applied" in f for f in r["flags"])
+
+
+def test_ceiling_rule_only_flags_in_vendor_groups(tmp_path):
+    rows = [
+        row("claude-strong-2", "medium", 0.70, cost=1.0, group="g-v", source_type="vendor_table", source_id="oai"),
+        row("gpt-9-big", "medium", 0.69, cost=2.0, group="g-v", source_type="vendor_table", source_id="oai"),
+        row("claude-cheap-2", "max", 0.40, cost=5.0, group="g-v", source_type="vendor_table", source_id="oai"),
+    ]
+    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    assert any(c.startswith("claude/claude-cheap-2/") for c in r["candidates"])
+    assert any("ceiling (vendor group, not excluding)" in f for f in r["flags"])
+
+
+def test_ceiling_rule_keeps_model_whose_max_clears_the_bar(tmp_path):
+    rows = [
+        row("claude-strong-2", "medium", 0.70, cost=1.0),
+        row("gpt-9-big", "medium", 0.69, cost=2.0),
+        row("claude-cheap-2", "max", 0.68, cost=5.0),  # clears 0.65: lower efforts are unmeasured, not excluded
+    ]
+    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    assert any(c.startswith("claude/claude-cheap-2/") for c in r["candidates"])

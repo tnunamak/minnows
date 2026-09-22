@@ -28,7 +28,13 @@ Contracts for every JSON file in this pack. **Validated by**
 ## Model registry (`models.json`)
 
 Each entry: `id`, `provider`, `family`, `status` (`ga` | `preview` | `historical` |
-`third_party_board_only`), `aliases[]`, and an optional `tier`.
+`third_party_board_only`), `aliases[]`, and optional `tier`, `access`, and `effort_parameter`.
+
+`access` — `restricted` marks a model that is trusted-access only (e.g. `claude-mythos-5-1`):
+GA for its program, but never a routing candidate. Omitted means generally available.
+
+`effort_parameter` — `false` marks a model that accepts no effort parameter (e.g.
+`claude-haiku-4-5`); routing uses it with no effort flag, and its score rows carry `effort: null`.
 
 `tier` — **capability tier**: vendors ship concurrent tiers on separate cadences; policy
 picks a tier per task, then the newest GA model in that tier. Populated for OpenAI,

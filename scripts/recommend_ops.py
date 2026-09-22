@@ -35,7 +35,8 @@ LANES = {
     "grok": ("xai", "grok_cli"),
 }
 PROVIDER_TO_LANE = {vendor: lane for lane, (vendor, _) in LANES.items()}
-EFFORTS = ("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra")
+# "default" = the model takes no effort parameter (e.g. claude-haiku-4-5); its rows carry effort null.
+EFFORTS = ("default", "none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra")
 ABOVE_DEFAULT_EFFORTS = frozenset({"xhigh", "max", "ultra"})
 GRADE_RANK = {"A": 3, "B": 2, "C": 1, "D": 0}
 INDEPENDENT_SOURCE_TYPES = frozenset({"third_party_board", "third_party_eval", "local_eval"})
@@ -82,6 +83,11 @@ class Catalog:
     rows: list[dict]
     list_price: dict[str, float]
     publishers: dict[str, str]
+
+    @property
+    def effortless(self) -> set[str]:
+        """Models the catalog marks as taking no effort parameter (effort_parameter: false)."""
+        return {mid for mid, m in self.models.items() if m.get("effort_parameter") is False}
 
     @classmethod
     def from_dir(cls, root: Path) -> "Catalog":
@@ -270,6 +276,9 @@ def candidate_arms(req: dict, catalog: Catalog, makers: dict[str, Arm]) -> tuple
         mid = m["id"]
         if m.get("status") != "ga":
             continue
+        if m.get("access") == "restricted":
+            excluded.append({"model": mid, "reason": "access restricted (not generally dispatchable)"})
+            continue
         if not m.get("tier"):
             excluded.append({"model": mid, "reason": "no tier in models.json"})
             continue
@@ -286,6 +295,10 @@ def candidate_arms(req: dict, catalog: Catalog, makers: dict[str, Arm]) -> tuple
         if efforts is None:
             efforts = catalog.surfaces.get((mid, "api"))
             if efforts is None:
+                if mid in catalog.effortless:
+                    notes.append(f"{mid}: takes no effort parameter; one arm at effort 'default'")
+                    arms.append(Arm(mid, "default", lane))
+                    continue
                 excluded.append({"model": mid, "reason": f"no {surface} or api effort surface"})
                 continue
             notes.append(f"{mid}: no {surface} surface; efforts taken from the api surface")
@@ -384,6 +397,8 @@ def build_groups(req: dict, catalog: Catalog) -> tuple[list[Group], list[str]]:
                 continue
             g.vendors.add(catalog.models[mid]["provider"])
             effort = r.get("effort")
+            if effort is None and mid in catalog.effortless:
+                effort = "default"
             if effort not in EFFORTS:
                 continue  # effort unattributed (None/unknown/adaptive): cannot map to an arm
             cost = r.get("cost") if isinstance(r.get("cost"), dict) else None
@@ -514,6 +529,43 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
     result["skipped_groups"] = skipped
     evals = [evaluate_group(g, arms, req, catalog, maker) for g in groups]
     evals = [ev for ev in evals if ev.present]
+
+    # Ceiling rule: a candidate model with no allowed-effort score in a usable group, whose
+    # best score there at ANY effort (incl. efforts the op disallows, e.g. max) is below the
+    # group's bar, cannot meet that bar at an allowed effort either. Assumes quality does not
+    # rise as effort falls. An independent group excludes the model; a vendor group only flags.
+    candidate_models = {a.model for a in arms}
+    ceiling_excluded: dict[str, list[str]] = {}
+    for ev in evals:
+        if ev.unusable or ev.bar_value is None:
+            continue
+        present_models = {a.model for a in ev.present}
+        best: dict[str, tuple[float, str]] = {}
+        for (mid, eff), cell in ev.group.cells.items():
+            if mid in candidate_models and mid not in present_models:
+                if mid not in best or cell.score > best[mid][0]:
+                    best[mid] = (cell.score, eff)
+        for mid, (score, eff) in sorted(best.items()):
+            if score >= ev.bar_value - EPS:
+                continue
+            raw = score if ev.group.direction == "higher_better" else -score
+            bar_raw = ev.bar_value if ev.group.direction == "higher_better" else -ev.bar_value
+            why = f"{ev.group.gid}: best measured {mid}@{eff}={raw:g} misses bar {bar_raw:g}"
+            if ev.group.kind() == "independent":
+                ceiling_excluded.setdefault(mid, []).append(why)
+            else:
+                result["flags"].append(f"ceiling (vendor group, not excluding): {why}")
+    if ceiling_excluded:
+        for mid, whys in ceiling_excluded.items():
+            result["excluded_models"].append({"model": mid, "reason": "fails the bar at its best measured effort: " + "; ".join(whys)})
+        arms = [a for a in arms if a.model not in ceiling_excluded]
+        result["candidates"] = [a.label() for a in arms]
+        result["flags"].append("ceiling rule applied (assumes quality does not rise as effort falls)")
+        if not arms:
+            result["status"] = "NO_CANDIDATES"
+            return result
+        evals = [evaluate_group(g, arms, req, catalog, maker) for g in groups]
+        evals = [ev for ev in evals if ev.present]
     for ev in evals:
         for c in ev.group.conflicts:
             result["flags"].append(f"{ev.group.gid}: duplicate row {c}")
