@@ -3,7 +3,7 @@
   "id": "effort-surfaces-2026-07",
   "schema_version": 1,
   "kind": "capabilities",
-  "retrieved_at": "2026-08-02",
+  "retrieved_at": "2026-09-22",
   "source_urls": [
     "https://platform.claude.com/docs/en/build-with-claude/effort",
     "https://code.claude.com/docs/en/model-config",
@@ -12,14 +12,18 @@
     "https://developers.openai.com/api/docs/guides/reasoning",
     "https://docs.x.ai/developers/model-capabilities/text/reasoning",
     "https://openai.com/index/gpt-5-6/",
-    "https://www.anthropic.com/news/claude-opus-5"
+    "https://www.anthropic.com/news/claude-opus-5",
+    "https://www.anthropic.com/news/claude-opus-5-5"
   ],
   "source_ids": [
     "anthropic-claude-code-model-config-2026-07-09",
     "anthropic-effort-docs-2026-07-09",
     "anthropic-effort-guide-2026-09-05",
+    "anthropic-effort-guide-2026-09-22",
     "anthropic-fable-mythos-5-1-2026-09-01",
     "anthropic-opus-5-2026-07-24",
+    "anthropic-opus-5-5-2026-09-22",
+    "anthropic-pricing-2026-09-22",
     "google-gemini-thinking-2026-09-05",
     "openai-codex-config-2026-07-09",
     "openai-codex-debug-models-2026-09-05",
@@ -30,7 +34,7 @@
     "waspflow-codex-ultra-probe-2026-09-05",
     "xai-reasoning-2026-07-09"
   ],
-  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed.",
+  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking.",
   "surfaces": [
     {
       "provider": "anthropic",
@@ -216,6 +220,36 @@
         "anthropic-opus-5-2026-07-24"
       ],
       "notes": " Per-message effort update supported (beta). Lifecycle: no retirement before 2027-07-24."
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-opus-5-5",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        },
+        {
+          "mode_id": "fast",
+          "notes": "$8/$40 per MTok, up to 2.5x speed. Claude API (first-party) only — not available on Claude Platform on AWS or partner-operated cloud platforms."
+        }
+      ],
+      "source_ids": [
+        "anthropic-effort-guide-2026-09-22",
+        "anthropic-opus-5-5-2026-09-22",
+        "anthropic-pricing-2026-09-22"
+      ],
+      "notes": "Adaptive thinking, always on; thinking cannot be disabled at ANY effort level — requests with thinking:{\"type\":\"disabled\"} return a 400 error at every effort level (stricter than Opus 5, which only blocks disabling at xhigh/max). Forced tool_choice (any/tool) returns a 400 error regardless of thinking settings; auto/none still work (Fable 5.1 and Mythos 5.1 share this restriction). Computer use requires computer_toolset_20260801 on the Claude API and Google Cloud (does not accept the older computer_20251124 toolset on those surfaces); Amazon Bedrock still accepts computer_20251124. Per-message effort update supported (beta, header mid-conversation-output-config-2026-07-01). Default effort is medium — DIFFERENT from Opus 5's high default. Lifecycle: no retirement date found in fetched sources; not recorded."
     },
     {
       "provider": "anthropic",
@@ -1050,6 +1084,7 @@
     "Anthropic: per-message effort-update support is established only for fable-5-1/mythos-5-1/opus-5 (yes, beta) and fable-5 (no). For opus-4.5..4.8, sonnet-4.5/4.6 and haiku-4.5 it is NOT established.",
     "Anthropic: claude-opus-4-5 and claude-sonnet-4-5 are compatibility-listed in the effort guide without a full level matrix; claude-haiku-4-5 is absent from the five-level table entirely.",
     "xAI: AA reports Grok 4.6 high (Index 51) and Grok 4.5 high (Index 45) plus a separate 4.6 view at Index 61 / $0.84 per task — these are DIFFERENT AA configurations and must not be merged into one curve. No matched low/medium/high/xhigh series on one task set exists, so Grok effort value is undetermined.",
-    "Z.AI/GLM: AA measures GLM 5.3 max at Index 60 and GLM 5.2 max at 53, and a GLM 5.2 non-reasoning setting at Index 35 — but these are CROSS-MODEL comparisons, not a same-version thinking-on/off experiment. The AA displayed $0.90 is its 7:2:1 token-mix effective price, NOT a replacement for Z.AI direct list pricing."
+    "Z.AI/GLM: AA measures GLM 5.3 max at Index 60 and GLM 5.2 max at 53, and a GLM 5.2 non-reasoning setting at Index 35 — but these are CROSS-MODEL comparisons, not a same-version thinking-on/off experiment. The AA displayed $0.90 is its 7:2:1 token-mix effective price, NOT a replacement for Z.AI direct list pricing.",
+    "Anthropic: claude-opus-5-5 claude_code surface not recorded (no Claude Code-specific model-config doc content fetched for it this pass). Tokenizer identity vs claude-opus-5 (\"same tokenizer\") was not found in any fetched source and is NOT recorded as fact anywhere in this pack. Opus 5.5 lifecycle/retirement floor not found in fetched sources."
   ]
 }
