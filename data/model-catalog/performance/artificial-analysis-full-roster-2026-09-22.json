@@ -44,9 +44,18 @@
   "notes": "FULL SAME-SNAPSHOT roster pass (2026-09-22) across all 11 lane candidates plus 5 available effort variants, fetched directly from each model's own AA model-detail page (curl, browser UA, no headless browser needed — same technique as performance/artificial-analysis-gpt-6-sol-luna-2026-09.json) rather than the Intelligence Index page's embedded roster array, which was independently confirmed this pass to be a 'top performers' CUTOFF (49 slugs) that excludes claude-sonnet-5, claude-haiku-4-5, gpt-5.6-terra, and gpt-5.6-luna entirely — model-detail pages resolve every candidate the cutoff array misses. AA's slug for Claude Haiku 4.5 is 'claude-4-5-haiku' (not 'claude-haiku-4-5' — that slug 404s); AA's slugs for GPT-5.6 Sol/Terra/Luna use hyphens ('gpt-5-6-sol' etc); Grok 4.6 uses 'grok-4-6'. Each page's own embedded Next.js RSC chunk (chunk index 19 across all 16 fetches, differing from the Sol/Luna-launch file's chunk 10 — AA's chunk indexing shifted between the two sessions, not a stable index to rely on) contains a 'currentModel' object with the full intelligenceIndexEvaluations per-eval breakdown (aa-briefcase, gdpval-aa, automationbench-aa, terminalbench-4-0, scicode, humanitys-last-exam, gdp-pdf, critpt, omniscience, artificial-analysis-long-context-reasoning), matching the schema already used by performance/artificial-analysis-gpt-6-sol-luna-2026-09.json. CLAUDE HAIKU 4-5 SPECIAL CASE: intelligenceIndexIsEstimated=true and intelligenceIndexEvaluations=[] (empty array, confirmed by direct inspection, not a parse failure — every other 15 fetches returned exactly 10 evaluations) — AA has not run its full per-eval suite on this model and instead publishes an ESTIMATED composite Intelligence Index only; recorded below as a single score row with an explicit estimated-not-measured caveat, not as a typed absence (the model IS on AA, just without a full breakdown). EFFORT COVERAGE: claude-opus-5-5 has 4 of AA's published variants fetched (high/medium/xhigh/max — 'low' was not fetched this pass, flagged in missing[]); claude-fable-5-1 has max + xhigh; gpt-6-astra has max + xhigh; gpt-6-sol, gpt-6-luna, gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna, grok-4.6, claude-sonnet-5, claude-haiku-4-5 each expose only ONE roster entry on AA with `effort` reported as null in the raw payload (AA does not publish a separate effort-labeled slug for these models on this snapshot) — its `shortName` display label sometimes still shows a bracketed effort word (e.g. 'GPT-6 Sol (max)', 'Grok 4.6 (high)') that is AA's own DEFAULT-EFFORT cosmetic label, not evidence of a queryable lower-effort variant; recorded as a caveat on each such row, not fabricated as a distinct effort field. Every cost figure below is AA's own per-task dollar estimate (`intelligenceIndexCostPerTask`/`costPerTask`), computed from AA's canonical token counts at each model's own published API rate — not independently re-priced by this pack.",
   "claims": [
     {
-      "models": ["gpt-6-sol", "gpt-6-luna", "claude-haiku-4-5"],
-      "task_families": ["mixed"],
-      "axes": ["quality", "cost"],
+      "models": [
+        "gpt-6-sol",
+        "gpt-6-luna",
+        "claude-haiku-4-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality",
+        "cost"
+      ],
       "statement": "On this 2026-09-22 snapshot, GPT-6 Sol ($1.06/task Intelligence Index cost) and GPT-6 Luna ($0.07/task) both carry full per-eval cost/task/time breakdowns identical in structure to every other candidate on this file — the earlier pack note that gpt-6-sol/gpt-6-luna 'lack cost' data on Artificial Analysis is resolved by fetching each model's own detail page instead of the Intelligence Index roster array, which never carried per-task cost for any model.",
       "implication": "Use this file's rows, not performance/artificial-analysis-gpt-6-sol-luna-2026-09.json's Intelligence-Index-array-only rows, when cost/task comparability against Sonnet 5, Haiku 4.5, Grok 4.6, and GPT-5.6 Terra is required.",
       "source_id": "artificialanalysis-gpt-6-sol-model-page-full-roster-2026-09-22"
@@ -68,7 +77,11 @@
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "comparability_group": "aa-intelligence-index-v4-3-2",
-      "cost": { "value": 5.982012019521066, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 5.982012019521066,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-5-5",
@@ -124,7 +137,7 @@
       "score": 38.1638712882576,
       "unit": "other",
       "source_id": "artificialanalysis-claude-sonnet-5-model-page-2026-09-22",
-      "caveat": "Displayed label 'Claude Sonnet 5 (Adaptive Reasoning, Max Effort)'; AA's own effort field is null on this single roster entry (see file notes on the shortName 'max' label being a cosmetic default, not a queryable lower-effort variant). Intelligence Index cost/task: $5.091163584815694. Time/task: 852.58s. Previously ABSENT from every cross-model AA file in this pack; first full recording here.",
+      "caveat": "Displayed label 'Claude Sonnet 5 (Adaptive Reasoning, Max Effort)'; AA's own effort field is null on this single roster entry (see file notes on the shortName 'max' label being a cosmetic default, not a queryable lower-effort variant). Intelligence Index cost/task: $5.091163584815694. Time/task: 852.58s. Previously ABSENT from every cross-model AA file in this pack; first full recording here. Effort set to max from the AA page title (e.g. 'Claude Sonnet 5 (max)'), checked 2026-09-22.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -132,7 +145,13 @@
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "comparability_group": "aa-intelligence-index-v4-3-2",
-      "cost": { "value": 5.091163584815694, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 5.091163584815694,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "effort": "max",
+      "effort_verbatim": "max"
     },
     {
       "model": "claude-sonnet-5",
@@ -140,7 +159,7 @@
       "score": 0.141414141414141,
       "unit": "accuracy",
       "source_id": "artificialanalysis-claude-sonnet-5-model-page-2026-09-22",
-      "caveat": "AA's own per-evaluation breakdown (slug 'terminalbench-4-0'). Cost/task: $19.69417991135462. Output tokens/task: 329898.42. Time/task: 2387.91 minutes. Distinct harness/methodology from tbench.ai official and vals.ai readings — see comparability_group.",
+      "caveat": "AA's own per-evaluation breakdown (slug 'terminalbench-4-0'). Cost/task: $19.69417991135462. Output tokens/task: 329898.42. Time/task: 2387.91 minutes. Distinct harness/methodology from tbench.ai official and vals.ai readings — see comparability_group. Effort set to max from the AA page title (e.g. 'Claude Sonnet 5 (max)'), checked 2026-09-22.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -148,7 +167,13 @@
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
       "comparability_group": "terminal-bench-4-0-aa-index-breakdown-2026-09-22",
-      "cost": { "value": 19.69417991135462, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 19.69417991135462,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "effort": "max",
+      "effort_verbatim": "max"
     },
     {
       "model": "claude-haiku-4-5",
@@ -180,7 +205,11 @@
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "comparability_group": "aa-intelligence-index-v4-3-2",
-      "cost": { "value": 7.629706364004841, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 7.629706364004841,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-fable-5-1",
@@ -213,7 +242,11 @@
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "comparability_group": "aa-intelligence-index-v4-3-2",
-      "cost": { "value": 3.2575003134834164, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 3.2575003134834164,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-6-astra",
@@ -237,7 +270,7 @@
       "score": 47.5276426437724,
       "unit": "other",
       "source_id": "artificialanalysis-gpt-6-sol-model-page-full-roster-2026-09-22",
-      "caveat": "Displayed label 'GPT-6 Sol (max)'; AA's effort field is null on this single roster entry (cosmetic default label only, see file notes). Cost/task: $1.0564240894076389. Time/task: 269.79s. Matches performance/artificial-analysis-gpt-6-sol-luna-2026-09.json's prior composite score exactly; this file ADDS the cost/task figure that earlier file's missing[] flagged as absent from the Intelligence-Index-array-only read.",
+      "caveat": "Displayed label 'GPT-6 Sol (max)'; AA's effort field is null on this single roster entry (cosmetic default label only, see file notes). Cost/task: $1.0564240894076389. Time/task: 269.79s. Matches performance/artificial-analysis-gpt-6-sol-luna-2026-09.json's prior composite score exactly; this file ADDS the cost/task figure that earlier file's missing[] flagged as absent from the Intelligence-Index-array-only read. Effort set to max from the AA page title (e.g. 'Claude Sonnet 5 (max)'), checked 2026-09-22.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -245,7 +278,13 @@
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "comparability_group": "aa-intelligence-index-v4-3-2",
-      "cost": { "value": 1.0564240894076389, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 1.0564240894076389,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "effort": "max",
+      "effort_verbatim": "max"
     },
     {
       "model": "gpt-6-luna",
@@ -253,7 +292,7 @@
       "score": 37.2559686869738,
       "unit": "other",
       "source_id": "artificialanalysis-gpt-6-luna-model-page-full-roster-2026-09-22",
-      "caveat": "Displayed label 'GPT-6 Luna (max)'; effort field null (cosmetic default). Cost/task: $0.06809498628701058. Time/task: 326.13s. Matches performance/artificial-analysis-gpt-6-sol-luna-2026-09.json's prior composite score exactly; adds the cost/task figure.",
+      "caveat": "Displayed label 'GPT-6 Luna (max)'; effort field null (cosmetic default). Cost/task: $0.06809498628701058. Time/task: 326.13s. Matches performance/artificial-analysis-gpt-6-sol-luna-2026-09.json's prior composite score exactly; adds the cost/task figure. Effort set to max from the AA page title (e.g. 'Claude Sonnet 5 (max)'), checked 2026-09-22.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -261,7 +300,13 @@
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "comparability_group": "aa-intelligence-index-v4-3-2",
-      "cost": { "value": 0.06809498628701058, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.06809498628701058,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "effort": "max",
+      "effort_verbatim": "max"
     },
     {
       "model": "gpt-5.6-sol",
@@ -269,7 +314,7 @@
       "score": 46.9727068915036,
       "unit": "other",
       "source_id": "artificialanalysis-gpt-5-6-sol-model-page-2026-09-22",
-      "caveat": "Displayed label 'GPT-5.6 Sol (max)'; effort field null. Cost/task: $1.98845538085375. Time/task: 352.71s. First cross-model AA cost/task recording for gpt-5.6-sol in this pack.",
+      "caveat": "Displayed label 'GPT-5.6 Sol (max)'; effort field null. Cost/task: $1.98845538085375. Time/task: 352.71s. First cross-model AA cost/task recording for gpt-5.6-sol in this pack. Effort set to max from the AA page title (e.g. 'Claude Sonnet 5 (max)'), checked 2026-09-22.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -277,7 +322,13 @@
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "comparability_group": "aa-intelligence-index-v4-3-2",
-      "cost": { "value": 1.98845538085375, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 1.98845538085375,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "effort": "max",
+      "effort_verbatim": "max"
     },
     {
       "model": "gpt-5.6-terra",
@@ -285,7 +336,7 @@
       "score": 42.0829248239494,
       "unit": "other",
       "source_id": "artificialanalysis-gpt-5-6-terra-model-page-2026-09-22",
-      "caveat": "Displayed label 'GPT-5.6 Terra (max)'; effort field null. Cost/task: $1.3987235612691513. Time/task: 455.36s. Previously ABSENT from AA in this pack (confirmed absent from the Intelligence Index roster array by string search in performance/artificial-analysis-gpt-6-sol-luna-2026-09.json); first full recording here via its own model-detail page.",
+      "caveat": "Displayed label 'GPT-5.6 Terra (max)'; effort field null. Cost/task: $1.3987235612691513. Time/task: 455.36s. Previously ABSENT from AA in this pack (confirmed absent from the Intelligence Index roster array by string search in performance/artificial-analysis-gpt-6-sol-luna-2026-09.json); first full recording here via its own model-detail page. Effort set to max from the AA page title (e.g. 'Claude Sonnet 5 (max)'), checked 2026-09-22.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -293,7 +344,13 @@
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "comparability_group": "aa-intelligence-index-v4-3-2",
-      "cost": { "value": 1.3987235612691513, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 1.3987235612691513,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "effort": "max",
+      "effort_verbatim": "max"
     },
     {
       "model": "gpt-5.6-luna",
@@ -301,14 +358,16 @@
       "score": 37.3244239690841,
       "unit": "other",
       "source_id": "artificialanalysis-gpt-5-6-luna-model-page-2026-09-22",
-      "caveat": "Displayed label 'GPT-5.6 Luna (max)'; effort field null. Cost/task and time/task confirmed present (10 evaluations returned) but not individually transcribed beyond the composite in this pass, given time budget.",
+      "caveat": "Displayed label 'GPT-5.6 Luna (max)'; effort field null. Cost/task and time/task confirmed present (10 evaluations returned) but not individually transcribed beyond the composite in this pass, given time budget. Effort set to max from the AA page title (e.g. 'Claude Sonnet 5 (max)'), checked 2026-09-22.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2"
+      "comparability_group": "aa-intelligence-index-v4-3-2",
+      "effort": "max",
+      "effort_verbatim": "max"
     },
     {
       "model": "grok-4.6",
@@ -325,7 +384,11 @@
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "comparability_group": "aa-intelligence-index-v4-3-2",
-      "cost": { "value": 1.8589423352127492, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 1.8589423352127492,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     }
   ],
   "missing": [
