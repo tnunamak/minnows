@@ -4,7 +4,7 @@
   "schema_version": 1,
   "tag": "data-model-catalog-v0.5.5",
   "generated_at": "2026-09-22",
-  "description": "Model economics catalog. v0.5.5: adds Claude Opus 5.5 (pricing, effort surface, launch headline table) on top of v0.5.4's current original-board snapshots, six-provider breadth, and provenance/metric join closure.",
+  "description": "Model economics catalog. v0.5.5: adds Claude Opus 5.5 (pricing, effort surface, launch headline table, 130-point digitized effort curves, full system card benchmark/safety suite, and third-party board coverage — AA Intelligence Index v4.3.2, vals.ai Terminal-Bench 4.0, and an explicit board-coverage absence record) on top of v0.5.4's current original-board snapshots, six-provider breadth, and provenance/metric join closure.",
   "files": [
     "FRESHNESS.md",
     "SCHEMA.md",
