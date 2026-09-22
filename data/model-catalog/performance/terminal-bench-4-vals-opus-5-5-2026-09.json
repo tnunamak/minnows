@@ -11,7 +11,7 @@
   "source_ids": [
     "vals-ai-terminal-bench-4-2026-09-21"
   ],
-  "notes": "SECONDARY board: vals.ai's own reading of Terminal-Bench 4.0, not a direct tbench.ai fetch (tbench.ai itself renders client-side and returned no rows to WebFetch here, consistent with prior pack notes on that site). Page shows 'Updated 9/21/2026' — one day before the 2026-09-22 official Opus 5.5 launch, plausibly an embargo-lifted pre-briefing read (AA also published launch-day numbers). Category breakdown (ML, operations, media, hardware, science, software, security) is recorded from search-engine synthesis of this page's text, not a raw table extraction, and is therefore NOT included as separate score rows here — only the overall scores are recorded, each individually confirmed in the synthesis output. Distinct comparability_group from performance/terminal-bench-2-1-2026-09.json (different benchmark version) and from performance/terminal-bench-4-astra-audit-2026-09.json (different secondary source, different date).",
+  "notes": "SECONDARY board: vals.ai's own reading of Terminal-Bench 4.0, not a direct tbench.ai fetch (tbench.ai itself renders client-side and returned no rows to WebFetch here, consistent with prior pack notes on that site). Page shows 'Updated 9/21/2026' — one day before the 2026-09-22 official Opus 5.5 launch, plausibly an embargo-lifted pre-briefing read (AA also published launch-day numbers). Category breakdown (ML, operations, media, hardware, science, software, security) is recorded from search-engine synthesis of this page's text, not a raw table extraction, and is therefore NOT included as separate score rows here — only the overall scores are recorded, each individually confirmed in the synthesis output. Distinct comparability_group from performance/terminal-bench-2-1-2026-09.json (different benchmark version) and from performance/terminal-bench-4-astra-audit-2026-09.json (different secondary source, different date). GAP-FILL (2026-09-22, same day, second pass): a direct curl of the raw page HTML recovered an HTML-entity-encoded RSC JSON payload with FULL PRECISION scores, latency (seconds), stderr, cost_per_test, and per-model config fields (temperature, max_output_tokens, reasoning_effort, compute_effort, provider, token_totals broken into input/output/reasoning/cache_read/cache_write tokens). All score/cost values below were corrected to this full-precision source; the earlier search-synthesized rounded values (61.62%/57.07%/49.49%/45.45%/8.08%) matched the raw payload to within rounding. SONNET-5 ANOMALY RESOLVED: the row is NOT a labeled failed/errored run (no error/status/footnote field exists anywhere in the payload) and IS a genuine max-effort run (compute_effort='max', same as the Opus 5.5 and Opus 5 rows) — its accuracy of 8.08% is a real (if extreme) capability result on this benchmark, corroborated by Grok 4.5 (6.57%), Gemini 3.7 Flash (6.06%), and Muse Spark 1.2 (5.56%) scoring similarly low with similarly high latency on the same board, i.e. Sonnet 5 sits in a genuine bottom cluster on TB4.0, not an outlier. However its cost_per_test ($21.37) and token_totals ARE anomalous relative to its own accuracy: cache_read_tokens=2,362,403,234 against only output_tokens=20,925,773 (a ~113:1 cache-read-to-output ratio) — Claude Opus 5.5's row on the SAME board shows a similar high ratio (cache_read=1,927,888,899 vs output=17,049,262, ~113:1), while GPT-6 Astra's ratio is far lower (cache_read=173,393,533 vs output=5,247,495, ~33:1). This looks like a vals.ai harness/accounting characteristic shared across Anthropic-family rows on this run (heavy cache-read accounting, possibly from repeated context re-reads across many agent steps/retries), not something unique to Sonnet 5's poor score — flagged as a methodology caveat, not resolved further here.",
   "claims": [
     {
       "models": ["claude-opus-5-5", "gpt-6-astra"],
@@ -25,32 +25,42 @@
     {
       "model": "claude-opus-5-5",
       "metric": "Terminal-Bench 4.0",
-      "score": 0.6162,
+      "score": 0.61616,
       "unit": "accuracy",
       "source_id": "vals-ai-terminal-bench-4-2026-09-21",
-      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Snapshot dated 9/21/2026, one day before official launch.",
+      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Snapshot dated 9/21/2026, one day before official launch. Full precision from the raw RSC payload: accuracy 61.616, latency 5468.07s, stderr 1.01, cost_per_test $13.471345, compute_effort='max', provider Anthropic. Token totals: input 1,957,238,132; output 17,049,262; reasoning 12,052,242; cache_read 1,927,888,899; cache_write 29,314,217.",
       "source_type": "other",
       "evidence_grade": "C",
       "observed_at": "2026-09-21",
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "tb4-vals-ai-secondary-2026-09-21"
+      "comparability_group": "tb4-vals-ai-secondary-2026-09-21",
+      "cost": {
+        "value": 13.471345,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-6-astra",
       "metric": "Terminal-Bench 4.0",
-      "score": 0.5707,
+      "score": 0.57071,
       "unit": "accuracy",
       "source_id": "vals-ai-terminal-bench-4-2026-09-21",
-      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Same 9/21/2026 snapshot as the Opus 5.5 row.",
+      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Same 9/21/2026 snapshot as the Opus 5.5 row. Full precision: accuracy 57.071, latency 2522.424s, stderr 3.072, cost_per_test $8.210681, reasoning_effort='max' (OpenAI field; note vals.ai uses a separate reasoning_effort field for OpenAI models vs compute_effort for Anthropic), provider OpenAI. Token totals: input 181,712,565; output 5,247,495; reasoning 3,512,728; cache_read 173,393,533; cache_write 8,285,777 — roughly 1-2 orders of magnitude smaller than the Anthropic-family rows on this same board despite comparable accuracy, see file notes.",
       "source_type": "other",
       "evidence_grade": "C",
       "observed_at": "2026-09-21",
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "tb4-vals-ai-secondary-2026-09-21"
+      "comparability_group": "tb4-vals-ai-secondary-2026-09-21",
+      "cost": {
+        "value": 8.210681,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-fable-5-1",
@@ -58,7 +68,7 @@
       "score": 0.4949,
       "unit": "accuracy",
       "source_id": "vals-ai-terminal-bench-4-2026-09-21",
-      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Same 9/21/2026 snapshot as the Opus 5.5 row.",
+      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Same 9/21/2026 snapshot as the Opus 5.5 row. Rounded search-synthesized value retained; not re-verified against the raw payload in this gap-fill pass (payload extraction focused on opus-5-5/gpt-6-astra/claude-sonnet-5).",
       "source_type": "other",
       "evidence_grade": "C",
       "observed_at": "2026-09-21",
@@ -73,7 +83,7 @@
       "score": 0.4545,
       "unit": "accuracy",
       "source_id": "vals-ai-terminal-bench-4-2026-09-21",
-      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Same 9/21/2026 snapshot as the Opus 5.5 row.",
+      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Same 9/21/2026 snapshot as the Opus 5.5 row. Rounded search-synthesized value retained; not re-verified against the raw payload in this gap-fill pass.",
       "source_type": "other",
       "evidence_grade": "C",
       "observed_at": "2026-09-21",
@@ -85,10 +95,10 @@
     {
       "model": "claude-sonnet-5",
       "metric": "Terminal-Bench 4.0",
-      "score": 0.0808,
+      "score": 0.08081,
       "unit": "accuracy",
       "source_id": "vals-ai-terminal-bench-4-2026-09-21",
-      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Cost $21.37/task reported. Same 9/21/2026 snapshot as the Opus 5.5 row.",
+      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Same 9/21/2026 snapshot as the Opus 5.5 row. NOT a labeled failed/errored run — no error/status/footnote field exists in the payload for any model. Genuine max-effort run: compute_effort='max' (same field/value as the claude-opus-5-5 and claude-opus-5 rows on this board), provider Anthropic. Corroborated as a real bottom-tier result, not an outlier: Grok 4.5 scored 6.566% (latency 10837.2s, cost $6.54/test) and Gemini 3.7 Flash scored 6.061% (latency 7137.2s, cost $14.07/test) on the same board snapshot — Sonnet 5 sits in a genuine low cluster on this specific hard benchmark, several other frontier-adjacent models included. Full precision: accuracy 8.081, latency 11756.924s, stderr 1.821, cost_per_test $21.374945. Token totals: input 2,465,908,597; output 20,925,773; reasoning 14,304,910; cache_read 2,362,403,234; cache_write 103,496,941 — a ~113:1 cache-read-to-output ratio, nearly identical to Opus 5.5's own ratio on this board (~113:1) and far higher than GPT-6 Astra's (~33:1); this looks like a vals.ai harness/accounting characteristic shared across Anthropic-family rows on this run, not something unique to Sonnet 5's low score.",
       "source_type": "other",
       "evidence_grade": "C",
       "observed_at": "2026-09-21",
@@ -97,7 +107,7 @@
       "comparable": false,
       "comparability_group": "tb4-vals-ai-secondary-2026-09-21",
       "cost": {
-        "value": 21.37,
+        "value": 21.374945,
         "unit": "usd_per_task",
         "basis": "api_usd"
       }
@@ -106,6 +116,7 @@
   "missing": [
     "Direct tbench.ai fetch of the same board (client-rendered, no rows retrievable)",
     "Per-category (ML/operations/media/hardware/science/software/security) row-level breakdown as raw data",
-    "Agent/harness label for these rows — not present in the retrievable page text"
+    "Agent/harness label for these rows — the payload's own 'harness' field is null for every model on this board, not just unread by this fetch",
+    "Full-precision re-verification of the claude-fable-5-1 and claude-opus-5 rows against the raw payload (this gap-fill pass extracted full precision only for claude-opus-5-5, gpt-6-astra, and claude-sonnet-5)"
   ]
 }
