@@ -95,7 +95,8 @@
               "qwen_code",
               "build_agent",
               "other",
-              "antigravity_cli"
+              "antigravity_cli",
+              "deepseek_cli"
             ]
           },
           "valid_efforts": {

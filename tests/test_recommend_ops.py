@@ -1,4 +1,4 @@
-"""Tests for scripts/recommend_ops.py.
+"""Behavioral tests for the expected-cost operating-point recommender.
 
 Run: uv run --with pytest --with jsonschema pytest tests/test_recommend_ops.py
 """
@@ -6,6 +6,7 @@ Run: uv run --with pytest --with jsonschema pytest tests/test_recommend_ops.py
 from __future__ import annotations
 
 import importlib.util
+import itertools
 import json
 import sys
 from pathlib import Path
@@ -20,99 +21,92 @@ sys.modules["recommend_ops"] = ro
 SPEC.loader.exec_module(ro)
 
 EFFORTS = ["low", "medium", "high", "xhigh", "max"]
-
-# Fixture world: two vendors, cheap/strong tiers each, plus one superseded model.
 MODELS = [
     {"id": "claude-cheap-2", "provider": "anthropic", "family": "claude-cheap", "status": "ga", "tier": "sonnet"},
     {"id": "claude-cheap-1", "provider": "anthropic", "family": "claude-cheap", "status": "ga", "tier": "sonnet"},
     {"id": "claude-strong-2", "provider": "anthropic", "family": "claude-strong", "status": "ga", "tier": "opus"},
-    {"id": "gpt-9-small", "provider": "openai", "family": "gpt-9", "status": "ga", "tier": "luna"},
-    {"id": "gpt-9-big", "provider": "openai", "family": "gpt-9", "status": "ga", "tier": "astra"},
+    {"id": "gpt-9-small", "provider": "openai", "family": "gpt-9-small", "status": "ga", "tier": "luna"},
+    {"id": "gpt-9-big", "provider": "openai", "family": "gpt-9-big", "status": "ga", "tier": "astra"},
     {"id": "grok-9", "provider": "xai", "family": "grok-9", "status": "ga"},
 ]
-PRICES = {"claude-cheap-2": 10, "claude-cheap-1": 10, "claude-strong-2": 25, "gpt-9-small": 1, "gpt-9-big": 50}
 SURFACES = [
     {"model": "claude-cheap-2", "surface": "claude_code", "valid_efforts": EFFORTS},
     {"model": "claude-cheap-1", "surface": "claude_code", "valid_efforts": EFFORTS},
-    # strong claude has only an api surface -> fallback, flagged
     {"model": "claude-strong-2", "surface": "api", "valid_efforts": EFFORTS},
-    # codex CLI does not offer "low" for gpt-9-small, the api does
     {"model": "gpt-9-small", "surface": "codex_cli", "valid_efforts": ["medium", "high", "xhigh"]},
-    {"model": "gpt-9-small", "surface": "api", "valid_efforts": EFFORTS},
     {"model": "gpt-9-big", "surface": "codex_cli", "valid_efforts": EFFORTS},
 ]
 METRICS = [
-    {"id": "code-a", "direction": "higher_better", "steward": "third_party_board"},
-    {"id": "code-b", "direction": "higher_better", "steward": "vendor_table"},
-    {"id": "err-rate", "direction": "lower_better", "steward": "vendor_table"},
-    {"id": "vibes", "direction": "context_dependent", "steward": "vendor_table"},
+    {"id": "code-a", "direction": "higher_better", "task_family": "coding"},
+    {"id": "code-b", "direction": "higher_better", "task_family": "coding"},
+    {"id": "err-rate", "direction": "lower_better", "task_family": "knowledge/factuality"},
+    {"id": "index", "direction": "higher_better", "task_family": "coding"},
+    {"id": "browse", "direction": "higher_better", "task_family": "research/browsing"},
+    {"id": "unrelated", "direction": "higher_better", "task_family": "reasoning"},
 ]
-SOURCES = [
-    {"id": "board", "publisher": "Independent Board", "kind": "third_party_eval"},
-    {"id": "oai", "publisher": "OpenAI", "kind": "vendor_blog"},
-    {"id": "ant", "publisher": "Anthropic", "kind": "vendor_blog"},
-]
+PRICES = {"claude-cheap-2": 10, "claude-strong-2": 25, "gpt-9-small": 1, "gpt-9-big": 50}
+CURRENT = {
+    "implement.standard": {"provider": "claude", "model": "claude-cheap-2", "effort": "medium"},
+    "review.audit": {"provider": "codex", "model": "gpt-9-big", "effort": "high"},
+    "grok.explore-only": {"provider": "grok", "model": "grok-9", "effort": "high"},
+    "docs.lookup": {"provider": "claude", "model": "claude-cheap-2", "effort": "medium"},
+}
+DEFAULTS = {
+    "allowed_providers": ["claude", "codex"], "allowed_efforts": ["low", "medium", "high"],
+    "cost_basis": "usd_per_task", "min_evidence_grade": "C",
+    "attempt_overhead_usd": .5, "failure_detection_probability": .75,
+    "provider_restrictions": {"grok": ["grok.explore-only"]},
+    "source_weights": {"third_party_board": 2, "third_party_eval": 2, "vendor_table": 1, "other": 1},
+    "vendor_cross_vendor_factor": 0.5,
+}
+FAMILIES = {"implement.standard": ["coding"], "review.audit": ["coding"],
+            "grok.explore-only": ["research/browsing"], "docs.lookup": ["knowledge/factuality"]}
 
 
-def row(model, effort, score, metric="code-a", group="g-board", cost=None, source_type="third_party_board",
-        source_id="board", grade="B", unit="accuracy", observed_at="2026-09-01"):
-    r = {"model": model, "effort": effort, "score": score, "metric": metric, "metric_id": metric,
-         "comparability_group": group, "unit": unit, "source_type": source_type, "source_id": source_id,
-         "evidence_grade": grade, "observed_at": observed_at}
+def row(model, effort, score, metric="code-a", group="g-board", cost=None, unit="accuracy",
+        source_type="third_party_board", source_id="board", grade="B", observed_at="2026-09-01"):
+    r = {"model": model, "effort": effort, "score": score, "metric_id": metric,
+         "comparability_group": group, "unit": unit, "source_type": source_type,
+         "source_id": source_id, "evidence_grade": grade, "observed_at": observed_at}
     if cost is not None:
         r["cost"] = {"value": cost, "unit": "usd_per_task", "basis": "api_usd"}
     return r
 
 
-OPS = ["implement.standard", "review.audit", "grok.explore-only"]
-CURRENT = {
-    "implement.standard": {"provider": "claude", "model": "claude-cheap-2", "effort": "medium"},
-    "review.audit": {"provider": "codex", "model": "gpt-9-big", "effort": "high"},
-    "grok.explore-only": {"provider": "grok", "model": "grok-9", "effort": "high"},
-}
-DEFAULTS = {
-    "allowed_providers": ["claude", "codex"],
-    "allowed_efforts": ["low", "medium", "high"],
-    "cost_basis": "usd_per_task",
-    "min_evidence_grade": "C",
-    "provider_restrictions": {"grok": ["grok.explore-only"]},
-    "source_weights": {"third_party_board": 2, "third_party_eval": 2, "vendor_table": 1, "digitized_chart": 1, "other": 1},
-    "vendor_cross_vendor_factor": 0.5,
-}
+def req(op, **extra):
+    silent = {"implement.standard": 10, "review.audit": 100, "docs.lookup": 2,
+              "grok.explore-only": 2}[op] if op in CURRENT else 2
+    return {"op": op, "status": "DRAFT", "constraints": [], "cost_basis": "usd_per_task",
+            "rationale": "test", "silent_failure_cost_usd": silent,
+            **({"failure_detection_probability": 0} if op == "review.audit" else {}), **extra}
 
 
-def req(op, metrics=("code-a",), bar=None, constraints=(), **extra):
-    return {"op": op, "status": "DRAFT", "evidence_metrics": list(metrics),
-            "bar": bar or {"type": "within_points_of_best", "points": 5},
-            "constraints": list(constraints), "cost_basis": "usd_per_task", "rationale": "test", **extra}
-
-
-def build(tmp_path: Path, rows: list[dict], reqs: list[dict], models=None, surfaces=None, defaults=None):
+def build(tmp_path, rows, reqs, *, models=None, surfaces=None, defaults=None, metrics=None, families=None):
     cat = tmp_path / "catalog"
     for d in ("capabilities", "performance", "pricing"):
         (cat / d).mkdir(parents=True)
-    (cat / "models.json").write_text(json.dumps({"models": models or MODELS}))
-    (cat / "metrics.json").write_text(json.dumps({"metrics": METRICS}))
-    (cat / "SOURCES.json").write_text(json.dumps({"sources": SOURCES}))
-    (cat / "capabilities" / "s.json").write_text(json.dumps({"surfaces": surfaces or SURFACES}))
+    (cat / "models.json").write_text(json.dumps({"models": MODELS if models is None else models}))
+    (cat / "metrics.json").write_text(json.dumps({"metrics": METRICS if metrics is None else metrics}))
+    (cat / "SOURCES.json").write_text(json.dumps({"sources": [
+        {"id": "board", "publisher": "Independent Board"}, {"id": "oai", "publisher": "OpenAI"}]}))
+    (cat / "capabilities" / "s.json").write_text(json.dumps({"surfaces": SURFACES if surfaces is None else surfaces}))
     (cat / "performance" / "p.json").write_text(json.dumps({"scores": rows}))
-    (cat / "pricing" / "p.json").write_text(json.dumps({
-        "kind": "api_usd", "models": {m: {"output_per_m": p} for m, p in PRICES.items()}}))
+    (cat / "pricing" / "p.json").write_text(json.dumps({"kind": "api_usd", "models": {
+        m: {"output_per_m": p} for m, p in PRICES.items()}}))
     pol = tmp_path / "policy"
     pol.mkdir()
     (pol / "operating-points.json").write_text(json.dumps({"operating_points": [
-        {"id": op, "expands_to": CURRENT[op]} for op in OPS]}))
+        {"id": op, "expands_to": CURRENT[op]} for op in CURRENT]}))
     (pol / "op-requirements.json").write_text(json.dumps({
-        "id": "model-choice-op-requirements", "schema_version": 1, "status": "DRAFT",
-        "generated_at": "2026-09-22", "catalog_ref": "data-model-catalog-v0.0.1",
-        "defaults": defaults or DEFAULTS, "ops": reqs}))
+        "defaults": DEFAULTS if defaults is None else defaults,
+        "task_families": FAMILIES if families is None else families, "ops": reqs}))
     catalog = ro.Catalog.from_dir(cat)
-    points = {op: {"id": op, "expands_to": CURRENT[op]} for op in OPS}
+    points = {op: {"id": op, "expands_to": CURRENT[op]} for op in CURRENT}
     loaded = ro.load_requirements(pol / "op-requirements.json", catalog, set(points))
     return catalog, loaded, points
 
 
-def run(tmp_path, rows, reqs, **kw) -> dict[str, dict]:
+def run(tmp_path, rows, reqs, **kw):
     catalog, loaded, points = build(tmp_path, rows, reqs, **kw)
     return {r["op"]: r for r in ro.recommend(catalog, loaded, points)}
 
@@ -125,288 +119,321 @@ def arm(result, gid, label):
     return next(a for a in group(result, gid)["arms"] if a["arm"] == label)
 
 
-# ------------------------------------------------------------ candidate arms
-
-
-def test_candidates_newest_in_tier_and_cli_surface(tmp_path):
-    rows = [row("claude-cheap-2", "medium", 0.5, cost=1), row("gpt-9-big", "medium", 0.6, cost=3)]
+def test_verified_expected_cost_prefers_cheap_lower_probability(tmp_path):
+    rows = [row("gpt-9-small", "medium", .6, cost=.01), row("gpt-9-big", "medium", .9, cost=2)]
     r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
-    cands = set(r["candidates"])
-    # superseded same-tier model is excluded, newest kept
-    assert "claude/claude-cheap-1/medium" not in cands
-    assert any(e["model"] == "claude-cheap-1" and "superseded" in e["reason"] for e in r["excluded_models"])
-    # effort filtering by CLI surface: codex_cli offers no "low" for gpt-9-small
-    assert "codex/gpt-9-small/low" not in cands
-    assert {"codex/gpt-9-small/medium", "codex/gpt-9-small/high"} <= cands
-    # xhigh never enters (not in allowed_efforts)
-    assert not any(c.endswith("/xhigh") for c in cands)
-    # api fallback when the CLI surface is missing, and it says so
-    assert "claude/claude-strong-2/low" in cands
-    assert any("claude-strong-2: no claude_code surface" in f for f in r["flags"])
-    # no tier -> not a candidate; grok is not an allowed provider here anyway
-    assert not any("grok" in c for c in cands)
-
-
-def test_model_without_any_surface_is_excluded(tmp_path):
-    surfaces = [s for s in SURFACES if s["model"] != "gpt-9-big"]
-    rows = [row("claude-cheap-2", "medium", 0.5, cost=1), row("claude-strong-2", "medium", 0.6, cost=3)]
-    r = run(tmp_path, rows, [req("implement.standard")], surfaces=surfaces)["implement.standard"]
-    assert any(e["model"] == "gpt-9-big" and "no codex_cli or api" in e["reason"] for e in r["excluded_models"])
-
-
-def test_grok_has_no_tier_so_no_candidates(tmp_path):
-    r = run(tmp_path, [], [req("grok.explore-only", allowed_providers=["grok"])])["grok.explore-only"]
-    assert r["status"] == "NO_CANDIDATES"
-    assert r["excluded_models"] == [{"model": "grok-9", "reason": "no tier in models.json"}]
-
-
-# ----------------------------------------------------------- group evaluation
-
-
-def test_domination_removes_arm_and_cheapest_eligible_wins(tmp_path):
-    rows = [
-        row("claude-strong-2", "medium", 0.60, cost=2.0),   # dominated by gpt-9-big/medium
-        row("gpt-9-big", "medium", 0.70, cost=1.5),
-        row("gpt-9-small", "medium", 0.68, cost=0.2),       # within 5 points, cheapest
-    ]
-    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
-    assert arm(r, "g-board", "claude/claude-strong-2/medium")["dominated"] is True
-    assert arm(r, "g-board", "codex/gpt-9-small/medium")["dominated"] is False
     assert group(r, "g-board")["choice"] == "codex/gpt-9-small/medium"
-    assert r["status"] == "RECOMMENDED"
-    assert r["recommended"] == {"provider": "codex", "model": "gpt-9-small", "effort": "medium"}
-
-
-def test_lower_better_metric_prefers_lower_score(tmp_path):
-    rows = [
-        row("gpt-9-big", "medium", 0.05, metric="err-rate", group="g-err", cost=1.0),
-        row("gpt-9-small", "medium", 0.30, metric="err-rate", group="g-err", cost=0.1),  # 25 pp worse
-        row("claude-cheap-2", "medium", 0.08, metric="err-rate", group="g-err", cost=0.5),  # 3 pp worse
-    ]
-    r = run(tmp_path, rows, [req("implement.standard", metrics=["err-rate"])])["implement.standard"]
-    g = group(r, "g-err")
-    assert g["direction"] == "lower_better"
-    assert abs(g["bar_raw"] - 0.10) < 1e-9           # best 0.05 + 5 pp
-    assert arm(r, "g-err", "codex/gpt-9-small/medium")["eligible"] is False
-    assert g["choice"] == "claude/claude-cheap-2/medium"
-
-
-def test_context_dependent_metric_is_skipped(tmp_path):
-    rows = [row("gpt-9-big", "medium", 1, metric="vibes", group="g-v", cost=1),
-            row("gpt-9-small", "medium", 2, metric="vibes", group="g-v", cost=1)]
-    r = run(tmp_path, rows, [req("implement.standard", metrics=["vibes"])])["implement.standard"]
-    assert r["groups"] == []
-    assert any("not rankable" in s for s in r["skipped_groups"])
-
-
-@pytest.mark.parametrize("bar,expected_choice,eligible", [
-    ({"type": "frontier_best"}, "codex/gpt-9-big/medium", {"codex/gpt-9-big/medium"}),
-    ({"type": "within_points_of_best", "points": 3},
-     "codex/gpt-9-small/medium", {"codex/gpt-9-big/medium", "codex/gpt-9-small/medium"}),
-    ({"type": "within_points_of_best", "points": 20},
-     "claude/claude-cheap-2/low", {"codex/gpt-9-big/medium", "codex/gpt-9-small/medium", "claude/claude-cheap-2/low"}),
-])
-def test_bar_types(tmp_path, bar, expected_choice, eligible):
-    rows = [
-        row("gpt-9-big", "medium", 0.80, cost=3.0),
-        row("gpt-9-small", "medium", 0.78, cost=0.5),
-        row("claude-cheap-2", "low", 0.65, cost=0.1),
-    ]
-    r = run(tmp_path, rows, [req("implement.standard", bar=bar)])["implement.standard"]
-    g = group(r, "g-board")
-    assert {a["arm"] for a in g["arms"] if a["eligible"]} == eligible
-    assert g["choice"] == expected_choice
-
-
-def test_effort_unattributed_rows_are_ignored(tmp_path):
-    rows = [row("gpt-9-big", None, 0.9, cost=1.0), row("gpt-9-big", "unknown", 0.9, cost=1.0),
-            row("gpt-9-small", "medium", 0.5, cost=0.1), row("claude-cheap-2", "medium", 0.51, cost=0.2)]
-    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
-    assert {a["arm"] for a in group(r, "g-board")["arms"]} == {"codex/gpt-9-small/medium", "claude/claude-cheap-2/medium"}
-
-
-def test_single_arm_group_is_not_decisive(tmp_path):
-    rows = [row("gpt-9-big", "medium", 0.9, cost=1.0)]
-    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
-    assert group(r, "g-board")["unusable"].startswith("one candidate arm only")
-    assert r["status"] == "INSUFFICIENT_EVIDENCE"
-
-
-def test_duplicate_rows_keep_latest_and_flag(tmp_path):
-    rows = [row("gpt-9-big", "medium", 0.70, cost=1.0, observed_at="2026-09-01"),
-            row("gpt-9-big", "medium", 0.72, cost=1.0, observed_at="2026-09-20"),
-            row("gpt-9-small", "medium", 0.5, cost=0.1)]
-    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
-    assert arm(r, "g-board", "codex/gpt-9-big/medium")["score"] == 0.72
-    assert any("duplicate row" in f for f in r["flags"])
-
-
-def test_grade_floor_drops_rows(tmp_path):
-    rows = [row("gpt-9-big", "medium", 0.9, cost=1.0, grade="D"), row("gpt-9-small", "medium", 0.5, cost=0.1, grade="D")]
-    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
-    assert r["groups"] == []
-    assert any("below evidence grade C" in s for s in r["skipped_groups"])
-
-
-# ------------------------------------------------------------- aggregation
-
-
-def test_vendor_chart_ranking_rival_is_flagged_and_downweighted(tmp_path):
-    rows = [
-        row("gpt-9-big", "medium", 0.8, group="g-oai", metric="code-b", cost=2.0, source_type="vendor_table", source_id="oai"),
-        row("claude-cheap-2", "medium", 0.6, group="g-oai", metric="code-b", cost=1.0, source_type="vendor_table", source_id="oai"),
-        row("gpt-9-big", "medium", 0.8, group="g-oai-own", metric="code-b", cost=2.0, source_type="vendor_table", source_id="oai"),
-        row("gpt-9-small", "medium", 0.5, group="g-oai-own", metric="code-b", cost=0.2, source_type="vendor_table", source_id="oai"),
-    ]
-    r = run(tmp_path, rows, [req("implement.standard", metrics=["code-b"])])["implement.standard"]
-    assert group(r, "g-oai")["vendor_chart_ranks_rival_vendor"] is True
-    assert group(r, "g-oai")["weight"] == 0.5
-    assert group(r, "g-oai")["publisher_vendor"] == "openai"
-    assert group(r, "g-oai-own")["vendor_chart_ranks_rival_vendor"] is False
-    assert group(r, "g-oai-own")["weight"] == 1
-    assert r["status"] == "RECOMMENDED" and r["confidence"] == "low"
-
-
-def test_confidence_high_needs_two_independent_cross_model_groups(tmp_path):
-    rows = []
-    for g in ("g1", "g2"):
-        rows += [row("gpt-9-small", "medium", 0.79, group=g, cost=0.2),
-                 row("claude-strong-2", "medium", 0.80, group=g, cost=2.0)]
-    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    assert arm(r, "g-board", "codex/gpt-9-small/medium")["expected_cost_usd"] == pytest.approx(1.51/.7)
     assert r["recommended"]["model"] == "gpt-9-small"
-    assert r["confidence"] == "high"
-    assert len(r["deciding_groups"]) == 2
 
 
-def test_disjoint_coverage_gives_insufficient_evidence_with_exact_missing(tmp_path):
-    rows = [
-        # group A: only OpenAI arms; small wins
-        row("gpt-9-big", "medium", 0.80, group="gA", cost=2.0),
-        row("gpt-9-small", "medium", 0.78, group="gA", cost=0.2),
-        # group B (other metric): only Claude arms; cheap wins
-        row("claude-strong-2", "medium", 0.70, group="gB", metric="code-b", cost=2.0),
-        row("claude-cheap-2", "medium", 0.69, group="gB", metric="code-b", cost=0.3),
+def test_verified_expected_cost_prefers_expensive_high_probability(tmp_path):
+    rows = [row("gpt-9-small", "medium", .1, cost=.3), row("gpt-9-big", "medium", .9, cost=1)]
+    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    assert group(r, "g-board")["choice"] == "codex/gpt-9-big/medium"
+    assert arm(r, "g-board", "codex/gpt-9-big/medium")["expected_cost_usd"] == pytest.approx(1.75/.925)
+
+
+def test_lower_better_error_rate_converts_to_success_probability(tmp_path):
+    rows = [row("gpt-9-small", "medium", .5, metric="err-rate", cost=.3, unit="error_rate"),
+            row("gpt-9-big", "medium", .1, metric="err-rate", cost=.4, unit="error_rate")]
+    r = run(tmp_path, rows, [req("docs.lookup")])["docs.lookup"]
+    assert arm(r, "g-board", "codex/gpt-9-big/medium")["p"] == pytest.approx(.9)
+    assert group(r, "g-board")["choice"] == "codex/gpt-9-big/medium"
+
+
+def test_judged_cost_changes_choice_and_maker_p_is_visible(tmp_path):
+    rows = [row("claude-cheap-2", "medium", .8, cost=.05),
+            row("gpt-9-small", "medium", .6, cost=.1), row("gpt-9-big", "medium", .9, cost=3)]
+    reqs = [req("implement.standard"), req("review.audit", constraints=["different_model_family_from:implement.standard"])]
+    out = run(tmp_path, rows, reqs)
+    assert out["implement.standard"]["recommended"]["model"] == "claude-cheap-2"
+    checker = out["review.audit"]
+    assert checker["recommended"]["model"] == "gpt-9-big"
+    assert group(checker, "g-board")["maker_p"] == pytest.approx(.8)
+    assert group(checker, "g-board")["checker_p"] == pytest.approx(.9)
+    assert arm(checker, "g-board", "codex/gpt-9-big/medium")["expected_cost_usd"] == pytest.approx(13.5)
+    assert "claude/claude-cheap-2/medium" not in checker["candidates"]
+
+
+def test_task_family_derives_metrics_without_id_list(tmp_path):
+    rows = [row("gpt-9-small", "medium", .5, cost=.1), row("gpt-9-big", "medium", .6, cost=.2),
+            row("gpt-9-small", "medium", .9, metric="unrelated", group="other", cost=.1)]
+    catalog, loaded, points = build(tmp_path, rows, [req("implement.standard")])
+    assert set(loaded["ops"]["implement.standard"]["evidence_metrics"]) == {"code-a", "code-b", "index"}
+    r = ro.recommend(catalog, loaded, points)[0]
+    assert {g["metric_id"] for g in r["groups"]} == {"code-a"}
+
+
+def test_index_and_elo_are_ceiling_screens_only(tmp_path):
+    rows = [row("gpt-9-small", "medium", .7, cost=.2), row("gpt-9-big", "medium", .8, cost=1),
+            row("gpt-9-small", "medium", 100, metric="index", group="g-index", cost=.01, unit="elo"),
+            row("gpt-9-big", "medium", 90, metric="index", group="g-index", cost=2, unit="elo")]
+    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    assert group(r, "g-index")["choice"] is None
+    assert all(a["expected_cost_usd"] is None for a in group(r, "g-index")["arms"])
+    assert group(r, "g-board")["choice"] == "codex/gpt-9-small/medium"
+
+
+def test_non_success_metric_screens_unmeasured_effort(tmp_path):
+    rows = [row("gpt-9-big", "medium", 100, metric="index", group="g-index", unit="elo"),
+            row("gpt-9-small", "max", 80, metric="index", group="g-index", unit="elo"),
+            row("claude-cheap-2", "medium", 90, metric="index", group="g-index", unit="elo")]
+    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    assert any(e["model"] == "gpt-9-small" and "ceiling" in e["reason"] for e in r["excluded_models"])
+    assert group(r, "g-index")["choice"] is None
+
+
+def test_zero_success_can_ship_as_a_silent_failure(tmp_path):
+    rows = [row("gpt-9-small", "medium", 0, cost=.01), row("gpt-9-big", "medium", .5, cost=1)]
+    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    assert arm(r, "g-board", "codex/gpt-9-small/medium")["expected_cost_usd"] == pytest.approx(12.04)
+    assert group(r, "g-board")["choice"] == "codex/gpt-9-big/medium"
+
+
+def test_zero_success_with_perfect_detection_has_infinite_expected_cost(tmp_path):
+    rows = [row("gpt-9-small", "medium", 0, cost=.01), row("gpt-9-big", "medium", .5, cost=1)]
+    r = run(tmp_path, rows, [req("implement.standard", failure_detection_probability=1)])["implement.standard"]
+    assert arm(r, "g-board", "codex/gpt-9-small/medium")["expected_cost_usd"] == "Infinity"
+    assert '"Infinity"' in json.dumps(r, allow_nan=False)
+
+
+def test_perfect_detection_retries_until_success_without_silent_penalty(tmp_path):
+    rows = [row("gpt-9-small", "medium", .5, cost=.5), row("gpt-9-big", "medium", .8, cost=2)]
+    r = run(tmp_path, rows, [req("implement.standard", failure_detection_probability=1)])["implement.standard"]
+    assert arm(r, "g-board", "codex/gpt-9-small/medium")["expected_cost_usd"] == pytest.approx(2)
+
+
+def test_candidate_filters_and_cli_effort(tmp_path):
+    models = MODELS + [{"id": "claude-secret-1", "provider": "anthropic", "family": "secret", "tier": "mythos", "status": "ga", "access": "restricted"}]
+    r = run(tmp_path, [], [req("implement.standard")], models=models)["implement.standard"]
+    assert "claude/claude-cheap-1/medium" not in r["candidates"]
+    assert "codex/gpt-9-small/low" not in r["candidates"]
+    assert not any(x.endswith("/xhigh") for x in r["candidates"])
+    assert not any("secret" in x for x in r["candidates"])
+    assert any("claude-strong-2: no claude_code surface" in f for f in r["flags"])
+
+
+def test_effortless_model_uses_default_arm(tmp_path):
+    models = MODELS + [{"id": "claude-tiny-4", "provider": "anthropic", "family": "tiny", "tier": "haiku",
+                        "status": "ga", "effort_parameter": False}]
+    rows = [row("claude-cheap-2", "medium", .5, cost=1), row("claude-tiny-4", None, .49, cost=.1)]
+    r = run(tmp_path, rows, [req("implement.standard")], models=models)["implement.standard"]
+    assert "claude/claude-tiny-4/default" in r["candidates"]
+    assert r["recommended"]["model"] == "claude-tiny-4"
+
+
+def test_all_six_lanes_can_generate_candidates(tmp_path):
+    models = MODELS + [
+        {"id": "gemini-3.8-flash", "provider": "google", "family": "gemini-3.8", "tier": "flash", "status": "ga"},
+        {"id": "qwen3.8-flash", "provider": "alibaba", "family": "qwen3.8", "tier": "flash", "status": "ga"},
+        {"id": "deepseek-v4-flash", "provider": "deepseek", "family": "deepseek-v4", "tier": "flash", "status": "ga"},
+        {"id": "claude-sonnet-4-6", "provider": "anthropic", "family": "claude-sonnet", "tier": "cross", "status": "ga"},
     ]
-    r = run(tmp_path, rows, [req("implement.standard", metrics=["code-a", "code-b"])])["implement.standard"]
-    assert r["status"] == "INSUFFICIENT_EVIDENCE"
-    assert r["recommended"] is None
-    missing = {(m["model"], m["effort"], m["metric"]) for m in r["missing"]}
-    assert ("gpt-9-small", "medium", "code-b") in missing
-    assert ("claude-cheap-2", "medium", "code-a") in missing
+    models[5] = {**models[5], "tier": "base"}
+    surfaces = SURFACES + [
+        {"model": "gemini-3.8-flash", "surface": "api", "valid_efforts": EFFORTS},
+        {"model": "qwen3.8-flash", "surface": "qwen_code", "valid_efforts": EFFORTS},
+        {"model": "deepseek-v4-flash", "surface": "api", "valid_efforts": EFFORTS},
+        {"model": "claude-sonnet-4-6", "surface": "api", "valid_efforts": EFFORTS},
+        {"model": "grok-9", "surface": "grok_cli", "valid_efforts": EFFORTS},
+    ]
+    defaults = {**DEFAULTS, "allowed_providers": list(ro.LANES), "provider_restrictions": {}}
+    r = run(tmp_path, [], [req("implement.standard")], models=models, surfaces=surfaces, defaults=defaults)["implement.standard"]
+    assert {x.split("/")[0] for x in r["candidates"]} == set(ro.LANES)
+    assert "antigravity/gemini-3.8-flash-low/low" in r["candidates"]
+    assert "antigravity/gemini-3.8-flash-medium/medium" in r["candidates"]
+    assert "antigravity/claude-sonnet-4-6/medium" in r["candidates"]
+    assert "claude/claude-sonnet-4-6/medium" in r["candidates"]
+    assert any("deepseek/deepseek-v4-flash" in f for f in r["flags"])
 
 
-def test_missing_cost_is_reported(tmp_path):
-    rows = [row("gpt-9-big", "medium", 0.80, cost=2.0), row("gpt-9-small", "medium", 0.79)]
+def test_same_model_two_lanes_share_evidence(tmp_path):
+    models = MODELS + [{"id": "claude-sonnet-4-6", "provider": "anthropic", "family": "cross", "tier": "cross", "status": "ga"}]
+    surfaces = SURFACES + [{"model": "claude-sonnet-4-6", "surface": "api", "valid_efforts": EFFORTS}]
+    rows = [row("claude-sonnet-4-6", "medium", .8, cost=.2), row("gpt-9-big", "medium", .7, cost=1)]
+    defaults = {**DEFAULTS, "allowed_providers": ["claude", "codex", "antigravity"]}
+    r = run(tmp_path, rows, [req("implement.standard")], models=models, surfaces=surfaces, defaults=defaults)["implement.standard"]
+    assert arm(r, "g-board", "claude/claude-sonnet-4-6/medium")["p"] == pytest.approx(.8)
+    assert arm(r, "g-board", "antigravity/claude-sonnet-4-6/medium")["p"] == pytest.approx(.8)
+    assert r["status"] == "RECOMMENDED"
+
+
+def test_newest_tier_is_scoped_to_reachable_lane(tmp_path):
+    models = MODELS + [
+        {"id": "claude-sonnet-4-6", "provider": "anthropic", "family": "claude-sonnet", "tier": "sonnet", "status": "ga"},
+        {"id": "claude-sonnet-5", "provider": "anthropic", "family": "claude-sonnet", "tier": "sonnet", "status": "ga"},
+    ]
+    surfaces = SURFACES + [
+        {"model": "claude-sonnet-4-6", "surface": "api", "valid_efforts": EFFORTS},
+        {"model": "claude-sonnet-5", "surface": "claude_code", "valid_efforts": EFFORTS},
+    ]
+    defaults = {**DEFAULTS, "allowed_providers": ["claude", "antigravity"]}
+    r = run(tmp_path, [], [req("implement.standard")], models=models, surfaces=surfaces, defaults=defaults)["implement.standard"]
+    assert "claude/claude-sonnet-5/medium" in r["candidates"]
+    assert "antigravity/claude-sonnet-4-6/medium" in r["candidates"]
+    assert "claude/claude-sonnet-4-6/medium" not in r["candidates"]
+
+
+def test_antigravity_recommendation_uses_dispatch_model_id(tmp_path):
+    models = MODELS + [{"id": "gemini-3.8-flash", "provider": "google", "family": "gemini-3.8",
+                        "tier": "flash", "status": "ga"}]
+    surfaces = SURFACES + [{"model": "gemini-3.8-flash", "surface": "api", "valid_efforts": EFFORTS}]
+    defaults = {**DEFAULTS, "allowed_providers": ["antigravity", "codex"]}
+    rows = [row("gemini-3.8-flash", "medium", .8, cost=.2), row("gpt-9-big", "medium", .7, cost=1)]
+    r = run(tmp_path, rows, [req("implement.standard")], models=models, surfaces=surfaces, defaults=defaults)["implement.standard"]
+    assert r["recommended"] == {"provider": "antigravity", "model": "gemini-3.8-flash-medium",
+                                "effort": "medium", "catalog_model": "gemini-3.8-flash"}
+
+
+def test_different_family_allows_same_vendor_checker(tmp_path):
+    rows = [row("claude-cheap-2", "medium", .8, cost=.05), row("claude-strong-2", "medium", .9, cost=.5),
+            row("gpt-9-big", "medium", .6, cost=2)]
+    reqs = [req("implement.standard"), req("review.audit", constraints=["different_model_family_from:implement.standard"])]
+    checker = run(tmp_path, rows, reqs)["review.audit"]
+    assert "claude/claude-strong-2/medium" in checker["candidates"]
+    assert "claude/claude-cheap-2/medium" not in checker["candidates"]
+
+
+def test_grok_exploration_restricts_candidates_to_grok(tmp_path):
+    models = [{**m, "tier": "base"} if m["id"] == "grok-9" else m for m in MODELS]
+    surfaces = SURFACES + [{"model": "grok-9", "surface": "grok_cli", "valid_efforts": EFFORTS}]
+    defaults = {**DEFAULTS, "allowed_providers": list(ro.LANES)}
+    r = run(tmp_path, [row("grok-9", "low", .5, metric="browse", cost=.2),
+                       row("grok-9", "high", .8, metric="browse", cost=1)],
+            [req("grok.explore-only", allowed_providers=["grok"])],
+            models=models, surfaces=surfaces, defaults=defaults)["grok.explore-only"]
+    assert r["candidates"] and all(c.startswith("grok/") for c in r["candidates"])
+    assert r["recommended"]["provider"] == "grok"
+
+
+def test_provider_restriction_filters_inherited_providers(tmp_path):
+    defaults = {**DEFAULTS, "allowed_providers": list(ro.LANES)}
+    _, loaded, _ = build(tmp_path, [], [req("implement.standard"), req("grok.explore-only")], defaults=defaults)
+    assert "grok" not in loaded["ops"]["implement.standard"]["allowed_providers"]
+    assert "grok" in loaded["ops"]["grok.explore-only"]["allowed_providers"]
+
+
+def test_restricted_grok_cannot_be_added_to_another_op(tmp_path):
+    defaults = {**DEFAULTS, "allowed_providers": list(ro.LANES)}
+    with pytest.raises(ro.RequirementsError, match="restricted to"):
+        build(tmp_path, [], [req("implement.standard", allowed_providers=["grok"])], defaults=defaults)
+
+
+def test_robustness_grid_reports_a_flip_threshold(tmp_path):
+    rows = [row("gpt-9-small", "medium", .4, cost=.01), row("gpt-9-big", "medium", .9, cost=1)]
+    catalog, loaded, points = build(tmp_path, rows, [req("implement.standard")])
+    results = ro.recommend(catalog, loaded, points)
+    ro.assess_robustness(catalog, loaded, points, results)
+    robust = results[0]["robustness"]
+    assert robust["status"] == "ASSUMPTION_SENSITIVE"
+    assert "≈" in robust["threshold"] and "→" in robust["threshold"]
+    assert len(robust["outcomes"]) > 1
+    assert "ASSUMPTION_SENSITIVE<br>" in ro.render_markdown(results)
+
+
+def test_robustness_clear_requires_same_winning_arm(tmp_path):
+    rows = [row("gpt-9-small", "medium", .8, cost=.1), row("gpt-9-big", "medium", .8, cost=2)]
+    catalog, loaded, points = build(tmp_path, rows, [req("implement.standard")])
+    results = ro.recommend(catalog, loaded, points)
+    ro.assess_robustness(catalog, loaded, points, results)
+    assert results[0]["robustness"] == {"status": "CLEAR", "outcomes": ["codex/gpt-9-small/medium"], "threshold": None}
+
+
+def test_missing_cost_is_exact(tmp_path):
+    rows = [row("gpt-9-big", "medium", .8, cost=2), row("gpt-9-small", "medium", .7)]
     r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
     assert {"model": "gpt-9-small", "effort": "medium", "metric": "code-a", "group": "g-board",
             "need": "cost usd_per_task"} in r["missing"]
 
 
-def test_bar_failure_anywhere_blocks_recommendation(tmp_path):
-    rows = [
-        row("gpt-9-small", "medium", 0.78, group="g1", cost=0.2), row("gpt-9-big", "medium", 0.80, group="g1", cost=2),
-        row("gpt-9-small", "medium", 0.78, group="g2", cost=0.2), row("gpt-9-big", "medium", 0.80, group="g2", cost=2),
-        row("gpt-9-small", "medium", 0.50, group="g3", cost=0.2), row("gpt-9-big", "medium", 0.80, group="g3", cost=2),
-    ]
+def test_disjoint_groups_report_cross_coverage(tmp_path):
+    rows = [row("gpt-9-big", "medium", .8, group="gA", cost=2),
+            row("gpt-9-small", "medium", .7, group="gA", cost=.2),
+            row("claude-strong-2", "medium", .8, metric="code-b", group="gB", cost=2),
+            row("claude-cheap-2", "medium", .7, metric="code-b", group="gB", cost=.2)]
     r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
     assert r["status"] == "INSUFFICIENT_EVIDENCE"
-    assert any("gpt-9-small/medium" in d and "fails bar in g3" in d for d in r["disagreements"])
+    assert {(m["model"], m["metric"]) for m in r["missing"]} >= {("gpt-9-small", "code-b"), ("claude-cheap-2", "code-a")}
 
 
-def test_effort_only_groups_do_not_outvote_cross_model_losses(tmp_path):
-    rows = [
-        # two single-model effort charts where gpt-9-big/low is the cheapest adequate effort
-        row("gpt-9-big", "low", 0.79, group="e1", cost=1.0), row("gpt-9-big", "medium", 0.80, group="e1", cost=2.0),
-        row("gpt-9-big", "low", 0.79, group="e2", cost=1.0), row("gpt-9-big", "medium", 0.80, group="e2", cost=2.0),
-        # one cross-model group where a cheaper model is adequate
-        row("gpt-9-big", "low", 0.79, group="x", cost=1.0), row("claude-cheap-2", "low", 0.78, group="x", cost=0.3),
-    ]
+def test_vendor_group_is_downweighted(tmp_path):
+    rows = [row("gpt-9-big", "medium", .8, cost=2, source_type="vendor_table", source_id="oai"),
+            row("claude-cheap-2", "medium", .7, cost=.2, source_type="vendor_table", source_id="oai")]
     r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
-    # gpt-9-big/low wins 4/6 of all weight but 0/2 of the cross-model weight, so only
-    # claude-cheap-2/low is self-consistent. Without the cross-model rule both would be.
-    assert r["status"] == "RECOMMENDED"
-    assert r["recommended"] == {"provider": "claude", "model": "claude-cheap-2", "effort": "low"}
+    assert group(r, "g-board")["weight"] == .5
+    assert group(r, "g-board")["vendor_chart_ranks_rival_vendor"] is True
 
 
-# ------------------------------------------------------------- constraints
+def test_vendor_ceiling_only_flags(tmp_path):
+    rows = [row("gpt-9-big", "medium", .7, cost=1, source_type="vendor_table", source_id="oai"),
+            row("claude-strong-2", "medium", .69, cost=2, source_type="vendor_table", source_id="oai"),
+            row("claude-cheap-2", "max", .4, cost=5, source_type="vendor_table", source_id="oai")]
+    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    assert any(c.startswith("claude/claude-cheap-2/") for c in r["candidates"])
+    assert any("ceiling (vendor group, not excluding)" in f for f in r["flags"])
 
 
-def test_checker_at_least_maker_and_different_vendor(tmp_path):
-    rows = [
-        # maker evidence: claude-cheap-2/medium is the cheapest adequate implementer
-        row("claude-cheap-2", "medium", 0.70, cost=0.5),
-        row("claude-strong-2", "medium", 0.72, cost=3.0),
-        # checker evidence in the same group: two OpenAI arms, one below the maker
-        row("gpt-9-small", "medium", 0.60, cost=0.1),
-        row("gpt-9-big", "medium", 0.75, cost=2.0),
-    ]
-    reqs = [
-        req("implement.standard"),
-        req("review.audit", bar={"type": "at_least_op", "op": "implement.standard"},
-            constraints=["different_vendor_from:implement.standard"]),
-    ]
-    out = run(tmp_path, rows, reqs)
-    maker = out["implement.standard"]
-    assert maker["recommended"]["model"] == "claude-cheap-2"
-    checker = out["review.audit"]
-    # different vendor: no Claude arm is a candidate
-    assert not any(c.startswith("claude/") for c in checker["candidates"])
-    assert any(e["model"] == "claude-strong-2" and "different_vendor_from" in e["reason"] for e in checker["excluded_models"])
-    # checker >= maker: gpt-9-small (0.60 < 0.70) fails, gpt-9-big (0.75) passes
-    g = group(checker, "g-board")
-    assert abs(g["bar_raw"] - 0.70) < 1e-9
-    assert arm(checker, "g-board", "codex/gpt-9-small/medium")["eligible"] is False
-    assert checker["recommended"] == {"provider": "codex", "model": "gpt-9-big", "effort": "medium"}
+def test_effort_only_groups_do_not_outvote_cross_model_result(tmp_path):
+    rows = []
+    for gid in ("effort-1", "effort-2"):
+        rows += [row("gpt-9-big", "low", .8, group=gid, cost=1),
+                 row("gpt-9-big", "medium", .9, group=gid, cost=2)]
+    rows += [row("gpt-9-big", "low", .8, group="cross", cost=1),
+             row("claude-cheap-2", "low", .8, group="cross", cost=.3)]
+    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    assert r["recommended"]["model"] == "claude-cheap-2"
 
 
-def test_checker_group_without_maker_score_is_unusable_and_reported(tmp_path):
-    rows = [
-        row("claude-cheap-2", "medium", 0.70, cost=0.5), row("claude-strong-2", "medium", 0.72, cost=3.0),
-        row("gpt-9-big", "medium", 0.75, group="g-oai", metric="code-b", cost=2.0),
-    ]
-    reqs = [
-        req("implement.standard"),
-        req("review.audit", metrics=["code-a", "code-b"], bar={"type": "at_least_op", "op": "implement.standard"},
-            constraints=["different_vendor_from:implement.standard"]),
-    ]
+def test_grade_and_unattributed_effort_are_ignored(tmp_path):
+    rows = [row("gpt-9-big", None, .9, cost=1), row("gpt-9-big", "medium", .9, cost=1, grade="D"),
+            row("gpt-9-small", "medium", .5, cost=.1), row("claude-cheap-2", "medium", .6, cost=.2)]
+    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    assert {a["arm"] for a in group(r, "g-board")["arms"]} == {"codex/gpt-9-small/medium", "claude/claude-cheap-2/medium"}
+
+
+def test_duplicate_rows_use_latest_and_same_day_cost(tmp_path):
+    rows = [row("gpt-9-big", "medium", .8, cost=1), row("gpt-9-big", "medium", .8),
+            row("gpt-9-big", "medium", .9, cost=2, observed_at="2026-09-20"),
+            row("gpt-9-small", "medium", .5, cost=.1)]
+    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    assert arm(r, "g-board", "codex/gpt-9-big/medium")["score"] == .9
+    assert any("duplicate row" in f for f in r["flags"])
+
+
+def test_single_arm_group_does_not_decide(tmp_path):
+    r = run(tmp_path, [row("gpt-9-big", "medium", .8, cost=1)], [req("implement.standard")])["implement.standard"]
+    assert r["status"] == "INSUFFICIENT_EVIDENCE"
+    assert group(r, "g-board")["unusable"].startswith("one candidate arm")
+
+
+def test_maker_missing_shared_score_does_not_block_checker(tmp_path):
+    rows = [row("claude-cheap-2", "medium", .8, cost=.2), row("claude-strong-2", "medium", .7, cost=2),
+            row("gpt-9-small", "medium", .7, metric="code-b", group="gB", cost=.2),
+            row("gpt-9-big", "medium", .9, metric="code-b", group="gB", cost=1)]
+    reqs = [req("implement.standard"), req("review.audit", constraints=["different_model_family_from:implement.standard"])]
     checker = run(tmp_path, rows, reqs)["review.audit"]
-    assert group(checker, "g-oai")["unusable"] == "maker arm claude-cheap-2@medium not in group"
-    assert {"model": "claude-cheap-2", "effort": "medium", "metric": "code-b", "group": "g-oai",
-            "need": "maker score"} in checker["missing"]
-    assert checker["status"] == "INSUFFICIENT_EVIDENCE"
+    assert {"model": "claude-cheap-2", "effort": "medium", "metric": "code-b", "group": "gB",
+            "need": "maker p for side-by-side comparison"} in checker["missing"]
+    assert group(checker, "gB")["choice"] is not None
 
 
-def test_different_model_family_is_narrower_than_vendor(tmp_path):
-    rows = [row("claude-cheap-2", "medium", 0.70, cost=0.5), row("claude-strong-2", "medium", 0.72, cost=3.0)]
-    reqs = [req("implement.standard"),
-            req("review.audit", constraints=["different_model_family_from:implement.standard"])]
-    checker = run(tmp_path, rows, reqs)["review.audit"]
-    # family claude-cheap is excluded, claude-strong (another family, same vendor) is not
-    assert not any("claude-cheap-2" in c for c in checker["candidates"])
-    assert any("claude-strong-2" in c for c in checker["candidates"])
-
-
-def test_constraint_falls_back_to_current_expands_to_when_maker_unresolved(tmp_path):
-    reqs = [req("implement.standard"),
-            req("review.audit", constraints=["different_vendor_from:implement.standard"])]
-    checker = run(tmp_path, [], reqs)["review.audit"]
-    assert any("implement.standard is INSUFFICIENT_EVIDENCE; constraint uses its current expands_to" in f
-               for f in checker["flags"])
-    assert not any(c.startswith("claude/") for c in checker["candidates"])
-
-
-# ------------------------------------------------------------ requirements
+def test_constraint_falls_back_to_current_when_maker_unresolved(tmp_path):
+    reqs = [req("implement.standard"), req("review.audit", constraints=["different_model_family_from:implement.standard"])]
+    r = run(tmp_path, [], reqs)["review.audit"]
+    assert any("uses its current expands_to" in f for f in r["flags"])
+    assert not any("claude-cheap-2" in c for c in r["candidates"])
 
 
 @pytest.mark.parametrize("bad,message", [
-    (req("implement.standard", allowed_efforts=["high", "xhigh"]), "needs an owner effort_override_reason"),
-    (req("implement.standard", allowed_providers=["grok"]), "restricted to"),
-    (req("implement.standard", metrics=["nope"]), "not in metrics.json"),
-    (req("implement.standard", bar={"type": "at_least_op", "op": "nope"}), "unknown op"),
-    (req("nope.op"), "not an operating-points.json id"),
+    (req("implement.standard", allowed_efforts=["xhigh"]), "effort_override_reason"),
+    (req("implement.standard", evidence_metrics=["code-a"]), "derived"),
+    (req("implement.standard", bar={"type": "frontier_best"}), "derived"),
+    (req("review.audit", silent_failure_cost_usd=-1), "nonnegative"),
     (req("implement.standard", cost_basis="credits"), "usd_per_task"),
+    (req("nope.op"), "not an operating-points.json id"),
 ])
-def test_requirements_validation(tmp_path, bad, message):
+def test_requirement_validation(tmp_path, bad, message):
     with pytest.raises(ro.RequirementsError, match=message):
         build(tmp_path, [], [bad])
 
@@ -418,118 +445,46 @@ def test_constraint_cycle_is_rejected(tmp_path):
         build(tmp_path, [], reqs)
 
 
-def test_override_reason_allows_xhigh(tmp_path):
-    ok = req("implement.standard", allowed_efforts=["high", "xhigh"], effort_override_reason="owner said so")
-    build(tmp_path, [], [ok])
-
-
-# ------------------------------------------------------------ real pack
-
-
-def test_real_pack_requirements_match_schema_and_run():
+def test_real_pack_schema_determinism_and_no_point_write():
     jsonschema = pytest.importorskip("jsonschema")
     pol = REPO / "data" / "model-choice-policy"
     doc = json.loads((pol / "op-requirements.json").read_text())
     schema = json.loads((pol / "schemas" / "op-requirements-v1.schema.json").read_text())
     jsonschema.Draft202012Validator(schema).validate(doc)
-
     catalog = ro.Catalog.from_dir(REPO / "data" / "model-catalog")
     points = {p["id"]: p for p in json.loads((pol / "operating-points.json").read_text())["operating_points"]}
     before = (pol / "operating-points.json").read_bytes()
     loaded = ro.load_requirements(pol / "op-requirements.json", catalog, set(points))
-    assert set(loaded["ops"]) == set(points), "one entry per operating point"
-    results = ro.recommend(catalog, loaded, points)
-    assert [r["op"] for r in results] == list(points)
-    assert all(r["status"] in {"RECOMMENDED", "INSUFFICIENT_EVIDENCE", "NO_CANDIDATES"} for r in results)
-    for r in results:
-        if r["recommended"]:
-            assert r["recommended"]["effort"] not in {"xhigh", "max", "ultra"}
+    assert set(loaded["ops"]) == set(points)
+    vals = next(g for g in ro.build_groups(loaded["ops"]["implement.standard"], catalog)[0]
+                if g.gid == "tb4-vals-ai-secondary-2026-09-21")
+    opus = vals.cells[("claude-opus-5-5", "max")]
+    sonnet = vals.cells[("claude-sonnet-5", "max")]
+    assert opus.score > sonnet.score and opus.cost < sonnet.cost
+    first = ro.recommend(catalog, loaded, points)
+    second = ro.recommend(catalog, loaded, points)
+    assert json.dumps(first, sort_keys=True) == json.dumps(second, sort_keys=True)
+    assert all(r["status"] in {"RECOMMENDED", "INSUFFICIENT_EVIDENCE", "NO_CANDIDATES"} for r in first)
+    assert all(r["recommended"] is None or r["recommended"]["effort"] not in {"xhigh", "max", "ultra"} for r in first)
     assert (pol / "operating-points.json").read_bytes() == before
 
-
-def test_real_pack_is_deterministic():
-    pol = REPO / "data" / "model-choice-policy"
-    outs = []
-    for _ in range(2):
-        catalog = ro.Catalog.from_dir(REPO / "data" / "model-catalog")
-        points = {p["id"]: p for p in json.loads((pol / "operating-points.json").read_text())["operating_points"]}
-        loaded = ro.load_requirements(pol / "op-requirements.json", catalog, set(points))
-        outs.append(json.dumps(ro.recommend(catalog, loaded, points), sort_keys=True))
-    assert outs[0] == outs[1]
-
-
-# ------------------------------------------- restricted access, effort-less models, ceiling rule
-
-
-def test_restricted_access_model_is_never_a_candidate(tmp_path):
-    models = MODELS + [{"id": "claude-secret-1", "provider": "anthropic", "family": "claude-secret", "status": "ga",
-                        "tier": "mythos", "access": "restricted"}]
-    surfaces = SURFACES + [{"model": "claude-secret-1", "surface": "api", "valid_efforts": EFFORTS}]
-    rows = [row("claude-cheap-2", "medium", 0.5, cost=1), row("claude-secret-1", "low", 0.9, cost=0.1)]
-    r = run(tmp_path, rows, [req("implement.standard")], models=models, surfaces=surfaces)["implement.standard"]
-    assert not any("claude-secret-1" in c for c in r["candidates"])
-    assert any(e["model"] == "claude-secret-1" and "restricted" in e["reason"] for e in r["excluded_models"])
-
-
-def test_effortless_model_gets_one_default_arm_and_null_effort_rows_map_to_it(tmp_path):
-    models = MODELS + [{"id": "claude-tiny-4", "provider": "anthropic", "family": "claude-tiny", "status": "ga",
-                        "tier": "haiku", "effort_parameter": False}]
-    rows = [row("claude-cheap-2", "medium", 0.50, cost=1.0), row("claude-tiny-4", None, 0.49, cost=0.1)]
-    r = run(tmp_path, rows, [req("implement.standard")], models=models)["implement.standard"]
-    assert "claude/claude-tiny-4/default" in r["candidates"]
-    assert arm(r, "g-board", "claude/claude-tiny-4/default")["score"] == 0.49
-    assert r["recommended"]["model"] == "claude-tiny-4"
-
-
-def test_ceiling_rule_excludes_model_whose_max_misses_an_independent_bar(tmp_path):
-    rows = [
-        row("claude-strong-2", "medium", 0.70, cost=1.0),
-        row("gpt-9-big", "medium", 0.69, cost=2.0),
-        # cheap model only measured at max (a disallowed effort): 0.40 is far below the 0.65 bar
-        row("claude-cheap-2", "max", 0.40, cost=5.0),
-    ]
-    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
-    assert not any(c.startswith("claude/claude-cheap-2/") for c in r["candidates"])
-    assert any(e["model"] == "claude-cheap-2" and "best measured effort" in e["reason"] for e in r["excluded_models"])
-    assert not any(m["model"] == "claude-cheap-2" for m in r["missing"])  # excluded, not "missing data"
-    assert any("ceiling rule applied" in f for f in r["flags"])
-
-
-def test_ceiling_rule_only_flags_in_vendor_groups(tmp_path):
-    rows = [
-        row("claude-strong-2", "medium", 0.70, cost=1.0, group="g-v", source_type="vendor_table", source_id="oai"),
-        row("gpt-9-big", "medium", 0.69, cost=2.0, group="g-v", source_type="vendor_table", source_id="oai"),
-        row("claude-cheap-2", "max", 0.40, cost=5.0, group="g-v", source_type="vendor_table", source_id="oai"),
-    ]
-    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
-    assert any(c.startswith("claude/claude-cheap-2/") for c in r["candidates"])
-    assert any("ceiling (vendor group, not excluding)" in f for f in r["flags"])
-
-
-def test_ceiling_rule_keeps_model_whose_max_clears_the_bar(tmp_path):
-    rows = [
-        row("claude-strong-2", "medium", 0.70, cost=1.0),
-        row("gpt-9-big", "medium", 0.69, cost=2.0),
-        row("claude-cheap-2", "max", 0.68, cost=5.0),  # clears 0.65: lower efforts are unmeasured, not excluded
-    ]
-    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
-    assert any(c.startswith("claude/claude-cheap-2/") for c in r["candidates"])
-
-
-def test_ceiling_rule_runs_in_a_single_arm_group(tmp_path):
-    rows = [
-        row("claude-strong-2", "medium", 0.70, cost=1.0),
-        row("claude-cheap-2", "max", 0.40, cost=5.0),
-    ]
-    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
-    assert any(e["model"] == "claude-cheap-2" and "best measured effort" in e["reason"] for e in r["excluded_models"])
-
-
-def test_same_day_duplicate_prefers_the_row_with_cost(tmp_path):
-    rows = [
-        row("claude-strong-2", "medium", 0.70, cost=1.0),
-        row("claude-strong-2", "medium", 0.70),  # same day, no cost: must not replace the priced row
-        row("gpt-9-big", "medium", 0.69, cost=2.0),
-    ]
-    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
-    assert arm(r, "g-board", "claude/claude-strong-2/medium")["cost"] == 1.0
+    for scenario in itertools.product(ro.ROBUSTNESS_OVERHEAD, ro.ROBUSTNESS_DETECTION,
+                                      ro.ROBUSTNESS_SILENT_MULTIPLIER):
+        by_op = {r["op"]: r for r in ro.recommend(catalog, loaded, points, scenario)}
+        for op in ("implement.standard", "implement.quota-tight", "implement.accuracy-first"):
+            rec = by_op[op]["recommended"]
+            assert rec is None or rec["model"] != "claude-sonnet-5"
+        grok = by_op["grok.explore-only"]
+        assert grok["current"]["provider"] == "grok"
+        assert all(c.startswith("grok/") for c in grok["candidates"])
+        assert grok["recommended"] is None or grok["recommended"]["provider"] == "grok"
+        checker = by_op["review.audit"]["recommended"]
+        forbidden_families = set()
+        for maker_op in ("implement.standard", "implement.accuracy-first"):
+            maker = by_op[maker_op]["recommended"] or points[maker_op]["expands_to"]
+            forbidden_families.add(catalog.models[maker.get("catalog_model", maker["model"])]["family"])
+        assert all(catalog.models[c.split("/")[1]]["family"] not in forbidden_families
+                   for c in by_op["review.audit"]["candidates"])
+        if checker:
+            checker_family = catalog.models[checker.get("catalog_model", checker["model"])]["family"]
+            assert checker_family not in forbidden_families

@@ -25,77 +25,80 @@ Root also carries:
 
 ## `op-requirements.json` (DRAFT — owner review pending)
 
-Human-set slots that let `scripts/recommend_ops.py` derive each op's arm
-mechanically from the pinned catalog. The recommender only reads this file and
-the catalog. It never edits `operating-points.json`. JSON Schema:
-[`schemas/op-requirements-v1.schema.json`](schemas/op-requirements-v1.schema.json).
-The script checks cross-file references at load time: op ids, metric ids,
-provider restrictions, and constraint cycles.
+The recommender reads this policy and the catalog; it never edits `operating-points.json`.
+JSON Schema: [`schemas/op-requirements-v1.schema.json`](schemas/op-requirements-v1.schema.json).
 
-| Field | Role |
-|-------|------|
-| `op` | An `operating-points.json` id. One entry per op. |
-| `status` | `DRAFT` until the owner reviews the entry, then `REVIEWED`. |
-| `evidence_metrics` | `metrics.json` ids whose scores measure this task. Rows are compared only inside one `comparability_group`. |
-| `allowed_providers` | Lane CLIs (`claude`, `codex`, `grok`). Default `claude`, `codex`. `defaults.provider_restrictions` limits `grok` to `grok.explore-only`. |
-| `allowed_efforts` | Effort ceiling. Default `low`/`medium`/`high`. `xhigh`/`max`/`ultra` are rejected unless the entry sets `effort_override_reason` (rule 1: never xhigh/max by default). |
-| `bar` | `{type: frontier_best}` · `{type: within_points_of_best, points: N}` · `{type: at_least_op, op: <maker op>}`. Points are percentage points when every value in the group is a 0–1 fraction; otherwise they are in the metric's own unit. The best score is taken over candidate arms only. |
-| `constraints` | `different_vendor_from:<op>` (models.json `provider`) or `different_model_family_from:<op>` (models.json `family`, which is scoped to tier or generation: `claude-opus` ≠ `claude-sonnet`). |
-| `cost_basis` | `usd_per_task`. Only row-level `cost.unit == usd_per_task` values are used. List prices are never converted into per-task cost. |
-| `min_evidence_grade` | Rows below this grade are dropped. Default `C`, so grade-D digitized charts and harness smoke do not count. |
-| `rationale` | One line. The full reasoning is in the table below. |
+`task_families` is one op-to-family table. Each tagged metric in `metrics.json` is
+selected by family; ops do not name metric ids. Current families are `coding`,
+`agentic`, `research/browsing`, `knowledge/factuality`, `reasoning`, and
+`computer-use`. A metric without an unambiguous family tag is not selected.
+Rows are compared only within their `comparability_group`.
 
-`defaults.source_weights` is the trust weighting of stat sources, which is a human-set slot.
-Independent boards (`third_party_board`, `third_party_eval`, `local_eval`) weigh 2. The
-`other` type (secondary board reads), `vendor_table`, and `digitized_chart` weigh 1.
-`vendor_cross_vendor_factor` (0.5) multiplies the weight of a vendor chart that ranks
-a rival vendor's models.
+### Expected cost model
 
-### How the recommender decides
+For a task attempt with success probability `p`, per-attempt model cost `c`,
+verification/review overhead `h`, failure-detection probability `d`, and
+silent-failure cost `S`, the failed-and-detected retry probability is
+`q = (1-p) × d`. The expected cost per task is:
 
-1. **Candidate arms.** An arm is a (model, effort) pair. The model must be `ga` and
-   have a `tier`, its vendor must map to an allowed lane, and it must be the newest
-   GA model in its (vendor, tier). "Newest" is read from the numeric version in the
-   id, because the catalog has no release-date field. The effort must be allowed
-   and valid on the lane's CLI surface (`claude_code`, `codex_cli`, `grok_cli`). If
-   that surface is missing, the `api` surface is used and the output flags it.
-   Constraint-excluded vendors and families are removed here.
-2. **Per comparability group.** Rows need a concrete effort; the most recent
-   `observed_at` wins for duplicates. `lower_better` scores are negated.
-   `context_dependent` metrics and mixed-unit groups are skipped. A group needs at
-   least two candidate arms to compare, except with an `at_least_op` bar, where the
-   maker's score is the reference. The script marks priced arms dominated on
-   (score, cost), computes the bar, and marks eligibility.
-3. **Choice per group.** The cheapest eligible, undominated, priced arm wins. Ties
-   go to the lower API list price (the cheaper tier), then the newer model.
-4. **Aggregate.** An arm is RECOMMENDED only when all of these hold:
-   - it wins more than half the weight of the decisive groups that contain it
-     (a win is being the choice, or being eligible and no more expensive than the
-     choice);
-   - it also wins more than half the weight of the cross-model groups among them
-     (a chart of one model's efforts picks an effort, not a model);
-   - it fails no bar where present;
-   - no other arm passes the same tests on disjoint evidence.
+`E = (c+h) / (1-q) + ((1-p) × (1-d) / (1-q)) × S`
 
-   Otherwise the op is INSUFFICIENT_EVIDENCE, and the output lists the exact
-   (model, metric) scores or costs that would decide it. Confidence is `high` with
-   ≥2 winning independent groups that compare ≥2 models and no losses, `medium`
-   with one such group, and `low` otherwise.
-5. **Constraints** resolve against the maker op's recommended arm. If the maker op
-   is not RECOMMENDED, they resolve against its current `expands_to`, and the output
-   says so. Ops are evaluated in dependency order; cycles are rejected.
+This charges overhead on every attempt. A failed attempt is retried only if it
+is detected; an undetected failure terminates the task and incurs `S`.
+For judged ops, `d=0`, so `E=c+h+(1-p)×S`. If `p=0` and `d=1`,
+the expected number of attempts is infinite.
 
-### DRAFT entries and why
+`accuracy`, `pass_rate`, and `error_rate` are fractions in 0..1; an error rate
+converts to `p=1-rate`. Elo, indices, and partial-credit scores do not produce
+E. They can only screen an unmeasured effort under the ceiling rule.
 
-| Op | Evidence | Efforts | Bar | Why |
-|----|----------|---------|-----|-----|
-| `recover.report` | factual-error-rate (lower better), AA Intelligence Index v4.3.2 | low, medium | within 10 | Summaries must not invent facts. General capability is a weak second signal. Errors are cheap to fix, so the bar is wide. |
-| `fanout.explore` | BrowseComp, Terminal-Bench 4.0, AA v4.3.2 | low, medium | within 10 | Scouts search and navigate; many run at once, so cost dominates. |
-| `docs.lookup` | BrowseComp, factual-error-rate, HLE with tools | low, medium | within 10 | Find and cite: retrieval, factual accuracy, and tool-assisted QA. |
-| `implement.standard` | TB 4.0, TB 2.1, FrontierCode main, DeepSWE (vendor + Datacurve), SWE-Bench Pro, CursorBench 4.0, AA Coding Agent Index | low, medium | within 5 | Default coding with a verify step. Rule 1: medium is the default ceiling. A verify step catches some misses, so 5 points. |
-| `implement.quota-tight` | same as implement.standard | low, medium | within 10 | Small patches under quota pressure. `usd_per_task` is only a proxy for quota burn (doctrine 4: quota ≠ dollars). |
-| `implement.accuracy-first` | same as implement.standard | low, medium, high | within 2 | Rework is costly, so high effort is allowed (rule 1: hard agentic work) and the bar is tight. |
-| `review.audit` | TB 4.0, TB 2.1, FrontierCode main, DeepSWE, SWE-Bench Pro, CursorBench 4.0, AA v4.3.2 | low, medium, high | at least `implement.standard` | Rule 1: judged review allows high. Checker ≥ maker on shared evidence, and a different vendor from both implementers (vendor, not `family`, because `family` would let Sonnet check Opus). |
-| `advisor.deep` | AA v4.3.2, HLE with tools, GDPval-AA v2.1, ARC-AGI-2 | low, medium, high | within 2 | No benchmark measures design advice. These use broad reasoning and knowledge work as proxies. Judged work, so high is allowed and the bar is tight. |
-| `ui.computer-use` | OSWorld 2.0 (+ partial, strict), OSWorld-Verified, AutomationBench | low, medium | within 5 | Computer use is mechanical, so medium is the ceiling (as in v0.1.8). |
-| `grok.explore-only` | AA v4.2, TB 2.1 | low, medium, high | within 10 | Visible exploration point only. It cannot resolve today: xAI rows have no `tier`, and grok-4.6 has no `grok_cli` surface. |
+| Default | Value | Source and meaning |
+|---------|-------|--------------------|
+| `attempt_overhead_usd` | $0.50 per attempt | Orchestrator review of 2026-09-23: allowance for verification and orchestrator review on **each** attempt. This is a policy estimate, not measured spend. |
+| `failure_detection_probability` for verified ops | 0.75 | Orchestrator review of 2026-09-23, informed by `ai/research/model-routing/escalation-triggers-on-verify-failure-not-verify-success-and-walks-the-model-effort-frontier.md` in the dotfiles research corpus. The note reports 28–76% gamed green passes across specific evaluations; those rates do **not** directly measure detection probability. 0.75 is a sensitivity-tested policy prior. |
+| `failure_detection_probability` for judged ops | 0 | Orchestrator review of 2026-09-23: no automatic catch/retry for a review or advice miss. |
+
+The same review supplies the following uncalibrated `silent_failure_cost_usd`
+defaults. They mean roughly what a missed problem costs in dollars; raise a
+value if misses hurt more. The original recommender brief already specified
+$100 for `review.audit` and $50 for `advisor.deep`.
+
+| Op | `silent_failure_cost_usd` | Reason for relative size |
+|----|---------------------------|--------------------------|
+| `implement.accuracy-first` | $50 | An undetected defect is especially costly in accuracy-first work. |
+| `implement.standard` | $10 | A missed coding defect needs later repair. |
+| `implement.quota-tight` | $5 | Small, quota-constrained patches have a lower assumed loss. |
+| `review.audit` | $100 | A missed problem can pass silently through the checker. |
+| `advisor.deep` | $50 | Wrong advice can steer later work. |
+| `recover.report`, `fanout.explore`, `docs.lookup`, `ui.computer-use`, `grok.explore-only` | $2 each | Lower assumed loss for a missed factual, exploration, lookup, or UI task. |
+
+### Candidate and evidence rules
+
+The recommender preserves GA, tier, newest-on-reachable-lane, access, effort,
+and CLI-surface filters. The default provider list names all six waspflow
+lanes: `claude`, `codex`, `grok`, `antigravity`, `qwen`, `deepseek`.
+`defaults.provider_restrictions` limits Grok to `grok.explore-only`, and that
+op explicitly sets `allowed_providers=["grok"]`; it cannot recommend Codex.
+A catalog model may produce more than one lane arm. The lane's CLI effort
+surface takes precedence; missing CLI surfaces fall back to `api` and are
+flagged. Antigravity dispatch ids with an effort suffix use that fixed effort.
+`xhigh`, `max`, and `ultra` require an explicit override reason.
+
+Per-group E choices retain independent-versus-vendor weights, source flags,
+the cross-model consistency check, and exact missing-evidence reports. The
+ceiling screen excludes a model only when its best measured score at any effort
+is below the best allowed-effort score in an independent group; vendor groups
+only flag this. `review.audit` excludes both makers' model families and shows
+maker and checker success rates side by side in shared groups. If a maker is
+unresolved, its current `expands_to` supplies the family constraint.
+
+### Assumption sensitivity
+
+The full dependency graph is rerun on a grid: overhead $0.10, $0.50, $1.00,
+$2.00; detection probability 0.50, 0.75, 0.95 for verified ops (judged ops
+stay at 0); and silent-failure cost 0.5×, 1×, 2× the op default. `CLEAR`
+requires the same recommended arm in every grid cell. Every other result is
+`ASSUMPTION_SENSITIVE`. If neighboring grid cells differ, the output reports
+one approximate flip threshold found by bisection while holding the other
+assumptions fixed. If no cell produces a winner, the output states that there
+is no flip threshold because evidence is insufficient across the grid.
