@@ -149,7 +149,10 @@
             ]
           },
           "effort": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Effort/reasoning level if applicable (e.g. high, xhigh)"
           },
           "comparisons": {
@@ -204,7 +207,10 @@
             "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
           },
           "effort_verbatim": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Source's original effort label if normalized"
           },
           "cost": {
@@ -256,6 +262,33 @@
           "comparability_group": {
             "type": "string",
             "description": "Rows may only be compared when this key matches AND comparable is not false"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "description": "Stable identity of the source board snapshot, independent of file or ingestion lane."
+          },
+          "n": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Sample size stated by the source."
+          },
+          "ci_lo": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Lower confidence interval bound as stated by the source."
+          },
+          "ci_hi": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Upper confidence interval bound as stated by the source."
+          },
+          "pass_at_4": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Pass@4 score as stated by the source."
           },
           "comparable": {
             "type": "boolean",

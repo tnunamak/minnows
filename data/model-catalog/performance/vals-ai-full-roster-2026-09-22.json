@@ -62,12 +62,13 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "tb4-vals-ai-secondary-2026-09-22",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-09-22",
       "cost": {
         "value": 8.784119,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-22"
     },
     {
       "model": "gpt-5.6-terra",
@@ -82,12 +83,13 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "tb4-vals-ai-secondary-2026-09-22",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-09-22",
       "cost": {
         "value": 5.912802,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-22"
     },
     {
       "model": "gpt-5.6-luna",
@@ -102,12 +104,13 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "tb4-vals-ai-secondary-2026-09-22",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-09-22",
       "cost": {
         "value": 0.403478,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-22"
     },
     {
       "model": "grok-4.6",
@@ -122,12 +125,13 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "tb4-vals-ai-secondary-2026-09-22",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-09-22",
       "cost": {
         "value": 6.471265,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-22"
     },
     {
       "model": "claude-sonnet-5",

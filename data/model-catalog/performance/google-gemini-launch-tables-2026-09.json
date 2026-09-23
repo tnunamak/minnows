@@ -171,9 +171,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-02",
       "task_family": "mixed",
-      "metric_id": "lvbench",
+      "metric_id": "lvbench-agentic",
       "comparable": false,
-      "comparability_group": "google-gemini-3-8-model-card-2026-09",
+      "comparability_group": "google-gemini-3-8-model-card-2026-09-lvbench-agentic",
       "caveat": "Agentic evaluation."
     },
     {
@@ -186,9 +186,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-02",
       "task_family": "mixed",
-      "metric_id": "lvbench",
+      "metric_id": "lvbench-static",
       "comparable": false,
-      "comparability_group": "google-gemini-3-8-model-card-2026-09",
+      "comparability_group": "google-gemini-3-8-model-card-2026-09-lvbench-static",
       "caveat": "Static evaluation."
     },
     {
@@ -230,9 +230,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-02",
       "task_family": "mixed",
-      "metric_id": "biomysterybench",
+      "metric_id": "biomystery-human-solvable",
       "comparable": false,
-      "comparability_group": "google-gemini-3-8-model-card-2026-09",
+      "comparability_group": "google-gemini-3-8-model-card-2026-09-biomystery-human-solvable",
       "caveat": "Human Solvable split."
     },
     {
@@ -245,9 +245,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-02",
       "task_family": "mixed",
-      "metric_id": "biomysterybench",
+      "metric_id": "biomystery-human-difficult",
       "comparable": false,
-      "comparability_group": "google-gemini-3-8-model-card-2026-09",
+      "comparability_group": "google-gemini-3-8-model-card-2026-09-biomystery-human-difficult",
       "caveat": "Human Difficult split."
     },
     {

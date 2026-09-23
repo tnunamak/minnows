@@ -29,6 +29,8 @@ Contracts for every JSON file in this pack. **Validated by**
 
 Each entry: `id`, `provider`, `family`, `status` (`ga` | `preview` | `historical` |
 `third_party_board_only`), `aliases[]`, and optional `tier`, `access`, and `effort_parameter`.
+Entries may also carry `released` (an ISO date) and `release_source_id` when a primary
+source states the model's release date. `release_source_id` must resolve in `SOURCES.json`.
 
 `access` — `restricted` marks a model that is trusted-access only (e.g. `claude-mythos-5-1`):
 GA for its program, but never a routing candidate. Omitted means generally available.
@@ -38,7 +40,7 @@ GA for its program, but never a routing candidate. Omitted means generally avail
 
 `tier` — **capability tier**: vendors ship concurrent tiers on separate cadences; policy
 picks a tier per task, then the newest GA model in that tier. Populated for OpenAI,
-Anthropic, Google, and xAI models:
+Anthropic, Google, xAI, Qwen, and other vendor families where the vendor names a family:
 
 - **openai**: `astra` | `sol` | `terra` | `luna` | `pro` | `mini` | `nano` | `codex` | `base`
   (`base` = the flagship generation id with no tier suffix, e.g. `gpt-5.5`, `gpt-5.4`)
@@ -47,9 +49,6 @@ Anthropic, Google, and xAI models:
   (vendor model classes; managed agents remain distinct from text models)
 - **xai**: `flagship` for Grok flagship releases and `build-agent` for Grok Build. Grok 4.7
   is identified by xAI as its flagship; Fast is a deployment variant, not a public API model id.
-- **xai**: the vendor's own tiering if documented, else omitted — xAI does not currently
-  publish a named capability-tier scheme (`grok-4.x` numbering only), so `tier` is omitted
-  for all xAI rows as of 2026-09-22.
 - **deepseek**: `pro` | `flash` (vendor model names; V4.1 Flash is current).
 - **moonshot**: `k3` (named generation/tier).
 - **z.ai** (`provider: other`): GLM model names such as `glm` | `flash`; the model suffix is
@@ -57,8 +56,8 @@ Anthropic, Google, and xAI models:
 - **minimax**: `m3` | `m2.7` (vendor model family designations).
 - **meta**: `spark` (Muse Spark family; preview status is separate).
 - **mistral**: `large` | `medium` | `small` (vendor family names; not a universal rank).
-- **alibaba**: use a vendor tier name only when the primary source presents one; Qwen's
-  `max`/`plus`/`flash` suffixes are product-family designations, not cross-vendor ranks.
+- **alibaba**: Qwen's `max` | `plus` | `flash` | `coder` suffixes are product-family
+  designations, not cross-vendor ranks.
 
 `tier` is the vendor's own concurrent product/family label where one is documented. Values
 are meaningful within a provider and do not imply a universal ordering across providers.
@@ -171,6 +170,11 @@ At least one of `claims` or `scores` must be non-empty.
   "missing": ["Digitized chart series for …"]
 }
 ```
+
+For board rows, optional `snapshot_id` names the source snapshot independently of its
+file or ingestion lane. Rows with the same snapshot and `metric_id` must use one
+`comparability_group`. Optional `n`, `ci_lo`, `ci_hi`, and `pass_at_4` preserve source
+sample size, confidence bounds, and pass@4 when a board publishes them.
 
 ## Validate
 

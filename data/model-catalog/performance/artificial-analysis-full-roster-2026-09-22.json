@@ -76,12 +76,13 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "cost": {
         "value": 5.982012019521066,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "claude-opus-5-5",
@@ -97,7 +98,8 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2"
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "claude-opus-5-5",
@@ -113,7 +115,8 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2"
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "claude-opus-5-5",
@@ -129,7 +132,8 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2"
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "claude-sonnet-5",
@@ -144,14 +148,15 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "cost": {
         "value": 5.091163584815694,
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
       "effort": "max",
-      "effort_verbatim": "max"
+      "effort_verbatim": "max",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "claude-sonnet-5",
@@ -188,7 +193,8 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2-estimated"
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "claude-fable-5-1",
@@ -204,12 +210,13 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "cost": {
         "value": 7.629706364004841,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "claude-fable-5-1",
@@ -225,7 +232,8 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2"
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "gpt-6-astra",
@@ -241,12 +249,13 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "cost": {
         "value": 3.2575003134834164,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "gpt-6-astra",
@@ -262,7 +271,8 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2"
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "gpt-6-sol",
@@ -277,14 +287,15 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "cost": {
         "value": 1.0564240894076389,
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
       "effort": "max",
-      "effort_verbatim": "max"
+      "effort_verbatim": "max",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "gpt-6-luna",
@@ -299,14 +310,15 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "cost": {
         "value": 0.06809498628701058,
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
       "effort": "max",
-      "effort_verbatim": "max"
+      "effort_verbatim": "max",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "gpt-5.6-sol",
@@ -321,14 +333,15 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "cost": {
         "value": 1.98845538085375,
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
       "effort": "max",
-      "effort_verbatim": "max"
+      "effort_verbatim": "max",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "gpt-5.6-terra",
@@ -343,14 +356,15 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "cost": {
         "value": 1.3987235612691513,
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
       "effort": "max",
-      "effort_verbatim": "max"
+      "effort_verbatim": "max",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "gpt-5.6-luna",
@@ -365,9 +379,10 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "effort": "max",
-      "effort_verbatim": "max"
+      "effort_verbatim": "max",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "grok-4.6",
@@ -383,12 +398,13 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "cost": {
         "value": 1.8589423352127492,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     }
   ],
   "missing": [

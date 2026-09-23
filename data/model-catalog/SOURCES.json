@@ -1855,6 +1855,16 @@
       "retrieved_at": "2026-09-23",
       "kind": "third_party_eval",
       "notes": "Direct HTML fetch; overall board result values read from the embedded RSC payload. The board reports accuracy as a 0-100 percentage, latency in seconds, and cost_per_test in USD. Full model roster snapshot: 88 rows."
+    },
+    {
+      "id": "openai-gpt-oss-2025-08-05",
+      "url": "https://openai.com/index/introducing-gpt-oss/",
+      "title": "Introducing gpt-oss",
+      "publisher": "OpenAI",
+      "published": "2025-08-05",
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_blog",
+      "notes": "OpenAI release announcement for the open-weight gpt-oss-120b model."
     }
   ]
 }

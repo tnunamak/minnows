@@ -55,7 +55,7 @@
     "minimax-m3-launch-2026-09-23",
     "mistral-small4-launch-2026-09-23"
   ],
-  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking. 2026-09-22: added gpt-6-sol/gpt-6-luna api surfaces from their model pages (none/low/medium(default)/high/xhigh/max — no minimal, unlike gpt-5.6's api surface). 2026-09-22 (integration correction): the gpt-6-sol/gpt-6-luna codex_cli surfaces were initially recorded empty, citing a codex-cli 0.154.0 read that reported both slugs absent (auth-scoped rollout gap). A same-day 0.156.0 re-read on the same host shows both ARE listed (visibility=list): gpt-6-sol low/medium/high/xhigh/max/ultra default medium, gpt-6-luna low/medium/high/xhigh/max default medium — filled in from that later read (see openai-codex-debug-models-0-156-0-2026-09-22). 2026-09-23: added observed agy 1.2.9 per-model efforts (3.8/3.7/3.6 Flash low/medium/high; 3.1 Pro low/high), auth-scoped; added Grok 4.7 API effort and authenticated Grok CLI listing (sole/default model).",
+  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking. 2026-09-22: added gpt-6-sol/gpt-6-luna api surfaces from their model pages (none/low/medium(default)/high/xhigh/max — no minimal, unlike gpt-5.6's api surface). 2026-09-22 (integration correction): the gpt-6-sol/gpt-6-luna codex_cli surfaces were initially recorded empty, citing a codex-cli 0.154.0 read that reported both slugs absent (auth-scoped rollout gap). A same-day 0.156.0 re-read on the same host shows both ARE listed (visibility=list): gpt-6-sol low/medium/high/xhigh/max/ultra default medium, gpt-6-luna low/medium/high/xhigh/max default medium — filled in from that later read (see openai-codex-debug-models-0-156-0-2026-09-22). 2026-09-23: added observed agy 1.2.9 per-model efforts (3.8/3.7/3.6 Flash low/medium/high; 3.1 Pro low/high), auth-scoped; added Grok 4.7 API effort and authenticated Grok CLI listing (sole/default model). Qwen candidates carry vendor product-family tiers and explicit enable_thinking surface notes where the primary model/API/config pages document them; this is a binary thinking toggle, not an effort ladder.",
   "surfaces": [
     {
       "provider": "alibaba",
@@ -139,7 +139,7 @@
       "source_ids": [
         "alibaba-model-studio-pricing-2026-09-05"
       ],
-      "notes": "Open weights. Thinking-only; no non-thinking mode exists."
+      "notes": "Open weights. Thinking-only; no non-thinking mode exists. Thinking control: per-request enable_thinking boolean; no discrete reasoning-effort scale."
     },
     {
       "provider": "alibaba",
@@ -161,7 +161,7 @@
       "source_ids": [
         "alibaba-model-studio-pricing-2026-09-05"
       ],
-      "notes": "Open weights. Hybrid thinking, default enabled."
+      "notes": "Open weights. Hybrid thinking, default enabled. Thinking control: per-request enable_thinking boolean; no discrete reasoning-effort scale."
     },
     {
       "provider": "alibaba",
@@ -183,7 +183,7 @@
       "source_ids": [
         "alibaba-model-studio-pricing-2026-09-05"
       ],
-      "notes": "Hybrid thinking via enable_thinking, default enabled. 1M context. No discrete effort parameter is documented."
+      "notes": "Hybrid thinking via enable_thinking, default enabled. 1M context. No discrete effort parameter is documented. Thinking control: per-request enable_thinking boolean; no discrete reasoning-effort scale."
     },
     {
       "provider": "alibaba",
@@ -204,7 +204,7 @@
       "source_ids": [
         "alibaba-model-studio-pricing-2026-09-05"
       ],
-      "notes": "Per-request enable_thinking (hybrid), NOT a discrete effort ladder. 1M context. This audit did not establish that no effort parameter exists on some other Qwen surface — only that none is documented here."
+      "notes": "Per-request enable_thinking (hybrid), NOT a discrete effort ladder. 1M context. This audit did not establish that no effort parameter exists on some other Qwen surface — only that none is documented here. Thinking control: per-request enable_thinking boolean; no discrete reasoning-effort scale."
     },
     {
       "provider": "alibaba",
@@ -223,7 +223,7 @@
       "source_ids": [
         "qwen-code-cli-config-2026-07"
       ],
-      "notes": "Qwen has no discrete effort levels. Thinking is mandatory for this model."
+      "notes": "Qwen has no discrete effort levels. Thinking is mandatory for this model. Thinking control: per-request enable_thinking boolean; no discrete reasoning-effort scale."
     },
     {
       "provider": "anthropic",
