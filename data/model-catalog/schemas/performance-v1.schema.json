@@ -38,6 +38,7 @@
         "xai",
         "google",
         "alibaba",
+        "deepseek",
         "other"
       ],
       "description": "Vendor that published the claims/scores"
@@ -138,6 +139,7 @@
             "enum": [
               "accuracy",
               "pass_rate",
+              "error_rate",
               "elo",
               "other"
             ]

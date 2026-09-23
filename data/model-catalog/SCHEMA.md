@@ -102,6 +102,18 @@ scores as ground truth without checking `kind` (vendor vs third_party).
 - `match` is **ordered**; first substring hit wins; every `model` must exist in `models`.
 - `agent` is the session family used when resolving (`claude-code` | `codex` | `grok` | `google` | `other`).
 
+## Metric task families and success units
+
+`metrics.json` may tag an unambiguous benchmark with one `task_family`:
+`coding`, `agentic`, `research/browsing`, `knowledge/factuality`, `reasoning`,
+or `computer-use`. The operating-point recommender selects these tags; untagged
+metrics remain in the catalog but are not selected by that policy.
+
+Performance row `unit` can be `accuracy`, `pass_rate`, `error_rate`, `elo`, or
+`other`. The first three are fractional success or error rates in 0..1.
+`error_rate` is used for explicitly named error-rate metrics such as the
+factual-error-rate-difficult-prompts series.
+
 ## Performance (`kind`: `performance`)
 
 At least one of `claims` or `scores` must be non-empty.

@@ -40,7 +40,8 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "vendor_table",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "task_family": "agentic"
     },
     {
       "id": "arc-agi-1",
@@ -64,7 +65,8 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "third_party_board",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "task_family": "reasoning"
     },
     {
       "id": "arc-agi-2-verified",
@@ -72,7 +74,8 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "vendor_table",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "task_family": "reasoning"
     },
     {
       "id": "arc-agi-3",
@@ -116,7 +119,8 @@
       "steward": "third_party_board",
       "unit_default": "other",
       "comparable": false,
-      "notes": "Rows sourced from the OpenAI LAUNCH PAGE chart carry evidence_grade C (vendor), even though the benchmark is named after Artificial Analysis \u2014 the publisher of the number here is OpenAI, not AA. An AA-published reading would be a separate row."
+      "notes": "Rows sourced from the OpenAI LAUNCH PAGE chart carry evidence_grade C (vendor), even though the benchmark is named after Artificial Analysis \u2014 the publisher of the number here is OpenAI, not AA. An AA-published reading would be a separate row.",
+      "task_family": "coding"
     },
     {
       "id": "artificial-analysis-coding-index-model-level",
@@ -176,7 +180,8 @@
       "steward": "vendor_table",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED provenance under this id \u2014 do NOT cross-rank without checking comparability_group. GPT-5.6 launch-table rows (OpenAI vendor_table) and the Opus 5.5 launch-table/system-card rows report different numbers for the same nominal benchmark; distinguish via row-level comparability_group."
+      "notes": "MIXED provenance under this id \u2014 do NOT cross-rank without checking comparability_group. GPT-5.6 launch-table rows (OpenAI vendor_table) and the Opus 5.5 launch-table/system-card rows report different numbers for the same nominal benchmark; distinguish via row-level comparability_group.",
+      "task_family": "computer-use"
     },
     {
       "id": "benchcad",
@@ -218,7 +223,8 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows.",
+      "task_family": "research/browsing"
     },
     {
       "id": "capture-the-flag-challenges",
@@ -269,7 +275,8 @@
       "harness": "mini-swe-agent",
       "steward": "third_party_board",
       "unit_default": "pass_rate",
-      "notes": "Distinct from deepswe-v1-1 (OpenAI's internal vendor table). Independently-run leaderboard, 113 long-horizon coding tasks / 91 repos / 5 languages, mini-swe-agent harness (NOT Codex's native harness)."
+      "notes": "Distinct from deepswe-v1-1 (OpenAI's internal vendor table). Independently-run leaderboard, 113 long-horizon coding tasks / 91 repos / 5 languages, mini-swe-agent harness (NOT Codex's native harness).",
+      "task_family": "coding"
     },
     {
       "id": "deepswe-v1-1",
@@ -277,7 +284,8 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "vendor_table",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "task_family": "coding"
     },
     {
       "id": "expert-swe-internal",
@@ -345,7 +353,8 @@
       "steward": "vendor",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "Vendor launch-chart metric; no independent board reading held in this pack, aside from the Opus 5.5 system card's Cognition-run reading of 'FrontierCode v1.1 (Extended)' also filed under this id (third_party_eval) \u2014 not the same measurement as the vendor launch-chart rows; distinguish via comparability_group."
+      "notes": "Vendor launch-chart metric; no independent board reading held in this pack, aside from the Opus 5.5 system card's Cognition-run reading of 'FrontierCode v1.1 (Extended)' also filed under this id (third_party_eval) \u2014 not the same measurement as the vendor launch-chart rows; distinguish via comparability_group.",
+      "task_family": "coding"
     },
     {
       "id": "frontiercode-1-1-main",
@@ -355,7 +364,8 @@
       "steward": "vendor_table",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED provenance under this id \u2014 do NOT cross-rank without checking source_type/comparability_group. Distinct set from frontiercode-1-1-extended (main vs extended). Rows under this id come from: (1) the digitized Opus 5.5 launch-page effort curve (vendor chart aria-labels, exact transcription), and (2) the Opus 5.5 system card's Cognition-run reading (third_party_eval; Claude models run in Claude Code, GPT models in Codex CLI). Not the same measurement; do not merge or average across comparability_group values."
+      "notes": "MIXED provenance under this id \u2014 do NOT cross-rank without checking source_type/comparability_group. Distinct set from frontiercode-1-1-extended (main vs extended). Rows under this id come from: (1) the digitized Opus 5.5 launch-page effort curve (vendor chart aria-labels, exact transcription), and (2) the Opus 5.5 system card's Cognition-run reading (third_party_eval; Claude models run in Claude Code, GPT models in Codex CLI). Not the same measurement; do not merge or average across comparability_group values.",
+      "task_family": "coding"
     },
     {
       "id": "cursorbench-4-0",
@@ -365,7 +375,8 @@
       "steward": "vendor_table",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED provenance under this id \u2014 do NOT cross-rank without checking source_type/comparability_group. Distinct version from cursorbench-3-2-0 (4.0 vs 3.2.0) \u2014 do not merge with that id. Rows under this id come from: (1) the digitized Opus 5.5 launch-page effort curve (vendor chart aria-labels, exact transcription, no independent board reading held in this pack), and (2) the Opus 5.5 system card's Cursor-run production-agent-harness reading (third_party_eval). Different sources report different numbers for the same nominal benchmark; do not merge or average across comparability_group values."
+      "notes": "MIXED provenance under this id \u2014 do NOT cross-rank without checking source_type/comparability_group. Distinct version from cursorbench-3-2-0 (4.0 vs 3.2.0) \u2014 do not merge with that id. Rows under this id come from: (1) the digitized Opus 5.5 launch-page effort curve (vendor chart aria-labels, exact transcription, no independent board reading held in this pack), and (2) the Opus 5.5 system card's Cursor-run production-agent-harness reading (third_party_eval). Different sources report different numbers for the same nominal benchmark; do not merge or average across comparability_group values.",
+      "task_family": "coding"
     },
     {
       "id": "gdpval-aa-v2-1",
@@ -475,7 +486,8 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "vendor_table",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "task_family": "reasoning"
     },
     {
       "id": "graphwalks-bfs-1mil-f1",
@@ -527,7 +539,8 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows.",
+      "task_family": "knowledge/factuality"
     },
     {
       "id": "internal-research-debugging-evaluation",
@@ -568,7 +581,8 @@
       "harness": "waspflow",
       "steward": "harness_smoke",
       "unit_default": "pass_rate",
-      "notes": "Not a quality metric \u2014 harness smoke observation only"
+      "notes": "Not a quality metric \u2014 harness smoke observation only",
+      "task_family": "agentic"
     },
     {
       "id": "local-implement-standard-oracle-v1",
@@ -577,7 +591,8 @@
       "harness": "waspflow",
       "steward": "harness_smoke",
       "unit_default": "pass_rate",
-      "notes": "Not a quality metric \u2014 harness smoke observation only"
+      "notes": "Not a quality metric \u2014 harness smoke observation only",
+      "task_family": "coding"
     },
     {
       "id": "local-review-audit-oracle-v1",
@@ -586,7 +601,8 @@
       "harness": "waspflow",
       "steward": "harness_smoke",
       "unit_default": "pass_rate",
-      "notes": "Not a quality metric \u2014 harness smoke observation only"
+      "notes": "Not a quality metric \u2014 harness smoke observation only",
+      "task_family": "coding"
     },
     {
       "id": "management-consulting-tasks-internal",
@@ -650,7 +666,8 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "vendor_table",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "task_family": "knowledge/factuality"
     },
     {
       "id": "openai-mrcr-v2-8-needle-256k-512k",
@@ -674,7 +691,8 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "vendor_table",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "task_family": "computer-use"
     },
     {
       "id": "osworld-verified",
@@ -684,7 +702,8 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows.",
+      "task_family": "computer-use"
     },
     {
       "id": "posttrainbench-lite",
@@ -772,7 +791,8 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows.",
+      "task_family": "coding"
     },
     {
       "id": "swe-bench-pro-public",
@@ -780,7 +800,8 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "vendor_table",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "task_family": "coding"
     },
     {
       "id": "swe-bench-pro-public-seal-mini-swe-agent",
@@ -828,7 +849,8 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "vendor_table",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "task_family": "coding"
     },
     {
       "id": "terminal-bench-2-1",
@@ -838,7 +860,8 @@
       "steward": "digitized_chart",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows."
+      "notes": "MIXED source_type/harness under this metric_id \u2014 do not cross-rank; use comparability_group on rows.",
+      "task_family": "coding"
     },
     {
       "id": "terminal-bench-4-0",
@@ -848,7 +871,8 @@
       "steward": "third_party_board",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED provenance under this id \u2014 do NOT cross-rank without checking source_type. Vendor launch-chart rows (openai.com GPT-6 Astra page) and secondary-audit rows (capitalandcompute.net reading of the 2026-09-03 board) report DIFFERENT numbers for the same nominal benchmark and must not be merged or averaged. Result is Astra+Codex+TB4.0, not a model-only score."
+      "notes": "MIXED provenance under this id \u2014 do NOT cross-rank without checking source_type. Vendor launch-chart rows (openai.com GPT-6 Astra page) and secondary-audit rows (capitalandcompute.net reading of the 2026-09-03 board) report DIFFERENT numbers for the same nominal benchmark and must not be merged or averaged. Result is Astra+Codex+TB4.0, not a model-only score.",
+      "task_family": "coding"
     },
     {
       "id": "terminal-bench-science-0-1",
@@ -954,7 +978,8 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "vendor_table",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "task_family": "agentic"
     },
     {
       "id": "swe-bench-multilingual",
@@ -1048,7 +1073,8 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "vendor_table",
-      "unit_default": "accuracy"
+      "unit_default": "other",
+      "task_family": "computer-use"
     },
     {
       "id": "osworld-2-0-strict",
@@ -1056,7 +1082,8 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "vendor_table",
-      "unit_default": "pass_rate"
+      "unit_default": "pass_rate",
+      "task_family": "computer-use"
     },
     {
       "id": "officeqa",
@@ -1064,7 +1091,8 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "vendor_table",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "task_family": "knowledge/factuality"
     },
     {
       "id": "legal-agent-benchmark",
@@ -1091,7 +1119,8 @@
       "harness": null,
       "steward": "vendor_table",
       "unit_default": "pass_rate",
-      "notes": "Distinct from 'toolathlon' metric_id: this is the authors' final Toolathlon-Verified release (June 2026), Anthropic's own harness mirroring the paper's task definitions."
+      "notes": "Distinct from 'toolathlon' metric_id: this is the authors' final Toolathlon-Verified release (June 2026), Anthropic's own harness mirroring the paper's task definitions.",
+      "task_family": "agentic"
     },
     {
       "id": "healthbench",
@@ -1340,8 +1369,9 @@
       "direction": "lower_better",
       "harness": null,
       "steward": "vendor_table",
-      "unit_default": "other",
-      "notes": "OpenAI internal eval on de-identified ChatGPT conversations where users had flagged a factual error from a prior model. Explicitly NOT representative of typical usage (error-inducing sample, not a random sample); not controlled for response length."
+      "unit_default": "error_rate",
+      "notes": "OpenAI internal eval on de-identified ChatGPT conversations where users had flagged a factual error from a prior model. Explicitly NOT representative of typical usage (error-inducing sample, not a random sample); not controlled for response length.",
+      "task_family": "knowledge/factuality"
     },
     {
       "id": "coding-deception-rate",
@@ -1993,7 +2023,8 @@
       "direction": "higher_better",
       "harness": null,
       "steward": "third_party_board",
-      "unit_default": "accuracy"
+      "unit_default": "accuracy",
+      "task_family": "knowledge/factuality"
     },
     {
       "id": "epoch-vending-bench-2",

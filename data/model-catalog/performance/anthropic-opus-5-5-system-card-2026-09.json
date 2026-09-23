@@ -501,7 +501,7 @@
       "model": "claude-opus-5-5",
       "metric": "OSWorld 2.0 (partial score)",
       "score": 0.818,
-      "unit": "accuracy",
+      "unit": "other",
       "effort": "max",
       "source_id": "anthropic-opus-5-5-system-card-2026-09-22",
       "caveat": "Table 8.1.A / Section 8.13.3, p.174, 205-207. Partial score = mean per-task credit across weighted checkpoints, pass@1 averaged over 5 runs, 1080p, max 500 action steps, updated Sept 10 2026 task files. Superseded OSWorld 2.0 figures in the Fable 5.1/Mythos 5.1 system card (different harness config -- not directly comparable to earlier releases).",
