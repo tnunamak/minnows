@@ -507,7 +507,9 @@ def test_real_pack_schema_determinism_and_no_point_write():
     assert (pol / "operating-points.json").read_bytes() == before
     grok_now = next(r for r in first if r["op"] == "grok.explore-only")
     assert grok_now["recommended"] == {"provider": "grok", "model": "grok-4.7", "effort": "medium"}
-    assert any("not dispatchable" in f for f in grok_now["flags"])
+    current_grok = points["grok.explore-only"]["expands_to"]["model"]
+    flagged = any("not dispatchable" in f for f in grok_now["flags"])
+    assert flagged == (current_grok not in ro.GROK_LIVE_MODELS)  # flag only an incumbent the CLI no longer offers
     audit = next(r for r in first if r["op"] == "review.audit")
     if audit["status"] == "RECOMMENDED":  # data-dependent; assert invariants, not a snapshot answer
         assert any("third_party" in g for g in audit["deciding_groups"]), "an auditor must win an independent group"
