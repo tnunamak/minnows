@@ -1865,6 +1865,26 @@
       "retrieved_at": "2026-09-23",
       "kind": "vendor_blog",
       "notes": "OpenAI release announcement for the open-weight gpt-oss-120b model."
+    },
+    {
+      "id": "local-qwen-cli-help-0-21-1-2026-09-23",
+      "url": "https://github.com/QwenLM/qwen-code/releases/tag/v0.21.1",
+      "title": "Qwen Code 0.21.1 local CLI help observation",
+      "publisher": "Alibaba Qwen",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_docs",
+      "notes": "Local `qwen --version` returned 0.21.1. `qwen --help` exposes no --effort or --thinking CLI option; it exposes model selection only. This records the installed CLI flag surface, not provider API configuration."
+    },
+    {
+      "id": "qwen-code-model-providers-2026-09-23",
+      "url": "https://github.com/QwenLM/qwen-code/blob/main/docs/users/configuration/model-providers.md",
+      "title": "Qwen Code model provider configuration",
+      "publisher": "Alibaba Qwen",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_docs",
+      "notes": "Official provider mapping docs: Qwen3.8-Max family accepts reasoning_effort through xhigh (max clamps to xhigh); other Qwen models map a selected effort to enable_thinking=true."
     }
   ]
 }

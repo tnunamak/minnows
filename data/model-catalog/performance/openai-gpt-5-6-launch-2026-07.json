@@ -11,7 +11,7 @@
   "source_ids": [
     "openai-gpt-5-6-2026-07-09"
   ],
-  "notes": "Full vendor eval tables transcribed from the GPT-5.6 GA post (2026-07-09). Scores without effort are the published Sol/Terra/Luna columns (table default; not always max). Rows with effort=ultra are multi-agent. Independent replications may differ. Percent metrics stored as 0\u20131 accuracy/pass fractions; Elo and AA index scores keep published scale (unit other|elo). Cross-check ARC-AGI-3 effort ladders against arcprize-gpt-5-6-2026-07.json (third-party verified).",
+  "notes": "Full vendor eval tables transcribed from the GPT-5.6 GA post (2026-07-09). Scores without effort are the published Sol/Terra/Luna columns (table default; not always max). Rows with effort=ultra are multi-agent. Independent replications may differ. Percent metrics stored as 0–1 accuracy/pass fractions; Elo and AA index scores keep published scale (unit other|elo). Cross-check ARC-AGI-3 effort ladders against arcprize-gpt-5-6-2026-07.json (third-party verified).",
   "scores": [
     {
       "model": "gpt-5.6-sol",
@@ -25,12 +25,14 @@
         "claude-opus-4-8": 0.452,
         "gemini-3.1-pro-preview": 0.321
       },
-      "caveat": "Table value 52.7%. Prose elsewhere on same page cites 53.6 for Sol \u2014 keep table as primary.",
+      "caveat": "Table value 52.7%. Prose elsewhere on same page cites 53.6 for Sol — keep table as primary.",
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "agentic",
-      "metric_id": "agents-last-exam"
+      "metric_id": "agents-last-exam",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-agents-last-exam"
     },
     {
       "model": "gpt-5.6-terra",
@@ -42,7 +44,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "agentic",
-      "metric_id": "agents-last-exam"
+      "metric_id": "agents-last-exam",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-agents-last-exam"
     },
     {
       "model": "gpt-5.6-luna",
@@ -54,7 +58,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "agentic",
-      "metric_id": "agents-last-exam"
+      "metric_id": "agents-last-exam",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-agents-last-exam"
     },
     {
       "model": "gpt-5.6-sol",
@@ -74,7 +80,8 @@
       "observed_at": "2026-07-09",
       "metric_id": "gdpval-aa-v2",
       "comparable": false,
-      "comparability_group": "gdpval-aa-v2::vendor_table::null"
+      "comparability_group": "gdpval-aa-v2::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -87,7 +94,8 @@
       "observed_at": "2026-07-09",
       "metric_id": "gdpval-aa-v2",
       "comparable": false,
-      "comparability_group": "gdpval-aa-v2::vendor_table::null"
+      "comparability_group": "gdpval-aa-v2::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -100,7 +108,8 @@
       "observed_at": "2026-07-09",
       "metric_id": "gdpval-aa-v2",
       "comparable": false,
-      "comparability_group": "gdpval-aa-v2::vendor_table::null"
+      "comparability_group": "gdpval-aa-v2::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -117,7 +126,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "management-consulting-tasks-internal"
+      "metric_id": "management-consulting-tasks-internal",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-management-consulting-tasks-internal"
     },
     {
       "model": "gpt-5.6-terra",
@@ -128,7 +139,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "management-consulting-tasks-internal"
+      "metric_id": "management-consulting-tasks-internal",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-management-consulting-tasks-internal"
     },
     {
       "model": "gpt-5.6-luna",
@@ -139,7 +152,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "management-consulting-tasks-internal"
+      "metric_id": "management-consulting-tasks-internal",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-management-consulting-tasks-internal"
     },
     {
       "model": "gpt-5.6-sol",
@@ -154,7 +169,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "big-finance-bench"
+      "metric_id": "big-finance-bench",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-big-finance-bench"
     },
     {
       "model": "gpt-5.6-terra",
@@ -165,7 +182,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "big-finance-bench"
+      "metric_id": "big-finance-bench",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-big-finance-bench"
     },
     {
       "model": "gpt-5.6-luna",
@@ -176,7 +195,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "big-finance-bench"
+      "metric_id": "big-finance-bench",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-big-finance-bench"
     },
     {
       "model": "gpt-5.6-sol",
@@ -194,7 +215,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "artificial-analysis-intelligence-index-v4-1"
+      "metric_id": "artificial-analysis-intelligence-index-v4-1",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-artificial-analysis-intelligence-index-v4-1"
     },
     {
       "model": "gpt-5.6-terra",
@@ -205,7 +228,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "artificial-analysis-intelligence-index-v4-1"
+      "metric_id": "artificial-analysis-intelligence-index-v4-1",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-artificial-analysis-intelligence-index-v4-1"
     },
     {
       "model": "gpt-5.6-luna",
@@ -216,7 +241,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "artificial-analysis-intelligence-index-v4-1"
+      "metric_id": "artificial-analysis-intelligence-index-v4-1",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-artificial-analysis-intelligence-index-v4-1"
     },
     {
       "model": "gpt-5.6-sol",
@@ -234,7 +261,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "artificial-analysis-coding-agent-index-v1-1"
+      "metric_id": "artificial-analysis-coding-agent-index-v1-1",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-artificial-analysis-coding-agent-index-v1-1"
     },
     {
       "model": "gpt-5.6-terra",
@@ -246,7 +275,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "artificial-analysis-coding-agent-index-v1-1"
+      "metric_id": "artificial-analysis-coding-agent-index-v1-1",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-artificial-analysis-coding-agent-index-v1-1"
     },
     {
       "model": "gpt-5.6-luna",
@@ -258,7 +289,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "artificial-analysis-coding-agent-index-v1-1"
+      "metric_id": "artificial-analysis-coding-agent-index-v1-1",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-artificial-analysis-coding-agent-index-v1-1"
     },
     {
       "model": "gpt-5.6-sol",
@@ -281,7 +314,8 @@
       "task_family": "coding",
       "metric_id": "swe-bench-pro",
       "comparable": false,
-      "comparability_group": "swe-bench-pro::vendor_table::null"
+      "comparability_group": "swe-bench-pro::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -295,7 +329,8 @@
       "task_family": "coding",
       "metric_id": "swe-bench-pro",
       "comparable": false,
-      "comparability_group": "swe-bench-pro::vendor_table::null"
+      "comparability_group": "swe-bench-pro::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -309,7 +344,8 @@
       "task_family": "coding",
       "metric_id": "swe-bench-pro",
       "comparable": false,
-      "comparability_group": "swe-bench-pro::vendor_table::null"
+      "comparability_group": "swe-bench-pro::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -329,7 +365,8 @@
       "task_family": "coding",
       "metric_id": "deepswe-v1-1",
       "comparable": false,
-      "comparability_group": "vendor-launch-table-deepswe-v1-1-gpt-5-6"
+      "comparability_group": "vendor-launch-table-deepswe-v1-1-gpt-5-6",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -343,7 +380,8 @@
       "task_family": "coding",
       "metric_id": "deepswe-v1-1",
       "comparable": false,
-      "comparability_group": "vendor-launch-table-deepswe-v1-1-gpt-5-6"
+      "comparability_group": "vendor-launch-table-deepswe-v1-1-gpt-5-6",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -357,7 +395,8 @@
       "task_family": "coding",
       "metric_id": "deepswe-v1-1",
       "comparable": false,
-      "comparability_group": "vendor-launch-table-deepswe-v1-1-gpt-5-6"
+      "comparability_group": "vendor-launch-table-deepswe-v1-1-gpt-5-6",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -378,7 +417,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::vendor_table::null"
+      "comparability_group": "terminal-bench-2-1::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -392,7 +432,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::vendor_table::null"
+      "comparability_group": "terminal-bench-2-1::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -406,7 +447,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::vendor_table::null"
+      "comparability_group": "terminal-bench-2-1::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -423,7 +465,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::vendor_table::null"
+      "comparability_group": "terminal-bench-2-1::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -440,7 +483,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "genebench-pro"
+      "metric_id": "genebench-pro",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-genebench-pro"
     },
     {
       "model": "gpt-5.6-terra",
@@ -451,7 +496,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "genebench-pro"
+      "metric_id": "genebench-pro",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-genebench-pro"
     },
     {
       "model": "gpt-5.6-luna",
@@ -462,7 +509,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "genebench-pro"
+      "metric_id": "genebench-pro",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-genebench-pro"
     },
     {
       "model": "gpt-5.6-sol",
@@ -477,7 +526,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "lifescibench"
+      "metric_id": "lifescibench",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-lifescibench"
     },
     {
       "model": "gpt-5.6-terra",
@@ -488,7 +539,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "lifescibench"
+      "metric_id": "lifescibench",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-lifescibench"
     },
     {
       "model": "gpt-5.6-luna",
@@ -499,7 +552,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "lifescibench"
+      "metric_id": "lifescibench",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-lifescibench"
     },
     {
       "model": "gpt-5.6-sol",
@@ -513,7 +568,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "medchembench-internal"
+      "metric_id": "medchembench-internal",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-medchembench-internal"
     },
     {
       "model": "gpt-5.6-terra",
@@ -524,7 +581,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "medchembench-internal"
+      "metric_id": "medchembench-internal",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-medchembench-internal"
     },
     {
       "model": "gpt-5.6-luna",
@@ -535,7 +594,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "medchembench-internal"
+      "metric_id": "medchembench-internal",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-medchembench-internal"
     },
     {
       "model": "gpt-5.6-sol",
@@ -552,7 +613,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "healthbench-professional"
+      "metric_id": "healthbench-professional",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-healthbench-professional"
     },
     {
       "model": "gpt-5.6-terra",
@@ -563,7 +626,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "healthbench-professional"
+      "metric_id": "healthbench-professional",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-healthbench-professional"
     },
     {
       "model": "gpt-5.6-luna",
@@ -574,7 +639,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "healthbench-professional"
+      "metric_id": "healthbench-professional",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-healthbench-professional"
     },
     {
       "model": "gpt-5.6-sol",
@@ -590,7 +657,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "computer_use",
-      "metric_id": "osworld-2-0"
+      "metric_id": "osworld-2-0",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-osworld-2-0"
     },
     {
       "model": "gpt-5.6-terra",
@@ -602,7 +671,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "computer_use",
-      "metric_id": "osworld-2-0"
+      "metric_id": "osworld-2-0",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-osworld-2-0"
     },
     {
       "model": "gpt-5.6-luna",
@@ -614,7 +685,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "task_family": "computer_use",
-      "metric_id": "osworld-2-0"
+      "metric_id": "osworld-2-0",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-osworld-2-0"
     },
     {
       "model": "gpt-5.6-sol",
@@ -635,7 +708,8 @@
       "task_family": "agentic_search",
       "metric_id": "browsecomp",
       "comparable": false,
-      "comparability_group": "browsecomp::vendor_table::null"
+      "comparability_group": "browsecomp::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -649,7 +723,8 @@
       "task_family": "agentic_search",
       "metric_id": "browsecomp",
       "comparable": false,
-      "comparability_group": "browsecomp::vendor_table::null"
+      "comparability_group": "browsecomp::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -663,7 +738,8 @@
       "task_family": "agentic_search",
       "metric_id": "browsecomp",
       "comparable": false,
-      "comparability_group": "browsecomp::vendor_table::null"
+      "comparability_group": "browsecomp::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -680,7 +756,8 @@
       "task_family": "agentic_search",
       "metric_id": "browsecomp",
       "comparable": false,
-      "comparability_group": "browsecomp::vendor_table::null"
+      "comparability_group": "browsecomp::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -697,7 +774,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "benchcad"
+      "metric_id": "benchcad",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-benchcad"
     },
     {
       "model": "gpt-5.6-terra",
@@ -708,7 +787,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "benchcad"
+      "metric_id": "benchcad",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-benchcad"
     },
     {
       "model": "gpt-5.6-luna",
@@ -719,7 +800,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "benchcad"
+      "metric_id": "benchcad",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-benchcad"
     },
     {
       "model": "gpt-5.6-sol",
@@ -736,7 +819,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "benchcad-python-tool"
+      "metric_id": "benchcad-python-tool",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-benchcad-python-tool"
     },
     {
       "model": "gpt-5.6-terra",
@@ -747,7 +832,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "benchcad-python-tool"
+      "metric_id": "benchcad-python-tool",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-benchcad-python-tool"
     },
     {
       "model": "gpt-5.6-luna",
@@ -758,7 +845,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "benchcad-python-tool"
+      "metric_id": "benchcad-python-tool",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-benchcad-python-tool"
     },
     {
       "model": "gpt-5.6-sol",
@@ -772,7 +861,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "capture-the-flag-challenges"
+      "metric_id": "capture-the-flag-challenges",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-capture-the-flag-challenges"
     },
     {
       "model": "gpt-5.6-terra",
@@ -783,7 +874,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "capture-the-flag-challenges"
+      "metric_id": "capture-the-flag-challenges",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-capture-the-flag-challenges"
     },
     {
       "model": "gpt-5.6-luna",
@@ -794,7 +887,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "capture-the-flag-challenges"
+      "metric_id": "capture-the-flag-challenges",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-capture-the-flag-challenges"
     },
     {
       "model": "gpt-5.6-sol",
@@ -808,7 +903,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "sec-bench-pro"
+      "metric_id": "sec-bench-pro",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-sec-bench-pro"
     },
     {
       "model": "gpt-5.6-terra",
@@ -819,7 +916,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "sec-bench-pro"
+      "metric_id": "sec-bench-pro",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-sec-bench-pro"
     },
     {
       "model": "gpt-5.6-luna",
@@ -830,7 +929,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "sec-bench-pro"
+      "metric_id": "sec-bench-pro",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-sec-bench-pro"
     },
     {
       "model": "gpt-5.6-sol",
@@ -844,7 +945,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "ultra",
-      "metric_id": "sec-bench-pro"
+      "metric_id": "sec-bench-pro",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-sec-bench-pro"
     },
     {
       "model": "gpt-5.6-sol",
@@ -861,7 +964,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "cybergym"
+      "metric_id": "cybergym",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-cybergym"
     },
     {
       "model": "gpt-5.6-terra",
@@ -872,7 +977,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "cybergym"
+      "metric_id": "cybergym",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-cybergym"
     },
     {
       "model": "gpt-5.6-luna",
@@ -883,7 +990,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "cybergym"
+      "metric_id": "cybergym",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-cybergym"
     },
     {
       "model": "gpt-5.6-sol",
@@ -900,7 +1009,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "exploitbench"
+      "metric_id": "exploitbench",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-exploitbench"
     },
     {
       "model": "gpt-5.6-terra",
@@ -911,7 +1022,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "exploitbench"
+      "metric_id": "exploitbench",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-exploitbench"
     },
     {
       "model": "gpt-5.6-luna",
@@ -922,7 +1035,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "exploitbench"
+      "metric_id": "exploitbench",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-exploitbench"
     },
     {
       "model": "gpt-5.6-sol",
@@ -937,7 +1052,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "exploitgym"
+      "metric_id": "exploitgym",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-exploitgym"
     },
     {
       "model": "gpt-5.6-terra",
@@ -948,7 +1065,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "exploitgym"
+      "metric_id": "exploitgym",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-exploitgym"
     },
     {
       "model": "gpt-5.6-luna",
@@ -959,7 +1078,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "exploitgym"
+      "metric_id": "exploitgym",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-exploitgym"
     },
     {
       "model": "gpt-5.6-sol",
@@ -973,7 +1094,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "internal-research-debugging-evaluation"
+      "metric_id": "internal-research-debugging-evaluation",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-internal-research-debugging-evaluation"
     },
     {
       "model": "gpt-5.6-terra",
@@ -984,7 +1107,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "internal-research-debugging-evaluation"
+      "metric_id": "internal-research-debugging-evaluation",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-internal-research-debugging-evaluation"
     },
     {
       "model": "gpt-5.6-luna",
@@ -995,7 +1120,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "internal-research-debugging-evaluation"
+      "metric_id": "internal-research-debugging-evaluation",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-internal-research-debugging-evaluation"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1009,7 +1136,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "kernelgen-1p"
+      "metric_id": "kernelgen-1p",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-kernelgen-1p"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1020,7 +1149,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "kernelgen-1p"
+      "metric_id": "kernelgen-1p",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-kernelgen-1p"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1031,7 +1162,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "kernelgen-1p"
+      "metric_id": "kernelgen-1p",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-kernelgen-1p"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1045,7 +1178,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "nanogpt"
+      "metric_id": "nanogpt",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-nanogpt"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1056,7 +1191,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "nanogpt"
+      "metric_id": "nanogpt",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-nanogpt"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1067,7 +1204,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "nanogpt"
+      "metric_id": "nanogpt",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-nanogpt"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1081,7 +1220,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "posttrainbench-lite"
+      "metric_id": "posttrainbench-lite",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-posttrainbench-lite"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1092,7 +1233,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "posttrainbench-lite"
+      "metric_id": "posttrainbench-lite",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-posttrainbench-lite"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1103,7 +1246,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "posttrainbench-lite"
+      "metric_id": "posttrainbench-lite",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-posttrainbench-lite"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1117,7 +1262,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "rsi-index"
+      "metric_id": "rsi-index",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-rsi-index"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1128,7 +1275,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "rsi-index"
+      "metric_id": "rsi-index",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-rsi-index"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1139,7 +1288,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "rsi-index"
+      "metric_id": "rsi-index",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-rsi-index"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1154,7 +1305,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "mmmu-pro-no-tools"
+      "metric_id": "mmmu-pro-no-tools",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-mmmu-pro-no-tools"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1165,7 +1318,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "mmmu-pro-no-tools"
+      "metric_id": "mmmu-pro-no-tools",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-mmmu-pro-no-tools"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1176,7 +1331,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "mmmu-pro-no-tools"
+      "metric_id": "mmmu-pro-no-tools",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-mmmu-pro-no-tools"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1190,7 +1347,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "mmmu-pro-with-tools"
+      "metric_id": "mmmu-pro-with-tools",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-mmmu-pro-with-tools"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1201,7 +1360,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "mmmu-pro-with-tools"
+      "metric_id": "mmmu-pro-with-tools",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-mmmu-pro-with-tools"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1212,7 +1373,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "mmmu-pro-with-tools"
+      "metric_id": "mmmu-pro-with-tools",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-mmmu-pro-with-tools"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1229,7 +1392,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "gdp-pdf"
+      "metric_id": "gdp-pdf",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-gdp-pdf"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1240,7 +1405,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "gdp-pdf"
+      "metric_id": "gdp-pdf",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-gdp-pdf"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1251,7 +1418,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "gdp-pdf"
+      "metric_id": "gdp-pdf",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-gdp-pdf"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1271,7 +1440,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "metric_id": "gpqa-diamond",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-gpqa-diamond"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1283,7 +1454,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "metric_id": "gpqa-diamond",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-gpqa-diamond"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1295,7 +1468,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "metric_id": "gpqa-diamond",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-gpqa-diamond"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1313,7 +1488,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "metric_id": "frontiermath-tier-1-3-v2",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-frontiermath-tier-1-3-v2"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1325,7 +1502,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "metric_id": "frontiermath-tier-1-3-v2",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-frontiermath-tier-1-3-v2"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1337,7 +1516,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "metric_id": "frontiermath-tier-1-3-v2",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-frontiermath-tier-1-3-v2"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1354,7 +1535,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "metric_id": "frontiermath-tier-4-v2",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-frontiermath-tier-4-v2"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1366,7 +1549,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "metric_id": "frontiermath-tier-4-v2",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-frontiermath-tier-4-v2"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1378,7 +1563,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "metric_id": "frontiermath-tier-4-v2",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-frontiermath-tier-4-v2"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1397,7 +1584,8 @@
       "observed_at": "2026-07-09",
       "metric_id": "automationbench",
       "comparable": false,
-      "comparability_group": "openai-gpt-5-6-launch-automationbench"
+      "comparability_group": "openai-gpt-5-6-launch-automationbench",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1410,7 +1598,8 @@
       "observed_at": "2026-07-09",
       "metric_id": "automationbench",
       "comparable": false,
-      "comparability_group": "openai-gpt-5-6-launch-automationbench"
+      "comparability_group": "openai-gpt-5-6-launch-automationbench",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1423,7 +1612,8 @@
       "observed_at": "2026-07-09",
       "metric_id": "automationbench",
       "comparable": false,
-      "comparability_group": "openai-gpt-5-6-launch-automationbench"
+      "comparability_group": "openai-gpt-5-6-launch-automationbench",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1442,7 +1632,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "toolathlon"
+      "metric_id": "toolathlon",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-toolathlon"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1453,7 +1645,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "toolathlon"
+      "metric_id": "toolathlon",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-toolathlon"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1464,7 +1658,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "toolathlon"
+      "metric_id": "toolathlon",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-toolathlon"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1478,7 +1674,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "openai-mrcr-v2-8-needle-256k-512k"
+      "metric_id": "openai-mrcr-v2-8-needle-256k-512k",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-openai-mrcr-v2-8-needle-256k-512k"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1489,7 +1687,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "openai-mrcr-v2-8-needle-256k-512k"
+      "metric_id": "openai-mrcr-v2-8-needle-256k-512k",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-openai-mrcr-v2-8-needle-256k-512k"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1500,7 +1700,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "openai-mrcr-v2-8-needle-256k-512k"
+      "metric_id": "openai-mrcr-v2-8-needle-256k-512k",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-openai-mrcr-v2-8-needle-256k-512k"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1514,7 +1716,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "openai-mrcr-v2-8-needle-512k-1m"
+      "metric_id": "openai-mrcr-v2-8-needle-512k-1m",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-openai-mrcr-v2-8-needle-512k-1m"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1525,7 +1729,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "openai-mrcr-v2-8-needle-512k-1m"
+      "metric_id": "openai-mrcr-v2-8-needle-512k-1m",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-openai-mrcr-v2-8-needle-512k-1m"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1536,7 +1742,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "openai-mrcr-v2-8-needle-512k-1m"
+      "metric_id": "openai-mrcr-v2-8-needle-512k-1m",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-openai-mrcr-v2-8-needle-512k-1m"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1553,7 +1761,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "graphwalks-bfs-256k-f1"
+      "metric_id": "graphwalks-bfs-256k-f1",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-graphwalks-bfs-256k-f1"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1564,7 +1774,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "graphwalks-bfs-256k-f1"
+      "metric_id": "graphwalks-bfs-256k-f1",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-graphwalks-bfs-256k-f1"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1575,7 +1787,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "graphwalks-bfs-256k-f1"
+      "metric_id": "graphwalks-bfs-256k-f1",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-graphwalks-bfs-256k-f1"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1592,7 +1806,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "graphwalks-bfs-1mil-f1"
+      "metric_id": "graphwalks-bfs-1mil-f1",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-graphwalks-bfs-1mil-f1"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1603,7 +1819,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "graphwalks-bfs-1mil-f1"
+      "metric_id": "graphwalks-bfs-1mil-f1",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-graphwalks-bfs-1mil-f1"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1614,7 +1832,9 @@
       "source_type": "vendor_table",
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
-      "metric_id": "graphwalks-bfs-1mil-f1"
+      "metric_id": "graphwalks-bfs-1mil-f1",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "openai-gpt-5-6-2026-07-09-2026-07-09-graphwalks-bfs-1mil-f1"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1634,7 +1854,8 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-3",
       "comparable": false,
-      "comparability_group": "arc-agi-3::vendor_table::null"
+      "comparability_group": "arc-agi-3::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1648,7 +1869,8 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-3",
       "comparable": false,
-      "comparability_group": "arc-agi-3::vendor_table::null"
+      "comparability_group": "arc-agi-3::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1662,7 +1884,8 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-3",
       "comparable": false,
-      "comparability_group": "arc-agi-3::vendor_table::null"
+      "comparability_group": "arc-agi-3::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-6-2026-07-09-2026-07-09"
     }
   ],
   "claims": [
@@ -1700,7 +1923,7 @@
         "cost"
       ],
       "statement": "OpenAI introduces max (beyond xhigh) and ultra (default four parallel agents) as higher-compute operating points that shift score-latency frontiers on BrowseComp, SEC-Bench Pro, Terminal-Bench 2.1.",
-      "implication": "Effort is multi-step: low\u2026xhigh, plus max/ultra \u2014 not a single 3-rung cheap/default/max profile.",
+      "implication": "Effort is multi-step: low…xhigh, plus max/ultra — not a single 3-rung cheap/default/max profile.",
       "source_id": "openai-gpt-5-6-2026-07-09"
     },
     {
@@ -1715,7 +1938,7 @@
       "axes": [
         "cost"
       ],
-      "statement": "API pricing: Sol $5/$30, Terra $2.50/$15, Luna $1/$6 per 1M input/output; cache writes 1.25\u00d7 uncached input; cache reads 90% discount for GPT-5.6+.",
+      "statement": "API pricing: Sol $5/$30, Terra $2.50/$15, Luna $1/$6 per 1M input/output; cache writes 1.25× uncached input; cache reads 90% discount for GPT-5.6+.",
       "implication": "Use pricing/openai-api-2026-07.json for $/MTok; this claim is narrative cross-check only.",
       "source_id": "openai-gpt-5-6-2026-07-09"
     },
@@ -1737,7 +1960,7 @@
     }
   ],
   "missing": [
-    "Full effort ladder (low\u2026max) for every coding/professional metric (only some Ultra columns published).",
+    "Full effort ladder (low…max) for every coding/professional metric (only some Ultra columns published).",
     "Digitized cost/latency series from page charts (estimates only; not tabular).",
     "Independent third-party re-runs of the same tables (except ARC Prize for ARC-AGI)."
   ]

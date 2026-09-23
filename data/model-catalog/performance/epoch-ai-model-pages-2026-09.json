@@ -41,7 +41,9 @@
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
       "metric_id": "epoch-capabilities-index",
-      "caveat": "Rank #1 of 251 tracked models."
+      "caveat": "Rank #1 of 251 tracked models.",
+      "snapshot_id": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22-epoch-capabilities-index"
     },
     {
       "model": "gpt-6-astra",
@@ -53,7 +55,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-chess-puzzles"
+      "metric_id": "epoch-chess-puzzles",
+      "snapshot_id": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22-epoch-chess-puzzles"
     },
     {
       "model": "gpt-6-astra",
@@ -65,7 +69,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-earthborne-rangers-ebr-bench"
+      "metric_id": "epoch-earthborne-rangers-ebr-bench",
+      "snapshot_id": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22-epoch-earthborne-rangers-ebr-bench"
     },
     {
       "model": "gpt-6-astra",
@@ -77,7 +83,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-mystery-game-puzzles"
+      "metric_id": "epoch-mystery-game-puzzles",
+      "snapshot_id": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22-epoch-mystery-game-puzzles"
     },
     {
       "model": "gpt-6-astra",
@@ -90,7 +98,9 @@
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
       "metric_id": "epoch-frontiermath-erdos",
-      "caveat": "2 of 68 unsolved Erdos problems solved; no prior model solved any."
+      "caveat": "2 of 68 unsolved Erdos problems solved; no prior model solved any.",
+      "snapshot_id": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22-epoch-frontiermath-erdos"
     },
     {
       "model": "gpt-6-astra",
@@ -105,7 +115,8 @@
       "metric_id": "frontiermath-tier-1-3-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from OpenAI's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -120,7 +131,8 @@
       "metric_id": "frontiermath-tier-4-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from OpenAI's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -135,7 +147,8 @@
       "metric_id": "gpqa-diamond",
       "caveat": "Epoch AI's own re-run, distinct harness from OpenAI's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -148,7 +161,9 @@
       "observed_at": "2026-09-22",
       "task_family": "coding",
       "metric_id": "epoch-mirrorcode",
-      "caveat": "Page's cross-model comparison column shows 47% for gpt-6-astra; the 73% 'Best score' column header is Claude Fable 5.1's value, not Astra's — recorded per-model column, not the page's bolded best-score row."
+      "caveat": "Page's cross-model comparison column shows 47% for gpt-6-astra; the 73% 'Best score' column header is Claude Fable 5.1's value, not Astra's — recorded per-model column, not the page's bolded best-score row.",
+      "snapshot_id": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22-epoch-mirrorcode"
     },
     {
       "model": "gpt-6-astra",
@@ -160,7 +175,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "knowledge",
-      "metric_id": "epoch-simpleqa-verified"
+      "metric_id": "epoch-simpleqa-verified",
+      "snapshot_id": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-6-astra-2026-09-22-2026-09-22-epoch-simpleqa-verified"
     },
     {
       "model": "claude-sonnet-5",
@@ -173,7 +190,9 @@
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
       "metric_id": "epoch-capabilities-index",
-      "caveat": "Rank #20 of 251 tracked models (#9 of 224 at release)."
+      "caveat": "Rank #20 of 251 tracked models (#9 of 224 at release).",
+      "snapshot_id": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22-epoch-capabilities-index"
     },
     {
       "model": "claude-sonnet-5",
@@ -185,7 +204,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-simplebench"
+      "metric_id": "epoch-simplebench",
+      "snapshot_id": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22-epoch-simplebench"
     },
     {
       "model": "claude-sonnet-5",
@@ -197,7 +218,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-chess-puzzles"
+      "metric_id": "epoch-chess-puzzles",
+      "snapshot_id": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22-epoch-chess-puzzles"
     },
     {
       "model": "claude-sonnet-5",
@@ -209,7 +232,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-mystery-game-puzzles"
+      "metric_id": "epoch-mystery-game-puzzles",
+      "snapshot_id": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22-epoch-mystery-game-puzzles"
     },
     {
       "model": "claude-sonnet-5",
@@ -224,7 +249,8 @@
       "metric_id": "frontiermath-tier-1-3-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from Anthropic's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-sonnet-5",
@@ -239,7 +265,8 @@
       "metric_id": "frontiermath-tier-4-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from Anthropic's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-sonnet-5",
@@ -251,7 +278,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "math",
-      "metric_id": "epoch-otis-mock-aime"
+      "metric_id": "epoch-otis-mock-aime",
+      "snapshot_id": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22-epoch-otis-mock-aime"
     },
     {
       "model": "claude-sonnet-5",
@@ -266,7 +295,8 @@
       "metric_id": "gpqa-diamond",
       "caveat": "Epoch AI's own re-run, distinct harness from Anthropic's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-sonnet-5",
@@ -278,7 +308,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "coding",
-      "metric_id": "epoch-text-arena-coding"
+      "metric_id": "epoch-text-arena-coding",
+      "snapshot_id": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22-epoch-text-arena-coding"
     },
     {
       "model": "claude-sonnet-5",
@@ -290,7 +322,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "knowledge",
-      "metric_id": "epoch-simpleqa-verified"
+      "metric_id": "epoch-simpleqa-verified",
+      "snapshot_id": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-sonnet-5-2026-09-22-2026-09-22-epoch-simpleqa-verified"
     },
     {
       "model": "claude-haiku-4-5",
@@ -303,7 +337,9 @@
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
       "metric_id": "epoch-capabilities-index",
-      "caveat": "Rank #98 of 251 tracked models (#18 of 168 at release)."
+      "caveat": "Rank #98 of 251 tracked models (#18 of 168 at release).",
+      "snapshot_id": "epoch-ai-model-page-claude-haiku-4-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-haiku-4-5-2026-09-22-2026-09-22-epoch-capabilities-index"
     },
     {
       "model": "claude-haiku-4-5",
@@ -316,7 +352,9 @@
       "observed_at": "2026-09-22",
       "task_family": "agentic",
       "metric_id": "epoch-vending-bench-2",
-      "caveat": "Net worth in simulated dollars ($459)."
+      "caveat": "Net worth in simulated dollars ($459).",
+      "snapshot_id": "epoch-ai-model-page-claude-haiku-4-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-haiku-4-5-2026-09-22-2026-09-22-epoch-vending-bench-2"
     },
     {
       "model": "claude-haiku-4-5",
@@ -331,7 +369,8 @@
       "metric_id": "arc-agi-2",
       "caveat": "Epoch AI's own re-run, distinct harness from ARC Prize's own board.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-claude-haiku-4-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-haiku-4-5",
@@ -346,7 +385,8 @@
       "metric_id": "arc-agi-1",
       "caveat": "Epoch AI's own re-run, distinct harness from ARC Prize's own board.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-claude-haiku-4-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-haiku-4-5",
@@ -358,7 +398,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-chess-puzzles"
+      "metric_id": "epoch-chess-puzzles",
+      "snapshot_id": "epoch-ai-model-page-claude-haiku-4-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-haiku-4-5-2026-09-22-2026-09-22-epoch-chess-puzzles"
     },
     {
       "model": "claude-haiku-4-5",
@@ -373,7 +415,8 @@
       "metric_id": "gpqa-diamond",
       "caveat": "Epoch AI's own re-run, distinct harness from Anthropic's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-claude-haiku-4-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-haiku-4-5",
@@ -385,7 +428,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "coding",
-      "metric_id": "epoch-weirdml-v2"
+      "metric_id": "epoch-weirdml-v2",
+      "snapshot_id": "epoch-ai-model-page-claude-haiku-4-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-haiku-4-5-2026-09-22-2026-09-22-epoch-weirdml-v2"
     },
     {
       "model": "claude-haiku-4-5",
@@ -397,7 +442,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "knowledge",
-      "metric_id": "epoch-simpleqa-verified"
+      "metric_id": "epoch-simpleqa-verified",
+      "snapshot_id": "epoch-ai-model-page-claude-haiku-4-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-haiku-4-5-2026-09-22-2026-09-22-epoch-simpleqa-verified"
     },
     {
       "model": "claude-opus-5",
@@ -410,7 +457,9 @@
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
       "metric_id": "epoch-capabilities-index",
-      "caveat": "Rank #4 of 251 tracked models (#2 of 235 at release)."
+      "caveat": "Rank #4 of 251 tracked models (#2 of 235 at release).",
+      "snapshot_id": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22-epoch-capabilities-index"
     },
     {
       "model": "claude-opus-5",
@@ -425,7 +474,8 @@
       "metric_id": "arc-agi-2",
       "caveat": "Epoch AI's own re-run, distinct harness from ARC Prize's own board.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-opus-5",
@@ -437,7 +487,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-chess-puzzles"
+      "metric_id": "epoch-chess-puzzles",
+      "snapshot_id": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22-epoch-chess-puzzles"
     },
     {
       "model": "claude-opus-5",
@@ -449,7 +501,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-earthborne-rangers-ebr-bench"
+      "metric_id": "epoch-earthborne-rangers-ebr-bench",
+      "snapshot_id": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22-epoch-earthborne-rangers-ebr-bench"
     },
     {
       "model": "claude-opus-5",
@@ -461,7 +515,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-mystery-game-puzzles"
+      "metric_id": "epoch-mystery-game-puzzles",
+      "snapshot_id": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22-epoch-mystery-game-puzzles"
     },
     {
       "model": "claude-opus-5",
@@ -476,7 +532,8 @@
       "metric_id": "frontiermath-tier-1-3-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from Anthropic's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-opus-5",
@@ -491,7 +548,8 @@
       "metric_id": "frontiermath-tier-4-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from Anthropic's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-opus-5",
@@ -503,7 +561,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "math",
-      "metric_id": "epoch-otis-mock-aime"
+      "metric_id": "epoch-otis-mock-aime",
+      "snapshot_id": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22-epoch-otis-mock-aime"
     },
     {
       "model": "claude-opus-5",
@@ -518,7 +578,8 @@
       "metric_id": "gpqa-diamond",
       "caveat": "Epoch AI's own re-run, distinct harness from Anthropic's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-opus-5",
@@ -530,7 +591,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "knowledge",
-      "metric_id": "epoch-simpleqa-verified"
+      "metric_id": "epoch-simpleqa-verified",
+      "snapshot_id": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-opus-5-2026-09-22-2026-09-22-epoch-simpleqa-verified"
     },
     {
       "model": "claude-fable-5-1",
@@ -543,7 +606,9 @@
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
       "metric_id": "epoch-capabilities-index",
-      "caveat": "Rank #2 of 251 tracked models (#1 of 247 at release)."
+      "caveat": "Rank #2 of 251 tracked models (#1 of 247 at release).",
+      "snapshot_id": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22-epoch-capabilities-index"
     },
     {
       "model": "claude-fable-5-1",
@@ -555,7 +620,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-chess-puzzles"
+      "metric_id": "epoch-chess-puzzles",
+      "snapshot_id": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22-epoch-chess-puzzles"
     },
     {
       "model": "claude-fable-5-1",
@@ -567,7 +634,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-earthborne-rangers-ebr-bench"
+      "metric_id": "epoch-earthborne-rangers-ebr-bench",
+      "snapshot_id": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22-epoch-earthborne-rangers-ebr-bench"
     },
     {
       "model": "claude-fable-5-1",
@@ -579,7 +648,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-mystery-game-puzzles"
+      "metric_id": "epoch-mystery-game-puzzles",
+      "snapshot_id": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22-epoch-mystery-game-puzzles"
     },
     {
       "model": "claude-fable-5-1",
@@ -591,7 +662,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-frontiermath-erdos"
+      "metric_id": "epoch-frontiermath-erdos",
+      "snapshot_id": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22-epoch-frontiermath-erdos"
     },
     {
       "model": "claude-fable-5-1",
@@ -606,7 +679,8 @@
       "metric_id": "frontiermath-tier-1-3-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from Anthropic's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-fable-5-1",
@@ -621,7 +695,8 @@
       "metric_id": "frontiermath-tier-4-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from Anthropic's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-fable-5-1",
@@ -633,7 +708,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "math",
-      "metric_id": "epoch-otis-mock-aime"
+      "metric_id": "epoch-otis-mock-aime",
+      "snapshot_id": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22-epoch-otis-mock-aime"
     },
     {
       "model": "claude-fable-5-1",
@@ -645,7 +722,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "coding",
-      "metric_id": "epoch-mirrorcode"
+      "metric_id": "epoch-mirrorcode",
+      "snapshot_id": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22-epoch-mirrorcode"
     },
     {
       "model": "claude-fable-5-1",
@@ -657,7 +736,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "knowledge",
-      "metric_id": "epoch-simpleqa-verified"
+      "metric_id": "epoch-simpleqa-verified",
+      "snapshot_id": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-claude-fable-5-1-2026-09-22-2026-09-22-epoch-simpleqa-verified"
     },
     {
       "model": "gpt-5.6-sol",
@@ -670,7 +751,9 @@
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
       "metric_id": "epoch-capabilities-index",
-      "caveat": "Rank #6 of 251 tracked models (#3 of 229 at release)."
+      "caveat": "Rank #6 of 251 tracked models (#3 of 229 at release).",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22-epoch-capabilities-index"
     },
     {
       "model": "gpt-5.6-sol",
@@ -682,7 +765,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-chess-puzzles"
+      "metric_id": "epoch-chess-puzzles",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22-epoch-chess-puzzles"
     },
     {
       "model": "gpt-5.6-sol",
@@ -694,7 +779,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-earthborne-rangers-ebr-bench"
+      "metric_id": "epoch-earthborne-rangers-ebr-bench",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22-epoch-earthborne-rangers-ebr-bench"
     },
     {
       "model": "gpt-5.6-sol",
@@ -706,7 +793,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-mystery-game-puzzles"
+      "metric_id": "epoch-mystery-game-puzzles",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22-epoch-mystery-game-puzzles"
     },
     {
       "model": "gpt-5.6-sol",
@@ -718,7 +807,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-frontiermath-erdos"
+      "metric_id": "epoch-frontiermath-erdos",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22-epoch-frontiermath-erdos"
     },
     {
       "model": "gpt-5.6-sol",
@@ -733,7 +824,8 @@
       "metric_id": "frontiermath-tier-1-3-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from OpenAI's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-sol",
@@ -748,7 +840,8 @@
       "metric_id": "frontiermath-tier-4-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from OpenAI's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-sol",
@@ -763,7 +856,8 @@
       "metric_id": "gpqa-diamond",
       "caveat": "Epoch AI's own re-run, distinct harness from OpenAI's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-sol",
@@ -775,7 +869,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "coding",
-      "metric_id": "epoch-mirrorcode"
+      "metric_id": "epoch-mirrorcode",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22-epoch-mirrorcode"
     },
     {
       "model": "gpt-5.6-sol",
@@ -787,7 +883,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "knowledge",
-      "metric_id": "epoch-simpleqa-verified"
+      "metric_id": "epoch-simpleqa-verified",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-sol-2026-09-22-2026-09-22-epoch-simpleqa-verified"
     },
     {
       "model": "gpt-5.6-terra",
@@ -800,7 +898,9 @@
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
       "metric_id": "epoch-capabilities-index",
-      "caveat": "Rank #7 of 251 tracked models (#4 of 229 at release)."
+      "caveat": "Rank #7 of 251 tracked models (#4 of 229 at release).",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22-2026-09-22-epoch-capabilities-index"
     },
     {
       "model": "gpt-5.6-terra",
@@ -815,7 +915,8 @@
       "metric_id": "arc-agi-2",
       "caveat": "Epoch AI's own re-run, distinct harness from ARC Prize's own board.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-terra",
@@ -830,7 +931,8 @@
       "metric_id": "arc-agi-1",
       "caveat": "Epoch AI's own re-run, distinct harness from ARC Prize's own board.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-terra",
@@ -842,7 +944,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-chess-puzzles"
+      "metric_id": "epoch-chess-puzzles",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22-2026-09-22-epoch-chess-puzzles"
     },
     {
       "model": "gpt-5.6-terra",
@@ -854,7 +958,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-mystery-game-puzzles"
+      "metric_id": "epoch-mystery-game-puzzles",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22-2026-09-22-epoch-mystery-game-puzzles"
     },
     {
       "model": "gpt-5.6-terra",
@@ -869,7 +975,8 @@
       "metric_id": "frontiermath-tier-1-3-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from OpenAI's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-terra",
@@ -884,7 +991,8 @@
       "metric_id": "frontiermath-tier-4-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from OpenAI's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-terra",
@@ -896,7 +1004,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "math",
-      "metric_id": "epoch-otis-mock-aime"
+      "metric_id": "epoch-otis-mock-aime",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22-2026-09-22-epoch-otis-mock-aime"
     },
     {
       "model": "gpt-5.6-terra",
@@ -911,7 +1021,8 @@
       "metric_id": "gpqa-diamond",
       "caveat": "Epoch AI's own re-run, distinct harness from OpenAI's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-terra",
@@ -923,7 +1034,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "knowledge",
-      "metric_id": "epoch-simpleqa-verified"
+      "metric_id": "epoch-simpleqa-verified",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-terra-2026-09-22-2026-09-22-epoch-simpleqa-verified"
     },
     {
       "model": "gpt-5.6-luna",
@@ -936,7 +1049,9 @@
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
       "metric_id": "epoch-capabilities-index",
-      "caveat": "Rank #21 of 251 tracked models (#12 of 229 at release)."
+      "caveat": "Rank #21 of 251 tracked models (#12 of 229 at release).",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22-2026-09-22-epoch-capabilities-index"
     },
     {
       "model": "gpt-5.6-luna",
@@ -951,7 +1066,8 @@
       "metric_id": "arc-agi-2",
       "caveat": "Epoch AI's own re-run, distinct harness from ARC Prize's own board.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-luna",
@@ -966,7 +1082,8 @@
       "metric_id": "arc-agi-1",
       "caveat": "Epoch AI's own re-run, distinct harness from ARC Prize's own board.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-luna",
@@ -978,7 +1095,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-chess-puzzles"
+      "metric_id": "epoch-chess-puzzles",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22-2026-09-22-epoch-chess-puzzles"
     },
     {
       "model": "gpt-5.6-luna",
@@ -990,7 +1109,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-mystery-game-puzzles"
+      "metric_id": "epoch-mystery-game-puzzles",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22-2026-09-22-epoch-mystery-game-puzzles"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1005,7 +1126,8 @@
       "metric_id": "frontiermath-tier-1-3-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from OpenAI's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1020,7 +1142,8 @@
       "metric_id": "frontiermath-tier-4-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from OpenAI's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1032,7 +1155,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "math",
-      "metric_id": "epoch-otis-mock-aime"
+      "metric_id": "epoch-otis-mock-aime",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22-2026-09-22-epoch-otis-mock-aime"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1047,7 +1172,8 @@
       "metric_id": "gpqa-diamond",
       "caveat": "Epoch AI's own re-run, distinct harness from OpenAI's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1059,7 +1185,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "knowledge",
-      "metric_id": "epoch-simpleqa-verified"
+      "metric_id": "epoch-simpleqa-verified",
+      "snapshot_id": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-gpt-5-6-luna-2026-09-22-2026-09-22-epoch-simpleqa-verified"
     },
     {
       "model": "grok-4.6",
@@ -1072,7 +1200,9 @@
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
       "metric_id": "epoch-capabilities-index",
-      "caveat": "Rank #18 of 251 tracked models (#13 of 240 at release)."
+      "caveat": "Rank #18 of 251 tracked models (#13 of 240 at release).",
+      "snapshot_id": "epoch-ai-model-page-grok-4-6-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-grok-4-6-2026-09-22-2026-09-22-epoch-capabilities-index"
     },
     {
       "model": "grok-4.6",
@@ -1087,7 +1217,8 @@
       "metric_id": "arc-agi-2",
       "caveat": "Epoch AI's own re-run, distinct harness from ARC Prize's own board.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-grok-4-6-2026-09-22-2026-09-22"
     },
     {
       "model": "grok-4.6",
@@ -1102,7 +1233,8 @@
       "metric_id": "arc-agi-1",
       "caveat": "Epoch AI's own re-run, distinct harness from ARC Prize's own board.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-grok-4-6-2026-09-22-2026-09-22"
     },
     {
       "model": "grok-4.6",
@@ -1114,7 +1246,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-chess-puzzles"
+      "metric_id": "epoch-chess-puzzles",
+      "snapshot_id": "epoch-ai-model-page-grok-4-6-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-grok-4-6-2026-09-22-2026-09-22-epoch-chess-puzzles"
     },
     {
       "model": "grok-4.6",
@@ -1126,7 +1260,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "reasoning",
-      "metric_id": "epoch-mystery-game-puzzles"
+      "metric_id": "epoch-mystery-game-puzzles",
+      "snapshot_id": "epoch-ai-model-page-grok-4-6-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-grok-4-6-2026-09-22-2026-09-22-epoch-mystery-game-puzzles"
     },
     {
       "model": "grok-4.6",
@@ -1141,7 +1277,8 @@
       "metric_id": "frontiermath-tier-1-3-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from xAI's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-grok-4-6-2026-09-22-2026-09-22"
     },
     {
       "model": "grok-4.6",
@@ -1156,7 +1293,8 @@
       "metric_id": "frontiermath-tier-4-v2",
       "caveat": "Epoch AI's own re-run, distinct harness from xAI's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-grok-4-6-2026-09-22-2026-09-22"
     },
     {
       "model": "grok-4.6",
@@ -1168,7 +1306,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "math",
-      "metric_id": "epoch-otis-mock-aime"
+      "metric_id": "epoch-otis-mock-aime",
+      "snapshot_id": "epoch-ai-model-page-grok-4-6-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-grok-4-6-2026-09-22-2026-09-22-epoch-otis-mock-aime"
     },
     {
       "model": "grok-4.6",
@@ -1183,7 +1323,8 @@
       "metric_id": "gpqa-diamond",
       "caveat": "Epoch AI's own re-run, distinct harness from xAI's vendor table.",
       "comparable": false,
-      "comparability_group": "epoch-ai-independent-2026-09"
+      "comparability_group": "epoch-ai-independent-2026-09",
+      "snapshot_id": "epoch-ai-model-page-grok-4-6-2026-09-22-2026-09-22"
     },
     {
       "model": "grok-4.6",
@@ -1195,7 +1336,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
       "task_family": "knowledge",
-      "metric_id": "epoch-simpleqa-verified"
+      "metric_id": "epoch-simpleqa-verified",
+      "snapshot_id": "epoch-ai-model-page-grok-4-6-2026-09-22-2026-09-22",
+      "comparability_group": "epoch-ai-model-page-grok-4-6-2026-09-22-2026-09-22-epoch-simpleqa-verified"
     }
   ],
   "missing": [

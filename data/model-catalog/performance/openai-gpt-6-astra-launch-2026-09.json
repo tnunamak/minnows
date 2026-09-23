@@ -39,7 +39,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-artificial-analysis-coding-agent-index-v1-4"
+      "comparability_group": "vendor-launch-chart-artificial-analysis-coding-agent-index-v1-4",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -61,7 +62,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-artificial-analysis-coding-agent-index-v1-4"
+      "comparability_group": "vendor-launch-chart-artificial-analysis-coding-agent-index-v1-4",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -83,7 +85,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-artificial-analysis-coding-agent-index-v1-4"
+      "comparability_group": "vendor-launch-chart-artificial-analysis-coding-agent-index-v1-4",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -105,7 +108,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-artificial-analysis-coding-agent-index-v1-4"
+      "comparability_group": "vendor-launch-chart-artificial-analysis-coding-agent-index-v1-4",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -127,7 +131,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-artificial-analysis-coding-agent-index-v1-4"
+      "comparability_group": "vendor-launch-chart-artificial-analysis-coding-agent-index-v1-4",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -149,7 +154,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-deepswe-v1-1"
+      "comparability_group": "vendor-launch-chart-deepswe-v1-1",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -171,7 +177,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-deepswe-v1-1"
+      "comparability_group": "vendor-launch-chart-deepswe-v1-1",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -193,7 +200,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-deepswe-v1-1"
+      "comparability_group": "vendor-launch-chart-deepswe-v1-1",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -215,7 +223,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-deepswe-v1-1"
+      "comparability_group": "vendor-launch-chart-deepswe-v1-1",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -237,7 +246,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-deepswe-v1-1"
+      "comparability_group": "vendor-launch-chart-deepswe-v1-1",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -259,7 +269,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-frontiercode-1-1-extended"
+      "comparability_group": "vendor-launch-chart-frontiercode-1-1-extended",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -281,7 +292,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-frontiercode-1-1-extended"
+      "comparability_group": "vendor-launch-chart-frontiercode-1-1-extended",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -303,7 +315,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-frontiercode-1-1-extended"
+      "comparability_group": "vendor-launch-chart-frontiercode-1-1-extended",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -325,7 +338,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-frontiercode-1-1-extended"
+      "comparability_group": "vendor-launch-chart-frontiercode-1-1-extended",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -347,7 +361,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-frontiercode-1-1-extended"
+      "comparability_group": "vendor-launch-chart-frontiercode-1-1-extended",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -370,7 +385,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-terminal-bench-4-0"
+      "comparability_group": "vendor-launch-chart-terminal-bench-4-0",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -393,7 +409,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-terminal-bench-4-0"
+      "comparability_group": "vendor-launch-chart-terminal-bench-4-0",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -416,7 +433,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-terminal-bench-4-0"
+      "comparability_group": "vendor-launch-chart-terminal-bench-4-0",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -439,7 +457,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-terminal-bench-4-0"
+      "comparability_group": "vendor-launch-chart-terminal-bench-4-0",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-6-astra",
@@ -462,7 +481,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "vendor-launch-chart-terminal-bench-4-0"
+      "comparability_group": "vendor-launch-chart-terminal-bench-4-0",
+      "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
     }
   ]
 }

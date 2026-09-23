@@ -85,7 +85,7 @@ Waspflow resolves from (first hit):
 
 - Move `grok.explore-only` from grok-4.6/high to **grok-4.7/medium**. On 2026-09-23 the authenticated grok CLI offers only grok-4.7, so the grok-4.6 arm could no longer be dispatched. Rule 1 picks grok-4.7 as the only newest GA model in the lane, at the default effort (medium). An independent Claude Opus 5.5 review signed this off in both rounds.
 - No other routing change. `scripts/recommend_ops.py` now ranks by expected cost per task, with evidence gates, confidence intervals, a price horizon and robustness sweeps. The review found defects that block any move it would drive: the tie-break rule, an unwired pass@k field, wall-clock price dates, and board rows with no effort recorded. They are being fixed.
-- Catalog pin: **v0.5.7**.
+- Catalog pin: **v0.5.8**.
 
 ### v0.1.11 — 2026-09-22
 

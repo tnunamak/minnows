@@ -9,7 +9,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | [data-model-catalog-v0.5.7](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.7) — published by CI on push to main |
+| **This version** | [data-model-catalog-v0.5.8](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.8) — published by CI on push to main |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -18,7 +18,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.5.7
+TAG=data-model-catalog-v0.5.8
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -74,6 +74,10 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 5. **Validate before shipping:** `./scripts/validate_data_pack.py model-catalog`
 
 ## Changelog
+
+### v0.5.8 — 2026-09-23
+
+Adds snapshot IDs and validator coverage for third-party boards and vendor tables; records vals.ai effort metadata; ingests Gemini 3.8 Flash rival columns; separates estimated Haiku 4.5 AA data; resolves DeepSeek version labels; and completes Qwen tier and CLI surface metadata.
 
 ### v0.5.7 — 2026-09-23
 

@@ -648,8 +648,8 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
                         f"(got source_type={st!r} harness={h!r} comparable={comp!r})",
                     )
 
-    # A board snapshot has one comparability group for each metric, regardless of
-    # which performance file or ingestion lane contains its rows.
+    # Board and vendor-table scores carry an explicit source snapshot. This makes
+    # snapshot/group consistency checkable across files and ingestion lanes.
     by_snapshot_metric: dict[tuple[str, str], list[tuple[str, str]]] = {}
     for path in sorted((pack_dir / "performance").glob("*.json")) if (pack_dir / "performance").is_dir() else []:
         data = load_json(path, Errors())
@@ -661,9 +661,17 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
             metric_id = row.get("metric_id")
             snapshot_id = row.get("snapshot_id")
             group = row.get("comparability_group")
+            source_type = row.get("source_type")
+            loc = str(path.relative_to(REPO)) + f"#scores[{i}]"
+            if source_type in {"third_party_board", "vendor_table"}:
+                if not isinstance(snapshot_id, str) or not snapshot_id.strip():
+                    errors.add(loc, f"{source_type} score row requires snapshot_id")
+                if not isinstance(metric_id, str) or not metric_id.strip():
+                    errors.add(loc, f"{source_type} score row requires metric_id")
+                if not isinstance(group, str) or not group.strip():
+                    errors.add(loc, f"{source_type} score row requires comparability_group")
             if not isinstance(metric_id, str) or not isinstance(snapshot_id, str) or not isinstance(group, str):
                 continue
-            loc = str(path.relative_to(REPO)) + f"#scores[{i}]"
             by_snapshot_metric.setdefault((snapshot_id, metric_id), []).append((loc, group))
     for (snapshot_id, metric_id), rows in by_snapshot_metric.items():
         groups = {group for _, group in rows}

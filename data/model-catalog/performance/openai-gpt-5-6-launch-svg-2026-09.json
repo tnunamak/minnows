@@ -39,7 +39,8 @@
         "value": 2315,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gemini-3.1-pro-preview",
@@ -61,7 +62,8 @@
         "value": 2018,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.5",
@@ -83,7 +85,8 @@
         "value": 135,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.5",
@@ -105,7 +108,8 @@
         "value": 298,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.5",
@@ -127,7 +131,8 @@
         "value": 382,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.5",
@@ -149,7 +154,8 @@
         "value": 602,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.6-sol",
@@ -171,7 +177,8 @@
         "value": 248,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.6-sol",
@@ -193,7 +200,8 @@
         "value": 519,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.6-sol",
@@ -215,7 +223,8 @@
         "value": 577,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.6-sol",
@@ -237,7 +246,8 @@
         "value": 763,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.6-sol",
@@ -259,7 +269,8 @@
         "value": 1087,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.6-luna",
@@ -281,7 +292,8 @@
         "value": 24,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.6-luna",
@@ -303,7 +315,8 @@
         "value": 57,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.6-luna",
@@ -325,7 +338,8 @@
         "value": 141,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.6-luna",
@@ -347,7 +361,8 @@
         "value": 254,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.6-luna",
@@ -369,7 +384,8 @@
         "value": 429,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.6-terra",
@@ -391,7 +407,8 @@
         "value": 89,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.6-terra",
@@ -413,7 +430,8 @@
         "value": 128,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.6-terra",
@@ -435,7 +453,8 @@
         "value": 264,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.6-terra",
@@ -457,7 +476,8 @@
         "value": 381,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "gpt-5.6-terra",
@@ -479,7 +499,8 @@
         "value": 544,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "claude-opus-4-8",
@@ -501,7 +522,8 @@
         "value": 1183,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "claude-opus-4-8",
@@ -523,7 +545,8 @@
         "value": 1700,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "claude-opus-4-8",
@@ -545,7 +568,8 @@
         "value": 1626,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "claude-opus-4-8",
@@ -567,7 +591,8 @@
         "value": 2815,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     },
     {
       "model": "claude-opus-4-8",
@@ -589,7 +614,8 @@
         "value": 3985,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "openai-gpt-5-6-launch-svg-2026-09-05-2026-09-05"
     }
   ]
 }

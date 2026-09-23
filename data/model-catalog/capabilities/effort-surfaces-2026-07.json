@@ -53,9 +53,11 @@
     "deepseek-thinking-2026-09-23",
     "moonshot-kimi-k3-announcement-2026-09-23",
     "minimax-m3-launch-2026-09-23",
-    "mistral-small4-launch-2026-09-23"
+    "mistral-small4-launch-2026-09-23",
+    "local-qwen-cli-help-0-21-1-2026-09-23",
+    "qwen-code-model-providers-2026-09-23"
   ],
-  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking. 2026-09-22: added gpt-6-sol/gpt-6-luna api surfaces from their model pages (none/low/medium(default)/high/xhigh/max — no minimal, unlike gpt-5.6's api surface). 2026-09-22 (integration correction): the gpt-6-sol/gpt-6-luna codex_cli surfaces were initially recorded empty, citing a codex-cli 0.154.0 read that reported both slugs absent (auth-scoped rollout gap). A same-day 0.156.0 re-read on the same host shows both ARE listed (visibility=list): gpt-6-sol low/medium/high/xhigh/max/ultra default medium, gpt-6-luna low/medium/high/xhigh/max default medium — filled in from that later read (see openai-codex-debug-models-0-156-0-2026-09-22). 2026-09-23: added observed agy 1.2.9 per-model efforts (3.8/3.7/3.6 Flash low/medium/high; 3.1 Pro low/high), auth-scoped; added Grok 4.7 API effort and authenticated Grok CLI listing (sole/default model). Qwen candidates carry vendor product-family tiers and explicit enable_thinking surface notes where the primary model/API/config pages document them; this is a binary thinking toggle, not an effort ladder.",
+  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking. 2026-09-22: added gpt-6-sol/gpt-6-luna api surfaces from their model pages (none/low/medium(default)/high/xhigh/max — no minimal, unlike gpt-5.6's api surface). 2026-09-22 (integration correction): the gpt-6-sol/gpt-6-luna codex_cli surfaces were initially recorded empty, citing a codex-cli 0.154.0 read that reported both slugs absent (auth-scoped rollout gap). A same-day 0.156.0 re-read on the same host shows both ARE listed (visibility=list): gpt-6-sol low/medium/high/xhigh/max/ultra default medium, gpt-6-luna low/medium/high/xhigh/max default medium — filled in from that later read (see openai-codex-debug-models-0-156-0-2026-09-22). 2026-09-23: added observed agy 1.2.9 per-model efforts (3.8/3.7/3.6 Flash low/medium/high; 3.1 Pro low/high), auth-scoped; added Grok 4.7 API effort and authenticated Grok CLI listing (sole/default model). Qwen candidates carry vendor product-family tiers and explicit enable_thinking surface notes where the primary model/API/config pages document them; this is a binary thinking toggle, not an effort ladder. Local CLI verification on 2026-09-23: installed qwen 0.21.1; `qwen --help` exposes no top-level --effort/--thinking flags. The installed bundled docs expose interactive `/effort` with low|medium|high|xhigh|max via model.reasoningEffort; provider mappings determine whether tiers remain distinct or map to thinking on/off.",
   "surfaces": [
     {
       "provider": "alibaba",
@@ -74,7 +76,7 @@
       "source_ids": [
         "qwen-code-cli-config-2026-07"
       ],
-      "notes": "Coding specialist. No thinking mode in default config."
+      "notes": "Coding specialist. No thinking mode in default config. Local qwen 0.21.1 `qwen --help` has no top-level --effort/--thinking flag; installed bundled docs expose interactive `/effort`."
     },
     {
       "provider": "alibaba",
@@ -97,7 +99,7 @@
       "source_ids": [
         "qwen-code-cli-config-2026-07"
       ],
-      "notes": "Qwen has no discrete effort levels. Thinking on/off only."
+      "notes": "Qwen has no discrete effort levels. Thinking on/off only. Local qwen 0.21.1 `qwen --help` has no top-level --effort/--thinking flag; installed bundled docs expose interactive `/effort`."
     },
     {
       "provider": "alibaba",
@@ -120,7 +122,7 @@
       "source_ids": [
         "qwen-code-cli-config-2026-07"
       ],
-      "notes": "Qwen has no discrete effort levels. Thinking on/off only."
+      "notes": "Qwen has no discrete effort levels. Thinking on/off only. Local qwen 0.21.1 `qwen --help` has no top-level --effort/--thinking flag; installed bundled docs expose interactive `/effort`."
     },
     {
       "provider": "alibaba",
@@ -223,7 +225,7 @@
       "source_ids": [
         "qwen-code-cli-config-2026-07"
       ],
-      "notes": "Qwen has no discrete effort levels. Thinking is mandatory for this model. Thinking control: per-request enable_thinking boolean; no discrete reasoning-effort scale."
+      "notes": "Qwen has no discrete effort levels. Thinking is mandatory for this model. Thinking control: per-request enable_thinking boolean; no discrete reasoning-effort scale. Local qwen 0.21.1 `qwen --help` has no top-level --effort/--thinking flag; installed bundled docs expose interactive `/effort`."
     },
     {
       "provider": "anthropic",
@@ -1460,6 +1462,37 @@
       "source_ids": [
         "mistral-small4-launch-2026-09-23"
       ]
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.8-max",
+      "surface": "qwen_code",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "default_effort": null,
+      "unsupported_behavior": "warn_passthrough",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "Default reasoning mode."
+        },
+        {
+          "mode_id": "non-thinking",
+          "notes": "Disable reasoning with explicit enable_thinking=false."
+        }
+      ],
+      "source_ids": [
+        "qwen38max-2026-09-23",
+        "qwen-code-weekly-2026-08-27",
+        "local-qwen-cli-help-0-21-1-2026-09-23",
+        "qwen-code-model-providers-2026-09-23"
+      ],
+      "notes": "Qwen Code 0.21.1 exposes interactive `/effort` (low|medium|high|xhigh|max) through model.reasoningEffort, although `qwen --help` has no top-level effort flag. Official provider docs say the qwen3.8-max family accepts the ladder through xhigh; max is clamped to xhigh."
     }
   ],
   "missing": [

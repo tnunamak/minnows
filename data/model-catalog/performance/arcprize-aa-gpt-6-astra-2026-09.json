@@ -42,7 +42,8 @@
         "unit": "other",
         "basis": "other"
       },
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "arcprize-gpt-6-astra-2026-09-05-2026-09-05--arc-agi-3-standard"
     },
     {
       "model": "gpt-6-astra",
@@ -65,7 +66,8 @@
         "unit": "other",
         "basis": "other"
       },
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "arcprize-gpt-6-astra-2026-09-05-2026-09-05--arc-agi-3-standard"
     },
     {
       "model": "gpt-6-astra",
@@ -88,7 +90,8 @@
         "unit": "other",
         "basis": "other"
       },
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "arcprize-gpt-6-astra-2026-09-05-2026-09-05--arc-agi-3-standard"
     },
     {
       "model": "gpt-6-astra",
@@ -111,7 +114,8 @@
         "unit": "other",
         "basis": "other"
       },
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "arcprize-gpt-6-astra-2026-09-05-2026-09-05--arc-agi-3-standard"
     },
     {
       "model": "gpt-6-astra",
@@ -134,7 +138,8 @@
         "unit": "other",
         "basis": "other"
       },
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "arcprize-gpt-6-astra-2026-09-05-2026-09-05--arc-agi-3-standard"
     },
     {
       "model": "gpt-6-astra",
@@ -157,7 +162,8 @@
         "unit": "other",
         "basis": "other"
       },
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "arcprize-gpt-6-astra-2026-09-05-2026-09-05--arc-agi-3-provider-adapter"
     },
     {
       "model": "gpt-6-astra",
@@ -180,7 +186,8 @@
         "unit": "other",
         "basis": "other"
       },
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "arcprize-gpt-6-astra-2026-09-05-2026-09-05--arc-agi-3-provider-adapter"
     },
     {
       "model": "gpt-6-astra",
@@ -203,7 +210,8 @@
         "unit": "other",
         "basis": "other"
       },
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "arcprize-gpt-6-astra-2026-09-05-2026-09-05--arc-agi-3-provider-adapter"
     },
     {
       "model": "gpt-6-astra",
@@ -226,7 +234,8 @@
         "unit": "other",
         "basis": "other"
       },
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "arcprize-gpt-6-astra-2026-09-05-2026-09-05--arc-agi-3-provider-adapter"
     },
     {
       "model": "gpt-6-astra",
@@ -249,7 +258,8 @@
         "unit": "other",
         "basis": "other"
       },
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "arcprize-gpt-6-astra-2026-09-05-2026-09-05--arc-agi-3-provider-adapter"
     },
     {
       "model": "gpt-6-astra",
@@ -270,7 +280,9 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "artificialanalysis-gpt-6-astra-2026-09-05-2026-09-05",
+      "comparability_group": "artificialanalysis-gpt-6-astra-2026-09-05-2026-09-05-artificial-analysis-intelligence-index-v4-2"
     },
     {
       "model": "gpt-6-astra",
@@ -291,7 +303,9 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "artificialanalysis-gpt-6-astra-2026-09-05-2026-09-05",
+      "comparability_group": "artificialanalysis-gpt-6-astra-2026-09-05-2026-09-05-artificial-analysis-intelligence-index-v4-2"
     },
     {
       "model": "gpt-6-astra",
@@ -312,7 +326,9 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "artificialanalysis-gpt-6-astra-2026-09-05-2026-09-05",
+      "comparability_group": "artificialanalysis-gpt-6-astra-2026-09-05-2026-09-05-artificial-analysis-intelligence-index-v4-2"
     },
     {
       "model": "gpt-6-astra",
@@ -333,7 +349,9 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "artificialanalysis-gpt-6-astra-2026-09-05-2026-09-05",
+      "comparability_group": "artificialanalysis-gpt-6-astra-2026-09-05-2026-09-05-artificial-analysis-intelligence-index-v4-2"
     },
     {
       "model": "gpt-6-astra",
@@ -354,7 +372,9 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "artificialanalysis-gpt-6-astra-2026-09-05-2026-09-05",
+      "comparability_group": "artificialanalysis-gpt-6-astra-2026-09-05-2026-09-05-artificial-analysis-intelligence-index-v4-2"
     }
   ]
 }

@@ -30,7 +30,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
       "task_family": "coding",
-      "metric_id": "terminal-bench-2-0"
+      "metric_id": "terminal-bench-2-0",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-terminal-bench-2-0"
     },
     {
       "model": "gpt-5.5",
@@ -47,7 +49,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
       "task_family": "coding",
-      "metric_id": "expert-swe-internal"
+      "metric_id": "expert-swe-internal",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-expert-swe-internal"
     },
     {
       "model": "gpt-5.5",
@@ -67,7 +71,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
       "task_family": "coding",
-      "metric_id": "swe-bench-pro-public"
+      "metric_id": "swe-bench-pro-public",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-swe-bench-pro-public"
     },
     {
       "model": "gpt-5.5",
@@ -87,7 +93,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "gdpval-wins-or-ties"
+      "metric_id": "gdpval-wins-or-ties",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-gdpval-wins-or-ties"
     },
     {
       "model": "gpt-5.5",
@@ -107,7 +115,8 @@
       "task_family": "computer_use",
       "metric_id": "osworld-verified",
       "comparable": false,
-      "comparability_group": "osworld-verified::vendor_table::null"
+      "comparability_group": "osworld-verified::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09"
     },
     {
       "model": "gpt-5.5",
@@ -124,7 +133,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "toolathlon"
+      "metric_id": "toolathlon",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-toolathlon"
     },
     {
       "model": "gpt-5.5",
@@ -147,11 +158,12 @@
       "task_family": "agentic_search",
       "metric_id": "browsecomp",
       "comparable": false,
-      "comparability_group": "browsecomp::vendor_table::null"
+      "comparability_group": "browsecomp::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09"
     },
     {
       "model": "gpt-5.5",
-      "metric": "FrontierMath Tier 1\u20133",
+      "metric": "FrontierMath Tier 1–3",
       "score": 0.517,
       "unit": "accuracy",
       "source_id": "openai-gpt-5-5-2026-04-23",
@@ -167,7 +179,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "frontiermath-tier-1-3"
+      "metric_id": "frontiermath-tier-1-3",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-frontiermath-tier-1-3"
     },
     {
       "model": "gpt-5.5",
@@ -187,7 +201,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "frontiermath-tier-4"
+      "metric_id": "frontiermath-tier-4",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-frontiermath-tier-4"
     },
     {
       "model": "gpt-5.5",
@@ -204,7 +220,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "cybergym"
+      "metric_id": "cybergym",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-cybergym"
     },
     {
       "model": "gpt-5.5",
@@ -223,7 +241,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "financeagent-v1-1"
+      "metric_id": "financeagent-v1-1",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-financeagent-v1-1"
     },
     {
       "model": "gpt-5.5",
@@ -241,7 +261,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "investment-banking-modeling-tasks-internal"
+      "metric_id": "investment-banking-modeling-tasks-internal",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-investment-banking-modeling-tasks-internal"
     },
     {
       "model": "gpt-5.5",
@@ -259,7 +281,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "officeqa-pro"
+      "metric_id": "officeqa-pro",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-officeqa-pro"
     },
     {
       "model": "gpt-5.5",
@@ -276,7 +300,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "mmmu-pro-no-tools"
+      "metric_id": "mmmu-pro-no-tools",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-mmmu-pro-no-tools"
     },
     {
       "model": "gpt-5.5",
@@ -292,7 +318,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "mmmu-pro-with-tools"
+      "metric_id": "mmmu-pro-with-tools",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-mmmu-pro-with-tools"
     },
     {
       "model": "gpt-5.5",
@@ -310,7 +338,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "mcp-atlas"
+      "metric_id": "mcp-atlas",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-mcp-atlas"
     },
     {
       "model": "gpt-5.5",
@@ -326,7 +356,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "tau2-bench-telecom-original-prompts"
+      "metric_id": "tau2-bench-telecom-original-prompts",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-tau2-bench-telecom-original-prompts"
     },
     {
       "model": "gpt-5.5",
@@ -344,7 +376,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "genebench"
+      "metric_id": "genebench",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-genebench"
     },
     {
       "model": "gpt-5.5",
@@ -360,7 +394,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "bixbench"
+      "metric_id": "bixbench",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-bixbench"
     },
     {
       "model": "gpt-5.5",
@@ -380,7 +416,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
       "metric_id": "gpqa-diamond",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-gpqa-diamond"
     },
     {
       "model": "gpt-5.5",
@@ -402,7 +440,8 @@
       "effort_verbatim": "xhigh",
       "metric_id": "humanity-s-last-exam-no-tools",
       "comparable": false,
-      "comparability_group": "humanity-s-last-exam-no-tools::vendor_table::null"
+      "comparability_group": "humanity-s-last-exam-no-tools::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09"
     },
     {
       "model": "gpt-5.5",
@@ -424,7 +463,8 @@
       "effort_verbatim": "xhigh",
       "metric_id": "humanity-s-last-exam-with-tools",
       "comparable": false,
-      "comparability_group": "humanity-s-last-exam-with-tools::vendor_table::null"
+      "comparability_group": "humanity-s-last-exam-with-tools::vendor_table::null",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09"
     },
     {
       "model": "gpt-5.5",
@@ -440,7 +480,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "capture-the-flags-challenge-tasks-internal"
+      "metric_id": "capture-the-flags-challenge-tasks-internal",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-capture-the-flags-challenge-tasks-internal"
     },
     {
       "model": "gpt-5.5",
@@ -457,7 +499,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "graphwalks-bfs-256k-f1"
+      "metric_id": "graphwalks-bfs-256k-f1",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-graphwalks-bfs-256k-f1"
     },
     {
       "model": "gpt-5.5",
@@ -474,7 +518,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "graphwalks-bfs-1mil-f1"
+      "metric_id": "graphwalks-bfs-1mil-f1",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-graphwalks-bfs-1mil-f1"
     },
     {
       "model": "gpt-5.5",
@@ -490,7 +536,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "openai-mrcr-v2-8-needle-256k-512k"
+      "metric_id": "openai-mrcr-v2-8-needle-256k-512k",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-openai-mrcr-v2-8-needle-256k-512k"
     },
     {
       "model": "gpt-5.5",
@@ -507,7 +555,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
-      "metric_id": "openai-mrcr-v2-8-needle-512k-1m"
+      "metric_id": "openai-mrcr-v2-8-needle-512k-1m",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-openai-mrcr-v2-8-needle-512k-1m"
     },
     {
       "model": "gpt-5.5",
@@ -527,7 +577,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
       "task_family": "reasoning",
-      "metric_id": "arc-agi-1-verified"
+      "metric_id": "arc-agi-1-verified",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-arc-agi-1-verified"
     },
     {
       "model": "gpt-5.5",
@@ -547,7 +599,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
       "task_family": "reasoning",
-      "metric_id": "arc-agi-2-verified"
+      "metric_id": "arc-agi-2-verified",
+      "snapshot_id": "openai-gpt-5-5-2026-04-23-2026-07-09",
+      "comparability_group": "openai-gpt-5-5-2026-04-23-2026-07-09-arc-agi-2-verified"
     }
   ],
   "claims": [
@@ -564,7 +618,7 @@
         "quality",
         "cost"
       ],
-      "statement": "API pricing GPT-5.5 $5/$30, Pro $30/$180; Fast mode 1.5\u00d7 speed for 2.5\u00d7 cost (separate from effort).",
+      "statement": "API pricing GPT-5.5 $5/$30, Pro $30/$180; Fast mode 1.5× speed for 2.5× cost (separate from effort).",
       "implication": "Do not conflate Fast mode with reasoning effort.",
       "source_id": "openai-gpt-5-5-2026-04-23"
     }

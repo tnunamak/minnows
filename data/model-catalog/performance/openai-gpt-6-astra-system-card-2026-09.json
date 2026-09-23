@@ -106,7 +106,8 @@
         "gpt-5.4-thinking": 0.961,
         "gpt-5.5-thinking": 0.94,
         "gpt-5.6-sol": 0.934
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -126,7 +127,8 @@
         "gpt-5.4-thinking": 0.99,
         "gpt-5.5-thinking": 0.987,
         "gpt-5.6-sol": 0.987
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -146,7 +148,8 @@
         "gpt-5.4-thinking": 0.943,
         "gpt-5.5-thinking": 0.925,
         "gpt-5.6-sol": 0.962
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -166,7 +169,8 @@
         "gpt-5.4-thinking": 1.0,
         "gpt-5.5-thinking": 1.0,
         "gpt-5.6-sol": 0.982
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -186,7 +190,8 @@
         "gpt-5.4-thinking": 0.959,
         "gpt-5.5-thinking": 0.917,
         "gpt-5.6-sol": 0.945
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -206,7 +211,8 @@
         "gpt-5.4-thinking": 0.823,
         "gpt-5.5-thinking": 0.803,
         "gpt-5.6-sol": 0.785
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -226,7 +232,8 @@
         "gpt-5.4-thinking": 0.909,
         "gpt-5.5-thinking": 0.919,
         "gpt-5.6-sol": 0.915
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -246,7 +253,8 @@
         "gpt-5.4-thinking": 0.947,
         "gpt-5.5-thinking": 0.938,
         "gpt-5.6-sol": 0.973
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -266,7 +274,8 @@
         "gpt-5.4-thinking": 0.752,
         "gpt-5.5-thinking": 0.711,
         "gpt-5.6-sol": 0.719
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -286,7 +295,8 @@
         "gpt-5.4-thinking": 0.94,
         "gpt-5.5-thinking": 0.935,
         "gpt-5.6-sol": 0.929
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -306,7 +316,8 @@
         "gpt-5.4-thinking": 0.673,
         "gpt-5.5-thinking": 0.639,
         "gpt-5.6-sol": 0.71
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -326,7 +337,8 @@
         "gpt-5.4-thinking": 0.935,
         "gpt-5.5-thinking": 0.914,
         "gpt-5.6-sol": 0.931
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -346,7 +358,8 @@
         "gpt-5.4-thinking": 0.987,
         "gpt-5.5-thinking": 0.977,
         "gpt-5.6-sol": 0.982
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -366,7 +379,8 @@
         "gpt-5.4-thinking": 0.823,
         "gpt-5.5-thinking": 0.803,
         "gpt-5.6-sol": 0.785
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -384,7 +398,8 @@
       "comparability_group": "openai-gpt-6-astra-syscard-table3-age-restricted",
       "comparisons": {
         "gpt-5.6-sol": 0.603
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -402,7 +417,8 @@
       "comparability_group": "openai-gpt-6-astra-syscard-table3-nonviolent-wrongdoing",
       "comparisons": {
         "gpt-5.6-sol": 0.906
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -420,7 +436,8 @@
       "comparability_group": "openai-gpt-6-astra-syscard-table3-violent-wrongdoing",
       "comparisons": {
         "gpt-5.6-sol": 0.689
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -438,7 +455,8 @@
       "comparability_group": "openai-gpt-6-astra-syscard-table3-sensitive-data",
       "comparisons": {
         "gpt-5.6-sol": 0.765
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -456,7 +474,8 @@
       "comparability_group": "openai-gpt-6-astra-syscard-table3-human-redteam-codex",
       "comparisons": {
         "gpt-5.6-sol": 0.851
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -474,7 +493,8 @@
       "comparability_group": "openai-gpt-6-astra-syscard-table3-human-redteam-plugins",
       "comparisons": {
         "gpt-5.6-sol": 0.766
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -493,7 +513,8 @@
       "comparisons": {
         "gpt-5.5-thinking": 0.115,
         "gpt-5.6-sol": 0.058
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -512,7 +533,8 @@
       "comparisons": {
         "gpt-5.5-thinking": 0.121,
         "gpt-5.6-sol": 0.103
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -531,7 +553,8 @@
       "comparisons": {
         "gpt-5.5-thinking": 0.223,
         "gpt-5.6-sol": 0.216
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -550,7 +573,8 @@
       "comparisons": {
         "gpt-5.5-thinking": 0.38,
         "gpt-5.6-sol": 0.483
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -569,7 +593,8 @@
       "comparisons": {
         "gpt-5.5-thinking": 0.57,
         "gpt-5.6-sol": 0.59
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -585,7 +610,9 @@
       "metric_id": "gray-swan-ipi-arena-asr",
       "comparisons": {
         "gpt-5.6-sol": 0.27
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-gray-swan-ipi-arena-asr"
     },
     {
       "model": "gpt-6-astra",
@@ -606,7 +633,8 @@
         "gpt-5.6-sol": 60.5,
         "gpt-5.6-terra": 57.7,
         "gpt-5.6-luna": 55.7
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -627,7 +655,8 @@
         "gpt-5.6-sol": 57.0,
         "gpt-5.6-terra": 57.0,
         "gpt-5.6-luna": 55.8
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -648,7 +677,8 @@
         "gpt-5.6-sol": 33.1,
         "gpt-5.6-terra": 32.7,
         "gpt-5.6-luna": 32.0
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -669,7 +699,8 @@
         "gpt-5.6-sol": 95.5,
         "gpt-5.6-terra": 95.1,
         "gpt-5.6-luna": 95.1
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -689,7 +720,8 @@
         "gpt-5.4-thinking": 0.914,
         "gpt-5.5-thinking": 0.82,
         "gpt-5.6-sol": 0.991
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -709,7 +741,8 @@
         "gpt-5.4-thinking": 0.976,
         "gpt-5.5-thinking": 0.915,
         "gpt-5.6-sol": 0.953
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -729,7 +762,8 @@
         "gpt-5.4-thinking": 0.975,
         "gpt-5.5-thinking": 0.868,
         "gpt-5.6-sol": 0.856
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -749,7 +783,8 @@
         "gpt-5.6-luna": 0.197,
         "gpt-5.6-terra": 0.135,
         "gpt-5.6-sol": 0.188
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -769,7 +804,8 @@
         "gpt-5.6-luna": 0.072,
         "gpt-5.6-terra": 0.057,
         "gpt-5.6-sol": 0.08
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -785,7 +821,9 @@
       "metric_id": "gpt6-agent-to-agent-engagement-rate",
       "comparisons": {
         "gpt-5.6-sol": 0.84
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-gpt6-agent-to-agent-engagement-rate"
     },
     {
       "model": "gpt-6-astra",
@@ -798,7 +836,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "agentic",
-      "metric_id": "internal-research-debugging-eval"
+      "metric_id": "internal-research-debugging-eval",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-internal-research-debugging-eval"
     },
     {
       "model": "gpt-6-astra",
@@ -814,7 +854,9 @@
       "metric_id": "aav-capsid-packaging-prediction",
       "comparisons": {
         "gpt-5.6-sol": 0.529
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-aav-capsid-packaging-prediction"
     },
     {
       "model": "gpt-6-astra",
@@ -830,7 +872,9 @@
       "metric_id": "shp2-protein-function-prediction",
       "comparisons": {
         "gpt-5.6-sol": 0.3
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-shp2-protein-function-prediction"
     },
     {
       "model": "gpt-6-astra",
@@ -846,7 +890,9 @@
       "metric_id": "coronavirus-ace2-cell-entry-screen",
       "comparisons": {
         "gpt-5.6-sol": 0.43
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-coronavirus-ace2-cell-entry-screen"
     },
     {
       "model": "gpt-6-astra",
@@ -862,7 +908,9 @@
       "metric_id": "phage-plasmid-coevolution-nll",
       "comparisons": {
         "gpt-5.6-sol": 11.35
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-phage-plasmid-coevolution-nll"
     },
     {
       "model": "gpt-6-astra",
@@ -875,7 +923,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "science",
-      "metric_id": "multimodal-troubleshooting-virology"
+      "metric_id": "multimodal-troubleshooting-virology",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-multimodal-troubleshooting-virology"
     },
     {
       "model": "gpt-6-astra",
@@ -888,7 +938,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "science",
-      "metric_id": "protocolqa-open-ended"
+      "metric_id": "protocolqa-open-ended",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-protocolqa-open-ended"
     },
     {
       "model": "gpt-6-astra",
@@ -901,7 +953,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "science",
-      "metric_id": "tacit-knowledge-and-troubleshooting"
+      "metric_id": "tacit-knowledge-and-troubleshooting",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-tacit-knowledge-and-troubleshooting"
     },
     {
       "model": "gpt-6-astra",
@@ -914,7 +968,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "science",
-      "metric_id": "troubleshootingbench"
+      "metric_id": "troubleshootingbench",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-troubleshootingbench"
     },
     {
       "model": "gpt-6-astra",
@@ -927,7 +983,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "cyber",
-      "metric_id": "exploitbench-cap-pct"
+      "metric_id": "exploitbench-cap-pct",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-exploitbench-cap-pct"
     },
     {
       "model": "gpt-6-astra",
@@ -943,7 +1001,9 @@
       "metric_id": "sre-bench",
       "comparisons": {
         "gpt-5.6-sol": 0.687
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-sre-bench"
     },
     {
       "model": "gpt-6-astra",
@@ -959,7 +1019,9 @@
       "metric_id": "sandbox-bench",
       "comparisons": {
         "gpt-5.6-sol": 0.0455
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-sandbox-bench"
     },
     {
       "model": "gpt-6-astra",
@@ -975,7 +1037,9 @@
       "metric_id": "irregular-frontiercyber",
       "comparisons": {
         "gpt-5.6-sol": 34
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-irregular-frontiercyber"
     },
     {
       "model": "gpt-6-astra",
@@ -991,7 +1055,9 @@
       "metric_id": "irregular-cyscenariobench",
       "comparisons": {
         "gpt-5.6-sol": 6
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-irregular-cyscenariobench"
     },
     {
       "model": "gpt-6-astra",
@@ -1010,7 +1076,8 @@
       "comparisons": {
         "gpt-5.5-thinking": 0.958,
         "gpt-5.6-sol": 0.943
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -1029,7 +1096,8 @@
       "comparisons": {
         "gpt-5.5-thinking": 0.926,
         "gpt-5.6-sol": 0.911
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -1048,7 +1116,8 @@
       "comparisons": {
         "gpt-5.5-thinking": 0.917,
         "gpt-5.6-sol": 0.989
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -1061,7 +1130,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "safety",
-      "metric_id": "gpt6-misuse-monitor-safety-reasoner-biology"
+      "metric_id": "gpt6-misuse-monitor-safety-reasoner-biology",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-gpt6-misuse-monitor-safety-reasoner-biology"
     },
     {
       "model": "gpt-6-astra",
@@ -1074,7 +1145,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "safety",
-      "metric_id": "gpt6-misuse-monitor-safety-reasoner-cyber"
+      "metric_id": "gpt6-misuse-monitor-safety-reasoner-cyber",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-gpt6-misuse-monitor-safety-reasoner-cyber"
     },
     {
       "model": "gpt-6-sol",
@@ -1094,7 +1167,8 @@
         "gpt-5.6-sol": 0.934,
         "gpt-5.6-luna": 0.94,
         "gpt-6-astra": 0.99
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -1114,7 +1188,8 @@
         "gpt-5.6-sol": 0.934,
         "gpt-5.6-luna": 0.94,
         "gpt-6-astra": 0.99
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-sol",
@@ -1134,7 +1209,8 @@
         "gpt-5.6-sol": 0.719,
         "gpt-5.6-luna": 0.76,
         "gpt-6-astra": 0.918
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -1154,7 +1230,8 @@
         "gpt-5.6-sol": 0.719,
         "gpt-5.6-luna": 0.76,
         "gpt-6-astra": 0.918
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-sol",
@@ -1173,7 +1250,8 @@
       "comparisons": {
         "gpt-5.6-sol": 0.603,
         "gpt-6-astra": 0.811
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -1192,7 +1270,8 @@
       "comparisons": {
         "gpt-5.6-sol": 0.603,
         "gpt-6-astra": 0.811
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-sol",
@@ -1212,7 +1291,8 @@
         "gpt-5.5-thinking": 0.115,
         "gpt-5.6-sol": 0.058,
         "gpt-6-astra": 0.973
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -1232,7 +1312,8 @@
         "gpt-5.5-thinking": 0.115,
         "gpt-5.6-sol": 0.058,
         "gpt-6-astra": 0.973
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-sol",
@@ -1250,7 +1331,8 @@
       "comparability_group": "openai-gpt-6-astra-syscard-table28-instruction-hierarchy",
       "comparisons": {
         "gpt-6-astra": 0.9999
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -1268,7 +1350,8 @@
       "comparability_group": "openai-gpt-6-astra-syscard-table28-instruction-hierarchy",
       "comparisons": {
         "gpt-6-astra": 0.9999
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-sol",
@@ -1287,7 +1370,8 @@
       "comparisons": {
         "gpt-5.6-sol": 60.5,
         "gpt-6-astra": 64.7
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -1306,7 +1390,8 @@
       "comparisons": {
         "gpt-5.6-luna": 55.7,
         "gpt-6-astra": 64.7
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-sol",
@@ -1325,7 +1410,8 @@
       "comparisons": {
         "gpt-5.6-sol": 57.0,
         "gpt-6-astra": 58.3
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -1344,7 +1430,8 @@
       "comparisons": {
         "gpt-5.6-luna": 55.8,
         "gpt-6-astra": 58.3
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-sol",
@@ -1360,7 +1447,9 @@
       "metric_id": "gpt6-codex-traffic-severity3-flag-rate",
       "comparisons": {
         "gpt-5.6-sol": 0.00131
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-gpt6-codex-traffic-severity3-flag-rate"
     },
     {
       "model": "gpt-6-sol",
@@ -1378,7 +1467,9 @@
         "gpt-5.6-sol": 0.161,
         "gpt-5.5-thinking": 0.017,
         "gpt-6-astra": 0.609
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-gpt6-cot-controllability-750-1250tok"
     },
     {
       "model": "gpt-6-sol",
@@ -1391,7 +1482,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "cyber",
-      "metric_id": "exploitbench-cap-pct"
+      "metric_id": "exploitbench-cap-pct",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-exploitbench-cap-pct"
     },
     {
       "model": "gpt-6-luna",
@@ -1404,7 +1497,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "cyber",
-      "metric_id": "exploitbench-cap-pct"
+      "metric_id": "exploitbench-cap-pct",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-exploitbench-cap-pct"
     },
     {
       "model": "gpt-6-sol",
@@ -1420,7 +1515,9 @@
       "metric_id": "exploitbench-internal-port-jun-aug-2026",
       "comparisons": {
         "gpt-6-astra": 0.315
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-exploitbench-internal-port-jun-aug-2026"
     },
     {
       "model": "gpt-6-luna",
@@ -1436,7 +1533,9 @@
       "metric_id": "exploitbench-internal-port-jun-aug-2026",
       "comparisons": {
         "gpt-6-astra": 0.315
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-exploitbench-internal-port-jun-aug-2026"
     },
     {
       "model": "gpt-6-sol",
@@ -1452,7 +1551,9 @@
       "metric_id": "sec-bench-pro",
       "comparisons": {
         "gpt-6-astra": 0.854
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-sec-bench-pro"
     },
     {
       "model": "gpt-6-luna",
@@ -1468,7 +1569,9 @@
       "metric_id": "sec-bench-pro",
       "comparisons": {
         "gpt-6-astra": 0.854
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-sec-bench-pro"
     },
     {
       "model": "gpt-6-sol",
@@ -1481,7 +1584,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "cyber",
-      "metric_id": "exploitgym-intended-exploit-rate"
+      "metric_id": "exploitgym-intended-exploit-rate",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-exploitgym-intended-exploit-rate"
     },
     {
       "model": "gpt-6-luna",
@@ -1494,7 +1599,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "cyber",
-      "metric_id": "exploitgym-intended-exploit-rate"
+      "metric_id": "exploitgym-intended-exploit-rate",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-exploitgym-intended-exploit-rate"
     },
     {
       "model": "gpt-6-sol",
@@ -1511,7 +1618,9 @@
       "comparisons": {
         "gpt-6-astra": 0.4545,
         "gpt-5.6-sol": 0.0455
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-sandbox-bench"
     },
     {
       "model": "gpt-6-luna",
@@ -1528,7 +1637,9 @@
       "comparisons": {
         "gpt-6-astra": 0.4545,
         "gpt-5.6-sol": 0.0455
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-sandbox-bench"
     },
     {
       "model": "gpt-6-sol",
@@ -1541,7 +1652,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "science",
-      "metric_id": "multimodal-troubleshooting-virology"
+      "metric_id": "multimodal-troubleshooting-virology",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-multimodal-troubleshooting-virology"
     },
     {
       "model": "gpt-6-luna",
@@ -1554,7 +1667,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "science",
-      "metric_id": "multimodal-troubleshooting-virology"
+      "metric_id": "multimodal-troubleshooting-virology",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-multimodal-troubleshooting-virology"
     },
     {
       "model": "gpt-6-sol",
@@ -1567,7 +1682,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "science",
-      "metric_id": "protocolqa-open-ended"
+      "metric_id": "protocolqa-open-ended",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-protocolqa-open-ended"
     },
     {
       "model": "gpt-6-luna",
@@ -1580,7 +1697,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "science",
-      "metric_id": "protocolqa-open-ended"
+      "metric_id": "protocolqa-open-ended",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-protocolqa-open-ended"
     },
     {
       "model": "gpt-6-sol",
@@ -1593,7 +1712,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "science",
-      "metric_id": "tacit-knowledge-and-troubleshooting"
+      "metric_id": "tacit-knowledge-and-troubleshooting",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-tacit-knowledge-and-troubleshooting"
     },
     {
       "model": "gpt-6-luna",
@@ -1606,7 +1727,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "science",
-      "metric_id": "tacit-knowledge-and-troubleshooting"
+      "metric_id": "tacit-knowledge-and-troubleshooting",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-tacit-knowledge-and-troubleshooting"
     },
     {
       "model": "gpt-6-sol",
@@ -1619,7 +1742,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "science",
-      "metric_id": "troubleshootingbench"
+      "metric_id": "troubleshootingbench",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-troubleshootingbench"
     },
     {
       "model": "gpt-6-luna",
@@ -1632,7 +1757,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-09-22",
       "task_family": "science",
-      "metric_id": "troubleshootingbench"
+      "metric_id": "troubleshootingbench",
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-troubleshootingbench"
     },
     {
       "model": "gpt-6-sol",
@@ -1649,7 +1776,9 @@
       "comparisons": {
         "gpt-5.6-sol": 0.529,
         "gpt-6-astra": 0.528
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-aav-capsid-packaging-prediction"
     },
     {
       "model": "gpt-6-sol",
@@ -1666,7 +1795,9 @@
       "comparisons": {
         "gpt-5.6-sol": 0.3,
         "gpt-6-astra": 0.4
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-shp2-protein-function-prediction"
     },
     {
       "model": "gpt-6-sol",
@@ -1683,7 +1814,9 @@
       "comparisons": {
         "gpt-5.6-sol": 0.43,
         "gpt-6-astra": 0.45
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-coronavirus-ace2-cell-entry-screen"
     },
     {
       "model": "gpt-6-sol",
@@ -1700,7 +1833,9 @@
       "comparisons": {
         "gpt-5.6-sol": 11.35,
         "gpt-6-astra": 12.58
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22",
+      "comparability_group": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22-phage-plasmid-coevolution-nll"
     },
     {
       "model": "gpt-6-sol",
@@ -1721,7 +1856,8 @@
         "gpt-5.6-sol": 0.943,
         "gpt-5.6-luna": 0.946,
         "gpt-6-astra": 0.998
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -1742,7 +1878,8 @@
         "gpt-5.6-sol": 0.943,
         "gpt-5.6-luna": 0.946,
         "gpt-6-astra": 0.998
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-sol",
@@ -1763,7 +1900,8 @@
         "gpt-5.6-sol": 0.983,
         "gpt-5.6-luna": 0.986,
         "gpt-6-astra": 0.97
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -1784,7 +1922,8 @@
         "gpt-5.6-sol": 0.983,
         "gpt-5.6-luna": 0.986,
         "gpt-6-astra": 0.97
-      }
+      },
+      "snapshot_id": "openai-gpt-6-astra-system-card-2026-09-22-2026-09-22"
     }
   ]
 }

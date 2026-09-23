@@ -2,9 +2,9 @@
   "$schema": "schemas/pack-v1.schema.json",
   "name": "model-catalog",
   "schema_version": 1,
-  "tag": "data-model-catalog-v0.5.7",
+  "tag": "data-model-catalog-v0.5.8",
   "generated_at": "2026-09-23",
-  "description": "Model economics catalog. v0.5.7: adds Grok 4.7, complete Google/xAI tier metadata, Grok 4.7 pricing and effort surfaces, observed Antigravity CLI surfaces, vendor launch results and additive board snapshots.",
+  "description": "Model economics catalog. v0.5.8: closes board snapshot coverage, records vals.ai effort metadata, ingests Gemini 3.8 Flash rival columns, restores estimated AA separation, and completes Qwen tier metadata.",
   "files": [
     "FRESHNESS.md",
     "SCHEMA.md",
@@ -95,7 +95,8 @@
     "schemas/pack-v1.schema.json",
     "schemas/performance-v1.schema.json",
     "schemas/pricing-v1.schema.json",
-    "schemas/sources-v1.schema.json"
+    "schemas/sources-v1.schema.json",
+    "CHANGELOG.md"
   ],
   "schemas": {
     "pricing": "schemas/pricing-v1.schema.json",

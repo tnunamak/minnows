@@ -56,7 +56,7 @@
       },
       "effort": "max",
       "effort_verbatim": "max",
-      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
+      "snapshot_id": "artificialanalysis-deepseek-v4-1-flash-2026-09-23-model-page-2026-09-23"
     },
     {
       "model": "kimi-k3",
@@ -79,7 +79,7 @@
       },
       "effort": "max",
       "effort_verbatim": "max",
-      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
+      "snapshot_id": "artificialanalysis-kimi-k3-2026-09-23-model-page-2026-09-23"
     },
     {
       "model": "glm-5.3",
@@ -102,7 +102,7 @@
       },
       "effort": "max",
       "effort_verbatim": "max",
-      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
+      "snapshot_id": "artificialanalysis-glm-5-3-2026-09-23-model-page-2026-09-23"
     },
     {
       "model": "glm-5.3-flash",
@@ -123,7 +123,7 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
+      "snapshot_id": "artificialanalysis-glm-5-3-flash-2026-09-23-model-page-2026-09-23"
     },
     {
       "model": "minimax-m3",
@@ -144,7 +144,7 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
+      "snapshot_id": "artificialanalysis-minimax-m3-2026-09-23-model-page-2026-09-23"
     },
     {
       "model": "minimax-m2.7",
@@ -165,7 +165,7 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
+      "snapshot_id": "artificialanalysis-minimax-m2-7-2026-09-23-model-page-2026-09-23"
     },
     {
       "model": "muse-spark-1-3",
@@ -188,7 +188,7 @@
       },
       "effort": "max",
       "effort_verbatim": "max",
-      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
+      "snapshot_id": "artificialanalysis-muse-spark-1-3-2026-09-23-model-page-2026-09-23"
     },
     {
       "model": "muse-spark-1-3",
@@ -211,7 +211,7 @@
       },
       "effort": "xhigh",
       "effort_verbatim": "xhigh",
-      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
+      "snapshot_id": "artificialanalysis-muse-spark-1-3-xhigh-2026-09-23-model-page-2026-09-23"
     },
     {
       "model": "mistral-large-3",
@@ -232,7 +232,7 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
+      "snapshot_id": "artificialanalysis-mistral-large-3-2026-09-23-model-page-2026-09-23"
     },
     {
       "model": "mistral-small-4",
@@ -253,7 +253,7 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
+      "snapshot_id": "artificialanalysis-mistral-small-4-2026-09-23-model-page-2026-09-23"
     },
     {
       "model": "qwen3.8-max",
@@ -274,7 +274,7 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
+      "snapshot_id": "artificialanalysis-qwen3-8-max-2026-09-23-model-page-2026-09-23"
     },
     {
       "model": "muse-spark-1-3",
@@ -291,7 +291,8 @@
       "metric_id": "chatbot-arena-text-elo",
       "comparability_group": "lmarena-text-2026-09-23-muse-spark-1-3-max",
       "comparable": false,
-      "caveat": "LMArena payload key muse-spark-1-3-max-bhma-text; display name muse-spark-1.3-max; 4,723 votes; rating interval 1484.2701926818113–1501.959570020544."
+      "caveat": "LMArena payload key muse-spark-1-3-max-bhma-text; display name muse-spark-1.3-max; 4,723 votes; rating interval 1484.2701926818113–1501.959570020544.",
+      "snapshot_id": "lmarena-text-openweight-2026-09-23-2026-09-23"
     }
   ],
   "missing": [

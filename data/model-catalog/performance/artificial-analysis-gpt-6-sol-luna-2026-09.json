@@ -33,7 +33,7 @@
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
-      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
+      "snapshot_id": "artificial-analysis-intelligence-index-gpt-6-sol-luna-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -50,7 +50,7 @@
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
-      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
+      "snapshot_id": "artificial-analysis-intelligence-index-gpt-6-sol-luna-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-sol",
@@ -71,7 +71,8 @@
         "value": 4.003379,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "artificialanalysis-gpt-6-sol-model-page-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-luna",
@@ -92,7 +93,8 @@
         "value": 0.236211,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "artificialanalysis-gpt-6-luna-model-page-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-sol",
@@ -112,7 +114,9 @@
         "value": 0.11972,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "artificialanalysis-gpt-6-sol-model-page-2026-09-22-2026-09-22",
+      "metric_id": "aa-humanitys-last-exam"
     },
     {
       "model": "gpt-6-luna",
@@ -132,7 +136,9 @@
         "value": 0.011812,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "artificialanalysis-gpt-6-luna-model-page-2026-09-22-2026-09-22",
+      "metric_id": "aa-humanitys-last-exam"
     }
   ],
   "missing": [

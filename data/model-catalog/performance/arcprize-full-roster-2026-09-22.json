@@ -49,7 +49,8 @@
         "value": 0.641,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-opus-5-5",
@@ -71,7 +72,8 @@
         "value": 1.85,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-opus-5-5",
@@ -93,7 +95,8 @@
         "value": 0.158,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-opus-5-5",
@@ -115,7 +118,8 @@
         "value": 0.408,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-fable-5-1",
@@ -137,7 +141,8 @@
         "value": 1.4,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-fable-5-1",
@@ -159,7 +164,8 @@
         "value": 4.49,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "grok-4.6",
@@ -181,7 +187,8 @@
         "value": 0.348,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "grok-4.6",
@@ -203,7 +210,8 @@
         "value": 0.757,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "grok-4.6",
@@ -226,7 +234,8 @@
         "value": 5600,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-sol",
@@ -248,7 +257,8 @@
         "value": 0.4,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-sol",
@@ -270,7 +280,8 @@
         "value": 1.44,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-sol",
@@ -293,7 +304,8 @@
         "value": 25100,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-terra",
@@ -315,7 +327,8 @@
         "value": 0.55,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-terra",
@@ -337,7 +350,8 @@
         "value": 1.09,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-terra",
@@ -360,7 +374,8 @@
         "value": 7900,
         "unit": "other",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-haiku-4-5",
@@ -380,7 +395,8 @@
         "value": 0.026,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-haiku-4-5",
@@ -400,7 +416,8 @@
         "value": 0.043,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-haiku-4-5",
@@ -420,7 +437,8 @@
         "value": 0.256,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-haiku-4-5",
@@ -440,7 +458,8 @@
         "value": 0.377,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-full-roster-2026-09-22-2026-09-22"
     }
   ],
   "missing": [

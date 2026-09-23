@@ -29,7 +29,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::third_party_board::codex-cli"
+      "comparability_group": "terminal-bench-2-1::third_party_board::codex-cli",
+      "snapshot_id": "tbench-2-1-2026-07-09-2026-07-09--terminal-bench-2-1-third-party-board-codex-cli"
     },
     {
       "model": "claude-fable-5",
@@ -45,7 +46,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::third_party_board::claude-code"
+      "comparability_group": "terminal-bench-2-1::third_party_board::claude-code",
+      "snapshot_id": "tbench-2-1-2026-07-09-2026-07-09--terminal-bench-2-1-third-party-board-claude-code"
     },
     {
       "model": "claude-fable-5",
@@ -61,7 +63,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::third_party_board::terminus-2"
+      "comparability_group": "terminal-bench-2-1::third_party_board::terminus-2",
+      "snapshot_id": "tbench-2-1-2026-07-09-2026-07-09--terminal-bench-2-1-third-party-board-terminus-2"
     },
     {
       "model": "claude-opus-4-8",
@@ -77,7 +80,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::third_party_board::claude-code"
+      "comparability_group": "terminal-bench-2-1::third_party_board::claude-code",
+      "snapshot_id": "tbench-2-1-2026-07-09-2026-07-09--terminal-bench-2-1-third-party-board-claude-code"
     },
     {
       "model": "gpt-5.5",
@@ -93,7 +97,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::third_party_board::terminus-2"
+      "comparability_group": "terminal-bench-2-1::third_party_board::terminus-2",
+      "snapshot_id": "tbench-2-1-2026-07-09-2026-07-09--terminal-bench-2-1-third-party-board-terminus-2"
     },
     {
       "model": "claude-opus-4-8",
@@ -109,7 +114,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::third_party_board::terminus-2"
+      "comparability_group": "terminal-bench-2-1::third_party_board::terminus-2",
+      "snapshot_id": "tbench-2-1-2026-07-09-2026-07-09--terminal-bench-2-1-third-party-board-terminus-2"
     },
     {
       "model": "gemini-3-pro",
@@ -125,7 +131,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::third_party_board::terminus-2"
+      "comparability_group": "terminal-bench-2-1::third_party_board::terminus-2",
+      "snapshot_id": "tbench-2-1-2026-07-09-2026-07-09--terminal-bench-2-1-third-party-board-terminus-2"
     },
     {
       "model": "gemini-3.1-pro",
@@ -141,7 +148,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::third_party_board::gemini-cli"
+      "comparability_group": "terminal-bench-2-1::third_party_board::gemini-cli",
+      "snapshot_id": "tbench-2-1-2026-07-09-2026-07-09--terminal-bench-2-1-third-party-board-gemini-cli"
     },
     {
       "model": "gemini-3.1-pro",
@@ -157,7 +165,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::third_party_board::terminus-2"
+      "comparability_group": "terminal-bench-2-1::third_party_board::terminus-2",
+      "snapshot_id": "tbench-2-1-2026-07-09-2026-07-09--terminal-bench-2-1-third-party-board-terminus-2"
     },
     {
       "model": "claude-opus-4-7",
@@ -173,7 +182,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::third_party_board::claude-code"
+      "comparability_group": "terminal-bench-2-1::third_party_board::claude-code",
+      "snapshot_id": "tbench-2-1-2026-07-09-2026-07-09--terminal-bench-2-1-third-party-board-claude-code"
     },
     {
       "model": "gemini-3-pro",
@@ -189,7 +199,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::third_party_board::gemini-cli"
+      "comparability_group": "terminal-bench-2-1::third_party_board::gemini-cli",
+      "snapshot_id": "tbench-2-1-2026-07-09-2026-07-09--terminal-bench-2-1-third-party-board-gemini-cli"
     },
     {
       "model": "claude-opus-4-7",
@@ -205,7 +216,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::third_party_board::terminus-2"
+      "comparability_group": "terminal-bench-2-1::third_party_board::terminus-2",
+      "snapshot_id": "tbench-2-1-2026-07-09-2026-07-09--terminal-bench-2-1-third-party-board-terminus-2"
     },
     {
       "model": "glm-5.1",
@@ -221,7 +233,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "terminal-bench-2-1::third_party_board::claude-code"
+      "comparability_group": "terminal-bench-2-1::third_party_board::claude-code",
+      "snapshot_id": "tbench-2-1-2026-07-09-2026-07-09--terminal-bench-2-1-third-party-board-claude-code"
     },
     {
       "model": "claude-fable-5",
@@ -236,7 +249,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "max",
       "task_family": "coding",
-      "metric_id": "terminal-bench-v2-1-aa-terminus-2"
+      "metric_id": "terminal-bench-v2-1-aa-terminus-2",
+      "snapshot_id": "aa-terminalbench-v2-1-2026-07-09-2026-07-09",
+      "comparability_group": "aa-terminalbench-v2-1-2026-07-09-2026-07-09-terminal-bench-v2-1-aa-terminus-2"
     },
     {
       "model": "claude-opus-4-8",
@@ -251,7 +266,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "max",
       "task_family": "coding",
-      "metric_id": "terminal-bench-v2-1-aa-terminus-2"
+      "metric_id": "terminal-bench-v2-1-aa-terminus-2",
+      "snapshot_id": "aa-terminalbench-v2-1-2026-07-09-2026-07-09",
+      "comparability_group": "aa-terminalbench-v2-1-2026-07-09-2026-07-09-terminal-bench-v2-1-aa-terminus-2"
     },
     {
       "model": "gpt-5.5",
@@ -266,7 +283,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
       "task_family": "coding",
-      "metric_id": "terminal-bench-v2-1-aa-terminus-2"
+      "metric_id": "terminal-bench-v2-1-aa-terminus-2",
+      "snapshot_id": "aa-terminalbench-v2-1-2026-07-09-2026-07-09",
+      "comparability_group": "aa-terminalbench-v2-1-2026-07-09-2026-07-09-terminal-bench-v2-1-aa-terminus-2"
     }
   ],
   "claims": [
