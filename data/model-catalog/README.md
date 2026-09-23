@@ -79,6 +79,8 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 
 Adds xAI Grok 4.7 and updates Google/xAI catalog metadata from current vendor sources. Adds Google and xAI `tier` values across registered models; adds Grok 4.7 API pricing and API/Grok CLI surfaces; records authenticated local `agy models` per-effort availability for Gemini 3.8/3.7/3.6 Flash and 3.1 Pro. Adds Google Gemini 3.8 Flash and 3.1 Pro model-card tables, xAI's Grok 4.7 launch table (including effort labels verbatim), and additive direct-fetch AA/vals.ai rows. Google confirms Gemini 3.8 Flash GA, while Gemini 3.1 Pro remains Preview. The public docs do not expose a Deep Think API model ID. See `data/model-catalog/performance/google-xai-board-snapshot-2026-09-23.json` for the exact board reads and remaining un-fetched coverage.
 
+Data repair: records all 70 DeepSWE v1.1 configurations with per-row effort, pass@1, pass@4, cost, n, and confidence bounds. Adds vendor table comparison cells and their stated effort levels; merges the split vals.ai TB4 and AA v4.3.2 comparability groups; and validates one group per explicit snapshot and metric. Preserves full AA payload precision, MiniMax M3's billed discount, DeepSeek's historical V4 Flash identity, Qwen thinking-toggle surfaces, and source-backed release dates.
+
 Open-weight and other-lab frontier:
 
 - Add DeepSeek V4.1 Flash, V4 Pro-0813, and historical V4 Flash-0731; API pricing and exact vendor effort mappings.

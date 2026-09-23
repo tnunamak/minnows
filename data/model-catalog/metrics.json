@@ -2146,6 +2146,78 @@
       "harness": null,
       "steward": "vendor_table",
       "unit_default": "accuracy"
+    },
+    {
+      "id": "terminal-bench-3-0",
+      "name": "Terminal-Bench 3.0",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "nl2repo-bench",
+      "name": "NL2Repo-Bench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "humanity-s-last-exam-with-tools-hle",
+      "name": "HLE with tools",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "babyvision",
+      "name": "BabyVision",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "zerobench-main",
+      "name": "ZeroBench main",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "biomystery-human-solvable",
+      "name": "BioMysteryBench Human Solvable",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "biomystery-human-difficult",
+      "name": "BioMysteryBench Human Difficult",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "lvbench-agentic",
+      "name": "LVBench Agentic",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "lvbench-static",
+      "name": "LVBench Static",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy"
     }
   ]
 }

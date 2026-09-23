@@ -1,0 +1,57 @@
+{
+  "schema_version": 3,
+  "event_kind": "task_checkpoint",
+  "checkpoint_id": "cp_20260923T161103Z_a01_validated",
+  "task_id": "20260923-154225-fix-model-catalog-coverage-snapshot-integrity-so",
+  "target": "A01",
+  "series": "A",
+  "query": "Fix model catalog coverage, snapshot integrity, source-backed model dates, and validator checks from frontier datafix brief",
+  "slice": "A01",
+  "slice_title": "DeepSWE full board and one-snapshot grouping",
+  "parent_slice": "A01",
+  "stage": "validated",
+  "decision": "promote",
+  "created_at": "2026-09-23T16:11:03Z",
+  "goal": "Record progress for `Fix model catalog coverage, snapshot integrity, source-backed model dates, and validator checks from frontier datafix brief`.",
+  "description": "Added all 70 live DeepSWE configurations with source precision and explicit snapshot grouping; added CI, n and pass_at_4 schema fields and one-group-per-snapshot validation.",
+  "resources": [
+    "../A00-index.md",
+    "../A01-deepswe-full-board-and-one-snapshot-grouping-plan.md",
+    "../A01-deepswe-full-board-and-one-snapshot-grouping-result.md",
+    "../task.json"
+  ],
+  "files_edited": [
+    "data/model-catalog/performance/google-xai-board-snapshot-2026-09-23.json",
+    "data/model-catalog/schemas/performance-v1.schema.json",
+    "scripts/validate_data_pack.py"
+  ],
+  "tests_run": [
+    "./scripts/validate_data_pack.py model-catalog",
+    "python3 /home/tnunamak/.tmp/frontier/audit_values.py"
+  ],
+  "actual_context": {
+    "files_edited": [
+      "data/model-catalog/performance/google-xai-board-snapshot-2026-09-23.json",
+      "data/model-catalog/schemas/performance-v1.schema.json",
+      "scripts/validate_data_pack.py"
+    ],
+    "tests_run": [
+      "./scripts/validate_data_pack.py model-catalog",
+      "python3 /home/tnunamak/.tmp/frontier/audit_values.py"
+    ]
+  },
+  "predicted_context_feedback": {
+    "relevant_found": [
+      "scripts/validate_data_pack.py"
+    ]
+  },
+  "evidence": {
+    "plan_refs": [
+      "../A00-index.md",
+      "../A01-deepswe-full-board-and-one-snapshot-grouping-plan.md",
+      "../A01-deepswe-full-board-and-one-snapshot-grouping-result.md",
+      "../task.json"
+    ]
+  },
+  "next": {}
+}

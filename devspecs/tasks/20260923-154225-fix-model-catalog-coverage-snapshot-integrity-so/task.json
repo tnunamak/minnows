@@ -1,0 +1,332 @@
+{
+  "task_id": "20260923-154225-fix-model-catalog-coverage-snapshot-integrity-so",
+  "series": "A",
+  "profile": "code-change",
+  "query": "Fix model catalog coverage, snapshot integrity, source-backed model dates, and validator checks from frontier datafix brief",
+  "status": "packed",
+  "created_at": "2026-09-23T15:42:25Z",
+  "updated_at": "2026-09-23T16:14:45Z",
+  "repo_root": "/home/tnunamak/code/minnows-waspflow-frontier-datafix",
+  "workspace": "/home/tnunamak/code/minnows-waspflow-frontier-datafix/devspecs/tasks/20260923-154225-fix-model-catalog-coverage-snapshot-integrity-so",
+  "artifacts": {
+    "series": "A",
+    "index": "A00-index.md",
+    "first_slice": "A01-deepswe-full-board-and-one-snapshot-grouping-plan.md",
+    "result": "A01-deepswe-full-board-and-one-snapshot-grouping-result.md",
+    "slices": [
+      {
+        "id": "A01",
+        "title": "DeepSWE full board and one-snapshot grouping",
+        "plan": "A01-deepswe-full-board-and-one-snapshot-grouping-plan.md",
+        "result": "A01-deepswe-full-board-and-one-snapshot-grouping-result.md",
+        "kind": "slice",
+        "stage": "validated",
+        "decision": "promote",
+        "updated_at": "2026-09-23T16:11:03Z",
+        "latest_checkpoint_id": "cp_20260923T161103Z_a01_validated",
+        "latest_checkpoint": "checkpoints/20260923-161103-validated.md",
+        "latest_checkpoint_json": "checkpoints/20260923-161103-validated.json"
+      },
+      {
+        "id": "A02",
+        "title": "Vendor tables, corrections, Qwen surfaces, and model dates",
+        "plan": "A02-vendor-tables-corrections-qwen-surfaces-and-mode-plan.md",
+        "result": "A02-vendor-tables-corrections-qwen-surfaces-and-mode-result.md",
+        "kind": "slice",
+        "stage": "validated",
+        "decision": "promote",
+        "updated_at": "2026-09-23T16:11:11Z",
+        "latest_checkpoint_id": "cp_20260923T161111Z_a02_validated",
+        "latest_checkpoint": "checkpoints/20260923-161111-validated.md",
+        "latest_checkpoint_json": "checkpoints/20260923-161111-validated.json"
+      },
+      {
+        "id": "A03",
+        "title": "Validate, review diff, commit, and report",
+        "plan": "A03-validate-review-diff-commit-and-report-plan.md",
+        "result": "A03-validate-review-diff-commit-and-report-result.md",
+        "kind": "slice",
+        "stage": "completed",
+        "decision": "complete",
+        "updated_at": "2026-09-23T16:14:45Z",
+        "latest_checkpoint_id": "cp_20260923T161445Z_a03_completed",
+        "latest_checkpoint": "checkpoints/20260923-161445-completed.md",
+        "latest_checkpoint_json": "checkpoints/20260923-161445-completed.json"
+      }
+    ]
+  },
+  "predicted_context": {
+    "relevant_areas": [
+      "tools",
+      "scripts",
+      "tests"
+    ],
+    "primary_files": [
+      {
+        "path": "tools/hone/lib/work.mjs",
+        "title": "tools/hone/lib/work.mjs (javascript)",
+        "kind": "source_context",
+        "role": "implementation_surface",
+        "evidence": [
+          "query term match in body: backed",
+          "query term match in body: brief",
+          "query term match in body: checks",
+          "authority prior: stale or superseded"
+        ]
+      },
+      {
+        "path": "tools/hone/lib/test-lane.mjs",
+        "title": "tools/hone/lib/test-lane.mjs (javascript)",
+        "kind": "source_context",
+        "role": "implementation_surface",
+        "evidence": [
+          "query term match in body: brief",
+          "query term match in body: checks",
+          "query term match in body: dates",
+          "authority prior: stale or superseded"
+        ]
+      },
+      {
+        "path": "tools/hone/lib/lane.mjs",
+        "title": "tools/hone/lib/lane.mjs (javascript)",
+        "kind": "source_context",
+        "role": "implementation_surface",
+        "evidence": [
+          "query term match in body: brief",
+          "query term match in body: checks",
+          "query term match in body: dates",
+          "authority prior: stale or superseded"
+        ]
+      },
+      {
+        "path": "scripts/recommend_ops.py",
+        "title": "scripts/recommend_ops.py",
+        "kind": "source_context",
+        "role": "implementation_surface",
+        "evidence": [
+          "relationship expansion: source_manifest_family_recovery",
+          "query term match in body: catalog",
+          "query term match in body: coverage"
+        ]
+      },
+      {
+        "path": "tools/hone/lib/inventory-snapshot.mjs",
+        "title": "tools/hone/lib/inventory-snapshot.mjs (javascript)",
+        "kind": "source_context",
+        "role": "implementation_surface",
+        "evidence": [
+          "relationship expansion: source_manifest_family_recovery",
+          "query term match in path: snapshot",
+          "query term match in body: from",
+          "authority prior: stale or superseded"
+        ]
+      },
+      {
+        "path": "scripts/validate_data_pack.py",
+        "title": "scripts/validate_data_pack.py",
+        "kind": "source_context",
+        "role": "implementation_surface",
+        "evidence": [
+          "relationship expansion: source_manifest_family_recovery",
+          "query term match in body: catalog",
+          "query term match in body: integrity",
+          "scout source preservation: query roots valid,valida; source-manifest candidate",
+          "bounded body evidence: catalog=58, fix=1, integrity=1, model=128; bytes=37981"
+        ]
+      },
+      {
+        "path": "tools/hone/lib/agenda.mjs",
+        "title": "tools/hone/lib/agenda.mjs (javascript)",
+        "kind": "source_context",
+        "role": "implementation_surface",
+        "evidence": [
+          "query term match in body: coverage",
+          "query term match in body: dates",
+          "query term match in body: fix"
+        ]
+      },
+      {
+        "path": "tools/hone/lib/plan-orders.mjs",
+        "title": "tools/hone/lib/plan-orders.mjs (javascript)",
+        "kind": "source_context",
+        "role": "implementation_surface",
+        "evidence": [
+          "query term match in body: backed",
+          "query term match in body: checks",
+          "query term match in body: coverage",
+          "authority prior: stale or superseded"
+        ]
+      },
+      {
+        "path": "tools/hone/lib/test-agenda.mjs",
+        "title": "tools/hone/lib/test-agenda.mjs (javascript)",
+        "kind": "source_context",
+        "role": "implementation_surface",
+        "evidence": [
+          "relationship expansion: source_manifest_family_recovery",
+          "query term match in body: checks",
+          "query term match in body: dates",
+          "authority prior: stale or superseded"
+        ]
+      }
+    ],
+    "tests": [
+      {
+        "path": "tests/test_recommend_ops.py",
+        "title": "tests/test_recommend_ops.py",
+        "kind": "source_context",
+        "subtype": "test_case",
+        "role": "behavior_tests",
+        "evidence": [
+          "relationship expansion: source_manifest_test_reservation",
+          "pack tier: related (reserved manifest test with direct query evidence)",
+          "test-name token anchor",
+          "query term match in body: catalog",
+          "test-case behavior signal"
+        ]
+      },
+      {
+        "path": "tests/test_convo.py",
+        "title": "tests/test_convo.py",
+        "kind": "source_context",
+        "subtype": "test_case",
+        "role": "behavior_tests",
+        "evidence": [
+          "relationship expansion: source_manifest_test_reservation",
+          "pack tier: related (reserved manifest test with direct query evidence)",
+          "test-name token anchor",
+          "query term match in body: from",
+          "test-case behavior signal"
+        ]
+      }
+    ],
+    "related_git_receipts": [
+      {
+        "sha": "84ba4dc9302dc947c3935ee95453edef8ba3a2f7",
+        "short_sha": "84ba4dc",
+        "committed_at": "2026-07-02",
+        "subject": "feat(hone): token-economics levers — stage-level accounting, model-selection architecture, batch verification with bi...",
+        "matched_paths": [
+          "tools/hone/lib/lane.mjs",
+          "tools/hone/lib/test-lane.mjs",
+          "tools/hone/lib/work.mjs"
+        ],
+        "matched_terms": [
+          "model",
+          "coverage",
+          "dates"
+        ],
+        "signals": [
+          "touched 3 packed path(s)",
+          "matched query anchors",
+          "PR/issue reference",
+          "cross-file change"
+        ]
+      },
+      {
+        "sha": "77424727a70405c3c113de80721e88c066de5bcf",
+        "short_sha": "7742472",
+        "committed_at": "2026-09-23",
+        "subject": "fix(recommend_ops): decimal version ordering; correct grok-4.7 CLI efforts; dispatch-id-aware known-answer test",
+        "matched_paths": [
+          "scripts/recommend_ops.py"
+        ],
+        "matched_terms": [
+          "model",
+          "catalog"
+        ],
+        "signals": [
+          "touched 1 packed path(s)",
+          "matched query anchors",
+          "PR/issue reference"
+        ]
+      },
+      {
+        "sha": "e01dc55677be7fe15fb92af83d130cc7d9faec7e",
+        "short_sha": "e01dc55",
+        "committed_at": "2026-09-22",
+        "subject": "feat(model-choice-policy): derive op recommendations from the catalog",
+        "matched_paths": [
+          "scripts/recommend_ops.py"
+        ],
+        "matched_terms": [
+          "model",
+          "catalog",
+          "coverage",
+          "dates"
+        ],
+        "signals": [
+          "touched 1 packed path(s)",
+          "matched query anchors"
+        ]
+      }
+    ]
+  },
+  "freshness_warnings": [
+    {
+      "path": "data/model-catalog/SOURCES.json",
+      "reason": "on-disk path matched task terms but was not in the indexed candidate set: model, catalog, source"
+    },
+    {
+      "path": "data/model-catalog/digitized/anthropic-opus5-frontier-bench-effort.json",
+      "reason": "on-disk path matched task terms but was not in the indexed candidate set: model, catalog, frontier"
+    },
+    {
+      "path": "data/model-catalog/performance/artificial-analysis-openweight-frontier-2026-09-23.json",
+      "reason": "on-disk path matched task terms but was not in the indexed candidate set: model, catalog, frontier"
+    },
+    {
+      "path": "data/model-catalog/performance/artificialanalysis-opus5-briefcase-2026-09.json",
+      "reason": "on-disk path matched task terms but was not in the indexed candidate set: model, catalog, brief"
+    },
+    {
+      "path": "data/model-catalog/performance/google-xai-board-snapshot-2026-09-23.json",
+      "reason": "on-disk path matched task terms but was not in the indexed candidate set: model, catalog, snapshot"
+    },
+    {
+      "path": "data/model-catalog/performance/gpt-6-sol-luna-board-coverage-2026-09-22.json",
+      "reason": "on-disk path matched task terms but was not in the indexed candidate set: model, catalog, coverage"
+    },
+    {
+      "path": "data/model-catalog/performance/openweight-vendor-frontier-2026-09-23.json",
+      "reason": "on-disk path matched task terms but was not in the indexed candidate set: model, catalog, frontier"
+    },
+    {
+      "path": "data/model-catalog/performance/opus-5-5-board-coverage-2026-09-22.json",
+      "reason": "on-disk path matched task terms but was not in the indexed candidate set: model, catalog, coverage"
+    }
+  ],
+  "risk_cards": [
+    {
+      "id": "stale-index",
+      "title": "On-disk paths matched the task but were not indexed",
+      "severity": "medium",
+      "source": "freshness",
+      "evidence": [
+        "`data/model-catalog/SOURCES.json` - on-disk path matched task terms but was not in the indexed candidate set: model, catalog, source",
+        "`data/model-catalog/digitized/anthropic-opus5-frontier-bench-effort.json` - on-disk path matched task terms but was not in the indexed candidate set: model, catalog, frontier",
+        "`data/model-catalog/performance/artificial-analysis-openweight-frontier-2026-09-23.json` - on-disk path matched task terms but was not in the indexed candidate set: model, catalog, frontier",
+        "`data/model-catalog/performance/artificialanalysis-opus5-briefcase-2026-09.json` - on-disk path matched task terms but was not in the indexed candidate set: model, catalog, brief"
+      ],
+      "agent_check": "Inspect the warned files or refresh the index before trusting missing context.",
+      "count": 8
+    }
+  ],
+  "confidence": {
+    "primary_file_confidence": "high",
+    "test_coverage_confidence": "high",
+    "docs_config_confidence": "low",
+    "git_receipt_confidence": "high",
+    "noise_risk": "low",
+    "pack_completeness": "medium",
+    "why": [
+      "found 9 likely primary file(s)",
+      "found 2 likely test file(s)",
+      "found 3 related Git receipt(s)"
+    ],
+    "agent_instruction": "Validate the test and integration surface before editing. Record critical misses and distracting inclusions in the slice result or a task checkpoint."
+  },
+  "durability": {
+    "required": true
+  }
+}

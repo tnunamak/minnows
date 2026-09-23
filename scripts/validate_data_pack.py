@@ -568,6 +568,17 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
     validate_pack_envelope(pack_dir, errors)
     source_registry = load_source_registry(pack_dir, errors)
     model_registry, model_status = load_model_registry(pack_dir, errors)
+    model_data = load_json(pack_dir / "models.json", Errors())
+    if isinstance(model_data, dict):
+        for i, model in enumerate(model_data.get("models") or []):
+            if not isinstance(model, dict) or "released" not in model:
+                continue
+            mp = str((pack_dir / "models.json").relative_to(REPO)) + f"#models[{i}]"
+            if not DATE_RE.match(str(model.get("released", ""))):
+                errors.add(mp, "released must be YYYY-MM-DD")
+            sid = model.get("release_source_id")
+            if not isinstance(sid, str) or sid not in source_registry:
+                errors.add(mp, "released requires release_source_id from SOURCES.json")
     metric_ids: set[str] = set()
     mpath = pack_dir / "metrics.json"
     if mpath.is_file():
@@ -597,7 +608,8 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
 
     # Comparability: metric_ids that mix source_type or harness must set comparable=false on rows
     by_mid: dict[str, list[tuple[str, str, str | None, object]]] = {}
-    for path in sorted((pack_dir / "performance").glob("*.json")) if (pack_dir / "performance").is_dir() else []:
+    perf_paths = sorted((pack_dir / "performance").glob("*.json")) if (pack_dir / "performance").is_dir() else []
+    for path in perf_paths:
         data = load_json(path, Errors())
         if not isinstance(data, dict):
             continue
@@ -626,6 +638,33 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
                         f"metric_id {mid!r} mixes source/harness classes; set comparable=false "
                         f"(got source_type={st!r} harness={h!r} comparable={comp!r})",
                     )
+
+    # A board snapshot has one comparability group for each metric, regardless of
+    # which performance file or ingestion lane contains its rows.
+    by_snapshot_metric: dict[tuple[str, str], list[tuple[str, str]]] = {}
+    for path in sorted((pack_dir / "performance").glob("*.json")) if (pack_dir / "performance").is_dir() else []:
+        data = load_json(path, Errors())
+        if not isinstance(data, dict):
+            continue
+        for i, row in enumerate(data.get("scores") or []):
+            if not isinstance(row, dict):
+                continue
+            metric_id = row.get("metric_id")
+            snapshot_id = row.get("snapshot_id")
+            group = row.get("comparability_group")
+            if not isinstance(metric_id, str) or not isinstance(snapshot_id, str) or not isinstance(group, str):
+                continue
+            loc = str(path.relative_to(REPO)) + f"#scores[{i}]"
+            by_snapshot_metric.setdefault((snapshot_id, metric_id), []).append((loc, group))
+    for (snapshot_id, metric_id), rows in by_snapshot_metric.items():
+        groups = {group for _, group in rows}
+        if len(groups) > 1:
+            for loc, group in rows:
+                errors.add(
+                    loc,
+                    f"snapshot {snapshot_id!r} metric_id {metric_id!r} uses multiple "
+                    f"comparability_groups {sorted(groups)!r} (row has {group!r})",
+                )
 
     for name in (
         "pricing-v1.schema.json",

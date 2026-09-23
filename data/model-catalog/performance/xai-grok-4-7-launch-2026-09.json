@@ -33,7 +33,7 @@
     {
       "model": "grok-4.7",
       "metric": "CursorBench 4.0",
-      "score": 0.46299999999999997,
+      "score": 0.463,
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "xai-grok-4-7-announcement-2026-09-23",
@@ -44,12 +44,13 @@
       "task_family": "coding",
       "metric_id": "cursorbench-4-0",
       "comparable": false,
-      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21"
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-cursorbench-4-0",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
     },
     {
       "model": "grok-4.6",
       "metric": "CursorBench 4.0",
-      "score": 0.40399999999999997,
+      "score": 0.404,
       "unit": "accuracy",
       "effort": "high",
       "source_id": "xai-grok-4-7-announcement-2026-09-23",
@@ -60,7 +61,8 @@
       "task_family": "coding",
       "metric_id": "cursorbench-4-0",
       "comparable": false,
-      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21"
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-cursorbench-4-0",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
     },
     {
       "model": "grok-4.7",
@@ -76,7 +78,8 @@
       "task_family": "coding",
       "metric_id": "deepswe-v1-1",
       "comparable": false,
-      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21"
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-deepswe-v1-1",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
     },
     {
       "model": "grok-4.6",
@@ -92,7 +95,8 @@
       "task_family": "coding",
       "metric_id": "deepswe-v1-1",
       "comparable": false,
-      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21"
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-deepswe-v1-1",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
     },
     {
       "model": "grok-4.7",
@@ -108,7 +112,8 @@
       "task_family": "mixed",
       "metric_id": "aa-briefcase-elo",
       "comparable": false,
-      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21"
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-aa-briefcase-elo",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
     },
     {
       "model": "grok-4.6",
@@ -124,7 +129,8 @@
       "task_family": "mixed",
       "metric_id": "aa-briefcase-elo",
       "comparable": false,
-      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21"
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-aa-briefcase-elo",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
     },
     {
       "model": "grok-4.7",
@@ -140,7 +146,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21"
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-terminal-bench-4-0",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
     },
     {
       "model": "grok-4.6",
@@ -156,7 +163,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21"
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-terminal-bench-4-0",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
     },
     {
       "model": "grok-4.7",
@@ -172,7 +180,8 @@
       "task_family": "mixed",
       "metric_id": "harvey-legal-agent-benchmark",
       "comparable": false,
-      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21"
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-harvey-legal-agent-benchmark",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
     },
     {
       "model": "grok-4.6",
@@ -188,12 +197,13 @@
       "task_family": "mixed",
       "metric_id": "harvey-legal-agent-benchmark",
       "comparable": false,
-      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21"
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-harvey-legal-agent-benchmark",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
     },
     {
       "model": "grok-4.7",
       "metric": "HealthBench Professional",
-      "score": 0.5670000000000001,
+      "score": 0.567,
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "xai-grok-4-7-announcement-2026-09-23",
@@ -204,7 +214,8 @@
       "task_family": "mixed",
       "metric_id": "healthbench-professional",
       "comparable": false,
-      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21"
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-healthbench-professional",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
     },
     {
       "model": "grok-4.6",
@@ -220,7 +231,8 @@
       "task_family": "mixed",
       "metric_id": "healthbench-professional",
       "comparable": false,
-      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21"
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-healthbench-professional",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
     },
     {
       "model": "grok-4.7",
@@ -236,7 +248,8 @@
       "task_family": "mixed",
       "metric_id": "eebench",
       "comparable": false,
-      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21"
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-eebench",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
     },
     {
       "model": "grok-4.6",
@@ -252,7 +265,314 @@
       "task_family": "mixed",
       "metric_id": "eebench",
       "comparable": false,
-      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21"
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-eebench",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "CursorBench 4.0",
+      "score": 0.417,
+      "unit": "accuracy",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "coding",
+      "metric_id": "cursorbench-4-0",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-cursorbench-4-0",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "CursorBench 4.0",
+      "score": 0.518,
+      "unit": "accuracy",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "coding",
+      "metric_id": "cursorbench-4-0",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-cursorbench-4-0",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "DeepSWE v1.1",
+      "score": 0.727,
+      "unit": "accuracy",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "coding",
+      "metric_id": "deepswe-v1-1",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-deepswe-v1-1",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "DeepSWE v1.1",
+      "score": 0.7,
+      "unit": "accuracy",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "coding",
+      "metric_id": "deepswe-v1-1",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-deepswe-v1-1",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "EEBench",
+      "score": 0.394,
+      "unit": "accuracy",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "mixed",
+      "metric_id": "eebench",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-eebench",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "EEBench",
+      "score": 0.564,
+      "unit": "accuracy",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "mixed",
+      "metric_id": "eebench",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-eebench",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "Artificial Analysis Briefcase v1.1",
+      "score": 1487,
+      "unit": "elo",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "mixed",
+      "metric_id": "aa-briefcase-elo",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-aa-briefcase-elo",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "Artificial Analysis Briefcase v1.1",
+      "score": 1678,
+      "unit": "elo",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "mixed",
+      "metric_id": "aa-briefcase-elo",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-aa-briefcase-elo",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.373,
+      "unit": "accuracy",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-terminal-bench-4-0",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.579,
+      "unit": "accuracy",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-terminal-bench-4-0",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "Harvey Legal Agent Benchmark",
+      "score": 0.025,
+      "unit": "accuracy",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "mixed",
+      "metric_id": "harvey-legal-agent-benchmark",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-harvey-legal-agent-benchmark",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "Harvey Legal Agent Benchmark",
+      "score": 0.067,
+      "unit": "accuracy",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "mixed",
+      "metric_id": "harvey-legal-agent-benchmark",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-harvey-legal-agent-benchmark",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "HealthBench Professional",
+      "score": 0.605,
+      "unit": "accuracy",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "mixed",
+      "metric_id": "healthbench-professional",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-healthbench-professional",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "HealthBench Professional",
+      "score": 0.621,
+      "unit": "accuracy",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "mixed",
+      "metric_id": "healthbench-professional",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-healthbench-professional",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "GDPval-AA v2",
+      "score": 1735,
+      "unit": "elo",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "mixed",
+      "metric_id": "gdpval-aa-v2",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-gdpval-aa-v2",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "grok-4.7",
+      "metric": "GDPval-AA v2",
+      "score": 1695,
+      "unit": "elo",
+      "effort": "xhigh",
+      "effort_verbatim": "xhigh",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "mixed",
+      "metric_id": "gdpval-aa-v2",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-gdpval-aa-v2",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "grok-4.6",
+      "metric": "GDPval-AA v2",
+      "score": 1605,
+      "unit": "elo",
+      "effort": "high",
+      "effort_verbatim": "high",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "mixed",
+      "metric_id": "gdpval-aa-v2",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-gdpval-aa-v2",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "GDPval-AA v2",
+      "score": 1542,
+      "unit": "elo",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "xai-grok-4-7-announcement-2026-09-23",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-21",
+      "task_family": "mixed",
+      "metric_id": "gdpval-aa-v2",
+      "comparable": false,
+      "comparability_group": "xai-grok-4-7-launch-table-2026-09-21-gdpval-aa-v2",
+      "snapshot_id": "xai-grok-4-7-launch-table-2026-09-21"
     }
   ],
   "missing": []

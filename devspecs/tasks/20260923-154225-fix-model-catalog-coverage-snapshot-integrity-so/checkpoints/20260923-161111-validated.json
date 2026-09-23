@@ -1,0 +1,55 @@
+{
+  "schema_version": 3,
+  "event_kind": "task_checkpoint",
+  "checkpoint_id": "cp_20260923T161111Z_a02_validated",
+  "task_id": "20260923-154225-fix-model-catalog-coverage-snapshot-integrity-so",
+  "target": "A02",
+  "series": "A",
+  "query": "Fix model catalog coverage, snapshot integrity, source-backed model dates, and validator checks from frontier datafix brief",
+  "slice": "A02",
+  "slice_title": "Vendor tables, corrections, Qwen surfaces, and model dates",
+  "parent_slice": "A02",
+  "stage": "validated",
+  "decision": "promote",
+  "created_at": "2026-09-23T16:11:11Z",
+  "goal": "Record progress for `Fix model catalog coverage, snapshot integrity, source-backed model dates, and validator checks from frontier datafix brief`.",
+  "description": "Added Google, xAI and GLM-5.2 rival cells plus DeepSeek change-log coverage; corrected catalog values, alias identity, Qwen tiers/toggle surfaces, model release dates, and AA precision from fetched payloads.",
+  "resources": [
+    "../A00-index.md",
+    "../A02-vendor-tables-corrections-qwen-surfaces-and-mode-plan.md",
+    "../A02-vendor-tables-corrections-qwen-surfaces-and-mode-result.md",
+    "../task.json"
+  ],
+  "files_edited": [
+    "data/model-catalog/performance/google-gemini-launch-tables-2026-09.json",
+    "data/model-catalog/performance/xai-grok-4-7-launch-2026-09.json",
+    "data/model-catalog/performance/openweight-vendor-frontier-2026-09-23.json",
+    "data/model-catalog/models.json",
+    "data/model-catalog/pricing/minimax-api-2026-09.json"
+  ],
+  "tests_run": [
+    "python3 /home/tnunamak/.tmp/frontier/audit_values.py"
+  ],
+  "actual_context": {
+    "files_edited": [
+      "data/model-catalog/performance/google-gemini-launch-tables-2026-09.json",
+      "data/model-catalog/performance/xai-grok-4-7-launch-2026-09.json",
+      "data/model-catalog/performance/openweight-vendor-frontier-2026-09-23.json",
+      "data/model-catalog/models.json",
+      "data/model-catalog/pricing/minimax-api-2026-09.json"
+    ],
+    "tests_run": [
+      "python3 /home/tnunamak/.tmp/frontier/audit_values.py"
+    ]
+  },
+  "predicted_context_feedback": {},
+  "evidence": {
+    "plan_refs": [
+      "../A00-index.md",
+      "../A02-vendor-tables-corrections-qwen-surfaces-and-mode-plan.md",
+      "../A02-vendor-tables-corrections-qwen-surfaces-and-mode-result.md",
+      "../task.json"
+    ]
+  },
+  "next": {}
+}

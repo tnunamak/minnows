@@ -38,7 +38,7 @@
     {
       "model": "deepseek-v4-1-flash",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
-      "score": 39.0,
+      "score": 39.456167472527,
       "unit": "other",
       "source_id": "artificialanalysis-deepseek-v4-1-flash-2026-09-23-model-page",
       "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
@@ -47,7 +47,7 @@
       "observed_at": "2026-09-23",
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
-      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "cost": {
         "value": 0.27,
@@ -55,12 +55,13 @@
         "basis": "api_usd"
       },
       "effort": "max",
-      "effort_verbatim": "max"
+      "effort_verbatim": "max",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "kimi-k3",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
-      "score": 44.0,
+      "score": 43.5938229518782,
       "unit": "other",
       "source_id": "artificialanalysis-kimi-k3-2026-09-23-model-page",
       "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
@@ -69,7 +70,7 @@
       "observed_at": "2026-09-23",
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
-      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "cost": {
         "value": 2.0,
@@ -77,12 +78,13 @@
         "basis": "api_usd"
       },
       "effort": "max",
-      "effort_verbatim": "max"
+      "effort_verbatim": "max",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "glm-5.3",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
-      "score": 45.0,
+      "score": 44.777392385614,
       "unit": "other",
       "source_id": "artificialanalysis-glm-5-3-2026-09-23-model-page",
       "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
@@ -91,7 +93,7 @@
       "observed_at": "2026-09-23",
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
-      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "cost": {
         "value": 2.01,
@@ -99,12 +101,13 @@
         "basis": "api_usd"
       },
       "effort": "max",
-      "effort_verbatim": "max"
+      "effort_verbatim": "max",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "glm-5.3-flash",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
-      "score": 42.0,
+      "score": 41.807466113455,
       "unit": "other",
       "source_id": "artificialanalysis-glm-5-3-flash-2026-09-23-model-page",
       "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
@@ -113,18 +116,19 @@
       "observed_at": "2026-09-23",
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
-      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "cost": {
         "value": 0.25,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "minimax-m3",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
-      "score": 29.0,
+      "score": 29.2202932236316,
       "unit": "other",
       "source_id": "artificialanalysis-minimax-m3-2026-09-23-model-page",
       "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
@@ -133,18 +137,19 @@
       "observed_at": "2026-09-23",
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
-      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "cost": {
         "value": 0.51,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "minimax-m2.7",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
-      "score": 23.0,
+      "score": 22.7578150287271,
       "unit": "other",
       "source_id": "artificialanalysis-minimax-m2-7-2026-09-23-model-page",
       "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
@@ -153,18 +158,19 @@
       "observed_at": "2026-09-23",
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
-      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "cost": {
         "value": 0.1,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "muse-spark-1-3",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
-      "score": 48.0,
+      "score": 48.0923107719685,
       "unit": "other",
       "source_id": "artificialanalysis-muse-spark-1-3-2026-09-23-model-page",
       "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
@@ -173,7 +179,7 @@
       "observed_at": "2026-09-23",
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
-      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "cost": {
         "value": 1.6,
@@ -181,12 +187,13 @@
         "basis": "api_usd"
       },
       "effort": "max",
-      "effort_verbatim": "max"
+      "effort_verbatim": "max",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "muse-spark-1-3",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
-      "score": 45.0,
+      "score": 45.0732966922226,
       "unit": "other",
       "source_id": "artificialanalysis-muse-spark-1-3-xhigh-2026-09-23-model-page",
       "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
@@ -195,7 +202,7 @@
       "observed_at": "2026-09-23",
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
-      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "cost": {
         "value": 1.37,
@@ -203,12 +210,13 @@
         "basis": "api_usd"
       },
       "effort": "xhigh",
-      "effort_verbatim": "xhigh"
+      "effort_verbatim": "xhigh",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "mistral-large-3",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
-      "score": 9.0,
+      "score": 9.26608812860467,
       "unit": "other",
       "source_id": "artificialanalysis-mistral-large-3-2026-09-23-model-page",
       "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
@@ -217,18 +225,19 @@
       "observed_at": "2026-09-23",
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
-      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "cost": {
         "value": 0.1,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "mistral-small-4",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
-      "score": 11.0,
+      "score": 11.2675794141469,
       "unit": "other",
       "source_id": "artificialanalysis-mistral-small-4-2026-09-23-model-page",
       "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
@@ -237,18 +246,19 @@
       "observed_at": "2026-09-23",
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
-      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "cost": {
         "value": 0.05,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "qwen3.8-max",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
-      "score": 45.0,
+      "score": 45.4152084980521,
       "unit": "other",
       "source_id": "artificialanalysis-qwen3-8-max-2026-09-23-model-page",
       "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
@@ -257,13 +267,14 @@
       "observed_at": "2026-09-23",
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
-      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
       "cost": {
         "value": 5.41,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "muse-spark-1-3",

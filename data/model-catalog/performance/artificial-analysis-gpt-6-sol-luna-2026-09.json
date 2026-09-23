@@ -32,7 +32,8 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2"
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "gpt-6-luna",
@@ -48,7 +49,8 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "aa-intelligence-index-v4-3-2"
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2"
     },
     {
       "model": "gpt-6-sol",

@@ -34,7 +34,9 @@
       "family": "claude-fable",
       "status": "ga",
       "tier": "fable",
-      "aliases": []
+      "aliases": [],
+      "released": "2026-06-09",
+      "release_source_id": "anthropic-fable-mythos-2026-06-09"
     },
     {
       "id": "claude-fable-5-1",
@@ -44,7 +46,9 @@
       "tier": "fable",
       "aliases": [
         "Claude Fable 5.1"
-      ]
+      ],
+      "released": "2026-09-01",
+      "release_source_id": "anthropic-fable-mythos-5-1-2026-09-01"
     },
     {
       "id": "claude-haiku-4-5",
@@ -64,7 +68,9 @@
       "aliases": [
         "claude-mythos-preview"
       ],
-      "access": "restricted"
+      "access": "restricted",
+      "released": "2026-06-09",
+      "release_source_id": "anthropic-fable-mythos-2026-06-09"
     },
     {
       "id": "claude-mythos-5-1",
@@ -75,7 +81,9 @@
       "aliases": [
         "Claude Mythos 5.1"
       ],
-      "access": "restricted"
+      "access": "restricted",
+      "released": "2026-09-01",
+      "release_source_id": "anthropic-fable-mythos-5-1-2026-09-01"
     },
     {
       "id": "claude-opus-4-5",
@@ -113,7 +121,9 @@
       "tier": "opus",
       "aliases": [
         "claude-opus-4-8-thinking"
-      ]
+      ],
+      "released": "2026-05-28",
+      "release_source_id": "anthropic-opus-4-8-2026-05-28"
     },
     {
       "id": "claude-opus-5",
@@ -121,7 +131,9 @@
       "family": "claude-opus",
       "status": "ga",
       "tier": "opus",
-      "aliases": []
+      "aliases": [],
+      "released": "2026-07-24",
+      "release_source_id": "anthropic-opus-5-2026-07-24"
     },
     {
       "id": "claude-opus-5-5",
@@ -132,7 +144,9 @@
       "aliases": [
         "Claude Opus 5.5",
         "Opus 5.5"
-      ]
+      ],
+      "released": "2026-09-22",
+      "release_source_id": "anthropic-opus-5-5-2026-09-22"
     },
     {
       "id": "claude-sonnet-4-5",
@@ -158,7 +172,9 @@
       "tier": "sonnet",
       "aliases": [
         "claude-sonnet-5-high"
-      ]
+      ],
+      "released": "2026-06-30",
+      "release_source_id": "anthropic-sonnet-5-2026-06-30"
     },
     {
       "id": "deepseek-v4-1-flash",
@@ -168,9 +184,19 @@
       "tier": "flash",
       "aliases": [
         "deepseek-flash",
-        "deepseek-v4-flash",
         "DeepSeek-V4.1-Flash"
-      ]
+      ],
+      "released": "2026-09-10",
+      "release_source_id": "deepseek-updates-2026-09-23"
+    },
+    {
+      "id": "deepseek-v4-flash",
+      "provider": "deepseek",
+      "family": "deepseek-v4",
+      "status": "historical",
+      "tier": "flash",
+      "aliases": [],
+      "notes": "Legacy DeepSeek V4 Flash board identity. Kept distinct from V4.1 Flash because historical board rows use this name."
     },
     {
       "id": "deepseek-v4-flash-0731",
@@ -252,7 +278,9 @@
       "aliases": [
         "gemini-3.1-pro"
       ],
-      "tier": "pro"
+      "tier": "pro",
+      "released": "2026-02-19",
+      "release_source_id": "google-gemini-changelog-2026-09-23"
     },
     {
       "id": "gemini-3.5-flash",
@@ -292,7 +320,9 @@
       "family": "gemini-3",
       "status": "ga",
       "aliases": [],
-      "tier": "flash"
+      "tier": "flash",
+      "released": "2026-09-02",
+      "release_source_id": "google-gemini-changelog-2026-09-23"
     },
     {
       "id": "glm-5.1",
@@ -324,7 +354,9 @@
       "tier": "flash",
       "aliases": [
         "GLM-5.3-Flash"
-      ]
+      ],
+      "released": "2026-09-23",
+      "release_source_id": "zai-glm53flash-launch-2026-09-23"
     },
     {
       "id": "gpt-5.3-codex",
@@ -374,7 +406,9 @@
       "tier": "base",
       "aliases": [
         "gpt-5.5-high"
-      ]
+      ],
+      "released": "2026-04-23",
+      "release_source_id": "openai-gpt-5-5-2026-04-23"
     },
     {
       "id": "gpt-5.5-pro",
@@ -390,7 +424,9 @@
       "family": "gpt-5.6",
       "status": "ga",
       "tier": "luna",
-      "aliases": []
+      "aliases": [],
+      "released": "2026-07-09",
+      "release_source_id": "openai-gpt-5-6-2026-07-09"
     },
     {
       "id": "gpt-5.6-luna-2026-07",
@@ -406,7 +442,9 @@
       "family": "gpt-5.6",
       "status": "ga",
       "tier": "sol",
-      "aliases": []
+      "aliases": [],
+      "released": "2026-07-09",
+      "release_source_id": "openai-gpt-5-6-2026-07-09"
     },
     {
       "id": "gpt-5.6-sol-2026-07",
@@ -422,7 +460,9 @@
       "family": "gpt-5.6",
       "status": "ga",
       "tier": "terra",
-      "aliases": []
+      "aliases": [],
+      "released": "2026-07-09",
+      "release_source_id": "openai-gpt-5-6-2026-07-09"
     },
     {
       "id": "gpt-5.6-terra-2026-07",
@@ -441,7 +481,9 @@
       "aliases": [
         "Astra",
         "GPT-6-Astra"
-      ]
+      ],
+      "released": "2026-09-03",
+      "release_source_id": "openai-gpt-6-astra-system-card-2026-09-22"
     },
     {
       "id": "gpt-6-luna",
@@ -452,7 +494,9 @@
       "aliases": [
         "GPT-6 Luna",
         "GPT‑6 Luna"
-      ]
+      ],
+      "released": "2026-09-22",
+      "release_source_id": "openai-gpt-6-sol-luna-2026-09-22"
     },
     {
       "id": "gpt-6-sol",
@@ -463,7 +507,20 @@
       "aliases": [
         "GPT-6 Sol",
         "GPT‑6 Sol"
-      ]
+      ],
+      "released": "2026-09-22",
+      "release_source_id": "openai-gpt-6-sol-luna-2026-09-22"
+    },
+    {
+      "id": "gpt-oss-120b",
+      "provider": "openai",
+      "family": "gpt-oss",
+      "status": "ga",
+      "aliases": [
+        "gpt-oss-120b"
+      ],
+      "released": "2025-08-05",
+      "release_source_id": "openai-gpt-oss-2025-08-05"
     },
     {
       "id": "grok-4.20-0309-non-reasoning",
@@ -505,7 +562,9 @@
       "provider": "xai",
       "family": "grok-4.5",
       "status": "ga",
-      "aliases": [],
+      "aliases": [
+        "grok-build-latest"
+      ],
       "tier": "flagship"
     },
     {
@@ -526,15 +585,27 @@
       "tier": "flagship",
       "aliases": [
         "Grok 4.7"
-      ]
+      ],
+      "released": "2026-09-21",
+      "release_source_id": "xai-grok-4-7-announcement-2026-09-23"
     },
     {
       "id": "grok-build-0.1",
       "provider": "xai",
       "family": "grok-build",
       "status": "ga",
-      "aliases": [],
+      "aliases": [
+        "grok-code-fast-1"
+      ],
       "tier": "build-agent"
+    },
+    {
+      "id": "kimi-k2-7-code",
+      "provider": "moonshot",
+      "family": "kimi-k2",
+      "status": "third_party_board_only",
+      "aliases": [],
+      "notes": "Seen only in the 2026-09-22 DeepSWE live snapshot; no first-party candidate evidence in this catalog."
     },
     {
       "id": "kimi-k3",
@@ -545,7 +616,9 @@
       "aliases": [
         "Kimi K3",
         "moonshotai/Kimi-K3"
-      ]
+      ],
+      "released": "2026-07-22",
+      "release_source_id": "moonshot-kimi-k3-announcement-2026-09-23"
     },
     {
       "id": "minimax-m2.7",
@@ -566,7 +639,9 @@
       "aliases": [
         "MiniMax-M3",
         "MiniMax M3"
-      ]
+      ],
+      "released": "2026-06-01",
+      "release_source_id": "minimax-m3-launch-2026-09-23"
     },
     {
       "id": "mistral-large-3",
@@ -598,7 +673,25 @@
       "aliases": [
         "mistral-small-2603",
         "Mistral Small 4"
-      ]
+      ],
+      "released": "2026-03-16",
+      "release_source_id": "mistral-small4-launch-2026-09-23"
+    },
+    {
+      "id": "muse-spark-1-1",
+      "provider": "other",
+      "family": "muse-spark",
+      "status": "third_party_board_only",
+      "aliases": [],
+      "notes": "Seen only in the 2026-09-22 DeepSWE live snapshot; no first-party candidate evidence in this catalog."
+    },
+    {
+      "id": "muse-spark-1-2",
+      "provider": "other",
+      "family": "muse-spark",
+      "status": "third_party_board_only",
+      "aliases": [],
+      "notes": "Seen only in the 2026-09-22 DeepSWE live snapshot; no first-party candidate evidence in this catalog."
     },
     {
       "id": "muse-spark-1-3",
@@ -617,21 +710,24 @@
       "status": "ga",
       "aliases": [
         "Qwen3-Coder-480B-A35B-Instruct"
-      ]
+      ],
+      "tier": "coder"
     },
     {
       "id": "qwen3-coder-next",
       "provider": "alibaba",
       "family": "qwen-coder",
       "status": "preview",
-      "aliases": []
+      "aliases": [],
+      "tier": "coder"
     },
     {
       "id": "qwen3-coder-plus",
       "provider": "alibaba",
       "family": "qwen-coder",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "coder"
     },
     {
       "id": "qwen3-max-2026-01-23",
@@ -640,7 +736,8 @@
       "status": "ga",
       "aliases": [
         "qwen3-max"
-      ]
+      ],
+      "tier": "max"
     },
     {
       "id": "qwen3.5-122b-a10b",
@@ -685,7 +782,8 @@
       "status": "ga",
       "aliases": [
         "qwen3.5-plus-2026-02-15"
-      ]
+      ],
+      "tier": "plus"
     },
     {
       "id": "qwen3.6-flash",
@@ -694,7 +792,8 @@
       "status": "ga",
       "aliases": [
         "qwen3.6-flash-2026-04-16"
-      ]
+      ],
+      "tier": "flash"
     },
     {
       "id": "qwen3.6-plus",
@@ -703,7 +802,8 @@
       "status": "ga",
       "aliases": [
         "qwen3.6-plus-2026-04-02"
-      ]
+      ],
+      "tier": "plus"
     },
     {
       "id": "qwen3.7-max",
@@ -712,7 +812,8 @@
       "status": "ga",
       "aliases": [
         "qwen3.7-max-2026-05-20"
-      ]
+      ],
+      "tier": "max"
     },
     {
       "id": "qwen3.7-plus",
@@ -721,7 +822,8 @@
       "status": "ga",
       "aliases": [
         "qwen3.7-plus-2026-05-26"
-      ]
+      ],
+      "tier": "plus"
     },
     {
       "id": "qwen3.8-2.4t-a95b",
@@ -742,7 +844,8 @@
       "provider": "alibaba",
       "family": "qwen3-flash",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "flash"
     },
     {
       "id": "qwen3.8-max",
@@ -751,14 +854,18 @@
       "status": "ga",
       "aliases": [
         "qwen3.8-max-0902"
-      ]
+      ],
+      "tier": "max",
+      "released": "2026-08-27",
+      "release_source_id": "qwen-code-weekly-2026-08-27"
     },
     {
       "id": "qwen3.8-max-preview",
       "provider": "alibaba",
       "family": "qwen-max",
       "status": "preview",
-      "aliases": []
+      "aliases": [],
+      "tier": "max"
     }
   ],
   "resolution_rules": {

@@ -42,14 +42,15 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "tb4-vals-ai-secondary-2026-09-21",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-09-22",
       "cost": {
         "value": 13.471345,
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
       "effort": "max",
-      "effort_verbatim": "max"
+      "effort_verbatim": "max",
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -64,12 +65,13 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "tb4-vals-ai-secondary-2026-09-21",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-09-22",
       "cost": {
         "value": 8.210681,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-22"
     },
     {
       "model": "claude-fable-5-1",
@@ -84,9 +86,15 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "tb4-vals-ai-secondary-2026-09-21",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-09-22",
       "effort": "max",
-      "effort_verbatim": "max"
+      "effort_verbatim": "max",
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-22",
+      "cost": {
+        "value": 24.54,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-5",
@@ -101,9 +109,10 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "tb4-vals-ai-secondary-2026-09-21",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-09-22",
       "effort": "max",
-      "effort_verbatim": "max"
+      "effort_verbatim": "max",
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-22"
     },
     {
       "model": "claude-sonnet-5",
@@ -118,14 +127,15 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "tb4-vals-ai-secondary-2026-09-21",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-09-22",
       "cost": {
         "value": 21.374945,
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
       "effort": "max",
-      "effort_verbatim": "max"
+      "effort_verbatim": "max",
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-22"
     }
   ],
   "missing": [

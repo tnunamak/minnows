@@ -11,13 +11,13 @@
   "source_ids": [
     "minimax-api-pricing-2026-09-23"
   ],
-  "notes": "Standard direct API rates, USD per 1M tokens; page lists a permanent 50% discount. Context ≤512K M3 rates are recorded here. 512K–1M M3 rates are double and are documented in notes, not encoded because this schema has no context-tier dimension. H3/H3 Max video generation uses per-second pricing, outside the token-rate schema.",
+  "notes": "Standard direct API rates, USD per 1M tokens; page lists a permanent 50% discount. Context ≤512K M3 rates are recorded here. 512K–1M M3 rates are double and are documented in notes, not encoded because this schema has no context-tier dimension. H3/H3 Max video generation uses per-second pricing, outside the token-rate schema. MiniMax M3 list price is $0.6/$2.4/$0.12 input/output/cache-read. The billed permanent 50%-off rates recorded here are $0.3/$1.2/$0.06.",
   "models": {
     "minimax-m3": {
-      "fresh_input_per_m": 0.6,
-      "cache_read_per_m": 0.12,
+      "fresh_input_per_m": 0.3,
+      "cache_read_per_m": 0.06,
       "cache_write_per_m": 0,
-      "output_per_m": 2.4,
+      "output_per_m": 1.2,
       "confidence": "high"
     },
     "minimax-m2.7": {
