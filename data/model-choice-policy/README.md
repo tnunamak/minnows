@@ -44,10 +44,12 @@ waspflow spawn --op implement.standard --lane fix -- "…"
 
 ## Derive ops from data (DRAFT)
 
-`op-requirements.json` holds the human-set slots for each op: evidence metrics,
-allowed lanes and efforts, quality bar, and constraints. `scripts/recommend_ops.py`
-derives a recommended arm from these slots and the catalog, or reports the exact
-missing coverage. It never edits `operating-points.json`. See
+`op-requirements.json` holds the human-set slots for each op: task families,
+allowed lanes and efforts, missed-failure cost, and constraints.
+`scripts/recommend_ops.py` derives a recommended arm from these slots and the
+catalog, or reports missing model/board coverage. It uses a 90-day price horizon
+and requires independent cross-model evidence for model changes. It never edits
+`operating-points.json`. See
 [SCHEMA.md](SCHEMA.md#op-requirementsjson-draft--owner-review-pending).
 
 ```bash

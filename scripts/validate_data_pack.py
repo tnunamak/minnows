@@ -291,7 +291,7 @@ def validate_pricing(
                 errors.add(rp, f"{f} must be a number")
             elif rates[f] < 0:
                 errors.add(rp, f"{f} must be >= 0")
-        allowed = set(RATE_FIELDS) | {"valid_from", "valid_until", "confidence"}
+        allowed = set(RATE_FIELDS) | {"valid_from", "valid_until", "confidence", "post_valid_until"}
         extra = set(rates) - allowed
         if extra:
             errors.add(rp, f"unknown fields: {sorted(extra)}")
@@ -300,6 +300,15 @@ def validate_pricing(
                 errors.add(rp, f"{vk} must be YYYY-MM-DD")
         if "confidence" in rates and rates["confidence"] not in ("high", "medium", "low"):
             errors.add(rp, "confidence must be high|medium|low")
+        future = rates.get("post_valid_until")
+        if future is not None:
+            if "valid_until" not in rates:
+                errors.add(rp, "post_valid_until requires valid_until")
+            if not isinstance(future, dict) or set(future) != set(RATE_FIELDS):
+                errors.add(rp, "post_valid_until must contain exactly the four token rates")
+            elif any(not isinstance(future[f], (int, float)) or isinstance(future[f], bool)
+                     or future[f] < 0 for f in RATE_FIELDS):
+                errors.add(rp, "post_valid_until rates must be nonnegative numbers")
         vu = rates.get("valid_until")
         if isinstance(vu, str) and DATE_RE.match(vu):
             try:

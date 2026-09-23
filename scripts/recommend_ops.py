@@ -17,6 +17,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import itertools
 import json
 import math
@@ -46,8 +47,8 @@ ANTIGRAVITY_MODELS = {
     **{f"gemini-3.1-pro-{eff}": ("gemini-3.1-pro", eff) for eff in ("low", "high")},
     "claude-sonnet-4-6": ("claude-sonnet-4-6", None),
     "claude-opus-4-6-thinking": ("claude-opus-4-6", None),
-    "gpt-oss-120b-medium": ("gpt-oss-120b", "medium"),
 }
+GROK_LIVE_MODELS = frozenset({"grok-4.7"})  # `grok models`, verified 2026-09-23.
 # "default" = the model takes no effort parameter (e.g. claude-haiku-4-5); its rows carry effort null.
 EFFORTS = ("default", "none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra")
 ABOVE_DEFAULT_EFFORTS = frozenset({"xhigh", "max", "ultra"})
@@ -96,6 +97,17 @@ def version_key(model_id: str) -> tuple[float, ...]:
     return tuple(parts)
 
 
+def generation_key(model: dict) -> tuple:
+    """Prefer comparable release dates; caller falls back when either date is absent."""
+    return (model.get("released") or "", version_key(model["id"]))
+
+
+def newer(left: dict, right: dict) -> bool:
+    if left.get("released") and right.get("released"):
+        return generation_key(left) > generation_key(right)
+    return version_key(left["id"]) > version_key(right["id"])
+
+
 @dataclass
 class Catalog:
     models: dict[str, dict]
@@ -105,6 +117,7 @@ class Catalog:
     rows: list[dict]
     list_price: dict[str, float]
     publishers: dict[str, str]
+    prices: dict[str, list[dict]] = field(default_factory=dict)
 
     @property
     def effortless(self) -> set[str]:
@@ -129,18 +142,40 @@ class Catalog:
             for s in _load(path).get("scores", []):
                 rows.append({**s, "_file": path.name})
         list_price: dict[str, float] = {}
+        prices: dict[str, list[dict]] = {}
+        agent_vendor = {"claude-code": "anthropic", "codex": "openai", "grok": "xai",
+                        "google": "google", "qwen-code": "alibaba"}
         for path in sorted((root / "pricing").glob("*.json")):
             doc = _load(path)
             if doc.get("kind") != "api_usd":
                 continue
             for mid, rate in doc.get("models", {}).items():
                 if isinstance(rate.get("output_per_m"), (int, float)):
-                    list_price.setdefault(mid, float(rate["output_per_m"]))
+                    direct = agent_vendor.get(doc.get("agent")) == models.get(mid, {}).get("provider")
+                    prices.setdefault(mid, []).append({**rate, "_file": path.name,
+                                                        "_direct": direct, "_retrieved": doc.get("retrieved_at", "")})
+                    future = rate.get("post_valid_until")
+                    if future and rate.get("valid_until"):
+                        next_day = (dt.date.fromisoformat(rate["valid_until"]) + dt.timedelta(days=1)).isoformat()
+                        prices[mid].append({**future, "valid_from": next_day, "_file": path.name,
+                                            "_direct": direct, "_retrieved": doc.get("retrieved_at", "")})
+        today = dt.date.today().isoformat()
+        for mid, entries in prices.items():
+            active = [p for p in entries if p.get("valid_from", "") <= today <= p.get("valid_until", "9999-12-31")]
+            if active:
+                chosen = max(active, key=lambda p: (p["_direct"], p.get("valid_from", ""), p["_retrieved"], p["_file"]))
+                list_price[mid] = float(chosen["output_per_m"])
         publishers = {}
         src_path = root / "SOURCES.json"
         if src_path.is_file():
             publishers = {s["id"]: s.get("publisher", "") for s in _load(src_path)["sources"]}
-        return cls(models, aliases, metrics, surfaces, rows, list_price, publishers)
+        return cls(models, aliases, metrics, surfaces, rows, list_price, publishers, prices)
+
+    def price_at(self, model: str, date: dt.date) -> dict | None:
+        entries = [p for p in self.prices.get(model, [])
+                   if p.get("valid_from", "") <= date.isoformat() <= p.get("valid_until", "9999-12-31")]
+        return max(entries, key=lambda p: (p["_direct"], p.get("valid_from", ""),
+                                           p.get("_retrieved", ""), p["_file"])) if entries else None
 
     def resolve(self, model: str) -> str | None:
         if model in self.models:
@@ -154,7 +189,9 @@ class Catalog:
     def publisher_vendor(self, source_id: str | None) -> str | None:
         pub = self.publishers.get(source_id or "", "").lower()
         for needle, vendor in (("openai", "openai"), ("anthropic", "anthropic"),
-                               ("xai", "xai"), ("google", "google")):
+                               ("xai", "xai"), ("google", "google"), ("deepseek", "deepseek"),
+                               ("z.ai", "zai"), ("moonshot", "moonshot"),
+                               ("minimax", "minimax"), ("mistral", "mistral")):
             if needle in pub:
                 return vendor
         return None
@@ -217,8 +254,8 @@ def load_requirements(path: Path, catalog: Catalog, op_ids: set[str]) -> dict:
         d = req.get("failure_detection_probability")
         if isinstance(d, (int, float)) and d > 1:
             errs.append(f"{where}: failure_detection_probability must be in 0..1")
-        if op in {"review.audit", "advisor.deep"} and d != 0:
-            errs.append(f"{where}: judged ops require failure_detection_probability = 0")
+        if req.get("policy_horizon_days", 90) < 1:
+            errs.append(f"{where}: policy_horizon_days must be positive")
         for c in req.get("constraints", []):
             m = CONSTRAINT_RE.match(c)
             if not m:
@@ -287,13 +324,13 @@ def arm_dict(arm: Arm | None) -> dict | None:
     return out
 
 
-def dispatches_for_lane(lane: str, model: dict) -> list[tuple[str, str | None]]:
+def dispatches_for_lane(lane: str, model: dict, catalog: Catalog | None = None) -> list[tuple[str, str | None]]:
     """Return dispatch ids and fixed efforts for a catalog model on one lane."""
     if LANES[lane][0] == model["provider"]:
         return [(model["id"], None)]
     if lane == "antigravity":
         return [(slug, effort) for slug, (mid, effort) in ANTIGRAVITY_MODELS.items()
-                if mid == model["id"]]
+                if (catalog.resolve(mid) if catalog else mid) == model["id"]]
     return []
 
 
@@ -304,13 +341,13 @@ def candidate_arms(req: dict, catalog: Catalog, makers: dict[str, Arm]) -> tuple
     notes: list[str] = []
     allowed_lanes = req["allowed_providers"]
 
-    newest: dict[tuple[str, str, str], str] = {}
+    newest: dict[tuple[str, ...], str] = {}
     for m in catalog.models.values():
-        if m.get("status") == "ga" and m.get("tier"):
-            for lane in allowed_lanes:
-                if dispatches_for_lane(lane, m):
-                    key = (lane, m["provider"], m["tier"])
-                    if key not in newest or version_key(m["id"]) > version_key(newest[key]):
+        if m.get("status") == "ga" and m.get("tier") and m.get("access") != "restricted":
+            for lane in (allowed_lanes if req.get("lane_scoped_freshness", False) else LANES):
+                if dispatches_for_lane(lane, m, catalog):
+                    key = (lane, m["provider"], m["tier"]) if req.get("lane_scoped_freshness", False) else (m["provider"], m["tier"])
+                    if key not in newest or newer(m, catalog.models[newest[key]]):
                         newest[key] = m["id"]
 
     forbidden: list[tuple[str, str, str]] = []
@@ -326,7 +363,7 @@ def candidate_arms(req: dict, catalog: Catalog, makers: dict[str, Arm]) -> tuple
             forbidden.append(("family", mm["family"], c))
 
     for m in sorted(catalog.models.values(), key=lambda x: x["id"]):
-        reachable = [(lane, dispatches_for_lane(lane, m)) for lane in allowed_lanes]
+        reachable = [(lane, dispatches_for_lane(lane, m, catalog)) for lane in allowed_lanes]
         reachable = [(lane, dispatches) for lane, dispatches in reachable if dispatches]
         if not reachable:
             continue
@@ -344,12 +381,17 @@ def candidate_arms(req: dict, catalog: Catalog, makers: dict[str, Arm]) -> tuple
             excluded.append({"model": mid, "reason": f"constraint {hit}"})
             continue
         for lane, dispatches in reachable:
-            if newest[(lane, m["provider"], m["tier"])] != mid:
+            freshness_key = (lane, m["provider"], m["tier"]) if req.get("lane_scoped_freshness", False) else (m["provider"], m["tier"])
+            if newest[freshness_key] != mid:
                 excluded.append({"model": mid, "lane": lane, "reason":
-                                 f"superseded in tier {m['tier']!r} by {newest[(lane, m['provider'], m['tier'])]}"})
+                                 f"superseded in tier {m['tier']!r} by {newest[freshness_key]}"})
                 continue
             surface = LANES[lane][1]
             for dispatch, fixed_effort in dispatches:
+                if lane == "antigravity" and fixed_effort is None:
+                    effort = "medium" if "medium" in req["allowed_efforts"] else req["allowed_efforts"][0]
+                    arms.append(Arm(mid, effort, lane, dispatch))
+                    continue
                 efforts = catalog.surfaces.get((mid, surface))
                 if efforts is None:
                     efforts = catalog.surfaces.get((mid, "api"))
@@ -366,6 +408,10 @@ def candidate_arms(req: dict, catalog: Catalog, makers: dict[str, Arm]) -> tuple
                     excluded.append({"model": mid, "lane": lane, "reason": f"no allowed effort valid on its surface ({efforts})"})
                     continue
                 arms.extend(Arm(mid, e, lane, dispatch if dispatch != mid else None) for e in usable)
+    available = {(a.model, a.lane) for a in arms}
+    excluded = [e for e in excluded if not (
+        e.get("reason", "").startswith("no allowed effort") and (e["model"], e.get("lane")) in available)]
+    excluded = list({json.dumps(e, sort_keys=True): e for e in excluded}.values())
     return arms, excluded, notes
 
 
@@ -378,6 +424,10 @@ class Cell:
     raw: float
     cost: float | None
     row: dict
+    ci_lo: float | None = None
+    ci_hi: float | None = None
+    n: int | None = None
+    price_note: str | None = None
 
 
 @dataclass
@@ -455,8 +505,43 @@ def build_groups(req: dict, catalog: Catalog) -> tuple[list[Group], list[str]]:
                 continue  # effort unattributed (None/unknown/adaptive): cannot map to an arm
             cost = r.get("cost") if isinstance(r.get("cost"), dict) else None
             cost_v = cost["value"] if cost and cost.get("unit") == req["cost_basis"] else None
+            price_note = None
+            if cost_v is not None:
+                start = dt.date.fromisoformat(req.get("price_as_of", dt.date.today().isoformat()))
+                end = start + dt.timedelta(days=req.get("policy_horizon_days", 90))
+                current_rate, horizon_rate = catalog.price_at(mid, start), catalog.price_at(mid, end)
+                if current_rate and current_rate.get("valid_until", "9999-12-31") < end.isoformat():
+                    if horizon_rate:
+                        keys = ("fresh_input_per_m", "cache_read_per_m", "cache_write_per_m", "output_per_m")
+                        ratios = [horizon_rate[k] / current_rate[k] for k in keys
+                                  if k in horizon_rate and k in current_rate and current_rate[k] > 0]
+                        complete = all(k in horizon_rate and k in current_rate for k in ("fresh_input_per_m", "output_per_m"))
+                        price_note = (f"price expires {current_rate['valid_until']}; current input/output "
+                                      f"${current_rate.get('fresh_input_per_m', 0):g}/${current_rate['output_per_m']:g}, "
+                                      f"horizon ${horizon_rate.get('fresh_input_per_m', 0):g}/${horizon_rate['output_per_m']:g} per million tokens")
+                        if complete and ratios and max(ratios) - min(ratios) < EPS:
+                            price_note += f"; task cost ${cost_v:g} → ${cost_v * ratios[0]:g}"
+                            cost_v *= ratios[0]
+                        else:
+                            price_note += "; horizon task cost unknown without token mix"
+                            cost_v = None
+                    else:
+                        price_note = f"price expires {current_rate['valid_until']}; horizon price unknown"
+                        cost_v = None
             raw_score = float(r["score"])
-            cell = Cell(raw_score if direction == "higher_better" else -raw_score, raw_score, cost_v, r)
+            n = r.get("n")
+            if not isinstance(n, int) or n <= 0:
+                match = re.search(r"over (\d+) tasks", r.get("caveat", ""))
+                n = int(match.group(1)) if match else None
+            ci_lo, ci_hi = r.get("ci_lo"), r.get("ci_hi")
+            if (ci_lo is None or ci_hi is None) and n and 0 <= raw_score <= 1 and r["unit"] == "accuracy":
+                # Wilson interval when the source supplies n but no interval.
+                z = 1.96
+                center = (raw_score + z*z/(2*n)) / (1 + z*z/n)
+                half = z * math.sqrt(raw_score*(1-raw_score)/n + z*z/(4*n*n)) / (1 + z*z/n)
+                ci_lo, ci_hi = max(0, center-half), min(1, center+half)
+            cell = Cell(raw_score if direction == "higher_better" else -raw_score, raw_score,
+                        cost_v, r, ci_lo, ci_hi, n, price_note)
             key = (mid, effort)
             prev = g.cells.get(key)
             same_day_richer = (prev is not None and r.get("observed_at", "") == prev.row.get("observed_at", "")
@@ -484,6 +569,9 @@ class GroupEval:
     choice: Arm | None
     unpriced: list[Arm]
     unusable: str | None = None
+    costs: dict[Arm, float] = field(default_factory=dict)
+    bounds: dict[Arm, tuple[float, float]] = field(default_factory=dict)
+    ties: list[Arm] = field(default_factory=list)
 
 
 def success_probability(g: Group, cell: Cell) -> float | None:
@@ -493,48 +581,96 @@ def success_probability(g: Group, cell: Cell) -> float | None:
     return cell.raw if g.direction == "higher_better" else 1 - cell.raw
 
 
-def expected_cost(g: Group, cell: Cell, req: dict) -> float | None:
-    p = success_probability(g, cell)
-    if p is None or cell.cost is None:
+def score_interval(g: Group, cell: Cell) -> tuple[float, float]:
+    if cell.ci_lo is None or cell.ci_hi is None:
+        return cell.score, cell.score
+    return ((cell.ci_lo, cell.ci_hi) if g.direction == "higher_better"
+            else (-cell.ci_hi, -cell.ci_lo))
+
+
+def expected_cost(g: Group, cell: Cell, req: dict, next_cost: float | None = None,
+                  p_override: float | None = None) -> float | None:
+    base_p = success_probability(g, cell)
+    if base_p is None or cell.cost is None:
         return None
+    p = p_override if p_override is not None else base_p
     d = req["failure_detection_probability"]
-    terminal = 1 - (1 - p) * d
-    if terminal == 0:
-        return float("inf")
-    attempts = (cell.cost + req["attempt_overhead_usd"]) / terminal
-    silent_failure = (1 - p) * (1 - d) / terminal
-    return attempts + silent_failure * req["silent_failure_cost_usd"]
+    c = cell.cost + req["attempt_overhead_usd"]
+    s = req["silent_failure_cost_usd"]
+    if next_cost is not None:
+        return c + (1-p) * (d * next_cost + (1-d) * s)
+    pass_k = cell.row.get("pass_at_k")
+    if isinstance(pass_k, dict) and isinstance(pass_k.get("k"), int) and pass_k["k"] > 1 and base_p < 1:
+        observed = pass_k.get("value")
+        if isinstance(observed, (int, float)) and base_p <= observed <= 1:
+            retry_p = 1 - ((1-observed)/(1-base_p)) ** (1/(pass_k["k"]-1))
+            terminal = 1 - (1-retry_p)*d
+            if terminal == 0:
+                return float("inf")
+            retry_cost = (c + (1-retry_p)*(1-d)*s) / terminal
+            return c + (1-p)*(d*retry_cost + (1-d)*s)
+    # No same-arm retry evidence: detection does not imply independent success.
+    return c + (1-p)*s
 
 
 def report_cost(value: float | None) -> float | str | None:
     return "Infinity" if value == float("inf") else value
 
 
-def arm_sort_key(arm: Arm, cost: float, catalog: Catalog) -> tuple:
+def horizon_price(catalog: Catalog, req: dict, model: str) -> float:
+    start = dt.date.fromisoformat(req.get("price_as_of", dt.date.today().isoformat()))
+    at_horizon = catalog.price_at(model, start + dt.timedelta(days=req.get("policy_horizon_days", 90)))
+    return float(at_horizon["output_per_m"]) if at_horizon else float("inf")
+
+
+def arm_sort_key(arm: Arm, cost: float, catalog: Catalog, req: dict) -> tuple:
     """Rank by E, then list price, model generation, and effort."""
-    price = catalog.list_price.get(arm.model, float("inf"))
+    price = horizon_price(catalog, req, arm.model)
     return (cost, price, tuple(-x for x in version_key(arm.model)), EFFORTS.index(arm.effort))
 
 
 def evaluate_group(g: Group, arms: list[Arm], req: dict, catalog: Catalog) -> GroupEval:
     """Compare expected costs inside one group; retain a score ceiling for unmeasured efforts."""
     present = [a for a in arms if (a.model, a.effort) in g.cells]
+    if g.kind() == "vendor":
+        # Publisher charts can choose effort among the publisher's models; their
+        # rival columns are context, never cross-vendor routing evidence.
+        present = [a for a in present if g.publisher_vendor and
+                   catalog.models[a.model]["provider"] == g.publisher_vendor]
     ev = GroupEval(g, g.weight(req), present, None, [], None, [])
     if not present:
         return ev
-    ev.ceiling_value = max(g.cells[(a.model, a.effort)].score for a in present)
-    if len({a.model for a in present}) < 2 and len({(a.model, a.effort) for a in present}) < 2:
+    if len({(a.model, a.effort) for a in present}) < 2:
         ev.unusable = "one candidate arm only; nothing to compare"
         return ev
     cell_of = {a: g.cells[(a.model, a.effort)] for a in present}
     if g.unit not in SUCCESS_UNITS or any(success_probability(g, c) is None for c in cell_of.values()):
-        ev.unusable = "non-success-rate metric; ceiling screen only"
+        ev.unusable = "non-success-rate metric"
         return ev
-    costs = {a: expected_cost(g, c, req) for a, c in cell_of.items()}
-    ev.unpriced = [a for a in present if costs[a] is None]
-    pool = [a for a in present if costs[a] is not None and costs[a] != float("inf")]
+    ev.ceiling_value = max(c.score for c in cell_of.values())
+    ev.unpriced = [a for a in present if cell_of[a].cost is None]
+    pool = [a for a in present if a not in ev.unpriced]
+    # A detected failure moves to a higher-scoring measured arm. Compute from the
+    # top of that ladder, so every fallback has already been priced.
+    for a in sorted(pool, key=lambda a: (-cell_of[a].score, a.label())):
+        stronger = [b for b in ev.costs if cell_of[b].score > cell_of[a].score + EPS]
+        next_arm = min(stronger, key=lambda b: ev.costs[b]) if stronger else None
+        cell = cell_of[a]
+        p_lo = cell.ci_lo if cell.ci_lo is not None else success_probability(g, cell)
+        p_hi = cell.ci_hi if cell.ci_hi is not None else success_probability(g, cell)
+        if g.direction == "lower_better":
+            p_lo, p_hi = 1-p_hi, 1-p_lo
+        ev.costs[a] = expected_cost(g, cell, req, ev.costs.get(next_arm))
+        ev.bounds[a] = (
+            expected_cost(g, cell, req, ev.bounds[next_arm][0] if next_arm else None, p_hi),
+            expected_cost(g, cell, req, ev.bounds[next_arm][1] if next_arm else None, p_lo),
+        )
+    pool = [a for a in pool if ev.costs[a] != float("inf")]
     if pool:
-        ev.choice = min(pool, key=lambda a: arm_sort_key(a, costs[a], catalog))
+        best = min(pool, key=lambda a: ev.costs[a])
+        ev.ties = [a for a in pool if ev.bounds[a][0] <= ev.bounds[best][1] + EPS
+                   and ev.bounds[best][0] <= ev.bounds[a][1] + EPS]
+        ev.choice = min(ev.ties, key=lambda a: arm_sort_key(a, 0, catalog, req))
     ev.dominated = [a for a in pool if any(
         cell_of[b].score >= cell_of[a].score and cell_of[b].cost <= cell_of[a].cost
         and (cell_of[b].score > cell_of[a].score or cell_of[b].cost < cell_of[a].cost)
@@ -548,7 +684,7 @@ def wins(arm: Arm, ev: GroupEval) -> bool:
 
 
 def group_ref(ev: GroupEval) -> str:
-    flag = "; vendor chart ranks rival vendor" if ev.group.cross_vendor_vendor_chart else ""
+    flag = "; vendor chart includes rival vendor" if ev.group.cross_vendor_vendor_chart else ""
     return f"{ev.group.gid} [{'/'.join(sorted(ev.group.source_types))}, w={ev.weight:g}{flag}]"
 
 
@@ -558,6 +694,8 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
     result: dict[str, Any] = {
         "op": op,
         "current": current,
+        "price_horizon": {"as_of": req.get("price_as_of", dt.date.today().isoformat()),
+                          "days": req.get("policy_horizon_days", 90)},
         "status": None,
         "recommended": None,
         "confidence": None,
@@ -569,11 +707,22 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
         "excluded_models": excluded,
         "groups": [],
     }
+    incumbent = current_arm({"expands_to": current}, catalog)
+    if incumbent:
+        lane = incumbent.lane
+        known = catalog.models.get(incumbent.model)
+        dispatchable = bool(known and lane in LANES and
+                            (incumbent.dispatch_model or incumbent.model) in
+                            {dispatch for dispatch, _ in dispatches_for_lane(lane, known, catalog)})
+        if lane == "grok" and incumbent.model not in GROK_LIVE_MODELS:
+            dispatchable = False
+        if not dispatchable:
+            result["flags"].append(f"current expands_to {incumbent.label()} is not dispatchable on {lane}'s live CLI model list")
     for c in req.get("constraints", []):
         maker_op = parse_constraint(c)[1]
         if maker_op in makers:
             result["flags"].append(f"{c}: maker arm {makers[maker_op].label()}")
-    maker = makers.get("implement.standard") if op == "review.audit" else None
+    maker = next((makers[d] for d in op_dependencies(req) if d in makers), None)
     if not arms:
         result["status"] = "NO_CANDIDATES"
         return result
@@ -583,38 +732,42 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
     evals = [evaluate_group(g, arms, req, catalog) for g in groups]
     evals = [ev for ev in evals if ev.present]
 
-    # Ceiling rule: a candidate model with no allowed-effort score in a usable group, whose
-    # best score there at ANY effort (incl. efforts the op disallows, e.g. max) is below the
-    # group's best allowed-effort score, cannot reach that score at a lower effort.
-    # This assumes quality does not rise as effort falls. An independent group
-    # excludes the model; a vendor group only flags it.
+    # Screen missing allowed efforts only when a measured arm dominates on both
+    # score and task cost. Single-arm and non-success metrics cannot establish this.
     candidate_models = {a.model for a in arms}
     ceiling_excluded: dict[str, list[str]] = {}
     for ev in evals:
         if ev.ceiling_value is None:
             continue
         present_models = {a.model for a in ev.present}
-        best: dict[str, tuple[float, str]] = {}
+        best: dict[str, tuple[float, str, float | None]] = {}
         for (mid, eff), cell in ev.group.cells.items():
             if mid in candidate_models and mid not in present_models:
                 if mid not in best or cell.score > best[mid][0]:
-                    best[mid] = (cell.score, eff)
-        for mid, (score, eff) in sorted(best.items()):
-            if score >= ev.ceiling_value - EPS:
+                    best[mid] = (cell.score, eff, cell.cost)
+        for mid, (score, eff, missing_cost) in sorted(best.items()):
+            missing_cell = ev.group.cells[(mid, eff)]
+            if missing_cost is None or not any(
+                score_interval(ev.group, ev.group.cells[(a.model, a.effort)])[0]
+                > score_interval(ev.group, missing_cell)[1] + EPS
+                and ev.group.cells[(a.model, a.effort)].cost is not None
+                and ev.group.cells[(a.model, a.effort)].cost <= missing_cost + EPS
+                for a in ev.present
+            ):
                 continue
             raw = score if ev.group.direction == "higher_better" else -score
             ceiling_raw = ev.ceiling_value if ev.group.direction == "higher_better" else -ev.ceiling_value
-            why = f"{ev.group.gid}: best measured {mid}@{eff}={raw:g} misses ceiling {ceiling_raw:g}"
+            why = f"{ev.group.gid}: {mid}@{eff}={raw:g} costs ${missing_cost:g} and is dominated below {ceiling_raw:g}"
             if ev.group.kind() == "independent":
                 ceiling_excluded.setdefault(mid, []).append(why)
             else:
                 result["flags"].append(f"ceiling (vendor group, not excluding): {why}")
     if ceiling_excluded:
         for mid, whys in ceiling_excluded.items():
-            result["excluded_models"].append({"model": mid, "reason": "fails the ceiling at its best measured effort: " + "; ".join(whys)})
+            result["excluded_models"].append({"model": mid, "reason": "dominated at its best measured effort: " + "; ".join(whys)})
         arms = [a for a in arms if a.model not in ceiling_excluded]
         result["candidates"] = [a.label() for a in arms]
-        result["flags"].append("ceiling rule applied (assumes quality does not rise as effort falls)")
+        result["flags"].append("domination screen applied to missing allowed efforts")
         if not arms:
             result["status"] = "NO_CANDIDATES"
             return result
@@ -639,10 +792,16 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
             "checker_p": (success_probability(ev.group, cells[(ev.choice.model, ev.choice.effort)])
                           if maker and ev.choice else None),
             "choice": ev.choice.label() if ev.choice else None,
+            "ties": [a.label() for a in ev.ties] if len(ev.ties) > 1 else [],
             "arms": [
                 {"arm": a.label(), "score": cells[(a.model, a.effort)].raw, "cost": cells[(a.model, a.effort)].cost,
                  "p": success_probability(ev.group, cells[(a.model, a.effort)]),
-                 "expected_cost_usd": report_cost(expected_cost(ev.group, cells[(a.model, a.effort)], req)),
+                 "ci_lo": cells[(a.model, a.effort)].ci_lo,
+                 "ci_hi": cells[(a.model, a.effort)].ci_hi,
+                 "n": cells[(a.model, a.effort)].n,
+                 "price_note": cells[(a.model, a.effort)].price_note,
+                 "expected_cost_usd": report_cost(ev.costs.get(a)),
+                 "expected_cost_interval_usd": [report_cost(v) for v in ev.bounds[a]] if a in ev.bounds else None,
                  "dominated": a in ev.dominated}
                 for a in sorted(ev.present, key=lambda a: -cells[(a.model, a.effort)].score)
             ],
@@ -657,40 +816,74 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
         for a in ev.unpriced:
             result["missing"].append({"model": a.model, "effort": a.effort, "metric": ev.group.metric_id,
                                       "group": ev.group.gid, "need": "cost usd_per_task"})
+        if len(ev.ties) > 1:
+            result["flags"].append(f"{ev.group.gid}: E within sampling noise; tied arms "
+                                   + ", ".join(a.label() for a in ev.ties))
+        for a in ev.present:
+            note = ev.group.cells[(a.model, a.effort)].price_note
+            if note:
+                result["flags"].append(f"{ev.group.gid} {a.label()}: {note}")
 
     stats: dict[Arm, dict] = {}
-    for a in {ev.choice for ev in decisive if ev.choice is not None}:
+    current_candidate = current_arm({"expands_to": current}, catalog)
+    independent_cross = [ev for ev in decisive if ev.group.kind() == "independent"
+                         and ev.group.models_present(ev.present) >= 2]
+    rival_choices = {ev.choice for ev in decisive if ev.choice is not None}
+    for a in rival_choices:
         containing = [ev for ev in decisive if a in ev.present]
-        won = [ev for ev in containing if wins(a, ev)]
+        # An independent rival win counts against an arm even if that board omits it.
+        counted = containing + [ev for ev in independent_cross if all(ev is not old for old in containing)]
+        won = [ev for ev in counted if wins(a, ev)]
         num = sum(ev.weight for ev in won)
-        den = sum(ev.weight for ev in containing)
-        # Groups that chart one model's efforts choose an effort, not a model: the arm
-        # must also win a weighted majority of the cross-model groups it appears in.
-        cross = [ev for ev in containing if ev.group.models_present(ev.present) >= 2]
-        cross_num = sum(ev.weight for ev in cross if ev in won)
-        cross_den = sum(ev.weight for ev in cross)
-        stats[a] = {"won": won, "lost": [ev for ev in containing if ev not in won],
+        den = sum(ev.weight for ev in counted)
+        cross_num = sum(ev.weight for ev in independent_cross if ev in won)
+        cross_den = sum(ev.weight for ev in independent_cross)
+        rivals = {b for b in rival_choices if b.model != a.model}
+        rivals.update(b for ev in won for b in ev.present if b.model != a.model)
+        if current_candidate and current_candidate.model != a.model:
+            rivals.add(current_candidate)
+        missing_pairs = []
+        for b in rivals:
+            if not any((a.model, a.effort) in ev.group.cells and
+                       (b.model, b.effort) in ev.group.cells for ev in independent_cross):
+                boards = [ev for ev in independent_cross if (b.model, b.effort) in ev.group.cells and ev.choice == b]
+                boards = boards or [ev for ev in independent_cross if a in ev.present]
+                if not boards:
+                    boards = independent_cross[:1]
+                for ev in boards:
+                    absent = a if (a.model, a.effort) not in ev.group.cells else b
+                    missing_pairs.append({"model": absent.model, "effort": absent.effort,
+                                          "metric": ev.group.metric_id, "group": ev.group.gid,
+                                          "need": f"independent cross-model comparison with {b.model if absent == a else a.model}"})
+        threshold = req.get("majority_threshold", 0.5)
+        stats[a] = {"won": won, "lost": [ev for ev in counted if ev not in won],
                     "num": num, "den": den, "cross_num": cross_num, "cross_den": cross_den,
-                    "consistent": (den > 0 and num / den > 0.5
-                                   and (cross_den == 0 or cross_num / cross_den > 0.5))}
+                    "missing_pairs": missing_pairs,
+                    "consistent": (den > 0 and num / den > threshold
+                                   and cross_den > 0 and cross_num / cross_den > threshold
+                                   and not missing_pairs)}
 
     consistent = sorted((a for a, s in stats.items() if s["consistent"]),
-                        key=lambda a: (-stats[a]["num"], catalog.list_price.get(a.model, float("inf")),
+                        key=lambda a: (-stats[a]["num"], horizon_price(catalog, req, a.model),
                                        tuple(-x for x in version_key(a.model))))
 
-    def unmeasured(ref: Arm | None) -> None:
-        """Candidates with no comparable score; only those no pricier (list) than ref could change it."""
+    def unmeasured() -> None:
+        """Report absent per-task evidence without a list-token-price shortcut."""
         measured = {a.model for ev in usable for a in ev.present}
-        ref_price = catalog.list_price.get(ref.model, float("inf")) if ref else float("inf")
         success_metrics = [mid for mid in req["evidence_metrics"]
                            if catalog.metrics[mid].get("unit_default") in SUCCESS_UNITS]
         if not success_metrics:
             success_metrics = [ev.group.metric_id for ev in usable]
         for model in sorted({a.model for a in arms} - measured):
-            if catalog.list_price.get(model, float("inf")) <= ref_price:
+            boards = [ev for ev in independent_cross if model not in {a.model for a in ev.present}]
+            for ev in boards:
+                result["missing"].append({"model": model, "effort": None,
+                                          "metric": ev.group.metric_id, "group": ev.group.gid,
+                                          "need": "success-rate score and task cost at an allowed effort"})
+            if not boards:
                 result["missing"].append({"model": model, "effort": None,
                                           "metric": "any of " + ", ".join(success_metrics or req["evidence_metrics"]),
-                                          "group": None, "need": "success-rate score and cost at an allowed effort"})
+                                          "group": None, "need": "independent success-rate score and task cost at an allowed effort"})
 
     if len(consistent) == 1:
         a = consistent[0]
@@ -701,25 +894,27 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
         result["disagreements"] = [f"{group_ref(ev)}: choice {ev.choice.label()}" for ev in s["lost"]]
         independent = [ev for ev in s["won"] if ev.group.kind() == "independent"]
         cross_model = [ev for ev in independent if ev.group.models_present(ev.present) >= 2]
-        if len(cross_model) >= 2 and not s["lost"]:
+        if len(cross_model) >= req.get("high_confidence_groups", 2) and not s["lost"]:
             result["confidence"] = "high"
         elif cross_model:
             result["confidence"] = "medium"
         else:
             result["confidence"] = "low"
-        if independent and not cross_model:
-            result["flags"].append("independent deciding groups compare efforts of one model only; the model choice rests on vendor charts")
         if all(ev.group.cross_vendor_vendor_chart for ev in s["won"]):
             result["flags"].append("every deciding group is a vendor chart ranking a rival vendor")
-        unmeasured(a)
+        unmeasured()
     else:
         result["status"] = "INSUFFICIENT_EVIDENCE"
+        for s in stats.values():
+            result["missing"].extend(s["missing_pairs"])
         if len(consistent) > 1:
             # Rivals that never meet in a decisive group: the missing cross-coverage decides it.
             for a in consistent:
                 result["disagreements"].append(
                     f"{a.label()} wins {stats[a]['num']:g}/{stats[a]['den']:g} weight in "
-                    + ", ".join(ev.group.gid for ev in stats[a]["won"]))
+                    + ", ".join(ev.group.gid for ev in stats[a]["won"])
+                    + ("; loses " + ", ".join(f"{ev.group.gid} to {ev.choice.label()}" for ev in stats[a]["lost"])
+                       if stats[a]["lost"] else ""))
             for a in consistent:
                 for b in consistent:
                     if a == b:
@@ -735,10 +930,15 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
                     why.append(f"wins {s['num']:g}/{s['den']:g} weight")
                 if s["cross_den"] and s["cross_num"] / s["cross_den"] <= 0.5:
                     why.append(f"wins {s['cross_num']:g}/{s['cross_den']:g} cross-model weight")
+                if not s["cross_num"]:
+                    why.append("no independent cross-model win")
+                if s["missing_pairs"]:
+                    why.append(f"{len(s['missing_pairs'])} missing independent model/board pair(s)")
+                why.extend(f"{ev.group.gid}: choice {ev.choice.label()}" for ev in s["lost"])
                 result["disagreements"].append(f"{a.label()}: " + "; ".join(why))
             if not decisive:
                 result["flags"].append("no group has a priced success-rate arm")
-        unmeasured(None)
+        unmeasured()
     # de-duplicate missing entries, keep order
     seen = set()
     uniq = []
@@ -748,6 +948,13 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
             seen.add(key)
             uniq.append(m)
     result["missing"] = uniq
+    if result["status"] == "INSUFFICIENT_EVIDENCE" and len({a.model for a in arms}) == 1 and len({a.lane for a in arms}) == 1:
+        model = arms[0].model
+        preferred = next((a for a in arms if a.effort == "medium"), arms[0])
+        result["recommended"] = arm_dict(preferred)
+        result["status"] = "RECOMMENDED"
+        result["confidence"] = "rule-1 model only"
+        result["flags"].append(f"rule 1 selects sole newest-in-tier model {model}; effort defaults to {preferred.effort} without comparative evidence")
     return result
 
 
@@ -763,18 +970,29 @@ def current_arm(point: dict, catalog: Catalog) -> Arm | None:
 
 
 def recommend(catalog: Catalog, reqs: dict, points: dict[str, dict],
-              scenario: tuple[float, float, float] | None = None) -> list[dict]:
+              scenario: tuple[float, float, float] | dict | None = None) -> list[dict]:
     makers: dict[str, Arm] = {}
     out: dict[str, dict] = {}
     for op in reqs["order"]:
         if op not in reqs["ops"]:
             continue
         req = dict(reqs["ops"][op])
-        if scenario is not None:
+        if isinstance(scenario, tuple):
             overhead, detection, silent_multiplier = scenario
             req["attempt_overhead_usd"] = overhead
-            req["failure_detection_probability"] = (0 if op in {"review.audit", "advisor.deep"} else detection)
+            if req["failure_detection_probability"] > 0:
+                req["failure_detection_probability"] = detection
             req["silent_failure_cost_usd"] *= silent_multiplier
+        elif isinstance(scenario, dict):
+            req["attempt_overhead_usd"] = scenario.get("overhead", req["attempt_overhead_usd"])
+            if req["failure_detection_probability"] > 0:
+                req["failure_detection_probability"] = scenario.get("d", req["failure_detection_probability"])
+            req["silent_failure_cost_usd"] *= scenario.get("silent_multiplier", 1)
+            req["vendor_cross_vendor_factor"] = scenario.get("vendor_factor", req["vendor_cross_vendor_factor"])
+            req["majority_threshold"] = scenario.get("majority", req.get("majority_threshold", 0.5))
+            req["high_confidence_groups"] = scenario.get("high_confidence_groups", req.get("high_confidence_groups", 2))
+            if "source_weights" in scenario:
+                req["source_weights"] = {**req["source_weights"], **scenario["source_weights"]}
         deps = {d: makers[d] for d in op_dependencies(req) if d in makers}
         res = decide(op, req, catalog, deps, points[op].get("expands_to", {}))
         for d in op_dependencies(req):
@@ -795,70 +1013,49 @@ def recommend(catalog: Catalog, reqs: dict, points: dict[str, dict],
 
 
 ROBUSTNESS_OVERHEAD = (0.1, 0.5, 1.0, 2.0)
-ROBUSTNESS_DETECTION = (0.5, 0.75, 0.95)
+ROBUSTNESS_DETECTION = (0.25, 0.5, 0.75, 0.95)
 ROBUSTNESS_SILENT_MULTIPLIER = (0.5, 1.0, 2.0)
+ROBUSTNESS_SOURCE_WEIGHT = (0.5, 1.0, 2.0)
+ROBUSTNESS_VENDOR_FACTOR = (0.25, 0.5, 1.0)
+ROBUSTNESS_MAJORITY = (0.4, 0.5, 0.6)
+ROBUSTNESS_HIGH_CONFIDENCE = (1, 2, 3)
 
 
 def outcome(result: dict) -> str:
     rec = result["recommended"]
-    return f"{rec['provider']}/{rec['model']}/{rec['effort']}" if rec else result["status"]
+    return f"{rec['provider']}/{rec['model']}/{rec['effort']} ({result['confidence']})" if rec else result["status"]
 
 
 def assess_robustness(catalog: Catalog, reqs: dict, points: dict[str, dict], results: list[dict]) -> None:
-    """Re-run the complete dependency graph on the assumption grid and locate one flip."""
-    axes = (ROBUSTNESS_OVERHEAD, ROBUSTNESS_DETECTION, ROBUSTNESS_SILENT_MULTIPLIER)
-    scenarios = list(itertools.product(*axes))
-    cache = {scenario: {r["op"]: outcome(r) for r in recommend(catalog, reqs, points, scenario)}
-             for scenario in scenarios}
-    base = (0.5, 0.75, 1.0)
-
+    """Keep the original cost/detection grid and sweep the added policy knobs."""
+    scenarios: list[tuple[str, dict]] = [("base", {})]
+    scenarios.extend((f"overhead={h:g},d={d:g},silent_multiplier={s:g}",
+                      {"overhead": h, "d": d, "silent_multiplier": s})
+                     for h, d, s in itertools.product(ROBUSTNESS_OVERHEAD, ROBUSTNESS_DETECTION,
+                                                       ROBUSTNESS_SILENT_MULTIPLIER))
+    for name, values in (("vendor_factor", ROBUSTNESS_VENDOR_FACTOR),
+                         ("majority", ROBUSTNESS_MAJORITY),
+                         ("high_confidence_groups", ROBUSTNESS_HIGH_CONFIDENCE)):
+        scenarios.extend((f"{name}={value:g}", {name: value}) for value in values)
+    for value in ROBUSTNESS_SOURCE_WEIGHT:
+        scenarios.append((f"independent_weight={value:g}",
+                          {"source_weights": {kind: value for kind in INDEPENDENT_SOURCE_TYPES}}))
+        scenarios.append((f"vendor_weight={value:g}",
+                          {"source_weights": {kind: value for kind in VENDOR_SOURCE_TYPES}}))
+    cache = [(name, {r["op"]: outcome(r) for r in recommend(catalog, reqs, points, scenario)})
+             for name, scenario in scenarios]
     for result in results:
         op = result["op"]
-        outcomes = sorted({cache[s][op] for s in scenarios})
-        if len(outcomes) == 1 and result["recommended"]:
-            result["robustness"] = {"status": "CLEAR", "outcomes": outcomes, "threshold": None}
-            continue
-        if len(outcomes) == 1:
-            result["robustness"] = {"status": "ASSUMPTION_SENSITIVE", "outcomes": outcomes,
-                                    "threshold": "No winning arm anywhere in the grid; evidence remains insufficient."}
-            continue
-
-        edges = []
-        for axis, values in enumerate(axes):
-            for low, high in zip(values, values[1:]):
-                for other in itertools.product(*(axes[i] for i in range(3) if i != axis)):
-                    scenario_low = list(other)
-                    scenario_low.insert(axis, low)
-                    scenario_high = list(scenario_low)
-                    scenario_high[axis] = high
-                    a, b = tuple(scenario_low), tuple(scenario_high)
-                    if cache[a][op] != cache[b][op]:
-                        distance = sum(abs((a[i] + b[i]) / 2 - base[i]) / (axes[i][-1] - axes[i][0])
-                                       for i in range(3))
-                        edges.append((distance, axis, a, b))
-        _, axis, left, right = min(edges)
-        left_value, right_value = left[axis], right[axis]
-        left_outcome, right_outcome = cache[left][op], cache[right][op]
-        for _ in range(16):
-            mid = (left_value + right_value) / 2
-            probe = list(left)
-            probe[axis] = mid
-            probe_outcome = next(r for r in recommend(catalog, reqs, points, tuple(probe)) if r["op"] == op)
-            if outcome(probe_outcome) == left_outcome:
-                left_value = mid
-            else:
-                right_value = mid
-        threshold = (left_value + right_value) / 2
-        silent_base = reqs["ops"][op]["silent_failure_cost_usd"]
-        held_detection = 0 if op in {"review.audit", "advisor.deep"} else left[1]
-        if axis == 0:
-            assumption = f"overhead ≈ ${threshold:.3g} (d={held_detection:g}, silent cost=${silent_base * left[2]:g})"
-        elif axis == 1:
-            assumption = f"d ≈ {threshold:.3g} (overhead=${left[0]:g}, silent cost=${silent_base * left[2]:g})"
-        else:
-            assumption = f"silent cost ≈ ${silent_base * threshold:.3g} (overhead=${left[0]:g}, d={held_detection:g})"
-        result["robustness"] = {"status": "ASSUMPTION_SENSITIVE", "outcomes": outcomes,
-                                "threshold": f"{assumption}: {left_outcome} → {right_outcome}"}
+        outcomes = sorted({values[op] for _, values in cache})
+        base = cache[0][1][op]
+        flip = next((f"{name}: {base} → {values[op]}" for name, values in cache[1:]
+                     if values[op] != base), None)
+        result["robustness"] = {
+            "status": "CLEAR" if len(outcomes) == 1 and result["recommended"] else "ASSUMPTION_SENSITIVE",
+            "outcomes": outcomes,
+            "threshold": flip or ("No winning arm in the sensitivity sweeps; evidence remains insufficient."
+                                  if not result["recommended"] else None),
+        }
 
 
 # --------------------------------------------------------------- output
@@ -873,7 +1070,8 @@ def _cell(items: list[str], limit: int = 3) -> str:
 
 
 def render_markdown(results: list[dict]) -> str:
-    lines = [
+    horizon = results[0]["price_horizon"] if results else {"as_of": dt.date.today().isoformat(), "days": 90}
+    lines = [f"Price policy: {horizon['days']}-day horizon from {horizon['as_of']}. E is expected cost per task.", "",
         "| op | current expands_to | recommended arm | confidence | robustness / flip threshold | deciding groups | disagreements | missing |",
         "|----|--------------------|-----------------|------------|-----------------------------|-----------------|---------------|---------|",
     ]
@@ -903,22 +1101,29 @@ def render_markdown(results: list[dict]) -> str:
         if r.get("robustness"):
             lines.append(f"- robustness: {r['robustness']['status']} — {r['robustness']['threshold'] or 'same arm across the grid'}")
         if r["excluded_models"]:
-            lines.append("- excluded: " + "; ".join(f"{e['model']} ({e['reason']})" for e in r["excluded_models"]))
+            notable = [e for e in r["excluded_models"] if not e["reason"].startswith("superseded in tier")]
+            shown = "; ".join(f"{e['model']} ({e['reason']})" for e in notable[:5])
+            extra = f"; {len(notable)-5} more in JSON" if len(notable) > 5 else ""
+            lines.append(f"- excluded: {len(r['excluded_models'])} entries" + (f"; {shown}{extra}" if shown else " (superseded tiers)"))
         for f in r["flags"]:
             lines.append(f"- flag: {f}")
         for g in r["groups"]:
             arms = ", ".join(
                 f"{a['arm']}={a['score']:g}" + (f" p={a['p']:.3g}" if a["p"] is not None else " p=—")
+                + (f" CI=[{a['ci_lo']:.3g},{a['ci_hi']:.3g}]" if a["ci_lo"] is not None and a["ci_hi"] is not None else "")
+                + (f" n={a['n']}" if a["n"] is not None else "")
                 + (f" cost=${a['cost']:g}" if a["cost"] is not None else " cost=?")
                 + (" E=∞" if a["expected_cost_usd"] == "Infinity" else
                    f" E=${a['expected_cost_usd']:.3g}" if a["expected_cost_usd"] is not None else " E=—")
                 + (" dominated" if a["dominated"] else "") for a in g["arms"])
             status = f"unusable: {g['unusable']}" if g["unusable"] else f"choice {g['choice'] or 'none (no priced success-rate arm)'}"
             ceiling = "" if g["ceiling_raw"] is None else f", ceiling {g['ceiling_raw']:.4g}"
-            flag = ", vendor chart ranks rival vendor" if g["vendor_chart_ranks_rival_vendor"] else ""
+            flag = ", vendor chart includes rival vendor" if g["vendor_chart_ranks_rival_vendor"] else ""
             maker = (f", maker p={g['maker_p']:.3g}, checker p={g['checker_p']:.3g}"
                      if g["maker_p"] is not None and g["checker_p"] is not None else "")
             lines.append(f"  - `{g['group']}` ({g['metric_id']}, {'/'.join(g['source_types'])}, w={g['weight']:g}{flag}{ceiling}{maker}): {status} — {arms}")
+            if g["ties"]:
+                lines.append("    - E tie within sampling noise: " + ", ".join(g["ties"]))
         if r["missing"]:
             lines.append("- missing:")
             for m in r["missing"]:
