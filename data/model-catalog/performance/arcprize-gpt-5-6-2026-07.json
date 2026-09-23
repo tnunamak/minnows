@@ -33,7 +33,9 @@
         "value": 1.44,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-gpt-5-6-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.6-sol",
@@ -55,7 +57,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -77,7 +80,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -97,7 +101,9 @@
         "value": 1.04,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-gpt-5-6-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.6-sol",
@@ -119,7 +125,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -141,7 +148,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -161,7 +169,9 @@
         "value": 0.74,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-gpt-5-6-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.6-sol",
@@ -183,7 +193,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -205,7 +216,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -225,7 +237,9 @@
         "value": 0.47,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-gpt-5-6-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.6-sol",
@@ -247,7 +261,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -269,7 +284,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -289,7 +305,9 @@
         "value": 0.32,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-gpt-5-6-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.6-sol",
@@ -311,7 +329,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-sol",
@@ -333,7 +352,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -353,7 +373,9 @@
         "value": 1.09,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-gpt-5-6-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.6-terra",
@@ -375,7 +397,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -397,7 +420,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -417,7 +441,9 @@
         "value": 0.69,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-gpt-5-6-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.6-terra",
@@ -439,7 +465,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -461,7 +488,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -481,7 +509,9 @@
         "value": 0.55,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-gpt-5-6-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.6-terra",
@@ -503,7 +533,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -525,7 +556,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -545,7 +577,9 @@
         "value": 0.27,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-gpt-5-6-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.6-terra",
@@ -567,7 +601,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -589,7 +624,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -609,7 +645,9 @@
         "value": 0.17,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-gpt-5-6-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.6-terra",
@@ -631,7 +669,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-terra",
@@ -653,7 +692,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -673,7 +713,9 @@
         "value": 0.67,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-gpt-5-6-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.6-luna",
@@ -695,7 +737,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -717,7 +760,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -737,7 +781,9 @@
         "value": 0.54,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-gpt-5-6-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.6-luna",
@@ -759,7 +805,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -781,7 +828,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -801,7 +849,9 @@
         "value": 0.29,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-gpt-5-6-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.6-luna",
@@ -823,7 +873,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -845,7 +896,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -865,7 +917,9 @@
         "value": 0.11,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-gpt-5-6-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.6-luna",
@@ -887,7 +941,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -909,7 +964,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -929,7 +985,9 @@
         "value": 0.07,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-gpt-5-6-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.6-luna",
@@ -951,7 +1009,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.6-luna",
@@ -973,7 +1032,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-gpt-5-6-2026-07-09-2026-07-09"
     },
     {
       "model": "claude-opus-4-8",
@@ -993,7 +1053,9 @@
         "value": 1.68,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-leaderboard-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "claude-opus-4-8",
@@ -1012,7 +1074,9 @@
         "value": 2.39,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-leaderboard-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "claude-opus-4-8",
@@ -1032,7 +1096,9 @@
         "value": 2.74,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-leaderboard-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "claude-opus-4-8",
@@ -1053,7 +1119,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09"
     },
     {
       "model": "claude-opus-4-8",
@@ -1074,7 +1141,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09"
     },
     {
       "model": "claude-opus-4-8",
@@ -1095,7 +1163,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09"
     },
     {
       "model": "claude-opus-4-8",
@@ -1116,7 +1185,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.5",
@@ -1136,7 +1206,9 @@
         "value": 0.35,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-leaderboard-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.5",
@@ -1155,7 +1227,9 @@
         "value": 0.86,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-leaderboard-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.5",
@@ -1174,7 +1248,9 @@
         "value": 1.45,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-leaderboard-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.5",
@@ -1193,7 +1269,9 @@
         "value": 1.87,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-leaderboard-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.5",
@@ -1214,7 +1292,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.5",
@@ -1235,7 +1314,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.5",
@@ -1256,7 +1336,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.5",
@@ -1277,7 +1358,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.5",
@@ -1298,7 +1380,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09"
     },
     {
       "model": "gpt-5.5-pro",
@@ -1317,7 +1400,9 @@
         "value": 10.51,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-leaderboard-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gpt-5.5-pro",
@@ -1338,7 +1423,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09"
     },
     {
       "model": "gemini-3.1-pro-preview",
@@ -1356,7 +1442,9 @@
         "value": 0.962,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-leaderboard-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gemini-3.1-pro-preview",
@@ -1375,7 +1463,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09"
     },
     {
       "model": "gemini-3.1-pro-preview",
@@ -1394,7 +1483,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-3::third_party_board::null"
+      "comparability_group": "arc-agi-3::third_party_board::null",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09"
     },
     {
       "model": "grok-4.20",
@@ -1414,7 +1504,9 @@
         "value": 0.92,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-leaderboard-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "grok-4.20",
@@ -1435,7 +1527,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09"
     },
     {
       "model": "gemini-3.5-flash",
@@ -1454,7 +1547,9 @@
         "value": 0.107,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-leaderboard-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gemini-3.5-flash",
@@ -1473,7 +1568,9 @@
         "value": 0.85,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-leaderboard-2026-07-09-2026-07-09-arc-agi-1"
     },
     {
       "model": "gemini-3.5-flash",
@@ -1494,7 +1591,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09"
     },
     {
       "model": "gemini-3.5-flash",
@@ -1515,7 +1613,8 @@
         "basis": "api_usd"
       },
       "comparable": false,
-      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07"
+      "comparability_group": "arc-agi-2-arcprize-gpt-5-6-2026-07",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09"
     },
     {
       "model": "claude-opus-4-8",
@@ -1533,7 +1632,9 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "metric_id": "arc-agi-cost-per-task-usd"
+      "metric_id": "arc-agi-cost-per-task-usd",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-leaderboard-2026-07-09-2026-07-09-arc-agi-cost-per-task-usd"
     },
     {
       "model": "gpt-5.5-pro",
@@ -1551,7 +1652,9 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "metric_id": "arc-agi-cost-per-task-usd"
+      "metric_id": "arc-agi-cost-per-task-usd",
+      "snapshot_id": "arcprize-leaderboard-2026-07-09-2026-07-09",
+      "comparability_group": "arcprize-leaderboard-2026-07-09-2026-07-09-arc-agi-cost-per-task-usd"
     }
   ],
   "claims": [

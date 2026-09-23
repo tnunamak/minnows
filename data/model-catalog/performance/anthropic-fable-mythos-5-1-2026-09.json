@@ -36,10 +36,11 @@
       "comparable": false,
       "comparability_group": "anthropic-fable-5-1-launch-terminal-bench-science-0-1",
       "cost": {
-        "value": 11.10,
+        "value": 11.1,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -58,15 +59,16 @@
       "comparable": false,
       "comparability_group": "anthropic-fable-5-1-launch-terminal-bench-science-0-1",
       "cost": {
-        "value": 14.90,
+        "value": 14.9,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
       "metric": "Terminal-Bench Science 0.1",
-      "score": 0.400,
+      "score": 0.4,
       "unit": "accuracy",
       "effort": "high",
       "source_id": "anthropic-fable-mythos-5-1-2026-09-01",
@@ -80,10 +82,11 @@
       "comparable": false,
       "comparability_group": "anthropic-fable-5-1-launch-terminal-bench-science-0-1",
       "cost": {
-        "value": 20.30,
+        "value": 20.3,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -102,10 +105,11 @@
       "comparable": false,
       "comparability_group": "anthropic-fable-5-1-launch-terminal-bench-science-0-1",
       "cost": {
-        "value": 31.80,
+        "value": 31.8,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -124,10 +128,11 @@
       "comparable": false,
       "comparability_group": "anthropic-fable-5-1-launch-terminal-bench-science-0-1",
       "cost": {
-        "value": 37.90,
+        "value": 37.9,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -146,10 +151,11 @@
       "comparable": false,
       "comparability_group": "anthropic-fable-5-1-launch-terminal-bench-4-0",
       "cost": {
-        "value": 5.70,
+        "value": 5.7,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -168,10 +174,11 @@
       "comparable": false,
       "comparability_group": "anthropic-fable-5-1-launch-terminal-bench-4-0",
       "cost": {
-        "value": 7.80,
+        "value": 7.8,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -190,10 +197,11 @@
       "comparable": false,
       "comparability_group": "anthropic-fable-5-1-launch-terminal-bench-4-0",
       "cost": {
-        "value": 10.50,
+        "value": 10.5,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -212,10 +220,11 @@
       "comparable": false,
       "comparability_group": "anthropic-fable-5-1-launch-terminal-bench-4-0",
       "cost": {
-        "value": 15.80,
+        "value": 15.8,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -234,15 +243,16 @@
       "comparable": false,
       "comparability_group": "anthropic-fable-5-1-launch-terminal-bench-4-0",
       "cost": {
-        "value": 19.50,
+        "value": 19.5,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
       "metric": "Humanity's Last Exam (with tools)",
-      "score": 0.600,
+      "score": 0.6,
       "unit": "accuracy",
       "effort": "low",
       "source_id": "anthropic-fable-mythos-5-1-2026-09-01",
@@ -259,12 +269,13 @@
         "value": 0.52,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
       "metric": "Humanity's Last Exam (with tools)",
-      "score": 0.630,
+      "score": 0.63,
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "anthropic-fable-mythos-5-1-2026-09-01",
@@ -281,7 +292,8 @@
         "value": 0.67,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -303,7 +315,8 @@
         "value": 1.05,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -325,12 +338,13 @@
         "value": 2.28,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
       "metric": "Humanity's Last Exam (with tools)",
-      "score": 0.650,
+      "score": 0.65,
       "unit": "accuracy",
       "effort": "max",
       "source_id": "anthropic-fable-mythos-5-1-2026-09-01",
@@ -344,10 +358,11 @@
       "comparable": false,
       "comparability_group": "anthropic-fable-5-1-launch-humanity-s-last-exam-with-tools",
       "cost": {
-        "value": 3.20,
+        "value": 3.2,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -366,10 +381,11 @@
       "comparable": false,
       "comparability_group": "anthropic-fable-5-1-launch-humanity-s-last-exam-no-tools",
       "cost": {
-        "value": 0.30,
+        "value": 0.3,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -391,12 +407,13 @@
         "value": 0.46,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
       "metric": "Humanity's Last Exam (no tools)",
-      "score": 0.580,
+      "score": 0.58,
       "unit": "accuracy",
       "effort": "high",
       "source_id": "anthropic-fable-mythos-5-1-2026-09-01",
@@ -413,7 +430,8 @@
         "value": 0.75,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -435,7 +453,8 @@
         "value": 1.53,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -457,7 +476,8 @@
         "value": 2.23,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -476,15 +496,16 @@
       "comparable": false,
       "comparability_group": "anthropic-fable-5-1-launch-cursorbench-3-2-0",
       "cost": {
-        "value": 2.90,
+        "value": 2.9,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
       "metric": "CursorBench 3.2.0",
-      "score": 0.680,
+      "score": 0.68,
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "anthropic-fable-mythos-5-1-2026-09-01",
@@ -501,7 +522,8 @@
         "value": 3.53,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -520,10 +542,11 @@
       "comparable": false,
       "comparability_group": "anthropic-fable-5-1-launch-cursorbench-3-2-0",
       "cost": {
-        "value": 4.80,
+        "value": 4.8,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -545,7 +568,8 @@
         "value": 6.96,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     },
     {
       "model": "claude-fable-5-1",
@@ -567,7 +591,8 @@
         "value": 9.64,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-fable-mythos-5-1-2026-09-01-2026-09-01"
     }
   ]
 }

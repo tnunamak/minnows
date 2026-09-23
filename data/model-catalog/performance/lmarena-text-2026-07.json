@@ -23,7 +23,9 @@
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
-      "metric_id": "chatbot-arena-text-elo"
+      "metric_id": "chatbot-arena-text-elo",
+      "snapshot_id": "lmarena-text-2026-07-01-2026-07-09",
+      "comparability_group": "lmarena-text-2026-07-01-2026-07-09-chatbot-arena-text-elo"
     },
     {
       "model": "claude-opus-4-6-thinking",
@@ -35,7 +37,9 @@
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
-      "metric_id": "chatbot-arena-text-elo"
+      "metric_id": "chatbot-arena-text-elo",
+      "snapshot_id": "lmarena-text-2026-07-01-2026-07-09",
+      "comparability_group": "lmarena-text-2026-07-01-2026-07-09-chatbot-arena-text-elo"
     },
     {
       "model": "claude-opus-4-7-thinking",
@@ -47,7 +51,9 @@
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
-      "metric_id": "chatbot-arena-text-elo"
+      "metric_id": "chatbot-arena-text-elo",
+      "snapshot_id": "lmarena-text-2026-07-01-2026-07-09",
+      "comparability_group": "lmarena-text-2026-07-01-2026-07-09-chatbot-arena-text-elo"
     },
     {
       "model": "claude-opus-4-6",
@@ -59,7 +65,9 @@
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
-      "metric_id": "chatbot-arena-text-elo"
+      "metric_id": "chatbot-arena-text-elo",
+      "snapshot_id": "lmarena-text-2026-07-01-2026-07-09",
+      "comparability_group": "lmarena-text-2026-07-01-2026-07-09-chatbot-arena-text-elo"
     },
     {
       "model": "claude-opus-4-7",
@@ -71,7 +79,9 @@
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
-      "metric_id": "chatbot-arena-text-elo"
+      "metric_id": "chatbot-arena-text-elo",
+      "snapshot_id": "lmarena-text-2026-07-01-2026-07-09",
+      "comparability_group": "lmarena-text-2026-07-01-2026-07-09-chatbot-arena-text-elo"
     },
     {
       "model": "gemini-3.1-pro-preview",
@@ -83,7 +93,9 @@
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
-      "metric_id": "chatbot-arena-text-elo"
+      "metric_id": "chatbot-arena-text-elo",
+      "snapshot_id": "lmarena-text-2026-07-01-2026-07-09",
+      "comparability_group": "lmarena-text-2026-07-01-2026-07-09-chatbot-arena-text-elo"
     },
     {
       "model": "gemini-3-pro",
@@ -95,7 +107,9 @@
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
-      "metric_id": "chatbot-arena-text-elo"
+      "metric_id": "chatbot-arena-text-elo",
+      "snapshot_id": "lmarena-text-2026-07-01-2026-07-09",
+      "comparability_group": "lmarena-text-2026-07-01-2026-07-09-chatbot-arena-text-elo"
     },
     {
       "model": "claude-opus-4-8-thinking",
@@ -107,7 +121,9 @@
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
-      "metric_id": "chatbot-arena-text-elo"
+      "metric_id": "chatbot-arena-text-elo",
+      "snapshot_id": "lmarena-text-2026-07-01-2026-07-09",
+      "comparability_group": "lmarena-text-2026-07-01-2026-07-09-chatbot-arena-text-elo"
     },
     {
       "model": "gpt-5.5-high",
@@ -119,7 +135,9 @@
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
-      "metric_id": "chatbot-arena-text-elo"
+      "metric_id": "chatbot-arena-text-elo",
+      "snapshot_id": "lmarena-text-2026-07-01-2026-07-09",
+      "comparability_group": "lmarena-text-2026-07-01-2026-07-09-chatbot-arena-text-elo"
     },
     {
       "model": "gpt-5.5",
@@ -131,7 +149,9 @@
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
-      "metric_id": "chatbot-arena-text-elo"
+      "metric_id": "chatbot-arena-text-elo",
+      "snapshot_id": "lmarena-text-2026-07-01-2026-07-09",
+      "comparability_group": "lmarena-text-2026-07-01-2026-07-09-chatbot-arena-text-elo"
     },
     {
       "model": "grok-4.20-beta-0309-reasoning",
@@ -143,7 +163,9 @@
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
-      "metric_id": "chatbot-arena-text-elo"
+      "metric_id": "chatbot-arena-text-elo",
+      "snapshot_id": "lmarena-text-2026-07-01-2026-07-09",
+      "comparability_group": "lmarena-text-2026-07-01-2026-07-09-chatbot-arena-text-elo"
     },
     {
       "model": "claude-sonnet-5-high",
@@ -155,7 +177,9 @@
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
-      "metric_id": "chatbot-arena-text-elo"
+      "metric_id": "chatbot-arena-text-elo",
+      "snapshot_id": "lmarena-text-2026-07-01-2026-07-09",
+      "comparability_group": "lmarena-text-2026-07-01-2026-07-09-chatbot-arena-text-elo"
     },
     {
       "model": "grok-4.3",
@@ -167,7 +191,9 @@
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
-      "metric_id": "chatbot-arena-text-elo"
+      "metric_id": "chatbot-arena-text-elo",
+      "snapshot_id": "lmarena-text-2026-07-01-2026-07-09",
+      "comparability_group": "lmarena-text-2026-07-01-2026-07-09-chatbot-arena-text-elo"
     }
   ],
   "claims": [

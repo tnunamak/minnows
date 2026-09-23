@@ -57,7 +57,8 @@ Anthropic, Google, xAI, Qwen, and other vendor families where the vendor names a
 - **meta**: `spark` (Muse Spark family; preview status is separate).
 - **mistral**: `large` | `medium` | `small` (vendor family names; not a universal rank).
 - **alibaba**: Qwen's `max` | `plus` | `flash` | `coder` suffixes are product-family
-  designations, not cross-vendor ranks.
+  designations, not cross-vendor ranks. `open` identifies Qwen open-weight/base model families
+  without a named max/plus/flash/coder product tier; it does not imply a rank.
 
 `tier` is the vendor's own concurrent product/family label where one is documented. Values
 are meaningful within a provider and do not imply a universal ordering across providers.

@@ -30,7 +30,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "xhigh",
       "task_family": "coding",
-      "metric_id": "swe-bench-pro-public-seal-mini-swe-agent"
+      "metric_id": "swe-bench-pro-public-seal-mini-swe-agent",
+      "snapshot_id": "scale-swe-bench-pro-2026-07-09-2026-07-09",
+      "comparability_group": "scale-swe-bench-pro-2026-07-09-2026-07-09-swe-bench-pro-public-seal-mini-swe-agent"
     },
     {
       "model": "claude-opus-4-6",
@@ -44,7 +46,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "thinking",
       "task_family": "coding",
-      "metric_id": "swe-bench-pro-public-seal-mini-swe-agent"
+      "metric_id": "swe-bench-pro-public-seal-mini-swe-agent",
+      "snapshot_id": "scale-swe-bench-pro-2026-07-09-2026-07-09",
+      "comparability_group": "scale-swe-bench-pro-2026-07-09-2026-07-09-swe-bench-pro-public-seal-mini-swe-agent"
     },
     {
       "model": "gemini-3.1-pro",
@@ -58,7 +62,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "thinking",
       "task_family": "coding",
-      "metric_id": "swe-bench-pro-public-seal-mini-swe-agent"
+      "metric_id": "swe-bench-pro-public-seal-mini-swe-agent",
+      "snapshot_id": "scale-swe-bench-pro-2026-07-09-2026-07-09",
+      "comparability_group": "scale-swe-bench-pro-2026-07-09-2026-07-09-swe-bench-pro-public-seal-mini-swe-agent"
     },
     {
       "model": "claude-opus-4-5",
@@ -70,7 +76,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "swe-bench-pro-public-seal-mini-swe-agent"
+      "metric_id": "swe-bench-pro-public-seal-mini-swe-agent",
+      "snapshot_id": "scale-swe-bench-pro-2026-07-09-2026-07-09",
+      "comparability_group": "scale-swe-bench-pro-2026-07-09-2026-07-09-swe-bench-pro-public-seal-mini-swe-agent"
     },
     {
       "model": "claude-sonnet-4-5",
@@ -82,7 +90,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "swe-bench-pro-public-seal-mini-swe-agent"
+      "metric_id": "swe-bench-pro-public-seal-mini-swe-agent",
+      "snapshot_id": "scale-swe-bench-pro-2026-07-09-2026-07-09",
+      "comparability_group": "scale-swe-bench-pro-2026-07-09-2026-07-09-swe-bench-pro-public-seal-mini-swe-agent"
     },
     {
       "model": "gpt-5.6-sol",
@@ -95,7 +105,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "swe-bench-verified-vals-ai-mini-swe-agent"
+      "metric_id": "swe-bench-verified-vals-ai-mini-swe-agent",
+      "snapshot_id": "vals-swebench-2026-07-09-2026-07-09",
+      "comparability_group": "vals-swebench-2026-07-09-2026-07-09-swe-bench-verified-vals-ai-mini-swe-agent"
     },
     {
       "model": "claude-fable-5",
@@ -108,7 +120,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "swe-bench-verified-vals-ai-mini-swe-agent"
+      "metric_id": "swe-bench-verified-vals-ai-mini-swe-agent",
+      "snapshot_id": "vals-swebench-2026-07-09-2026-07-09",
+      "comparability_group": "vals-swebench-2026-07-09-2026-07-09-swe-bench-verified-vals-ai-mini-swe-agent"
     },
     {
       "model": "claude-opus-4-8",
@@ -121,7 +135,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "swe-bench-verified-vals-ai-mini-swe-agent"
+      "metric_id": "swe-bench-verified-vals-ai-mini-swe-agent",
+      "snapshot_id": "vals-swebench-2026-07-09-2026-07-09",
+      "comparability_group": "vals-swebench-2026-07-09-2026-07-09-swe-bench-verified-vals-ai-mini-swe-agent"
     },
     {
       "model": "grok-4.5",
@@ -134,7 +150,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
       "task_family": "coding",
-      "metric_id": "swe-bench-verified-vals-ai-mini-swe-agent"
+      "metric_id": "swe-bench-verified-vals-ai-mini-swe-agent",
+      "snapshot_id": "vals-swebench-2026-07-09-2026-07-09",
+      "comparability_group": "vals-swebench-2026-07-09-2026-07-09-swe-bench-verified-vals-ai-mini-swe-agent"
     },
     {
       "model": "claude-opus-4-5",
@@ -149,7 +167,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "high",
       "task_family": "coding",
-      "metric_id": "swe-bench-verified-official-mini-swe-agent-snapshot"
+      "metric_id": "swe-bench-verified-official-mini-swe-agent-snapshot",
+      "snapshot_id": "swebench-verified-2026-07-09-2026-07-09",
+      "comparability_group": "swebench-verified-2026-07-09-2026-07-09-swe-bench-verified-official-mini-swe-agent-snapshot"
     },
     {
       "model": "gemini-3-flash",
@@ -164,7 +184,9 @@
       "observed_at": "2026-07-09",
       "effort_verbatim": "high",
       "task_family": "coding",
-      "metric_id": "swe-bench-verified-official-mini-swe-agent-snapshot"
+      "metric_id": "swe-bench-verified-official-mini-swe-agent-snapshot",
+      "snapshot_id": "swebench-verified-2026-07-09-2026-07-09",
+      "comparability_group": "swebench-verified-2026-07-09-2026-07-09-swe-bench-verified-official-mini-swe-agent-snapshot"
     }
   ],
   "claims": [

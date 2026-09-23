@@ -104,7 +104,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-4-0"
+      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-4-0",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-terminal-bench-4-0"
     },
     {
       "model": "claude-fable-5-1",
@@ -126,7 +127,8 @@
         "value": 24.54,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-terminal-bench-4-0"
     },
     {
       "model": "claude-opus-5",
@@ -143,7 +145,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-4-0"
+      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-4-0",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-terminal-bench-4-0"
     },
     {
       "model": "gpt-6-astra",
@@ -160,7 +163,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-4-0"
+      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-4-0",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-terminal-bench-4-0"
     },
     {
       "model": "gpt-5.6-sol",
@@ -177,7 +181,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-4-0"
+      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-4-0",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-terminal-bench-4-0"
     },
     {
       "model": "claude-opus-5-5",
@@ -194,7 +199,8 @@
       "task_family": "coding",
       "metric_id": "frontiercode-1-1-main",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-frontiercode-1-1-main"
+      "comparability_group": "anthropic-opus-5-5-launch-frontiercode-1-1-main",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-frontiercode-1-1-main"
     },
     {
       "model": "claude-opus-5-5",
@@ -211,7 +217,8 @@
       "task_family": "coding",
       "metric_id": "frontiercode-1-1-main",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-frontiercode-1-1-main"
+      "comparability_group": "anthropic-opus-5-5-launch-frontiercode-1-1-main",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-frontiercode-1-1-main"
     },
     {
       "model": "claude-fable-5-1",
@@ -228,7 +235,8 @@
       "task_family": "coding",
       "metric_id": "frontiercode-1-1-main",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-frontiercode-1-1-main"
+      "comparability_group": "anthropic-opus-5-5-launch-frontiercode-1-1-main",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-frontiercode-1-1-main"
     },
     {
       "model": "claude-opus-5",
@@ -245,7 +253,8 @@
       "task_family": "coding",
       "metric_id": "frontiercode-1-1-main",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-frontiercode-1-1-main"
+      "comparability_group": "anthropic-opus-5-5-launch-frontiercode-1-1-main",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-frontiercode-1-1-main"
     },
     {
       "model": "gpt-6-astra",
@@ -262,7 +271,8 @@
       "task_family": "coding",
       "metric_id": "frontiercode-1-1-main",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-frontiercode-1-1-main"
+      "comparability_group": "anthropic-opus-5-5-launch-frontiercode-1-1-main",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-frontiercode-1-1-main"
     },
     {
       "model": "gpt-5.6-sol",
@@ -279,7 +289,8 @@
       "task_family": "coding",
       "metric_id": "frontiercode-1-1-main",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-frontiercode-1-1-main"
+      "comparability_group": "anthropic-opus-5-5-launch-frontiercode-1-1-main",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-frontiercode-1-1-main"
     },
     {
       "model": "claude-opus-5-5",
@@ -296,7 +307,8 @@
       "task_family": "coding",
       "metric_id": "cursorbench-4-0",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-cursorbench-4-0"
+      "comparability_group": "anthropic-opus-5-5-launch-cursorbench-4-0",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-cursorbench-4-0"
     },
     {
       "model": "claude-opus-5-5",
@@ -313,7 +325,8 @@
       "task_family": "coding",
       "metric_id": "cursorbench-4-0",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-cursorbench-4-0"
+      "comparability_group": "anthropic-opus-5-5-launch-cursorbench-4-0",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-cursorbench-4-0"
     },
     {
       "model": "claude-fable-5-1",
@@ -330,7 +343,8 @@
       "task_family": "coding",
       "metric_id": "cursorbench-4-0",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-cursorbench-4-0"
+      "comparability_group": "anthropic-opus-5-5-launch-cursorbench-4-0",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-cursorbench-4-0"
     },
     {
       "model": "claude-opus-5",
@@ -347,7 +361,8 @@
       "task_family": "coding",
       "metric_id": "cursorbench-4-0",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-cursorbench-4-0"
+      "comparability_group": "anthropic-opus-5-5-launch-cursorbench-4-0",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-cursorbench-4-0"
     },
     {
       "model": "gpt-5.6-sol",
@@ -364,7 +379,8 @@
       "task_family": "coding",
       "metric_id": "cursorbench-4-0",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-cursorbench-4-0"
+      "comparability_group": "anthropic-opus-5-5-launch-cursorbench-4-0",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-cursorbench-4-0"
     },
     {
       "model": "claude-opus-5-5",
@@ -381,7 +397,8 @@
       "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-gdpval-aa-v2-1"
+      "comparability_group": "anthropic-opus-5-5-launch-gdpval-aa-v2-1",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-gdpval-aa-v2-1"
     },
     {
       "model": "claude-fable-5-1",
@@ -398,7 +415,8 @@
       "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-gdpval-aa-v2-1"
+      "comparability_group": "anthropic-opus-5-5-launch-gdpval-aa-v2-1",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-gdpval-aa-v2-1"
     },
     {
       "model": "claude-opus-5",
@@ -415,7 +433,8 @@
       "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-gdpval-aa-v2-1"
+      "comparability_group": "anthropic-opus-5-5-launch-gdpval-aa-v2-1",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-gdpval-aa-v2-1"
     },
     {
       "model": "gpt-6-astra",
@@ -432,7 +451,8 @@
       "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-gdpval-aa-v2-1"
+      "comparability_group": "anthropic-opus-5-5-launch-gdpval-aa-v2-1",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-gdpval-aa-v2-1"
     },
     {
       "model": "gpt-5.6-sol",
@@ -449,7 +469,8 @@
       "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-gdpval-aa-v2-1"
+      "comparability_group": "anthropic-opus-5-5-launch-gdpval-aa-v2-1",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-gdpval-aa-v2-1"
     },
     {
       "model": "claude-opus-5-5",
@@ -466,7 +487,8 @@
       "task_family": "agentic_business_workflows",
       "metric_id": "automationbench",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-automationbench"
+      "comparability_group": "anthropic-opus-5-5-launch-automationbench",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-automationbench"
     },
     {
       "model": "claude-fable-5-1",
@@ -483,7 +505,8 @@
       "task_family": "agentic_business_workflows",
       "metric_id": "automationbench",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-automationbench"
+      "comparability_group": "anthropic-opus-5-5-launch-automationbench",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-automationbench"
     },
     {
       "model": "claude-opus-5",
@@ -500,7 +523,8 @@
       "task_family": "agentic_business_workflows",
       "metric_id": "automationbench",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-automationbench"
+      "comparability_group": "anthropic-opus-5-5-launch-automationbench",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-automationbench"
     },
     {
       "model": "gpt-6-astra",
@@ -517,7 +541,8 @@
       "task_family": "agentic_business_workflows",
       "metric_id": "automationbench",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-automationbench"
+      "comparability_group": "anthropic-opus-5-5-launch-automationbench",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-automationbench"
     },
     {
       "model": "gpt-5.6-sol",
@@ -534,7 +559,8 @@
       "task_family": "agentic_business_workflows",
       "metric_id": "automationbench",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-automationbench"
+      "comparability_group": "anthropic-opus-5-5-launch-automationbench",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-automationbench"
     },
     {
       "model": "claude-opus-5-5",
@@ -551,7 +577,8 @@
       "task_family": "reasoning",
       "metric_id": "humanity-s-last-exam-with-tools",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-humanity-s-last-exam-with-tools"
+      "comparability_group": "anthropic-opus-5-5-launch-humanity-s-last-exam-with-tools",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-fable-5-1",
@@ -568,7 +595,8 @@
       "task_family": "reasoning",
       "metric_id": "humanity-s-last-exam-with-tools",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-humanity-s-last-exam-with-tools"
+      "comparability_group": "anthropic-opus-5-5-launch-humanity-s-last-exam-with-tools",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-opus-5",
@@ -585,7 +613,8 @@
       "task_family": "reasoning",
       "metric_id": "humanity-s-last-exam-with-tools",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-humanity-s-last-exam-with-tools"
+      "comparability_group": "anthropic-opus-5-5-launch-humanity-s-last-exam-with-tools",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -602,7 +631,8 @@
       "task_family": "reasoning",
       "metric_id": "humanity-s-last-exam-with-tools",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-humanity-s-last-exam-with-tools"
+      "comparability_group": "anthropic-opus-5-5-launch-humanity-s-last-exam-with-tools",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-opus-5-5",
@@ -619,7 +649,8 @@
       "task_family": "reasoning",
       "metric_id": "terminal-bench-science-0-1",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-science-0-1"
+      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-science-0-1",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-fable-5-1",
@@ -636,7 +667,8 @@
       "task_family": "reasoning",
       "metric_id": "terminal-bench-science-0-1",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-science-0-1"
+      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-science-0-1",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-opus-5",
@@ -653,7 +685,8 @@
       "task_family": "reasoning",
       "metric_id": "terminal-bench-science-0-1",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-science-0-1"
+      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-science-0-1",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-6-astra",
@@ -670,7 +703,8 @@
       "task_family": "reasoning",
       "metric_id": "terminal-bench-science-0-1",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-science-0-1"
+      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-science-0-1",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22"
     },
     {
       "model": "gpt-5.6-sol",
@@ -687,7 +721,8 @@
       "task_family": "reasoning",
       "metric_id": "terminal-bench-science-0-1",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-science-0-1"
+      "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-science-0-1",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-opus-5-5",
@@ -704,7 +739,8 @@
       "task_family": "computer_use",
       "metric_id": "osworld-2-0",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-osworld-2-0"
+      "comparability_group": "anthropic-opus-5-5-launch-osworld-2-0",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-fable-5-1",
@@ -721,7 +757,8 @@
       "task_family": "computer_use",
       "metric_id": "osworld-2-0",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-osworld-2-0"
+      "comparability_group": "anthropic-opus-5-5-launch-osworld-2-0",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-opus-5",
@@ -738,7 +775,8 @@
       "task_family": "computer_use",
       "metric_id": "osworld-2-0",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-osworld-2-0"
+      "comparability_group": "anthropic-opus-5-5-launch-osworld-2-0",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-opus-5-5",
@@ -755,7 +793,8 @@
       "task_family": "vision",
       "metric_id": "chartography",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-chartography"
+      "comparability_group": "anthropic-opus-5-5-launch-chartography",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-fable-5-1",
@@ -772,7 +811,8 @@
       "task_family": "vision",
       "metric_id": "chartography",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-chartography"
+      "comparability_group": "anthropic-opus-5-5-launch-chartography",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-opus-5",
@@ -789,7 +829,8 @@
       "task_family": "vision",
       "metric_id": "chartography",
       "comparable": false,
-      "comparability_group": "anthropic-opus-5-5-launch-chartography"
+      "comparability_group": "anthropic-opus-5-5-launch-chartography",
+      "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22"
     }
   ]
 }

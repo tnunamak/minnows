@@ -55,7 +55,7 @@
       "score": 0.27778,
       "unit": "accuracy",
       "source_id": "vals-ai-terminal-bench-4-full-roster-2026-09-22",
-      "caveat": "vals.ai key 'openai/gpt-5.6-sol'. Latency 8228.2s. cost_per_test $8.784119.",
+      "caveat": "vals.ai key 'openai/gpt-5.6-sol'. Latency 8228.2s. cost_per_test $8.784119. Effort max from vals payload field reasoning_effort.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -68,7 +68,8 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-22"
+      "snapshot_id": "vals-ai-terminal-bench-4-full-roster-2026-09-22-2026-09-22",
+      "effort": "max"
     },
     {
       "model": "gpt-5.6-terra",
@@ -76,7 +77,7 @@
       "score": 0.26263,
       "unit": "accuracy",
       "source_id": "vals-ai-terminal-bench-4-full-roster-2026-09-22",
-      "caveat": "vals.ai key 'openai/gpt-5.6-terra'. Latency 5229.313s. cost_per_test $5.912802.",
+      "caveat": "vals.ai key 'openai/gpt-5.6-terra'. Latency 5229.313s. cost_per_test $5.912802. Effort max from vals payload field reasoning_effort.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -89,7 +90,8 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-22"
+      "snapshot_id": "vals-ai-terminal-bench-4-full-roster-2026-09-22-2026-09-22",
+      "effort": "max"
     },
     {
       "model": "gpt-5.6-luna",
@@ -97,7 +99,7 @@
       "score": 0.04545,
       "unit": "accuracy",
       "source_id": "vals-ai-terminal-bench-4-full-roster-2026-09-22",
-      "caveat": "vals.ai key 'openai/gpt-5.6-luna'. Latency 6240.168s. cost_per_test $0.403478.",
+      "caveat": "vals.ai key 'openai/gpt-5.6-luna'. Latency 6240.168s. cost_per_test $0.403478. Effort max from vals payload field reasoning_effort.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -110,7 +112,8 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-22"
+      "snapshot_id": "vals-ai-terminal-bench-4-full-roster-2026-09-22-2026-09-22",
+      "effort": "max"
     },
     {
       "model": "grok-4.6",
@@ -118,7 +121,7 @@
       "score": 0.17172,
       "unit": "accuracy",
       "source_id": "vals-ai-terminal-bench-4-full-roster-2026-09-22",
-      "caveat": "vals.ai key 'grok/grok-4.6'. Latency 11724.581s. cost_per_test $6.471265.",
+      "caveat": "vals.ai key 'grok/grok-4.6'. Latency 11724.581s. cost_per_test $6.471265. Effort high from vals payload field reasoning_effort.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -131,7 +134,8 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-22"
+      "snapshot_id": "vals-ai-terminal-bench-4-full-roster-2026-09-22-2026-09-22",
+      "effort": "high"
     },
     {
       "model": "claude-sonnet-5",
@@ -139,7 +143,7 @@
       "score": 0.796,
       "unit": "accuracy",
       "source_id": "vals-ai-swebench-full-roster-2026-09-22",
-      "caveat": "vals.ai key 'anthropic/claude-sonnet-5'. Latency 962.366s. cost_per_test $1.489899. First cross-model SWE-bench recording of claude-sonnet-5 in this pack. Effort max read from the vals.ai payload (compute_effort/reasoning_effort), 2026-09-22.",
+      "caveat": "vals.ai key 'anthropic/claude-sonnet-5'. Latency 962.366s. cost_per_test $1.489899. First cross-model SWE-bench recording of claude-sonnet-5 in this pack. Effort max from vals payload field compute_effort.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -153,7 +157,8 @@
         "basis": "api_usd"
       },
       "effort": "max",
-      "effort_verbatim": "max"
+      "effort_verbatim": "max",
+      "snapshot_id": "vals-ai-swebench-full-roster-2026-09-22-2026-09-22"
     },
     {
       "model": "claude-haiku-4-5",
@@ -161,7 +166,7 @@
       "score": 0.666,
       "unit": "accuracy",
       "source_id": "vals-ai-swebench-full-roster-2026-09-22",
-      "caveat": "vals.ai key 'anthropic/claude-haiku-4-5-20251001-thinking' (date-suffixed key, see file notes — treated as the current Claude Haiku 4.5 thinking-mode reading). Latency 242.166s. cost_per_test $0.366229. First cross-model SWE-bench recording of claude-haiku-4-5 in this pack, and only its second cross-model row anywhere in the pack (the first being its AA composite in performance/artificial-analysis-full-roster-2026-09-22.json).",
+      "caveat": "vals.ai key 'anthropic/claude-haiku-4-5-20251001-thinking' (date-suffixed key, see file notes — treated as the current Claude Haiku 4.5 thinking-mode reading). Latency 242.166s. cost_per_test $0.366229. First cross-model SWE-bench recording of claude-haiku-4-5 in this pack, and only its second cross-model row anywhere in the pack (the first being its AA composite in performance/artificial-analysis-full-roster-2026-09-22.json). Effort null (vals default).",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -173,7 +178,9 @@
         "value": 0.366229,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "vals-ai-swebench-full-roster-2026-09-22-2026-09-22",
+      "effort": null
     },
     {
       "model": "gpt-5.6-sol",
@@ -181,7 +188,7 @@
       "score": 0.962,
       "unit": "accuracy",
       "source_id": "vals-ai-swebench-full-roster-2026-09-22",
-      "caveat": "vals.ai key 'openai/gpt-5.6-sol'. Latency 182.365s. cost_per_test $1.1513.",
+      "caveat": "vals.ai key 'openai/gpt-5.6-sol'. Latency 182.365s. cost_per_test $1.1513. Effort max from vals payload field reasoning_effort.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -193,7 +200,9 @@
         "value": 1.1513,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "vals-ai-swebench-full-roster-2026-09-22-2026-09-22",
+      "effort": "max"
     },
     {
       "model": "gpt-5.6-terra",
@@ -201,7 +210,7 @@
       "score": 0.954,
       "unit": "accuracy",
       "source_id": "vals-ai-swebench-full-roster-2026-09-22",
-      "caveat": "vals.ai key 'openai/gpt-5.6-terra'. Latency 180.284s. cost_per_test $0.400788.",
+      "caveat": "vals.ai key 'openai/gpt-5.6-terra'. Latency 180.284s. cost_per_test $0.400788. Effort max from vals payload field reasoning_effort.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -213,7 +222,9 @@
         "value": 0.400788,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "vals-ai-swebench-full-roster-2026-09-22-2026-09-22",
+      "effort": "max"
     },
     {
       "model": "gpt-5.6-luna",
@@ -221,7 +232,7 @@
       "score": 0.93,
       "unit": "accuracy",
       "source_id": "vals-ai-swebench-full-roster-2026-09-22",
-      "caveat": "vals.ai key 'openai/gpt-5.6-luna'. Latency 201.075s. cost_per_test $0.042712.",
+      "caveat": "vals.ai key 'openai/gpt-5.6-luna'. Latency 201.075s. cost_per_test $0.042712. Effort max from vals payload field reasoning_effort.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -233,7 +244,9 @@
         "value": 0.042712,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "vals-ai-swebench-full-roster-2026-09-22-2026-09-22",
+      "effort": "max"
     },
     {
       "model": "grok-4.6",
@@ -241,7 +254,7 @@
       "score": 0.956,
       "unit": "accuracy",
       "source_id": "vals-ai-swebench-full-roster-2026-09-22",
-      "caveat": "vals.ai key 'grok/grok-4.6'. Latency 604.494s. cost_per_test $0.784684.",
+      "caveat": "vals.ai key 'grok/grok-4.6'. Latency 604.494s. cost_per_test $0.784684. Effort high from vals payload field reasoning_effort.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -253,7 +266,9 @@
         "value": 0.784684,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "snapshot_id": "vals-ai-swebench-full-roster-2026-09-22-2026-09-22",
+      "effort": "high"
     }
   ],
   "missing": [

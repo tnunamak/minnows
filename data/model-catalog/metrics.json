@@ -2218,6 +2218,16 @@
       "harness": null,
       "steward": "vendor_table",
       "unit_default": "accuracy"
+    },
+    {
+      "id": "aa-humanitys-last-exam",
+      "name": "Artificial Analysis Humanity's Last Exam (model-page breakdown)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "AA per-model-page result; separate from vendor-reported HLE and other harnesses."
     }
   ]
 }

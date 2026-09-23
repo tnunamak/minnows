@@ -15,7 +15,7 @@
     "qwen3-coder-480b-hf-2026-07",
     "qwen35-9b-hf-2026-07"
   ],
-  "notes": "Vendor-published benchmark scores from HuggingFace model cards. Open-source models only \u2014 API-only models (qwen3.7-max, qwen3.8-max-preview) have no published benchmarks. Thinking-mode scores for qwen3.5 models. Qwen3-Coder scores are non-thinking (no thinking mode configured). evidence_grade C (vendor self-reported, no independent reproduction). 2026-09-05 integrity review assigned all 11 formerly missing metric_id fields from the exact benchmark labels printed on the original model cards; these vendor-table metrics are not cross-rankable with differently configured board runs. COMPARISON-KEY PROVENANCE (2026-09-05): the `comparisons` objects on these rows are the VENDOR TABLE's own reference points, not catalog models. Two of three keys (qwen3.5-27b, qwen3.5-122b-a10b) resolve in models.json; `gpt-5-mini` does NOT and is recorded here as an EXTERNAL COMPARISON LABEL only. It was deliberately not source-registered: this pass verified no OpenAI model id `gpt-5-mini` against a primary source, and registering an unverified id to satisfy a join would assert an availability fact the evidence does not support. Consumers must not join comparison keys to models.json without checking membership first.",
+  "notes": "Vendor-published benchmark scores from HuggingFace model cards. Open-source models only — API-only models (qwen3.7-max, qwen3.8-max-preview) have no published benchmarks. Thinking-mode scores for qwen3.5 models. Qwen3-Coder scores are non-thinking (no thinking mode configured). evidence_grade C (vendor self-reported, no independent reproduction). 2026-09-05 integrity review assigned all 11 formerly missing metric_id fields from the exact benchmark labels printed on the original model cards; these vendor-table metrics are not cross-rankable with differently configured board runs. COMPARISON-KEY PROVENANCE (2026-09-05): the `comparisons` objects on these rows are the VENDOR TABLE's own reference points, not catalog models. Two of three keys (qwen3.5-27b, qwen3.5-122b-a10b) resolve in models.json; `gpt-5-mini` does NOT and is recorded here as an EXTERNAL COMPARISON LABEL only. It was deliberately not source-registered: this pass verified no OpenAI model id `gpt-5-mini` against a primary source, and registering an unverified id to satisfy a join would assert an availability fact the evidence does not support. Consumers must not join comparison keys to models.json without checking membership first.",
   "scores": [
     {
       "model": "qwen3.5-35b-a3b",
@@ -27,7 +27,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-29",
       "task_family": "knowledge",
-      "metric_id": "mmlu-pro"
+      "metric_id": "mmlu-pro",
+      "snapshot_id": "qwen35-35b-a3b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-35b-a3b-hf-2026-07-2026-07-29-mmlu-pro"
     },
     {
       "model": "qwen3.5-35b-a3b",
@@ -40,7 +42,9 @@
       "observed_at": "2026-07-29",
       "task_family": "reasoning",
       "metric_id": "gpqa-diamond",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "qwen35-35b-a3b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-35b-a3b-hf-2026-07-2026-07-29-gpqa-diamond"
     },
     {
       "model": "qwen3.5-35b-a3b",
@@ -57,7 +61,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-29",
       "task_family": "coding",
-      "metric_id": "swe-bench-verified"
+      "metric_id": "swe-bench-verified",
+      "snapshot_id": "qwen35-35b-a3b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-35b-a3b-hf-2026-07-2026-07-29-swe-bench-verified"
     },
     {
       "model": "qwen3.5-35b-a3b",
@@ -69,7 +75,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-29",
       "task_family": "coding",
-      "metric_id": "livecodebench-v6"
+      "metric_id": "livecodebench-v6",
+      "snapshot_id": "qwen35-35b-a3b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-35b-a3b-hf-2026-07-2026-07-29-livecodebench-v6"
     },
     {
       "model": "qwen3.5-35b-a3b",
@@ -81,7 +89,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-29",
       "task_family": "math",
-      "metric_id": "matharena-aime-2026"
+      "metric_id": "matharena-aime-2026",
+      "snapshot_id": "qwen35-35b-a3b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-35b-a3b-hf-2026-07-2026-07-29-matharena-aime-2026"
     },
     {
       "model": "qwen3.5-35b-a3b",
@@ -93,7 +103,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-29",
       "task_family": "instruction_following",
-      "metric_id": "ifeval"
+      "metric_id": "ifeval",
+      "snapshot_id": "qwen35-35b-a3b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-35b-a3b-hf-2026-07-2026-07-29-ifeval"
     },
     {
       "model": "qwen3.5-35b-a3b",
@@ -105,7 +117,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-29",
       "task_family": "agentic",
-      "metric_id": "terminal-bench-2-0"
+      "metric_id": "terminal-bench-2-0",
+      "snapshot_id": "qwen35-35b-a3b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-35b-a3b-hf-2026-07-2026-07-29-terminal-bench-2-0"
     },
     {
       "model": "qwen3.5-35b-a3b",
@@ -118,7 +132,9 @@
       "observed_at": "2026-07-29",
       "task_family": "agentic",
       "metric_id": "osworld-verified",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "qwen35-35b-a3b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-35b-a3b-hf-2026-07-2026-07-29-osworld-verified"
     },
     {
       "model": "qwen3.5-35b-a3b",
@@ -131,7 +147,9 @@
       "observed_at": "2026-07-29",
       "task_family": "agentic",
       "metric_id": "browsecomp",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "qwen35-35b-a3b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-35b-a3b-hf-2026-07-2026-07-29-browsecomp"
     },
     {
       "model": "qwen3.5-35b-a3b",
@@ -143,7 +161,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-29",
       "task_family": "agentic",
-      "metric_id": "tau2-bench"
+      "metric_id": "tau2-bench",
+      "snapshot_id": "qwen35-35b-a3b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-35b-a3b-hf-2026-07-2026-07-29-tau2-bench"
     },
     {
       "model": "qwen3.5-35b-a3b",
@@ -155,7 +175,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-29",
       "task_family": "vision",
-      "metric_id": "mmmu"
+      "metric_id": "mmmu",
+      "snapshot_id": "qwen35-35b-a3b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-35b-a3b-hf-2026-07-2026-07-29-mmmu"
     },
     {
       "model": "qwen3.5-35b-a3b",
@@ -167,7 +189,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-29",
       "task_family": "reasoning",
-      "metric_id": "hle-with-cot"
+      "metric_id": "hle-with-cot",
+      "snapshot_id": "qwen35-35b-a3b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-35b-a3b-hf-2026-07-2026-07-29-hle-with-cot"
     },
     {
       "model": "qwen3.5-9b",
@@ -179,7 +203,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-29",
       "task_family": "knowledge",
-      "metric_id": "mmlu-pro"
+      "metric_id": "mmlu-pro",
+      "snapshot_id": "qwen35-9b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-9b-hf-2026-07-2026-07-29-mmlu-pro"
     },
     {
       "model": "qwen3.5-9b",
@@ -192,7 +218,9 @@
       "observed_at": "2026-07-29",
       "task_family": "reasoning",
       "metric_id": "gpqa-diamond",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "qwen35-9b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-9b-hf-2026-07-2026-07-29-gpqa-diamond"
     },
     {
       "model": "qwen3.5-9b",
@@ -204,7 +232,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-29",
       "task_family": "math",
-      "metric_id": "matharena-aime-2026"
+      "metric_id": "matharena-aime-2026",
+      "snapshot_id": "qwen35-9b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-9b-hf-2026-07-2026-07-29-matharena-aime-2026"
     },
     {
       "model": "qwen3.5-9b",
@@ -216,7 +246,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-29",
       "task_family": "coding",
-      "metric_id": "livecodebench-v6"
+      "metric_id": "livecodebench-v6",
+      "snapshot_id": "qwen35-9b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-9b-hf-2026-07-2026-07-29-livecodebench-v6"
     },
     {
       "model": "qwen3.5-9b",
@@ -229,7 +261,9 @@
       "observed_at": "2026-07-29",
       "task_family": "agentic",
       "metric_id": "osworld-verified",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "qwen35-9b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen35-9b-hf-2026-07-2026-07-29-osworld-verified"
     },
     {
       "model": "qwen3-coder-480b",
@@ -242,7 +276,9 @@
       "observed_at": "2026-07-29",
       "task_family": "coding",
       "metric_id": "swe-bench-pro",
-      "comparable": false
+      "comparable": false,
+      "snapshot_id": "qwen3-coder-480b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen3-coder-480b-hf-2026-07-2026-07-29-swe-bench-pro"
     },
     {
       "model": "qwen3-coder-480b",
@@ -254,7 +290,9 @@
       "evidence_grade": "C",
       "observed_at": "2026-07-29",
       "task_family": "agentic",
-      "metric_id": "terminal-bench-2-0"
+      "metric_id": "terminal-bench-2-0",
+      "snapshot_id": "qwen3-coder-480b-hf-2026-07-2026-07-29",
+      "comparability_group": "qwen3-coder-480b-hf-2026-07-2026-07-29-terminal-bench-2-0"
     }
   ],
   "claims": [

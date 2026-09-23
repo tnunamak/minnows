@@ -58,7 +58,7 @@
       "score": 0.57071,
       "unit": "accuracy",
       "source_id": "vals-ai-terminal-bench-4-2026-09-21",
-      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Same 9/21/2026 snapshot as the Opus 5.5 row. Full precision: accuracy 57.071, latency 2522.424s, stderr 3.072, cost_per_test $8.210681, reasoning_effort='max' (OpenAI field; note vals.ai uses a separate reasoning_effort field for OpenAI models vs compute_effort for Anthropic), provider OpenAI. Token totals: input 181,712,565; output 5,247,495; reasoning 3,512,728; cache_read 173,393,533; cache_write 8,285,777 — roughly 1-2 orders of magnitude smaller than the Anthropic-family rows on this same board despite comparable accuracy, see file notes.",
+      "caveat": "vals.ai secondary board reading, not a direct tbench.ai fetch. Same 9/21/2026 snapshot as the Opus 5.5 row. Full precision: accuracy 57.071, latency 2522.424s, stderr 3.072, cost_per_test $8.210681, reasoning_effort='max' (OpenAI field; note vals.ai uses a separate reasoning_effort field for OpenAI models vs compute_effort for Anthropic), provider OpenAI. Token totals: input 181,712,565; output 5,247,495; reasoning 3,512,728; cache_read 173,393,533; cache_write 8,285,777 — roughly 1-2 orders of magnitude smaller than the Anthropic-family rows on this same board despite comparable accuracy, see file notes. Effort max from vals payload field reasoning_effort.",
       "source_type": "other",
       "evidence_grade": "C",
       "observed_at": "2026-09-21",
@@ -71,7 +71,8 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-22"
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-22",
+      "effort": "max"
     },
     {
       "model": "claude-fable-5-1",

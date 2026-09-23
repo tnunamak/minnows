@@ -196,7 +196,7 @@
       "status": "historical",
       "tier": "flash",
       "aliases": [],
-      "notes": "Legacy DeepSeek V4 Flash board identity. Kept distinct from V4.1 Flash because historical board rows use this name."
+      "notes": "Historical DeepSeek V4 Flash board identity. Kept distinct from V4-Flash-0731 because DeepSeek describes 0731 as a retrained preview variant, and the legacy API id deepseek-v4-flash now routes to V4.1-Flash."
     },
     {
       "id": "deepseek-v4-flash-0731",
@@ -217,7 +217,8 @@
       "aliases": [
         "deepseek-v4-pro",
         "DeepSeek-V4-Pro-0813"
-      ]
+      ],
+      "notes": "Historical/version-pinned identity for DeepSeek V4 Pro GA 2026-08-13; retain the alias deepseek-v4-pro for source rows. DeepSeek pricing labels that API id V4-Pro-0813, but its updates log says requests began routing to V4.1-Flash on 2026-09-14, pending V4.1-Pro. Do not treat this catalog alias as a guarantee of current endpoint identity."
     },
     {
       "id": "gemini-2.5-flash",
@@ -746,7 +747,8 @@
       "status": "ga",
       "aliases": [
         "Qwen3.5-122B-A10B"
-      ]
+      ],
+      "tier": "open"
     },
     {
       "id": "qwen3.5-27b",
@@ -755,7 +757,8 @@
       "status": "ga",
       "aliases": [
         "Qwen3.5-27B"
-      ]
+      ],
+      "tier": "open"
     },
     {
       "id": "qwen3.5-35b-a3b",
@@ -764,7 +767,8 @@
       "status": "ga",
       "aliases": [
         "Qwen3.5-35B-A3B"
-      ]
+      ],
+      "tier": "open"
     },
     {
       "id": "qwen3.5-9b",
@@ -773,7 +777,8 @@
       "status": "ga",
       "aliases": [
         "Qwen3.5-9B"
-      ]
+      ],
+      "tier": "open"
     },
     {
       "id": "qwen3.5-plus",
@@ -830,14 +835,16 @@
       "provider": "alibaba",
       "family": "qwen3-open",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "open"
     },
     {
       "id": "qwen3.8-27b",
       "provider": "alibaba",
       "family": "qwen3-open",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "open"
     },
     {
       "id": "qwen3.8-flash",

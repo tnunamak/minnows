@@ -29,7 +29,8 @@
       "task_family": "reasoning",
       "metric_id": "gpqa-diamond",
       "comparable": false,
-      "comparability_group": "deepseek-updates-2026-09-23-GPQA Diamond"
+      "comparability_group": "deepseek-updates-2026-09-23-GPQA Diamond",
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-23"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -43,7 +44,8 @@
       "task_family": "reasoning",
       "metric_id": "humanitys-last-exam-no-tools-hle",
       "comparable": false,
-      "comparability_group": "deepseek-updates-2026-09-23-Humanity’s Last Exam"
+      "comparability_group": "deepseek-updates-2026-09-23-Humanity’s Last Exam",
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-23"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -57,7 +59,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "deepseek-updates-2026-09-23-Terminal-Bench 2.1"
+      "comparability_group": "deepseek-updates-2026-09-23-Terminal-Bench 2.1",
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-23"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -71,7 +74,8 @@
       "task_family": "coding",
       "metric_id": "deepswe-v1-1",
       "comparable": false,
-      "comparability_group": "deepseek-updates-2026-09-23-DeepSWE v1.1"
+      "comparability_group": "deepseek-updates-2026-09-23-DeepSWE v1.1",
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-23"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -85,7 +89,8 @@
       "task_family": "agentic_business_workflows",
       "metric_id": "automationbench",
       "comparable": false,
-      "comparability_group": "deepseek-updates-2026-09-23-AutomationBench"
+      "comparability_group": "deepseek-updates-2026-09-23-AutomationBench",
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-23"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -99,7 +104,8 @@
       "task_family": "agentic_search",
       "metric_id": "agents-last-exam",
       "comparable": false,
-      "comparability_group": "deepseek-updates-2026-09-23-Agents’ Last Exam"
+      "comparability_group": "deepseek-updates-2026-09-23-Agents’ Last Exam",
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-23"
     },
     {
       "model": "glm-5.3-flash",
@@ -113,7 +119,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "zai-glm53flash-launch-2026-09-23-Terminal Bench 2.1"
+      "comparability_group": "zai-glm53flash-launch-2026-09-23-terminal-bench-2-1",
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     },
     {
       "model": "glm-5.3-flash",
@@ -127,7 +134,8 @@
       "task_family": "coding",
       "metric_id": "deepswe-v1-1",
       "comparable": false,
-      "comparability_group": "zai-glm53flash-launch-2026-09-23-DeepSWE v1.1"
+      "comparability_group": "zai-glm53flash-launch-2026-09-23-deepswe-v1-1",
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     },
     {
       "model": "glm-5.3-flash",
@@ -141,7 +149,8 @@
       "task_family": "coding",
       "metric_id": "toolathlon-verified",
       "comparable": false,
-      "comparability_group": "zai-glm53flash-launch-2026-09-23-Toolathlon Verified"
+      "comparability_group": "zai-glm53flash-launch-2026-09-23-toolathlon-verified",
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     },
     {
       "model": "glm-5.3-flash",
@@ -155,7 +164,8 @@
       "task_family": "agentic_business_workflows",
       "metric_id": "automationbench",
       "comparable": false,
-      "comparability_group": "zai-glm53flash-launch-2026-09-23-AutomationBench v1.0.6"
+      "comparability_group": "zai-glm53flash-launch-2026-09-23-automationbench",
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     },
     {
       "model": "glm-5.3-flash",
@@ -169,7 +179,8 @@
       "task_family": "agentic_search",
       "metric_id": "agents-last-exam",
       "comparable": false,
-      "comparability_group": "zai-glm53flash-launch-2026-09-23-Agents’ Last Exam"
+      "comparability_group": "zai-glm53flash-launch-2026-09-23-agents-last-exam",
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     },
     {
       "model": "glm-5.3-flash",
@@ -183,7 +194,8 @@
       "task_family": "agentic_business_workflows",
       "metric_id": "gdpval-aa-v2",
       "comparable": false,
-      "comparability_group": "zai-glm53flash-launch-2026-09-23-GDPval-AA v2"
+      "comparability_group": "zai-glm53flash-launch-2026-09-23-gdpval-aa-v2",
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -200,7 +212,7 @@
       "metric_id": "terminal-bench-3-0",
       "comparable": false,
       "comparability_group": "deepseek-v4-1-flash-release-2026-09-10-terminal-bench-3-0",
-      "snapshot_id": "deepseek-v4-1-flash-release-2026-09-10"
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-10"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -217,7 +229,7 @@
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
       "comparability_group": "deepseek-v4-1-flash-release-2026-09-10-terminal-bench-4-0",
-      "snapshot_id": "deepseek-v4-1-flash-release-2026-09-10"
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-10"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -234,7 +246,7 @@
       "metric_id": "programbench",
       "comparable": false,
       "comparability_group": "deepseek-v4-1-flash-release-2026-09-10-programbench",
-      "snapshot_id": "deepseek-v4-1-flash-release-2026-09-10"
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-10"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -251,7 +263,7 @@
       "metric_id": "nl2repo-bench",
       "comparable": false,
       "comparability_group": "deepseek-v4-1-flash-release-2026-09-10-nl2repo-bench",
-      "snapshot_id": "deepseek-v4-1-flash-release-2026-09-10"
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-10"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -268,7 +280,7 @@
       "metric_id": "cybergym",
       "comparable": false,
       "comparability_group": "deepseek-v4-1-flash-release-2026-09-10-cybergym",
-      "snapshot_id": "deepseek-v4-1-flash-release-2026-09-10"
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-10"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -285,7 +297,7 @@
       "metric_id": "sec-bench-pro",
       "comparable": false,
       "comparability_group": "deepseek-v4-1-flash-release-2026-09-10-sec-bench-pro",
-      "snapshot_id": "deepseek-v4-1-flash-release-2026-09-10"
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-10"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -302,7 +314,7 @@
       "metric_id": "exploitgym",
       "comparable": false,
       "comparability_group": "deepseek-v4-1-flash-release-2026-09-10-exploitgym",
-      "snapshot_id": "deepseek-v4-1-flash-release-2026-09-10"
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-10"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -319,7 +331,7 @@
       "metric_id": "humanity-s-last-exam-with-tools-hle",
       "comparable": false,
       "comparability_group": "deepseek-v4-1-flash-release-2026-09-10-humanity-s-last-exam-with-tools-hle",
-      "snapshot_id": "deepseek-v4-1-flash-release-2026-09-10"
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-10"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -336,7 +348,7 @@
       "metric_id": "chartography",
       "comparable": false,
       "comparability_group": "deepseek-v4-1-flash-release-2026-09-10-chartography",
-      "snapshot_id": "deepseek-v4-1-flash-release-2026-09-10"
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-10"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -353,7 +365,7 @@
       "metric_id": "babyvision",
       "comparable": false,
       "comparability_group": "deepseek-v4-1-flash-release-2026-09-10-babyvision",
-      "snapshot_id": "deepseek-v4-1-flash-release-2026-09-10"
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-10"
     },
     {
       "model": "deepseek-v4-1-flash",
@@ -370,7 +382,7 @@
       "metric_id": "zerobench-main",
       "comparable": false,
       "comparability_group": "deepseek-v4-1-flash-release-2026-09-10-zerobench-main",
-      "snapshot_id": "deepseek-v4-1-flash-release-2026-09-10"
+      "snapshot_id": "deepseek-updates-2026-09-23-2026-09-10"
     },
     {
       "model": "glm-5.2",
@@ -386,8 +398,8 @@
       "task_family": "coding",
       "metric_id": "terminal-bench-2-1",
       "comparable": false,
-      "comparability_group": "zai-glm-5-3-flash-launch-2026-09-23-terminal-bench-2-1",
-      "snapshot_id": "zai-glm-5-3-flash-launch-2026-09-23"
+      "comparability_group": "zai-glm53flash-launch-2026-09-23-terminal-bench-2-1",
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     },
     {
       "model": "glm-5.2",
@@ -403,8 +415,8 @@
       "task_family": "coding",
       "metric_id": "deepswe-v1-1",
       "comparable": false,
-      "comparability_group": "zai-glm-5-3-flash-launch-2026-09-23-deepswe-v1-1",
-      "snapshot_id": "zai-glm-5-3-flash-launch-2026-09-23"
+      "comparability_group": "zai-glm53flash-launch-2026-09-23-deepswe-v1-1",
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     },
     {
       "model": "glm-5.3-flash",
@@ -421,7 +433,7 @@
       "metric_id": "nl2repo-bench",
       "comparable": false,
       "comparability_group": "zai-glm-5-3-flash-launch-2026-09-23-nl2repo-bench",
-      "snapshot_id": "zai-glm-5-3-flash-launch-2026-09-23"
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     },
     {
       "model": "glm-5.2",
@@ -438,7 +450,7 @@
       "metric_id": "nl2repo-bench",
       "comparable": false,
       "comparability_group": "zai-glm-5-3-flash-launch-2026-09-23-nl2repo-bench",
-      "snapshot_id": "zai-glm-5-3-flash-launch-2026-09-23"
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     },
     {
       "model": "glm-5.2",
@@ -454,8 +466,8 @@
       "task_family": "coding",
       "metric_id": "toolathlon-verified",
       "comparable": false,
-      "comparability_group": "zai-glm-5-3-flash-launch-2026-09-23-toolathlon-verified",
-      "snapshot_id": "zai-glm-5-3-flash-launch-2026-09-23"
+      "comparability_group": "zai-glm53flash-launch-2026-09-23-toolathlon-verified",
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     },
     {
       "model": "glm-5.2",
@@ -471,8 +483,8 @@
       "task_family": "mixed",
       "metric_id": "automationbench",
       "comparable": false,
-      "comparability_group": "zai-glm-5-3-flash-launch-2026-09-23-automationbench",
-      "snapshot_id": "zai-glm-5-3-flash-launch-2026-09-23"
+      "comparability_group": "zai-glm53flash-launch-2026-09-23-automationbench",
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     },
     {
       "model": "glm-5.2",
@@ -488,8 +500,8 @@
       "task_family": "mixed",
       "metric_id": "agents-last-exam",
       "comparable": false,
-      "comparability_group": "zai-glm-5-3-flash-launch-2026-09-23-agents-last-exam",
-      "snapshot_id": "zai-glm-5-3-flash-launch-2026-09-23"
+      "comparability_group": "zai-glm53flash-launch-2026-09-23-agents-last-exam",
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     },
     {
       "model": "glm-5.3-flash",
@@ -506,7 +518,7 @@
       "metric_id": "humanity-s-last-exam-with-tools-hle",
       "comparable": false,
       "comparability_group": "zai-glm-5-3-flash-launch-2026-09-23-humanity-s-last-exam-with-tools-hle",
-      "snapshot_id": "zai-glm-5-3-flash-launch-2026-09-23"
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     },
     {
       "model": "glm-5.2",
@@ -523,7 +535,7 @@
       "metric_id": "humanity-s-last-exam-with-tools-hle",
       "comparable": false,
       "comparability_group": "zai-glm-5-3-flash-launch-2026-09-23-humanity-s-last-exam-with-tools-hle",
-      "snapshot_id": "zai-glm-5-3-flash-launch-2026-09-23"
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     },
     {
       "model": "glm-5.2",
@@ -539,8 +551,8 @@
       "task_family": "mixed",
       "metric_id": "gdpval-aa-v2",
       "comparable": false,
-      "comparability_group": "zai-glm-5-3-flash-launch-2026-09-23-gdpval-aa-v2",
-      "snapshot_id": "zai-glm-5-3-flash-launch-2026-09-23"
+      "comparability_group": "zai-glm53flash-launch-2026-09-23-gdpval-aa-v2",
+      "snapshot_id": "zai-glm53flash-launch-2026-09-23-2026-09-23"
     }
   ],
   "missing": [
