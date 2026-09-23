@@ -120,7 +120,9 @@
         "value": 7.7,
         "unit": "usd_per_task",
         "basis": "api_usd"
-      }
+      },
+      "comparable": false,
+      "comparability_group": "gdpval-aa-elo-artificial-analysis-2026-07"
     },
     {
       "model": "claude-fable-5",
@@ -221,7 +223,9 @@
       "evidence_grade": "B",
       "observed_at": "2026-07-09",
       "effort_verbatim": "high",
-      "metric_id": "gdpval-aa-elo"
+      "metric_id": "gdpval-aa-elo",
+      "comparable": false,
+      "comparability_group": "gdpval-aa-elo-artificial-analysis-2026-07"
     },
     {
       "model": "grok-4.5",

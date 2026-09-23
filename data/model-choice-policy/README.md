@@ -87,7 +87,7 @@ Waspflow resolves from (first hit):
   - `recover.report`, `docs.lookup`, `implement.quota-tight`: no independent low-effort evidence exists.
   - `review.audit`: "checker at least as strong as maker" and "different family" conflict while Opus 5.5 is the strongest maker.
   - `ui.computer-use`: no shared OSWorld harness covers Claude and GPT-6.
-- Catalog pin: **v0.5.6**.
+- Catalog pin: **v0.5.7**.
 
 ### v0.1.10 — 2026-09-22
 

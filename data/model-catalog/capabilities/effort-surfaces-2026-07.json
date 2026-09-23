@@ -3,7 +3,7 @@
   "id": "effort-surfaces-2026-07",
   "schema_version": 1,
   "kind": "capabilities",
-  "retrieved_at": "2026-09-22",
+  "retrieved_at": "2026-09-23",
   "source_urls": [
     "https://platform.claude.com/docs/en/build-with-claude/effort",
     "https://code.claude.com/docs/en/model-config",
@@ -15,7 +15,10 @@
     "https://docs.x.ai/developers/model-capabilities/text/reasoning",
     "https://openai.com/index/gpt-5-6/",
     "https://www.anthropic.com/news/claude-opus-5",
-    "https://www.anthropic.com/news/claude-opus-5-5"
+    "https://www.anthropic.com/news/claude-opus-5-5",
+    "https://docs.x.ai/developers/models/grok-4.7",
+    "https://ai.google.dev/gemini-api/docs/models",
+    "https://ai.google.dev/gemini-api/docs/interactions-overview"
   ],
   "source_ids": [
     "anthropic-claude-code-model-config-2026-07-09",
@@ -39,10 +42,181 @@
     "openai-gpt-5-6-2026-07-09",
     "openai-reasoning-2026-07-09",
     "waspflow-codex-ultra-probe-2026-09-05",
-    "xai-reasoning-2026-07-09"
+    "xai-reasoning-2026-07-09",
+    "xai-grok-4-7-2026-09-23",
+    "google-gemini-models-2026-09-23",
+    "google-gemini-interactions-2026-09-23"
   ],
-  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking. 2026-09-22: added gpt-6-sol/gpt-6-luna api surfaces from their model pages (none/low/medium(default)/high/xhigh/max — no minimal, unlike gpt-5.6's api surface). 2026-09-22 (integration correction): the gpt-6-sol/gpt-6-luna codex_cli surfaces were initially recorded empty, citing a codex-cli 0.154.0 read that reported both slugs absent (auth-scoped rollout gap). A same-day 0.156.0 re-read on the same host shows both ARE listed (visibility=list): gpt-6-sol low/medium/high/xhigh/max/ultra default medium, gpt-6-luna low/medium/high/xhigh/max default medium — filled in from that later read (see openai-codex-debug-models-0-156-0-2026-09-22).",
+  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking. 2026-09-22: added gpt-6-sol/gpt-6-luna api surfaces from their model pages (none/low/medium(default)/high/xhigh/max — no minimal, unlike gpt-5.6's api surface). 2026-09-22 (integration correction): the gpt-6-sol/gpt-6-luna codex_cli surfaces were initially recorded empty, citing a codex-cli 0.154.0 read that reported both slugs absent (auth-scoped rollout gap). A same-day 0.156.0 re-read on the same host shows both ARE listed (visibility=list): gpt-6-sol low/medium/high/xhigh/max/ultra default medium, gpt-6-luna low/medium/high/xhigh/max default medium — filled in from that later read (see openai-codex-debug-models-0-156-0-2026-09-22). 2026-09-23: added observed agy 1.2.9 per-model efforts (3.8/3.7/3.6 Flash low/medium/high; 3.1 Pro low/high), auth-scoped; added Grok 4.7 API effort and authenticated Grok CLI listing (sole/default model).",
   "surfaces": [
+    {
+      "provider": "alibaba",
+      "model": "qwen3-coder-plus",
+      "surface": "qwen_code",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard",
+          "notes": "No thinking mode configured for coder models"
+        }
+      ],
+      "source_ids": [
+        "qwen-code-cli-config-2026-07"
+      ],
+      "notes": "Coding specialist. No thinking mode in default config."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.7-max",
+      "surface": "qwen_code",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "enable_thinking=true (default)"
+        },
+        {
+          "mode_id": "non-thinking",
+          "notes": "enable_thinking=false"
+        }
+      ],
+      "source_ids": [
+        "qwen-code-cli-config-2026-07"
+      ],
+      "notes": "Qwen has no discrete effort levels. Thinking on/off only."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.7-plus",
+      "surface": "qwen_code",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "enable_thinking=true (default)"
+        },
+        {
+          "mode_id": "non-thinking",
+          "notes": "enable_thinking=false"
+        }
+      ],
+      "source_ids": [
+        "qwen-code-cli-config-2026-07"
+      ],
+      "notes": "Qwen has no discrete effort levels. Thinking on/off only."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.8-2.4t-a95b",
+      "surface": "api",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "THINKING-ONLY — cannot be disabled, unlike the rest of the 3.8 family"
+        }
+      ],
+      "source_ids": [
+        "alibaba-model-studio-pricing-2026-09-05"
+      ],
+      "notes": "Open weights. Thinking-only; no non-thinking mode exists."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.8-27b",
+      "surface": "api",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "Default ON (hybrid)"
+        },
+        {
+          "mode_id": "non_thinking"
+        }
+      ],
+      "source_ids": [
+        "alibaba-model-studio-pricing-2026-09-05"
+      ],
+      "notes": "Open weights. Hybrid thinking, default enabled."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.8-flash",
+      "surface": "api",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "Default ON (hybrid)"
+        },
+        {
+          "mode_id": "non_thinking"
+        }
+      ],
+      "source_ids": [
+        "alibaba-model-studio-pricing-2026-09-05"
+      ],
+      "notes": "Hybrid thinking via enable_thinking, default enabled. 1M context. No discrete effort parameter is documented."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.8-max",
+      "surface": "api",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking"
+        },
+        {
+          "mode_id": "non_thinking"
+        }
+      ],
+      "source_ids": [
+        "alibaba-model-studio-pricing-2026-09-05"
+      ],
+      "notes": "Per-request enable_thinking (hybrid), NOT a discrete effort ladder. 1M context. This audit did not establish that no effort parameter exists on some other Qwen surface — only that none is documented here."
+    },
+    {
+      "provider": "alibaba",
+      "model": "qwen3.8-max-preview",
+      "surface": "qwen_code",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "enable_thinking=true; thinkingMandatory — cannot disable"
+        }
+      ],
+      "source_ids": [
+        "qwen-code-cli-config-2026-07"
+      ],
+      "notes": "Qwen has no discrete effort levels. Thinking is mandatory for this model."
+    },
     {
       "provider": "anthropic",
       "model": "claude-fable-5",
@@ -99,6 +273,32 @@
     },
     {
       "provider": "anthropic",
+      "model": "claude-fable-5-1",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "anthropic-effort-guide-2026-09-05",
+        "anthropic-fable-mythos-5-1-2026-09-01",
+        "anthropic-pricing-2026-09-05"
+      ],
+      "notes": "All five levels measured in the launch curves. The claude-fable-5 surface is NOT the authority for its successor. Per-message effort update supported (beta). Lifecycle: no retirement before 2027-09-01. Context 1M, max output 128k; Mythos 5.1 shares Fable 5.1 specifications and price."
+    },
+    {
+      "provider": "anthropic",
       "model": "claude-mythos-5",
       "surface": "api",
       "valid_efforts": [
@@ -120,6 +320,32 @@
         "anthropic-effort-docs-2026-07-09"
       ],
       "notes": "Limited Project Glasswing availability"
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-mythos-5-1",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard",
+          "notes": "RESTRICTED: trusted-access only, not generally dispatchable despite ga status in models.json. Same underlying weights as claude-fable-5-1; differs only in safeguards."
+        }
+      ],
+      "source_ids": [
+        "anthropic-effort-guide-2026-09-05",
+        "anthropic-fable-mythos-5-1-2026-09-01"
+      ],
+      "notes": "Access-restricted. Do not duplicate Fable 5.1 scores as independent Mythos measurements. Per-message effort update supported (beta). Lifecycle: no retirement before 2027-09-01. Context 1M, max output 128k; Mythos 5.1 shares Fable 5.1 specifications and price."
     },
     {
       "provider": "anthropic",
@@ -260,6 +486,29 @@
     },
     {
       "provider": "anthropic",
+      "model": "claude-sonnet-4-6",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "anthropic-effort-docs-2026-07-09"
+      ],
+      "notes": "xhigh not listed for Sonnet 4.6"
+    },
+    {
+      "provider": "anthropic",
       "model": "claude-sonnet-5",
       "surface": "api",
       "valid_efforts": [
@@ -306,16 +555,16 @@
       ]
     },
     {
-      "provider": "anthropic",
-      "model": "claude-sonnet-4-6",
+      "provider": "google",
+      "model": "gemini-3.5-flash-lite",
       "surface": "api",
       "valid_efforts": [
+        "minimal",
         "low",
         "medium",
-        "high",
-        "max"
+        "high"
       ],
-      "default_effort": "high",
+      "default_effort": "minimal",
       "unsupported_behavior": "hard_fail",
       "aliases": {},
       "modes": [
@@ -324,9 +573,100 @@
         }
       ],
       "source_ids": [
-        "anthropic-effort-docs-2026-07-09"
+        "google-gemini-thinking-2026-09-05"
       ],
-      "notes": "xhigh not listed for Sonnet 4.6"
+      "notes": "Defaults to minimal, unlike the Flash line. Limits: 1,048,576 input / 65,536 output."
+    },
+    {
+      "provider": "google",
+      "model": "gemini-3.6-flash",
+      "surface": "api",
+      "valid_efforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "google-gemini-thinking-2026-09-05"
+      ],
+      "notes": "Accepts minimal, unlike 3.7/3.8. Limits: 1,048,576 input / 65,536 output."
+    },
+    {
+      "provider": "google",
+      "model": "gemini-3.7-flash",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "google-gemini-thinking-2026-09-05"
+      ],
+      "notes": "`minimal` errors on this model. Limits: 1,048,576 input / 65,536 output."
+    },
+    {
+      "provider": "google",
+      "model": "gemini-3.8-flash",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "google-gemini-thinking-2026-09-05"
+      ],
+      "notes": "Gemini 3.x uses discrete thinkingLevel, NOT the numeric thinking_budget of 2.5 — different control surfaces. `minimal` errors on this model. Limits: 1,000,000 input / 64,000 output."
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.5",
+      "surface": "api",
+      "valid_efforts": [
+        "none",
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "openai-reasoning-2026-07-09"
+      ]
     },
     {
       "provider": "openai",
@@ -358,7 +698,7 @@
     },
     {
       "provider": "openai",
-      "model": "gpt-5.5",
+      "model": "gpt-5.6-luna",
       "surface": "api",
       "valid_efforts": [
         "none",
@@ -366,7 +706,8 @@
         "low",
         "medium",
         "high",
-        "xhigh"
+        "xhigh",
+        "max"
       ],
       "default_effort": "medium",
       "unsupported_behavior": "hard_fail",
@@ -377,67 +718,8 @@
         }
       ],
       "source_ids": [
-        "openai-reasoning-2026-07-09"
-      ]
-    },
-    {
-      "provider": "openai",
-      "model": "gpt-5.6-sol",
-      "surface": "codex_cli",
-      "valid_efforts": [
-        "minimal",
-        "low",
-        "medium",
-        "high",
-        "xhigh"
-      ],
-      "default_effort": "medium",
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "standard"
-        },
-        {
-          "mode_id": "ultra",
-          "notes": "Multi-agent higher-compute mode (not an effort synonym)"
-        }
-      ],
-      "source_ids": [
-        "openai-codex-config-2026-07-09",
-        "openai-codex-debug-models-2026-09-05",
-        "openai-codex-models-2026-08-02",
-        "openai-codex-models-2026-09-05",
         "openai-gpt-5-6-2026-07-09"
-      ],
-      "notes": "CONFIRMED 2026-08-02: the config-reference (config file / model_reasoning_effort key) does not list max; Codex's separate Models doc describes Max as an opt-in UI-level toggle layered on top of a chosen model/effort (\"Max mode\"), not a model_reasoning_effort value, and says most tasks do not need it. Treat max as UI-toggle-gated, not config-settable, until a newer primary source says otherwise. See ~/code/dotfiles/ai/research/model-routing/gpt-5-6-luna-at-max-effort-is-a-defensible-not-dominant-codex-value-pick.md. 2026-09-05: vendor docs now list this model with Low/Medium/High/Extra High/Max/Ultra and default Medium. NOT applied to valid_efforts because this host's live `codex debug models` disagrees for luna (no ultra) and for sol (default=low) — the docs-vs-auth-scoped-catalog conflict is recorded in missing[] rather than resolved by picking a side."
-    },
-    {
-      "provider": "openai",
-      "model": "gpt-5.6-terra",
-      "surface": "codex_cli",
-      "valid_efforts": [
-        "minimal",
-        "low",
-        "medium",
-        "high",
-        "xhigh"
-      ],
-      "default_effort": "medium",
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "standard"
-        }
-      ],
-      "source_ids": [
-        "openai-codex-config-2026-07-09",
-        "openai-codex-debug-models-2026-09-05",
-        "openai-codex-models-2026-08-02",
-        "openai-codex-models-2026-09-05"
-      ],
-      "notes": "Inferred from the same config-reference enum as gpt-5.6-sol (no per-model override documented). Max mode is a UI toggle per openai-codex-models-2026-08-02, not confirmed as a config_reference value for this model specifically. 2026-09-05: vendor docs now list this model with Low/Medium/High/Extra High/Max/Ultra and default Medium. NOT applied to valid_efforts because this host's live `codex debug models` disagrees for luna (no ultra) and for sol (default=low) — the docs-vs-auth-scoped-catalog conflict is recorded in missing[] rather than resolved by picking a side."
+      ]
     },
     {
       "provider": "openai",
@@ -501,6 +783,38 @@
     },
     {
       "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "surface": "codex_cli",
+      "valid_efforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        },
+        {
+          "mode_id": "ultra",
+          "notes": "Multi-agent higher-compute mode (not an effort synonym)"
+        }
+      ],
+      "source_ids": [
+        "openai-codex-config-2026-07-09",
+        "openai-codex-debug-models-2026-09-05",
+        "openai-codex-models-2026-08-02",
+        "openai-codex-models-2026-09-05",
+        "openai-gpt-5-6-2026-07-09"
+      ],
+      "notes": "CONFIRMED 2026-08-02: the config-reference (config file / model_reasoning_effort key) does not list max; Codex's separate Models doc describes Max as an opt-in UI-level toggle layered on top of a chosen model/effort (\"Max mode\"), not a model_reasoning_effort value, and says most tasks do not need it. Treat max as UI-toggle-gated, not config-settable, until a newer primary source says otherwise. See ~/code/dotfiles/ai/research/model-routing/gpt-5-6-luna-at-max-effort-is-a-defensible-not-dominant-codex-value-pick.md. 2026-09-05: vendor docs now list this model with Low/Medium/High/Extra High/Max/Ultra and default Medium. NOT applied to valid_efforts because this host's live `codex debug models` disagrees for luna (no ultra) and for sol (default=low) — the docs-vs-auth-scoped-catalog conflict is recorded in missing[] rather than resolved by picking a side."
+    },
+    {
+      "provider": "openai",
       "model": "gpt-5.6-terra",
       "surface": "api",
       "valid_efforts": [
@@ -526,11 +840,71 @@
     },
     {
       "provider": "openai",
-      "model": "gpt-5.6-luna",
+      "model": "gpt-5.6-terra",
+      "surface": "codex_cli",
+      "valid_efforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "openai-codex-config-2026-07-09",
+        "openai-codex-debug-models-2026-09-05",
+        "openai-codex-models-2026-08-02",
+        "openai-codex-models-2026-09-05"
+      ],
+      "notes": "Inferred from the same config-reference enum as gpt-5.6-sol (no per-model override documented). Max mode is a UI toggle per openai-codex-models-2026-08-02, not confirmed as a config_reference value for this model specifically. 2026-09-05: vendor docs now list this model with Low/Medium/High/Extra High/Max/Ultra and default Medium. NOT applied to valid_efforts because this host's live `codex debug models` disagrees for luna (no ultra) and for sol (default=low) — the docs-vs-auth-scoped-catalog conflict is recorded in missing[] rather than resolved by picking a side."
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-6-astra",
+      "surface": "codex_cli",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "ultra"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        },
+        {
+          "mode_id": "fast",
+          "notes": "2.5x multiplier to Astra Standard credit rate — speed tier, not effort"
+        },
+        {
+          "mode_id": "ultra",
+          "notes": "Vendor: \"goes beyond a single-agent run... uses subagents\" — a behavioural change (delegation), not only deeper reasoning"
+        }
+      ],
+      "source_ids": [
+        "openai-codex-models-2026-09-05",
+        "openai-codex-debug-models-2026-09-05"
+      ],
+      "notes": "Astra has NO minimal level (unlike gpt-5.5/5.6 codex_cli rows). Live catalog agrees with docs on efforts and default=medium."
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-6-luna",
       "surface": "api",
       "valid_efforts": [
         "none",
-        "minimal",
         "low",
         "medium",
         "high",
@@ -543,10 +917,191 @@
       "modes": [
         {
           "mode_id": "standard"
+        },
+        {
+          "mode_id": "pro",
+          "notes": "reasoning.mode pro bills more work at model rates (GPT-5.6 and GPT-6 models support standard/pro reasoning mode independently of effort)"
         }
       ],
       "source_ids": [
-        "openai-gpt-5-6-2026-07-09"
+        "openai-api-model-page-gpt-6-luna-2026-09-22",
+        "openai-api-reasoning-2026-09-22"
+      ],
+      "notes": "Model page verbatim: 'reasoning.effort supports none, low, medium (default), high, xhigh, and max.' NO minimal level — differs from gpt-5.6-luna's api surface (which lists minimal). Chat Completions supports function calling only with reasoning_effort=none; otherwise use the Responses API for built-in tools/function calling."
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "surface": "codex_cli",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        },
+        {
+          "mode_id": "fast",
+          "notes": "1.5x speed, increased usage — a speed tier, not an effort level"
+        }
+      ],
+      "source_ids": [
+        "openai-codex-debug-models-2026-09-22",
+        "openai-codex-debug-models-0-156-0-2026-09-22"
+      ],
+      "notes": "CORRECTED 2026-09-22: superseded the earlier reading from codex-cli 0.154.0, which reported an auth-scoped rollout gap (slug not yet listed on this host). Re-read on codex-cli 0.156.0, same host, same day: gpt-6-luna IS listed (visibility=list), supported_reasoning_levels low/medium/high/xhigh/max (no ultra, unlike Sol/Astra), default_reasoning_level medium."
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-6-sol",
+      "surface": "api",
+      "valid_efforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        },
+        {
+          "mode_id": "pro",
+          "notes": "reasoning.mode pro bills more work at model rates (GPT-5.6 and GPT-6 models support standard/pro reasoning mode independently of effort)"
+        }
+      ],
+      "source_ids": [
+        "openai-api-model-page-gpt-6-sol-2026-09-22",
+        "openai-api-reasoning-2026-09-22"
+      ],
+      "notes": "Model page verbatim: 'reasoning.effort supports none, low, medium (default), high, xhigh, and max.' NO minimal level — differs from gpt-5.6-sol's api surface (which lists minimal). Chat Completions supports function calling only with reasoning_effort=none; otherwise use the Responses API for built-in tools/function calling."
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-6-sol",
+      "surface": "codex_cli",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "ultra"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        },
+        {
+          "mode_id": "fast",
+          "notes": "1.5x speed, increased usage — a speed tier, not an effort level"
+        }
+      ],
+      "source_ids": [
+        "openai-codex-debug-models-2026-09-22",
+        "openai-codex-debug-models-0-156-0-2026-09-22"
+      ],
+      "notes": "CORRECTED 2026-09-22: superseded the earlier reading from codex-cli 0.154.0, which reported an auth-scoped rollout gap (slug not yet listed on this host). Re-read on codex-cli 0.156.0, same host, same day: gpt-6-sol IS listed (visibility=list), supported_reasoning_levels low/medium/high/xhigh/max/ultra, default_reasoning_level medium. No minimal level, matching Astra's codex_cli row, unlike gpt-5.5/5.6."
+    },
+    {
+      "provider": "other",
+      "model": "glm-5.1",
+      "surface": "api",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking_enabled",
+          "notes": "Default for GLM 5.1. When enabled the model thinks compulsorily."
+        },
+        {
+          "mode_id": "thinking_disabled"
+        }
+      ],
+      "source_ids": [
+        "zai-glm-api-2026-09-05"
+      ],
+      "notes": "BINARY thinking.type enabled|disabled — deliberately NOT expressed as effort levels, because it is a mode switch, not a discrete reasoning ladder. valid_efforts is empty by design."
+    },
+    {
+      "provider": "other",
+      "model": "glm-5.2",
+      "surface": "api",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking_enabled",
+          "notes": "Default; can be disabled"
+        },
+        {
+          "mode_id": "thinking_disabled"
+        }
+      ],
+      "source_ids": [
+        "zai-glm-api-2026-09-05"
+      ],
+      "notes": "Binary switchable thinking, default enabled."
+    },
+    {
+      "provider": "other",
+      "model": "glm-5.3",
+      "surface": "api",
+      "valid_efforts": [],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking_forced",
+          "notes": "FORCED — cannot be disabled, unlike 5.1 and 5.2"
+        }
+      ],
+      "source_ids": [
+        "zai-glm-api-2026-09-05"
+      ],
+      "notes": "Forced thinking; no disable path."
+    },
+    {
+      "provider": "xai",
+      "model": "grok-4.20-multi-agent-0309",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "multi-agent",
+          "notes": "xhigh controls agent count (4 or 16) not single-model depth"
+        }
+      ],
+      "source_ids": [
+        "xai-reasoning-2026-07-09"
       ]
     },
     {
@@ -601,429 +1156,6 @@
     },
     {
       "provider": "xai",
-      "model": "grok-4.20-multi-agent-0309",
-      "surface": "api",
-      "valid_efforts": [
-        "low",
-        "medium",
-        "high",
-        "xhigh"
-      ],
-      "default_effort": null,
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "multi-agent",
-          "notes": "xhigh controls agent count (4 or 16) not single-model depth"
-        }
-      ],
-      "source_ids": [
-        "xai-reasoning-2026-07-09"
-      ]
-    },
-    {
-      "provider": "xai",
-      "model": "grok-build-0.1",
-      "surface": "build_agent",
-      "valid_efforts": [
-        "low",
-        "medium",
-        "high"
-      ],
-      "default_effort": "medium",
-      "unsupported_behavior": "warn_passthrough",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "standard"
-        }
-      ],
-      "source_ids": [
-        "xai-models-2026-07-09"
-      ]
-    },
-    {
-      "provider": "alibaba",
-      "model": "qwen3.8-max-preview",
-      "surface": "qwen_code",
-      "valid_efforts": [],
-      "default_effort": null,
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "thinking",
-          "notes": "enable_thinking=true; thinkingMandatory — cannot disable"
-        }
-      ],
-      "source_ids": [
-        "qwen-code-cli-config-2026-07"
-      ],
-      "notes": "Qwen has no discrete effort levels. Thinking is mandatory for this model."
-    },
-    {
-      "provider": "alibaba",
-      "model": "qwen3.7-max",
-      "surface": "qwen_code",
-      "valid_efforts": [],
-      "default_effort": null,
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "thinking",
-          "notes": "enable_thinking=true (default)"
-        },
-        {
-          "mode_id": "non-thinking",
-          "notes": "enable_thinking=false"
-        }
-      ],
-      "source_ids": [
-        "qwen-code-cli-config-2026-07"
-      ],
-      "notes": "Qwen has no discrete effort levels. Thinking on/off only."
-    },
-    {
-      "provider": "alibaba",
-      "model": "qwen3.7-plus",
-      "surface": "qwen_code",
-      "valid_efforts": [],
-      "default_effort": null,
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "thinking",
-          "notes": "enable_thinking=true (default)"
-        },
-        {
-          "mode_id": "non-thinking",
-          "notes": "enable_thinking=false"
-        }
-      ],
-      "source_ids": [
-        "qwen-code-cli-config-2026-07"
-      ],
-      "notes": "Qwen has no discrete effort levels. Thinking on/off only."
-    },
-    {
-      "provider": "alibaba",
-      "model": "qwen3-coder-plus",
-      "surface": "qwen_code",
-      "valid_efforts": [],
-      "default_effort": null,
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "standard",
-          "notes": "No thinking mode configured for coder models"
-        }
-      ],
-      "source_ids": [
-        "qwen-code-cli-config-2026-07"
-      ],
-      "notes": "Coding specialist. No thinking mode in default config."
-    },
-    {
-      "provider": "openai",
-      "model": "gpt-6-astra",
-      "surface": "codex_cli",
-      "valid_efforts": [
-        "low",
-        "medium",
-        "high",
-        "xhigh",
-        "max",
-        "ultra"
-      ],
-      "default_effort": "medium",
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "standard"
-        },
-        {
-          "mode_id": "fast",
-          "notes": "2.5x multiplier to Astra Standard credit rate — speed tier, not effort"
-        },
-        {
-          "mode_id": "ultra",
-          "notes": "Vendor: \"goes beyond a single-agent run... uses subagents\" — a behavioural change (delegation), not only deeper reasoning"
-        }
-      ],
-      "source_ids": [
-        "openai-codex-models-2026-09-05",
-        "openai-codex-debug-models-2026-09-05"
-      ],
-      "notes": "Astra has NO minimal level (unlike gpt-5.5/5.6 codex_cli rows). Live catalog agrees with docs on efforts and default=medium."
-    },
-    {
-      "provider": "openai",
-      "model": "gpt-6-sol",
-      "surface": "api",
-      "valid_efforts": [
-        "none",
-        "low",
-        "medium",
-        "high",
-        "xhigh",
-        "max"
-      ],
-      "default_effort": "medium",
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "standard"
-        },
-        {
-          "mode_id": "pro",
-          "notes": "reasoning.mode pro bills more work at model rates (GPT-5.6 and GPT-6 models support standard/pro reasoning mode independently of effort)"
-        }
-      ],
-      "source_ids": [
-        "openai-api-model-page-gpt-6-sol-2026-09-22",
-        "openai-api-reasoning-2026-09-22"
-      ],
-      "notes": "Model page verbatim: 'reasoning.effort supports none, low, medium (default), high, xhigh, and max.' NO minimal level — differs from gpt-5.6-sol's api surface (which lists minimal). Chat Completions supports function calling only with reasoning_effort=none; otherwise use the Responses API for built-in tools/function calling."
-    },
-    {
-      "provider": "openai",
-      "model": "gpt-6-luna",
-      "surface": "api",
-      "valid_efforts": [
-        "none",
-        "low",
-        "medium",
-        "high",
-        "xhigh",
-        "max"
-      ],
-      "default_effort": "medium",
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "standard"
-        },
-        {
-          "mode_id": "pro",
-          "notes": "reasoning.mode pro bills more work at model rates (GPT-5.6 and GPT-6 models support standard/pro reasoning mode independently of effort)"
-        }
-      ],
-      "source_ids": [
-        "openai-api-model-page-gpt-6-luna-2026-09-22",
-        "openai-api-reasoning-2026-09-22"
-      ],
-      "notes": "Model page verbatim: 'reasoning.effort supports none, low, medium (default), high, xhigh, and max.' NO minimal level — differs from gpt-5.6-luna's api surface (which lists minimal). Chat Completions supports function calling only with reasoning_effort=none; otherwise use the Responses API for built-in tools/function calling."
-    },
-    {
-      "provider": "openai",
-      "model": "gpt-6-sol",
-      "surface": "codex_cli",
-      "valid_efforts": [
-        "low",
-        "medium",
-        "high",
-        "xhigh",
-        "max",
-        "ultra"
-      ],
-      "default_effort": "medium",
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "standard"
-        },
-        {
-          "mode_id": "fast",
-          "notes": "1.5x speed, increased usage — a speed tier, not an effort level"
-        }
-      ],
-      "source_ids": [
-        "openai-codex-debug-models-2026-09-22",
-        "openai-codex-debug-models-0-156-0-2026-09-22"
-      ],
-      "notes": "CORRECTED 2026-09-22: superseded the earlier reading from codex-cli 0.154.0, which reported an auth-scoped rollout gap (slug not yet listed on this host). Re-read on codex-cli 0.156.0, same host, same day: gpt-6-sol IS listed (visibility=list), supported_reasoning_levels low/medium/high/xhigh/max/ultra, default_reasoning_level medium. No minimal level, matching Astra's codex_cli row, unlike gpt-5.5/5.6."
-    },
-    {
-      "provider": "openai",
-      "model": "gpt-6-luna",
-      "surface": "codex_cli",
-      "valid_efforts": [
-        "low",
-        "medium",
-        "high",
-        "xhigh",
-        "max"
-      ],
-      "default_effort": "medium",
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "standard"
-        },
-        {
-          "mode_id": "fast",
-          "notes": "1.5x speed, increased usage — a speed tier, not an effort level"
-        }
-      ],
-      "source_ids": [
-        "openai-codex-debug-models-2026-09-22",
-        "openai-codex-debug-models-0-156-0-2026-09-22"
-      ],
-      "notes": "CORRECTED 2026-09-22: superseded the earlier reading from codex-cli 0.154.0, which reported an auth-scoped rollout gap (slug not yet listed on this host). Re-read on codex-cli 0.156.0, same host, same day: gpt-6-luna IS listed (visibility=list), supported_reasoning_levels low/medium/high/xhigh/max (no ultra, unlike Sol/Astra), default_reasoning_level medium."
-    },
-    {
-      "provider": "anthropic",
-      "model": "claude-fable-5-1",
-      "surface": "api",
-      "valid_efforts": [
-        "low",
-        "medium",
-        "high",
-        "xhigh",
-        "max"
-      ],
-      "default_effort": "high",
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "standard"
-        }
-      ],
-      "source_ids": [
-        "anthropic-effort-guide-2026-09-05",
-        "anthropic-fable-mythos-5-1-2026-09-01",
-        "anthropic-pricing-2026-09-05"
-      ],
-      "notes": "All five levels measured in the launch curves. The claude-fable-5 surface is NOT the authority for its successor. Per-message effort update supported (beta). Lifecycle: no retirement before 2027-09-01. Context 1M, max output 128k; Mythos 5.1 shares Fable 5.1 specifications and price."
-    },
-    {
-      "provider": "anthropic",
-      "model": "claude-mythos-5-1",
-      "surface": "api",
-      "valid_efforts": [
-        "low",
-        "medium",
-        "high",
-        "xhigh",
-        "max"
-      ],
-      "default_effort": "high",
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "standard",
-          "notes": "RESTRICTED: trusted-access only, not generally dispatchable despite ga status in models.json. Same underlying weights as claude-fable-5-1; differs only in safeguards."
-        }
-      ],
-      "source_ids": [
-        "anthropic-effort-guide-2026-09-05",
-        "anthropic-fable-mythos-5-1-2026-09-01"
-      ],
-      "notes": "Access-restricted. Do not duplicate Fable 5.1 scores as independent Mythos measurements. Per-message effort update supported (beta). Lifecycle: no retirement before 2027-09-01. Context 1M, max output 128k; Mythos 5.1 shares Fable 5.1 specifications and price."
-    },
-    {
-      "provider": "google",
-      "model": "gemini-3.8-flash",
-      "surface": "api",
-      "valid_efforts": [
-        "low",
-        "medium",
-        "high"
-      ],
-      "default_effort": "medium",
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "standard"
-        }
-      ],
-      "source_ids": [
-        "google-gemini-thinking-2026-09-05"
-      ],
-      "notes": "Gemini 3.x uses discrete thinkingLevel, NOT the numeric thinking_budget of 2.5 — different control surfaces. `minimal` errors on this model. Limits: 1,000,000 input / 64,000 output."
-    },
-    {
-      "provider": "google",
-      "model": "gemini-3.7-flash",
-      "surface": "api",
-      "valid_efforts": [
-        "low",
-        "medium",
-        "high"
-      ],
-      "default_effort": "medium",
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "standard"
-        }
-      ],
-      "source_ids": [
-        "google-gemini-thinking-2026-09-05"
-      ],
-      "notes": "`minimal` errors on this model. Limits: 1,048,576 input / 65,536 output."
-    },
-    {
-      "provider": "google",
-      "model": "gemini-3.6-flash",
-      "surface": "api",
-      "valid_efforts": [
-        "minimal",
-        "low",
-        "medium",
-        "high"
-      ],
-      "default_effort": "medium",
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "standard"
-        }
-      ],
-      "source_ids": [
-        "google-gemini-thinking-2026-09-05"
-      ],
-      "notes": "Accepts minimal, unlike 3.7/3.8. Limits: 1,048,576 input / 65,536 output."
-    },
-    {
-      "provider": "google",
-      "model": "gemini-3.5-flash-lite",
-      "surface": "api",
-      "valid_efforts": [
-        "minimal",
-        "low",
-        "medium",
-        "high"
-      ],
-      "default_effort": "minimal",
-      "unsupported_behavior": "hard_fail",
-      "aliases": {},
-      "modes": [
-        {
-          "mode_id": "standard"
-        }
-      ],
-      "source_ids": [
-        "google-gemini-thinking-2026-09-05"
-      ],
-      "notes": "Defaults to minimal, unlike the Flash line. Limits: 1,048,576 input / 65,536 output."
-    },
-    {
-      "provider": "xai",
       "model": "grok-4.6",
       "surface": "api",
       "valid_efforts": [
@@ -1047,151 +1179,169 @@
       "notes": "500k context (SMALLER than grok-4.3/4.20 at 1M). Docs state the qualitative tradeoff only; no measured effort curve exists in xAI primary docs."
     },
     {
-      "provider": "other",
-      "model": "glm-5.1",
+      "provider": "xai",
+      "model": "grok-4.7",
       "surface": "api",
-      "valid_efforts": [],
-      "default_effort": null,
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "default_effort": "high",
       "unsupported_behavior": "hard_fail",
       "aliases": {},
       "modes": [
         {
-          "mode_id": "thinking_enabled",
-          "notes": "Default for GLM 5.1. When enabled the model thinks compulsorily."
-        },
-        {
-          "mode_id": "thinking_disabled"
+          "mode_id": "standard"
         }
       ],
       "source_ids": [
-        "zai-glm-api-2026-09-05"
+        "xai-grok-4-7-2026-09-23"
       ],
-      "notes": "BINARY thinking.type enabled|disabled — deliberately NOT expressed as effort levels, because it is a mode switch, not a discrete reasoning ladder. valid_efforts is empty by design."
+      "notes": "500k context. API model reference documents low/medium/high/xhigh; high is the vendor default."
     },
     {
-      "provider": "alibaba",
-      "model": "qwen3.8-max",
-      "surface": "api",
+      "provider": "xai",
+      "model": "grok-4.7",
+      "surface": "grok_cli",
       "valid_efforts": [],
-      "default_effort": null,
-      "unsupported_behavior": "hard_fail",
+      "unsupported_behavior": "warn_passthrough",
       "aliases": {},
       "modes": [
         {
-          "mode_id": "thinking"
-        },
-        {
-          "mode_id": "non_thinking"
+          "mode_id": "standard"
         }
       ],
       "source_ids": [
-        "alibaba-model-studio-pricing-2026-09-05"
+        "xai-grok-4-7-2026-09-23"
       ],
-      "notes": "Per-request enable_thinking (hybrid), NOT a discrete effort ladder. 1M context. This audit did not establish that no effort parameter exists on some other Qwen surface — only that none is documented here."
+      "notes": "Authenticated local grok 1.0.34 `grok models` observation: grok-4.7 is the sole listed model and the default. The CLI surfaces no effort controls in its model list."
     },
     {
-      "provider": "alibaba",
-      "model": "qwen3.8-flash",
-      "surface": "api",
-      "valid_efforts": [],
-      "default_effort": null,
-      "unsupported_behavior": "hard_fail",
+      "provider": "xai",
+      "model": "grok-build-0.1",
+      "surface": "build_agent",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "warn_passthrough",
       "aliases": {},
       "modes": [
         {
-          "mode_id": "thinking",
-          "notes": "Default ON (hybrid)"
-        },
-        {
-          "mode_id": "non_thinking"
+          "mode_id": "standard"
         }
       ],
       "source_ids": [
-        "alibaba-model-studio-pricing-2026-09-05"
-      ],
-      "notes": "Hybrid thinking via enable_thinking, default enabled. 1M context. No discrete effort parameter is documented."
+        "xai-models-2026-07-09"
+      ]
     },
     {
-      "provider": "alibaba",
-      "model": "qwen3.8-27b",
-      "surface": "api",
-      "valid_efforts": [],
+      "provider": "google",
+      "model": "gemini-3.8-flash",
+      "surface": "antigravity_cli",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
       "default_effort": null,
       "unsupported_behavior": "hard_fail",
       "aliases": {},
       "modes": [
         {
-          "mode_id": "thinking",
-          "notes": "Default ON (hybrid)"
-        },
-        {
-          "mode_id": "non_thinking"
+          "mode_id": "standard"
         }
       ],
       "source_ids": [
-        "alibaba-model-studio-pricing-2026-09-05"
+        "google-gemini-models-2026-09-23"
       ],
-      "notes": "Open weights. Hybrid thinking, default enabled."
+      "notes": "Observed in authenticated local agy 1.2.9 `agy models`; auth-scoped CLI catalog. Label-derived effort, not a public Gemini API effort claim."
     },
     {
-      "provider": "alibaba",
-      "model": "qwen3.8-2.4t-a95b",
-      "surface": "api",
-      "valid_efforts": [],
+      "provider": "google",
+      "model": "gemini-3.7-flash",
+      "surface": "antigravity_cli",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
       "default_effort": null,
       "unsupported_behavior": "hard_fail",
       "aliases": {},
       "modes": [
         {
-          "mode_id": "thinking",
-          "notes": "THINKING-ONLY — cannot be disabled, unlike the rest of the 3.8 family"
+          "mode_id": "standard"
         }
       ],
       "source_ids": [
-        "alibaba-model-studio-pricing-2026-09-05"
+        "google-gemini-models-2026-09-23"
       ],
-      "notes": "Open weights. Thinking-only; no non-thinking mode exists."
+      "notes": "Observed in authenticated local agy 1.2.9 `agy models`; auth-scoped CLI catalog. Label-derived effort, not a public Gemini API effort claim."
     },
     {
-      "provider": "other",
-      "model": "glm-5.2",
-      "surface": "api",
-      "valid_efforts": [],
+      "provider": "google",
+      "model": "gemini-3.6-flash",
+      "surface": "antigravity_cli",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
       "default_effort": null,
       "unsupported_behavior": "hard_fail",
       "aliases": {},
       "modes": [
         {
-          "mode_id": "thinking_enabled",
-          "notes": "Default; can be disabled"
-        },
-        {
-          "mode_id": "thinking_disabled"
+          "mode_id": "standard"
         }
       ],
       "source_ids": [
-        "zai-glm-api-2026-09-05"
+        "google-gemini-models-2026-09-23"
       ],
-      "notes": "Binary switchable thinking, default enabled."
+      "notes": "Observed in authenticated local agy 1.2.9 `agy models`; auth-scoped CLI catalog. Label-derived effort, not a public Gemini API effort claim."
     },
     {
-      "provider": "other",
-      "model": "glm-5.3",
-      "surface": "api",
-      "valid_efforts": [],
+      "provider": "google",
+      "model": "gemini-3.1-pro-preview",
+      "surface": "antigravity_cli",
+      "valid_efforts": [
+        "low",
+        "high"
+      ],
       "default_effort": null,
       "unsupported_behavior": "hard_fail",
       "aliases": {},
       "modes": [
         {
-          "mode_id": "thinking_forced",
-          "notes": "FORCED — cannot be disabled, unlike 5.1 and 5.2"
+          "mode_id": "standard"
         }
       ],
       "source_ids": [
-        "zai-glm-api-2026-09-05"
+        "google-gemini-models-2026-09-23"
       ],
-      "notes": "Forced thinking; no disable path."
+      "notes": "Observed in authenticated local agy 1.2.9 `agy models`; auth-scoped CLI catalog. Label-derived effort, not a public Gemini API effort claim."
+    },
+    {
+      "provider": "google",
+      "model": "gemini-3.1-pro-preview",
+      "surface": "api",
+      "valid_efforts": [],
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "google-gemini-models-2026-09-23"
+      ],
+      "notes": "Official model reference marks Thinking supported, but does not publish a discrete API effort-level enum on the model page; values intentionally left empty."
     }
   ],
   "missing": [

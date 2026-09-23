@@ -9,7 +9,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | [data-model-catalog-v0.5.6](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.6) — published by CI on push to main |
+| **This version** | [data-model-catalog-v0.5.7](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.7) — published by CI on push to main |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -18,7 +18,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.5.6
+TAG=data-model-catalog-v0.5.7
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -74,6 +74,10 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 5. **Validate before shipping:** `./scripts/validate_data_pack.py model-catalog`
 
 ## Changelog
+
+### v0.5.7 — 2026-09-23
+
+Adds xAI Grok 4.7 and updates Google/xAI catalog metadata from current vendor sources. Adds Google and xAI `tier` values across registered models; adds Grok 4.7 API pricing and API/Grok CLI surfaces; records authenticated local `agy models` per-effort availability for Gemini 3.8/3.7/3.6 Flash and 3.1 Pro. Adds Google Gemini 3.8 Flash and 3.1 Pro model-card tables, xAI's Grok 4.7 launch table (including effort labels verbatim), and additive direct-fetch AA/vals.ai rows. Google confirms Gemini 3.8 Flash GA, while Gemini 3.1 Pro remains Preview. The public docs do not expose a Deep Think API model ID. See `data/model-catalog/performance/google-xai-board-snapshot-2026-09-23.json` for the exact board reads and remaining un-fetched coverage.
 
 ### v0.5.6 — 2026-09-22
 

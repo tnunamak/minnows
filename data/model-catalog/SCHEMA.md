@@ -38,14 +38,15 @@ GA for its program, but never a routing candidate. Omitted means generally avail
 
 `tier` — **capability tier**: vendors ship concurrent tiers on separate cadences; policy
 picks a tier per task, then the newest GA model in that tier. Populated for OpenAI,
-Anthropic, and xAI models:
+Anthropic, Google, and xAI models:
 
 - **openai**: `astra` | `sol` | `terra` | `luna` | `pro` | `mini` | `nano` | `codex` | `base`
   (`base` = the flagship generation id with no tier suffix, e.g. `gpt-5.5`, `gpt-5.4`)
 - **anthropic**: `fable` | `mythos` | `opus` | `sonnet` | `haiku`
-- **xai**: the vendor's own tiering if documented, else omitted — xAI does not currently
-  publish a named capability-tier scheme (`grok-4.x` numbering only), so `tier` is omitted
-  for all xAI rows as of 2026-09-22.
+- **google**: `pro` | `flash` | `flash-lite` | `deep-think` | `specialized` | `managed-agent`
+  (vendor model classes; managed agents remain distinct from text models)
+- **xai**: `flagship` for Grok flagship releases and `build-agent` for Grok Build. Grok 4.7
+  is identified by xAI as its flagship; Fast is a deployment variant, not a public API model id.
 
 ## Provenance (`SOURCES.json`)
 

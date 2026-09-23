@@ -2,7 +2,7 @@
   "$schema": "schemas/models-v1.schema.json",
   "id": "model-catalog-models",
   "schema_version": 1,
-  "generated_at": "2026-07-09",
+  "generated_at": "2026-09-23",
   "notes": [
     "L0 model registry — THE join key for pricing, performance, capabilities, and policy.",
     "Harness-suffixed score ids (model@harness) resolve to the base id.",
@@ -11,6 +11,22 @@
     "REGISTRY-JOIN REVIEW (2026-09-05): all ten previously unresolved performance labels now resolve through source-backed aliases: claude-mythos-preview; Claude `-thinking` labels for Opus 4.6/4.7/4.8; claude-sonnet-5-high; gemini-3-flash; gemini-3.1-pro; gpt-5.5-high; grok-4.20; and grok-4.20-beta-0309-reasoning. These aliases denote documented board mode/snapshot labels, not new canonical API models."
   ],
   "models": [
+    {
+      "id": "antigravity-preview-05-2026",
+      "provider": "google",
+      "family": "antigravity-agent",
+      "status": "preview",
+      "tier": "managed-agent",
+      "aliases": []
+    },
+    {
+      "id": "antigravity-preview-09-2026",
+      "provider": "google",
+      "family": "antigravity-agent",
+      "status": "preview",
+      "tier": "managed-agent",
+      "aliases": []
+    },
     {
       "id": "claude-fable-5",
       "provider": "anthropic",
@@ -148,21 +164,24 @@
       "provider": "google",
       "family": "gemini-2.5",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "flash"
     },
     {
       "id": "gemini-2.5-flash-lite",
       "provider": "google",
       "family": "gemini-2.5",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "flash-lite"
     },
     {
       "id": "gemini-2.5-pro",
       "provider": "google",
       "family": "gemini-2.5",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "pro"
     },
     {
       "id": "gemini-3-flash-preview",
@@ -171,7 +190,8 @@
       "status": "preview",
       "aliases": [
         "gemini-3-flash"
-      ]
+      ],
+      "tier": "flash"
     },
     {
       "id": "gemini-3-pro",
@@ -179,14 +199,16 @@
       "family": "gemini-3",
       "status": "ga",
       "aliases": [],
-      "notes": "AVAILABILITY UNVERIFIED (2026-09-05): this id is NOT on Google's current text-model roster at ai.google.dev/gemini-api/docs/models. The live page lists gemini-3-pro-image, a separately scoped image model — do NOT treat that as a rename of this id. No retirement is claimed: absence from a roster page is not a deprecation notice, and Google's deprecations page was not shown to list this id. Status left as ga and existing historical benchmark rows (lmarena-text-2026-07, terminal-bench-2026-07) are RETAINED as valid past observations. Re-verify against a model-list endpoint before dispatching to it."
+      "notes": "AVAILABILITY UNVERIFIED (2026-09-05): this id is NOT on Google's current text-model roster at ai.google.dev/gemini-api/docs/models. The live page lists gemini-3-pro-image, a separately scoped image model — do NOT treat that as a rename of this id. No retirement is claimed: absence from a roster page is not a deprecation notice, and Google's deprecations page was not shown to list this id. Status left as ga and existing historical benchmark rows (lmarena-text-2026-07, terminal-bench-2026-07) are RETAINED as valid past observations. Re-verify against a model-list endpoint before dispatching to it.",
+      "tier": "pro"
     },
     {
       "id": "gemini-3.1-flash-lite",
       "provider": "google",
       "family": "gemini-3.1",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "flash-lite"
     },
     {
       "id": "gemini-3.1-pro-preview",
@@ -195,42 +217,48 @@
       "status": "preview",
       "aliases": [
         "gemini-3.1-pro"
-      ]
+      ],
+      "tier": "pro"
     },
     {
       "id": "gemini-3.5-flash",
       "provider": "google",
       "family": "gemini-3.5",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "flash"
     },
     {
       "id": "gemini-3.5-flash-lite",
       "provider": "google",
       "family": "gemini-3",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "flash-lite"
     },
     {
       "id": "gemini-3.6-flash",
       "provider": "google",
       "family": "gemini-3",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "flash"
     },
     {
       "id": "gemini-3.7-flash",
       "provider": "google",
       "family": "gemini-3",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "flash"
     },
     {
       "id": "gemini-3.8-flash",
       "provider": "google",
       "family": "gemini-3",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "flash"
     },
     {
       "id": "glm-5.1",
@@ -371,17 +399,6 @@
       ]
     },
     {
-      "id": "gpt-6-sol",
-      "provider": "openai",
-      "family": "gpt-6",
-      "status": "ga",
-      "tier": "sol",
-      "aliases": [
-        "GPT-6 Sol",
-        "GPT‑6 Sol"
-      ]
-    },
-    {
       "id": "gpt-6-luna",
       "provider": "openai",
       "family": "gpt-6",
@@ -393,11 +410,23 @@
       ]
     },
     {
+      "id": "gpt-6-sol",
+      "provider": "openai",
+      "family": "gpt-6",
+      "status": "ga",
+      "tier": "sol",
+      "aliases": [
+        "GPT-6 Sol",
+        "GPT‑6 Sol"
+      ]
+    },
+    {
       "id": "grok-4.20-0309-non-reasoning",
       "provider": "xai",
       "family": "grok-4.20",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "flagship"
     },
     {
       "id": "grok-4.20-0309-reasoning",
@@ -407,28 +436,32 @@
       "aliases": [
         "grok-4.20",
         "grok-4.20-beta-0309-reasoning"
-      ]
+      ],
+      "tier": "flagship"
     },
     {
       "id": "grok-4.20-multi-agent-0309",
       "provider": "xai",
       "family": "grok-4.20",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "flagship"
     },
     {
       "id": "grok-4.3",
       "provider": "xai",
       "family": "grok-4.3",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "flagship"
     },
     {
       "id": "grok-4.5",
       "provider": "xai",
       "family": "grok-4.5",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "flagship"
     },
     {
       "id": "grok-4.6",
@@ -437,6 +470,17 @@
       "status": "ga",
       "aliases": [
         "Grok 4.6"
+      ],
+      "tier": "flagship"
+    },
+    {
+      "id": "grok-4.7",
+      "provider": "xai",
+      "family": "grok-4",
+      "status": "ga",
+      "tier": "flagship",
+      "aliases": [
+        "Grok 4.7"
       ]
     },
     {
@@ -444,7 +488,8 @@
       "provider": "xai",
       "family": "grok-build",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "build-agent"
     },
     {
       "id": "qwen3-coder-480b",

@@ -77,7 +77,7 @@
           },
           "tier": {
             "type": "string",
-            "description": "Capability tier \u2014 vendors ship concurrent tiers on separate cadences; policy picks a tier per task, then the newest GA model in that tier. openai: astra|sol|terra|luna|pro|mini|nano|codex|base. anthropic: fable|mythos|opus|sonnet|haiku. xai: vendor's own tiering if documented, else omitted.",
+            "description": "Capability tier. Provider-specific: OpenAI astra/sol/terra/luna/pro/mini/nano/codex/base; Anthropic fable/mythos/opus/sonnet/haiku; Google pro/flash/flash-lite/deep-think/specialized/managed-agent; xAI flagship/build-agent.",
             "enum": [
               "astra",
               "sol",
@@ -92,7 +92,14 @@
               "mythos",
               "opus",
               "sonnet",
-              "haiku"
+              "haiku",
+              "flash",
+              "flash-lite",
+              "deep-think",
+              "specialized",
+              "managed-agent",
+              "flagship",
+              "build-agent"
             ]
           },
           "aliases": {

@@ -4,7 +4,7 @@
   "schema_version": 1,
   "status": "DRAFT",
   "generated_at": "2026-09-22",
-  "catalog_ref": "data-model-catalog-v0.5.6",
+  "catalog_ref": "data-model-catalog-v0.5.7",
   "notes": [
     "Human-set slots for scripts/recommend_ops.py. Every entry is DRAFT until the owner reviews it; see SCHEMA.md 'op-requirements.json' for the justification of each entry.",
     "The recommender only reads this file and the catalog. It never edits operating-points.json."
