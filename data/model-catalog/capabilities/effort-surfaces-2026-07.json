@@ -1213,7 +1213,12 @@
       "provider": "xai",
       "model": "grok-4.7",
       "surface": "grok_cli",
-      "valid_efforts": [],
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
       "unsupported_behavior": "warn_passthrough",
       "aliases": {},
       "modes": [
@@ -1224,7 +1229,8 @@
       "source_ids": [
         "xai-grok-4-7-2026-09-23"
       ],
-      "notes": "Authenticated local grok 1.0.34 `grok models` observation: grok-4.7 is the sole listed model and the default. The CLI surfaces no effort controls in its model list."
+      "notes": "Authenticated grok 1.0.34: grok-4.7 is the sole listed model and the default. ~/.grok/models_cache.json (fetched 2026-09-23) lists reasoning efforts xhigh/high/medium/low with high marked default; the CLI takes --reasoning-effort (alias --effort).",
+      "default_effort": "high"
     },
     {
       "provider": "xai",

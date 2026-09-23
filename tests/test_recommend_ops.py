@@ -483,8 +483,20 @@ def test_real_pack_schema_determinism_and_no_point_write():
         for maker_op in ("implement.standard", "implement.accuracy-first"):
             maker = by_op[maker_op]["recommended"] or points[maker_op]["expands_to"]
             forbidden_families.add(catalog.models[maker.get("catalog_model", maker["model"])]["family"])
-        assert all(catalog.models[c.split("/")[1]]["family"] not in forbidden_families
+        def catalog_id(label: str) -> str:
+            dispatch = label.split("/")[1]
+            return ro.ANTIGRAVITY_MODELS.get(dispatch, (dispatch, None))[0]  # agy ids bake effort into the id
+        assert all(catalog.models[catalog_id(c)]["family"] not in forbidden_families
                    for c in by_op["review.audit"]["candidates"])
         if checker:
             checker_family = catalog.models[checker.get("catalog_model", checker["model"])]["family"]
             assert checker_family not in forbidden_families
+
+
+def test_version_key_treats_dotted_versions_as_decimals_and_ignores_date_stamps():
+    v = ro.version_key
+    assert v("grok-4.7") > v("grok-4.20-0309-reasoning")  # 4.20 is 4.2, released before 4.7
+    assert v("gpt-6-sol") > v("gpt-5.6-sol")
+    assert v("claude-opus-5-5") > v("claude-opus-5")
+    assert v("claude-sonnet-5") > v("claude-sonnet-4-6")
+    assert v("claude-haiku-4-5") == v("claude-haiku-4-5-20251001")  # a date stamp is not a generation

@@ -78,13 +78,22 @@ def _load(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def version_key(model_id: str) -> tuple[int, ...]:
+def version_key(model_id: str) -> tuple[float, ...]:
     """Numeric generation key parsed from a canonical id (claude-opus-5-5 -> (5, 5)).
 
     The catalog has no release-date field; this is used only to pick the
     newest reachable GA model within one (lane, provider, tier).
     """
-    return tuple(int(x) for x in re.findall(r"\d+", model_id))
+    # Dotted versions are decimals as vendors use them ("grok-4.20" is 4.2, older than
+    # grok-4.7); dash chains stay integer parts (claude-opus-5-5 -> (5, 5)); date-like
+    # suffixes (0309, 2026, 20251001) are snapshot stamps, not generations.
+    parts: list[float] = []
+    for tok in re.findall(r"\d+(?:\.\d+)?", model_id):
+        if "." in tok:
+            parts.append(float(tok))
+        elif len(tok) < 4:
+            parts.append(float(int(tok)))
+    return tuple(parts)
 
 
 @dataclass
