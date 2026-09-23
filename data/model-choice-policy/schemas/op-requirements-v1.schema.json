@@ -85,7 +85,9 @@
         "cost_basis",
         "min_evidence_grade",
         "source_weights",
-        "vendor_cross_vendor_factor"
+        "vendor_cross_vendor_factor",
+        "attempt_overhead_usd",
+        "failure_detection_probability"
       ],
       "additionalProperties": false,
       "properties": {
@@ -132,6 +134,15 @@
           "type": "number",
           "minimum": 0,
           "maximum": 1
+        },
+        "attempt_overhead_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "failure_detection_probability": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
         }
       }
     },
@@ -145,7 +156,8 @@
           "status",
           "constraints",
           "cost_basis",
-          "rationale"
+          "rationale",
+          "silent_failure_cost_usd"
         ],
         "additionalProperties": false,
         "properties": {
@@ -196,6 +208,15 @@
           "silent_failure_cost_usd": {
             "type": "number",
             "minimum": 0
+          },
+          "attempt_overhead_usd": {
+            "type": "number",
+            "minimum": 0
+          },
+          "failure_detection_probability": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
           }
         }
       }

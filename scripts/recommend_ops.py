@@ -17,7 +17,9 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import itertools
 import json
+import math
 import re
 import sys
 from dataclasses import dataclass, field
@@ -169,6 +171,9 @@ def load_requirements(path: Path, catalog: Catalog, op_ids: set[str]) -> dict:
         op = raw.get("op")
         req = {k: v for k, v in defaults.items() if k != "provider_restrictions"}
         req.update(raw)
+        if "allowed_providers" not in raw:
+            req["allowed_providers"] = [p for p in defaults.get("allowed_providers", [])
+                                        if p not in restrictions or op in restrictions[p]]
         where = f"op {op!r}"
         if op not in op_ids:
             errs.append(f"{where}: not an operating-points.json id")
@@ -196,12 +201,15 @@ def load_requirements(path: Path, catalog: Catalog, op_ids: set[str]) -> dict:
                 errs.append(f"{where}: effort {e!r} needs an owner effort_override_reason (rule 1: never xhigh/max by default)")
         if "bar" in raw or "evidence_metrics" in raw:
             errs.append(f"{where}: bar and evidence_metrics are derived, not owner inputs")
-        if op in {"review.audit", "advisor.deep"}:
-            value = req.get("silent_failure_cost_usd")
-            if not isinstance(value, (int, float)) or isinstance(value, bool) or value < 0:
-                errs.append(f"{where}: silent_failure_cost_usd must be a nonnegative number")
-        elif "silent_failure_cost_usd" in req:
-            errs.append(f"{where}: silent_failure_cost_usd applies only to judged ops")
+        for key in ("attempt_overhead_usd", "silent_failure_cost_usd", "failure_detection_probability"):
+            value = req.get(key)
+            if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(value) or value < 0:
+                errs.append(f"{where}: {key} must be a finite nonnegative number")
+        d = req.get("failure_detection_probability")
+        if isinstance(d, (int, float)) and d > 1:
+            errs.append(f"{where}: failure_detection_probability must be in 0..1")
+        if op in {"review.audit", "advisor.deep"} and d != 0:
+            errs.append(f"{where}: judged ops require failure_detection_probability = 0")
         for c in req.get("constraints", []):
             m = CONSTRAINT_RE.match(c)
             if not m:
@@ -480,9 +488,13 @@ def expected_cost(g: Group, cell: Cell, req: dict) -> float | None:
     p = success_probability(g, cell)
     if p is None or cell.cost is None:
         return None
-    if req["op"] in {"review.audit", "advisor.deep"}:
-        return cell.cost + (1 - p) * req["silent_failure_cost_usd"]
-    return cell.cost / p if p > 0 else float("inf")
+    d = req["failure_detection_probability"]
+    terminal = 1 - (1 - p) * d
+    if terminal == 0:
+        return float("inf")
+    attempts = (cell.cost + req["attempt_overhead_usd"]) / terminal
+    silent_failure = (1 - p) * (1 - d) / terminal
+    return attempts + silent_failure * req["silent_failure_cost_usd"]
 
 
 def report_cost(value: float | None) -> float | str | None:
@@ -741,13 +753,19 @@ def current_arm(point: dict, catalog: Catalog) -> Arm | None:
                dispatch if dispatch != canonical else None)
 
 
-def recommend(catalog: Catalog, reqs: dict, points: dict[str, dict]) -> list[dict]:
+def recommend(catalog: Catalog, reqs: dict, points: dict[str, dict],
+              scenario: tuple[float, float, float] | None = None) -> list[dict]:
     makers: dict[str, Arm] = {}
     out: dict[str, dict] = {}
     for op in reqs["order"]:
         if op not in reqs["ops"]:
             continue
-        req = reqs["ops"][op]
+        req = dict(reqs["ops"][op])
+        if scenario is not None:
+            overhead, detection, silent_multiplier = scenario
+            req["attempt_overhead_usd"] = overhead
+            req["failure_detection_probability"] = (0 if op in {"review.audit", "advisor.deep"} else detection)
+            req["silent_failure_cost_usd"] *= silent_multiplier
         deps = {d: makers[d] for d in op_dependencies(req) if d in makers}
         res = decide(op, req, catalog, deps, points[op].get("expands_to", {}))
         for d in op_dependencies(req):
@@ -767,6 +785,73 @@ def recommend(catalog: Catalog, reqs: dict, points: dict[str, dict]) -> list[dic
     return [out[p] for p in order]
 
 
+ROBUSTNESS_OVERHEAD = (0.1, 0.5, 1.0, 2.0)
+ROBUSTNESS_DETECTION = (0.5, 0.75, 0.95)
+ROBUSTNESS_SILENT_MULTIPLIER = (0.5, 1.0, 2.0)
+
+
+def outcome(result: dict) -> str:
+    rec = result["recommended"]
+    return f"{rec['provider']}/{rec['model']}/{rec['effort']}" if rec else result["status"]
+
+
+def assess_robustness(catalog: Catalog, reqs: dict, points: dict[str, dict], results: list[dict]) -> None:
+    """Re-run the complete dependency graph on the assumption grid and locate one flip."""
+    axes = (ROBUSTNESS_OVERHEAD, ROBUSTNESS_DETECTION, ROBUSTNESS_SILENT_MULTIPLIER)
+    scenarios = list(itertools.product(*axes))
+    cache = {scenario: {r["op"]: outcome(r) for r in recommend(catalog, reqs, points, scenario)}
+             for scenario in scenarios}
+    base = (0.5, 0.75, 1.0)
+
+    for result in results:
+        op = result["op"]
+        outcomes = sorted({cache[s][op] for s in scenarios})
+        if len(outcomes) == 1 and result["recommended"]:
+            result["robustness"] = {"status": "CLEAR", "outcomes": outcomes, "threshold": None}
+            continue
+        if len(outcomes) == 1:
+            result["robustness"] = {"status": "ASSUMPTION_SENSITIVE", "outcomes": outcomes,
+                                    "threshold": "No winning arm anywhere in the grid; evidence remains insufficient."}
+            continue
+
+        edges = []
+        for axis, values in enumerate(axes):
+            for low, high in zip(values, values[1:]):
+                for other in itertools.product(*(axes[i] for i in range(3) if i != axis)):
+                    scenario_low = list(other)
+                    scenario_low.insert(axis, low)
+                    scenario_high = list(scenario_low)
+                    scenario_high[axis] = high
+                    a, b = tuple(scenario_low), tuple(scenario_high)
+                    if cache[a][op] != cache[b][op]:
+                        distance = sum(abs((a[i] + b[i]) / 2 - base[i]) / (axes[i][-1] - axes[i][0])
+                                       for i in range(3))
+                        edges.append((distance, axis, a, b))
+        _, axis, left, right = min(edges)
+        left_value, right_value = left[axis], right[axis]
+        left_outcome, right_outcome = cache[left][op], cache[right][op]
+        for _ in range(16):
+            mid = (left_value + right_value) / 2
+            probe = list(left)
+            probe[axis] = mid
+            probe_outcome = next(r for r in recommend(catalog, reqs, points, tuple(probe)) if r["op"] == op)
+            if outcome(probe_outcome) == left_outcome:
+                left_value = mid
+            else:
+                right_value = mid
+        threshold = (left_value + right_value) / 2
+        silent_base = reqs["ops"][op]["silent_failure_cost_usd"]
+        held_detection = 0 if op in {"review.audit", "advisor.deep"} else left[1]
+        if axis == 0:
+            assumption = f"overhead ≈ ${threshold:.3g} (d={held_detection:g}, silent cost=${silent_base * left[2]:g})"
+        elif axis == 1:
+            assumption = f"d ≈ {threshold:.3g} (overhead=${left[0]:g}, silent cost=${silent_base * left[2]:g})"
+        else:
+            assumption = f"silent cost ≈ ${silent_base * threshold:.3g} (overhead=${left[0]:g}, d={held_detection:g})"
+        result["robustness"] = {"status": "ASSUMPTION_SENSITIVE", "outcomes": outcomes,
+                                "threshold": f"{assumption}: {left_outcome} → {right_outcome}"}
+
+
 # --------------------------------------------------------------- output
 
 
@@ -780,8 +865,8 @@ def _cell(items: list[str], limit: int = 3) -> str:
 
 def render_markdown(results: list[dict]) -> str:
     lines = [
-        "| op | current expands_to | recommended arm | confidence | deciding groups | disagreements | missing |",
-        "|----|--------------------|-----------------|------------|-----------------|---------------|---------|",
+        "| op | current expands_to | recommended arm | confidence | robustness / flip threshold | deciding groups | disagreements | missing |",
+        "|----|--------------------|-----------------|------------|-----------------------------|-----------------|---------------|---------|",
     ]
     for r in results:
         cur = r["current"]
@@ -793,15 +878,21 @@ def render_markdown(results: list[dict]) -> str:
             rec_s = r["status"]
         missing = list(dict.fromkeys(
             f"{m['model']}{'@' + m['effort'] if m.get('effort') else ''} × {m['metric']} ({m['need']})" for m in r["missing"]))
+        robust = r.get("robustness", {})
+        robustness = robust.get("status", "—")
+        if robust.get("threshold"):
+            robustness += "<br>" + robust["threshold"]
         lines.append(
-            f"| `{r['op']}` | {cur_s} | {rec_s} | {r['confidence'] or '—'} | {_cell(r['deciding_groups'])} "
-            f"| {_cell(r['disagreements'])} | {_cell(missing)} |"
+            f"| `{r['op']}` | {cur_s} | {rec_s} | {r['confidence'] or '—'} "
+            f"| {robustness} | {_cell(r['deciding_groups'])} | {_cell(r['disagreements'])} | {_cell(missing)} |"
         )
     lines.append("")
     for r in results:
         lines.append(f"### `{r['op']}` — {r['status']}")
         lines.append("")
         lines.append(f"- candidates ({len(r['candidates'])}): {', '.join(r['candidates']) or 'none'}")
+        if r.get("robustness"):
+            lines.append(f"- robustness: {r['robustness']['status']} — {r['robustness']['threshold'] or 'same arm across the grid'}")
         if r["excluded_models"]:
             lines.append("- excluded: " + "; ".join(f"{e['model']} ({e['reason']})" for e in r["excluded_models"]))
         for f in r["flags"]:
@@ -847,6 +938,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"op-requirements invalid:\n{e}", file=sys.stderr)
         return 2
     results = recommend(catalog, reqs, points)
+    assess_robustness(catalog, reqs, points, results)
     if args.op:
         results = [r for r in results if r["op"] in args.op]
     if args.json:

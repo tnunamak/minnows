@@ -6,6 +6,7 @@ Run: uv run --with pytest --with jsonschema pytest tests/test_recommend_ops.py
 from __future__ import annotations
 
 import importlib.util
+import itertools
 import json
 import sys
 from pathlib import Path
@@ -53,6 +54,8 @@ CURRENT = {
 DEFAULTS = {
     "allowed_providers": ["claude", "codex"], "allowed_efforts": ["low", "medium", "high"],
     "cost_basis": "usd_per_task", "min_evidence_grade": "C",
+    "attempt_overhead_usd": .5, "failure_detection_probability": .75,
+    "provider_restrictions": {"grok": ["grok.explore-only"]},
     "source_weights": {"third_party_board": 2, "third_party_eval": 2, "vendor_table": 1, "other": 1},
     "vendor_cross_vendor_factor": 0.5,
 }
@@ -71,8 +74,11 @@ def row(model, effort, score, metric="code-a", group="g-board", cost=None, unit=
 
 
 def req(op, **extra):
+    silent = {"implement.standard": 10, "review.audit": 100, "docs.lookup": 2,
+              "grok.explore-only": 2}[op] if op in CURRENT else 2
     return {"op": op, "status": "DRAFT", "constraints": [], "cost_basis": "usd_per_task",
-            "rationale": "test", **({"silent_failure_cost_usd": 100} if op == "review.audit" else {}), **extra}
+            "rationale": "test", "silent_failure_cost_usd": silent,
+            **({"failure_detection_probability": 0} if op == "review.audit" else {}), **extra}
 
 
 def build(tmp_path, rows, reqs, *, models=None, surfaces=None, defaults=None, metrics=None, families=None):
@@ -114,10 +120,10 @@ def arm(result, gid, label):
 
 
 def test_verified_expected_cost_prefers_cheap_lower_probability(tmp_path):
-    rows = [row("gpt-9-small", "medium", .4, cost=.2), row("gpt-9-big", "medium", .9, cost=2)]
+    rows = [row("gpt-9-small", "medium", .6, cost=.01), row("gpt-9-big", "medium", .9, cost=2)]
     r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
     assert group(r, "g-board")["choice"] == "codex/gpt-9-small/medium"
-    assert arm(r, "g-board", "codex/gpt-9-small/medium")["expected_cost_usd"] == pytest.approx(.5)
+    assert arm(r, "g-board", "codex/gpt-9-small/medium")["expected_cost_usd"] == pytest.approx(1.51/.7)
     assert r["recommended"]["model"] == "gpt-9-small"
 
 
@@ -125,7 +131,7 @@ def test_verified_expected_cost_prefers_expensive_high_probability(tmp_path):
     rows = [row("gpt-9-small", "medium", .1, cost=.3), row("gpt-9-big", "medium", .9, cost=1)]
     r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
     assert group(r, "g-board")["choice"] == "codex/gpt-9-big/medium"
-    assert arm(r, "g-board", "codex/gpt-9-big/medium")["expected_cost_usd"] == pytest.approx(1/.9)
+    assert arm(r, "g-board", "codex/gpt-9-big/medium")["expected_cost_usd"] == pytest.approx(1.75/.925)
 
 
 def test_lower_better_error_rate_converts_to_success_probability(tmp_path):
@@ -146,7 +152,7 @@ def test_judged_cost_changes_choice_and_maker_p_is_visible(tmp_path):
     assert checker["recommended"]["model"] == "gpt-9-big"
     assert group(checker, "g-board")["maker_p"] == pytest.approx(.8)
     assert group(checker, "g-board")["checker_p"] == pytest.approx(.9)
-    assert arm(checker, "g-board", "codex/gpt-9-big/medium")["expected_cost_usd"] == pytest.approx(13)
+    assert arm(checker, "g-board", "codex/gpt-9-big/medium")["expected_cost_usd"] == pytest.approx(13.5)
     assert "claude/claude-cheap-2/medium" not in checker["candidates"]
 
 
@@ -178,12 +184,24 @@ def test_non_success_metric_screens_unmeasured_effort(tmp_path):
     assert group(r, "g-index")["choice"] is None
 
 
-def test_zero_success_has_infinite_expected_cost_and_valid_json(tmp_path):
+def test_zero_success_can_ship_as_a_silent_failure(tmp_path):
     rows = [row("gpt-9-small", "medium", 0, cost=.01), row("gpt-9-big", "medium", .5, cost=1)]
     r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
-    assert arm(r, "g-board", "codex/gpt-9-small/medium")["expected_cost_usd"] == "Infinity"
+    assert arm(r, "g-board", "codex/gpt-9-small/medium")["expected_cost_usd"] == pytest.approx(12.04)
     assert group(r, "g-board")["choice"] == "codex/gpt-9-big/medium"
+
+
+def test_zero_success_with_perfect_detection_has_infinite_expected_cost(tmp_path):
+    rows = [row("gpt-9-small", "medium", 0, cost=.01), row("gpt-9-big", "medium", .5, cost=1)]
+    r = run(tmp_path, rows, [req("implement.standard", failure_detection_probability=1)])["implement.standard"]
+    assert arm(r, "g-board", "codex/gpt-9-small/medium")["expected_cost_usd"] == "Infinity"
     assert '"Infinity"' in json.dumps(r, allow_nan=False)
+
+
+def test_perfect_detection_retries_until_success_without_silent_penalty(tmp_path):
+    rows = [row("gpt-9-small", "medium", .5, cost=.5), row("gpt-9-big", "medium", .8, cost=2)]
+    r = run(tmp_path, rows, [req("implement.standard", failure_detection_probability=1)])["implement.standard"]
+    assert arm(r, "g-board", "codex/gpt-9-small/medium")["expected_cost_usd"] == pytest.approx(2)
 
 
 def test_candidate_filters_and_cli_effort(tmp_path):
@@ -220,7 +238,7 @@ def test_all_six_lanes_can_generate_candidates(tmp_path):
         {"model": "claude-sonnet-4-6", "surface": "api", "valid_efforts": EFFORTS},
         {"model": "grok-9", "surface": "grok_cli", "valid_efforts": EFFORTS},
     ]
-    defaults = {**DEFAULTS, "allowed_providers": list(ro.LANES)}
+    defaults = {**DEFAULTS, "allowed_providers": list(ro.LANES), "provider_restrictions": {}}
     r = run(tmp_path, [], [req("implement.standard")], models=models, surfaces=surfaces, defaults=defaults)["implement.standard"]
     assert {x.split("/")[0] for x in r["candidates"]} == set(ro.LANES)
     assert "antigravity/gemini-3.8-flash-low/low" in r["candidates"]
@@ -275,6 +293,51 @@ def test_different_family_allows_same_vendor_checker(tmp_path):
     checker = run(tmp_path, rows, reqs)["review.audit"]
     assert "claude/claude-strong-2/medium" in checker["candidates"]
     assert "claude/claude-cheap-2/medium" not in checker["candidates"]
+
+
+def test_grok_exploration_restricts_candidates_to_grok(tmp_path):
+    models = [{**m, "tier": "base"} if m["id"] == "grok-9" else m for m in MODELS]
+    surfaces = SURFACES + [{"model": "grok-9", "surface": "grok_cli", "valid_efforts": EFFORTS}]
+    defaults = {**DEFAULTS, "allowed_providers": list(ro.LANES)}
+    r = run(tmp_path, [row("grok-9", "low", .5, metric="browse", cost=.2),
+                       row("grok-9", "high", .8, metric="browse", cost=1)],
+            [req("grok.explore-only", allowed_providers=["grok"])],
+            models=models, surfaces=surfaces, defaults=defaults)["grok.explore-only"]
+    assert r["candidates"] and all(c.startswith("grok/") for c in r["candidates"])
+    assert r["recommended"]["provider"] == "grok"
+
+
+def test_provider_restriction_filters_inherited_providers(tmp_path):
+    defaults = {**DEFAULTS, "allowed_providers": list(ro.LANES)}
+    _, loaded, _ = build(tmp_path, [], [req("implement.standard"), req("grok.explore-only")], defaults=defaults)
+    assert "grok" not in loaded["ops"]["implement.standard"]["allowed_providers"]
+    assert "grok" in loaded["ops"]["grok.explore-only"]["allowed_providers"]
+
+
+def test_restricted_grok_cannot_be_added_to_another_op(tmp_path):
+    defaults = {**DEFAULTS, "allowed_providers": list(ro.LANES)}
+    with pytest.raises(ro.RequirementsError, match="restricted to"):
+        build(tmp_path, [], [req("implement.standard", allowed_providers=["grok"])], defaults=defaults)
+
+
+def test_robustness_grid_reports_a_flip_threshold(tmp_path):
+    rows = [row("gpt-9-small", "medium", .4, cost=.01), row("gpt-9-big", "medium", .9, cost=1)]
+    catalog, loaded, points = build(tmp_path, rows, [req("implement.standard")])
+    results = ro.recommend(catalog, loaded, points)
+    ro.assess_robustness(catalog, loaded, points, results)
+    robust = results[0]["robustness"]
+    assert robust["status"] == "ASSUMPTION_SENSITIVE"
+    assert "≈" in robust["threshold"] and "→" in robust["threshold"]
+    assert len(robust["outcomes"]) > 1
+    assert "ASSUMPTION_SENSITIVE<br>" in ro.render_markdown(results)
+
+
+def test_robustness_clear_requires_same_winning_arm(tmp_path):
+    rows = [row("gpt-9-small", "medium", .8, cost=.1), row("gpt-9-big", "medium", .8, cost=2)]
+    catalog, loaded, points = build(tmp_path, rows, [req("implement.standard")])
+    results = ro.recommend(catalog, loaded, points)
+    ro.assess_robustness(catalog, loaded, points, results)
+    assert results[0]["robustness"] == {"status": "CLEAR", "outcomes": ["codex/gpt-9-small/medium"], "threshold": None}
 
 
 def test_missing_cost_is_exact(tmp_path):
@@ -393,9 +456,35 @@ def test_real_pack_schema_determinism_and_no_point_write():
     before = (pol / "operating-points.json").read_bytes()
     loaded = ro.load_requirements(pol / "op-requirements.json", catalog, set(points))
     assert set(loaded["ops"]) == set(points)
+    vals = next(g for g in ro.build_groups(loaded["ops"]["implement.standard"], catalog)[0]
+                if g.gid == "tb4-vals-ai-secondary-2026-09-21")
+    opus = vals.cells[("claude-opus-5-5", "max")]
+    sonnet = vals.cells[("claude-sonnet-5", "max")]
+    assert opus.score > sonnet.score and opus.cost < sonnet.cost
     first = ro.recommend(catalog, loaded, points)
     second = ro.recommend(catalog, loaded, points)
     assert json.dumps(first, sort_keys=True) == json.dumps(second, sort_keys=True)
     assert all(r["status"] in {"RECOMMENDED", "INSUFFICIENT_EVIDENCE", "NO_CANDIDATES"} for r in first)
     assert all(r["recommended"] is None or r["recommended"]["effort"] not in {"xhigh", "max", "ultra"} for r in first)
     assert (pol / "operating-points.json").read_bytes() == before
+
+    for scenario in itertools.product(ro.ROBUSTNESS_OVERHEAD, ro.ROBUSTNESS_DETECTION,
+                                      ro.ROBUSTNESS_SILENT_MULTIPLIER):
+        by_op = {r["op"]: r for r in ro.recommend(catalog, loaded, points, scenario)}
+        for op in ("implement.standard", "implement.quota-tight", "implement.accuracy-first"):
+            rec = by_op[op]["recommended"]
+            assert rec is None or rec["model"] != "claude-sonnet-5"
+        grok = by_op["grok.explore-only"]
+        assert grok["current"]["provider"] == "grok"
+        assert all(c.startswith("grok/") for c in grok["candidates"])
+        assert grok["recommended"] is None or grok["recommended"]["provider"] == "grok"
+        checker = by_op["review.audit"]["recommended"]
+        forbidden_families = set()
+        for maker_op in ("implement.standard", "implement.accuracy-first"):
+            maker = by_op[maker_op]["recommended"] or points[maker_op]["expands_to"]
+            forbidden_families.add(catalog.models[maker.get("catalog_model", maker["model"])]["family"])
+        assert all(catalog.models[c.split("/")[1]]["family"] not in forbidden_families
+                   for c in by_op["review.audit"]["candidates"])
+        if checker:
+            checker_family = catalog.models[checker.get("catalog_model", checker["model"])]["family"]
+            assert checker_family not in forbidden_families

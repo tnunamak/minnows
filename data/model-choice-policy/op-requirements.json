@@ -3,10 +3,10 @@
   "id": "model-choice-op-requirements",
   "schema_version": 1,
   "status": "DRAFT",
-  "generated_at": "2026-09-22",
+  "generated_at": "2026-09-23",
   "catalog_ref": "data-model-catalog-v0.5.6",
   "notes": [
-    "Task families select metrics from metrics.json. Only judged ops set a missed-problem cost in dollars.",
+    "Task families select metrics from metrics.json. Costs and detection rates below are policy assumptions, not measured calibration.",
     "The recommender never edits operating-points.json."
   ],
   "defaults": {
@@ -33,7 +33,14 @@
       "vendor_table": 1,
       "digitized_chart": 1
     },
-    "vendor_cross_vendor_factor": 0.5
+    "vendor_cross_vendor_factor": 0.5,
+    "attempt_overhead_usd": 0.5,
+    "failure_detection_probability": 0.75,
+    "provider_restrictions": {
+      "grok": [
+        "grok.explore-only"
+      ]
+    }
   },
   "ops": [
     {
@@ -45,7 +52,8 @@
       ],
       "constraints": [],
       "cost_basis": "usd_per_task",
-      "rationale": "Verified summaries are retried after a caught factual error."
+      "rationale": "Verified summaries are retried after a detected factual error.",
+      "silent_failure_cost_usd": 2
     },
     {
       "op": "fanout.explore",
@@ -56,7 +64,8 @@
       ],
       "constraints": [],
       "cost_basis": "usd_per_task",
-      "rationale": "Verified research and navigation; failed tasks are retried."
+      "rationale": "Verified research and navigation; detected failures are retried.",
+      "silent_failure_cost_usd": 2
     },
     {
       "op": "docs.lookup",
@@ -67,7 +76,8 @@
       ],
       "constraints": [],
       "cost_basis": "usd_per_task",
-      "rationale": "Verified factual lookup; failed tasks are retried."
+      "rationale": "Verified factual lookup; detected failures are retried.",
+      "silent_failure_cost_usd": 2
     },
     {
       "op": "implement.standard",
@@ -78,7 +88,8 @@
       ],
       "constraints": [],
       "cost_basis": "usd_per_task",
-      "rationale": "Verified coding tasks; failed tasks are retried."
+      "rationale": "Verified coding tasks; detected failures are retried.",
+      "silent_failure_cost_usd": 10
     },
     {
       "op": "implement.quota-tight",
@@ -89,7 +100,8 @@
       ],
       "constraints": [],
       "cost_basis": "usd_per_task",
-      "rationale": "Verified coding tasks; failed tasks are retried. USD per task is a quota proxy."
+      "rationale": "Verified coding tasks; detected failures are retried. USD per task is a quota proxy.",
+      "silent_failure_cost_usd": 5
     },
     {
       "op": "implement.accuracy-first",
@@ -101,7 +113,8 @@
       ],
       "constraints": [],
       "cost_basis": "usd_per_task",
-      "rationale": "Verified coding tasks with high effort available for harder work."
+      "rationale": "Verified coding tasks with high effort available for harder work.",
+      "silent_failure_cost_usd": 50
     },
     {
       "op": "review.audit",
@@ -117,7 +130,8 @@
       ],
       "cost_basis": "usd_per_task",
       "rationale": "Judged code review. A missed problem can pass silently; use a different model family.",
-      "silent_failure_cost_usd": 100
+      "silent_failure_cost_usd": 100,
+      "failure_detection_probability": 0
     },
     {
       "op": "advisor.deep",
@@ -130,7 +144,8 @@
       "constraints": [],
       "cost_basis": "usd_per_task",
       "rationale": "Judged reasoning advice. A missed problem can pass silently.",
-      "silent_failure_cost_usd": 50
+      "silent_failure_cost_usd": 50,
+      "failure_detection_probability": 0
     },
     {
       "op": "ui.computer-use",
@@ -141,7 +156,8 @@
       ],
       "constraints": [],
       "cost_basis": "usd_per_task",
-      "rationale": "Verified computer use; failed tasks are retried."
+      "rationale": "Verified computer use; detected failures are retried.",
+      "silent_failure_cost_usd": 2
     },
     {
       "op": "grok.explore-only",
@@ -153,7 +169,11 @@
       ],
       "constraints": [],
       "cost_basis": "usd_per_task",
-      "rationale": "Exploratory agentic work; all lanes compete if evidence is available."
+      "rationale": "Exercise the Grok lane only; report missing evidence if no Grok arm is rankable.",
+      "silent_failure_cost_usd": 2,
+      "allowed_providers": [
+        "grok"
+      ]
     }
   ],
   "task_families": {
