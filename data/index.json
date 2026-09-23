@@ -14,13 +14,13 @@
       "tree": "https://github.com/tnunamak/minnows/tree/data-model-catalog-v0.5.8/data/model-catalog"
     },
     "model-choice-policy": {
-      "latest_tag": "data-model-choice-policy-v0.1.12",
+      "latest_tag": "data-model-choice-policy-v0.1.13",
       "description": "Operating points; medium confidence; pins catalog v0.5.4",
       "readme": "https://github.com/tnunamak/minnows/blob/main/data/model-choice-policy/README.md",
       "releases": "https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true",
-      "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-model-choice-policy-v0.1.12/data/model-choice-policy/pack.json",
-      "tarball": "https://github.com/tnunamak/minnows/releases/download/data-model-choice-policy-v0.1.12/data-model-choice-policy-v0.1.12.tar.gz",
-      "tree": "https://github.com/tnunamak/minnows/tree/data-model-choice-policy-v0.1.12/data/model-choice-policy"
+      "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-model-choice-policy-v0.1.13/data/model-choice-policy/pack.json",
+      "tarball": "https://github.com/tnunamak/minnows/releases/download/data-model-choice-policy-v0.1.13/data-model-choice-policy-v0.1.13.tar.gz",
+      "tree": "https://github.com/tnunamak/minnows/tree/data-model-choice-policy-v0.1.13/data/model-choice-policy"
     },
     "local-evals": {
       "latest_tag": "data-local-evals-v0.1.1",
