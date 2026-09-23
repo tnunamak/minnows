@@ -407,7 +407,9 @@ def build_groups(req: dict, catalog: Catalog) -> tuple[list[Group], list[str]]:
             cell = Cell(raw_score if direction == "higher_better" else -raw_score, raw_score, cost_v, r)
             key = (mid, effort)
             prev = g.cells.get(key)
-            if prev is None or r.get("observed_at", "") > prev.row.get("observed_at", ""):
+            same_day_richer = (prev is not None and r.get("observed_at", "") == prev.row.get("observed_at", "")
+                               and cost_v is not None and prev.cost is None)
+            if prev is None or same_day_richer or r.get("observed_at", "") > prev.row.get("observed_at", ""):
                 if prev is not None and prev.raw != raw_score:
                     g.conflicts.append(f"{mid}@{effort}: {prev.raw} ({prev.row['observed_at']}) superseded by {raw_score} ({r.get('observed_at')})")
                 g.cells[key] = cell
@@ -448,6 +450,10 @@ def evaluate_group(g: Group, arms: list[Arm], req: dict, catalog: Catalog, maker
     bar = req["bar"]
     if bar["type"] != "at_least_op" and len(present) < 2:
         ev.unusable = "one candidate arm only; nothing to compare"
+        # The bar is still defined: the ceiling rule can test other models against it.
+        best = g.cells[(present[0].model, present[0].effort)].score
+        slack = bar.get("points", 0) / g.scale if bar["type"] == "within_points_of_best" else 0.0
+        ev.bar_value = best - slack
         return ev
     if bar["type"] == "at_least_op":
         if maker is None:
@@ -537,7 +543,7 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
     candidate_models = {a.model for a in arms}
     ceiling_excluded: dict[str, list[str]] = {}
     for ev in evals:
-        if ev.unusable or ev.bar_value is None:
+        if ev.bar_value is None:
             continue
         present_models = {a.model for a in ev.present}
         best: dict[str, tuple[float, str]] = {}

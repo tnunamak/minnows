@@ -16,16 +16,34 @@
   "notes": "FULL SAME-SNAPSHOT roster pass (2026-09-22) across vals.ai's Terminal-Bench 4.0 board (32 models total on this snapshot) and its SWE-bench board (88 models total), direct curl of the raw HTML-entity-encoded RSC JSON payload embedded in each page (same technique as performance/terminal-bench-4-vals-opus-5-5-2026-09.json). This file is ADDITIVE to that prior file: claude-opus-5-5, claude-sonnet-5, claude-fable-5-1, and gpt-6-astra's Terminal-Bench 4.0 rows were RE-VERIFIED this pass and matched that file's existing numbers EXACTLY (61.616/8.081/49.495/57.071 respectively) — not re-recorded as duplicate rows here; see that file for their full precision + provenance. This file adds the four TB4.0 candidates that file did not cover (gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna, grok-4.6) plus the ENTIRE SWE-bench board reading for every present candidate (a board not previously touched by any file in this pack for these candidates). Every 'accuracy' field in the raw payload is a 0-100 percent, not a 0-1 fraction; converted to 0-1 accuracy below per this pack's schema unit convention. 'latency' in the raw payload is measured in SECONDS (per-test wall time) and has no dedicated schema field on a score row — recorded in each row's caveat. CLAUDE HAIKU 4.5 SWE-BENCH KEY ANOMALY: found under the vals.ai key 'anthropic/claude-haiku-4-5-20251001-thinking', not a plain 'anthropic/claude-haiku-4-5' key — vals.ai's own model-key naming embeds a release-date/mode suffix for this specific row; treated as the current Claude Haiku 4.5 (thinking mode) reading, not a different/older model, since no other claude-haiku-4-5 key of any form exists on this board and the date suffix (20251001) matches this pack's already-recorded Haiku 4.5 GA date elsewhere in models.json.",
   "claims": [
     {
-      "models": ["claude-haiku-4-5", "gpt-6-sol", "gpt-6-luna"],
-      "task_families": ["coding"],
-      "axes": ["quality"],
+      "models": [
+        "claude-haiku-4-5",
+        "gpt-6-sol",
+        "gpt-6-luna"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality"
+      ],
       "statement": "CONFIRMED ABSENT from vals.ai Terminal-Bench 4.0 (32-model roster checked in full): claude-haiku-4-5 (no key variant found, including the dated 'thinking' suffix seen on the SWE-bench board), gpt-6-sol, gpt-6-luna. gpt-6-astra is present on the same board as a control, so this is a genuine per-model ingestion gap, not a broken fetch.",
       "source_id": "vals-ai-terminal-bench-4-full-roster-2026-09-22"
     },
     {
-      "models": ["claude-opus-5-5", "claude-fable-5-1", "gpt-6-astra", "gpt-6-sol", "gpt-6-luna"],
-      "task_families": ["coding"],
-      "axes": ["quality"],
+      "models": [
+        "claude-opus-5-5",
+        "claude-fable-5-1",
+        "gpt-6-astra",
+        "gpt-6-sol",
+        "gpt-6-luna"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality"
+      ],
       "statement": "CONFIRMED ABSENT from vals.ai SWE-bench (88-model roster checked in full): claude-opus-5-5, claude-fable-5-1, gpt-6-astra, gpt-6-sol, gpt-6-luna — none of the three GPT-6-family models nor either of the two newest (2026-09-22-launch) Anthropic models are on this board yet, despite gpt-6-astra having launched 19 days earlier (2026-09-03). claude-sonnet-5 IS present (see scores below), which rules out a wholesale Anthropic-family gap.",
       "source_id": "vals-ai-swebench-full-roster-2026-09-22"
     }
@@ -45,7 +63,11 @@
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
       "comparability_group": "tb4-vals-ai-secondary-2026-09-22",
-      "cost": { "value": 8.784119, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 8.784119,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -61,7 +83,11 @@
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
       "comparability_group": "tb4-vals-ai-secondary-2026-09-22",
-      "cost": { "value": 5.912802, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 5.912802,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -77,7 +103,11 @@
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
       "comparability_group": "tb4-vals-ai-secondary-2026-09-22",
-      "cost": { "value": 0.403478, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.403478,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "grok-4.6",
@@ -93,7 +123,11 @@
       "metric_id": "terminal-bench-4-0",
       "comparable": false,
       "comparability_group": "tb4-vals-ai-secondary-2026-09-22",
-      "cost": { "value": 6.471265, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 6.471265,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-sonnet-5",
@@ -101,7 +135,7 @@
       "score": 0.796,
       "unit": "accuracy",
       "source_id": "vals-ai-swebench-full-roster-2026-09-22",
-      "caveat": "vals.ai key 'anthropic/claude-sonnet-5'. Latency 962.366s. cost_per_test $1.489899. First cross-model SWE-bench recording of claude-sonnet-5 in this pack.",
+      "caveat": "vals.ai key 'anthropic/claude-sonnet-5'. Latency 962.366s. cost_per_test $1.489899. First cross-model SWE-bench recording of claude-sonnet-5 in this pack. Effort max read from the vals.ai payload (compute_effort/reasoning_effort), 2026-09-22.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -109,7 +143,13 @@
       "metric_id": "swe-bench-verified-vals-ai-mini-swe-agent",
       "comparable": true,
       "comparability_group": "swe-bench-verified-vals-ai-2026-09-22",
-      "cost": { "value": 1.489899, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 1.489899,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "effort": "max",
+      "effort_verbatim": "max"
     },
     {
       "model": "claude-haiku-4-5",
@@ -125,7 +165,11 @@
       "metric_id": "swe-bench-verified-vals-ai-mini-swe-agent",
       "comparable": true,
       "comparability_group": "swe-bench-verified-vals-ai-2026-09-22",
-      "cost": { "value": 0.366229, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.366229,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -141,7 +185,11 @@
       "metric_id": "swe-bench-verified-vals-ai-mini-swe-agent",
       "comparable": true,
       "comparability_group": "swe-bench-verified-vals-ai-2026-09-22",
-      "cost": { "value": 1.1513, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 1.1513,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -157,7 +205,11 @@
       "metric_id": "swe-bench-verified-vals-ai-mini-swe-agent",
       "comparable": true,
       "comparability_group": "swe-bench-verified-vals-ai-2026-09-22",
-      "cost": { "value": 0.400788, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.400788,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
@@ -173,7 +225,11 @@
       "metric_id": "swe-bench-verified-vals-ai-mini-swe-agent",
       "comparable": true,
       "comparability_group": "swe-bench-verified-vals-ai-2026-09-22",
-      "cost": { "value": 0.042712, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.042712,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "grok-4.6",
@@ -189,7 +245,11 @@
       "metric_id": "swe-bench-verified-vals-ai-mini-swe-agent",
       "comparable": true,
       "comparability_group": "swe-bench-verified-vals-ai-2026-09-22",
-      "cost": { "value": 0.784684, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.784684,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     }
   ],
   "missing": [

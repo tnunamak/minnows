@@ -514,3 +514,22 @@ def test_ceiling_rule_keeps_model_whose_max_clears_the_bar(tmp_path):
     ]
     r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
     assert any(c.startswith("claude/claude-cheap-2/") for c in r["candidates"])
+
+
+def test_ceiling_rule_runs_in_a_single_arm_group(tmp_path):
+    rows = [
+        row("claude-strong-2", "medium", 0.70, cost=1.0),
+        row("claude-cheap-2", "max", 0.40, cost=5.0),
+    ]
+    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    assert any(e["model"] == "claude-cheap-2" and "best measured effort" in e["reason"] for e in r["excluded_models"])
+
+
+def test_same_day_duplicate_prefers_the_row_with_cost(tmp_path):
+    rows = [
+        row("claude-strong-2", "medium", 0.70, cost=1.0),
+        row("claude-strong-2", "medium", 0.70),  # same day, no cost: must not replace the priced row
+        row("gpt-9-big", "medium", 0.69, cost=2.0),
+    ]
+    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    assert arm(r, "g-board", "claude/claude-strong-2/medium")["cost"] == 1.0
