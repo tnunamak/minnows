@@ -151,6 +151,10 @@
           "type": "integer",
           "minimum": 1
         },
+        "price_as_of": {
+          "type": "string",
+          "format": "date"
+        },
         "majority_threshold": {
           "type": "number",
           "exclusiveMinimum": 0,
@@ -220,6 +224,9 @@
           "rationale": {
             "type": "string",
             "minLength": 1
+          },
+          "constraint_decision": {
+            "const": "OWNER_DECISION_PENDING"
           },
           "silent_failure_cost_usd": {
             "type": "number",

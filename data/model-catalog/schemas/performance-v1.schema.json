@@ -329,6 +329,10 @@
                 "maximum": 1
               }
             }
+          },
+          "effort_convention": {
+            "const": "vendor_default",
+            "description": "The board explicitly states it ran the API vendor's default effort. The recommender maps this to the catalog's API default with a caveat."
           }
         }
       }
