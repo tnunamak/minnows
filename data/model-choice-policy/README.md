@@ -11,14 +11,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.1.10](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.1.10) — published by CI on push to main |
+| **This version** | [data-model-choice-policy-v0.1.11](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.1.11) — published by CI on push to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.1.10
+TAG=data-model-choice-policy-v0.1.11
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -67,9 +67,9 @@ Waspflow resolves from (first hit):
 | Op | Provider / model / effort |
 |----|---------------------------|
 | `recover.report` | claude / sonnet-5 / low |
-| `fanout.explore` | claude / sonnet-5 / medium |
+| `fanout.explore` | claude / opus-5-5 / medium |
 | `docs.lookup` | claude / sonnet-5 / low |
-| `implement.standard` | claude / sonnet-5 / medium |
+| `implement.standard` | claude / opus-5-5 / medium |
 | `implement.quota-tight` | claude / sonnet-5 / low |
 | `implement.accuracy-first` | claude / opus-5-5 / high |
 | `review.audit` | codex / gpt-6-astra / high |
@@ -78,6 +78,16 @@ Waspflow resolves from (first hit):
 | `grok.explore-only` | grok / grok-4.6 / high |
 
 ## Changelog
+
+### v0.1.11 — 2026-09-22
+
+- Move `implement.standard` and `fanout.explore` from claude-sonnet-5/medium to **claude-opus-5-5/medium**. Sonnet 5 at max effort (its best) scores below Opus 5.5 at medium on every independent board, at a higher cost per task: AA Intelligence Index v4.3.2 38.2 at $5.09/task vs 51.2 at $1.34; vals.ai Terminal-Bench 4 8.1% vs 61.6% (both at max).
+- Add `op-requirements.json` (DRAFT): the owner-set inputs for each op (which benchmarks count as evidence, allowed efforts, quality bar, constraints). `scripts/recommend_ops.py` derives each op's model from it and the catalog. It also names the missing evidence wherever the data cannot decide.
+- Unsettled, so unchanged, with the reason in `known_gaps`:
+  - `recover.report`, `docs.lookup`, `implement.quota-tight`: no independent low-effort evidence exists.
+  - `review.audit`: "checker at least as strong as maker" and "different family" conflict while Opus 5.5 is the strongest maker.
+  - `ui.computer-use`: no shared OSWorld harness covers Claude and GPT-6.
+- Catalog pin: **v0.5.6**.
 
 ### v0.1.10 — 2026-09-22
 
