@@ -194,8 +194,8 @@
       "task_family": "mixed",
       "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
       "comparable": false,
-      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2",
-      "snapshot_id": "artificialanalysis-claude-haiku-4-5-model-page-2026-09-22-2026-09-22"
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-estimated",
+      "snapshot_id": "artificialanalysis-claude-haiku-4-5-model-page-2026-09-22-2026-09-22-estimated"
     },
     {
       "model": "claude-fable-5-1",

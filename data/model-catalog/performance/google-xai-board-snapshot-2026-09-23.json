@@ -53,7 +53,7 @@
       "score": 0.28283,
       "unit": "accuracy",
       "source_id": "vals-ai-terminal-bench-4-snapshot-2026-09-22",
-      "caveat": "vals.ai RSC payload: accuracy 28.283, latency 5976.178s, cost_per_test $14.315163; effort is not present in this row.",
+      "caveat": "vals.ai RSC payload: accuracy 28.283, latency 5976.178s, cost_per_test $14.315163; . Effort xhigh from the vals.ai detailed payload (reasoning_effort), re-checked 2026-09-23.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -66,7 +66,9 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "snapshot_id": "vals-ai-terminal-bench-4-snapshot-2026-09-22-2026-09-22"
+      "snapshot_id": "vals-ai-terminal-bench-4-snapshot-2026-09-22-2026-09-22",
+      "effort": "xhigh",
+      "effort_verbatim": "xhigh"
     },
     {
       "model": "gemini-3.8-flash",
@@ -74,7 +76,7 @@
       "score": 0.13131,
       "unit": "accuracy",
       "source_id": "vals-ai-terminal-bench-4-snapshot-2026-09-22",
-      "caveat": "vals.ai RSC payload: accuracy 13.131, latency 8524.647s, cost_per_test $11.53543; effort is not present in this row.",
+      "caveat": "vals.ai RSC payload: accuracy 13.131, latency 8524.647s, cost_per_test $11.53543; . Effort high from the vals.ai detailed payload (reasoning_effort), re-checked 2026-09-23.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -87,7 +89,9 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "snapshot_id": "vals-ai-terminal-bench-4-snapshot-2026-09-22-2026-09-22"
+      "snapshot_id": "vals-ai-terminal-bench-4-snapshot-2026-09-22-2026-09-22",
+      "effort": "high",
+      "effort_verbatim": "high"
     },
     {
       "model": "grok-4.6",
@@ -95,7 +99,7 @@
       "score": 0.17172,
       "unit": "accuracy",
       "source_id": "vals-ai-terminal-bench-4-snapshot-2026-09-22",
-      "caveat": "vals.ai RSC payload: accuracy 17.172, latency 11724.581s, cost_per_test $6.471265; effort is not present in this row.",
+      "caveat": "vals.ai RSC payload: accuracy 17.172, latency 11724.581s, cost_per_test $6.471265; . Effort high from the vals.ai detailed payload (reasoning_effort), re-checked 2026-09-23.",
       "source_type": "third_party_board",
       "evidence_grade": "B",
       "observed_at": "2026-09-22",
@@ -108,7 +112,9 @@
         "unit": "usd_per_task",
         "basis": "api_usd"
       },
-      "snapshot_id": "vals-ai-terminal-bench-4-snapshot-2026-09-22-2026-09-22"
+      "snapshot_id": "vals-ai-terminal-bench-4-snapshot-2026-09-22-2026-09-22",
+      "effort": "high",
+      "effort_verbatim": "high"
     },
     {
       "model": "gemini-3.8-flash",

@@ -76,7 +76,7 @@
       "source_ids": [
         "qwen-code-cli-config-2026-07"
       ],
-      "notes": "Coding specialist. No thinking mode in default config. Local qwen 0.21.1 `qwen --help` has no top-level --effort/--thinking flag; installed bundled docs expose interactive `/effort`."
+      "notes": "Coding specialist. No thinking mode in default config. Local qwen 0.21.1 `qwen --help` has no top-level --effort/--thinking flag; installed bundled docs expose interactive `/effort`. Effort ladder taken from Qwen Code's upstream main-branch docs (interactive /effort); NOT verified on the installed 0.21.1 CLI, whose --help exposes no effort or thinking flag."
     },
     {
       "provider": "alibaba",
@@ -99,7 +99,7 @@
       "source_ids": [
         "qwen-code-cli-config-2026-07"
       ],
-      "notes": "Qwen has no discrete effort levels. Thinking on/off only. Local qwen 0.21.1 `qwen --help` has no top-level --effort/--thinking flag; installed bundled docs expose interactive `/effort`."
+      "notes": "Qwen has no discrete effort levels. Thinking on/off only. Local qwen 0.21.1 `qwen --help` has no top-level --effort/--thinking flag; installed bundled docs expose interactive `/effort`. Effort ladder taken from Qwen Code's upstream main-branch docs (interactive /effort); NOT verified on the installed 0.21.1 CLI, whose --help exposes no effort or thinking flag."
     },
     {
       "provider": "alibaba",
@@ -122,7 +122,7 @@
       "source_ids": [
         "qwen-code-cli-config-2026-07"
       ],
-      "notes": "Qwen has no discrete effort levels. Thinking on/off only. Local qwen 0.21.1 `qwen --help` has no top-level --effort/--thinking flag; installed bundled docs expose interactive `/effort`."
+      "notes": "Qwen has no discrete effort levels. Thinking on/off only. Local qwen 0.21.1 `qwen --help` has no top-level --effort/--thinking flag; installed bundled docs expose interactive `/effort`. Effort ladder taken from Qwen Code's upstream main-branch docs (interactive /effort); NOT verified on the installed 0.21.1 CLI, whose --help exposes no effort or thinking flag."
     },
     {
       "provider": "alibaba",
@@ -225,7 +225,7 @@
       "source_ids": [
         "qwen-code-cli-config-2026-07"
       ],
-      "notes": "Qwen has no discrete effort levels. Thinking is mandatory for this model. Thinking control: per-request enable_thinking boolean; no discrete reasoning-effort scale. Local qwen 0.21.1 `qwen --help` has no top-level --effort/--thinking flag; installed bundled docs expose interactive `/effort`."
+      "notes": "Qwen has no discrete effort levels. Thinking is mandatory for this model. Thinking control: per-request enable_thinking boolean; no discrete reasoning-effort scale. Local qwen 0.21.1 `qwen --help` has no top-level --effort/--thinking flag; installed bundled docs expose interactive `/effort`. Effort ladder taken from Qwen Code's upstream main-branch docs (interactive /effort); NOT verified on the installed 0.21.1 CLI, whose --help exposes no effort or thinking flag."
     },
     {
       "provider": "anthropic",
@@ -1492,7 +1492,7 @@
         "local-qwen-cli-help-0-21-1-2026-09-23",
         "qwen-code-model-providers-2026-09-23"
       ],
-      "notes": "Qwen Code 0.21.1 exposes interactive `/effort` (low|medium|high|xhigh|max) through model.reasoningEffort, although `qwen --help` has no top-level effort flag. Official provider docs say the qwen3.8-max family accepts the ladder through xhigh; max is clamped to xhigh."
+      "notes": "Qwen Code 0.21.1 exposes interactive `/effort` (low|medium|high|xhigh|max) through model.reasoningEffort, although `qwen --help` has no top-level effort flag. Official provider docs say the qwen3.8-max family accepts the ladder through xhigh; max is clamped to xhigh. Effort ladder taken from Qwen Code's upstream main-branch docs (interactive /effort); NOT verified on the installed 0.21.1 CLI, whose --help exposes no effort or thinking flag."
     }
   ],
   "missing": [
