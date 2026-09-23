@@ -9,6 +9,7 @@ import importlib.util
 import itertools
 import json
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -29,6 +30,12 @@ MODELS = [
     {"id": "gpt-9-big", "provider": "openai", "family": "gpt-9-big", "status": "ga", "tier": "astra"},
     {"id": "grok-9", "provider": "xai", "family": "grok-9", "status": "ga"},
 ]
+
+
+def only_models(*ids):
+    return [m for m in MODELS if m["id"] in ids]
+
+
 SURFACES = [
     {"model": "claude-cheap-2", "surface": "claude_code", "valid_efforts": EFFORTS},
     {"model": "claude-cheap-1", "surface": "claude_code", "valid_efforts": EFFORTS},
@@ -98,7 +105,7 @@ def build(tmp_path, rows, reqs, *, models=None, surfaces=None, defaults=None, me
     (pol / "operating-points.json").write_text(json.dumps({"operating_points": [
         {"id": op, "expands_to": CURRENT[op]} for op in CURRENT]}))
     (pol / "op-requirements.json").write_text(json.dumps({
-        "defaults": DEFAULTS if defaults is None else defaults,
+        "generated_at": "2026-09-23", "defaults": DEFAULTS if defaults is None else defaults,
         "task_families": FAMILIES if families is None else families, "ops": reqs}))
     catalog = ro.Catalog.from_dir(cat)
     points = {op: {"id": op, "expands_to": CURRENT[op]} for op in CURRENT}
@@ -146,7 +153,7 @@ def test_judged_cost_changes_choice_and_maker_p_is_visible(tmp_path):
     rows = [row("claude-cheap-2", "medium", .8, cost=.05),
             row("gpt-9-small", "medium", .6, cost=.1), row("gpt-9-big", "medium", .9, cost=3)]
     reqs = [req("implement.standard"), req("review.audit", constraints=["different_vendor_from:implement.standard"])]
-    out = run(tmp_path, rows, reqs)
+    out = run(tmp_path, rows, reqs, models=only_models("claude-cheap-2", "gpt-9-small", "gpt-9-big"))
     assert out["implement.standard"]["recommended"]["model"] == "claude-cheap-2"
     checker = out["review.audit"]
     assert checker["recommended"]["model"] == "gpt-9-big"
@@ -222,7 +229,7 @@ def test_candidate_filters_and_cli_effort(tmp_path):
 
 
 def test_effortless_model_uses_default_arm(tmp_path):
-    models = MODELS + [{"id": "claude-tiny-4", "provider": "anthropic", "family": "tiny", "tier": "haiku",
+    models = only_models("claude-cheap-2") + [{"id": "claude-tiny-4", "provider": "anthropic", "family": "tiny", "tier": "haiku",
                         "status": "ga", "effort_parameter": False}]
     rows = [row("claude-cheap-2", "medium", .5, cost=1), row("claude-tiny-4", None, .49, cost=.1)]
     r = run(tmp_path, rows, [req("implement.standard")], models=models)["implement.standard"]
@@ -240,6 +247,7 @@ def test_all_six_lanes_can_generate_candidates(tmp_path):
     models[5] = {**models[5], "tier": "base"}
     surfaces = SURFACES + [
         {"model": "gemini-3.8-flash", "surface": "api", "valid_efforts": EFFORTS},
+        {"model": "gemini-3.8-flash", "surface": "antigravity_cli", "valid_efforts": ["low", "medium", "high"]},
         {"model": "qwen3.8-flash", "surface": "qwen_code", "valid_efforts": EFFORTS},
         {"model": "deepseek-v4-flash", "surface": "api", "valid_efforts": EFFORTS},
         {"model": "claude-sonnet-4-6", "surface": "api", "valid_efforts": EFFORTS},
@@ -256,7 +264,7 @@ def test_all_six_lanes_can_generate_candidates(tmp_path):
 
 
 def test_same_model_two_lanes_share_evidence(tmp_path):
-    models = MODELS + [{"id": "claude-sonnet-4-6", "provider": "anthropic", "family": "cross", "tier": "cross", "status": "ga"}]
+    models = only_models("claude-cheap-2", "gpt-9-big") + [{"id": "claude-sonnet-4-6", "provider": "anthropic", "family": "cross", "tier": "cross", "status": "ga"}]
     surfaces = SURFACES + [{"model": "claude-sonnet-4-6", "surface": "api", "valid_efforts": EFFORTS}]
     rows = [row("claude-sonnet-4-6", "medium", .8, cost=.2), row("gpt-9-big", "medium", .7, cost=1),
             row("claude-cheap-2", "medium", .3, cost=2)]
@@ -306,9 +314,9 @@ def test_lane_scoped_freshness_flag_can_retain_lane_newest(tmp_path):
 
 
 def test_antigravity_recommendation_uses_dispatch_model_id(tmp_path):
-    models = MODELS + [{"id": "gemini-3.8-flash", "provider": "google", "family": "gemini-3.8",
+    models = only_models("claude-cheap-2", "gpt-9-big") + [{"id": "gemini-3.8-flash", "provider": "google", "family": "gemini-3.8",
                         "tier": "flash", "status": "ga"}]
-    surfaces = SURFACES + [{"model": "gemini-3.8-flash", "surface": "api", "valid_efforts": EFFORTS}]
+    surfaces = SURFACES + [{"model": "gemini-3.8-flash", "surface": "antigravity_cli", "valid_efforts": ["low", "medium", "high"]}]
     defaults = {**DEFAULTS, "allowed_providers": ["antigravity", "codex"]}
     rows = [row("gemini-3.8-flash", "medium", .8, cost=.2), row("gpt-9-big", "medium", .7, cost=1),
             row("claude-cheap-2", "medium", .3, cost=2)]
@@ -354,7 +362,8 @@ def test_restricted_grok_cannot_be_added_to_another_op(tmp_path):
 
 def test_robustness_grid_reports_a_flip_threshold(tmp_path):
     rows = [row("gpt-9-small", "medium", .4, cost=.01), row("gpt-9-big", "medium", .9, cost=1)]
-    catalog, loaded, points = build(tmp_path, rows, [req("implement.standard")])
+    catalog, loaded, points = build(tmp_path, rows, [req("implement.standard")],
+                                    models=only_models("gpt-9-small", "gpt-9-big"))
     points["implement.standard"]["expands_to"] = {"provider": "codex", "model": "gpt-9-small", "effort": "medium"}
     results = ro.recommend(catalog, loaded, points)
     ro.assess_robustness(catalog, loaded, points, results)
@@ -367,7 +376,8 @@ def test_robustness_grid_reports_a_flip_threshold(tmp_path):
 
 def test_robustness_detects_confidence_rule_flip(tmp_path):
     rows = [row("gpt-9-small", "medium", .8, cost=.1), row("gpt-9-big", "medium", .8, cost=2)]
-    catalog, loaded, points = build(tmp_path, rows, [req("implement.standard")])
+    catalog, loaded, points = build(tmp_path, rows, [req("implement.standard")],
+                                    models=only_models("gpt-9-small", "gpt-9-big"))
     points["implement.standard"]["expands_to"] = {"provider": "codex", "model": "gpt-9-small", "effort": "medium"}
     results = ro.recommend(catalog, loaded, points)
     ro.assess_robustness(catalog, loaded, points, results)
@@ -417,7 +427,8 @@ def test_effort_only_groups_do_not_outvote_cross_model_result(tmp_path):
                  row("gpt-9-big", "medium", .9, group=gid, cost=2)]
     rows += [row("gpt-9-big", "low", .8, group="cross", cost=1),
              row("claude-cheap-2", "low", .8, group="cross", cost=.3)]
-    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    r = run(tmp_path, rows, [req("implement.standard")],
+            models=only_models("gpt-9-big", "claude-cheap-2"))["implement.standard"]
     assert r["recommended"]["model"] == "claude-cheap-2"
 
 
@@ -509,7 +520,7 @@ def test_real_pack_schema_determinism_and_no_point_write():
     assert grok_now["recommended"] == {"provider": "grok", "model": "grok-4.7", "effort": "medium"}
     current_grok = points["grok.explore-only"]["expands_to"]["model"]
     flagged = any("not dispatchable" in f for f in grok_now["flags"])
-    assert flagged == (current_grok not in ro.GROK_LIVE_MODELS)  # flag only an incumbent the CLI no longer offers
+    assert flagged == (current_grok not in catalog.grok_live_models())
     audit = next(r for r in first if r["op"] == "review.audit")
     if audit["status"] == "RECOMMENDED":  # data-dependent; assert invariants, not a snapshot answer
         assert any("third_party" in g for g in audit["deciding_groups"]), "an auditor must win an independent group"
@@ -609,17 +620,17 @@ def test_real_google_promo_doubles_task_cost_after_expiry():
     board = next(g for g in groups if g.gid == "deepswe-datacurve-live-2026-09-22")
     cell = board.cells[("gemini-3.8-flash", "high")]
     assert cell.cost == pytest.approx(2 * cell.row["cost"]["value"])
-    assert "current input/output $0.75/$3.75, horizon $1.5/$7.5" in cell.price_note
+    assert "rate at observed_at 2026-09-22 input/output $0.75/$3.75, horizon $1.5/$7.5" in cell.price_note
 
 
-def test_ci_overlap_is_reported_as_tie_and_chooses_cheaper_tier(tmp_path):
+def test_ci_overlap_is_reported_as_tie_and_chooses_point_e(tmp_path):
     rows = [row("gpt-9-small", "medium", .79, cost=.2),
             row("gpt-9-big", "medium", .81, cost=.2),
             row("claude-cheap-2", "medium", .3, cost=2)]
     rows[0].update(ci_lo=.75, ci_hi=.83, n=100)
     rows[1].update(ci_lo=.77, ci_hi=.85, n=100)
     r = run(tmp_path, rows, [req("implement.standard", failure_detection_probability=0)])["implement.standard"]
-    assert group(r, "g-board")["choice"] == "codex/gpt-9-small/medium"
+    assert group(r, "g-board")["choice"] == "codex/gpt-9-big/medium"
     assert len(group(r, "g-board")["ties"]) >= 2
     assert arm(r, "g-board", "codex/gpt-9-small/medium")["n"] == 100
 
@@ -635,7 +646,162 @@ def test_published_pass_at_k_calibrates_same_arm_retry(tmp_path):
 
 def test_all_antigravity_dispatch_ids_resolve():
     catalog = ro.Catalog.from_dir(REPO / "data" / "model-catalog")
-    assert all(catalog.resolve(mid) for mid, _ in ro.ANTIGRAVITY_MODELS.values())
+    dispatches = catalog.antigravity_models()
+    observed_ids = {f"gemini-{version}-flash-{effort}" for version in ("3.6", "3.7", "3.8")
+                    for effort in ("low", "medium", "high")}
+    observed_ids |= {"gemini-3.1-pro-low", "gemini-3.1-pro-high", "claude-sonnet-4-6",
+                     "claude-opus-4-6-thinking", "gpt-oss-120b-medium"}
+    assert set(dispatches) == observed_ids  # authenticated `agy models` on 2026-09-23
+    assert all(catalog.resolve(mid) for mid, _ in dispatches.values())
+    assert catalog.grok_live_models() == {"grok-4.7"}  # `grok models` on the same date
+
+
+def test_incumbent_wins_ci_tie_and_tie_rule_sweep_flips(tmp_path):
+    rows = [row("gpt-9-big", "high", .8, cost=2),
+            row("gpt-9-small", "medium", .82, cost=.1)]
+    for item in rows:
+        item.update(ci_lo=.75, ci_hi=.86, n=100)
+    catalog, loaded, points = build(tmp_path, rows, [req("review.audit")],
+                                    models=only_models("gpt-9-small", "gpt-9-big"))
+    base = ro.recommend(catalog, loaded, points)[0]
+    assert group(base, "g-board")["choice"] == "codex/gpt-9-big/high"
+    assert base["status"] == "RECOMMENDED"
+    assert base["matches_current"]
+    point_e = ro.recommend(catalog, loaded, points, {"tie_rule": "point_e"})[0]
+    assert group(point_e, "g-board")["choice"] == "codex/gpt-9-small/medium"
+    ro.assess_robustness(catalog, loaded, points, [base])
+    assert any(flip.startswith("tie_rule=point_e") for flip in base["robustness"]["flips"])
+
+
+def test_real_deepswe_pass_at_4_changes_retry_calibration():
+    catalog = ro.Catalog.from_dir(REPO / "data" / "model-catalog")
+    policy = REPO / "data" / "model-choice-policy"
+    points = {p["id"]: p for p in json.loads((policy / "operating-points.json").read_text())["operating_points"]}
+    loaded = ro.load_requirements(policy / "op-requirements.json", catalog, set(points))
+    req0 = loaded["ops"]["implement.standard"]
+    board = next(g for g in ro.build_groups(req0, catalog)[0] if g.gid == "deepswe-datacurve-live-2026-09-22")
+    cell = board.cells[("gemini-3.8-flash", "high")]
+    assert "pass_at_4" in cell.row and "pass_at_k" not in cell.row
+    calibrated = ro.expected_cost(board, cell, req0)
+    no_pass_k = ro.expected_cost(board, replace(cell, row={k: v for k, v in cell.row.items() if k != "pass_at_4"}), req0)
+    assert calibrated is not None and no_pass_k is not None and calibrated != pytest.approx(no_pass_k)
+
+
+def test_flat_pass_at_10_is_calibrated(tmp_path):
+    rows = [row("gpt-9-small", "medium", .5, cost=.1), row("gpt-9-big", "medium", .5, cost=2)]
+    rows[0]["pass_at_10"] = .6
+    r = run(tmp_path, rows, [req("implement.standard")])["implement.standard"]
+    cell = arm(r, "g-board", "codex/gpt-9-small/medium")
+    assert cell["expected_cost_usd"] != pytest.approx(.6 + .5 * 10)
+
+
+def test_price_as_of_after_promotion_reprices_from_observation():
+    catalog = ro.Catalog.from_dir(REPO / "data" / "model-catalog")
+    policy = REPO / "data" / "model-choice-policy"
+    points = {p["id"]: p for p in json.loads((policy / "operating-points.json").read_text())["operating_points"]}
+    loaded = ro.load_requirements(policy / "op-requirements.json", catalog, set(points))
+    assert loaded["defaults"]["price_as_of"] == "2026-09-23"
+    req0 = {**loaded["ops"]["review.audit"], "price_as_of": "2027-01-01"}
+    board = next(g for g in ro.build_groups(req0, catalog)[0] if g.gid == "deepswe-datacurve-live-2026-09-22")
+    cell = board.cells[("gemini-3.8-flash", "high")]
+    assert cell.cost == pytest.approx(2 * cell.row["cost"]["value"])
+    assert "observed_at 2026-09-22" in cell.price_note
+
+
+def test_unpaired_measured_candidate_blocks_move(tmp_path):
+    rows = [row("gpt-9-small", "medium", .9, cost=.1),
+            row("gpt-9-big", "high", .5, cost=1),
+            row("claude-cheap-2", "medium", .7, group="vendor", cost=.2,
+                source_type="vendor_table", source_id="oai")]
+    points = {"implement.standard": {"id": "implement.standard", "expands_to":
+              {"provider": "codex", "model": "gpt-9-big", "effort": "high"}}}
+    catalog, loaded, _ = build(tmp_path, rows, [req("implement.standard")])
+    r = ro.recommend(catalog, loaded, points)[0]
+    assert r["status"] == "INSUFFICIENT_EVIDENCE"
+    assert any(m["model"] == "claude-cheap-2" and "comparison" in m["need"] for m in r["missing"])
+
+
+def test_entirely_unmeasured_candidate_blocks_move(tmp_path):
+    rows = [row("gpt-9-small", "medium", .9, cost=.1), row("gpt-9-big", "medium", .5, cost=1)]
+    catalog, loaded, points = build(tmp_path, rows, [req("implement.standard")],
+                                    models=only_models("gpt-9-small", "gpt-9-big", "claude-strong-2"))
+    points["implement.standard"]["expands_to"] = {"provider": "codex", "model": "gpt-9-big", "effort": "medium"}
+    r = ro.recommend(catalog, loaded, points)[0]
+    assert r["status"] == "INSUFFICIENT_EVIDENCE"
+    assert any(m["model"] == "claude-strong-2" and "independent cross-model comparison" in m["need"]
+               for m in r["missing"])
+
+
+def test_unknown_effort_independent_board_blocks_conflicting_move(tmp_path):
+    rows = [row("gpt-9-small", "medium", .9, cost=.1), row("gpt-9-big", "high", .6, cost=1),
+            row("gpt-9-small", None, .2, group="other-board", cost=1),
+            row("gpt-9-big", None, .9, group="other-board", cost=1)]
+    r = run(tmp_path, rows, [req("review.audit")])["review.audit"]
+    assert r["status"] == "INSUFFICIENT_EVIDENCE"
+    assert any("independent board disagrees, effort unattributed" in d and "BLOCKING" in d
+               for d in r["disagreements"])
+
+
+def test_exhausted_quota_excludes_arm_and_reports_tokens_per_task(tmp_path):
+    rows = [row("gpt-9-small", "medium", .8, cost=.1), row("gpt-9-big", "high", .7, cost=1)]
+    rows[0].update(n=2, token_counts={"input_tokens": 200, "output_tokens": 40})
+    catalog, loaded, points = build(tmp_path, rows, [req("implement.standard")])
+    loaded["ops"]["implement.standard"]["_availability"] = {"providers": {"openai": {"usage": {"windows": [
+        {"name": "7d", "display_name": "7 days", "utilization": 100, "resets_at": "2026-09-30T00:00:00Z"}]}}}}
+    r = ro.recommend(catalog, loaded, points)[0]
+    assert not any(c.startswith("codex/") for c in r["candidates"])
+    assert any("exhausted until 2026-09-30" in e["reason"] for e in r["excluded_models"])
+    loaded["ops"]["implement.standard"].pop("_availability")
+    r = ro.recommend(catalog, loaded, points)[0]
+    assert arm(r, "g-board", "codex/gpt-9-small/medium")["tokens_per_task"] == {
+        "input_tokens": 100, "output_tokens": 20}
+
+
+def test_board_vendor_default_effort_is_caveated(tmp_path):
+    rows = [row("claude-cheap-2", None, .9, cost=.1),
+            row("gpt-9-big", "high", .5, cost=1)]
+    rows[0]["effort_convention"] = "vendor_default"
+    surfaces = SURFACES + [{"model": "claude-cheap-2", "surface": "api",
+                            "valid_efforts": EFFORTS, "default_effort": "medium"}]
+    r = run(tmp_path, rows, [req("implement.standard")], surfaces=surfaces)["implement.standard"]
+    assert arm(r, "g-board", "claude/claude-cheap-2/medium")["p"] == pytest.approx(.9)
+    assert any("effort inferred as API vendor default medium" in f for f in r["flags"])
+
+
+def test_robustness_reports_date_and_horizon_flips(tmp_path):
+    rows = [row("gpt-9-small", "medium", .8, cost=.1), row("gpt-9-big", "high", .8, cost=1)]
+    catalog, loaded, points = build(tmp_path, rows, [req("review.audit")],
+                                    models=only_models("gpt-9-small", "gpt-9-big"))
+    catalog.prices["gpt-9-small"] = [
+        {"fresh_input_per_m": 1, "output_per_m": 1, "valid_until": "2027-01-20", "_direct": True, "_file": "promo"},
+        {"fresh_input_per_m": 20, "output_per_m": 20, "valid_from": "2027-01-21", "_direct": True, "_file": "standard"},
+    ]
+    base = ro.recommend(catalog, loaded, points)[0]
+    assert base["recommended"]["model"] == "gpt-9-small"
+    ro.assess_robustness(catalog, loaded, points, [base])
+    assert any(f.startswith("price_as_of=") for f in base["robustness"]["flips"])
+    assert any(f.startswith("policy_horizon_days=") for f in base["robustness"]["flips"])
+
+
+def test_cli_price_and_availability_inputs(tmp_path, capsys):
+    rows = [row("gpt-9-small", "medium", .8, cost=.1), row("gpt-9-big", "high", .7, cost=1)]
+    build(tmp_path, rows, [req("implement.standard")])
+    availability = tmp_path / "availability.json"
+    availability.write_text(json.dumps({"providers": {"openai": {"usage": {"windows": [
+        {"name": "7d", "utilization": 100, "resets_at": "2026-09-30T00:00:00Z"}]}}}}))
+    assert ro.main(["--catalog", str(tmp_path / "catalog"), "--policy", str(tmp_path / "policy"),
+                    "--price-as-of", "2027-01-01", "--availability", str(availability), "--json"]) == 0
+    output = json.loads(capsys.readouterr().out)
+    result = next(r for r in output["results"] if r["op"] == "implement.standard")
+    assert result["price_horizon"]["as_of"] == "2027-01-01"
+    assert not any(a.startswith("codex/") for a in result["candidates"])
+
+
+def test_review_constraint_remains_owner_decision_pending():
+    doc = json.loads((REPO / "data" / "model-choice-policy" / "op-requirements.json").read_text())
+    audit = next(op for op in doc["ops"] if op["op"] == "review.audit")
+    assert audit["constraint_decision"] == "OWNER_DECISION_PENDING"
+    assert all(c.startswith("different_vendor_from:") for c in audit["constraints"])
 
 
 def test_fixed_antigravity_dispatch_does_not_fan_out_efforts(tmp_path):

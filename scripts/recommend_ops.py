@@ -12,6 +12,7 @@ Usage:
   ./scripts/recommend_ops.py                 # markdown table + per-op detail
   ./scripts/recommend_ops.py --json          # machine-readable result
   ./scripts/recommend_ops.py --op review.audit
+  ./scripts/recommend_ops.py --price-as-of 2027-01-01 --availability quota.json
 """
 
 from __future__ import annotations
@@ -40,15 +41,10 @@ LANES = {
     "qwen": ("alibaba", "qwen_code"),
     "deepseek": ("deepseek", "deepseek_cli"),
 }
-# agy accepts these dispatch ids. Suffixes on Gemini ids encode effort.
-ANTIGRAVITY_MODELS = {
-    **{f"gemini-{v}-flash-{eff}": (f"gemini-{v}-flash", eff)
-       for v in ("3.6", "3.7", "3.8") for eff in ("low", "medium", "high")},
-    **{f"gemini-3.1-pro-{eff}": ("gemini-3.1-pro", eff) for eff in ("low", "high")},
-    "claude-sonnet-4-6": ("claude-sonnet-4-6", None),
-    "claude-opus-4-6-thinking": ("claude-opus-4-6", None),
-}
-GROK_LIVE_MODELS = frozenset({"grok-4.7"})  # `grok models`, verified 2026-09-23.
+# Fixed CLI spellings that cannot be inferred from a model id and effort suffix.
+ANTIGRAVITY_FIXED_IDS = {"claude-opus-4-6-thinking": "claude-opus-4-6",
+                         "claude-sonnet-4-6": "claude-sonnet-4-6",
+                         "gpt-oss-120b-medium": "gpt-oss-120b"}
 # "default" = the model takes no effort parameter (e.g. claude-haiku-4-5); its rows carry effort null.
 EFFORTS = ("default", "none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra")
 ABOVE_DEFAULT_EFFORTS = frozenset({"xhigh", "max", "ultra"})
@@ -115,9 +111,9 @@ class Catalog:
     metrics: dict[str, dict]
     surfaces: dict[tuple[str, str], list[str]]
     rows: list[dict]
-    list_price: dict[str, float]
     publishers: dict[str, str]
     prices: dict[str, list[dict]] = field(default_factory=dict)
+    default_efforts: dict[tuple[str, str], str | None] = field(default_factory=dict)
 
     @property
     def effortless(self) -> set[str]:
@@ -134,14 +130,15 @@ class Catalog:
                 aliases[a] = m["id"]
         metrics = {m["id"]: m for m in _load(root / "metrics.json")["metrics"]}
         surfaces: dict[tuple[str, str], list[str]] = {}
+        default_efforts: dict[tuple[str, str], str | None] = {}
         for path in sorted((root / "capabilities").glob("*.json")):
             for s in _load(path).get("surfaces", []):
                 surfaces[(s["model"], s["surface"])] = list(s.get("valid_efforts") or [])
+                default_efforts[(s["model"], s["surface"])] = s.get("default_effort")
         rows: list[dict] = []
         for path in sorted((root / "performance").glob("*.json")):
             for s in _load(path).get("scores", []):
                 rows.append({**s, "_file": path.name})
-        list_price: dict[str, float] = {}
         prices: dict[str, list[dict]] = {}
         agent_vendor = {"claude-code": "anthropic", "codex": "openai", "grok": "xai",
                         "google": "google", "qwen-code": "alibaba"}
@@ -159,17 +156,36 @@ class Catalog:
                         next_day = (dt.date.fromisoformat(rate["valid_until"]) + dt.timedelta(days=1)).isoformat()
                         prices[mid].append({**future, "valid_from": next_day, "_file": path.name,
                                             "_direct": direct, "_retrieved": doc.get("retrieved_at", "")})
-        today = dt.date.today().isoformat()
-        for mid, entries in prices.items():
-            active = [p for p in entries if p.get("valid_from", "") <= today <= p.get("valid_until", "9999-12-31")]
-            if active:
-                chosen = max(active, key=lambda p: (p["_direct"], p.get("valid_from", ""), p["_retrieved"], p["_file"]))
-                list_price[mid] = float(chosen["output_per_m"])
         publishers = {}
         src_path = root / "SOURCES.json"
         if src_path.is_file():
             publishers = {s["id"]: s.get("publisher", "") for s in _load(src_path)["sources"]}
-        return cls(models, aliases, metrics, surfaces, rows, list_price, publishers, prices)
+        return cls(models, aliases, metrics, surfaces, rows, publishers, prices, default_efforts)
+
+    def antigravity_models(self) -> dict[str, tuple[str, str | None]]:
+        dispatches = {}
+        for (mid, surface), efforts in self.surfaces.items():
+            if surface != "antigravity_cli":
+                continue
+            canonical = self.resolve(mid)
+            if canonical is None:
+                continue
+            if mid.startswith("gemini-"):
+                stem = mid.removesuffix("-preview")
+                dispatches.update({f"{stem}-{eff}": (canonical, eff) for eff in efforts})
+            else:
+                dispatches[mid] = (canonical, None)
+        dispatches.update({slug: (mid, None) for slug, mid in ANTIGRAVITY_FIXED_IDS.items()
+                           if self.resolve(mid)})
+        return dispatches
+
+    def grok_live_models(self) -> set[str]:
+        reachable = [m for m in self.models.values() if m.get("provider") == "xai"
+                     and m.get("status") == "ga" and m.get("tier")
+                     and (m["id"], "grok_cli") in self.surfaces]
+        return {m["id"] for m in reachable if not any(
+            other is not m and other["tier"] == m["tier"] and newer(other, m)
+            for other in reachable)}
 
     def price_at(self, model: str, date: dt.date) -> dict | None:
         entries = [p for p in self.prices.get(model, [])
@@ -204,6 +220,12 @@ def load_requirements(path: Path, catalog: Catalog, op_ids: set[str]) -> dict:
     """Load op-requirements.json, merge defaults, and fail loudly on any bad slot."""
     doc = _load(path)
     defaults = doc.get("defaults", {})
+    price_as_of = defaults.get("price_as_of", doc.get("generated_at"))
+    try:
+        dt.date.fromisoformat(price_as_of)
+    except (TypeError, ValueError):
+        raise RequirementsError("price_as_of or generated_at must be an ISO date") from None
+    defaults = {**defaults, "price_as_of": price_as_of}
     restrictions = defaults.get("provider_restrictions", {})
     family_map = doc.get("task_families", {})
     errs: list[str] = []
@@ -217,6 +239,7 @@ def load_requirements(path: Path, catalog: Catalog, op_ids: set[str]) -> dict:
         op = raw.get("op")
         req = {k: v for k, v in defaults.items() if k != "provider_restrictions"}
         req.update(raw)
+        req.setdefault("price_as_of", price_as_of)
         if "allowed_providers" not in raw:
             req["allowed_providers"] = [p for p in defaults.get("allowed_providers", [])
                                         if p not in restrictions or op in restrictions[p]]
@@ -256,6 +279,10 @@ def load_requirements(path: Path, catalog: Catalog, op_ids: set[str]) -> dict:
             errs.append(f"{where}: failure_detection_probability must be in 0..1")
         if req.get("policy_horizon_days", 90) < 1:
             errs.append(f"{where}: policy_horizon_days must be positive")
+        try:
+            dt.date.fromisoformat(req["price_as_of"])
+        except (TypeError, ValueError):
+            errs.append(f"{where}: price_as_of must be an ISO date")
         for c in req.get("constraints", []):
             m = CONSTRAINT_RE.match(c)
             if not m:
@@ -329,9 +356,23 @@ def dispatches_for_lane(lane: str, model: dict, catalog: Catalog | None = None) 
     if LANES[lane][0] == model["provider"]:
         return [(model["id"], None)]
     if lane == "antigravity":
-        return [(slug, effort) for slug, (mid, effort) in ANTIGRAVITY_MODELS.items()
+        return [(slug, effort) for slug, (mid, effort) in (catalog.antigravity_models() if catalog else {}).items()
                 if (catalog.resolve(mid) if catalog else mid) == model["id"]]
     return []
+
+
+def exhausted_window(arm: Arm, availability: dict) -> str | None:
+    provider = {"codex": "openai"}.get(arm.lane, arm.lane)
+    windows = availability.get("providers", {}).get(provider, {}).get("usage", {}).get("windows") or []
+    for window in windows:
+        name = window.get("name", "")
+        if arm.lane == "antigravity":
+            relevant = "Gemini" in name if arm.model.startswith("gemini-") else "Claude + GPT" in name
+        else:
+            relevant = name.startswith(("5h", "7d"))
+        if relevant and window.get("utilization", 0) >= 100:
+            return f"{window.get('display_name', name)} exhausted until {window.get('resets_at', 'unknown')}"
+    return None
 
 
 def candidate_arms(req: dict, catalog: Catalog, makers: dict[str, Arm]) -> tuple[list[Arm], list[dict], list[str]]:
@@ -412,7 +453,14 @@ def candidate_arms(req: dict, catalog: Catalog, makers: dict[str, Arm]) -> tuple
     excluded = [e for e in excluded if not (
         e.get("reason", "").startswith("no allowed effort") and (e["model"], e.get("lane")) in available)]
     excluded = list({json.dumps(e, sort_keys=True): e for e in excluded}.values())
-    return arms, excluded, notes
+    available = []
+    for arm in arms:
+        exhausted = exhausted_window(arm, req.get("_availability") or {})
+        if exhausted:
+            excluded.append({"model": arm.model, "lane": arm.lane, "reason": exhausted})
+        else:
+            available.append(arm)
+    return available, excluded, notes
 
 
 # ------------------------------------------------------------- groups
@@ -440,6 +488,8 @@ class Group:
     publisher_vendor: str | None
     vendors: set[str]
     cells: dict[tuple[str, str], Cell]
+    unattributed: dict[str, dict] = field(default_factory=dict)
+    convention_caveats: list[str] = field(default_factory=list)
     conflicts: list[str] = field(default_factory=list)
 
     def models_present(self, arms: list["Arm"]) -> int:
@@ -501,23 +551,33 @@ def build_groups(req: dict, catalog: Catalog) -> tuple[list[Group], list[str]]:
             effort = r.get("effort")
             if effort is None and mid in catalog.effortless:
                 effort = "default"
+            if effort is None and r.get("effort_convention") == "vendor_default":
+                effort = catalog.default_efforts.get((mid, "api"))
+                if effort:
+                    g.convention_caveats.append(
+                        f"{gid}: {mid} effort inferred as API vendor default {effort}; board did not measure this effort explicitly")
             if effort not in EFFORTS:
-                continue  # effort unattributed (None/unknown/adaptive): cannot map to an arm
+                if g.kind() == "independent" and r["unit"] in SUCCESS_UNITS:
+                    previous = g.unattributed.get(mid)
+                    if previous is None or r.get("observed_at", "") > previous.get("observed_at", ""):
+                        g.unattributed[mid] = r
+                continue
             cost = r.get("cost") if isinstance(r.get("cost"), dict) else None
             cost_v = cost["value"] if cost and cost.get("unit") == req["cost_basis"] else None
             price_note = None
             if cost_v is not None:
-                start = dt.date.fromisoformat(req.get("price_as_of", dt.date.today().isoformat()))
+                start = dt.date.fromisoformat(req["price_as_of"])
                 end = start + dt.timedelta(days=req.get("policy_horizon_days", 90))
-                current_rate, horizon_rate = catalog.price_at(mid, start), catalog.price_at(mid, end)
-                if current_rate and current_rate.get("valid_until", "9999-12-31") < end.isoformat():
+                observed = dt.date.fromisoformat(r["observed_at"])
+                observed_rate, horizon_rate = catalog.price_at(mid, observed), catalog.price_at(mid, end)
+                if observed_rate and observed_rate != horizon_rate:
                     if horizon_rate:
                         keys = ("fresh_input_per_m", "cache_read_per_m", "cache_write_per_m", "output_per_m")
-                        ratios = [horizon_rate[k] / current_rate[k] for k in keys
-                                  if k in horizon_rate and k in current_rate and current_rate[k] > 0]
-                        complete = all(k in horizon_rate and k in current_rate for k in ("fresh_input_per_m", "output_per_m"))
-                        price_note = (f"price expires {current_rate['valid_until']}; current input/output "
-                                      f"${current_rate.get('fresh_input_per_m', 0):g}/${current_rate['output_per_m']:g}, "
+                        ratios = [horizon_rate[k] / observed_rate[k] for k in keys
+                                  if k in horizon_rate and k in observed_rate and observed_rate[k] > 0]
+                        complete = all(k in horizon_rate and k in observed_rate for k in ("fresh_input_per_m", "output_per_m"))
+                        price_note = (f"rate at observed_at {observed.isoformat()} input/output "
+                                      f"${observed_rate.get('fresh_input_per_m', 0):g}/${observed_rate['output_per_m']:g}, "
                                       f"horizon ${horizon_rate.get('fresh_input_per_m', 0):g}/${horizon_rate['output_per_m']:g} per million tokens")
                         if complete and ratios and max(ratios) - min(ratios) < EPS:
                             price_note += f"; task cost ${cost_v:g} → ${cost_v * ratios[0]:g}"
@@ -526,7 +586,7 @@ def build_groups(req: dict, catalog: Catalog) -> tuple[list[Group], list[str]]:
                             price_note += "; horizon task cost unknown without token mix"
                             cost_v = None
                     else:
-                        price_note = f"price expires {current_rate['valid_until']}; horizon price unknown"
+                        price_note = f"rate at observed_at {observed.isoformat()}; horizon price unknown"
                         cost_v = None
             raw_score = float(r["score"])
             n = r.get("n")
@@ -600,6 +660,13 @@ def expected_cost(g: Group, cell: Cell, req: dict, next_cost: float | None = Non
     if next_cost is not None:
         return c + (1-p) * (d * next_cost + (1-d) * s)
     pass_k = cell.row.get("pass_at_k")
+    if pass_k is None:
+        observed = [(int(key.removeprefix("pass_at_")), value)
+                    for key, value in cell.row.items()
+                    if re.fullmatch(r"pass_at_\d+", key) and int(key.removeprefix("pass_at_")) > 1]
+        if observed:
+            k, value = min(observed)
+            pass_k = {"k": k, "value": value}
     if isinstance(pass_k, dict) and isinstance(pass_k.get("k"), int) and pass_k["k"] > 1 and base_p < 1:
         observed = pass_k.get("value")
         if isinstance(observed, (int, float)) and base_p <= observed <= 1:
@@ -617,19 +684,31 @@ def report_cost(value: float | None) -> float | str | None:
     return "Infinity" if value == float("inf") else value
 
 
+def tokens_per_task(row: dict) -> dict[str, float] | None:
+    counts = row.get("token_counts") or {k: row[k] for k in ("input_tokens", "output_tokens") if k in row}
+    if not counts:
+        return None
+    divisor = 1 if row.get("token_counts_basis") == "per_task" else row.get("n")
+    if not isinstance(divisor, int) or divisor < 1:
+        return None
+    return {key: value / divisor for key, value in counts.items()
+            if isinstance(value, (int, float)) and key.endswith("tokens")}
+
+
 def horizon_price(catalog: Catalog, req: dict, model: str) -> float:
-    start = dt.date.fromisoformat(req.get("price_as_of", dt.date.today().isoformat()))
+    start = dt.date.fromisoformat(req["price_as_of"])
     at_horizon = catalog.price_at(model, start + dt.timedelta(days=req.get("policy_horizon_days", 90)))
     return float(at_horizon["output_per_m"]) if at_horizon else float("inf")
 
 
 def arm_sort_key(arm: Arm, cost: float, catalog: Catalog, req: dict) -> tuple:
-    """Rank by E, then list price, model generation, and effort."""
-    price = horizon_price(catalog, req, arm.model)
-    return (cost, price, tuple(-x for x in version_key(arm.model)), EFFORTS.index(arm.effort))
+    """Rank tied arms by point E; list price is sensitivity-only legacy behavior."""
+    price = horizon_price(catalog, req, arm.model) if req.get("tie_rule") == "list_price" else 0
+    return (price, cost, tuple(-x for x in version_key(arm.model)), EFFORTS.index(arm.effort))
 
 
-def evaluate_group(g: Group, arms: list[Arm], req: dict, catalog: Catalog) -> GroupEval:
+def evaluate_group(g: Group, arms: list[Arm], req: dict, catalog: Catalog,
+                   incumbent: Arm | None = None) -> GroupEval:
     """Compare expected costs inside one group; retain a score ceiling for unmeasured efforts."""
     present = [a for a in arms if (a.model, a.effort) in g.cells]
     if g.kind() == "vendor":
@@ -670,7 +749,10 @@ def evaluate_group(g: Group, arms: list[Arm], req: dict, catalog: Catalog) -> Gr
         best = min(pool, key=lambda a: ev.costs[a])
         ev.ties = [a for a in pool if ev.bounds[a][0] <= ev.bounds[best][1] + EPS
                    and ev.bounds[best][0] <= ev.bounds[a][1] + EPS]
-        ev.choice = min(ev.ties, key=lambda a: arm_sort_key(a, 0, catalog, req))
+        if req.get("tie_rule", "keep_incumbent") == "keep_incumbent" and incumbent in ev.ties:
+            ev.choice = incumbent
+        else:
+            ev.choice = min(ev.ties, key=lambda a: arm_sort_key(a, ev.costs[a], catalog, req))
     ev.dominated = [a for a in pool if any(
         cell_of[b].score >= cell_of[a].score and cell_of[b].cost <= cell_of[a].cost
         and (cell_of[b].score > cell_of[a].score or cell_of[b].cost < cell_of[a].cost)
@@ -691,10 +773,11 @@ def group_ref(ev: GroupEval) -> str:
 def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current: dict) -> dict:
     """Steps 1-5 for one op."""
     arms, excluded, notes = candidate_arms(req, catalog, makers)
+    incumbent = current_arm({"expands_to": current}, catalog)
     result: dict[str, Any] = {
         "op": op,
         "current": current,
-        "price_horizon": {"as_of": req.get("price_as_of", dt.date.today().isoformat()),
+        "price_horizon": {"as_of": req["price_as_of"],
                           "days": req.get("policy_horizon_days", 90)},
         "status": None,
         "recommended": None,
@@ -707,14 +790,16 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
         "excluded_models": excluded,
         "groups": [],
     }
-    incumbent = current_arm({"expands_to": current}, catalog)
+    if req.get("_availability"):
+        result["flags"].append(
+            f"lane availability snapshot fetched_at {req['_availability'].get('fetched_at', 'unknown')}")
     if incumbent:
         lane = incumbent.lane
         known = catalog.models.get(incumbent.model)
         dispatchable = bool(known and lane in LANES and
                             (incumbent.dispatch_model or incumbent.model) in
                             {dispatch for dispatch, _ in dispatches_for_lane(lane, known, catalog)})
-        if lane == "grok" and incumbent.model not in GROK_LIVE_MODELS:
+        if lane == "grok" and incumbent.model not in catalog.grok_live_models():
             dispatchable = False
         if not dispatchable:
             result["flags"].append(f"current expands_to {incumbent.label()} is not dispatchable on {lane}'s live CLI model list")
@@ -729,7 +814,7 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
 
     groups, skipped = build_groups(req, catalog)
     result["skipped_groups"] = skipped
-    evals = [evaluate_group(g, arms, req, catalog) for g in groups]
+    evals = [evaluate_group(g, arms, req, catalog, incumbent) for g in groups]
     evals = [ev for ev in evals if ev.present]
 
     # Screen missing allowed efforts only when a measured arm dominates on both
@@ -771,11 +856,12 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
         if not arms:
             result["status"] = "NO_CANDIDATES"
             return result
-        evals = [evaluate_group(g, arms, req, catalog) for g in groups]
+        evals = [evaluate_group(g, arms, req, catalog, incumbent) for g in groups]
         evals = [ev for ev in evals if ev.present]
     for ev in evals:
         for c in ev.group.conflicts:
             result["flags"].append(f"{ev.group.gid}: duplicate row {c}")
+        result["flags"].extend(ev.group.convention_caveats)
         cells = ev.group.cells
         result["groups"].append({
             "group": ev.group.gid,
@@ -800,6 +886,8 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
                  "ci_hi": cells[(a.model, a.effort)].ci_hi,
                  "n": cells[(a.model, a.effort)].n,
                  "price_note": cells[(a.model, a.effort)].price_note,
+                 "tokens_per_task": tokens_per_task(cells[(a.model, a.effort)].row)
+                 if a.lane in {"antigravity", "claude", "codex", "grok", "qwen"} else None,
                  "expected_cost_usd": report_cost(ev.costs.get(a)),
                  "expected_cost_interval_usd": [report_cost(v) for v in ev.bounds[a]] if a in ev.bounds else None,
                  "dominated": a in ev.dominated}
@@ -829,7 +917,27 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
     independent_cross = [ev for ev in decisive if ev.group.kind() == "independent"
                          and ev.group.models_present(ev.present) >= 2]
     rival_choices = {ev.choice for ev in decisive if ev.choice is not None}
-    for a in rival_choices:
+    unattributed_by_model: dict[str, list[str]] = {}
+    candidate_models = {a.model for a in arms}
+    for g in groups:
+        if g.kind() != "independent" or g.unit not in SUCCESS_UNITS:
+            continue
+        on_board = sorted(candidate_models & g.unattributed.keys())
+        for mid in on_board:
+            own = g.unattributed[mid]
+            own_score = own["score"] if g.direction == "higher_better" else -own["score"]
+            higher = [other for other in on_board if other != mid and
+                      (g.unattributed[other]["score"] if g.direction == "higher_better"
+                       else -g.unattributed[other]["score"]) > own_score + EPS]
+            if higher:
+                rival = max(higher, key=lambda other: (g.unattributed[other]["score"] if g.direction == "higher_better"
+                                                   else -g.unattributed[other]["score"], other))
+                unattributed_by_model.setdefault(mid, []).append(
+                    f"{g.gid}: independent board disagrees, effort unattributed: "
+                    f"{mid}={own['score']:g} vs {rival}={g.unattributed[rival]['score']:g} (BLOCKING)")
+    result["disagreements"].extend(message for mid in sorted(unattributed_by_model)
+                                   for message in unattributed_by_model[mid])
+    for a in sorted(rival_choices):
         containing = [ev for ev in decisive if a in ev.present]
         # An independent rival win counts against an arm even if that board omits it.
         counted = containing + [ev for ev in independent_cross if all(ev is not old for old in containing)]
@@ -840,10 +948,17 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
         cross_den = sum(ev.weight for ev in independent_cross)
         rivals = {b for b in rival_choices if b.model != a.model}
         rivals.update(b for ev in won for b in ev.present if b.model != a.model)
+        # Every eligible rival needs a direct independent comparison before a move.
+        # This includes rivals with no board data at all.
+        unpaired_models = {b.model for b in arms if b.model != a.model
+                           and not any(a.model in {mid for mid, _ in ev.group.cells}
+                                       and b.model in {mid for mid, _ in ev.group.cells}
+                                       for ev in independent_cross)}
+        rivals.update(next(b for b in arms if b.model == mid) for mid in sorted(unpaired_models))
         if current_candidate and current_candidate.model != a.model:
             rivals.add(current_candidate)
         missing_pairs = []
-        for b in rivals:
+        for b in sorted(rivals):
             if not any((a.model, a.effort) in ev.group.cells and
                        (b.model, b.effort) in ev.group.cells for ev in independent_cross):
                 boards = [ev for ev in independent_cross if (b.model, b.effort) in ev.group.cells and ev.choice == b]
@@ -856,16 +971,16 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
                                           "metric": ev.group.metric_id, "group": ev.group.gid,
                                           "need": f"independent cross-model comparison with {b.model if absent == a else a.model}"})
         threshold = req.get("majority_threshold", 0.5)
+        unattributed_disagreements = unattributed_by_model.get(a.model, [])
         stats[a] = {"won": won, "lost": [ev for ev in counted if ev not in won],
                     "num": num, "den": den, "cross_num": cross_num, "cross_den": cross_den,
-                    "missing_pairs": missing_pairs,
+                    "missing_pairs": missing_pairs, "unattributed_disagreements": unattributed_disagreements,
                     "consistent": (den > 0 and num / den > threshold
                                    and cross_den > 0 and cross_num / cross_den > threshold
-                                   and not missing_pairs)}
+                                   and not missing_pairs and not unattributed_disagreements)}
 
     consistent = sorted((a for a, s in stats.items() if s["consistent"]),
-                        key=lambda a: (-stats[a]["num"], horizon_price(catalog, req, a.model),
-                                       tuple(-x for x in version_key(a.model))))
+                        key=lambda a: (-stats[a]["num"], tuple(-x for x in version_key(a.model))))
 
     def unmeasured() -> None:
         """Report absent per-task evidence without a list-token-price shortcut."""
@@ -939,6 +1054,14 @@ def decide(op: str, req: dict, catalog: Catalog, makers: dict[str, Arm], current
             if not decisive:
                 result["flags"].append("no group has a priced success-rate arm")
         unmeasured()
+    retained_ties = [ev for ev in independent_cross if ev.choice == incumbent and len(ev.ties) > 1]
+    if (incumbent in arms and retained_ties and not unattributed_by_model.get(incumbent.model)
+            and all(ev.choice == incumbent for ev in independent_cross)):
+        result["status"] = "RECOMMENDED"
+        result["recommended"] = arm_dict(incumbent)
+        result["confidence"] = "incumbent retained on CI tie"
+        result["deciding_groups"] = [group_ref(ev) for ev in retained_ties]
+        result["flags"].append("incumbent retained on independent CI tie; missing comparisons still block moves")
     # de-duplicate missing entries, keep order
     seen = set()
     uniq = []
@@ -963,7 +1086,7 @@ def current_arm(point: dict, catalog: Catalog) -> Arm | None:
     if not exp.get("model"):
         return None
     dispatch = exp["model"]
-    canonical = ANTIGRAVITY_MODELS.get(dispatch, (dispatch, None))[0] if exp.get("provider") == "antigravity" else dispatch
+    canonical = catalog.antigravity_models().get(dispatch, (dispatch, None))[0] if exp.get("provider") == "antigravity" else dispatch
     canonical = catalog.resolve(canonical) or canonical
     return Arm(canonical, exp.get("effort", ""), exp.get("provider", ""),
                dispatch if dispatch != canonical else None)
@@ -991,6 +1114,9 @@ def recommend(catalog: Catalog, reqs: dict, points: dict[str, dict],
             req["vendor_cross_vendor_factor"] = scenario.get("vendor_factor", req["vendor_cross_vendor_factor"])
             req["majority_threshold"] = scenario.get("majority", req.get("majority_threshold", 0.5))
             req["high_confidence_groups"] = scenario.get("high_confidence_groups", req.get("high_confidence_groups", 2))
+            req["tie_rule"] = scenario.get("tie_rule", req.get("tie_rule", "keep_incumbent"))
+            req["price_as_of"] = scenario.get("price_as_of", req["price_as_of"])
+            req["policy_horizon_days"] = scenario.get("policy_horizon_days", req.get("policy_horizon_days", 90))
             if "source_weights" in scenario:
                 req["source_weights"] = {**req["source_weights"], **scenario["source_weights"]}
         deps = {d: makers[d] for d in op_dependencies(req) if d in makers}
@@ -1042,17 +1168,26 @@ def assess_robustness(catalog: Catalog, reqs: dict, points: dict[str, dict], res
                           {"source_weights": {kind: value for kind in INDEPENDENT_SOURCE_TYPES}}))
         scenarios.append((f"vendor_weight={value:g}",
                           {"source_weights": {kind: value for kind in VENDOR_SOURCE_TYPES}}))
+    scenarios.extend((f"tie_rule={rule}", {"tie_rule": rule})
+                     for rule in ("list_price", "point_e", "keep_incumbent"))
+    base_date = dt.date.fromisoformat(reqs["defaults"]["price_as_of"])
+    scenarios.extend((f"price_as_of={date.isoformat()}", {"price_as_of": date.isoformat()})
+                     for date in (base_date + dt.timedelta(days=14), base_date + dt.timedelta(days=100)))
+    scenarios.extend((f"policy_horizon_days={days}", {"policy_horizon_days": days})
+                     for days in (30, 120, 365))
     cache = [(name, {r["op"]: outcome(r) for r in recommend(catalog, reqs, points, scenario)})
              for name, scenario in scenarios]
     for result in results:
         op = result["op"]
         outcomes = sorted({values[op] for _, values in cache})
         base = cache[0][1][op]
-        flip = next((f"{name}: {base} → {values[op]}" for name, values in cache[1:]
-                     if values[op] != base), None)
+        flips = [f"{name}: {base} → {values[op]}" for name, values in cache[1:]
+                 if values[op] != base]
+        flip = flips[0] if flips else None
         result["robustness"] = {
             "status": "CLEAR" if len(outcomes) == 1 and result["recommended"] else "ASSUMPTION_SENSITIVE",
             "outcomes": outcomes,
+            "flips": flips,
             "threshold": flip or ("No winning arm in the sensitivity sweeps; evidence remains insufficient."
                                   if not result["recommended"] else None),
         }
@@ -1070,7 +1205,9 @@ def _cell(items: list[str], limit: int = 3) -> str:
 
 
 def render_markdown(results: list[dict]) -> str:
-    horizon = results[0]["price_horizon"] if results else {"as_of": dt.date.today().isoformat(), "days": 90}
+    horizon = results[0]["price_horizon"] if results else None
+    if horizon is None:
+        return "No operating points selected.\n"
     lines = [f"Price policy: {horizon['days']}-day horizon from {horizon['as_of']}. E is expected cost per task.", "",
         "| op | current expands_to | recommended arm | confidence | robustness / flip threshold | deciding groups | disagreements | missing |",
         "|----|--------------------|-----------------|------------|-----------------------------|-----------------|---------------|---------|",
@@ -1100,6 +1237,9 @@ def render_markdown(results: list[dict]) -> str:
         lines.append(f"- candidates ({len(r['candidates'])}): {', '.join(r['candidates']) or 'none'}")
         if r.get("robustness"):
             lines.append(f"- robustness: {r['robustness']['status']} — {r['robustness']['threshold'] or 'same arm across the grid'}")
+            for flip in r["robustness"].get("flips", []):
+                if flip.startswith(("tie_rule=", "price_as_of=", "policy_horizon_days=")):
+                    lines.append(f"  - {flip}")
         if r["excluded_models"]:
             notable = [e for e in r["excluded_models"] if not e["reason"].startswith("superseded in tier")]
             shown = "; ".join(f"{e['model']} ({e['reason']})" for e in notable[:5])
@@ -1115,6 +1255,7 @@ def render_markdown(results: list[dict]) -> str:
                 + (f" cost=${a['cost']:g}" if a["cost"] is not None else " cost=?")
                 + (" E=∞" if a["expected_cost_usd"] == "Infinity" else
                    f" E=${a['expected_cost_usd']:.3g}" if a["expected_cost_usd"] is not None else " E=—")
+                + (f" tokens/task={a['tokens_per_task']}" if a["tokens_per_task"] else "")
                 + (" dominated" if a["dominated"] else "") for a in g["arms"])
             status = f"unusable: {g['unusable']}" if g["unusable"] else f"choice {g['choice'] or 'none (no priced success-rate arm)'}"
             ceiling = "" if g["ceiling_raw"] is None else f", ceiling {g['ceiling_raw']:.4g}"
@@ -1139,6 +1280,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
     ap.add_argument("--policy", type=Path, default=DEFAULT_POLICY)
     ap.add_argument("--requirements", type=Path, help="default: <policy>/op-requirements.json")
+    ap.add_argument("--price-as-of", help="ISO date; overrides the pinned requirements date")
+    ap.add_argument("--availability", type=Path, help="clawmeter status --json snapshot")
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--op", action="append", help="limit output to these op ids")
     args = ap.parse_args(argv)
@@ -1148,7 +1291,16 @@ def main(argv: list[str] | None = None) -> int:
     points = {p["id"]: p for p in points_doc["operating_points"]}
     try:
         reqs = load_requirements(args.requirements or args.policy / "op-requirements.json", catalog, set(points))
-    except RequirementsError as e:
+        if args.price_as_of:
+            dt.date.fromisoformat(args.price_as_of)
+            reqs["defaults"]["price_as_of"] = args.price_as_of
+            for req in reqs["ops"].values():
+                req["price_as_of"] = args.price_as_of
+        if args.availability:
+            availability = _load(args.availability)
+            for req in reqs["ops"].values():
+                req["_availability"] = availability
+    except (RequirementsError, ValueError) as e:
         print(f"op-requirements invalid:\n{e}", file=sys.stderr)
         return 2
     results = recommend(catalog, reqs, points)
