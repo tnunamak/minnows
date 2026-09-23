@@ -3,7 +3,7 @@
   "schema_version": 1,
   "policy_version": "0.1.11",
   "generated_at": "2026-09-22",
-  "catalog_ref": "data-model-catalog-v0.5.6",
+  "catalog_ref": "data-model-catalog-v0.5.7",
   "doctrine": [
     "Task-shaped operating points, not cheap/default/max ladders",
     "Enumerate and explain; no silent auto-routing",

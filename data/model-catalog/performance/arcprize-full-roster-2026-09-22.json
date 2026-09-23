@@ -14,9 +14,16 @@
   "notes": "FULL SAME-SNAPSHOT roster pass (2026-09-22) of the ARC Prize public leaderboard, headless-rendered (grab.py, same technique as performance/arcprize-gpt-6-sol-luna-2026-09.json). This file is ADDITIVE to that prior file: gpt-6-astra's max-effort ARC-AGI-1/ARC-AGI-2 row (97.5%/$0.433, 95.0%/$1.12) and gpt-6-luna's rows were RE-VERIFIED this pass and match that file's existing numbers exactly — NOT re-recorded here as duplicates. This file adds the effort ladders/candidates that prior file did not cover: claude-opus-5-5 (5 effort levels), claude-haiku-4-5 (base + 4 thinking-budget variants — a NEW capability surface for this pack, ARC Prize apparently runs Haiku 4.5 at four distinct extended-thinking token budgets as separate configurations), claude-fable-5-1 (5 effort levels), grok-4.6 (4 effort levels), gpt-5.6-sol and gpt-5.6-terra (full 5-level effort ladders with ARC-AGI-3 Standard-harness cost, not previously recorded in this pack for either model). gpt-6-sol and claude-sonnet-5 absence (already flagged in the prior file's missing[]) is RE-CONFIRMED here by a second independent full-table scan (260 rows checked, zero name-prefix hits for either). ARC-AGI-3 costs are TOTAL SUITE cost (not per-task), recorded with cost.unit='other', same convention as the prior file.",
   "claims": [
     {
-      "models": ["gpt-6-sol", "claude-sonnet-5"],
-      "task_families": ["reasoning"],
-      "axes": ["quality"],
+      "models": [
+        "gpt-6-sol",
+        "claude-sonnet-5"
+      ],
+      "task_families": [
+        "reasoning"
+      ],
+      "axes": [
+        "quality"
+      ],
       "statement": "RE-CONFIRMED ABSENT (second independent scan of the full 260-row table, 2026-09-22): gpt-6-sol and claude-sonnet-5 have zero rows anywhere on the ARC Prize leaderboard, at any effort level, on any of ARC-AGI-1/2/3. Every other lane candidate has at least one row.",
       "source_id": "arcprize-leaderboard-full-roster-2026-09-22"
     }
@@ -38,7 +45,11 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.641, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.641,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-5-5",
@@ -55,8 +66,12 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-2",
       "comparability_group": "arc-agi-2-arcprize-2026-09-22",
-      "comparable": true,
-      "cost": { "value": 1.85, "unit": "usd_per_task", "basis": "api_usd" }
+      "comparable": false,
+      "cost": {
+        "value": 1.85,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-5-5",
@@ -74,7 +89,11 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.158, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.158,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-5-5",
@@ -91,8 +110,12 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-2",
       "comparability_group": "arc-agi-2-arcprize-2026-09-22",
-      "comparable": true,
-      "cost": { "value": 0.408, "unit": "usd_per_task", "basis": "api_usd" }
+      "comparable": false,
+      "cost": {
+        "value": 0.408,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-fable-5-1",
@@ -110,12 +133,16 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 1.40, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 1.4,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-fable-5-1",
       "metric": "ARC-AGI-2",
-      "score": 0.900,
+      "score": 0.9,
       "unit": "accuracy",
       "effort": "max",
       "source_id": "arcprize-leaderboard-full-roster-2026-09-22",
@@ -127,13 +154,17 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-2",
       "comparability_group": "arc-agi-2-arcprize-2026-09-22",
-      "comparable": true,
-      "cost": { "value": 4.49, "unit": "usd_per_task", "basis": "api_usd" }
+      "comparable": false,
+      "cost": {
+        "value": 4.49,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "grok-4.6",
       "metric": "ARC-AGI-1",
-      "score": 0.870,
+      "score": 0.87,
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "arcprize-leaderboard-full-roster-2026-09-22",
@@ -146,7 +177,11 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.348, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.348,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "grok-4.6",
@@ -163,8 +198,12 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-2",
       "comparability_group": "arc-agi-2-arcprize-2026-09-22",
-      "comparable": true,
-      "cost": { "value": 0.757, "unit": "usd_per_task", "basis": "api_usd" }
+      "comparable": false,
+      "cost": {
+        "value": 0.757,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "grok-4.6",
@@ -183,7 +222,11 @@
       "metric_id": "arc-agi-3",
       "comparability_group": "arc-agi-3-standard",
       "comparable": false,
-      "cost": { "value": 5600, "unit": "other", "basis": "api_usd" }
+      "cost": {
+        "value": 5600,
+        "unit": "other",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -201,7 +244,11 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.400, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.4,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -218,8 +265,12 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-2",
       "comparability_group": "arc-agi-2-arcprize-2026-09-22",
-      "comparable": true,
-      "cost": { "value": 1.44, "unit": "usd_per_task", "basis": "api_usd" }
+      "comparable": false,
+      "cost": {
+        "value": 1.44,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -238,7 +289,11 @@
       "metric_id": "arc-agi-3",
       "comparability_group": "arc-agi-3-standard",
       "comparable": false,
-      "cost": { "value": 25100, "unit": "other", "basis": "api_usd" }
+      "cost": {
+        "value": 25100,
+        "unit": "other",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -256,7 +311,11 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.550, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.55,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -273,8 +332,12 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-2",
       "comparability_group": "arc-agi-2-arcprize-2026-09-22",
-      "comparable": true,
-      "cost": { "value": 1.09, "unit": "usd_per_task", "basis": "api_usd" }
+      "comparable": false,
+      "cost": {
+        "value": 1.09,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -293,7 +356,11 @@
       "metric_id": "arc-agi-3",
       "comparability_group": "arc-agi-3-standard",
       "comparable": false,
-      "cost": { "value": 7900, "unit": "other", "basis": "api_usd" }
+      "cost": {
+        "value": 7900,
+        "unit": "other",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-haiku-4-5",
@@ -309,7 +376,11 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.026, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.026,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-haiku-4-5",
@@ -324,8 +395,12 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-2",
       "comparability_group": "arc-agi-2-arcprize-2026-09-22",
-      "comparable": true,
-      "cost": { "value": 0.043, "unit": "usd_per_task", "basis": "api_usd" }
+      "comparable": false,
+      "cost": {
+        "value": 0.043,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-haiku-4-5",
@@ -341,12 +416,16 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.256, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.256,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-haiku-4-5",
       "metric": "ARC-AGI-2",
-      "score": 0.040,
+      "score": 0.04,
       "unit": "accuracy",
       "source_id": "arcprize-leaderboard-full-roster-2026-09-22",
       "caveat": "Table row 'Claude Haiku 4.5 (Thinking 32K)'. Table cell '4.0%, $0.377/task'.",
@@ -356,8 +435,12 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-2",
       "comparability_group": "arc-agi-2-arcprize-2026-09-22",
-      "comparable": true,
-      "cost": { "value": 0.377, "unit": "usd_per_task", "basis": "api_usd" }
+      "comparable": false,
+      "cost": {
+        "value": 0.377,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     }
   ],
   "missing": [

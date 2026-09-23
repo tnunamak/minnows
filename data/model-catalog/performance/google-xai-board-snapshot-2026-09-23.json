@@ -1,0 +1,332 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "google-xai-board-snapshot-2026-09-23",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-09-23",
+  "source_urls": [
+    "https://artificialanalysis.ai/models/grok-4-7",
+    "https://www.vals.ai/benchmarks/terminal-bench-4",
+    "https://deepswe.datacurve.ai/",
+    "https://artificialanalysis.ai/models/gemini-3-8-flash",
+    "https://artificialanalysis.ai/models/gemini-3-1-pro-preview",
+    "https://artificialanalysis.ai/models/grok-4-6"
+  ],
+  "source_ids": [
+    "artificialanalysis-grok-4-7-model-page-2026-09-23",
+    "vals-ai-terminal-bench-4-snapshot-2026-09-22",
+    "deepswe-datacurve-live-board-2026-09-23",
+    "artificialanalysis-gemini-3-8-flash-model-page-2026-09-23",
+    "artificialanalysis-gemini-3-1-pro-preview-model-page-2026-09-23",
+    "artificialanalysis-grok-4-6-model-page-2026-09-23"
+  ],
+  "notes": "Additive direct-fetch board readings. AA raw HTML and vals.ai HTML-entity RSC payloads fetched 2026-09-23. For AA, score and task cost were parsed from the model page RSC object. For vals.ai, rows were parsed from the 2026-09-22 dataset payload. No old snapshot file was rewritten. Board coverage for the requested model×board grid remains incomplete; see missing[] and report.",
+  "claims": [],
+  "scores": [
+    {
+      "model": "grok-4.7",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 46.4465506302286,
+      "unit": "other",
+      "effort": "xhigh",
+      "source_id": "artificialanalysis-grok-4-7-model-page-2026-09-23",
+      "caveat": "AA raw RSC currentModel: cost per Intelligence Index task $3.738325952106939; retrieved 2026-09-23.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparable": true,
+      "comparability_group": "aa-intelligence-index-v4-3-2",
+      "cost": {
+        "value": 3.738325952106939,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "grok-4.7",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.28283,
+      "unit": "accuracy",
+      "source_id": "vals-ai-terminal-bench-4-snapshot-2026-09-22",
+      "caveat": "vals.ai RSC payload: accuracy 28.283, latency 5976.178s, cost_per_test $14.315163; effort is not present in this row.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "tb4-vals-ai-secondary-2026-09-22",
+      "cost": {
+        "value": 14.315163,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-3.8-flash",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.13131,
+      "unit": "accuracy",
+      "source_id": "vals-ai-terminal-bench-4-snapshot-2026-09-22",
+      "caveat": "vals.ai RSC payload: accuracy 13.131, latency 8524.647s, cost_per_test $11.53543; effort is not present in this row.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "tb4-vals-ai-secondary-2026-09-22",
+      "cost": {
+        "value": 11.53543,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "grok-4.6",
+      "metric": "Terminal-Bench 4.0",
+      "score": 0.17172,
+      "unit": "accuracy",
+      "source_id": "vals-ai-terminal-bench-4-snapshot-2026-09-22",
+      "caveat": "vals.ai RSC payload: accuracy 17.172, latency 11724.581s, cost_per_test $6.471265; effort is not present in this row.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "tb4-vals-ai-secondary-2026-09-22",
+      "cost": {
+        "value": 6.471265,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-3.1-pro-preview",
+      "metric": "DeepSWE v1.1",
+      "score": 0.1172566371681416,
+      "unit": "accuracy",
+      "effort": "high",
+      "effort_verbatim": "high",
+      "source_id": "deepswe-datacurve-live-board-2026-09-23",
+      "caveat": "DataCurve full config: harness mini-swe-agent; pass@1 is over 113 tasks, mean cost $2.1434045568888886. Page labels effort high.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "comparable": false,
+      "comparability_group": "deepswe-datacurve-live-2026-09-22",
+      "cost": {
+        "value": 2.1434045568888886,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-3.8-flash",
+      "metric": "DeepSWE v1.1",
+      "score": 0.738255033557047,
+      "unit": "accuracy",
+      "effort": "high",
+      "effort_verbatim": "high",
+      "source_id": "deepswe-datacurve-live-board-2026-09-23",
+      "caveat": "DataCurve full config: harness mini-swe-agent; pass@1 is over 113 tasks, mean cost $2.362349413758389. Page labels effort high.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "comparable": false,
+      "comparability_group": "deepswe-datacurve-live-2026-09-22",
+      "cost": {
+        "value": 2.362349413758389,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-3.8-flash",
+      "metric": "DeepSWE v1.1",
+      "score": 0.7101769911504425,
+      "unit": "accuracy",
+      "effort": "medium",
+      "effort_verbatim": "medium",
+      "source_id": "deepswe-datacurve-live-board-2026-09-23",
+      "caveat": "DataCurve full config: harness mini-swe-agent; pass@1 is over 113 tasks, mean cost $1.9671024789823006. Page labels effort medium.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "comparable": false,
+      "comparability_group": "deepswe-datacurve-live-2026-09-22",
+      "cost": {
+        "value": 1.9671024789823006,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "grok-4.6",
+      "metric": "DeepSWE v1.1",
+      "score": 0.6747787610619469,
+      "unit": "accuracy",
+      "effort": "medium",
+      "effort_verbatim": "medium",
+      "source_id": "deepswe-datacurve-live-board-2026-09-23",
+      "caveat": "DataCurve full config: harness mini-swe-agent; pass@1 is over 113 tasks, mean cost $3.4489837522123894. Page labels effort medium.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "comparable": false,
+      "comparability_group": "deepswe-datacurve-live-2026-09-22",
+      "cost": {
+        "value": 3.4489837522123894,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "grok-4.6",
+      "metric": "DeepSWE v1.1",
+      "score": 0.6674057649667405,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "effort_verbatim": "xhigh",
+      "source_id": "deepswe-datacurve-live-board-2026-09-23",
+      "caveat": "DataCurve full config: harness mini-swe-agent; pass@1 is over 113 tasks, mean cost $5.497668745011087. Page labels effort xhigh.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "comparable": false,
+      "comparability_group": "deepswe-datacurve-live-2026-09-22",
+      "cost": {
+        "value": 5.497668745011087,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "grok-4.6",
+      "metric": "DeepSWE v1.1",
+      "score": 0.6518847006651884,
+      "unit": "accuracy",
+      "effort": "high",
+      "effort_verbatim": "high",
+      "source_id": "deepswe-datacurve-live-board-2026-09-23",
+      "caveat": "DataCurve full config: harness mini-swe-agent; pass@1 is over 113 tasks, mean cost $4.3848732239467845. Page labels effort high.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "comparable": false,
+      "comparability_group": "deepswe-datacurve-live-2026-09-22",
+      "cost": {
+        "value": 4.3848732239467845,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "grok-4.6",
+      "metric": "DeepSWE v1.1",
+      "score": 0.41648106904231624,
+      "unit": "accuracy",
+      "effort": "low",
+      "effort_verbatim": "low",
+      "source_id": "deepswe-datacurve-live-board-2026-09-23",
+      "caveat": "DataCurve full config: harness mini-swe-agent; pass@1 is over 113 tasks, mean cost $1.0423604231625836. Page labels effort low.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-22",
+      "task_family": "coding",
+      "metric_id": "deepswe-leaderboard-datacurve",
+      "comparable": false,
+      "comparability_group": "deepswe-datacurve-live-2026-09-22",
+      "cost": {
+        "value": 1.0423604231625836,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-3.8-flash",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 40.9262321765904,
+      "unit": "other",
+      "effort": "high",
+      "source_id": "artificialanalysis-gemini-3-8-flash-model-page-2026-09-23",
+      "caveat": "AA model-detail RSC: Intelligence Index cost per task $1.2427947606950427. Page effort label is high.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparable": true,
+      "comparability_group": "aa-intelligence-index-v4-3-2",
+      "cost": {
+        "value": 1.2427947606950427,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-3.1-pro-preview",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 29.7185656132261,
+      "unit": "other",
+      "source_id": "artificialanalysis-gemini-3-1-pro-preview-model-page-2026-09-23",
+      "caveat": "AA model-detail RSC: Intelligence Index cost per task $0.6747317275695374. Page effort label is not stated.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparable": true,
+      "comparability_group": "aa-intelligence-index-v4-3-2",
+      "cost": {
+        "value": 0.6747317275695374,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "grok-4.6",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 44.3113073012592,
+      "unit": "other",
+      "effort": "high",
+      "source_id": "artificialanalysis-grok-4-6-model-page-2026-09-23",
+      "caveat": "AA model-detail RSC: Intelligence Index cost per task $1.8589423352127492. Page effort label is high.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparable": true,
+      "comparability_group": "aa-intelligence-index-v4-3-2",
+      "cost": {
+        "value": 1.8589423352127492,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    }
+  ],
+  "missing": [
+    "No fresh same-snapshot payload was fetched in this pass for vals.ai SWE-bench, official tbench.ai, ARC Prize, or LMArena for the target set grok-4.7, gemini-3.1-pro-preview, gemini-3.8-flash, and grok-4.6; no absence is asserted for these boards.",
+    "No public Gemini API model id exists for Gemini 3 Deep Think, so no valid API-model roster lookup is available for that product mode.",
+    "Artificial Analysis detail-page payloads were fetched for grok-4.7, gemini-3.1-pro-preview, gemini-3.8-flash, and grok-4.6. No Deep Think API model id exists.",
+    "vals.ai Terminal-Bench 4.0 2026-09-22 roster confirms gemini-3.1-pro-preview absent. The page lists scores for grok-4.7, gemini-3.8-flash, and grok-4.6.",
+    "DeepSWE (DataCurve) current full config payload updated 2026-09-22 confirms grok-4.7 absent from all 70 model/effort configs; gemini-3.1-pro-preview, gemini-3.8-flash, and grok-4.6 are present."
+  ]
+}

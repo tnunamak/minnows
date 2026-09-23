@@ -14,9 +14,16 @@
   "notes": "LAUNCH-DAY read (2026-09-22) of ARC Prize's public leaderboard. A plain static curl of this URL returns only a client-rendered shell (consistent with performance/opus-5-5-board-coverage-2026-09-22.json's prior RETRIEVAL LIMIT note on the same board); this pass used the headless-browser fetch method (grab.py, per the task brief) to render the page fully, which recovered a real ARC-AGI-1/ARC-AGI-2/ARC-AGI-3 table (AI System / ARC-AGI-1 / ARC-AGI-2 / ARC-AGI-3 columns; ARC-AGI-1 and ARC-AGI-2 report per-task USD cost, ARC-AGI-3 reports per-suite USD cost broken into Standard vs Provider Adapter harness readings, same structure as performance/arcprize-aa-gpt-6-astra-2026-09.json) plus the ARC-AGI-3 scatter-chart SVG with per-point data-id attributes. RESULT: GPT-6 Luna has full rows across all 6 effort levels (none/low/medium/high/xhigh/max) x 2 ARC-AGI-3 harnesses (Standard, Provider Adapter), plus ARC-AGI-1/ARC-AGI-2 per-task cost/accuracy for each effort. GPT-6 Astra's rows (recorded previously in arcprize-aa-gpt-6-astra-2026-09.json for ARC-AGI-3 only) were re-observed here and its ARC-AGI-1/ARC-AGI-2 numbers are recorded for the first time in this pack; its ARC-AGI-3 Standard-harness numbers match the existing file exactly (max 62.71%/$26,098; xhigh 59.34%/$37,317; high 54.82%/$40,705; medium 38.59%/$48,090; low 17.45%/$38,166) confirming both reads are the same live board. GPT-6 SOL DOES NOT APPEAR ANYWHERE on this table or its ARC-AGI-3 chart SVG (no 'gpt-6-sol' string of any kind, in any effort/harness combination, found in the full rendered DOM) — CONFIRMED ABSENT, not a retrieval limit, since the render succeeded and returned real data for every other OpenAI model on the board including GPT-6 Luna (launched the same day as Sol) and GPT-5.6 Sol/Terra/Luna. Same-snapshot comparison rows recorded for claude-opus-5-5, claude-fable-5-1, claude-haiku-4-5, gpt-5.6-sol, gpt-5.6-terra, and gpt-5.6-luna (both the 2026-07-30-dated historical Luna row and the current one, both present on this same table) where the ARC-AGI-1/ARC-AGI-2 columns applied; claude-sonnet-5 was NOT found anywhere on this table (confirmed absent, recorded in missing[]).",
   "claims": [
     {
-      "models": ["gpt-6-luna"],
-      "task_families": ["reasoning"],
-      "axes": ["quality", "cost"],
+      "models": [
+        "gpt-6-luna"
+      ],
+      "task_families": [
+        "reasoning"
+      ],
+      "axes": [
+        "quality",
+        "cost"
+      ],
       "statement": "GPT-6 Luna (Max) scores 86.7% on ARC-AGI-1 at $0.018/task and 59.3% on ARC-AGI-2 at $0.062/task, roughly a 2x cost cut on ARC-AGI-1 vs GPT-5.6 Luna (Max) at $0.320/task for a comparable 88.0% score at the same launch-week snapshot.",
       "implication": "GPT-6 Luna reads as a substantial cost improvement over GPT-5.6 Luna at similar ARC-AGI-1 accuracy; ARC-AGI-3 (interactive-game) shows near-zero score for Luna at any effort (0.0-0.2%), same saturation-floor pattern as GPT-5.6 Luna.",
       "source_id": "arcprize-leaderboard-gpt-6-2026-09-22"
@@ -39,12 +46,16 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.018, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.018,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-6-luna",
       "metric": "ARC-AGI-1",
-      "score": 0.730,
+      "score": 0.73,
       "unit": "accuracy",
       "effort": "xhigh",
       "source_id": "arcprize-leaderboard-gpt-6-2026-09-22",
@@ -57,7 +68,11 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.012, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.012,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-6-luna",
@@ -75,12 +90,16 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.009, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.009,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-6-luna",
       "metric": "ARC-AGI-1",
-      "score": 0.610,
+      "score": 0.61,
       "unit": "accuracy",
       "effort": "medium",
       "source_id": "arcprize-leaderboard-gpt-6-2026-09-22",
@@ -93,7 +112,11 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.006, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.006,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-6-luna",
@@ -111,7 +134,11 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.003, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.003,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-6-luna",
@@ -128,8 +155,12 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-2",
       "comparability_group": "arc-agi-2-arcprize-2026-09-22",
-      "comparable": true,
-      "cost": { "value": 0.062, "unit": "usd_per_task", "basis": "api_usd" }
+      "comparable": false,
+      "cost": {
+        "value": 0.062,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-6-luna",
@@ -146,8 +177,12 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-2",
       "comparability_group": "arc-agi-2-arcprize-2026-09-22",
-      "comparable": true,
-      "cost": { "value": 0.032, "unit": "usd_per_task", "basis": "api_usd" }
+      "comparable": false,
+      "cost": {
+        "value": 0.032,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-6-luna",
@@ -166,7 +201,11 @@
       "metric_id": "arc-agi-3",
       "comparability_group": "arc-agi-3-standard",
       "comparable": false,
-      "cost": { "value": 262.24, "unit": "other", "basis": "other" }
+      "cost": {
+        "value": 262.24,
+        "unit": "other",
+        "basis": "other"
+      }
     },
     {
       "model": "gpt-6-luna",
@@ -185,7 +224,11 @@
       "metric_id": "arc-agi-3",
       "comparability_group": "arc-agi-3-provider-adapter",
       "comparable": false,
-      "cost": { "value": 237.14, "unit": "other", "basis": "other" }
+      "cost": {
+        "value": 237.14,
+        "unit": "other",
+        "basis": "other"
+      }
     },
     {
       "model": "gpt-6-astra",
@@ -203,12 +246,16 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.433, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.433,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-6-astra",
       "metric": "ARC-AGI-2",
-      "score": 0.950,
+      "score": 0.95,
       "unit": "accuracy",
       "effort": "max",
       "source_id": "arcprize-leaderboard-gpt-6-2026-09-22",
@@ -220,8 +267,12 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-2",
       "comparability_group": "arc-agi-2-arcprize-2026-09-22",
-      "comparable": true,
-      "cost": { "value": 1.12, "unit": "usd_per_task", "basis": "api_usd" }
+      "comparable": false,
+      "cost": {
+        "value": 1.12,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-5-5",
@@ -239,7 +290,11 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.641, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.641,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-opus-5-5",
@@ -256,8 +311,12 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-2",
       "comparability_group": "arc-agi-2-arcprize-2026-09-22",
-      "comparable": true,
-      "cost": { "value": 1.85, "unit": "usd_per_task", "basis": "api_usd" }
+      "comparable": false,
+      "cost": {
+        "value": 1.85,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-fable-5-1",
@@ -275,12 +334,16 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 1.40, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 1.4,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "claude-fable-5-1",
       "metric": "ARC-AGI-2",
-      "score": 0.900,
+      "score": 0.9,
       "unit": "accuracy",
       "effort": "max",
       "source_id": "arcprize-leaderboard-gpt-6-2026-09-22",
@@ -292,8 +355,12 @@
       "task_family": "reasoning",
       "metric_id": "arc-agi-2",
       "comparability_group": "arc-agi-2-arcprize-2026-09-22",
-      "comparable": true,
-      "cost": { "value": 4.49, "unit": "usd_per_task", "basis": "api_usd" }
+      "comparable": false,
+      "cost": {
+        "value": 4.49,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-sol",
@@ -311,7 +378,11 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.540, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.54,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-terra",
@@ -329,12 +400,16 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.550, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.55,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     },
     {
       "model": "gpt-5.6-luna",
       "metric": "ARC-AGI-1",
-      "score": 0.880,
+      "score": 0.88,
       "unit": "accuracy",
       "effort": "max",
       "source_id": "arcprize-leaderboard-gpt-6-2026-09-22",
@@ -347,7 +422,11 @@
       "metric_id": "arc-agi-1",
       "comparability_group": "arc-agi-1-arcprize-2026-09-22",
       "comparable": true,
-      "cost": { "value": 0.320, "unit": "usd_per_task", "basis": "api_usd" }
+      "cost": {
+        "value": 0.32,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
     }
   ],
   "missing": [
