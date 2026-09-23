@@ -107,6 +107,34 @@
               "medium",
               "low"
             ]
+          },
+          "post_valid_until": {
+            "type": "object",
+            "required": [
+              "fresh_input_per_m",
+              "cache_read_per_m",
+              "cache_write_per_m",
+              "output_per_m"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "fresh_input_per_m": {
+                "type": "number",
+                "minimum": 0
+              },
+              "cache_read_per_m": {
+                "type": "number",
+                "minimum": 0
+              },
+              "cache_write_per_m": {
+                "type": "number",
+                "minimum": 0
+              },
+              "output_per_m": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
           }
         }
       }

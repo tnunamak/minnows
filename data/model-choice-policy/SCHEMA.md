@@ -36,21 +36,26 @@ Rows are compared only within their `comparability_group`.
 
 ### Expected cost model
 
-For a task attempt with success probability `p`, per-attempt model cost `c`,
-verification/review overhead `h`, failure-detection probability `d`, and
-silent-failure cost `S`, the failed-and-detected retry probability is
-`q = (1-p) × d`. The expected cost per task is:
+For success probability `p`, per-attempt model cost `c`, review overhead `h`,
+detection probability `d`, and silent-failure cost `S`, `E` is expected cost
+**per task**. A detected failure escalates to a measured, higher-scoring arm
+in the same board. Its expected cost is `E_next`:
 
-`E = (c+h) / (1-q) + ((1-p) × (1-d) / (1-q)) × S`
+`E = c+h+(1-p)×(d×E_next+(1-d)×S)`
 
-This charges overhead on every attempt. A failed attempt is retried only if it
-is detected; an undetected failure terminates the task and incurs `S`.
-For judged ops, `d=0`, so `E=c+h+(1-p)×S`. If `p=0` and `d=1`,
-the expected number of attempts is infinite.
+The fallback is the higher-scoring arm with the lowest expected cost. If no
+measured escalation exists, same-arm retry is allowed only when the row has
+`pass_at_k`; its conditional success rate is calibrated from `pass@1` and
+`pass@k`. Otherwise the attempt ends and `E=c+h+(1-p)×S`, even when `d>0`.
+This avoids treating repeated failures on one task as independent trials.
 
 `accuracy`, `pass_rate`, and `error_rate` are fractions in 0..1; an error rate
 converts to `p=1-rate`. Elo, indices, and partial-credit scores do not produce
-E. They can only screen an unmeasured effort under the ceiling rule.
+E. They cannot exclude a model. A group with only one candidate arm cannot
+exclude a model either. Where a row supplies `ci_lo`/`ci_hi` or `n`, the
+recommender carries a 95% success interval into an E interval. Overlapping E
+intervals are reported as ties, resolved by lower tier list price, then newer
+model. If `n` is present without CI, a Wilson interval is used.
 
 | Default | Value | Source and meaning |
 |---------|-------|--------------------|
@@ -74,31 +79,45 @@ $100 for `review.audit` and $50 for `advisor.deep`.
 
 ### Candidate and evidence rules
 
-The recommender preserves GA, tier, newest-on-reachable-lane, access, effort,
+The recommender preserves GA, tier, newest-in-tier across lanes, access, effort,
 and CLI-surface filters. The default provider list names all six waspflow
 lanes: `claude`, `codex`, `grok`, `antigravity`, `qwen`, `deepseek`.
+The single `lane_scoped_freshness` flag defaults to `false`; changing it to
+`true` would retain an older model when it is newest only on its own lane.
+Freshness compares `models.json.released` when both models have dates, then
+falls back to version parsing. Restricted models do not displace accessible ones.
 `defaults.provider_restrictions` limits Grok to `grok.explore-only`, and that
 op explicitly sets `allowed_providers=["grok"]`; it cannot recommend Codex.
 A catalog model may produce more than one lane arm. The lane's CLI effort
 surface takes precedence; missing CLI surfaces fall back to `api` and are
-flagged. Antigravity dispatch ids with an effort suffix use that fixed effort.
+flagged. Antigravity dispatch ids use one effort arm; a dispatch without an
+effort suffix uses medium when allowed.
 `xhigh`, `max`, and `ultra` require an explicit override reason.
 
-Per-group E choices retain independent-versus-vendor weights, source flags,
-the cross-model consistency check, and exact missing-evidence reports. The
-ceiling screen excludes a model only when its best measured score at any effort
-is below the best allowed-effort score in an independent group; vendor groups
-only flag this. `review.audit` excludes both makers' model families and shows
-maker and checker success rates side by side in shared groups. If a maker is
-unresolved, its current `expands_to` supplies the family constraint.
+Vendor charts choose efforts only among the publisher's own models. A model
+choice needs an independent cross-model board on which the arm meets the
+incumbent and every rival it beats. An independent board that picks a rival
+counts as a disagreement even if the arm is absent. Missing model/board pairs
+are reported. An independent success-rate group excludes an unmeasured allowed
+effort only when its best measured effort is both lower-scoring and no cheaper
+than a measured candidate. Vendor groups only flag this. `review.audit` excludes
+both makers' **vendors**, and shows maker and checker success rates side by side
+where available. If a maker is unresolved, its current `expands_to` supplies
+the vendor constraint.
+
+The default policy horizon is 90 days. The recommender uses the price valid at
+the horizon end. If a promotion expires inside that horizon, it reports the
+current and later token prices. It scales benchmark task cost only when all
+published token rates change by the same factor; otherwise the future task
+cost is unknown and that arm cannot win on E. Pricing rows can record future
+rates in `post_valid_until`.
 
 ### Assumption sensitivity
 
-The full dependency graph is rerun on a grid: overhead $0.10, $0.50, $1.00,
-$2.00; detection probability 0.50, 0.75, 0.95 for verified ops (judged ops
-stay at 0); and silent-failure cost 0.5×, 1×, 2× the op default. `CLEAR`
-requires the same recommended arm in every grid cell. Every other result is
-`ASSUMPTION_SENSITIVE`. If neighboring grid cells differ, the output reports
-one approximate flip threshold found by bisection while holding the other
-assumptions fixed. If no cell produces a winner, the output states that there
-is no flip threshold because evidence is insufficient across the grid.
+The dependency graph is rerun on the full overhead ($0.10–$2) × detection
+(0.25–0.95 for verified ops) × silent-failure-cost (0.5–2×) grid. Separate
+one-factor sweeps cover independent and vendor source weights (0.5–2), vendor
+factor (0.25–1), majority threshold (0.4–0.6), and high-confidence group count
+(1–3). `CLEAR` requires the same recommendation **and confidence** in every run.
+The output names the first changed assumption and outcome; it does not claim
+a precise flip threshold between sampled values.

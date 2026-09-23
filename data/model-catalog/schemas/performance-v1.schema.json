@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/tnunamak/minnows/data/model-catalog/schemas/performance-v1.schema.json",
   "title": "model-catalog performance document v1",
-  "description": "Sparse, source-backed quality/effort claims and optional numeric scores. Missing data is expressed via missing[] — never invent chart points. Prefer source_ids[] (document) + source_id (row) pointing at SOURCES.json.",
+  "description": "Sparse, source-backed quality/effort claims and optional numeric scores. Missing data is expressed via missing[] \u2014 never invent chart points. Prefer source_ids[] (document) + source_id (row) pointing at SOURCES.json.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -157,7 +157,7 @@
             "additionalProperties": {
               "type": "number"
             },
-            "description": "Other model id → score on the same metric (vendor table)"
+            "description": "Other model id \u2192 score on the same metric (vendor table)"
           },
           "caveat": {
             "type": "string"
@@ -173,7 +173,7 @@
           },
           "mode": {
             "type": "string",
-            "description": "standard | fast | ultra | multi_agent | …"
+            "description": "standard | fast | ultra | multi_agent | \u2026"
           },
           "task_family": {
             "type": "string",
@@ -197,7 +197,7 @@
               "C",
               "D"
             ],
-            "description": "A local/reproduced · B independent third-party · C vendor-reported · D digitized/estimated"
+            "description": "A local/reproduced \u00b7 B independent third-party \u00b7 C vendor-reported \u00b7 D digitized/estimated"
           },
           "observed_at": {
             "type": "string",
@@ -260,6 +260,42 @@
           "comparable": {
             "type": "boolean",
             "description": "If false, never cross-rank with other rows even with same metric_id"
+          },
+          "n": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of independent benchmark tasks."
+          },
+          "ci_lo": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Lower 95% success-rate bound."
+          },
+          "ci_hi": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Upper 95% success-rate bound."
+          },
+          "pass_at_k": {
+            "type": "object",
+            "required": [
+              "k",
+              "value"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "k": {
+                "type": "integer",
+                "minimum": 2
+              },
+              "value": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            }
           }
         }
       }

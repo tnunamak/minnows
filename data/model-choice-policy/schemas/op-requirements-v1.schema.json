@@ -143,6 +143,22 @@
           "type": "number",
           "minimum": 0,
           "maximum": 1
+        },
+        "lane_scoped_freshness": {
+          "type": "boolean"
+        },
+        "policy_horizon_days": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "majority_threshold": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "high_confidence_groups": {
+          "type": "integer",
+          "minimum": 1
         }
       }
     },

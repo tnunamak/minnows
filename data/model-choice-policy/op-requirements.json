@@ -40,7 +40,11 @@
       "grok": [
         "grok.explore-only"
       ]
-    }
+    },
+    "lane_scoped_freshness": false,
+    "policy_horizon_days": 90,
+    "majority_threshold": 0.5,
+    "high_confidence_groups": 2
   },
   "ops": [
     {
@@ -125,11 +129,11 @@
         "high"
       ],
       "constraints": [
-        "different_model_family_from:implement.standard",
-        "different_model_family_from:implement.accuracy-first"
+        "different_vendor_from:implement.standard",
+        "different_vendor_from:implement.accuracy-first"
       ],
       "cost_basis": "usd_per_task",
-      "rationale": "Judged code review. A missed problem can pass silently; use a different model family.",
+      "rationale": "Judged code review. A missed problem can pass silently; use a different vendor.",
       "silent_failure_cost_usd": 100,
       "failure_detection_probability": 0
     },
