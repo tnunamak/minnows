@@ -1,0 +1,1 @@
+/home/tnunamak/code/dotfiles/ai/AGENTS.md

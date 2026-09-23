@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/tnunamak/minnows/data/model-catalog/schemas/capabilities-v1.schema.json",
   "title": "model-catalog capabilities document v1",
-  "description": "Per provider/model/surface effort and mode validity. Facts only \u2014 no recommended operating points.",
+  "description": "Per provider/model/surface effort and mode validity. Facts only — no recommended operating points.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -73,7 +73,12 @@
               "xai",
               "google",
               "alibaba",
-              "other"
+              "other",
+              "deepseek",
+              "moonshot",
+              "minimax",
+              "meta",
+              "mistral"
             ]
           },
           "model": {

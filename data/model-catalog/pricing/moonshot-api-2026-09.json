@@ -1,0 +1,30 @@
+{
+  "$schema": "schemas/pricing-v1.schema.json",
+  "id": "moonshot-api-2026-09",
+  "schema_version": 1,
+  "kind": "api_usd",
+  "agent": "other",
+  "retrieved_at": "2026-09-23",
+  "source_urls": [
+    "https://forum.moonshot.ai/t/kimi-k3-is-here-our-most-capable-model/480"
+  ],
+  "source_ids": [
+    "moonshot-kimi-k3-announcement-2026-09-23"
+  ],
+  "notes": "USD per 1M tokens, direct Moonshot API rates as stated in its Kimi K3 announcement. Cache write is not separately priced in the announcement; no value is inferred.",
+  "models": {
+    "kimi-k3": {
+      "fresh_input_per_m": 3.0,
+      "cache_read_per_m": 0.3,
+      "cache_write_per_m": 0,
+      "output_per_m": 15.0,
+      "confidence": "high"
+    }
+  },
+  "match": [
+    {
+      "pattern": "kimi-k3",
+      "model": "kimi-k3"
+    }
+  ]
+}

@@ -18,7 +18,11 @@
     "https://www.anthropic.com/news/claude-opus-5-5",
     "https://docs.x.ai/developers/models/grok-4.7",
     "https://ai.google.dev/gemini-api/docs/models",
-    "https://ai.google.dev/gemini-api/docs/interactions-overview"
+    "https://ai.google.dev/gemini-api/docs/interactions-overview",
+    "https://api-docs.deepseek.com/guides/thinking_mode/",
+    "https://forum.moonshot.ai/t/kimi-k3-is-here-our-most-capable-model/480",
+    "https://www.minimax.io/blog/minimax-m3",
+    "https://mistral.ai/news/mistral-small-4/"
   ],
   "source_ids": [
     "anthropic-claude-code-model-config-2026-07-09",
@@ -45,7 +49,11 @@
     "xai-reasoning-2026-07-09",
     "xai-grok-4-7-2026-09-23",
     "google-gemini-models-2026-09-23",
-    "google-gemini-interactions-2026-09-23"
+    "google-gemini-interactions-2026-09-23",
+    "deepseek-thinking-2026-09-23",
+    "moonshot-kimi-k3-announcement-2026-09-23",
+    "minimax-m3-launch-2026-09-23",
+    "mistral-small4-launch-2026-09-23"
   ],
   "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking. 2026-09-22: added gpt-6-sol/gpt-6-luna api surfaces from their model pages (none/low/medium(default)/high/xhigh/max — no minimal, unlike gpt-5.6's api surface). 2026-09-22 (integration correction): the gpt-6-sol/gpt-6-luna codex_cli surfaces were initially recorded empty, citing a codex-cli 0.154.0 read that reported both slugs absent (auth-scoped rollout gap). A same-day 0.156.0 re-read on the same host shows both ARE listed (visibility=list): gpt-6-sol low/medium/high/xhigh/max/ultra default medium, gpt-6-luna low/medium/high/xhigh/max default medium — filled in from that later read (see openai-codex-debug-models-0-156-0-2026-09-22). 2026-09-23: added observed agy 1.2.9 per-model efforts (3.8/3.7/3.6 Flash low/medium/high; 3.1 Pro low/high), auth-scoped; added Grok 4.7 API effort and authenticated Grok CLI listing (sole/default model).",
   "surfaces": [
@@ -1342,6 +1350,110 @@
         "google-gemini-models-2026-09-23"
       ],
       "notes": "Official model reference marks Thinking supported, but does not publish a discrete API effort-level enum on the model page; values intentionally left empty."
+    },
+    {
+      "provider": "deepseek",
+      "model": "deepseek-v4-1-flash",
+      "surface": "api",
+      "valid_efforts": [
+        "none",
+        "low",
+        "high",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "deepseek-thinking-2026-09-23"
+      ],
+      "notes": "Vendor compatibility mapping also accepts minimal→low, medium/xhigh→high, ultra→max; mapped aliases are omitted from valid_efforts."
+    },
+    {
+      "provider": "deepseek",
+      "model": "deepseek-v4-pro-0813",
+      "surface": "api",
+      "valid_efforts": [
+        "none",
+        "low",
+        "high",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "deepseek-thinking-2026-09-23"
+      ],
+      "notes": "Vendor compatibility mapping also accepts minimal→low, medium/xhigh→high, ultra→max."
+    },
+    {
+      "provider": "moonshot",
+      "model": "kimi-k3",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "high",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "moonshot-kimi-k3-announcement-2026-09-23"
+      ]
+    },
+    {
+      "provider": "minimax",
+      "model": "minimax-m3",
+      "surface": "api",
+      "valid_efforts": [],
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "minimax-m3-launch-2026-09-23"
+      ],
+      "notes": "API supports a binary thinking toggle, not a discrete effort ladder."
+    },
+    {
+      "provider": "mistral",
+      "model": "mistral-small-4",
+      "surface": "api",
+      "valid_efforts": [
+        "none",
+        "high"
+      ],
+      "default_effort": "none",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "mistral-small4-launch-2026-09-23"
+      ]
     }
   ],
   "missing": [

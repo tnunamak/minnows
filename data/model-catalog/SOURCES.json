@@ -1565,6 +1565,296 @@
       "retrieved_at": "2026-09-23",
       "kind": "third_party_eval",
       "notes": "Fetched raw model-detail HTML with browser UA; parsed model effort label, Intelligence Index composite, and cost per Intelligence Index task from embedded RSC payload."
+    },
+    {
+      "id": "artificialanalysis-deepseek-v4-1-flash-2026-09-23-model-page",
+      "url": "https://artificialanalysis.ai/models/deepseek-v4-1-flash",
+      "title": "Artificial Analysis Intelligence Index: DeepSeek V4.1 Flash",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "third_party_eval",
+      "notes": "Direct curl fetch of the model-detail page. Exact Intelligence Index v4.3.2 composite and cost-per-index-task values read from the rendered HTML text; effort is only recorded when stated in the page title."
+    },
+    {
+      "id": "artificialanalysis-glm-5-3-2026-09-23-model-page",
+      "url": "https://artificialanalysis.ai/models/glm-5-3",
+      "title": "Artificial Analysis Intelligence Index: GLM-5.3",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "third_party_eval",
+      "notes": "Direct curl fetch of the model-detail page. Exact Intelligence Index v4.3.2 composite and cost-per-index-task values read from the rendered HTML text; effort is only recorded when stated in the page title."
+    },
+    {
+      "id": "artificialanalysis-glm-5-3-flash-2026-09-23-model-page",
+      "url": "https://artificialanalysis.ai/models/glm-5-3-flash",
+      "title": "Artificial Analysis Intelligence Index: GLM-5.3-Flash",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "third_party_eval",
+      "notes": "Direct curl fetch of the model-detail page. Exact Intelligence Index v4.3.2 composite and cost-per-index-task values read from the rendered HTML text; effort is only recorded when stated in the page title."
+    },
+    {
+      "id": "artificialanalysis-kimi-k3-2026-09-23-model-page",
+      "url": "https://artificialanalysis.ai/models/kimi-k3",
+      "title": "Artificial Analysis Intelligence Index: Kimi K3",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "third_party_eval",
+      "notes": "Direct curl fetch of the model-detail page. Exact Intelligence Index v4.3.2 composite and cost-per-index-task values read from the rendered HTML text; effort is only recorded when stated in the page title."
+    },
+    {
+      "id": "artificialanalysis-minimax-m2-7-2026-09-23-model-page",
+      "url": "https://artificialanalysis.ai/models/minimax-m2-7",
+      "title": "Artificial Analysis Intelligence Index: MiniMax-M2.7",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "third_party_eval",
+      "notes": "Direct curl fetch of the model-detail page. Exact Intelligence Index v4.3.2 composite and cost-per-index-task values read from the rendered HTML text; effort is only recorded when stated in the page title."
+    },
+    {
+      "id": "artificialanalysis-minimax-m3-2026-09-23-model-page",
+      "url": "https://artificialanalysis.ai/models/minimax-m3",
+      "title": "Artificial Analysis Intelligence Index: MiniMax-M3",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "third_party_eval",
+      "notes": "Direct curl fetch of the model-detail page. Exact Intelligence Index v4.3.2 composite and cost-per-index-task values read from the rendered HTML text; effort is only recorded when stated in the page title."
+    },
+    {
+      "id": "artificialanalysis-mistral-large-3-2026-09-23-model-page",
+      "url": "https://artificialanalysis.ai/models/mistral-large-3",
+      "title": "Artificial Analysis Intelligence Index: Mistral Large 3",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "third_party_eval",
+      "notes": "Direct curl fetch of the model-detail page. Exact Intelligence Index v4.3.2 composite and cost-per-index-task values read from the rendered HTML text; effort is only recorded when stated in the page title."
+    },
+    {
+      "id": "artificialanalysis-mistral-small-4-2026-09-23-model-page",
+      "url": "https://artificialanalysis.ai/models/mistral-small-4",
+      "title": "Artificial Analysis Intelligence Index: Mistral Small 4",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "third_party_eval",
+      "notes": "Direct curl fetch of the model-detail page. Exact Intelligence Index v4.3.2 composite and cost-per-index-task values read from the rendered HTML text; effort is only recorded when stated in the page title."
+    },
+    {
+      "id": "artificialanalysis-muse-spark-1-3-2026-09-23-model-page",
+      "url": "https://artificialanalysis.ai/models/muse-spark-1-3",
+      "title": "Artificial Analysis Intelligence Index: Muse Spark 1.3",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "third_party_eval",
+      "notes": "Direct curl fetch of the model-detail page. Exact Intelligence Index v4.3.2 composite and cost-per-index-task values read from the rendered HTML text; effort is only recorded when stated in the page title."
+    },
+    {
+      "id": "artificialanalysis-muse-spark-1-3-xhigh-2026-09-23-model-page",
+      "url": "https://artificialanalysis.ai/models/muse-spark-1-3-xhigh",
+      "title": "Artificial Analysis Intelligence Index: Muse Spark 1.3",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "third_party_eval",
+      "notes": "Direct curl fetch of the model-detail page. Exact Intelligence Index v4.3.2 composite and cost-per-index-task values read from the rendered HTML text; effort is only recorded when stated in the page title."
+    },
+    {
+      "id": "artificialanalysis-qwen3-8-max-2026-09-23-model-page",
+      "url": "https://artificialanalysis.ai/models/qwen3-8-max",
+      "title": "Artificial Analysis Intelligence Index: Qwen3.8 Max (0902)",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "third_party_eval",
+      "notes": "Direct curl fetch of the model-detail page. Exact Intelligence Index v4.3.2 composite and cost-per-index-task values read from the rendered HTML text; effort is only recorded when stated in the page title."
+    },
+    {
+      "id": "deepseek-pricing-2026-09-23",
+      "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "title": "Models & Pricing | DeepSeek API Docs",
+      "publisher": "DeepSeek",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_docs",
+      "notes": "Direct curl fetch; lists V4.1-Flash and V4-Pro-0813 versions, token prices, context, and legacy-name routing."
+    },
+    {
+      "id": "deepseek-thinking-2026-09-23",
+      "url": "https://api-docs.deepseek.com/guides/thinking_mode/",
+      "title": "Thinking Mode | DeepSeek API Docs",
+      "publisher": "DeepSeek",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_docs",
+      "notes": "Direct curl fetch; API effort compatibility levels and default."
+    },
+    {
+      "id": "deepseek-updates-2026-09-23",
+      "url": "https://api-docs.deepseek.com/updates/",
+      "title": "Change Log | DeepSeek API Docs",
+      "publisher": "DeepSeek",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_docs",
+      "notes": "Direct curl fetch; dated V4.1 Flash release, benchmark table, V4-Pro-0813 status, and V4-Flash-0731 statement."
+    },
+    {
+      "id": "lmarena-text-openweight-2026-09-23",
+      "url": "https://lmarena.ai/leaderboard/text",
+      "title": "Text Arena Leaderboard",
+      "publisher": "LMArena",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "third_party_eval",
+      "notes": "Direct curl fetch; parsed exact `modelKey`, display name, rating, confidence interval, vote count, org and prices from embedded JSON. Muse Spark 1.3 max row is present."
+    },
+    {
+      "id": "meta-muse-api-2026-09-23",
+      "url": "https://ai.meta.com/llama",
+      "title": "Meta Model API and Muse models",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_docs",
+      "notes": "Direct curl fetch; confirms Muse Spark API is public preview and supports long-horizon agent/coding use. Direct per-token pricing not present in fetched page."
+    },
+    {
+      "id": "meta-muse-events-2026-09-23",
+      "url": "https://ai.meta.com/events/",
+      "title": "AI at Meta events and model listing",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_docs",
+      "notes": "Direct official Meta events listing reports Muse Spark 1.3 (Sep 2, 2026); local raw fetch was blocked by Meta, so the date is verified via the official indexed page, while model identity/availability is separately confirmed on the directly fetched Meta Model API page."
+    },
+    {
+      "id": "minimax-api-pricing-2026-09-23",
+      "url": "https://platform.minimax.io/subscribe/token-plan?tab=api-enterprise",
+      "title": "API Pricing | MiniMax API Platform",
+      "publisher": "MiniMax",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_docs",
+      "notes": "Direct Chromium-rendered fetch of the official pricing page after its static HTML returned a shell. Standard and Priority rates shown; standard M3 ≤512K input $0.60/$2.40 output with $0.12 cache read; M3 512K–1M $1.20/$4.80, and M2.7 $0.30/$1.20 with cache read $0.06 and write $0.375. H3 video outputs are billed per second."
+    },
+    {
+      "id": "minimax-m3-launch-2026-09-23",
+      "url": "https://www.minimax.io/blog/minimax-m3",
+      "title": "MiniMax M3: Frontier Coding, 1M Context, Native Multimodality — All in One Model",
+      "publisher": "MiniMax",
+      "published": "2026-06-01",
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_blog",
+      "notes": "Direct curl fetch. M3 release, API surface, coding/agent positioning, and open-weight announcement. Primary page says corresponding weights would be open-sourced soon; this pass does not claim a local weight repository was verified."
+    },
+    {
+      "id": "mistral-pricing-2026-09-23",
+      "url": "https://docs.mistral.ai/inference/pricing",
+      "title": "Pricing | Mistral Docs",
+      "publisher": "Mistral AI",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_docs",
+      "notes": "Direct curl fetch. Prices for Mistral Medium 3.5, Small 4, Large 3."
+    },
+    {
+      "id": "mistral-small4-launch-2026-09-23",
+      "url": "https://mistral.ai/news/mistral-small-4/",
+      "title": "Introducing Mistral Small 4",
+      "publisher": "Mistral AI",
+      "published": "2026-03-16",
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_blog",
+      "notes": "Direct curl fetch. Apache 2.0 weights, API and reasoning_effort none/high; Small tier benchmark narrative."
+    },
+    {
+      "id": "moonshot-kimi-k3-announcement-2026-09-23",
+      "url": "https://forum.moonshot.ai/t/kimi-k3-is-here-our-most-capable-model/480",
+      "title": "Kimi K3 is here: our most capable model",
+      "publisher": "Moonshot AI",
+      "published": "2026-07-22",
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_blog",
+      "notes": "Direct Discourse JSON fetch. Announcement is dated July 22, 2026 (not July 17 as the brief suggested); it gives API id, token prices, and low/high/max effort."
+    },
+    {
+      "id": "moonshot-kimi-k3-model-card-2026-09-23",
+      "url": "https://huggingface.co/moonshotai/Kimi-K3",
+      "title": "moonshotai/Kimi-K3 model card",
+      "publisher": "Moonshot AI",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_docs",
+      "notes": "Direct raw model-card fetch. 2.8T params, Kimi K3 custom license, 1M context; top model card identifies weight release."
+    },
+    {
+      "id": "openrouter-frontier-pricing-2026-09-23",
+      "url": "https://openrouter.ai/api/v1/models",
+      "title": "OpenRouter Models API",
+      "publisher": "OpenRouter",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "other",
+      "notes": "Direct API payload for router-listed rates and model slugs. These are OpenRouter prices, not vendor direct API prices."
+    },
+    {
+      "id": "qwen-code-weekly-2026-08-27",
+      "url": "https://qwenlm.github.io/qwen-code-docs/en/blog/updates/weekly-update-2026-08-27/",
+      "title": "Qwen Code Weekly Update: qwen3.8-max graduates to stable",
+      "publisher": "Qwen",
+      "published": "2026-08-27",
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_docs",
+      "notes": "Official Qwen Code update says qwen3.8-max is out of preview and available as a stable model."
+    },
+    {
+      "id": "qwen38max-2026-09-23",
+      "url": "https://help.aliyun.com/en/model-studio/qwen3-8-max",
+      "title": "Qwen3.8-Max Model Info | Alibaba Cloud Model Studio",
+      "publisher": "Alibaba Cloud",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_docs",
+      "notes": "Direct source fetch. qwen3.8-max-0902 is upgraded snapshot; GA/stable state cross-checked with Qwen Code weekly update and token price/capabilities. The Qwen Code official weekly update dated Aug 27 says qwen3.8-max graduated from preview to stable; direct model page shows the 0902 updated snapshot."
+    },
+    {
+      "id": "zai-glm53flash-launch-2026-09-23",
+      "url": "https://autoclaw.z.ai/blog/model/glm-5.3-flash/",
+      "title": "GLM-5.3-Flash: More Intelligence with Less Compute",
+      "publisher": "Z.AI",
+      "published": "2026-09-23",
+      "retrieved_at": "2026-09-23",
+      "kind": "vendor_blog",
+      "notes": "Direct curl fetch. GLM-5.3-Flash 320B total/18B active, model architecture and vendor benchmark table; MIT weights."
+    },
+    {
+      "id": "vals-ai-terminal-bench-4-openweight-frontier-2026-09-23",
+      "url": "https://www.vals.ai/benchmarks/terminal-bench-4",
+      "title": "Terminal-Bench 4.0 board",
+      "publisher": "Vals.ai",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "third_party_eval",
+      "notes": "Direct HTML fetch; overall board result values read from the embedded RSC payload. The board reports accuracy as a 0-100 percentage, latency in seconds, and cost_per_test in USD. Full model roster snapshot: 32 rows."
+    },
+    {
+      "id": "vals-ai-swebench-openweight-frontier-2026-09-23",
+      "url": "https://www.vals.ai/benchmarks/swebench",
+      "title": "SWE-bench Verified (vals.ai Mini-SWE-agent) board",
+      "publisher": "Vals.ai",
+      "published": null,
+      "retrieved_at": "2026-09-23",
+      "kind": "third_party_eval",
+      "notes": "Direct HTML fetch; overall board result values read from the embedded RSC payload. The board reports accuracy as a 0-100 percentage, latency in seconds, and cost_per_test in USD. Full model roster snapshot: 88 rows."
     }
   ]
 }

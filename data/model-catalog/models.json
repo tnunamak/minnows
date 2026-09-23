@@ -8,7 +8,8 @@
     "Harness-suffixed score ids (model@harness) resolve to the base id.",
     "Effort-in-id suffixes (-thinking, -high) are aliases where listed.",
     "aliases[] map third-party/board naming drift onto canonical pricing ids.",
-    "REGISTRY-JOIN REVIEW (2026-09-05): all ten previously unresolved performance labels now resolve through source-backed aliases: claude-mythos-preview; Claude `-thinking` labels for Opus 4.6/4.7/4.8; claude-sonnet-5-high; gemini-3-flash; gemini-3.1-pro; gpt-5.5-high; grok-4.20; and grok-4.20-beta-0309-reasoning. These aliases denote documented board mode/snapshot labels, not new canonical API models."
+    "REGISTRY-JOIN REVIEW (2026-09-05): all ten previously unresolved performance labels now resolve through source-backed aliases: claude-mythos-preview; Claude `-thinking` labels for Opus 4.6/4.7/4.8; claude-sonnet-5-high; gemini-3-flash; gemini-3.1-pro; gpt-5.5-high; grok-4.20; and grok-4.20-beta-0309-reasoning. These aliases denote documented board mode/snapshot labels, not new canonical API models.",
+    "Open-weight/other-lab frontier lane (2026-09-23): added DeepSeek V4.1 Flash, V4 Pro-0813, historical V4 Flash-0731; Kimi K3; GLM-5.3-Flash; MiniMax M3/M2.7; preview Muse Spark 1.3; Mistral Medium 3.5/Small 4. Kimi K3 release announcement found July 22 (not July 17). MiniMax H3 Max is video generation and excluded from this text/coding model registry; M3 is its open-weight coding/agent flagship."
   ],
   "models": [
     {
@@ -160,6 +161,39 @@
       ]
     },
     {
+      "id": "deepseek-v4-1-flash",
+      "provider": "deepseek",
+      "family": "deepseek-v4",
+      "status": "ga",
+      "tier": "flash",
+      "aliases": [
+        "deepseek-flash",
+        "deepseek-v4-flash",
+        "DeepSeek-V4.1-Flash"
+      ]
+    },
+    {
+      "id": "deepseek-v4-flash-0731",
+      "provider": "deepseek",
+      "family": "deepseek-v4",
+      "status": "historical",
+      "tier": "flash",
+      "aliases": [
+        "DeepSeek-V4-Flash-0731"
+      ]
+    },
+    {
+      "id": "deepseek-v4-pro-0813",
+      "provider": "deepseek",
+      "family": "deepseek-v4",
+      "status": "ga",
+      "tier": "pro",
+      "aliases": [
+        "deepseek-v4-pro",
+        "DeepSeek-V4-Pro-0813"
+      ]
+    },
+    {
       "id": "gemini-2.5-flash",
       "provider": "google",
       "family": "gemini-2.5",
@@ -279,7 +313,18 @@
       "provider": "other",
       "family": "glm",
       "status": "ga",
-      "aliases": []
+      "aliases": [],
+      "tier": "glm"
+    },
+    {
+      "id": "glm-5.3-flash",
+      "provider": "other",
+      "family": "glm-5",
+      "status": "ga",
+      "tier": "flash",
+      "aliases": [
+        "GLM-5.3-Flash"
+      ]
     },
     {
       "id": "gpt-5.3-codex",
@@ -490,6 +535,80 @@
       "status": "ga",
       "aliases": [],
       "tier": "build-agent"
+    },
+    {
+      "id": "kimi-k3",
+      "provider": "moonshot",
+      "family": "kimi-k",
+      "status": "ga",
+      "tier": "k3",
+      "aliases": [
+        "Kimi K3",
+        "moonshotai/Kimi-K3"
+      ]
+    },
+    {
+      "id": "minimax-m2.7",
+      "provider": "minimax",
+      "family": "minimax-m",
+      "status": "ga",
+      "tier": "m2.7",
+      "aliases": [
+        "MiniMax-M2.7"
+      ]
+    },
+    {
+      "id": "minimax-m3",
+      "provider": "minimax",
+      "family": "minimax-m",
+      "status": "ga",
+      "tier": "m3",
+      "aliases": [
+        "MiniMax-M3",
+        "MiniMax M3"
+      ]
+    },
+    {
+      "id": "mistral-large-3",
+      "provider": "mistral",
+      "family": "mistral-large",
+      "status": "ga",
+      "tier": "large",
+      "aliases": [
+        "Mistral Large 3",
+        "mistral-large-2512"
+      ]
+    },
+    {
+      "id": "mistral-medium-3-5",
+      "provider": "mistral",
+      "family": "mistral-medium",
+      "status": "ga",
+      "tier": "medium",
+      "aliases": [
+        "Mistral Medium 3.5"
+      ]
+    },
+    {
+      "id": "mistral-small-4",
+      "provider": "mistral",
+      "family": "mistral-small",
+      "status": "ga",
+      "tier": "small",
+      "aliases": [
+        "mistral-small-2603",
+        "Mistral Small 4"
+      ]
+    },
+    {
+      "id": "muse-spark-1-3",
+      "provider": "meta",
+      "family": "muse-spark",
+      "status": "preview",
+      "tier": "spark",
+      "aliases": [
+        "Muse Spark 1.3"
+      ]
     },
     {
       "id": "qwen3-coder-480b",

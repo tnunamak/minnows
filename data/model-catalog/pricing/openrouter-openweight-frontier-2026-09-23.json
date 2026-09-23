@@ -1,0 +1,118 @@
+{
+  "$schema": "schemas/pricing-v1.schema.json",
+  "id": "openrouter-openweight-frontier-2026-09-23",
+  "schema_version": 1,
+  "kind": "api_usd",
+  "agent": "other",
+  "retrieved_at": "2026-09-23",
+  "source_urls": [
+    "https://openrouter.ai/api/v1/models"
+  ],
+  "source_ids": [
+    "openrouter-frontier-pricing-2026-09-23"
+  ],
+  "notes": "Router-distribution rates in USD per 1M tokens, taken from OpenRouter /api/v1/models JSON fetched 2026-09-23. These are separate from direct vendor pricing and should not overwrite it; cache-write is recorded only when the payload has an input_cache_write field, otherwise zero means the router does not itemize it in this payload. OpenRouter had no model rows for Mistral Large 3 or Small 4 in this snapshot; there is no OpenRouter price row for them.",
+  "models": {
+    "deepseek-v4-1-flash": {
+      "fresh_input_per_m": 0.1,
+      "cache_read_per_m": 0.01,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 0.5,
+      "confidence": "high"
+    },
+    "deepseek-v4-pro-0813": {
+      "fresh_input_per_m": 0.462,
+      "cache_read_per_m": 0.0154,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 1.386,
+      "confidence": "high"
+    },
+    "kimi-k3": {
+      "fresh_input_per_m": 3.0,
+      "cache_read_per_m": 0.3,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 15.0,
+      "confidence": "high"
+    },
+    "glm-5.3": {
+      "fresh_input_per_m": 0.5614,
+      "cache_read_per_m": 0.10426,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 1.7644,
+      "confidence": "high"
+    },
+    "glm-5.3-flash": {
+      "fresh_input_per_m": 0.15,
+      "cache_read_per_m": 0.05,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 0.5,
+      "confidence": "high"
+    },
+    "minimax-m3": {
+      "fresh_input_per_m": 0.3,
+      "cache_read_per_m": 0.06,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 1.2,
+      "confidence": "high"
+    },
+    "minimax-m2.7": {
+      "fresh_input_per_m": 0.3,
+      "cache_read_per_m": 0.06,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 1.2,
+      "confidence": "high"
+    },
+    "muse-spark-1-3": {
+      "fresh_input_per_m": 1.25,
+      "cache_read_per_m": 0.15,
+      "cache_write_per_m": 0.0,
+      "output_per_m": 4.25,
+      "confidence": "high"
+    },
+    "qwen3.8-max": {
+      "fresh_input_per_m": 2.0,
+      "cache_read_per_m": 0.25,
+      "cache_write_per_m": 2.5,
+      "output_per_m": 6.0,
+      "confidence": "high"
+    }
+  },
+  "match": [
+    {
+      "pattern": "deepseek-v4.1-flash",
+      "model": "deepseek-v4-1-flash"
+    },
+    {
+      "pattern": "deepseek-v4-pro-0813",
+      "model": "deepseek-v4-pro-0813"
+    },
+    {
+      "pattern": "kimi-k3",
+      "model": "kimi-k3"
+    },
+    {
+      "pattern": "glm-5.3",
+      "model": "glm-5.3"
+    },
+    {
+      "pattern": "glm-5.3-flash",
+      "model": "glm-5.3-flash"
+    },
+    {
+      "pattern": "minimax-m3",
+      "model": "minimax-m3"
+    },
+    {
+      "pattern": "minimax-m2.7",
+      "model": "minimax-m2.7"
+    },
+    {
+      "pattern": "muse-spark-1.3",
+      "model": "muse-spark-1-3"
+    },
+    {
+      "pattern": "qwen3.8-max-0902",
+      "model": "qwen3.8-max"
+    }
+  ]
+}

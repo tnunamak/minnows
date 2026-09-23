@@ -38,6 +38,11 @@
         "xai",
         "google",
         "alibaba",
+        "deepseek",
+        "moonshot",
+        "minimax",
+        "meta",
+        "mistral",
         "other"
       ],
       "description": "Vendor that published the claims/scores"

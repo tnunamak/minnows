@@ -1,0 +1,293 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "artificial-analysis-openweight-frontier-2026-09-23",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-09-23",
+  "source_urls": [
+    "https://artificialanalysis.ai/models/deepseek-v4-1-flash",
+    "https://artificialanalysis.ai/models/kimi-k3",
+    "https://artificialanalysis.ai/models/glm-5-3",
+    "https://artificialanalysis.ai/models/glm-5-3-flash",
+    "https://artificialanalysis.ai/models/minimax-m3",
+    "https://artificialanalysis.ai/models/minimax-m2-7",
+    "https://artificialanalysis.ai/models/muse-spark-1-3",
+    "https://artificialanalysis.ai/models/muse-spark-1-3-xhigh",
+    "https://artificialanalysis.ai/models/mistral-large-3",
+    "https://artificialanalysis.ai/models/mistral-small-4",
+    "https://artificialanalysis.ai/models/qwen3-8-max",
+    "https://lmarena.ai/leaderboard/text"
+  ],
+  "source_ids": [
+    "artificialanalysis-deepseek-v4-1-flash-2026-09-23-model-page",
+    "artificialanalysis-kimi-k3-2026-09-23-model-page",
+    "artificialanalysis-glm-5-3-2026-09-23-model-page",
+    "artificialanalysis-glm-5-3-flash-2026-09-23-model-page",
+    "artificialanalysis-minimax-m3-2026-09-23-model-page",
+    "artificialanalysis-minimax-m2-7-2026-09-23-model-page",
+    "artificialanalysis-muse-spark-1-3-2026-09-23-model-page",
+    "artificialanalysis-muse-spark-1-3-xhigh-2026-09-23-model-page",
+    "artificialanalysis-mistral-large-3-2026-09-23-model-page",
+    "artificialanalysis-mistral-small-4-2026-09-23-model-page",
+    "artificialanalysis-qwen3-8-max-2026-09-23-model-page",
+    "lmarena-text-openweight-2026-09-23"
+  ],
+  "notes": "Same-day direct model-page snapshot from Artificial Analysis Intelligence Index v4.3.2, with page-title effort labels kept verbatim and board cost-per-index-task values copied exactly. Publisher/harness context differs from vendor tables; all AA model-page rows share a distinct comparability_group and comparable:false. The LMArena text row is a separate independent board/method and must not be ranked against AA composite rows.",
+  "scores": [
+    {
+      "model": "deepseek-v4-1-flash",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 39.0,
+      "unit": "other",
+      "source_id": "artificialanalysis-deepseek-v4-1-flash-2026-09-23-model-page",
+      "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparable": false,
+      "cost": {
+        "value": 0.27,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "effort": "max",
+      "effort_verbatim": "max"
+    },
+    {
+      "model": "kimi-k3",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 44.0,
+      "unit": "other",
+      "source_id": "artificialanalysis-kimi-k3-2026-09-23-model-page",
+      "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparable": false,
+      "cost": {
+        "value": 2.0,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "effort": "max",
+      "effort_verbatim": "max"
+    },
+    {
+      "model": "glm-5.3",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 45.0,
+      "unit": "other",
+      "source_id": "artificialanalysis-glm-5-3-2026-09-23-model-page",
+      "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparable": false,
+      "cost": {
+        "value": 2.01,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "effort": "max",
+      "effort_verbatim": "max"
+    },
+    {
+      "model": "glm-5.3-flash",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 42.0,
+      "unit": "other",
+      "source_id": "artificialanalysis-glm-5-3-flash-2026-09-23-model-page",
+      "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparable": false,
+      "cost": {
+        "value": 0.25,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "minimax-m3",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 29.0,
+      "unit": "other",
+      "source_id": "artificialanalysis-minimax-m3-2026-09-23-model-page",
+      "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparable": false,
+      "cost": {
+        "value": 0.51,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "minimax-m2.7",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 23.0,
+      "unit": "other",
+      "source_id": "artificialanalysis-minimax-m2-7-2026-09-23-model-page",
+      "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparable": false,
+      "cost": {
+        "value": 0.1,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "muse-spark-1-3",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 48.0,
+      "unit": "other",
+      "source_id": "artificialanalysis-muse-spark-1-3-2026-09-23-model-page",
+      "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparable": false,
+      "cost": {
+        "value": 1.6,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "effort": "max",
+      "effort_verbatim": "max"
+    },
+    {
+      "model": "muse-spark-1-3",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 45.0,
+      "unit": "other",
+      "source_id": "artificialanalysis-muse-spark-1-3-xhigh-2026-09-23-model-page",
+      "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparable": false,
+      "cost": {
+        "value": 1.37,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "effort": "xhigh",
+      "effort_verbatim": "xhigh"
+    },
+    {
+      "model": "mistral-large-3",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 9.0,
+      "unit": "other",
+      "source_id": "artificialanalysis-mistral-large-3-2026-09-23-model-page",
+      "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparable": false,
+      "cost": {
+        "value": 0.1,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "mistral-small-4",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 11.0,
+      "unit": "other",
+      "source_id": "artificialanalysis-mistral-small-4-2026-09-23-model-page",
+      "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparable": false,
+      "cost": {
+        "value": 0.05,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "qwen3.8-max",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 45.0,
+      "unit": "other",
+      "source_id": "artificialanalysis-qwen3-8-max-2026-09-23-model-page",
+      "caveat": "Artificial Analysis per-model detail page. Cost per Intelligence Index task is the displayed page value.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "aa-intelligence-index-v4-3-2-model-pages-2026-09-23",
+      "comparable": false,
+      "cost": {
+        "value": 5.41,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "muse-spark-1-3",
+      "metric": "Chatbot Arena Text Elo",
+      "score": 1493.1148813511777,
+      "unit": "elo",
+      "effort": "max",
+      "effort_verbatim": "max",
+      "source_id": "lmarena-text-openweight-2026-09-23",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-23",
+      "task_family": "chat",
+      "metric_id": "chatbot-arena-text-elo",
+      "comparability_group": "lmarena-text-2026-09-23-muse-spark-1-3-max",
+      "comparable": false,
+      "caveat": "LMArena payload key muse-spark-1-3-max-bhma-text; display name muse-spark-1.3-max; 4,723 votes; rating interval 1484.2701926818113–1501.959570020544."
+    }
+  ],
+  "missing": [
+    "No Artificial Analysis model-detail page row for DeepSeek V4 Pro-0813 was found or fetched in this pass.",
+    "Artificial Analysis page slugs for lower-effort variants beyond Muse Spark 1.3 xhigh were not inventoried.",
+    "Qwen3.8 Flash did not resolve to a fetched AA page; the current qwen3.8-max-0902 flagship was captured.",
+    "OpenRouter /api/v1/models had no Mistral Large 3 or Mistral Small 4 model ids on this snapshot; their direct Mistral prices are in mistral-api-2026-09.json.",
+    "OpenRouter price rows for DeepSeek Pro, GLM-5.3 flagship, MiniMax M2.7 and Qwen3.8 Max are preserved separately in pricing/openrouter-openweight-frontier-2026-09-23.json."
+  ]
+}
