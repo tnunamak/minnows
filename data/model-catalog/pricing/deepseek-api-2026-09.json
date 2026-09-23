@@ -1,0 +1,51 @@
+{
+  "$schema": "schemas/pricing-v1.schema.json",
+  "id": "deepseek-api-2026-09",
+  "schema_version": 1,
+  "kind": "api_usd",
+  "agent": "other",
+  "retrieved_at": "2026-09-23",
+  "source_urls": [
+    "https://api-docs.deepseek.com/quick_start/pricing/"
+  ],
+  "source_ids": [
+    "deepseek-pricing-2026-09-23"
+  ],
+  "notes": "Peak-period list rates, USD per 1M tokens. Off-peak price is half the stored rate. The API page lists V4.1-Flash and V4-Pro-0813. No separate cache-write item is billed; cache-hit rates are recorded as cache_read. Pro API service continued per current pricing page. Legacy deepseek-v4-flash is routed to V4.1 Flash, not the retired 0731 weights.",
+  "models": {
+    "deepseek-v4-1-flash": {
+      "fresh_input_per_m": 0.3,
+      "cache_read_per_m": 0.006,
+      "cache_write_per_m": 0,
+      "output_per_m": 1.2,
+      "confidence": "high",
+      "valid_from": "2026-09-10"
+    },
+    "deepseek-v4-pro-0813": {
+      "fresh_input_per_m": 1.32,
+      "cache_read_per_m": 0.044,
+      "cache_write_per_m": 0,
+      "output_per_m": 3.96,
+      "confidence": "high",
+      "valid_from": "2026-08-16"
+    }
+  },
+  "match": [
+    {
+      "pattern": "deepseek-v4-pro",
+      "model": "deepseek-v4-pro-0813"
+    },
+    {
+      "pattern": "deepseek-v4-1-flash",
+      "model": "deepseek-v4-1-flash"
+    },
+    {
+      "pattern": "deepseek-v4-flash",
+      "model": "deepseek-v4-1-flash"
+    },
+    {
+      "pattern": "deepseek-flash",
+      "model": "deepseek-v4-1-flash"
+    }
+  ]
+}

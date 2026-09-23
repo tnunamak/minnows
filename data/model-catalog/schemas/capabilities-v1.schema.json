@@ -48,7 +48,7 @@
         "properties": {
           "provider": {
             "type": "string",
-            "enum": ["anthropic", "openai", "xai", "google", "alibaba", "other"]
+            "enum": ["anthropic", "openai", "xai", "google", "alibaba", "deepseek", "moonshot", "minimax", "meta", "mistral", "other"]
           },
           "model": { "type": "string", "minLength": 1 },
           "surface": {

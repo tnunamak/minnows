@@ -46,6 +46,18 @@ Anthropic, and xAI models:
 - **xai**: the vendor's own tiering if documented, else omitted — xAI does not currently
   publish a named capability-tier scheme (`grok-4.x` numbering only), so `tier` is omitted
   for all xAI rows as of 2026-09-22.
+- **deepseek**: `pro` | `flash` (vendor model names; V4.1 Flash is current).
+- **moonshot**: `k3` (named generation/tier).
+- **z.ai** (`provider: other`): GLM model names such as `glm` | `flash`; the model suffix is
+  the vendor's designation, not an inferred capability ordering.
+- **minimax**: `m3` | `m2.7` (vendor model family designations).
+- **meta**: `spark` (Muse Spark family; preview status is separate).
+- **mistral**: `large` | `medium` | `small` (vendor family names; not a universal rank).
+- **alibaba**: use a vendor tier name only when the primary source presents one; Qwen's
+  `max`/`plus`/`flash` suffixes are product-family designations, not cross-vendor ranks.
+
+`tier` is the vendor's own concurrent product/family label where one is documented. Values
+are meaningful within a provider and do not imply a universal ordering across providers.
 
 ## Provenance (`SOURCES.json`)
 

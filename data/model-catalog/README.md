@@ -75,6 +75,16 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 
 ## Changelog
 
+### v0.5.7 (pending)
+
+- Add DeepSeek V4.1 Flash, V4 Pro-0813, and historical V4 Flash-0731; API pricing and exact vendor effort mappings.
+- Add Kimi K3 (2.8T weights under the custom Kimi K3 license); its official announcement is dated July 22, 2026, not July 17.
+- Add GLM-5.3-Flash vendor launch scores; add MiniMax M3/M2.7 and direct token pricing; record Meta Muse Spark 1.3 as preview; add Mistral Medium 3.5 and Small 4 pricing/effort facts.
+- Confirm Qwen3.8-Max is stable/current and that qwen3.8-max-0902 is its updated snapshot. Mistral Large 3 is listed in the vendor pricing page’s Flagship section; Medium 3.5 is its featured frontier-class model and Small 4 is the lower-cost open-weight option.
+- H3 Max is a video-generation model (priced per second), not the MiniMax text/coding flagship; use M3 for frontier coding/agent comparison. No v0.5.7 version bump in this lane.
+- Third-party coverage now includes same-day Artificial Analysis model-page rows, vals.ai Terminal-Bench 4.0/SWE-bench rows, a Muse Spark 1.3 LMArena Elo row, vendor launch tables, and OpenRouter prices. DeepSWE, official tbench.ai, ARC Prize, and broader LMArena candidate coverage remain open and are listed in `missing[]`.
+
+
 ### v0.5.6 — 2026-09-22
 
 Adds GPT-6 Sol and GPT-6 Luna (launched 2026-09-22, 19 days after GPT-6 Astra on 2026-09-03) across the full pack: catalog/pricing/effort surfaces, the launch-post headline table, the launch-post's 11 digitized effort×cost curves, the GPT-6 Astra system card's safety/preparedness suite (incl. a Sol/Luna appendix), and third-party board coverage. Integrated from four parallel lanes into one branch, reconciled by hand.
