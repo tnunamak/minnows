@@ -1,0 +1,160 @@
+{
+  "$schema": "schemas/guide-v1.schema.json",
+  "id": "model-catalog-guide",
+  "schema_version": 1,
+  "description": "Inputs for the README option map (scripts/render_model_catalog_charts.py). The renderer knows no provider, model, tier, effort level or benchmark; everything it shows is chosen here or derived from the rest of the pack.",
+  "pools": [
+    {
+      "id": "claude",
+      "label": "Claude",
+      "providers": [
+        "anthropic"
+      ],
+      "surfaces": [
+        "claude_code",
+        "api"
+      ],
+      "color_slot": 2,
+      "tiers": [
+        {
+          "tier": "haiku",
+          "label": "Haiku",
+          "summary": "Fastest; near-frontier intelligence",
+          "source_id": "anthropic-models-overview-2026-09-22"
+        },
+        {
+          "tier": "sonnet",
+          "label": "Sonnet",
+          "summary": "Best mix of speed and intelligence",
+          "source_id": "anthropic-models-overview-2026-09-22"
+        },
+        {
+          "tier": "opus",
+          "label": "Opus",
+          "summary": "Long agentic coding and knowledge work",
+          "source_id": "anthropic-models-overview-2026-09-22"
+        },
+        {
+          "tier": "fable",
+          "label": "Fable",
+          "summary": "Demanding reasoning, long-horizon agents",
+          "source_id": "anthropic-models-overview-2026-09-22"
+        }
+      ]
+    },
+    {
+      "id": "codex",
+      "label": "Codex",
+      "providers": [
+        "openai"
+      ],
+      "surfaces": [
+        "codex_cli",
+        "api"
+      ],
+      "color_slot": 1,
+      "tiers": [
+        {
+          "tier": "luna",
+          "label": "Luna",
+          "summary": "Focused, high-volume tasks",
+          "source_id": "openai-api-model-page-gpt-6-luna-2026-09-22"
+        },
+        {
+          "tier": "terra",
+          "label": "Terra",
+          "summary": "Balances intelligence and cost",
+          "source_id": "openai-api-model-page-gpt-5-6-terra-2026-09-25"
+        },
+        {
+          "tier": "sol",
+          "label": "Sol",
+          "summary": "Complex coding and agentic workflows",
+          "source_id": "openai-api-model-page-gpt-6-sol-2026-09-22"
+        },
+        {
+          "tier": "astra",
+          "label": "Astra",
+          "summary": "Most capable; hardest end-to-end work",
+          "source_id": "openai-api-model-page-gpt-6-astra-2026-09-25"
+        }
+      ]
+    }
+  ],
+  "task_families": [
+    {
+      "id": "coding",
+      "label": "Coding",
+      "includes": [
+        "coding"
+      ]
+    },
+    {
+      "id": "knowledge",
+      "label": "Knowledge work",
+      "includes": [
+        "knowledge_work",
+        "agentic_professional_work"
+      ]
+    },
+    {
+      "id": "agentic",
+      "label": "Agent workflows",
+      "includes": [
+        "agentic",
+        "agentic_business_workflows",
+        "computer_use"
+      ]
+    }
+  ],
+  "noise_floor": {
+    "label": "Scores less than 3 points (21 Elo) apart count as a tie, and the cheaper setting wins.",
+    "notes": "Two settings whose scores differ by less than this count as tied, and the cheaper one wins. 0.03 is Anthropic's 3-point skepticism bar for agentic coding leaderboards. For Elo, 21 points is the gap at which the higher-rated answer wins 53% of head-to-heads, the same 3 points of win rate.",
+    "source_ids": [
+      "anthropic-infrastructure-noise-2026-02-05"
+    ],
+    "by_unit": {
+      "accuracy": 0.03,
+      "pass_rate": 0.03,
+      "elo": 21
+    },
+    "by_metric": {
+      "wandr": 0.03,
+      "osworld-2-0-partial": 0.03
+    }
+  },
+  "tier_notes": "Tiers are listed cheapest first, in the order each vendor states. Summaries shorten the vendor's own one-line description on the cited page.",
+  "cost": {
+    "score_cost_unit": "usd_per_task",
+    "price_kind": "api_usd",
+    "price_header": [
+      "$ per M tokens",
+      "in / out"
+    ],
+    "footer": "“Cheaper” means a lower API cost per task on that benchmark, which only approximates quota use."
+  },
+  "effort_labels": {
+    "medium": "med"
+  },
+  "score_display": {
+    "by_unit": {
+      "accuracy": {
+        "percent": true
+      },
+      "pass_rate": {
+        "percent": true
+      },
+      "elo": {
+        "percent": false
+      }
+    },
+    "by_metric": {
+      "wandr": {
+        "percent": true
+      },
+      "osworld-2-0-partial": {
+        "percent": true
+      }
+    }
+  }
+}

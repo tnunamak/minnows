@@ -11,6 +11,10 @@
     "SCHEMA.md",
     "SOURCES.json",
     "capabilities/effort-surfaces-2026-07.json",
+    "charts/effort-curves-dark.svg",
+    "charts/effort-curves-light.svg",
+    "charts/option-map-dark.svg",
+    "charts/option-map-light.svg",
     "digitized/README.md",
     "digitized/anthropic-opus5-frontier-bench-effort.json",
     "digitized/anthropic-opus5-gdpval-effort.json",
@@ -28,6 +32,7 @@
     "digitized/assets/anthropic-sonnet5-firefox147-exploit.png",
     "digitized/assets/anthropic-sonnet5-misaligned-behavior.png",
     "digitized/assets/anthropic-sonnet5-osworld-effort.png",
+    "guide.json",
     "metrics.json",
     "models.json",
     "performance/alibaba-qwen-2026-07.json",
@@ -104,6 +109,7 @@
     "pricing/zai-glm-api-2026-09.json",
     "schemas/README.md",
     "schemas/capabilities-v1.schema.json",
+    "schemas/guide-v1.schema.json",
     "schemas/models-v1.schema.json",
     "schemas/pack-v1.schema.json",
     "schemas/performance-v1.schema.json",
@@ -116,7 +122,8 @@
     "capabilities": "schemas/capabilities-v1.schema.json",
     "models": "schemas/models-v1.schema.json",
     "sources": "schemas/sources-v1.schema.json",
-    "pack": "schemas/pack-v1.schema.json"
+    "pack": "schemas/pack-v1.schema.json",
+    "guide": "schemas/guide-v1.schema.json"
   },
   "related": {
     "policy": "data-model-choice-policy-v0.1.4",
