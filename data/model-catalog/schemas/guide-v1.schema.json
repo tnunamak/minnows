@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "guide-v1.schema.json",
+  "title": "model-catalog README guide inputs",
+  "description": "What the README option map shows. The renderer (scripts/render_model_catalog_charts.py) reads only this file and the rest of the pack.",
+  "type": "object",
+  "required": [
+    "id",
+    "schema_version",
+    "pools",
+    "task_families",
+    "noise_floor",
+    "cost"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "description": {
+      "type": "string"
+    },
+    "tier_notes": {
+      "type": "string"
+    },
+    "pools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "providers",
+          "surfaces",
+          "tiers"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "models.json provider values billed to this quota pool"
+          },
+          "surfaces": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "capabilities surface ids to read effort levels from, first match wins"
+          },
+          "color_slot": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "categorical palette slot for this pool"
+          },
+          "tiers": {
+            "type": "array",
+            "description": "Cheapest tier first. The renderer shows the newest GA, unrestricted model in each tier.",
+            "items": {
+              "type": "object",
+              "required": [
+                "tier",
+                "label",
+                "summary",
+                "source_id"
+              ],
+              "properties": {
+                "tier": {
+                  "type": "string",
+                  "description": "models.json tier value"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "summary": {
+                  "type": "string",
+                  "maxLength": 44,
+                  "description": "Short form of the vendor's own description of the tier"
+                },
+                "source_id": {
+                  "type": "string",
+                  "description": "SOURCES.json id for the summary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "task_families": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "includes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "includes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "performance score row task_family values in this column group"
+          }
+        }
+      }
+    },
+    "noise_floor": {
+      "type": "object",
+      "required": [
+        "label",
+        "source_ids",
+        "by_unit"
+      ],
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "source_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "by_unit": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "by_metric": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "required": [
+        "score_cost_unit",
+        "price_kind",
+        "price_header",
+        "footer"
+      ],
+      "properties": {
+        "score_cost_unit": {
+          "type": "string",
+          "description": "performance cost.unit used to decide which setting is cheaper"
+        },
+        "price_kind": {
+          "type": "string",
+          "description": "pricing document kind shown in the price column"
+        },
+        "price_header": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 2
+        },
+        "footer": {
+          "type": "string"
+        }
+      }
+    },
+    "effort_labels": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Optional short column labels for effort levels, e.g. medium -> med"
+    },
+    "score_display": {
+      "type": "object",
+      "description": "How to label score axes: percent or raw, by unit and by metric",
+      "properties": {
+        "by_unit": {
+          "type": "object"
+        },
+        "by_metric": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

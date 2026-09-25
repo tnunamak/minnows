@@ -261,7 +261,7 @@
           },
           "comparability_group": {
             "type": "string",
-            "description": "Rows may only be compared when this key matches AND comparable is not false"
+            "description": "Rows may only be compared when this key matches. Rows with comparable=false may be compared only within their group"
           },
           "snapshot_id": {
             "type": "string",
@@ -292,7 +292,7 @@
           },
           "comparable": {
             "type": "boolean",
-            "description": "If false, never cross-rank with other rows even with same metric_id"
+            "description": "If false, this metric_id mixes sources or harnesses across the pack: compare the row only with rows in the same comparability_group, never across groups"
           },
           "n": {
             "type": "integer",

@@ -139,6 +139,10 @@
             "type": "string",
             "pattern": "^[a-z][a-z0-9-]+$",
             "description": "Primary SOURCES.json id that states the released date."
+          },
+          "name": {
+            "type": "string",
+            "description": "Vendor display name, e.g. \"Claude Opus 5.5\". Used by generated README views."
           }
         }
       }

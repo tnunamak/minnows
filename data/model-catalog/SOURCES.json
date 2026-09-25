@@ -1885,6 +1885,126 @@
       "retrieved_at": "2026-09-23",
       "kind": "vendor_docs",
       "notes": "Official provider mapping docs: Qwen3.8-Max family accepts reasoning_effort through xhigh (max clamps to xhigh); other Qwen models map a selected effort to enable_thinking=true."
+    },
+    {
+      "id": "anthropic-sonnet-4-5-2025-09-29",
+      "url": "https://www.anthropic.com/news/claude-sonnet-4-5",
+      "title": "Introducing Claude Sonnet 4.5",
+      "publisher": "Anthropic",
+      "published": "2025-09-29",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Launch post dateline \"Sep 29, 2025\"; model id claude-sonnet-4-5."
+    },
+    {
+      "id": "anthropic-haiku-4-5-2025-10-15",
+      "url": "https://www.anthropic.com/news/claude-haiku-4-5",
+      "title": "Introducing Claude Haiku 4.5",
+      "publisher": "Anthropic",
+      "published": "2025-10-15",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Launch post dateline \"Oct 15, 2025\"; model id claude-haiku-4-5, $1/$5 per million input/output tokens."
+    },
+    {
+      "id": "anthropic-opus-4-5-2025-11-24",
+      "url": "https://www.anthropic.com/news/claude-opus-4-5",
+      "title": "Introducing Claude Opus 4.5",
+      "publisher": "Anthropic",
+      "published": "2025-11-24",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Launch post dateline \"Nov 24, 2025\"; API model id claude-opus-4-5-20251101, $5/$25 per million tokens."
+    },
+    {
+      "id": "anthropic-opus-4-6-2026-02-05",
+      "url": "https://www.anthropic.com/news/claude-opus-4-6",
+      "title": "Introducing Claude Opus 4.6",
+      "publisher": "Anthropic",
+      "published": "2026-02-05",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Launch post dateline \"Feb 5, 2026\"; model id claude-opus-4-6."
+    },
+    {
+      "id": "anthropic-sonnet-4-6-2026-02-17",
+      "url": "https://www.anthropic.com/news/claude-sonnet-4-6",
+      "title": "Introducing Sonnet 4.6",
+      "publisher": "Anthropic",
+      "published": "2026-02-17",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Launch post dateline \"Feb 17, 2026\"; model id claude-sonnet-4-6; rolled out as new default model."
+    },
+    {
+      "id": "anthropic-opus-4-7-2026-04-16",
+      "url": "https://www.anthropic.com/news/claude-opus-4-7",
+      "title": "Introducing Claude Opus 4.7",
+      "publisher": "Anthropic",
+      "published": "2026-04-16",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Launch post dateline \"Apr 16, 2026\"; model id claude-opus-4-7; introduces xhigh effort level."
+    },
+    {
+      "id": "openai-gpt-5-3-codex-2026-02-05",
+      "url": "https://openai.com/index/introducing-gpt-5-3-codex/",
+      "title": "Introducing GPT-5.3-Codex",
+      "publisher": "OpenAI",
+      "published": "2026-02-05",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Page dateline \"February 5, 2026\" (confirmed via Wayback Machine capture of openai.com/index/introducing-gpt-5-3-codex/, since live fetch returned HTTP 403); model id gpt-5.3-codex."
+    },
+    {
+      "id": "openai-gpt-5-4-2026-03-05",
+      "url": "https://openai.com/index/introducing-gpt-5-4/",
+      "title": "Introducing GPT-5.4",
+      "publisher": "OpenAI",
+      "published": "2026-03-05",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Page dateline \"March 5, 2026\" (confirmed via Wayback Machine capture, since live fetch returned HTTP 403). Covers both gpt-5.4 (\"GPT-5.4 Thinking\") and gpt-5.4-pro, released the same day: \"We're also releasing GPT-5.4 Pro in ChatGPT and the API, for people who want maximum performance on complex tasks.\""
+    },
+    {
+      "id": "openai-gpt-5-4-mini-nano-2026-03-17",
+      "url": "https://openai.com/index/introducing-gpt-5-4-mini-and-nano/",
+      "title": "Introducing GPT-5.4 mini and nano",
+      "publisher": "OpenAI",
+      "published": "2026-03-17",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Page dateline \"March 17, 2026\" (confirmed via Wayback Machine capture, since live fetch returned HTTP 403). Covers both gpt-5.4-mini and gpt-5.4-nano, released the same day: \"GPT-5.4 mini is available today in the API, Codex...\""
+    },
+    {
+      "id": "openai-api-model-page-gpt-5-6-terra-2026-09-25",
+      "url": "https://developers.openai.com/api/docs/models/gpt-5.6-terra",
+      "title": "GPT-5.6 Terra model page",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_docs",
+      "notes": "Tier one-liner: \"GPT-5.6 model that balances intelligence and cost\". Used for the Terra summary in guide.json."
+    },
+    {
+      "id": "openai-api-model-page-gpt-6-astra-2026-09-25",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6-astra",
+      "title": "GPT-6 Astra model page",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_docs",
+      "notes": "Tier one-liner: \"Our most capable model, built for the hardest end-to-end work\". Used for the Astra summary in guide.json."
+    },
+    {
+      "id": "anthropic-infrastructure-noise-2026-02-05",
+      "url": "https://www.anthropic.com/engineering/infrastructure-noise",
+      "title": "Quantifying infrastructure noise in agentic coding evals",
+      "publisher": "Anthropic",
+      "published": "2026-02-05",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "\"leaderboard differences below 3 percentage points deserve skepticism until the eval configuration is documented and matched\". Basis for the 3-point tie rule in guide.json."
     }
   ]
 }

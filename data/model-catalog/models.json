@@ -30,6 +30,7 @@
     },
     {
       "id": "claude-fable-5",
+      "name": "Claude Fable 5",
       "provider": "anthropic",
       "family": "claude-fable",
       "status": "ga",
@@ -40,6 +41,7 @@
     },
     {
       "id": "claude-fable-5-1",
+      "name": "Claude Fable 5.1",
       "provider": "anthropic",
       "family": "claude-fable",
       "status": "ga",
@@ -52,15 +54,19 @@
     },
     {
       "id": "claude-haiku-4-5",
+      "name": "Claude Haiku 4.5",
       "provider": "anthropic",
       "family": "claude-haiku",
       "status": "ga",
       "tier": "haiku",
       "aliases": [],
+      "released": "2025-10-15",
+      "release_source_id": "anthropic-haiku-4-5-2025-10-15",
       "effort_parameter": false
     },
     {
       "id": "claude-mythos-5",
+      "name": "Claude Mythos 5",
       "provider": "anthropic",
       "family": "claude-mythos",
       "status": "ga",
@@ -74,6 +80,7 @@
     },
     {
       "id": "claude-mythos-5-1",
+      "name": "Claude Mythos 5.1",
       "provider": "anthropic",
       "family": "claude-mythos",
       "status": "ga",
@@ -87,34 +94,44 @@
     },
     {
       "id": "claude-opus-4-5",
+      "name": "Claude Opus 4.5",
       "provider": "anthropic",
       "family": "claude-opus",
       "status": "ga",
       "tier": "opus",
-      "aliases": []
+      "aliases": [],
+      "released": "2025-11-24",
+      "release_source_id": "anthropic-opus-4-5-2025-11-24"
     },
     {
       "id": "claude-opus-4-6",
+      "name": "Claude Opus 4.6",
       "provider": "anthropic",
       "family": "claude-opus",
       "status": "ga",
       "tier": "opus",
       "aliases": [
         "claude-opus-4-6-thinking"
-      ]
+      ],
+      "released": "2026-02-05",
+      "release_source_id": "anthropic-opus-4-6-2026-02-05"
     },
     {
       "id": "claude-opus-4-7",
+      "name": "Claude Opus 4.7",
       "provider": "anthropic",
       "family": "claude-opus",
       "status": "ga",
       "tier": "opus",
       "aliases": [
         "claude-opus-4-7-thinking"
-      ]
+      ],
+      "released": "2026-04-16",
+      "release_source_id": "anthropic-opus-4-7-2026-04-16"
     },
     {
       "id": "claude-opus-4-8",
+      "name": "Claude Opus 4.8",
       "provider": "anthropic",
       "family": "claude-opus",
       "status": "ga",
@@ -127,6 +144,7 @@
     },
     {
       "id": "claude-opus-5",
+      "name": "Claude Opus 5",
       "provider": "anthropic",
       "family": "claude-opus",
       "status": "ga",
@@ -137,6 +155,7 @@
     },
     {
       "id": "claude-opus-5-5",
+      "name": "Claude Opus 5.5",
       "provider": "anthropic",
       "family": "claude-opus",
       "status": "ga",
@@ -150,22 +169,29 @@
     },
     {
       "id": "claude-sonnet-4-5",
+      "name": "Claude Sonnet 4.5",
       "provider": "anthropic",
       "family": "claude-sonnet",
       "status": "ga",
       "tier": "sonnet",
-      "aliases": []
+      "aliases": [],
+      "released": "2025-09-29",
+      "release_source_id": "anthropic-sonnet-4-5-2025-09-29"
     },
     {
       "id": "claude-sonnet-4-6",
+      "name": "Claude Sonnet 4.6",
       "provider": "anthropic",
       "family": "claude-sonnet",
       "status": "ga",
       "tier": "sonnet",
-      "aliases": []
+      "aliases": [],
+      "released": "2026-02-17",
+      "release_source_id": "anthropic-sonnet-4-6-2026-02-17"
     },
     {
       "id": "claude-sonnet-5",
+      "name": "Claude Sonnet 5",
       "provider": "anthropic",
       "family": "claude-sonnet",
       "status": "ga",
@@ -361,46 +387,62 @@
     },
     {
       "id": "gpt-5.3-codex",
+      "name": "GPT-5.3-Codex",
       "provider": "openai",
       "family": "gpt-5.3",
       "status": "ga",
       "tier": "codex",
-      "aliases": []
+      "aliases": [],
+      "released": "2026-02-05",
+      "release_source_id": "openai-gpt-5-3-codex-2026-02-05"
     },
     {
       "id": "gpt-5.4",
+      "name": "GPT-5.4",
       "provider": "openai",
       "family": "gpt-5.4",
       "status": "ga",
       "tier": "base",
-      "aliases": []
+      "aliases": [],
+      "released": "2026-03-05",
+      "release_source_id": "openai-gpt-5-4-2026-03-05"
     },
     {
       "id": "gpt-5.4-mini",
+      "name": "GPT-5.4 mini",
       "provider": "openai",
       "family": "gpt-5.4",
       "status": "ga",
       "tier": "mini",
-      "aliases": []
+      "aliases": [],
+      "released": "2026-03-17",
+      "release_source_id": "openai-gpt-5-4-mini-nano-2026-03-17"
     },
     {
       "id": "gpt-5.4-nano",
+      "name": "GPT-5.4 nano",
       "provider": "openai",
       "family": "gpt-5.4",
       "status": "ga",
       "tier": "nano",
-      "aliases": []
+      "aliases": [],
+      "released": "2026-03-17",
+      "release_source_id": "openai-gpt-5-4-mini-nano-2026-03-17"
     },
     {
       "id": "gpt-5.4-pro",
+      "name": "GPT-5.4 pro",
       "provider": "openai",
       "family": "gpt-5.4",
       "status": "ga",
       "tier": "pro",
-      "aliases": []
+      "aliases": [],
+      "released": "2026-03-05",
+      "release_source_id": "openai-gpt-5-4-2026-03-05"
     },
     {
       "id": "gpt-5.5",
+      "name": "GPT-5.5",
       "provider": "openai",
       "family": "gpt-5.5",
       "status": "ga",
@@ -413,14 +455,18 @@
     },
     {
       "id": "gpt-5.5-pro",
+      "name": "GPT-5.5 pro",
       "provider": "openai",
       "family": "gpt-5.5",
       "status": "ga",
       "tier": "pro",
-      "aliases": []
+      "aliases": [],
+      "released": "2026-04-23",
+      "release_source_id": "openai-gpt-5-5-2026-04-23"
     },
     {
       "id": "gpt-5.6-luna",
+      "name": "GPT-5.6 Luna",
       "provider": "openai",
       "family": "gpt-5.6",
       "status": "ga",
@@ -439,6 +485,7 @@
     },
     {
       "id": "gpt-5.6-sol",
+      "name": "GPT-5.6 Sol",
       "provider": "openai",
       "family": "gpt-5.6",
       "status": "ga",
@@ -457,6 +504,7 @@
     },
     {
       "id": "gpt-5.6-terra",
+      "name": "GPT-5.6 Terra",
       "provider": "openai",
       "family": "gpt-5.6",
       "status": "ga",
@@ -475,6 +523,7 @@
     },
     {
       "id": "gpt-6-astra",
+      "name": "GPT-6 Astra",
       "provider": "openai",
       "family": "gpt-6",
       "status": "ga",
@@ -488,6 +537,7 @@
     },
     {
       "id": "gpt-6-luna",
+      "name": "GPT-6 Luna",
       "provider": "openai",
       "family": "gpt-6",
       "status": "ga",
@@ -501,6 +551,7 @@
     },
     {
       "id": "gpt-6-sol",
+      "name": "GPT-6 Sol",
       "provider": "openai",
       "family": "gpt-6",
       "status": "ga",

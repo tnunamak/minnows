@@ -46,8 +46,8 @@
       "uniqueItems": true,
       "items": {
         "type": "string",
-        "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._/-]*\\.(json|md|png|py|txt|sha256)$",
-        "description": "Path relative to pack root; allowed extensions: json, md, png, py, txt"
+        "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._/-]*\\.(json|md|png|svg|py|txt|sha256)$",
+        "description": "Path relative to pack root; allowed extensions: json, md, png, svg, py, txt"
       }
     },
     "schemas": {
