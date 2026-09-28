@@ -18,8 +18,8 @@ git log -1 --format=%B | slopgate check --stdin --kind commit
 slopgate check --file body.md --kind pr --json
 ```
 
-`--kind` is `commit`, `pr`, `doc`, or `web`. Exit 1 while findings remain,
-0 when clean.
+`--kind` is `commit`, `pr`, `doc`, or `web`. Exit 1 while any finding other
+than `info` remains, 0 otherwise; `info` findings (the quality score) never gate.
 
 **Act on `high` findings; treat `low` as advisory.** Two or more high-severity
 findings is the measured threshold where revising helps. Below it, revising a
