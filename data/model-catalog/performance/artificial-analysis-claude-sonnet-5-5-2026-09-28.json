@@ -1,0 +1,214 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "artificial-analysis-claude-sonnet-5-5-2026-09-28",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-09-28",
+  "source_urls": [
+    "https://artificialanalysis.ai/models/releases/claude-sonnet-5-5",
+    "https://artificialanalysis.ai/articles/claude-sonnet-5-5",
+    "https://artificialanalysis.ai/models/releases/comparisons"
+  ],
+  "source_ids": [
+    "artificial-analysis-sonnet-5-5-release-2026-09-28",
+    "artificial-analysis-sonnet-5-5-article-2026-09-28",
+    "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28"
+  ],
+  "notes": "Direct publisher-page sweep on launch day. The release page exposes Sonnet 5.5 Intelligence Index v4.3.2 scores and task costs at low, medium, high, xhigh, and max; all five effort labels are explicit. AA states these were run on a pre-release deployment with a structured-output bug that Anthropic says is fixed in the public release. AA article reports the max-effort Terminal-Bench 4.0 result. Per-evaluation chart image could not be extracted from the available page text during this pass. Do not infer missing per-eval values or peer rows from the composite score. The same-day board page lists Opus 5.5 and GPT-6 Sol/Astra in comparisons, but same-snapshot max rows for Opus 5.5 and GPT-6 Astra were captured from AA’s release-comparison page; the other requested peers were not captured.",
+  "claims": [
+    {
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality",
+        "cost"
+      ],
+      "statement": "Artificial Analysis lists Sonnet 5.5 at all five efforts on Intelligence Index v4.3.2: low 36 ($0.41/task), medium 41 ($0.59/task), high 47 ($1.08/task), xhigh 52 ($2.74/task), max 56 ($7.60/task).",
+      "implication": "The low and medium index rows provide direct launch-day evidence for task settings that previously lacked low-effort observations. Treat them as publisher-run, pre-release deployment results and keep them separate from the later public-model rerun.",
+      "source_id": "artificial-analysis-sonnet-5-5-release-2026-09-28"
+    }
+  ],
+  "scores": [
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 36,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-sonnet-5-5-release-2026-09-28",
+      "caveat": "Artificial Analysis displayed release-page value; default fallback enabled. Cost is publisher-reported USD per Intelligence Index task. The evaluation used a pre-release deployment with a structured-output bug; Anthropic says the public release fixes it and AA expects to rerun relevant evaluations.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-28",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-28",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-28",
+      "cost": {
+        "value": 0.41,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 41,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-sonnet-5-5-release-2026-09-28",
+      "caveat": "Artificial Analysis displayed release-page value; default fallback enabled. Cost is publisher-reported USD per Intelligence Index task. The evaluation used a pre-release deployment with a structured-output bug; Anthropic says the public release fixes it and AA expects to rerun relevant evaluations.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-28",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-28",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-28",
+      "cost": {
+        "value": 0.59,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 47,
+      "unit": "other",
+      "effort": "high",
+      "source_id": "artificial-analysis-sonnet-5-5-release-2026-09-28",
+      "caveat": "Artificial Analysis displayed release-page value; default fallback enabled. Cost is publisher-reported USD per Intelligence Index task. The evaluation used a pre-release deployment with a structured-output bug; Anthropic says the public release fixes it and AA expects to rerun relevant evaluations.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-28",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-28",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-28",
+      "cost": {
+        "value": 1.08,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 52,
+      "unit": "other",
+      "effort": "xhigh",
+      "source_id": "artificial-analysis-sonnet-5-5-release-2026-09-28",
+      "caveat": "Artificial Analysis displayed release-page value; default fallback enabled. Cost is publisher-reported USD per Intelligence Index task. The evaluation used a pre-release deployment with a structured-output bug; Anthropic says the public release fixes it and AA expects to rerun relevant evaluations.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-28",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-28",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-28",
+      "cost": {
+        "value": 2.74,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 56,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-sonnet-5-5-release-2026-09-28",
+      "caveat": "Artificial Analysis displayed release-page value; default fallback enabled. Cost is publisher-reported USD per Intelligence Index task. The evaluation used a pre-release deployment with a structured-output bug; Anthropic says the public release fixes it and AA expects to rerun relevant evaluations.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-28",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-28",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-28",
+      "cost": {
+        "value": 7.6,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "Terminal-Bench 4.0 (Artificial Analysis run)",
+      "score": 0.64,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "artificial-analysis-sonnet-5-5-article-2026-09-28",
+      "caveat": "AA article reports 64% at max effort. Separate AA run/harness from Vals AI and Anthropic vendor results for Terminal-Bench 4.0. The article describes the Intelligence Index run as pre-release; no standalone n/uncertainty was supplied in the article text.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-28",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-terminal-bench-4-0-2026-09-28",
+      "snapshot_id": "artificial-analysis-sonnet-5-5-release-2026-09-28"
+    },
+    {
+      "model": "claude-opus-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 58,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28",
+      "caveat": "Same-day Artificial Analysis release-comparison page; explicit max-effort label; displayed whole-point score.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-28",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-28",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-28",
+      "cost": {
+        "value": 5.98,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 53,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28",
+      "caveat": "Same-day Artificial Analysis release-comparison page; explicit max-effort label; displayed whole-point score.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-28",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-28",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-28",
+      "cost": {
+        "value": 3.26,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    }
+  ],
+  "missing": [
+    "AA per-evaluation breakdown chart values for all 10 component evaluations; the article links a tall image, but no textual per-eval cells were available in this retrieval.",
+    "Same-snapshot AA rows for Sonnet 5, GPT-6 Sol/Luna, and Haiku 4.5 were not exposed. Do not reuse older snapshots as same-day peers.",
+    "Public-release rerun of AA composite and relevant evaluations after the structured-output issue was fixed."
+  ]
+}
