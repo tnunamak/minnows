@@ -21,8 +21,9 @@ the efficient path.
   slopgate check --file DRAFT.md --kind doc
   git log -1 --format=%B | slopgate check --stdin --kind commit --json
 
-Exit 1 if any finding survives, 0 if clean. Never exits nonzero for a tooling
-problem, so a broken backend cannot block a workflow.
+Exit 1 if any finding with a severity other than `info` survives, 0 otherwise.
+`info` findings (the semantic quality score) are printed but never gate. Never
+exits nonzero for a tooling problem, so a broken backend cannot block a workflow.
 
 Calibrate it to your own taste:
 
@@ -180,7 +181,7 @@ def cmd_check(a):
             print(f"  [{sev}] {rule}{extra}" + (f" -> {fix}" if fix else ""))
         if not findings and not a.quiet:
             print("  clean")
-    return 1 if findings else 0
+    return 1 if any(f.get("severity", "medium") != "info" for f in findings) else 0
 
 
 def cmd_calibrate(a):
