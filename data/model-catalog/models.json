@@ -177,6 +177,16 @@
       "release_source_id": "anthropic-sonnet-5-2026-06-30"
     },
     {
+      "id": "claude-sonnet-5-5",
+      "provider": "anthropic",
+      "family": "claude-sonnet",
+      "status": "ga",
+      "tier": "sonnet",
+      "aliases": [],
+      "released": "2026-09-28",
+      "release_source_id": "anthropic-sonnet-5-5-2026-09-28"
+    },
+    {
       "id": "deepseek-v4-1-flash",
       "provider": "deepseek",
       "family": "deepseek-v4",

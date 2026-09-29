@@ -1,0 +1,150 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "vals-ai-claude-sonnet-5-5-2026-09-28",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-09-28",
+  "source_urls": [
+    "https://www.vals-ai.com/models/anthropic_claude-sonnet-5-5",
+    "https://www.vals-ai.com/benchmarks/terminal-bench-4"
+  ],
+  "source_ids": [
+    "vals-ai-sonnet-5-5-model-2026-09-28",
+    "vals-ai-terminal-bench-4-2026-09-28"
+  ],
+  "notes": "Launch-day Vals AI model page plus the Terminal-Bench 4.0 board, updated 2026-09-27. The model page gives Sonnet 5.5 compute effort max except Terminal-Bench 2.1, which used high. TB4 rows from the board page include Sonnet 5.5, Opus 5.5, GPT-6 Astra, GPT-6 Sol and Sonnet 5. Available displayed Sonnet 5.5 TB4 score is 53.03%, cost/test $19.33; board text lists Sonnet 5.5 effort as max through the model-specific run settings. Effort for peer rows remains unknown where not explicit. Only peer rows directly surfaced in the board text are included; GPT-6 Luna and Haiku 4.5 were not available in the exposed top/frontier table excerpt.",
+  "claims": [
+    {
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality",
+        "cost"
+      ],
+      "statement": "Vals AI reports Claude Sonnet 5.5 at 53.03% on Terminal-Bench 4.0 (score ±1.51 points, cost $19.33/test) and 83.15% on Terminal-Bench 2.1 at high effort. The model-page run settings specify max effort for the other reported evaluations.",
+      "implication": "Use the TB4 row as an independent board observation and keep it separate from AA and Anthropic Terminal-Bench runs. Vals AI also reports fallback-assisted reruns; these are not the main score rows recorded here.",
+      "source_id": "vals-ai-sonnet-5-5-model-2026-09-28"
+    }
+  ],
+  "scores": [
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.5303,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-09-28",
+      "caveat": "Sonnet 5.5 model page explicitly states compute effort max for this run. Vals board shows 53.03% and the 2026-09-27 board snapshot.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-27",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "vals-ai-terminal-bench-4-2026-09-27",
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-27",
+      "ci_lo": 0.5152,
+      "ci_hi": 0.5454,
+      "cost": {
+        "value": 19.33,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "claude-opus-5-5",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.6162,
+      "unit": "accuracy",
+      "effort": "unknown",
+      "source_id": "vals-ai-terminal-bench-4-2026-09-28",
+      "caveat": "Top-row value on the same 2026-09-27 Vals board. Effort not stated in the available row text; recorded as unknown.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-27",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "vals-ai-terminal-bench-4-2026-09-27",
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-27"
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.5707,
+      "unit": "accuracy",
+      "effort": "unknown",
+      "source_id": "vals-ai-terminal-bench-4-2026-09-28",
+      "caveat": "Top-row value on the same 2026-09-27 Vals board. Effort not stated in the available row text; recorded as unknown.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-27",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "vals-ai-terminal-bench-4-2026-09-27",
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-27"
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.3434,
+      "unit": "accuracy",
+      "effort": "unknown",
+      "source_id": "vals-ai-terminal-bench-4-2026-09-28",
+      "caveat": "Top-row value on the same 2026-09-27 Vals board. Effort not stated in the available row text; recorded as unknown.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-27",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "vals-ai-terminal-bench-4-2026-09-27",
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-27"
+    },
+    {
+      "model": "claude-sonnet-5",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.0808,
+      "unit": "accuracy",
+      "effort": "unknown",
+      "source_id": "vals-ai-terminal-bench-4-2026-09-28",
+      "caveat": "Same board text reports 8.08%; effort is not exposed in the available row text.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-27",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "vals-ai-terminal-bench-4-2026-09-27",
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-09-27"
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "Terminal-Bench 2.1 (Vals AI)",
+      "score": 0.8315,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "vals-ai-sonnet-5-5-model-2026-09-28",
+      "caveat": "Vals AI model page states compute effort high for Terminal-Bench 2.1; all other listed Sonnet 5.5 evaluations on the page use max. Fallback-assisted results are separately reported by Vals and are not substituted here.",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-28",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-2-1",
+      "comparable": false,
+      "comparability_group": "vals-ai-sonnet-5-5-model-2026-09-28",
+      "snapshot_id": "vals-ai-sonnet-5-5-model-2026-09-28"
+    }
+  ],
+  "missing": [
+    "Full row export for same-snapshot GPT-6 Luna and Claude Haiku 4.5 was not exposed in the retrieved TB4 top/frontier table excerpt.",
+    "Vals AI Terminal-Bench 2.1 same-snapshot rows for Sonnet 5, Opus 5.5, GPT-6 Sol/Luna/Astra, Haiku 4.5 were not captured in this pass.",
+    "Vals Index and the remaining Sonnet 5.5 model-page benchmark rows (including exact same-snapshot requested peer rows) need a raw table export before ingestion."
+  ]
+}

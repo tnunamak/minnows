@@ -2,7 +2,7 @@
   "$schema": "schemas/sources-v1.schema.json",
   "schema_version": 1,
   "id": "model-catalog-sources",
-  "retrieved_at": "2026-09-23",
+  "retrieved_at": "2026-09-28",
   "description": "Canonical provenance registry. Every pricing/performance/capabilities payload should reference these ids via source_ids[].",
   "sources": [
     {
@@ -1885,6 +1885,156 @@
       "retrieved_at": "2026-09-23",
       "kind": "vendor_docs",
       "notes": "Official provider mapping docs: Qwen3.8-Max family accepts reasoning_effort through xhigh (max clamps to xhigh); other Qwen models map a selected effort to enable_thinking=true."
+    },
+    {
+      "id": "anthropic-sonnet-5-5-2026-09-28",
+      "url": "https://www.anthropic.com/claude-sonnet-5-5",
+      "title": "Introducing Claude Sonnet 5.5",
+      "publisher": "Anthropic",
+      "published": "2026-09-28",
+      "retrieved_at": "2026-09-28",
+      "kind": "vendor_blog",
+      "notes": "Launch page confirms model id, launch date, and official benchmark table. Used only as model release provenance here."
+    },
+    {
+      "id": "arcprize-leaderboard-sonnet-5-5-2026-09-28",
+      "url": "https://arcprize.org/leaderboard",
+      "title": "ARC Prize Leaderboard",
+      "publisher": "ARC Prize",
+      "published": null,
+      "retrieved_at": "2026-09-28",
+      "kind": "third_party_eval",
+      "notes": "Board page checked on 2026-09-28. No Sonnet 5.5 row surfaced in the retrieved page/search content; launch-day absence is provisional."
+    },
+    {
+      "id": "arena-ai-sonnet-5-5-2026-09-28",
+      "url": "https://arena.ai/leaderboard/",
+      "title": "Arena (formerly LMArena) Leaderboard",
+      "publisher": "Arena",
+      "published": null,
+      "retrieved_at": "2026-09-28",
+      "kind": "third_party_eval",
+      "notes": "Checked 2026-09-28; no Sonnet 5.5 row/votes surfaced. Search/index view only, so provisional."
+    },
+    {
+      "id": "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28",
+      "url": "https://artificialanalysis.ai/models/releases/comparisons",
+      "title": "Artificial Analysis Release Comparison Tool",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-28",
+      "kind": "third_party_eval",
+      "notes": "Same-day release comparison page includes Artificial Analysis Intelligence Index v4.3.2 rows for Claude Opus 5.5 at max (58, $5.98/task) and GPT-6 Astra at max (53, $3.26/task). Used as same-snapshot peer rows with Sonnet 5.5; AA score display is rounded to whole points."
+    },
+    {
+      "id": "artificial-analysis-sonnet-5-5-article-2026-09-28",
+      "url": "https://artificialanalysis.ai/articles/claude-sonnet-5-5",
+      "title": "Claude Sonnet 5.5 reaches #2 on the Artificial Analysis Intelligence Index",
+      "publisher": "Artificial Analysis",
+      "published": "2026-09-28",
+      "retrieved_at": "2026-09-28",
+      "kind": "third_party_eval",
+      "notes": "Launch-day article states max-effort index/Terminal-Bench 4.0 readings and documents the pre-release structured-output issue."
+    },
+    {
+      "id": "artificial-analysis-sonnet-5-5-release-2026-09-28",
+      "url": "https://artificialanalysis.ai/models/releases/claude-sonnet-5-5",
+      "title": "Claude Sonnet 5.5 Models - Intelligence, Performance & Price Comparison",
+      "publisher": "Artificial Analysis",
+      "published": "2026-09-28",
+      "retrieved_at": "2026-09-28",
+      "kind": "third_party_eval",
+      "notes": "Release page lists all five Intelligence Index effort variants with displayed scores and per-task cost. Values recorded at publisher precision."
+    },
+    {
+      "id": "deepswe-datacurve-sonnet-5-5-2026-09-28",
+      "url": "https://deepswe.datacurve.ai/",
+      "title": "DeepSWE Leaderboard",
+      "publisher": "DataCurve",
+      "published": null,
+      "retrieved_at": "2026-09-28",
+      "kind": "third_party_eval",
+      "notes": "Board checked on 2026-09-28. No Sonnet 5.5 result surfaced; client-rendered leaderboard does not provide a confirmed negative."
+    },
+    {
+      "id": "epoch-ai-models-sonnet-5-5-2026-09-28",
+      "url": "https://epoch.ai/models/search",
+      "title": "Epoch AI Models Index",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-09-28",
+      "kind": "third_party_eval",
+      "notes": "Checked 2026-09-28; no Sonnet 5.5 row surfaced in the model index or benchmark snippets retrieved. Provisional absence."
+    },
+    {
+      "id": "openrouter-sonnet-5-5-2026-09-28",
+      "url": "https://openrouter.ai/anthropic/claude-sonnet-5.5",
+      "title": "Claude Sonnet 5.5 on OpenRouter",
+      "publisher": "OpenRouter",
+      "published": null,
+      "retrieved_at": "2026-09-28",
+      "kind": "third_party_eval",
+      "notes": "OpenRouter comparison page confirms listing, token pricing, context, output limit and provider availability. No quality-board score is published there."
+    },
+    {
+      "id": "seal-swebench-pro-sonnet-5-5-2026-09-28",
+      "url": "https://scale.com/leaderboard/swe_bench_pro_public",
+      "title": "SEAL SWE-bench Pro Leaderboard",
+      "publisher": "Scale AI",
+      "published": null,
+      "retrieved_at": "2026-09-28",
+      "kind": "third_party_eval",
+      "notes": "SEAL/SWE-bench Pro coverage check on 2026-09-28. No Sonnet 5.5 row surfaced in retrieved content; provisional."
+    },
+    {
+      "id": "steel-browsecomp-sonnet-5-5-2026-09-28",
+      "url": "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+      "title": "Steel BrowseComp Leaderboard",
+      "publisher": "Steel",
+      "published": null,
+      "retrieved_at": "2026-09-28",
+      "kind": "third_party_eval",
+      "notes": "Checked 2026-09-28; no Sonnet 5.5 row surfaced in retrieved content. Provisional absence."
+    },
+    {
+      "id": "terminal-bench-official-2026-09-28",
+      "url": "https://www.tbench.ai/leaderboard/terminal-bench/4.0",
+      "title": "Terminal-Bench 4.0 Leaderboard",
+      "publisher": "Terminal-Bench",
+      "published": null,
+      "retrieved_at": "2026-09-28",
+      "kind": "third_party_eval",
+      "notes": "Checked via web search and indexed page content on 2026-09-28. The official leaderboard result rows were not directly extractable in this session; absence is provisional."
+    },
+    {
+      "id": "vals-ai-sonnet-5-5-model-2026-09-28",
+      "url": "https://www.vals-ai.com/models/anthropic_claude-sonnet-5-5",
+      "title": "Claude Sonnet 5.5 Benchmarks, Cost and Capabilities",
+      "publisher": "Vals AI",
+      "published": "2026-09-28",
+      "retrieved_at": "2026-09-28",
+      "kind": "third_party_eval",
+      "notes": "Launch-day model page includes Vals Index and per-benchmark results; run settings state compute effort max except Terminal-Bench 2.1 high."
+    },
+    {
+      "id": "vals-ai-swebench-sonnet-5-5-2026-09-28",
+      "url": "https://www.vals-ai.com/benchmarks/swebench",
+      "title": "Vals AI SWE-bench Benchmarks",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-09-28",
+      "kind": "third_party_eval",
+      "notes": "SWE-bench board checked on 2026-09-28. No Sonnet 5.5 run surfaced in the retrieved search/page content; provisional."
+    },
+    {
+      "id": "vals-ai-terminal-bench-4-2026-09-28",
+      "url": "https://www.vals-ai.com/benchmarks/terminal-bench-4",
+      "title": "Terminal-Bench 4.0 Leaderboard and Methodology",
+      "publisher": "Vals AI",
+      "published": "2026-09-27",
+      "retrieved_at": "2026-09-28",
+      "kind": "third_party_eval",
+      "notes": "Board updated 2026-09-27. Key takeaways expose the top rows, including Sonnet 5.5, Opus 5.5, Sonnet 5, GPT-6 Astra, and GPT-6 Sol; the page model detail supplies Sonnet 5.5 max effort."
     }
   ]
 }
