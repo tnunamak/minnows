@@ -1,7 +1,7 @@
 {
   "id": "model-choice-policy",
   "schema_version": 1,
-  "policy_version": "0.1.13",
+  "policy_version": "0.1.14",
   "generated_at": "2026-09-23",
   "catalog_ref": "data-model-catalog-v0.5.9",
   "doctrine": [
@@ -18,7 +18,7 @@
       "constraint_family": "dollar-tight",
       "expands_to": {
         "provider": "claude",
-        "model": "claude-sonnet-5",
+        "model": "claude-sonnet-5-5",
         "effort": "low",
         "mode": "standard"
       },
@@ -47,7 +47,7 @@
       "deescalate_to": [],
       "known_gaps": [
         "No local success-rate series for recover task family",
-        "Unsettled (2026-09-22): Sonnet 5 is dominated at max effort on AA, but no independent source measures low-effort cost/quality for Sonnet 5, Opus 5.5, GPT-6 Sol or Luna. Kept pending that evidence; see recommend_ops.py output."
+        "Moved to Sonnet 5.5 on 2026-09-29 by the tier rule (newest model in the cheapest tier). AA Intelligence Index v4.3.2 has Sonnet 5.5 at low at 36 for $0.41/task, but AA ran a pre-release deployment and no independent board compares Sonnet 5.5 with Opus 5.5 on bounded edits or reading tasks. Recheck when AA reruns."
       ],
       "override_policy": "explicit_flags_win"
     },
@@ -103,7 +103,7 @@
       "constraint_family": "dollar-tight",
       "expands_to": {
         "provider": "claude",
-        "model": "claude-sonnet-5",
+        "model": "claude-sonnet-5-5",
         "effort": "low",
         "mode": "standard"
       },
@@ -129,7 +129,7 @@
       ],
       "deescalate_to": [],
       "known_gaps": [
-        "Unsettled (2026-09-22): Sonnet 5 is dominated at max effort on AA, but no independent source measures low-effort cost/quality for Sonnet 5, Opus 5.5, GPT-6 Sol or Luna. Kept pending that evidence; see recommend_ops.py output."
+        "Moved to Sonnet 5.5 on 2026-09-29 by the tier rule (newest model in the cheapest tier). AA Intelligence Index v4.3.2 has Sonnet 5.5 at low at 36 for $0.41/task, but AA ran a pre-release deployment and no independent board compares Sonnet 5.5 with Opus 5.5 on bounded edits or reading tasks. Recheck when AA reruns."
       ],
       "override_policy": "explicit_flags_win"
     },
@@ -187,8 +187,8 @@
       "constraint_family": "quota-tight",
       "expands_to": {
         "provider": "claude",
-        "model": "claude-sonnet-5",
-        "effort": "low",
+        "model": "claude-sonnet-5-5",
+        "effort": "medium",
         "mode": "standard"
       },
       "frontier_assumption": {
@@ -200,7 +200,8 @@
       },
       "evidence_refs": [
         "catalog://performance/anthropic-effort-quality-2026-07",
-        "catalog://performance/anthropic-sonnet5-digitized-2026-07"
+        "catalog://performance/anthropic-sonnet5-5-digitized-2026-09",
+        "catalog://performance/artificial-analysis-claude-sonnet-5-5-2026-09-28"
       ],
       "use_when": [
         "Subscription quota is scarce",
@@ -216,7 +217,7 @@
         "recover.report"
       ],
       "known_gaps": [
-        "Unsettled (2026-09-22): Sonnet 5 is dominated at max effort on AA, but no independent source measures low-effort cost/quality for Sonnet 5, Opus 5.5, GPT-6 Sol or Luna. Kept pending that evidence; see recommend_ops.py output."
+        "Moved to Sonnet 5.5 on 2026-09-29 by the tier rule (newest model in the cheapest tier). AA Intelligence Index v4.3.2 has Sonnet 5.5 at low at 36 for $0.41/task, but AA ran a pre-release deployment and no independent board compares Sonnet 5.5 with Opus 5.5 on bounded edits or reading tasks. Recheck when AA reruns."
       ],
       "override_policy": "explicit_flags_win"
     },

@@ -68,11 +68,11 @@ Waspflow resolves from (first hit):
 
 | Op | Provider / model / effort |
 |----|---------------------------|
-| `recover.report` | claude / sonnet-5 / low |
+| `recover.report` | claude / sonnet-5-5 / low |
 | `fanout.explore` | claude / opus-5-5 / medium |
-| `docs.lookup` | claude / sonnet-5 / low |
+| `docs.lookup` | claude / sonnet-5-5 / low |
 | `implement.standard` | claude / opus-5-5 / medium |
-| `implement.quota-tight` | claude / sonnet-5 / low |
+| `implement.quota-tight` | claude / sonnet-5-5 / medium |
 | `implement.accuracy-first` | claude / opus-5-5 / high |
 | `review.audit` | codex / gpt-6-astra / high |
 | `advisor.deep` | claude / opus-5-5 / high |
@@ -80,6 +80,15 @@ Waspflow resolves from (first hit):
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.1.14 — 2026-09-29
+
+- Move `recover.report` and `docs.lookup` from claude-sonnet-5/low to **claude-sonnet-5-5/low**, and `implement.quota-tight` from claude-sonnet-5/low to **claude-sonnet-5-5/medium**. Rule 1: take the newest model in the cheapest tier that clears the bar.
+- Evidence (catalog v0.5.9): AA Intelligence Index v4.3.2 has Sonnet 5.5 at low at 36 for $0.41/task, against Sonnet 5 at max at 38.2 for $5.09/task. AA says its runs used a pre-release deployment.
+- `implement.quota-tight` uses medium because vendor Terminal-Bench 4.0 shows Sonnet 5.5 at low at 20.0%, against 28.8% at medium. Opus 5.5 leads Sonnet 5.5 at low (38.5%) and medium (57.6%) on that board; Sonnet 5.5 passes it only at max, at a higher cost per task.
+- `scripts/recommend_ops.py` returns INSUFFICIENT_EVIDENCE for 9 of 10 ops, as it does on plain `origin/main`. This change rests on the tier rule and the boards above, not on a recommender result.
+- Every Opus, Astra and Grok op is unchanged.
+- Catalog pin: **v0.5.9**.
 
 ### v0.1.13 — 2026-09-23
 
