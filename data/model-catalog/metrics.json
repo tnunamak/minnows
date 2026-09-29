@@ -2,10 +2,15 @@
   "$schema": "schemas/metrics-v1.schema.json",
   "id": "model-catalog-metrics",
   "schema_version": 1,
-  "generated_at": "2026-07-09",
+  "generated_at": "2026-09-28",
   "notes": [
     "Metric registry — distinct metric_ids are not comparable unless same id.",
-    "Official boards, re-runs, and vendor tables must not share an id."
+    "Official boards, re-runs, and vendor tables must not share an id.",
+    "Claude Sonnet 5.5 system card and launch table (2026-09-28) rows reuse existing benchmark metric_ids; publisher/harness differences are separated with comparability_group. New IDs added only for SWE-Bench Multilingual and SWE-Bench Multimodal.",
+    "Claude Sonnet 5.5 system card and launch table (2026-09-28) rows reuse existing benchmark metric_ids; publisher/harness differences are separated with comparability_group. New IDs added only for SWE-Bench Multilingual and SWE-Bench Multimodal.",
+    "Claude Sonnet 5.5 system card and launch table (2026-09-28) rows reuse existing benchmark metric_ids; publisher/harness differences are separated with comparability_group. New IDs added only for SWE-Bench Multilingual and SWE-Bench Multimodal.",
+    "Claude Sonnet 5.5 system card and launch table (2026-09-28) rows reuse existing benchmark metric_ids; publisher/harness differences are separated with comparability_group. New IDs added only for SWE-Bench Multilingual and SWE-Bench Multimodal.",
+    "Claude Sonnet 5.5 system card and launch table (2026-09-28) rows reuse existing benchmark metric_ids; publisher/harness differences are separated with comparability_group. New IDs added only for SWE-Bench Multilingual and SWE-Bench Multimodal."
   ],
   "metrics": [
     {
@@ -364,7 +369,7 @@
       "steward": "vendor_table",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED provenance under this id — do NOT cross-rank without checking source_type/comparability_group. Distinct set from frontiercode-1-1-extended (main vs extended). Rows under this id come from: (1) the digitized Opus 5.5 launch-page effort curve (vendor chart aria-labels, exact transcription), and (2) the Opus 5.5 system card's Cognition-run reading (third_party_eval; Claude models run in Claude Code, GPT models in Codex CLI). Not the same measurement; do not merge or average across comparability_group values.",
+      "notes": "MIXED provenance under this id — do NOT cross-rank without checking source_type/comparability_group. Distinct set from frontiercode-1-1-extended (main vs extended). Rows under this id come from: (1) the digitized Opus 5.5 launch-page effort curve (vendor chart aria-labels, exact transcription), and (2) the Opus 5.5 system card's Cognition-run reading (third_party_eval; Claude models run in Claude Code, GPT models in Codex CLI). Not the same measurement; do not merge or average across comparability_group values. Also includes Anthropic Sonnet 5.5 launch headline and SVG effort-curve readings, plus its System Card Table 8.1.A result; comparability_group separates the vendor launches and Cognition-run system-card setup.",
       "task_family": "coding"
     },
     {
@@ -375,7 +380,7 @@
       "steward": "vendor_table",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED provenance under this id — do NOT cross-rank without checking source_type/comparability_group. Distinct version from cursorbench-3-2-0 (4.0 vs 3.2.0) — do not merge with that id. Rows under this id come from: (1) the digitized Opus 5.5 launch-page effort curve (vendor chart aria-labels, exact transcription, no independent board reading held in this pack), and (2) the Opus 5.5 system card's Cursor-run production-agent-harness reading (third_party_eval). Different sources report different numbers for the same nominal benchmark; do not merge or average across comparability_group values.",
+      "notes": "MIXED provenance under this id — do NOT cross-rank without checking source_type/comparability_group. Distinct version from cursorbench-3-2-0 (4.0 vs 3.2.0) — do not merge with that id. Rows under this id come from: (1) the digitized Opus 5.5 launch-page effort curve (vendor chart aria-labels, exact transcription, no independent board reading held in this pack), and (2) the Opus 5.5 system card's Cursor-run production-agent-harness reading (third_party_eval). Different sources report different numbers for the same nominal benchmark; do not merge or average across comparability_group values. Also includes Anthropic Sonnet 5.5 launch headline and SVG effort-curve readings, plus its System Card Table 8.1.A value; comparability_group separates Anthropic and Cursor-run readings.",
       "task_family": "coding"
     },
     {
@@ -386,7 +391,7 @@
       "steward": "vendor_table",
       "unit_default": "elo",
       "comparable": false,
-      "notes": "MIXED provenance under this id — do NOT cross-rank without checking source_type/comparability_group. Distinct version from gdpval-aa-v2 (v2.1 vs v2, different anchor) — do not merge with that id. Rows under this id come from: (1) the Anthropic Opus 5.5 launch-page reading (headline table + digitized effort curve, exact vendor chart-label/SVG aria-label transcription), and (2) the Opus 5.5 system card's third-party-eval reading (Elo anchored to DeepSeek V4.1 Flash (max) at 1,600). Not the same measurement; do not merge or average across comparability_group values."
+      "notes": "MIXED provenance under this id — do NOT cross-rank without checking source_type/comparability_group. Distinct version from gdpval-aa-v2 (v2.1 vs v2, different anchor) — do not merge with that id. Rows under this id come from: (1) the Anthropic Opus 5.5 launch-page reading (headline table + digitized effort curve, exact vendor chart-label/SVG aria-label transcription), and (2) the Opus 5.5 system card's third-party-eval reading (Elo anchored to DeepSeek V4.1 Flash (max) at 1,600). Not the same measurement; do not merge or average across comparability_group values. Also includes Anthropic Sonnet 5.5 launch headline and SVG effort-curve readings plus System Card Table 8.1.A, distinct from the Artificial Analysis third-party measurement."
     },
     {
       "id": "wandr",
@@ -871,7 +876,7 @@
       "steward": "third_party_board",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED provenance under this id — do NOT cross-rank without checking source_type. Vendor launch-chart rows (openai.com GPT-6 Astra page) and secondary-audit rows (capitalandcompute.net reading of the 2026-09-03 board) report DIFFERENT numbers for the same nominal benchmark and must not be merged or averaged. Result is Astra+Codex+TB4.0, not a model-only score.",
+      "notes": "MIXED provenance under this id — do NOT cross-rank without checking source_type. Vendor launch-chart rows (openai.com GPT-6 Astra page) and secondary-audit rows (capitalandcompute.net reading of the 2026-09-03 board) report DIFFERENT numbers for the same nominal benchmark and must not be merged or averaged. Result is Astra+Codex+TB4.0, not a model-only score. MIXED provenance also includes Anthropic Sonnet 5.5 launch headline and SVG effort-curve readings plus its System Card Table 8.1.A score; groups/snapshots distinguish each publisher/run.",
       "task_family": "coding"
     },
     {
@@ -1056,7 +1061,7 @@
       "steward": "vendor_table",
       "unit_default": "accuracy",
       "comparable": false,
-      "notes": "MIXED provenance under this id — do NOT cross-rank without checking comparability_group. Visual chart recognition benchmark. Anthropic's Opus 5.5 launch-table reading carries a 'with tools' qualifier per source; the system card's reading may differ in harness/tooling — distinguish via row-level comparability_group."
+      "notes": "MIXED provenance under this id — do NOT cross-rank without checking comparability_group. Visual chart recognition benchmark. Anthropic's Opus 5.5 launch-table reading carries a 'with tools' qualifier per source; the system card's reading may differ in harness/tooling — distinguish via row-level comparability_group. Also includes Sonnet 5.5 launch headline and System Card rows; comparability_group preserves tool/harness and publisher differences."
     },
     {
       "id": "benchcad-vision2code",
@@ -1110,7 +1115,7 @@
       "harness": null,
       "steward": "third_party_eval",
       "unit_default": "elo",
-      "notes": "Distinct from aa-briefcase-elo (earlier version)."
+      "notes": "Distinct from aa-briefcase-elo (earlier version). Also includes Anthropic Sonnet 5.5 launch headline and SVG effort-curve readings plus System Card Table 8.1.A, distinct from Artificial Analysis board readings."
     },
     {
       "id": "toolathlon-verified",
@@ -2228,6 +2233,17 @@
       "unit_default": "accuracy",
       "comparable": false,
       "notes": "AA per-model-page result; separate from vendor-reported HLE and other harnesses."
+    },
+    {
+      "id": "osworld-2-1",
+      "name": "OSWorld 2.1 (partial score)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "task_family": "computer-use",
+      "notes": "Anthropic Sonnet 5.5 launch/system-card OSWorld 2.1 is distinct from OSWorld 2.0 and OSWorld-Verified."
     }
   ]
 }

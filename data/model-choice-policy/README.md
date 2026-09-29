@@ -68,11 +68,11 @@ Waspflow resolves from (first hit):
 
 | Op | Provider / model / effort |
 |----|---------------------------|
-| `recover.report` | claude / sonnet-5 / low |
+| `recover.report` | claude / sonnet-5-5 / low |
 | `fanout.explore` | claude / opus-5-5 / medium |
-| `docs.lookup` | claude / sonnet-5 / low |
+| `docs.lookup` | claude / sonnet-5-5 / low |
 | `implement.standard` | claude / opus-5-5 / medium |
-| `implement.quota-tight` | claude / sonnet-5 / low |
+| `implement.quota-tight` | claude / sonnet-5-5 / medium |
 | `implement.accuracy-first` | claude / opus-5-5 / high |
 | `review.audit` | codex / gpt-6-astra / high |
 | `advisor.deep` | claude / opus-5-5 / high |
@@ -81,13 +81,22 @@ Waspflow resolves from (first hit):
 
 ## Changelog
 
+### v0.1.14 — 2026-09-29
+
+- Move `recover.report` and `docs.lookup` from claude-sonnet-5/low to **claude-sonnet-5-5/low**, and `implement.quota-tight` from claude-sonnet-5/low to **claude-sonnet-5-5/medium**. Rule 1: take the newest model in the cheapest tier that clears the bar.
+- Evidence (catalog v0.5.9): AA Intelligence Index v4.3.2 has Sonnet 5.5 at low at 36 for $0.41/task, against Sonnet 5 at max at 38.2 for $5.09/task. AA says its runs used a pre-release deployment.
+- `implement.quota-tight` uses medium because vendor Terminal-Bench 4.0 shows Sonnet 5.5 at low at 20.0%, against 28.8% at medium. Opus 5.5 leads Sonnet 5.5 at low (38.5%) and medium (57.6%) on that board; Sonnet 5.5 passes it only at max, at a higher cost per task.
+- `scripts/recommend_ops.py` returns INSUFFICIENT_EVIDENCE for 9 of 10 ops, as it does on plain `origin/main`. This change rests on the tier rule and the boards above, not on a recommender result.
+- Every Opus, Astra and Grok op is unchanged.
+- Catalog pin: **v0.5.9**.
+
 ### v0.1.13 — 2026-09-23
 
 - **No routing change.** Every operating point expands exactly as in v0.1.12.
 - `op-requirements.json` pins `price_as_of`, so recommender output no longer depends on the run date. `review.audit`'s different-vendor constraint is marked as an owner decision pending (`constraint_decision`).
 - The recommender keeps a tied incumbent and breaks other ties by expected cost. It uses the published pass@4 to calibrate retries and re-prices promotional costs at the horizon rate. It treats independent boards without an effort label as blocking disagreements, and can take lane quota availability from clawmeter as input.
 - Three independent Claude Opus 5.5 review rounds (2026-09-23) signed off on releasing this with no routing change. The only benchmark-driven question left open is `review.audit` (Gemini 3.8 Flash vs GPT-6 Astra). It needs op-level evidence, such as a seeded-defect review oracle.
-- Catalog pin: **v0.5.8**.
+- Catalog pin: **v0.5.9**.
 
 ### v0.1.12 — 2026-09-23
 

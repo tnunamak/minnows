@@ -1,0 +1,180 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "sonnet-5-5-board-coverage-2026-09-28",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-09-28",
+  "source_urls": [
+    "https://artificialanalysis.ai/models/releases/claude-sonnet-5-5",
+    "https://www.vals-ai.com/models/anthropic_claude-sonnet-5-5",
+    "https://www.tbench.ai/leaderboard/terminal-bench/4.0",
+    "https://arcprize.org/leaderboard",
+    "https://deepswe.datacurve.ai/",
+    "https://scale.com/leaderboard/swe_bench_pro_public",
+    "https://arena.ai/leaderboard/",
+    "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+    "https://epoch.ai/models/search",
+    "https://openrouter.ai/anthropic/claude-sonnet-5.5"
+  ],
+  "source_ids": [
+    "artificial-analysis-sonnet-5-5-release-2026-09-28",
+    "vals-ai-sonnet-5-5-model-2026-09-28",
+    "terminal-bench-official-2026-09-28",
+    "arcprize-leaderboard-sonnet-5-5-2026-09-28",
+    "deepswe-datacurve-sonnet-5-5-2026-09-28",
+    "seal-swebench-pro-sonnet-5-5-2026-09-28",
+    "arena-ai-sonnet-5-5-2026-09-28",
+    "steel-browsecomp-sonnet-5-5-2026-09-28",
+    "epoch-ai-models-sonnet-5-5-2026-09-28",
+    "openrouter-sonnet-5-5-2026-09-28"
+  ],
+  "notes": "Launch-day third-party board coverage sweep for claude-sonnet-5-5. Positive coverage is recorded only where the publisher surfaced the model. Negative findings are provisional because some boards are dynamic/client-rendered and this retrieval did not include a raw export. Recheck provisional absences on or after 2026-10-05 and preserve later reads as new dated snapshots.",
+  "claims": [
+    {
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Artificial Analysis Intelligence Index, per-evaluation breakdown, cost, and effort ladder: LISTED — all five effort variants listed. Captured index scores and per-task costs at low/medium/high/xhigh/max, plus max-effort Terminal-Bench 4.0. The article names 10 component evaluations, but the linked chart image did not yield per-evaluation cells in this retrieval. Checked 2026-09-28.",
+      "implication": "Use only the recorded source rows; do not treat a provider listing as a quality score.",
+      "source_id": "artificial-analysis-sonnet-5-5-release-2026-09-28"
+    },
+    {
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Vals AI (including Terminal-Bench 4.0): LISTED — model page and TB4 board include Sonnet 5.5. Captured TB4 and TB2.1 rows, plus available same-snapshot TB4 peer rows. Checked 2026-09-28.",
+      "implication": "Use only the recorded source rows; do not treat a provider listing as a quality score.",
+      "source_id": "vals-ai-sonnet-5-5-model-2026-09-28"
+    },
+    {
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Terminal-Bench official: PROVISIONAL ABSENCE — no Sonnet 5.5 row surfaced in retrieved official-board content; the table could not be directly checked from this session. Checked 2026-09-28.",
+      "implication": "Recheck on or after 2026-10-05; do not treat this provisional absence as evidence that the board does not run the model.",
+      "source_id": "terminal-bench-official-2026-09-28"
+    },
+    {
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "ARC Prize: PROVISIONAL ABSENCE — no Sonnet 5.5 row surfaced in retrieved page/search content. Checked 2026-09-28.",
+      "implication": "Recheck on or after 2026-10-05; do not treat this provisional absence as evidence that the board does not run the model.",
+      "source_id": "arcprize-leaderboard-sonnet-5-5-2026-09-28"
+    },
+    {
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "DeepSWE / DataCurve: PROVISIONAL ABSENCE — no Sonnet 5.5 row surfaced; client-rendered content prevented direct confirmation. Checked 2026-09-28.",
+      "implication": "Recheck on or after 2026-10-05; do not treat this provisional absence as evidence that the board does not run the model.",
+      "source_id": "deepswe-datacurve-sonnet-5-5-2026-09-28"
+    },
+    {
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "SEAL / SWE-bench: PROVISIONAL ABSENCE — no Sonnet 5.5 result surfaced in the checked SEAL/SWE-bench Pro and Vals SWE-bench result pages. Checked 2026-09-28.",
+      "implication": "Recheck on or after 2026-10-05; do not treat this provisional absence as evidence that the board does not run the model.",
+      "source_id": "seal-swebench-pro-sonnet-5-5-2026-09-28"
+    },
+    {
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "LMArena / Arena: PROVISIONAL ABSENCE — no Sonnet 5.5 votes or row surfaced in the retrieved Arena leaderboard view. Checked 2026-09-28.",
+      "implication": "Recheck on or after 2026-10-05; do not treat this provisional absence as evidence that the board does not run the model.",
+      "source_id": "arena-ai-sonnet-5-5-2026-09-28"
+    },
+    {
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "BrowseComp / Steel: PROVISIONAL ABSENCE — no Sonnet 5.5 row surfaced in the retrieved Steel BrowseComp page/search content. Checked 2026-09-28.",
+      "implication": "Recheck on or after 2026-10-05; do not treat this provisional absence as evidence that the board does not run the model.",
+      "source_id": "steel-browsecomp-sonnet-5-5-2026-09-28"
+    },
+    {
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Epoch AI: PROVISIONAL ABSENCE — no Sonnet 5.5 row surfaced in the model index or benchmark snippets checked. Checked 2026-09-28.",
+      "implication": "Recheck on or after 2026-10-05; do not treat this provisional absence as evidence that the board does not run the model.",
+      "source_id": "epoch-ai-models-sonnet-5-5-2026-09-28"
+    },
+    {
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "OpenRouter: LISTED — model endpoint is available. OpenRouter confirms price/context/output specs, but it is a provider/price listing, not a quality board. Checked 2026-09-28.",
+      "implication": "Use only the recorded source rows; do not treat a provider listing as a quality score.",
+      "source_id": "openrouter-sonnet-5-5-2026-09-28"
+    }
+  ],
+  "scores": [],
+  "missing": [
+    "No complete same-snapshot peer roster was captured for all requested boards. See the Artificial Analysis and Vals AI dated performance files for rows captured and explicit gaps.",
+    "No direct raw export was available for official Terminal-Bench, ARC Prize, DeepSWE, SEAL/SWE-bench, Arena, Steel BrowseComp, or Epoch AI during this pass."
+  ]
+}
