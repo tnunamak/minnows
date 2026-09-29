@@ -3,7 +3,7 @@
   "id": "effort-surfaces-2026-07",
   "schema_version": 1,
   "kind": "capabilities",
-  "retrieved_at": "2026-09-23",
+  "retrieved_at": "2026-09-28",
   "source_urls": [
     "https://platform.claude.com/docs/en/build-with-claude/effort",
     "https://code.claude.com/docs/en/model-config",
@@ -22,7 +22,9 @@
     "https://api-docs.deepseek.com/guides/thinking_mode/",
     "https://forum.moonshot.ai/t/kimi-k3-is-here-our-most-capable-model/480",
     "https://www.minimax.io/blog/minimax-m3",
-    "https://mistral.ai/news/mistral-small-4/"
+    "https://mistral.ai/news/mistral-small-4/",
+    "https://www.anthropic.com/claude-sonnet-5-5",
+    "https://www-cdn.anthropic.com/870c8f525702625d2c62fc6dd04c857e3250bec1/Claude%20Sonnet%205.5%20System%20Card.pdf"
   ],
   "source_ids": [
     "anthropic-claude-code-model-config-2026-07-09",
@@ -55,7 +57,11 @@
     "minimax-m3-launch-2026-09-23",
     "mistral-small4-launch-2026-09-23",
     "local-qwen-cli-help-0-21-1-2026-09-23",
-    "qwen-code-model-providers-2026-09-23"
+    "qwen-code-model-providers-2026-09-23",
+    "anthropic-sonnet-5-5-2026-09-28",
+    "anthropic-models-overview-2026-09-28",
+    "anthropic-effort-guide-2026-09-28",
+    "anthropic-sonnet-5-5-system-card-2026-09-28"
   ],
   "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking. 2026-09-22: added gpt-6-sol/gpt-6-luna api surfaces from their model pages (none/low/medium(default)/high/xhigh/max — no minimal, unlike gpt-5.6's api surface). 2026-09-22 (integration correction): the gpt-6-sol/gpt-6-luna codex_cli surfaces were initially recorded empty, citing a codex-cli 0.154.0 read that reported both slugs absent (auth-scoped rollout gap). A same-day 0.156.0 re-read on the same host shows both ARE listed (visibility=list): gpt-6-sol low/medium/high/xhigh/max/ultra default medium, gpt-6-luna low/medium/high/xhigh/max default medium — filled in from that later read (see openai-codex-debug-models-0-156-0-2026-09-22). 2026-09-23: added observed agy 1.2.9 per-model efforts (3.8/3.7/3.6 Flash low/medium/high; 3.1 Pro low/high), auth-scoped; added Grok 4.7 API effort and authenticated Grok CLI listing (sole/default model). Qwen candidates carry vendor product-family tiers and explicit enable_thinking surface notes where the primary model/API/config pages document them; this is a binary thinking toggle, not an effort ladder. Local CLI verification on 2026-09-23: installed qwen 0.21.1; `qwen --help` exposes no top-level --effort/--thinking flags. The installed bundled docs expose interactive `/effort` with low|medium|high|xhigh|max via model.reasoningEffort; provider mappings determine whether tiers remain distinct or map to thinking on/off.",
   "surfaces": [
@@ -1493,6 +1499,57 @@
         "qwen-code-model-providers-2026-09-23"
       ],
       "notes": "Qwen Code 0.21.1 exposes interactive `/effort` (low|medium|high|xhigh|max) through model.reasoningEffort, although `qwen --help` has no top-level effort flag. Official provider docs say the qwen3.8-max family accepts the ladder through xhigh; max is clamped to xhigh. Effort ladder taken from Qwen Code's upstream main-branch docs (interactive /effort); NOT verified on the installed 0.21.1 CLI, whose --help exposes no effort or thinking flag."
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-sonnet-5-5",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "anthropic-effort-guide-2026-09-28",
+        "anthropic-models-overview-2026-09-28",
+        "anthropic-sonnet-5-5-2026-09-28"
+      ],
+      "notes": "API default is high; adaptive thinking is on by default. `thinking: {\"type\":\"disabled\"}` is rejected. Use `between_tools` only through high; at xhigh/max use adaptive thinking. Forced tool_choice `any`/`tool` returns 400. Computer use on Claude API and Google Cloud requires computer_toolset_20260801; computer_20251124 is rejected there, while Bedrock still accepts it. Context 1M tokens; max output 128K. Retirement not sooner than 2027-09-28."
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-sonnet-5-5",
+      "surface": "claude_code",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "anthropic-sonnet-5-5-2026-09-28",
+        "anthropic-models-overview-2026-09-28"
+      ],
+      "notes": "Claude Code and Claude apps default to medium per the launch post; the API default is high and is stored on its own surface. Effort levels: low, medium, high, xhigh, max. Adaptive thinking is on by default. Claude Code is named explicitly in the launch post as an app surface. Context 1M tokens; max output 128K. Retirement not sooner than 2027-09-28."
     }
   ],
   "missing": [

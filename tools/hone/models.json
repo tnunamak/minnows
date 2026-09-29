@@ -24,7 +24,7 @@
       "id": "claude-sonnet-5",
       "short": "sonnet",
       "lineage": "anthropic",
-      "pricing": { "in": 3.0, "out": 15.0, "cache_read": 0.3 },
+      "pricing": { "in": 2.0, "out": 10.0, "cache_read": 0.2 },
       "quota_pool": "claude-sub",
       "efforts": ["low", "medium", "high", "xhigh", "max"],
       "tier_rank": 3,
@@ -35,6 +35,18 @@
         "date": "2026-06-30",
         "note": "the bulk-maker value knee at effort=high; ~= Opus 4.8 high at ~60% cost"
       }
+    },
+    "sonnet-5-5": {
+      "provider": "claude",
+      "id": "claude-sonnet-5-5",
+      "short": "sonnet-5-5",
+      "lineage": "anthropic",
+      "pricing": { "in": 2.0, "out": 10.0, "cache_read": 0.2 },
+      "quota_pool": "claude-sub",
+      "efforts": ["low", "medium", "high", "xhigh", "max"],
+      "tier_rank": 3,
+      "status": "active",
+      "calibration": null
     },
     "opus-4.8": {
       "provider": "claude",

@@ -87,7 +87,7 @@ Waspflow resolves from (first hit):
 - `op-requirements.json` pins `price_as_of`, so recommender output no longer depends on the run date. `review.audit`'s different-vendor constraint is marked as an owner decision pending (`constraint_decision`).
 - The recommender keeps a tied incumbent and breaks other ties by expected cost. It uses the published pass@4 to calibrate retries and re-prices promotional costs at the horizon rate. It treats independent boards without an effort label as blocking disagreements, and can take lane quota availability from clawmeter as input.
 - Three independent Claude Opus 5.5 review rounds (2026-09-23) signed off on releasing this with no routing change. The only benchmark-driven question left open is `review.audit` (Gemini 3.8 Flash vs GPT-6 Astra). It needs op-level evidence, such as a seeded-defect review oracle.
-- Catalog pin: **v0.5.8**.
+- Catalog pin: **v0.5.9**.
 
 ### v0.1.12 — 2026-09-23
 

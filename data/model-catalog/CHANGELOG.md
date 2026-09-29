@@ -1,3 +1,10 @@
+## v0.5.9 — 2026-09-28
+
+- Added source-backed Claude Sonnet 5.5 model, API pricing, ordered name patterns, and separate Claude API / Claude Code effort surfaces.
+- Added the launch-post benchmark headline table, exact per-effort chart values from four SVGs, and all numeric cells from System Card Table 8.1.A.
+- Reused metric IDs and isolated publisher/harness differences with distinct comparability groups; added SWE-Bench Multilingual and Multimodal metric definitions.
+- Updated Hone's Claude model registry and current Sonnet 5 token pricing. The Sonnet 5.5 Hone model has no calibration and cannot route yet.
+
 # Model catalog changelog
 
 ## v0.5.8 — 2026-09-23

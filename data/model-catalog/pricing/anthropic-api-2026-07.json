@@ -4,13 +4,15 @@
   "schema_version": 1,
   "kind": "api_usd",
   "agent": "claude-code",
-  "retrieved_at": "2026-09-22",
+  "retrieved_at": "2026-09-28",
   "source_urls": [
     "https://platform.claude.com/docs/en/about-claude/pricing",
     "https://platform.claude.com/docs/en/about-claude/models/overview",
     "https://www.anthropic.com/news/claude-sonnet-5",
     "https://www.anthropic.com/news/claude-opus-5",
-    "https://www.anthropic.com/news/claude-opus-5-5"
+    "https://www.anthropic.com/news/claude-opus-5-5",
+    "https://www.anthropic.com/claude-sonnet-5-5",
+    "https://platform.claude.com/docs/en/models/overview"
   ],
   "source_ids": [
     "anthropic-models-overview-2026-07-09",
@@ -20,9 +22,12 @@
     "anthropic-pricing-2026-07-09",
     "anthropic-pricing-2026-09-05",
     "anthropic-pricing-2026-09-22",
-    "anthropic-sonnet-5-2026-06-30"
+    "anthropic-sonnet-5-2026-06-30",
+    "anthropic-sonnet-5-5-2026-09-28",
+    "anthropic-pricing-2026-09-28",
+    "anthropic-models-overview-2026-09-28"
   ],
-  "notes": "USD per 1M tokens from Anthropic Pricing docs. cache_write_per_m = 5-minute cache write (1.25× base input). 1h cache write is 2× (not stored as separate field). cache_read = 0.1× base UNLESS a model has its own override multiplier (fable-5-1/mythos-5-1 use 0.025x; opus-5-5 uses 0.05x). Sonnet 5 intro through 2026-08-31 as claude-sonnet-5-intro. Fast mode Opus 4.8 and Opus 5 are a mode not a separate model id ($10/$50, ~2× price/~2.5× speed) — see claims in capabilities. model.claude-sonnet-5-intro.valid_until=2026-08-31 (machine field). Opus 5 pricing matches Opus 4.8 ($5/$25); 1M ctx, 128k max output (300k via batch beta). 2026-09-05 refresh: claude-sonnet-5 CHANGED 3/0.3/3.75/15 -> 2/0.2/2.5/10. Vendor note verbatim: \"The $2/$10 per million input/output token pricing for Claude Sonnet 5, announced at launch as introductory pricing through August 31, 2026, is now the standard price. The previously scheduled increase to $3/$15 per million input/output tokens on September 1, 2026 will not occur.\" The claude-sonnet-5-intro promo row is therefore DELETED rather than expired — it did not lapse, it became the standard rate, so retaining it as historical would misrepresent what happened. NEW (2026-09-05): claude-fable-5-1 and claude-mythos-5-1 (10/50) whose cache reads are 0.025x base ($0.25), not the usual 0.1x. NEW (2026-09-22, Opus 5.5 launch): claude-opus-5-5 added at $4 fresh input / $20 output / $5 cache write (1.25x) / $0.20 cache read (0.05x base — Opus 5.5's own override, distinct from the 0.025x used by Fable 5.1/Mythos 5.1); 1M context, 128K max output (same as Opus 5); default effort medium (Opus 5 default is high); thinking cannot be disabled at ANY effort level for Opus 5.5 (Opus 5 only blocks disabling at xhigh/max) — see capabilities. Fast mode for Opus 5.5 is $8/$40, Claude API (first-party) only, same mode-not-model-id convention as Opus 5/4.8. claude-opus-5 is NOT marked historical: it remains served and its own row is unchanged. Re-verified UNCHANGED at this refresh: opus-5, opus-4-8/4-7/4-6, fable-5, mythos-5, fable-5-1, mythos-5-1, sonnet-5, sonnet-4-6/4-5, haiku-4-5.",
+  "notes": "USD per 1M tokens from Anthropic Pricing docs. cache_write_per_m = 5-minute cache write (1.25× base input). 1h cache write is 2× (not stored as separate field). cache_read = 0.1× base UNLESS a model has its own override multiplier (fable-5-1/mythos-5-1 use 0.025x; opus-5-5 uses 0.05x). Sonnet 5 intro through 2026-08-31 as claude-sonnet-5-intro. Fast mode Opus 4.8 and Opus 5 are a mode not a separate model id ($10/$50, ~2× price/~2.5× speed) — see claims in capabilities. model.claude-sonnet-5-intro.valid_until=2026-08-31 (machine field). Opus 5 pricing matches Opus 4.8 ($5/$25); 1M ctx, 128k max output (300k via batch beta). 2026-09-05 refresh: claude-sonnet-5 CHANGED 3/0.3/3.75/15 -> 2/0.2/2.5/10. Vendor note verbatim: \"The $2/$10 per million input/output token pricing for Claude Sonnet 5, announced at launch as introductory pricing through August 31, 2026, is now the standard price. The previously scheduled increase to $3/$15 per million input/output tokens on September 1, 2026 will not occur.\" The claude-sonnet-5-intro promo row is therefore DELETED rather than expired — it did not lapse, it became the standard rate, so retaining it as historical would misrepresent what happened. NEW (2026-09-05): claude-fable-5-1 and claude-mythos-5-1 (10/50) whose cache reads are 0.025x base ($0.25), not the usual 0.1x. NEW (2026-09-22, Opus 5.5 launch): claude-opus-5-5 added at $4 fresh input / $20 output / $5 cache write (1.25x) / $0.20 cache read (0.05x base — Opus 5.5's own override, distinct from the 0.025x used by Fable 5.1/Mythos 5.1); 1M context, 128K max output (same as Opus 5); default effort medium (Opus 5 default is high); thinking cannot be disabled at ANY effort level for Opus 5.5 (Opus 5 only blocks disabling at xhigh/max) — see capabilities. Fast mode for Opus 5.5 is $8/$40, Claude API (first-party) only, same mode-not-model-id convention as Opus 5/4.8. claude-opus-5 is NOT marked historical: it remains served and its own row is unchanged. Re-verified UNCHANGED at this refresh: opus-5, opus-4-8/4-7/4-6, fable-5, mythos-5, fable-5-1, mythos-5-1, sonnet-5, sonnet-4-6/4-5, haiku-4-5. Sonnet 5.5 added 2026-09-28 from current Anthropic Pricing docs and launch pricing table: $2 input / $10 output, $2.50 5-minute cache write, $0.20 cache read per MTok. Patterns sonnet-5-5 and sonnet 5.5 precede Sonnet 5 patterns because matching is first-substring wins. One-hour cache write is $4/MTok but the schema stores only the existing 5-minute cache-write field.",
   "models": {
     "claude-opus-5": {
       "fresh_input_per_m": 5,
@@ -101,6 +106,12 @@
       "cache_read_per_m": 0.25,
       "cache_write_per_m": 12.5,
       "output_per_m": 50
+    },
+    "claude-sonnet-5-5": {
+      "fresh_input_per_m": 2,
+      "cache_read_per_m": 0.2,
+      "cache_write_per_m": 2.5,
+      "output_per_m": 10
     }
   },
   "match": [
@@ -149,6 +160,14 @@
     {
       "pattern": "opus-4-7",
       "model": "claude-opus-4-7"
+    },
+    {
+      "pattern": "sonnet-5-5",
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "pattern": "sonnet 5.5",
+      "model": "claude-sonnet-5-5"
     },
     {
       "pattern": "sonnet-5",

@@ -9,7 +9,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | [data-model-catalog-v0.5.8](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.8) — published by CI on push to main |
+| **This version** | [data-model-catalog-v0.5.9](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.9) — published by CI on push to main |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -18,7 +18,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.5.8
+TAG=data-model-catalog-v0.5.9
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -75,7 +75,16 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 
 ## Changelog
 
-### v0.5.8 — 2026-09-23
+### v0.5.9 — 2026-09-28
+
+- Added Claude Sonnet 5.5 (`claude-sonnet-5-5`) as a GA Sonnet-tier model, without changing the existing Sonnet 5 or model-choice-policy routes.
+- Added current Anthropic API pricing and ordered matching patterns; Sonnet 5.5 patterns precede Sonnet 5 patterns.
+- Recorded API default effort `high` and Claude Code default effort `medium` as separate capability surfaces; added its five supported levels and migration constraints.
+- Added the launch headline table, all four exact effort/cost curves parsed from SVG accessibility labels, and every numeric cell in System Card Table 8.1.A. Existing benchmark IDs are reused; publisher and harness differences remain in comparability groups.
+- Updated Hone's current Claude model registry and refreshed Sonnet 5 pricing to the current catalog rate; the new Sonnet 5.5 entry has no calibration and remains ineligible for Hone routing.
+- No third-party leaderboard rows were added; board coverage remains provisional pending a board sweep. Claude Haiku 5.5 was not added. Values from plots without machine-readable labels or printed scores were not estimated.
+
+## v0.5.8 — 2026-09-23
 
 Adds snapshot IDs and validator coverage for third-party boards and vendor tables; records vals.ai effort metadata; ingests Gemini 3.8 Flash rival columns; separates estimated Haiku 4.5 AA data; resolves DeepSeek version labels; and completes Qwen tier and CLI surface metadata.
 

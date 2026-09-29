@@ -2,7 +2,7 @@
   "$schema": "schemas/sources-v1.schema.json",
   "schema_version": 1,
   "id": "model-catalog-sources",
-  "retrieved_at": "2026-09-23",
+  "retrieved_at": "2026-09-28",
   "description": "Canonical provenance registry. Every pricing/performance/capabilities payload should reference these ids via source_ids[].",
   "sources": [
     {
@@ -1885,6 +1885,56 @@
       "retrieved_at": "2026-09-23",
       "kind": "vendor_docs",
       "notes": "Official provider mapping docs: Qwen3.8-Max family accepts reasoning_effort through xhigh (max clamps to xhigh); other Qwen models map a selected effort to enable_thinking=true."
+    },
+    {
+      "id": "anthropic-sonnet-5-5-2026-09-28",
+      "url": "https://www.anthropic.com/claude-sonnet-5-5",
+      "title": "Introducing Claude Sonnet 5.5",
+      "publisher": "Anthropic",
+      "published": "2026-09-28",
+      "retrieved_at": "2026-09-28",
+      "kind": "vendor_blog",
+      "notes": "Launch announcement and headline benchmark table. The article contains four inline score-vs-cost SVG charts with point values in focusTarget aria-labels; table and plotted values are captured separately."
+    },
+    {
+      "id": "anthropic-sonnet-5-5-system-card-2026-09-28",
+      "url": "https://www-cdn.anthropic.com/870c8f525702625d2c62fc6dd04c857e3250bec1/Claude%20Sonnet%205.5%20System%20Card.pdf",
+      "title": "System Card: Claude Sonnet 5.5",
+      "publisher": "Anthropic",
+      "published": "2026-09-28",
+      "retrieved_at": "2026-09-28",
+      "kind": "vendor_docs",
+      "notes": "Official 143-page PDF linked from the Sonnet 5.5 model page. Extracted with pdftotext -layout. Table 8.1.A prints the capability summary and standard setup; prose in Section 8 prints additional exact benchmark values. Figures without printed values are not digitized here."
+    },
+    {
+      "id": "anthropic-pricing-2026-09-28",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "title": "Pricing - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-09-28",
+      "kind": "vendor_docs",
+      "notes": "Retrieved the current model pricing table; Sonnet 5.5 row states input, output, cache-write, and cache-read prices."
+    },
+    {
+      "id": "anthropic-models-overview-2026-09-28",
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-09-28",
+      "kind": "vendor_docs",
+      "notes": "Retrieved current model lineup; Sonnet 5.5 API id, context/output limits, adaptive thinking, API default effort, release date, and retirement commitment."
+    },
+    {
+      "id": "anthropic-effort-guide-2026-09-28",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-09-28",
+      "kind": "vendor_docs",
+      "notes": "Retrieved the Sonnet 5.5 effort section, supported levels, API default, and behavior of between_tools at effort levels."
     }
   ]
 }
