@@ -1,0 +1,181 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "gpt-6-1-sol-board-coverage-2026-09-29",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-09-29",
+  "source_urls": [
+    "https://artificialanalysis.ai/models/releases/gpt-6-1-sol",
+    "https://www.vals.ai/models/openai_gpt-6-1-sol",
+    "https://www.tbench.ai/leaderboard/terminal-bench/4.0",
+    "https://arcprize.org/leaderboard",
+    "https://deepswe.datacurve.ai/",
+    "https://scale.com/leaderboard/swe_bench_pro_public",
+    "https://arena.ai/leaderboard/",
+    "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+    "https://epoch.ai/models/search",
+    "https://openrouter.ai/api/v1/models"
+  ],
+  "source_ids": [
+    "artificial-analysis-intelligence-index-2026-09-22",
+    "vals-ai-terminal-bench-4-full-roster-2026-09-22",
+    "terminal-bench-official-2026-09-28",
+    "arcprize-leaderboard-sonnet-5-5-2026-09-28",
+    "deepswe-datacurve-sonnet-5-5-2026-09-28",
+    "seal-swebench-pro-sonnet-5-5-2026-09-28",
+    "arena-ai-sonnet-5-5-2026-09-28",
+    "steel-browsecomp-sonnet-5-5-2026-09-28",
+    "epoch-ai-models-sonnet-5-5-2026-09-28",
+    "openrouter-frontier-pricing-2026-09-23"
+  ],
+  "notes": "Board-by-board coverage sweep for gpt-6-1-sol. Absences are provisional. Recheck them on or after 2026-10-06. Direct reads included page HTML and, for OpenRouter, its public model API. LMArena supplied live-battle event mentions but no captured aggregate score.",
+  "claims": [
+    {
+      "models": [
+        "gpt-6-1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Artificial Analysis: Intelligence Index, per-evaluation rows, costs and effort ladder: LISTED — see artificial-analysis-gpt-6-1-sol-2026-09-29.json for five effort rows, low/medium per-evaluation rows, costs, and same-day low/medium peer index rows. No pre-release deployment statement was found on the checked pages. Checked 2026-09-29.",
+      "implication": "Recheck provisional absences on or after 2026-10-06; dynamic/client-rendered boards may require a raw export.",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22"
+    },
+    {
+      "models": [
+        "gpt-6-1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Vals AI, including Terminal-Bench 4.0: PROVISIONAL ABSENCE — the GPT-6.1 Sol model page returned 404; no gpt-6.1-sol label surfaced in the checked Vals index/model pages. Checked 2026-09-29.",
+      "implication": "Recheck provisional absences on or after 2026-10-06; dynamic/client-rendered boards may require a raw export.",
+      "source_id": "vals-ai-terminal-bench-4-full-roster-2026-09-22"
+    },
+    {
+      "models": [
+        "gpt-6-1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Official Terminal-Bench 4.0: PROVISIONAL ABSENCE — the requested leaderboard URL redirected to the Terminal-Bench home page, whose static table contained no model rows. Checked 2026-09-29.",
+      "implication": "Recheck provisional absences on or after 2026-10-06; dynamic/client-rendered boards may require a raw export.",
+      "source_id": "terminal-bench-official-2026-09-28"
+    },
+    {
+      "models": [
+        "gpt-6-1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "ARC Prize: PROVISIONAL ABSENCE — no GPT-6.1 Sol row surfaced in the checked leaderboard HTML. Checked 2026-09-29.",
+      "implication": "Recheck provisional absences on or after 2026-10-06; dynamic/client-rendered boards may require a raw export.",
+      "source_id": "arcprize-leaderboard-sonnet-5-5-2026-09-28"
+    },
+    {
+      "models": [
+        "gpt-6-1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "DeepSWE / DataCurve: PROVISIONAL ABSENCE — no GPT-6.1 Sol label surfaced in the checked board HTML; client-rendered data may not be fully represented. Checked 2026-09-29.",
+      "implication": "Recheck provisional absences on or after 2026-10-06; dynamic/client-rendered boards may require a raw export.",
+      "source_id": "deepswe-datacurve-sonnet-5-5-2026-09-28"
+    },
+    {
+      "models": [
+        "gpt-6-1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "SEAL / SWE-bench Pro: PROVISIONAL ABSENCE — Scale leaderboard page contained no GPT-6.1 Sol label in retrieved HTML. Checked 2026-09-29.",
+      "implication": "Recheck provisional absences on or after 2026-10-06; dynamic/client-rendered boards may require a raw export.",
+      "source_id": "seal-swebench-pro-sonnet-5-5-2026-09-28"
+    },
+    {
+      "models": [
+        "gpt-6-1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "LMArena / Arena: LISTED IN LIVE BATTLES — GPT-6.1 Sol max appears in live battle events against multiple models; no stable aggregate Elo row was exposed in the checked leaderboard page. Checked 2026-09-29.",
+      "implication": "Recheck provisional absences on or after 2026-10-06; dynamic/client-rendered boards may require a raw export.",
+      "source_id": "arena-ai-sonnet-5-5-2026-09-28"
+    },
+    {
+      "models": [
+        "gpt-6-1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "BrowseComp / Steel: PROVISIONAL ABSENCE — no GPT-6.1 Sol label surfaced in the checked leaderboard HTML. Checked 2026-09-29.",
+      "implication": "Recheck provisional absences on or after 2026-10-06; dynamic/client-rendered boards may require a raw export.",
+      "source_id": "steel-browsecomp-sonnet-5-5-2026-09-28"
+    },
+    {
+      "models": [
+        "gpt-6-1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Epoch AI: PROVISIONAL ABSENCE — no GPT-6.1 Sol label surfaced in the checked model search page. Checked 2026-09-29.",
+      "implication": "Recheck provisional absences on or after 2026-10-06; dynamic/client-rendered boards may require a raw export.",
+      "source_id": "epoch-ai-models-sonnet-5-5-2026-09-28"
+    },
+    {
+      "models": [
+        "gpt-6-1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "OpenRouter: LISTED — API catalog has openai/gpt-6.1-sol (and a Pro variant). This is provider/price availability, not a quality benchmark row. Checked 2026-09-29.",
+      "implication": "Recheck provisional absences on or after 2026-10-06; dynamic/client-rendered boards may require a raw export.",
+      "source_id": "openrouter-frontier-pricing-2026-09-23"
+    }
+  ],
+  "scores": [],
+  "missing": [
+    "Vals AI, official Terminal-Bench, ARC Prize, DeepSWE, SEAL/SWE-bench, BrowseComp, and Epoch have no score rows in this sweep; listed absences remain provisional.",
+    "LMArena live battle outcomes are not an aggregate leaderboard rating and were not converted into a score.",
+    "OpenRouter model availability was confirmed, but no comparison-roster pricing rows were captured as performance scores."
+  ]
+}
