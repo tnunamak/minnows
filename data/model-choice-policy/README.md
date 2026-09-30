@@ -69,17 +69,25 @@ Waspflow resolves from (first hit):
 | Op | Provider / model / effort |
 |----|---------------------------|
 | `recover.report` | claude / sonnet-5-5 / low |
-| `fanout.explore` | claude / opus-5-5 / medium |
+| `fanout.explore` | codex / gpt-6.1-sol / medium |
 | `docs.lookup` | claude / sonnet-5-5 / low |
 | `implement.standard` | claude / opus-5-5 / medium |
 | `implement.quota-tight` | claude / sonnet-5-5 / medium |
 | `implement.accuracy-first` | claude / opus-5-5 / high |
-| `review.audit` | codex / gpt-6-astra / high |
+| `review.audit` | codex / gpt-6.1-sol / high |
 | `advisor.deep` | claude / opus-5-5 / high |
-| `ui.computer-use` | codex / gpt-6-astra / medium |
+| `ui.computer-use` | codex / gpt-6.1-sol / medium |
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.1.16 — 2026-09-30
+
+- Move `review.audit` from codex/gpt-6-astra/high to **codex/gpt-6.1-sol/high**, `ui.computer-use` from codex/gpt-6-astra/medium to **codex/gpt-6.1-sol/medium**, and `fanout.explore` from claude-opus-5-5/medium to **codex/gpt-6.1-sol/medium**. No op runs GPT-6 Astra now; it stays selectable by explicit flag.
+- This is a best guess with low or medium confidence, made on the owner's direction that Astra ($10/$50 per MTok) does not justify its price for routine work. Two blind reviews (Claude Opus 5.5 and a Codex reviewer, 2026-09-29) found the public evidence too thin to prove any of these moves: GPT-6.1 Sol has one launch-day Artificial Analysis snapshot and vendor claims, and no independent audit-recall, computer-use-at-medium or navigation evidence.
+- Why these three: Astra costs five times Sol per token, and on the vendor charts Astra medium costs more than $2 per task over GPT-6 Sol medium, more than the draft silent-failure cost. Opus 5.5 medium on `fanout.explore` costs $2.94 per task against $0.83 for Sonnet 5.5 medium on Anthropic's own curve. The reviewers' evals (seeded-defect review, bounded patches, cheap-worker tasks, computer use) are pending; they decide whether to keep these moves.
+- Unchanged: `implement.standard`, `implement.accuracy-first` and `advisor.deep` (Opus 5.5), `recover.report`, `docs.lookup` and `implement.quota-tight` (Sonnet 5.5), `grok.explore-only` (grok-4.7).
+- Catalog pin: **v0.5.10**.
 
 ### v0.1.15 — 2026-09-29
 
