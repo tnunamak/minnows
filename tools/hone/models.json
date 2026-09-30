@@ -89,7 +89,7 @@
       "lineage": "openai",
       "pricing": { "in": 2.0, "out": 10.0, "cache_read": 0.1 },
       "quota_pool": "openai-sub",
-      "efforts": ["low", "medium", "high", "xhigh", "max", "ultra"],
+      "efforts": ["low", "medium", "high", "xhigh", "max"],
       "tier_rank": 4,
       "status": "active",
       "calibration": null
