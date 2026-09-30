@@ -1,0 +1,758 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "artificial-analysis-gpt-6-1-sol-2026-09-29",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-09-29",
+  "source_urls": [
+    "https://artificialanalysis.ai/models/releases/gpt-6-1-sol",
+    "https://artificialanalysis.ai/models/comparisons?compare=gpt-6-1-sol-low%2Cgpt-6-sol-low%2Cgpt-6-astra-low%2Cgpt-6-luna-low%2Cclaude-opus-5-5-low%2Cclaude-sonnet-5-5-low%2Cclaude-fable-5-1-low",
+    "https://artificialanalysis.ai/models/gpt-6-1-sol-low",
+    "https://artificialanalysis.ai/models/gpt-6-1-sol-medium"
+  ],
+  "source_ids": [
+    "artificial-analysis-intelligence-index-2026-09-22",
+    "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28"
+  ],
+  "notes": "Artificial Analysis page content retrieved 2026-09-29. The release page lists five effort variants and Intelligence Index task costs. Its model pages embed ten per-evaluation metrics with costPerTask for low and medium; twenty metrics are score rows and the four metrics without catalog metric IDs are retained as claims. The comparison page supplies same-day low/medium Intelligence Index peer rows for the requested roster. AA pages did not state that these were pre-release runs. The comparison page did not expose same-day low-effort Sonnet 5.5; its low-variant index was null. No peer per-evaluation rows were captured. SOURCES.json was not in scope for this lane; source IDs resolve to existing Artificial Analysis board and comparison entries; these canonical URLs do not include every model-specific page, and their registered retrieval dates predate this snapshot.",
+  "claims": [
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
+      "statement": "Artificial Analysis lists GPT-6.1 Sol at low, medium, high, xhigh, and max effort. The exact index values and per-task costs are in scores; ten per-evaluation results are recorded for low and medium.",
+      "implication": "The rows are independent Artificial Analysis results, but the board page does not report deployment prerelease status. Keep rows in this snapshot group and do not infer values missing from peer variants.",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "reasoning"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
+      "statement": "Artificial Analysis CritPt at low effort: score 0.248571428571429; cost $0.0272105714286 per task.",
+      "implication": "Recorded as a source-backed claim because this catalog version has no matching metric id for this evaluation; no substitute metric id was assigned.",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "reasoning"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
+      "statement": "Artificial Analysis Long-Context Reasoning at low effort: score 0.84; cost $0.18992764 per task.",
+      "implication": "Recorded as a source-backed claim because this catalog version has no matching metric id for this evaluation; no substitute metric id was assigned.",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "reasoning"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
+      "statement": "Artificial Analysis CritPt at medium effort: score 0.277142857142857; cost $0.0395282571429 per task.",
+      "implication": "Recorded as a source-backed claim because this catalog version has no matching metric id for this evaluation; no substitute metric id was assigned.",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "reasoning"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
+      "statement": "Artificial Analysis Long-Context Reasoning at medium effort: score 0.833333333333333; cost $0.19022724 per task.",
+      "implication": "Recorded as a source-backed claim because this catalog version has no matching metric id for this evaluation; no substitute metric id was assigned.",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22"
+    }
+  ],
+  "scores": [
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 42.0835618555848,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "cost": {
+        "value": 0.13,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Artificial Analysis model release page lists this explicit effort variant and per-Intelligence-Index-task cost. Page does not state that this was a pre-release deployment."
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 47.7833271274065,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "cost": {
+        "value": 0.21,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Artificial Analysis model release page lists this explicit effort variant and per-Intelligence-Index-task cost. Page does not state that this was a pre-release deployment."
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 50.2377777519769,
+      "unit": "other",
+      "effort": "high",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "cost": {
+        "value": 0.32,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Artificial Analysis model release page lists this explicit effort variant and per-Intelligence-Index-task cost. Page does not state that this was a pre-release deployment."
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 51.0377679093761,
+      "unit": "other",
+      "effort": "xhigh",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "cost": {
+        "value": 0.39,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Artificial Analysis model release page lists this explicit effort variant and per-Intelligence-Index-task cost. Page does not state that this was a pre-release deployment."
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 51.8332597011541,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "cost": {
+        "value": 0.72,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Artificial Analysis model release page lists this explicit effort variant and per-Intelligence-Index-task cost. Page does not state that this was a pre-release deployment."
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 33.9008505585733,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "caveat": "Same-day Artificial Analysis comparison-page row; API effort is explicit in the variant slug. Raw index value parsed from the page payload."
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 39.7820971749522,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "caveat": "Same-day Artificial Analysis comparison-page row; API effort is explicit in the variant slug. Raw index value parsed from the page payload."
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 45.7819243120341,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "caveat": "Same-day Artificial Analysis comparison-page row; API effort is explicit in the variant slug. Raw index value parsed from the page payload."
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 49.5704363034369,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "caveat": "Same-day Artificial Analysis comparison-page row; API effort is explicit in the variant slug. Raw index value parsed from the page payload."
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 20.9225480080866,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "caveat": "Same-day Artificial Analysis comparison-page row; API effort is explicit in the variant slug. Raw index value parsed from the page payload."
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 29.4619523515762,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "caveat": "Same-day Artificial Analysis comparison-page row; API effort is explicit in the variant slug. Raw index value parsed from the page payload."
+    },
+    {
+      "model": "claude-opus-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 42.3077781466168,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "caveat": "Same-day Artificial Analysis comparison-page row; API effort is explicit in the variant slug. Raw index value parsed from the page payload."
+    },
+    {
+      "model": "claude-opus-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 51.2434931792768,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "caveat": "Same-day Artificial Analysis comparison-page row; API effort is explicit in the variant slug. Raw index value parsed from the page payload."
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 40.7386909594307,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "caveat": "Same-day Artificial Analysis comparison-page row; API effort is explicit in the variant slug. Raw index value parsed from the page payload."
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 46.8163422014862,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "caveat": "Same-day Artificial Analysis comparison-page row; API effort is explicit in the variant slug. Raw index value parsed from the page payload."
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 48.9206162609523,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-release-comparison-sonnet-5-5-2026-09-28",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29",
+      "comparable": false,
+      "caveat": "Same-day Artificial Analysis comparison-page row; API effort is explicit in the variant slug. Raw index value parsed from the page payload."
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Artificial Analysis Briefcase",
+      "score": 1118.39,
+      "unit": "elo",
+      "effort": "low",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "agentic",
+      "comparability_group": "artificial-analysis-aa-briefcase-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-low",
+      "comparable": false,
+      "cost": {
+        "value": 0.17709095010309106,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "aa-briefcase-v1-1"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "GDPval-AA",
+      "score": 1297,
+      "unit": "elo",
+      "effort": "low",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "agentic",
+      "comparability_group": "artificial-analysis-gdpval-aa-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-low",
+      "comparable": false,
+      "cost": {
+        "value": 0.10499175787579802,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "gdpval-aa-v2-1"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "AutomationBench (Artificial Analysis)",
+      "score": 0.5257088964747538,
+      "unit": "accuracy",
+      "effort": "low",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "computer-use",
+      "comparability_group": "artificial-analysis-automationbench-aa-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-low",
+      "comparable": false,
+      "cost": {
+        "value": 0.15943911386155785,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "automationbench"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Terminal-Bench 4.0 (Artificial Analysis)",
+      "score": 0.308080808080808,
+      "unit": "accuracy",
+      "effort": "low",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "coding",
+      "comparability_group": "artificial-analysis-terminalbench-4-0-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-low",
+      "comparable": false,
+      "cost": {
+        "value": 0.3829418451399688,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "terminal-bench-4-0"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "SciCode (Artificial Analysis)",
+      "score": 0.532407407407407,
+      "unit": "accuracy",
+      "effort": "low",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "reasoning",
+      "comparability_group": "artificial-analysis-scicode-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-low",
+      "comparable": false,
+      "cost": {
+        "value": 0.008424590277777777,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "scicode"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Humanity's Last Exam (Artificial Analysis)",
+      "score": 0.473586654309546,
+      "unit": "accuracy",
+      "effort": "low",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "reasoning",
+      "comparability_group": "artificial-analysis-humanitys-last-exam-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-low",
+      "comparable": false,
+      "cost": {
+        "value": 0.0073080926784059325,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "aa-humanitys-last-exam"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "GDP.pdf (Artificial Analysis)",
+      "score": 0.27,
+      "unit": "accuracy",
+      "effort": "low",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "agentic",
+      "comparability_group": "artificial-analysis-gdp-pdf-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-low",
+      "comparable": false,
+      "cost": {
+        "value": 0.33414024,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "gdp-pdf"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "AA Omniscience",
+      "score": 37.63333333333333,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "knowledge/factuality",
+      "comparability_group": "artificial-analysis-omniscience-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-low",
+      "comparable": false,
+      "cost": {
+        "value": 0.0014547916666666665,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "aa-omniscience"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Artificial Analysis Briefcase",
+      "score": 1364.77,
+      "unit": "elo",
+      "effort": "medium",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "agentic",
+      "comparability_group": "artificial-analysis-aa-briefcase-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-medium",
+      "comparable": false,
+      "cost": {
+        "value": 0.4643700654607732,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "aa-briefcase-v1-1"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "GDPval-AA",
+      "score": 1432.94,
+      "unit": "elo",
+      "effort": "medium",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "agentic",
+      "comparability_group": "artificial-analysis-gdpval-aa-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-medium",
+      "comparable": false,
+      "cost": {
+        "value": 0.23116139731597238,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "gdpval-aa-v2-1"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "AutomationBench (Artificial Analysis)",
+      "score": 0.6257350970435687,
+      "unit": "accuracy",
+      "effort": "medium",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "computer-use",
+      "comparability_group": "artificial-analysis-automationbench-aa-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-medium",
+      "comparable": false,
+      "cost": {
+        "value": 0.19630359332471714,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "automationbench"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Terminal-Bench 4.0 (Artificial Analysis)",
+      "score": 0.47979797979798,
+      "unit": "accuracy",
+      "effort": "medium",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "coding",
+      "comparability_group": "artificial-analysis-terminalbench-4-0-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-medium",
+      "comparable": false,
+      "cost": {
+        "value": 0.6137554705459501,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "terminal-bench-4-0"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "SciCode (Artificial Analysis)",
+      "score": 0.532407407407407,
+      "unit": "accuracy",
+      "effort": "medium",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "reasoning",
+      "comparability_group": "artificial-analysis-scicode-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-medium",
+      "comparable": false,
+      "cost": {
+        "value": 0.009314833333333333,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "scicode"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Humanity's Last Exam (Artificial Analysis)",
+      "score": 0.498609823911029,
+      "unit": "accuracy",
+      "effort": "medium",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "reasoning",
+      "comparability_group": "artificial-analysis-humanitys-last-exam-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-medium",
+      "comparable": false,
+      "cost": {
+        "value": 0.01261928359592215,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "aa-humanitys-last-exam"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "GDP.pdf (Artificial Analysis)",
+      "score": 0.3,
+      "unit": "accuracy",
+      "effort": "medium",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "agentic",
+      "comparability_group": "artificial-analysis-gdp-pdf-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-medium",
+      "comparable": false,
+      "cost": {
+        "value": 0.33747823999999993,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "gdp-pdf"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "AA Omniscience",
+      "score": 39.95,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "knowledge/factuality",
+      "comparability_group": "artificial-analysis-omniscience-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-medium",
+      "comparable": false,
+      "cost": {
+        "value": 0.0022205533333333333,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+      "metric_id": "aa-omniscience"
+    }
+  ],
+  "missing": [
+    "No same-snapshot low-effort index value for claude-sonnet-5-5 was exposed; the AA payload returned null.",
+    "Same-snapshot component per-evaluation rows for the six comparison-roster peers were not captured.",
+    "The AA page did not disclose the model deployment as pre-release or public-release in the retrieved content.",
+    "CritPt and Artificial Analysis Long-Context Reasoning low/medium values are retained as claims because metrics.json has no matching metric ids and this lane is restricted from editing it."
+  ]
+}

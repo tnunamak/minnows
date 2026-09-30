@@ -81,6 +81,12 @@ Waspflow resolves from (first hit):
 
 ## Changelog
 
+### v0.1.15 — 2026-09-29
+
+- **No routing change.** Every operating point expands exactly as in v0.1.14.
+- Repins to catalog v0.5.10, which adds GPT-6.1 Sol, Xiaomi MiMo-V2.6 and launch-day board rows. GPT-6.1 Sol ($2/$10 per MTok, near-Astra by OpenAI's description) is a candidate for `review.audit` and `ui.computer-use`, which run GPT-6 Astra at $10/$50. It is not routed: independent low-effort evidence is still provisional, and the change needs owner approval.
+- Catalog pin: **v0.5.10**.
+
 ### v0.1.14 — 2026-09-29
 
 - Move `recover.report` and `docs.lookup` from claude-sonnet-5/low to **claude-sonnet-5-5/low**, and `implement.quota-tight` from claude-sonnet-5/low to **claude-sonnet-5-5/medium**. Rule 1: take the newest model in the cheapest tier that clears the bar.

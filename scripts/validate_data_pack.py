@@ -35,7 +35,7 @@ RATE_FIELDS = (
     "cache_write_per_m",
     "output_per_m",
 )
-PERF_PROVIDERS = frozenset({"anthropic", "openai", "xai", "google", "alibaba", "deepseek", "other"})
+PERF_PROVIDERS = frozenset({"anthropic", "openai", "xai", "google", "alibaba", "deepseek", "xiaomi", "other"})
 PERF_AXES = frozenset({"quality", "cost", "effort", "speed", "latency", "tokens"})
 PERF_UNITS = frozenset({"accuracy", "pass_rate", "error_rate", "elo", "other"})
 

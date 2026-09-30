@@ -9,7 +9,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | [data-model-catalog-v0.5.9](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.9) — published by CI on push to main |
+| **This version** | [data-model-catalog-v0.5.10](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.10) — published by CI on push to main |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -72,6 +72,13 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 3. **Quota ≠ cost** — [clawmeter](https://github.com/tnunamak/clawmeter) for remaining allowance.
 4. **Vendor tables are directional** until independently reproduced.
 5. **Validate before shipping:** `./scripts/validate_data_pack.py model-catalog`
+
+### v0.5.10 — 2026-09-29
+
+- Added OpenAI GPT-6.1 Sol as a GA Sol-tier model in the GPT-6 family, current API standard pricing, separate API and Codex effort surfaces, Hone entry without calibration, launch claims, and selected system-card rows.
+- Kept GPT-6 Sol GA: OpenAI still lists it for Work and Codex and has not announced deprecation. No model-choice-policy changes.
+- Raw launch HTML returned HTTP 403, so benchmark table cells and full SVG curves remain listed as missing rather than reconstructed from secondary sources.
+- Added launch-day Artificial Analysis rows for GPT-6.1 Sol and provisional board coverage (recheck 2026-10-06). Added Xiaomi MiMo-V2.6 Pro and Flash (release 2026-09-22) with first-party pricing and Arena and Artificial Analysis rows. StepFun Step 5 Preview is not in `models.json`: its API model id is unpublished.
 
 ## Changelog
 

@@ -1,0 +1,90 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "frontier-gap-notes-2026-09-29",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-09-29",
+  "source_urls": [
+    "https://arena.ai/leaderboard/text/coding",
+    "https://artificialanalysis.ai/models/mimo-v2-6-pro",
+    "https://artificialanalysis.ai/models/mimo-v2-6-flash",
+    "https://platform.stepfun.com/"
+  ],
+  "source_ids": [
+    "xiaomi-mimo-v2-6-arena-coding-2026-09-29",
+    "xiaomi-mimo-v2-6-aa-pro-2026-09-29",
+    "xiaomi-mimo-v2-6-aa-flash-2026-09-29",
+    "stepfun-platform-step-5-preview-2026-09-29"
+  ],
+  "notes": "Retrieved 2026-09-29. Effort/setting is unknown for all rows because the board/model pages do not state it. Arena Text Coding ranks and Elo are from the current live leaderboard; Artificial Analysis values are the model pages' Intelligence Index v4.3.2 aggregate. StepFun coverage check: StepFun's first-party platform labels Step 5 Preview, but its API sample says model=YOUR_MODEL_ID. No StepFun model row is created. Recheck exact ID/status and API pricing on or after 2026-10-13.",
+  "scores": [
+    {
+      "model": "mimo-v2.6-pro",
+      "metric": "Arena Text Coding Elo",
+      "score": 1543,
+      "unit": "elo",
+      "effort": null,
+      "source_id": "xiaomi-mimo-v2-6-arena-coding-2026-09-29",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "coding",
+      "metric_id": "chatbot-arena-text-elo",
+      "comparability_group": "arena-text-coding-2026-09-29",
+      "snapshot_id": "arena-text-coding-2026-09-29",
+      "caveat": "95% interval ±18; rank 7. Arena labels model without an effort variant; effort setting not stated."
+    },
+    {
+      "model": "mimo-v2.6-flash",
+      "metric": "Arena Text Coding Elo",
+      "score": 1525,
+      "unit": "elo",
+      "effort": null,
+      "source_id": "xiaomi-mimo-v2-6-arena-coding-2026-09-29",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "coding",
+      "metric_id": "chatbot-arena-text-elo",
+      "comparability_group": "arena-text-coding-2026-09-29",
+      "snapshot_id": "arena-text-coding-2026-09-29",
+      "caveat": "95% interval ±18; rank 24. Arena labels model without an effort variant; effort setting not stated."
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 46,
+      "unit": "other",
+      "effort": null,
+      "source_id": "xiaomi-mimo-v2-6-aa-pro-2026-09-29",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "caveat": "Effort setting not stated on the model page."
+    },
+    {
+      "model": "mimo-v2.6-flash",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 38,
+      "unit": "other",
+      "effort": null,
+      "source_id": "xiaomi-mimo-v2-6-aa-flash-2026-09-29",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-09-29",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "snapshot_id": "artificial-analysis-intelligence-index-v4-3-2-2026-09-29",
+      "caveat": "Effort setting not stated on the model page."
+    }
+  ],
+  "missing": [
+    "Step 5 Preview (StepFun): first-party platform checked; exact API model ID and API pricing were not visible. StepFun page labels product Preview and uses model=YOUR_MODEL_ID in its call sample. Recheck on or after 2026-10-13."
+  ]
+}
