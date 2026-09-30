@@ -2,7 +2,7 @@
   "$schema": "schemas/sources-v1.schema.json",
   "schema_version": 1,
   "id": "model-catalog-sources",
-  "retrieved_at": "2026-09-28",
+  "retrieved_at": "2026-09-29",
   "description": "Canonical provenance registry. Every pricing/performance/capabilities payload should reference these ids via source_ids[].",
   "sources": [
     {
@@ -2075,6 +2075,59 @@
       "retrieved_at": "2026-09-28",
       "kind": "third_party_eval",
       "notes": "Board updated 2026-09-27. Key takeaways expose the top rows, including Sonnet 5.5, Opus 5.5, Sonnet 5, GPT-6 Astra, and GPT-6 Sol; the page model detail supplies Sonnet 5.5 max effort."
+    },
+    {
+      "id": "openai-api-model-page-gpt-6-1-sol-2026-09-29",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+      "title": "GPT-6.1 Sol Model | OpenAI API",
+      "publisher": "OpenAI",
+      "retrieved_at": "2026-09-29",
+      "kind": "vendor_docs"
+    },
+    {
+      "id": "openai-api-models-2026-09-29",
+      "url": "https://developers.openai.com/api/docs/models",
+      "title": "Models | OpenAI API",
+      "publisher": "OpenAI",
+      "retrieved_at": "2026-09-29",
+      "kind": "vendor_docs"
+    },
+    {
+      "id": "openai-api-pricing-2026-09-29",
+      "url": "https://developers.openai.com/api/docs/pricing",
+      "title": "Pricing | OpenAI API",
+      "publisher": "OpenAI",
+      "retrieved_at": "2026-09-29",
+      "kind": "vendor_docs"
+    },
+    {
+      "id": "openai-codex-models-2026-09-29",
+      "url": "https://developers.openai.com/codex/models",
+      "title": "Models | Codex",
+      "publisher": "OpenAI",
+      "retrieved_at": "2026-09-29",
+      "kind": "vendor_docs",
+      "notes": "The current URL redirects to https://learn.chatgpt.com/docs/models."
+    },
+    {
+      "id": "openai-gpt-6-1-sol-launch-2026-09-29",
+      "url": "https://openai.com/index/introducing-gpt-6-1-sol/",
+      "title": "GPT-6.1 Sol",
+      "publisher": "OpenAI",
+      "published": "2026-09-29",
+      "retrieved_at": "2026-09-29",
+      "kind": "vendor_blog",
+      "notes": "OpenAI launch post; direct HTML requests returned HTTP 403 in this environment. The OpenAI page reader exposed article text and an accessible SVG label, but not raw HTML tables or complete chart labels."
+    },
+    {
+      "id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "url": "https://deploymentsafety.openai.com/gpt-6-1-sol/respecting-auto-review",
+      "title": "Addendum to GPT-6 Astra System Card: GPT-6.1 Sol",
+      "publisher": "OpenAI",
+      "published": "2026-09-29",
+      "retrieved_at": "2026-09-29",
+      "kind": "vendor_docs",
+      "notes": "System card addendum; content is split across the public Safety Hub page."
     }
   ]
 }

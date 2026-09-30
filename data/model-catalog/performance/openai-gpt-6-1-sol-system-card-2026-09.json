@@ -1,0 +1,431 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "openai-gpt-6-1-sol-system-card-2026-09",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "openai",
+  "retrieved_at": "2026-09-29",
+  "source_urls": [
+    "https://deploymentsafety.openai.com/gpt-6-1-sol/respecting-auto-review"
+  ],
+  "source_ids": [
+    "openai-gpt-6-1-sol-system-card-2026-09-29"
+  ],
+  "notes": "Published September 29, 2026. This file records printed numeric scores from HealthBench Table 7, preparedness Table 13, and selected numeric statements in the card. Effort is left unspecified where the source does not state it. The system card warns that prior-model comparison values may reflect later versions. Scores from mixed versions/harness contexts are marked comparable:false. Other chart-only values are not digitized.",
+  "claims": [
+    {
+      "models": [
+        "gpt-6.1-sol",
+        "gpt-6-sol"
+      ],
+      "task_families": [
+        "safety"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Production Benchmarks with Challenging Prompts: GPT-6.1 Sol scores higher than GPT-6 Sol in five of eight categories.",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol",
+        "gpt-6-sol"
+      ],
+      "task_families": [
+        "safety"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Static and multiturn jailbreak evaluations: GPT-6.1 Sol achieves comparable or higher defender success rates than GPT-6 Sol. The card defines these scores as percentages, higher is better.",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol",
+        "gpt-6-astra"
+      ],
+      "task_families": [
+        "safety"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "The card classifies GPT-6.1 Sol as Critical capability in cybersecurity and High capability in biological and chemical domains; it applies the same safeguards stack as GPT-6 Astra.",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol",
+        "gpt-6-sol"
+      ],
+      "task_families": [
+        "alignment"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "In the external-agent-message evaluation, among samples where the model discovered the message board, GPT-6.1 Sol attempted communication in 38% of cases and performed the specified unauthorized action in 3%, versus 26% and 11% for GPT-6 Sol. Board discovery was at least 96% for all models except GPT-6 Luna (76%).",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol",
+        "gpt-6-astra",
+        "gpt-6-sol",
+        "gpt-5.6-sol"
+      ],
+      "task_families": [
+        "alignment"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "On 49,650 simulated internal Codex tasks, GPT-6.1 Sol received 28 severity-3-or-higher flags (0.056%), versus 27 for GPT-6 Astra, 42 for GPT-6 Sol, and 63 for GPT-5.6 Sol. This is an internal deployment simulation and not a direct measure of external deployment safety.",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "alignment"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "For chain-of-thoughts between 750 and 1,250 tokens, GPT-6.1 Sol followed a requested CoT instruction in 44.8% of cases. This is one window only, not the full chart.",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol",
+        "gpt-6-astra",
+        "gpt-6-sol",
+        "gpt-5.6-sol"
+      ],
+      "task_families": [
+        "cybersecurity"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "ExploitBench Internal Port (June-August 2026): GPT-6.1 Sol arbitrary code-execution success was 21.5%, compared with 31.5% for GPT-6 Astra, 5.5% for GPT-6 Sol, and 3.5% for GPT-5.6 Sol.",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    }
+  ],
+  "scores": [
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "HealthBench Professional length-adjusted",
+      "score": 0.642,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-29",
+      "task_family": "safety",
+      "metric_id": "healthbench-professional",
+      "comparisons": {
+        "gpt-6-astra": 0.647,
+        "gpt-6-sol": 0.608,
+        "gpt-6-luna": 0.608
+      },
+      "caveat": "System card Table 7. Score is the length-adjusted value; raw score and mean response length are shown separately in parentheses. Cross-launch comparability is limited: the card notes comparison values may reflect later model versions.",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-1-sol-system-card-healthbench-professional",
+      "snapshot_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "HealthBench length-adjusted",
+      "score": 0.585,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-29",
+      "task_family": "safety",
+      "metric_id": "healthbench",
+      "comparisons": {
+        "gpt-6-astra": 0.583,
+        "gpt-6-sol": 0.532,
+        "gpt-6-luna": 0.545
+      },
+      "caveat": "System card Table 7. Length-adjusted value only; prior-model comparison values may reflect later versions.",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-1-sol-system-card-healthbench",
+      "snapshot_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "HealthBench Hard length-adjusted",
+      "score": 0.362,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-29",
+      "task_family": "safety",
+      "metric_id": "healthbench-hard",
+      "comparisons": {
+        "gpt-6-astra": 0.366,
+        "gpt-6-sol": 0.301,
+        "gpt-6-luna": 0.314
+      },
+      "caveat": "System card Table 7. Length-adjusted value only; prior-model comparison values may reflect later versions.",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-1-sol-system-card-healthbench-hard",
+      "snapshot_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "HealthBench Consensus length-adjusted",
+      "score": 0.96,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-29",
+      "task_family": "safety",
+      "metric_id": "healthbench-consensus",
+      "comparisons": {
+        "gpt-6-astra": 0.955,
+        "gpt-6-sol": 0.962,
+        "gpt-6-luna": 0.959
+      },
+      "caveat": "System card Table 7. Length-adjusted value only; prior-model comparison values may reflect later versions.",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-1-sol-system-card-healthbench-consensus",
+      "snapshot_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Multimodal Troubleshooting Virology refusal-adjusted pass@1",
+      "score": 0.5534,
+      "unit": "pass_rate",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-29",
+      "task_family": "safety",
+      "metric_id": "multimodal-troubleshooting-virology",
+      "comparisons": {
+        "gpt-5.6-sol": 0.555,
+        "gpt-6-astra": 0.6311
+      },
+      "caveat": "Section 9.1.1.1; no effort label stated.",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-1-sol-system-card-multimodal-troubleshooting-virology",
+      "snapshot_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "ProtocolQA Open-Ended refusal-adjusted pass@1",
+      "score": 0.4074,
+      "unit": "pass_rate",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-29",
+      "task_family": "safety",
+      "metric_id": "protocolqa-open-ended",
+      "comparisons": {
+        "gpt-5.6-sol": 0.435,
+        "gpt-6-astra": 0.4537
+      },
+      "caveat": "Section 9.1.1.1; no effort label stated.",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-1-sol-system-card-protocolqa-open-ended",
+      "snapshot_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Tacit Knowledge and Troubleshooting refusal-adjusted cons@32",
+      "score": 0.885,
+      "unit": "accuracy",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-29",
+      "task_family": "safety",
+      "metric_id": "tacit-knowledge-and-troubleshooting",
+      "comparisons": {
+        "gpt-6-sol": 0.792,
+        "gpt-6-astra": 0.9255
+      },
+      "caveat": "Section 9.1.1.1; no effort label stated.",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-1-sol-system-card-tacit-knowledge-and-troubleshooting",
+      "snapshot_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "TroubleshootingBench refusal-adjusted pass@1",
+      "score": 0.4796,
+      "unit": "pass_rate",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-29",
+      "task_family": "safety",
+      "metric_id": "troubleshootingbench",
+      "comparisons": {
+        "gpt-5.6-sol": 0.48,
+        "gpt-6-astra": 0.6346
+      },
+      "caveat": "Section 9.1.1.1; no effort label stated.",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-1-sol-system-card-troubleshootingbench",
+      "snapshot_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "AAV Capsid Packaging Prediction Spearman correlation",
+      "score": 0.5282,
+      "unit": "other",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-29",
+      "task_family": "safety",
+      "metric_id": "aav-capsid-packaging-prediction",
+      "comparisons": {
+        "gpt-5.6-sol": 0.529,
+        "gpt-6-astra": 0.528
+      },
+      "caveat": "System card Table 13; lower-is-better is not stated, so higher_better metric convention is used. Values are reproduced exactly as printed in the table.",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-1-sol-system-card-aav-capsid-packaging-prediction",
+      "snapshot_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "SHP2 Protein Function Prediction mean R²",
+      "score": 0.332,
+      "unit": "other",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-29",
+      "task_family": "safety",
+      "metric_id": "shp2-protein-function-prediction",
+      "comparisons": {
+        "gpt-5.6-sol": 0.3,
+        "gpt-6-astra": 0.4
+      },
+      "caveat": "System card Table 13; value reported across three assay datasets.",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-1-sol-system-card-shp2-protein-function-prediction",
+      "snapshot_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Coronavirus-ACE2 Cell-Entry Screen composite score",
+      "score": 0.423,
+      "unit": "other",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-29",
+      "task_family": "safety",
+      "metric_id": "coronavirus-ace2-cell-entry-screen",
+      "comparisons": {
+        "gpt-5.6-sol": 0.43,
+        "gpt-6-astra": 0.42
+      },
+      "caveat": "System card Table 13; GPT-6 Astra helpful-only variant is .45 and is not used as the primary comparison.",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-1-sol-system-card-coronavirus-ace2-cell-entry-screen",
+      "snapshot_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Phage-plasmid Co-evolution negative log-likelihood",
+      "score": 12.946,
+      "unit": "other",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-29",
+      "task_family": "safety",
+      "metric_id": "phage-plasmid-coevolution-nll",
+      "comparisons": {
+        "gpt-5.6-sol": 11.35,
+        "gpt-6-astra": 13.13
+      },
+      "caveat": "System card Table 13; lower is better. GPT-6 Astra helpful-only variant is 12.58 and is not the primary comparison.",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-1-sol-system-card-phage-plasmid-coevolution-nll",
+      "snapshot_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "ExploitBench - Internal Port arbitrary code-execution success rate",
+      "score": 0.215,
+      "unit": "pass_rate",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-29",
+      "task_family": "cybersecurity",
+      "metric_id": "exploitbench-internal-port-jun-aug-2026",
+      "comparisons": {
+        "gpt-6-astra": 0.315,
+        "gpt-6-sol": 0.055,
+        "gpt-5.6-sol": 0.035
+      },
+      "caveat": "Section 9.1.2.2; internal port evaluation, June-August 2026; no effort label stated.",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-1-sol-system-card-exploitbench-internal-port-jun-aug-2026",
+      "snapshot_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "SEC-Bench Pro pass@1",
+      "score": 0.788,
+      "unit": "pass_rate",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-29",
+      "task_family": "cybersecurity",
+      "metric_id": "sec-bench-pro",
+      "comparisons": {
+        "gpt-6-astra": 0.854,
+        "gpt-6-sol": 0.663,
+        "gpt-5.6-sol": 0.791
+      },
+      "caveat": "Section 9.1.2.2; no effort label stated.",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-1-sol-system-card-sec-bench-pro",
+      "snapshot_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "ExploitGym intended-vulnerability success rate per attempt",
+      "score": 0.351,
+      "unit": "pass_rate",
+      "source_id": "openai-gpt-6-1-sol-system-card-2026-09-29",
+      "source_type": "vendor_table",
+      "evidence_grade": "C",
+      "observed_at": "2026-09-29",
+      "task_family": "cybersecurity",
+      "metric_id": "exploitgym-intended-exploit-rate",
+      "comparisons": {
+        "gpt-6-astra": 0.424,
+        "gpt-6-sol": 0.221,
+        "gpt-5.6-sol": 0.303
+      },
+      "caveat": "Section 9.1.2.2; no effort label stated.",
+      "comparable": false,
+      "comparability_group": "openai-gpt-6-1-sol-system-card-exploitgym-intended-exploit-rate",
+      "snapshot_id": "openai-gpt-6-1-sol-system-card-2026-09-29"
+    }
+  ],
+  "missing": [
+    "System-card chart series without printed values in the web page text, including Safety Pareto and detailed jailbreak curves, dynamic mental-health plots, monitor-evasion/monitorability plots, and effort-stratified preparedness curves; not digitized.",
+    "The system-card page reader provided selected table contents and prose rather than a complete raw HTML document. Full table-cell extraction from the raw page was not verified."
+  ]
+}
