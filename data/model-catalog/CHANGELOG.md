@@ -1,3 +1,7 @@
+## v0.5.11 — 2026-09-30
+
+- Corrected the GPT-6.1 Sol `codex_cli` surface note. codex-cli 0.159.2 lists `gpt-6.1-sol` in `codex debug models`, and a local `codex exec` run served it (the rollout records `gpt-6.1-sol`). The previous note came from codex-cli 0.156.1, which did not list it. The CLI default effort remains unverified.
+
 ## v0.5.10 — 2026-09-29
 
 - Added OpenAI GPT-6.1 Sol (`gpt-6.1-sol`) to the GPT-6 family and Sol tier, with launch date, standard API pricing, and API/Codex capability surfaces.

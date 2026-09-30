@@ -9,7 +9,7 @@ Not a CLI. Not a skill. Just versioned, **schema-validated** JSON with a **prove
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | [data-model-catalog-v0.5.10](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.10) — published by CI on push to main |
+| **This version** | [data-model-catalog-v0.5.11](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.11) — published by CI on push to main |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -72,6 +72,10 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 3. **Quota ≠ cost** — [clawmeter](https://github.com/tnunamak/clawmeter) for remaining allowance.
 4. **Vendor tables are directional** until independently reproduced.
 5. **Validate before shipping:** `./scripts/validate_data_pack.py model-catalog`
+
+### v0.5.11 — 2026-09-30
+
+- Corrected the GPT-6.1 Sol Codex CLI surface note: codex-cli 0.159.2 lists the model and a local run served it. The older note said 0.156.1 did not list it. No other data changes.
 
 ### v0.5.10 — 2026-09-29
 

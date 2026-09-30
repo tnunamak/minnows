@@ -2,9 +2,9 @@
   "$schema": "schemas/pack-v1.schema.json",
   "name": "model-catalog",
   "schema_version": 1,
-  "tag": "data-model-catalog-v0.5.10",
-  "generated_at": "2026-09-29",
-  "description": "Model economics catalog. v0.5.10: adds OpenAI GPT-6.1 Sol facts, API/Codex capability surfaces, launch claims, selected system-card evidence, and launch-day Artificial Analysis rows with provisional board coverage (recheck 2026-10-06); adds Xiaomi MiMo-V2.6 Pro and Flash with pricing and board rows, and records StepFun Step 5 Preview as an unverified gap. No routing policy changes.",
+  "tag": "data-model-catalog-v0.5.11",
+  "generated_at": "2026-09-30",
+  "description": "Model economics catalog. v0.5.11: corrects the GPT-6.1 Sol Codex CLI surface note; the model is listed and dispatchable on codex-cli 0.159.2.",
   "files": [
     "CHANGELOG.md",
     "FRESHNESS.md",
