@@ -11,7 +11,7 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.1.13](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.1.13) — published by CI on push to main |
+| **This version** | [data-model-choice-policy-v0.1.17](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.1.17) — published by CI on push to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
@@ -80,6 +80,12 @@ Waspflow resolves from (first hit):
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.1.17 — 2026-09-30
+
+- **No routing change.** Every operating point expands exactly as in v0.1.16.
+- Repins to catalog v0.5.11, which corrects the GPT-6.1 Sol Codex CLI note: the model is listed and dispatchable on codex-cli 0.159.2.
+- Catalog pin: **v0.5.11**.
 
 ### v0.1.16 — 2026-09-30
 

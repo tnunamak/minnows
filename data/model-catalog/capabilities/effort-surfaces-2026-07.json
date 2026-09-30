@@ -1615,7 +1615,7 @@
       "source_ids": [
         "openai-codex-models-2026-09-29"
       ],
-      "notes": "Codex model documentation describes reasoning controls from Light through Ultra and says Max/Ultra depend on plan/settings; Light maps to the CLI/API low label. The docs recommend starting with the effort available by default in the client and do not state one fixed GPT-6.1 Sol CLI default. Local codex-cli 0.156.1 `codex debug models` did not return this model, so model-specific CLI availability/default is not locally verified."
+      "notes": "Codex model documentation describes reasoning controls from Light through Ultra and says Max/Ultra depend on plan/settings; Light maps to the CLI/API low label. The docs recommend starting with the effort available by default in the client and do not state one fixed GPT-6.1 Sol CLI default. CORRECTED 2026-09-30: local codex-cli 0.156.1 `codex debug models` did not return this model; codex-cli 0.159.2 on the same host lists it, and a `codex exec -m gpt-6.1-sol` run completed with the rollout recording `gpt-6.1-sol` as the served model. The CLI default effort for this model is still not locally verified."
     },
     {
       "provider": "xiaomi",
