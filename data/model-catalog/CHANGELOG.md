@@ -1,3 +1,9 @@
+## v0.5.10 — 2026-09-29
+
+- Added OpenAI GPT-6.1 Sol (`gpt-6.1-sol`) to the GPT-6 family and Sol tier, with launch date, standard API pricing, and API/Codex capability surfaces.
+- Recorded launch-post claims and selected printed system-card results using existing metric IDs. The exact launch-page HTML table and complete SVG effort curves could not be retrieved because direct HTML requests returned HTTP 403; those values remain explicitly missing.
+- Updated Hone with a GPT-6.1 Sol entry and `calibration: null`, so it cannot route. GPT-6 Sol remains GA; no routing-policy changes.
+
 ## v0.5.9 — 2026-09-28
 
 - Added source-backed Claude Sonnet 5.5 model, API pricing, ordered name patterns, and separate Claude API / Claude Code effort surfaces.

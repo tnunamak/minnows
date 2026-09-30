@@ -1,0 +1,143 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "openai-gpt-6-1-sol-launch-2026-09",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "openai",
+  "retrieved_at": "2026-09-29",
+  "source_urls": [
+    "https://openai.com/index/introducing-gpt-6-1-sol/"
+  ],
+  "source_ids": [
+    "openai-gpt-6-1-sol-launch-2026-09-29"
+  ],
+  "notes": "OpenAI launch article text was available through the web page reader; raw HTML returned HTTP 403 to Python urllib, so its HTML <table> cells could not be parsed and diffed in code during this pass. Numeric prose claims below are recorded as claims, not converted into scores. An accessible SVG label was exposed without the complete label/value set; no curve was digitized. Treat the missing score table and curves as unresolved, not absent.",
+  "claims": [
+    {
+      "models": [
+        "gpt-6.1-sol",
+        "gpt-6-astra"
+      ],
+      "task_families": [
+        "coding",
+        "computer-use",
+        "agentic"
+      ],
+      "axes": [
+        "quality",
+        "cost"
+      ],
+      "statement": "OpenAI describes GPT-6.1 Sol as an upgrade to GPT-6 Sol that nearly matches GPT-6 Astra on agentic coding, computer use, and professional work at one-fifth of Astra’s standard input and output token prices. Cached input is $0.10 per million tokens.",
+      "source_id": "openai-gpt-6-1-sol-launch-2026-09-29"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol",
+        "gpt-6-astra",
+        "gpt-6-sol"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
+      "statement": "DeepSWE v1.1: OpenAI says GPT-6.1 Sol matches GPT-6 Astra at roughly one-fifth the cost, and beats GPT-6 Sol’s best score by 6.4 percentage points at lower reasoning effort and cost. The post does not state a specific effort for those comparison points in the prose.",
+      "source_id": "openai-gpt-6-1-sol-launch-2026-09-29"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol",
+        "claude-opus-5-5",
+        "gpt-6-astra"
+      ],
+      "task_families": [
+        "agentic"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
+      "statement": "GDP.pdf: GPT-6.1 Sol scores higher than Opus 5.5 with fallbacks at less than half the cost per task across tested reasoning settings, and approaches GPT-6 Astra at roughly one-fifth the cost per task.",
+      "source_id": "openai-gpt-6-1-sol-launch-2026-09-29"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol",
+        "claude-opus-5-5",
+        "gpt-6-sol"
+      ],
+      "task_families": [
+        "agentic"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
+      "statement": "AutomationBench 1.0.6: at medium effort GPT-6.1 Sol scores 2.2 percentage points above Opus 5.5 at roughly one-third the cost; its score is 4.8 points above GPT-6 Sol at the same setting.",
+      "source_id": "openai-gpt-6-1-sol-launch-2026-09-29"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol",
+        "gpt-6-sol",
+        "gpt-6-astra"
+      ],
+      "task_families": [
+        "computer-use"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
+      "statement": "OSWorld 2.0 offline set: at maximum effort GPT-6.1 Sol scores 7 percentage points above GPT-6 Sol at less than half the cost, and comes within 2.1 points of GPT-6 Astra at roughly one-seventh the cost per task. The source names the data release as v2026.08.08.",
+      "source_id": "openai-gpt-6-1-sol-launch-2026-09-29"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol",
+        "gpt-6-sol",
+        "gpt-6-astra",
+        "claude-opus-5-5"
+      ],
+      "task_families": [
+        "research"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
+      "statement": "Terminal-Bench Science 0.1: at maximum effort GPT-6.1 Sol scores more than twice GPT-6 Sol at less than half the cost per task. GPT-6.1 Sol costs $5.47 per task, compared with $23.21 for Opus 5.5 and $23.80 for GPT-6 Astra. GPT-6 Astra has the highest score among tested models at 68.1%.",
+      "source_id": "openai-gpt-6-1-sol-launch-2026-09-29"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol",
+        "gpt-6-sol",
+        "gpt-6-astra"
+      ],
+      "task_families": [
+        "knowledge/factuality"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
+      "statement": "On difficult factuality prompts, GPT-6.1 Sol’s low-effort error rate is 7.7%, versus 11.4% for GPT-6 Sol (the post describes this as an approximately 32% reduction). Across tested efforts, its error rate is within 1.9 percentage points of GPT-6 Astra at less than one-fifth the cost per task. These prompts were selected because users had reported a prior factual error and are not representative of typical usage.",
+      "source_id": "openai-gpt-6-1-sol-launch-2026-09-29"
+    }
+  ],
+  "scores": [],
+  "missing": [
+    "Launch-page HTML benchmark table cells: not parsed because direct request to https://openai.com/index/introducing-gpt-6-1-sol/ returned HTTP 403. The browser-readable page did not expose those table cells; do not treat the prose claims above as a cell-by-cell table substitute.",
+    "Effort-stratified launch curves: chart is visible but exact full SVG/accessibility labels were not retrievable from the page reader; no values digitized.",
+    "System-card addendum published separately; numeric subset stored in performance/openai-gpt-6-1-sol-system-card-2026-09.json."
+  ]
+}
