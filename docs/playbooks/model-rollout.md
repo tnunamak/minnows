@@ -71,6 +71,18 @@ python3 scripts/check_freshness.py --max-age-days 45
 uv run --with pytest --with jsonschema python -m pytest tests/test_recommend_ops.py -q
 ```
 
+CI also runs the Hone suites, which load `tools/hone/models.json`. The pack validator does not check that file, so run them yourself when you touch it. Redirect output to a file; some suites exit 1 when stdout is `/dev/null`.
+
+```bash
+for c in "tools/hone/providers/test-discrimination.mjs --self-test" "tools/hone/hone work --self-test" \
+         "tools/hone/hone lane --self-test" tools/hone/lib/test-agenda.mjs \
+         tools/hone/lib/test-collectors.mjs tools/hone/lib/test-report-run.mjs; do
+  node $c >/tmp/hone.out 2>&1 || { echo "FAIL: $c"; tail -5 /tmp/hone.out; }
+done
+```
+
+The Hone registry accepts only the efforts `low`, `medium`, `high`, `xhigh` and `max`. Do not copy a provider-only effort such as `ultra` into it; the registry then fails to load and every Hone suite breaks (this blocked the GPT-6.1 Sol release).
+
 Validators must pass. Read every file you touched once more. Grep for the old version string to find stragglers.
 
 ## 5. Commit and PR
@@ -86,7 +98,7 @@ Merging to `main` publishes any pack whose `pack.json` `tag` has no GitHub Relea
 
 1. Merge the PR. Then `gh run list --repo tnunamak/minnows --limit 3` and `gh release list --repo tnunamak/minnows --limit 4`.
 2. If the Release run fails at "Generated skills are current", run `bash sync.sh`, commit the `skills/` diff, and merge that. Publishing is blocked until it passes.
-3. Confirm both new tags appear in `gh release list`.
+3. Confirm both new tags appear in `gh release list`. A green PR check is not enough: `validate` on the PR only checks packs. The Release run also runs the Hone suites, the shell and Python syntax checks, and the skills check, and it skips publishing if any fails. Read `gh run view <id> --json jobs` for the failing step, not just the run status.
 
 ## 7. Downstream (after the release exists)
 
