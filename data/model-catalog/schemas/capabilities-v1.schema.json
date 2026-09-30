@@ -78,7 +78,8 @@
               "moonshot",
               "minimax",
               "meta",
-              "mistral"
+              "mistral",
+              "xiaomi"
             ]
           },
           "model": {
@@ -111,7 +112,8 @@
                 "medium",
                 "high",
                 "xhigh",
-                "max"
+                "max",
+                "ultra"
               ]
             }
           },

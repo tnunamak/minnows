@@ -2128,6 +2128,106 @@
       "retrieved_at": "2026-09-29",
       "kind": "vendor_docs",
       "notes": "System card addendum; content is split across the public Safety Hub page."
+    },
+    {
+      "id": "xiaomi-mimo-v2-6-launch-2026-09-22",
+      "url": "https://mimo.xiaomi.com/mimo-v2-6/article",
+      "title": "Introducing MiMo-V2.6 series",
+      "publisher": "Xiaomi MiMo",
+      "published": "2026-09-22",
+      "retrieved_at": "2026-09-29",
+      "kind": "vendor_blog",
+      "notes": "Official announcement for Pro and Flash. It says the models are released, publicly API-available, and lists September 22, 2026 as the post date."
+    },
+    {
+      "id": "xiaomi-mimo-v2-6-api-model-list-2026-09-29",
+      "url": "https://mimo.mi.com/docs/en-US/api/model/list-models",
+      "title": "List models",
+      "publisher": "Xiaomi MiMo",
+      "published": null,
+      "retrieved_at": "2026-09-29",
+      "kind": "vendor_docs",
+      "notes": "First-party model list includes mimo-v2.6-pro and mimo-v2.6-flash; page states update time September 21, 2026."
+    },
+    {
+      "id": "xiaomi-mimo-v2-6-pricing-2026-09-29",
+      "url": "https://mimo.mi.com/docs/pricing",
+      "title": "API Pricing",
+      "publisher": "Xiaomi MiMo",
+      "published": null,
+      "retrieved_at": "2026-09-29",
+      "kind": "vendor_docs",
+      "notes": "Overseas pay-as-you-go real-time API prices per million tokens. The page says cache writes are limited-time free and batch rates are separate; update time September 22, 2026."
+    },
+    {
+      "id": "xiaomi-mimo-v2-6-reasoning-api-2026-09-29",
+      "url": "https://mimo.mi.com/docs/en-US/api/chat/responses",
+      "title": "Responses API",
+      "publisher": "Xiaomi MiMo",
+      "published": null,
+      "retrieved_at": "2026-09-29",
+      "kind": "vendor_docs",
+      "notes": "Documents reasoning.effort accepted values and mappings; page update time September 20, 2026."
+    },
+    {
+      "id": "xiaomi-mimo-v2-6-arena-coding-2026-09-29",
+      "url": "https://arena.ai/leaderboard/text/coding",
+      "title": "Arena Text Coding leaderboard",
+      "publisher": "Arena.ai",
+      "published": null,
+      "retrieved_at": "2026-09-29",
+      "kind": "third_party_eval",
+      "notes": "Live leaderboard reports ranks and Elo; effort is not stated for either MiMo V2.6 row."
+    },
+    {
+      "id": "xiaomi-mimo-v2-6-aa-pro-2026-09-29",
+      "url": "https://artificialanalysis.ai/models/mimo-v2-6-pro",
+      "title": "MiMo-V2.6-Pro Intelligence, Performance & Price Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-29",
+      "kind": "third_party_eval",
+      "notes": "Artificial Analysis Intelligence Index v4.3.2 score is 46; effort setting is not stated on the page."
+    },
+    {
+      "id": "xiaomi-mimo-v2-6-aa-flash-2026-09-29",
+      "url": "https://artificialanalysis.ai/models/mimo-v2-6-flash",
+      "title": "MiMo-V2.6-Flash Intelligence, Performance & Price Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-09-29",
+      "kind": "third_party_eval",
+      "notes": "Artificial Analysis Intelligence Index v4.3.2 score is 38; effort setting is not stated on the page."
+    },
+    {
+      "id": "stepfun-platform-step-5-preview-2026-09-29",
+      "url": "https://platform.stepfun.com/",
+      "title": "StepFun Open Platform",
+      "publisher": "StepFun",
+      "published": null,
+      "retrieved_at": "2026-09-29",
+      "kind": "vendor_docs",
+      "notes": "Platform labels Step 5 Preview; sample API call uses model=YOUR_MODEL_ID. Exact API ID and API pricing are not exposed in the checked first-party page."
+    },
+    {
+      "id": "xiaomi-mimo-v2-6-pro-model-page-2026-09-29",
+      "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-pro",
+      "title": "MiMo-V2.6-Pro",
+      "publisher": "Xiaomi MiMo",
+      "published": null,
+      "retrieved_at": "2026-09-29",
+      "kind": "vendor_docs",
+      "notes": "First-party model page gives API ID, USD cache-miss/cache-hit/output rates, 1M context, and OpenAI/Anthropic protocol compatibility."
+    },
+    {
+      "id": "xiaomi-mimo-v2-6-flash-model-page-2026-09-29",
+      "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-flash",
+      "title": "MiMo-V2.6-Flash",
+      "publisher": "Xiaomi MiMo",
+      "published": null,
+      "retrieved_at": "2026-09-29",
+      "kind": "vendor_docs",
+      "notes": "First-party model page gives API ID, USD cache-miss/cache-hit/output rates, 1M context, and OpenAI/Anthropic protocol compatibility."
     }
   ]
 }

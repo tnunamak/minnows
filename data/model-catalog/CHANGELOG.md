@@ -1,3 +1,9 @@
+## Unreleased
+
+- Added Xiaomi MiMo-V2.6 Pro and Flash as public API models with first-party standard USD rates, cached-input rates, API reasoning documentation, and retrieved Arena / Artificial Analysis rows.
+- Recorded StepFun Step 5 Preview as an unresolved frontier gap because the first-party API example uses a placeholder model ID; recheck on or after 2026-10-13.
+- No model-choice-policy changes.
+
 ## v0.5.10 — 2026-09-29
 
 - Added OpenAI GPT-6.1 Sol (`gpt-6.1-sol`) to the GPT-6 family and Sol tier, with launch date, standard API pricing, and API/Codex capability surfaces.

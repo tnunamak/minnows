@@ -54,6 +54,7 @@ Anthropic, Google, xAI, Qwen, and other vendor families where the vendor names a
 - **z.ai** (`provider: other`): GLM model names such as `glm` | `flash`; the model suffix is
   the vendor's designation, not an inferred capability ordering.
 - **minimax**: `m3` | `m2.7` (vendor model family designations).
+- **xiaomi**: `pro` | `flash` (MiMo-V2.6 product designations).
 - **meta**: `spark` (Muse Spark family; preview status is separate).
 - **mistral**: `large` | `medium` | `small` (vendor family names; not a universal rank).
 - **alibaba**: Qwen's `max` | `plus` | `flash` | `coder` suffixes are product-family

@@ -60,7 +60,8 @@
               "google",
               "alibaba",
               "deepseek",
-              "other"
+              "other",
+              "xiaomi"
             ]
           },
           "family": {
