@@ -81,6 +81,18 @@
         "date": "2026-07-09",
         "note": "accuracy-first Codex tier; different-lineage judge/maker for cross-provider pairs"
       }
+    },
+    "gpt-6.1-sol": {
+      "provider": "codex",
+      "id": "gpt-6.1-sol",
+      "short": "gpt-6.1-sol",
+      "lineage": "openai",
+      "pricing": { "in": 2.0, "out": 10.0, "cache_read": 0.1 },
+      "quota_pool": "openai-sub",
+      "efforts": ["low", "medium", "high", "xhigh", "max", "ultra"],
+      "tier_rank": 4,
+      "status": "active",
+      "calibration": null
     }
   }
 }
