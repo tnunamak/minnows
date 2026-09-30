@@ -78,6 +78,7 @@ export DATA_PACKS_HOME="${DATA_PACKS_HOME:-$HOME/.local/share/minnows-data}"
 - Added OpenAI GPT-6.1 Sol as a GA Sol-tier model in the GPT-6 family, current API standard pricing, separate API and Codex effort surfaces, Hone entry without calibration, launch claims, and selected system-card rows.
 - Kept GPT-6 Sol GA: OpenAI still lists it for Work and Codex and has not announced deprecation. No model-choice-policy changes.
 - Raw launch HTML returned HTTP 403, so benchmark table cells and full SVG curves remain listed as missing rather than reconstructed from secondary sources.
+- Added launch-day Artificial Analysis rows for GPT-6.1 Sol and provisional board coverage (recheck 2026-10-06). Added Xiaomi MiMo-V2.6 Pro and Flash (release 2026-09-22) with first-party pricing and Arena and Artificial Analysis rows. StepFun Step 5 Preview is not in `models.json`: its API model id is unpublished.
 
 ## Changelog
 

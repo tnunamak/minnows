@@ -780,7 +780,8 @@
         "claude-opus-5": 1673
       },
       "snapshot_id": "anthropic-opus-5-5-system-card-2026-09-22-2026-09-22",
-      "comparability_group": "anthropic-opus-5-5-system-card-2026-09-22-2026-09-22-aa-briefcase-v1-1"
+      "comparability_group": "anthropic-opus-5-5-system-card-2026-09-22-2026-09-22-aa-briefcase-v1-1",
+      "comparable": false
     },
     {
       "model": "claude-opus-5-5",
@@ -796,7 +797,8 @@
       "task_family": "knowledge",
       "metric_id": "aa-briefcase-v1-1",
       "snapshot_id": "anthropic-opus-5-5-system-card-2026-09-22-2026-09-22",
-      "comparability_group": "anthropic-opus-5-5-system-card-2026-09-22-2026-09-22-aa-briefcase-v1-1"
+      "comparability_group": "anthropic-opus-5-5-system-card-2026-09-22-2026-09-22-aa-briefcase-v1-1",
+      "comparable": false
     },
     {
       "model": "claude-opus-5-5",
@@ -812,7 +814,8 @@
       "task_family": "knowledge",
       "metric_id": "aa-briefcase-v1-1",
       "snapshot_id": "anthropic-opus-5-5-system-card-2026-09-22-2026-09-22",
-      "comparability_group": "anthropic-opus-5-5-system-card-2026-09-22-2026-09-22-aa-briefcase-v1-1"
+      "comparability_group": "anthropic-opus-5-5-system-card-2026-09-22-2026-09-22-aa-briefcase-v1-1",
+      "comparable": false
     },
     {
       "model": "claude-opus-5-5",

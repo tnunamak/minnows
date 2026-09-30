@@ -19,7 +19,7 @@
   "claims": [
     {
       "models": [
-        "gpt-6-1-sol"
+        "gpt-6.1-sol"
       ],
       "task_families": [
         "mixed"
@@ -35,7 +35,7 @@
     },
     {
       "models": [
-        "gpt-6-1-sol"
+        "gpt-6.1-sol"
       ],
       "task_families": [
         "reasoning"
@@ -51,7 +51,7 @@
     },
     {
       "models": [
-        "gpt-6-1-sol"
+        "gpt-6.1-sol"
       ],
       "task_families": [
         "reasoning"
@@ -67,7 +67,7 @@
     },
     {
       "models": [
-        "gpt-6-1-sol"
+        "gpt-6.1-sol"
       ],
       "task_families": [
         "reasoning"
@@ -83,7 +83,7 @@
     },
     {
       "models": [
-        "gpt-6-1-sol"
+        "gpt-6.1-sol"
       ],
       "task_families": [
         "reasoning"
@@ -100,7 +100,7 @@
   ],
   "scores": [
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
       "score": 42.0835618555848,
       "unit": "other",
@@ -122,7 +122,7 @@
       "caveat": "Artificial Analysis model release page lists this explicit effort variant and per-Intelligence-Index-task cost. Page does not state that this was a pre-release deployment."
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
       "score": 47.7833271274065,
       "unit": "other",
@@ -144,7 +144,7 @@
       "caveat": "Artificial Analysis model release page lists this explicit effort variant and per-Intelligence-Index-task cost. Page does not state that this was a pre-release deployment."
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
       "score": 50.2377777519769,
       "unit": "other",
@@ -166,7 +166,7 @@
       "caveat": "Artificial Analysis model release page lists this explicit effort variant and per-Intelligence-Index-task cost. Page does not state that this was a pre-release deployment."
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
       "score": 51.0377679093761,
       "unit": "other",
@@ -188,7 +188,7 @@
       "caveat": "Artificial Analysis model release page lists this explicit effort variant and per-Intelligence-Index-task cost. Page does not state that this was a pre-release deployment."
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "Artificial Analysis Intelligence Index v4.3.2",
       "score": 51.8332597011541,
       "unit": "other",
@@ -397,7 +397,7 @@
       "caveat": "Same-day Artificial Analysis comparison-page row; API effort is explicit in the variant slug. Raw index value parsed from the page payload."
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "Artificial Analysis Briefcase",
       "score": 1118.39,
       "unit": "elo",
@@ -419,7 +419,7 @@
       "metric_id": "aa-briefcase-v1-1"
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "GDPval-AA",
       "score": 1297,
       "unit": "elo",
@@ -441,7 +441,7 @@
       "metric_id": "gdpval-aa-v2-1"
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "AutomationBench (Artificial Analysis)",
       "score": 0.5257088964747538,
       "unit": "accuracy",
@@ -463,7 +463,7 @@
       "metric_id": "automationbench"
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "Terminal-Bench 4.0 (Artificial Analysis)",
       "score": 0.308080808080808,
       "unit": "accuracy",
@@ -485,7 +485,7 @@
       "metric_id": "terminal-bench-4-0"
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "SciCode (Artificial Analysis)",
       "score": 0.532407407407407,
       "unit": "accuracy",
@@ -507,7 +507,7 @@
       "metric_id": "scicode"
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "Humanity's Last Exam (Artificial Analysis)",
       "score": 0.473586654309546,
       "unit": "accuracy",
@@ -529,7 +529,7 @@
       "metric_id": "aa-humanitys-last-exam"
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "GDP.pdf (Artificial Analysis)",
       "score": 0.27,
       "unit": "accuracy",
@@ -551,7 +551,7 @@
       "metric_id": "gdp-pdf"
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "AA Omniscience",
       "score": 37.63333333333333,
       "unit": "other",
@@ -573,7 +573,7 @@
       "metric_id": "aa-omniscience"
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "Artificial Analysis Briefcase",
       "score": 1364.77,
       "unit": "elo",
@@ -595,7 +595,7 @@
       "metric_id": "aa-briefcase-v1-1"
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "GDPval-AA",
       "score": 1432.94,
       "unit": "elo",
@@ -617,7 +617,7 @@
       "metric_id": "gdpval-aa-v2-1"
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "AutomationBench (Artificial Analysis)",
       "score": 0.6257350970435687,
       "unit": "accuracy",
@@ -639,7 +639,7 @@
       "metric_id": "automationbench"
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "Terminal-Bench 4.0 (Artificial Analysis)",
       "score": 0.47979797979798,
       "unit": "accuracy",
@@ -661,7 +661,7 @@
       "metric_id": "terminal-bench-4-0"
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "SciCode (Artificial Analysis)",
       "score": 0.532407407407407,
       "unit": "accuracy",
@@ -683,7 +683,7 @@
       "metric_id": "scicode"
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "Humanity's Last Exam (Artificial Analysis)",
       "score": 0.498609823911029,
       "unit": "accuracy",
@@ -705,7 +705,7 @@
       "metric_id": "aa-humanitys-last-exam"
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "GDP.pdf (Artificial Analysis)",
       "score": 0.3,
       "unit": "accuracy",
@@ -727,7 +727,7 @@
       "metric_id": "gdp-pdf"
     },
     {
-      "model": "gpt-6-1-sol",
+      "model": "gpt-6.1-sol",
       "metric": "AA Omniscience",
       "score": 39.95,
       "unit": "other",

@@ -43,7 +43,8 @@
         "minimax",
         "meta",
         "mistral",
-        "other"
+        "other",
+        "xiaomi"
       ],
       "description": "Vendor that published the claims/scores"
     },

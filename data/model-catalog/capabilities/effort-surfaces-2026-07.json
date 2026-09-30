@@ -27,7 +27,8 @@
     "https://www-cdn.anthropic.com/870c8f525702625d2c62fc6dd04c857e3250bec1/Claude%20Sonnet%205.5%20System%20Card.pdf",
     "https://developers.openai.com/api/docs/models",
     "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
-    "https://developers.openai.com/api/docs/pricing"
+    "https://developers.openai.com/api/docs/pricing",
+    "https://mimo.mi.com/docs/en-US/api/chat/responses"
   ],
   "source_ids": [
     "anthropic-claude-code-model-config-2026-07-09",
@@ -68,9 +69,10 @@
     "openai-api-models-2026-09-29",
     "openai-api-model-page-gpt-6-1-sol-2026-09-29",
     "openai-api-pricing-2026-09-29",
-    "openai-codex-models-2026-09-29"
+    "openai-codex-models-2026-09-29",
+    "xiaomi-mimo-v2-6-reasoning-api-2026-09-29"
   ],
-  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking. 2026-09-22: added gpt-6-sol/gpt-6-luna api surfaces from their model pages (none/low/medium(default)/high/xhigh/max — no minimal, unlike gpt-5.6's api surface). 2026-09-22 (integration correction): the gpt-6-sol/gpt-6-luna codex_cli surfaces were initially recorded empty, citing a codex-cli 0.154.0 read that reported both slugs absent (auth-scoped rollout gap). A same-day 0.156.0 re-read on the same host shows both ARE listed (visibility=list): gpt-6-sol low/medium/high/xhigh/max/ultra default medium, gpt-6-luna low/medium/high/xhigh/max default medium — filled in from that later read (see openai-codex-debug-models-0-156-0-2026-09-22). 2026-09-23: added observed agy 1.2.9 per-model efforts (3.8/3.7/3.6 Flash low/medium/high; 3.1 Pro low/high), auth-scoped; added Grok 4.7 API effort and authenticated Grok CLI listing (sole/default model). Qwen candidates carry vendor product-family tiers and explicit enable_thinking surface notes where the primary model/API/config pages document them; this is a binary thinking toggle, not an effort ladder. Local CLI verification on 2026-09-23: installed qwen 0.21.1; `qwen --help` exposes no top-level --effort/--thinking flags. The installed bundled docs expose interactive `/effort` with low|medium|high|xhigh|max via model.reasoningEffort; provider mappings determine whether tiers remain distinct or map to thinking on/off. 2026-09-29: added GPT-6.1 Sol API surface from the dedicated model page. API default is medium. Added a separate Codex CLI surface from the official Codex model guide; its documented choices include Ultra, but the guide does not specify a fixed model default and the local model catalog did not include this model at retrieval.",
+  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking. 2026-09-22: added gpt-6-sol/gpt-6-luna api surfaces from their model pages (none/low/medium(default)/high/xhigh/max — no minimal, unlike gpt-5.6's api surface). 2026-09-22 (integration correction): the gpt-6-sol/gpt-6-luna codex_cli surfaces were initially recorded empty, citing a codex-cli 0.154.0 read that reported both slugs absent (auth-scoped rollout gap). A same-day 0.156.0 re-read on the same host shows both ARE listed (visibility=list): gpt-6-sol low/medium/high/xhigh/max/ultra default medium, gpt-6-luna low/medium/high/xhigh/max default medium — filled in from that later read (see openai-codex-debug-models-0-156-0-2026-09-22). 2026-09-23: added observed agy 1.2.9 per-model efforts (3.8/3.7/3.6 Flash low/medium/high; 3.1 Pro low/high), auth-scoped; added Grok 4.7 API effort and authenticated Grok CLI listing (sole/default model). Qwen candidates carry vendor product-family tiers and explicit enable_thinking surface notes where the primary model/API/config pages document them; this is a binary thinking toggle, not an effort ladder. Local CLI verification on 2026-09-23: installed qwen 0.21.1; `qwen --help` exposes no top-level --effort/--thinking flags. The installed bundled docs expose interactive `/effort` with low|medium|high|xhigh|max via model.reasoningEffort; provider mappings determine whether tiers remain distinct or map to thinking on/off. 2026-09-29: added GPT-6.1 Sol API surface from the dedicated model page. API default is medium. Added a separate Codex CLI surface from the official Codex model guide; its documented choices include Ultra, but the guide does not specify a fixed model default and the local model catalog did not include this model at retrieval. 2026-09-29: Xiaomi MiMo-V2.6 Pro/Flash API reasoning.effort accepts none, minimal, low, medium, high, xhigh, max, and ultra; only none disables reasoning, while other labels map to enabled reasoning and do not provide custom tuning. Default is enabled.",
   "surfaces": [
     {
       "provider": "alibaba",
@@ -1614,6 +1616,70 @@
         "openai-codex-models-2026-09-29"
       ],
       "notes": "Codex model documentation describes reasoning controls from Light through Ultra and says Max/Ultra depend on plan/settings; Light maps to the CLI/API low label. The docs recommend starting with the effort available by default in the client and do not state one fixed GPT-6.1 Sol CLI default. Local codex-cli 0.156.1 `codex debug models` did not return this model, so model-specific CLI availability/default is not locally verified."
+    },
+    {
+      "provider": "xiaomi",
+      "model": "mimo-v2.6-pro",
+      "surface": "api",
+      "valid_efforts": [
+        "none",
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "ultra"
+      ],
+      "default_effort": "enabled",
+      "unsupported_behavior": "warn_passthrough",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "default enabled"
+        },
+        {
+          "mode_id": "non-thinking",
+          "notes": "reasoning.effort=none"
+        }
+      ],
+      "source_ids": [
+        "xiaomi-mimo-v2-6-reasoning-api-2026-09-29"
+      ],
+      "notes": "The vendor accepts the listed options, but custom tuning is unsupported: none disables reasoning; minimal maps to low; xhigh/max/ultra map to high; all other values enable reasoning without documented strength differences."
+    },
+    {
+      "provider": "xiaomi",
+      "model": "mimo-v2.6-flash",
+      "surface": "api",
+      "valid_efforts": [
+        "none",
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "ultra"
+      ],
+      "default_effort": "enabled",
+      "unsupported_behavior": "warn_passthrough",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "thinking",
+          "notes": "default enabled"
+        },
+        {
+          "mode_id": "non-thinking",
+          "notes": "reasoning.effort=none"
+        }
+      ],
+      "source_ids": [
+        "xiaomi-mimo-v2-6-reasoning-api-2026-09-29"
+      ],
+      "notes": "The vendor accepts the listed options, but custom tuning is unsupported: none disables reasoning; minimal maps to low; xhigh/max/ultra map to high; all other values enable reasoning without documented strength differences."
     }
   ],
   "missing": [

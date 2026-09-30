@@ -3,6 +3,9 @@
 - Added OpenAI GPT-6.1 Sol (`gpt-6.1-sol`) to the GPT-6 family and Sol tier, with launch date, standard API pricing, and API/Codex capability surfaces.
 - Recorded launch-post claims and selected printed system-card results using existing metric IDs. The exact launch-page HTML table and complete SVG effort curves could not be retrieved because direct HTML requests returned HTTP 403; those values remain explicitly missing.
 - Updated Hone with a GPT-6.1 Sol entry and `calibration: null`, so it cannot route. GPT-6 Sol remains GA; no routing-policy changes.
+- Added Xiaomi MiMo-V2.6 Pro and Flash as public API models with first-party standard USD rates, cached-input rates, API reasoning documentation, and retrieved Arena / Artificial Analysis rows.
+- Recorded StepFun Step 5 Preview as an unresolved frontier gap because the first-party API example uses a placeholder model ID; recheck on or after 2026-10-13.
+- Added Artificial Analysis rows for GPT-6.1 Sol at five efforts with same-snapshot comparison rows, and a board coverage file that records provisional absence (recheck 2026-10-06) for boards that do not list it yet.
 
 ## v0.5.9 — 2026-09-28
 
