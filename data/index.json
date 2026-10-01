@@ -1,7 +1,7 @@
 {
   "$schema": "schemas/index-v1.schema.json",
   "schema_version": 1,
-  "updated_at": "2026-09-30",
+  "updated_at": "2026-10-01",
   "repo": "tnunamak/minnows",
   "packs": {
     "model-catalog": {
