@@ -1,6 +1,6 @@
 ---
 name: convo-history
-description: "Read past agent conversation history across harnesses (Claude Code, Codex CLI, Gemini CLI, Qwen Code) via the `convo` CLI. Use when the user asks to recall, print, search, or summarize earlier sessions — 'what did we discuss', 'print the last N messages', 'find where we talked about X', 'what did I ask you yesterday', 'pull up that earlier conversation', 'read our history', 'what was the conclusion in the other session'. The signature view is the clean transcript: each user prompt paired with only the agent's FINAL reply before the next prompt, tool-call noise stripped. Works cross-harness so you can read Codex/Gemini/Qwen logs from Claude and vice-versa. Triggers: 'last N messages', 'our conversation', 'previous session', 'what did we say', 'search my sessions', 'recall what I asked', 'read the transcript'."
+description: "Read past agent conversation history across harnesses (Claude Code, Codex CLI, Gemini CLI, Qwen Code, Pi, DeepSeek Harness) via the `convo` CLI. Use when the user asks to recall, print, search, or summarize earlier sessions — 'what did we discuss', 'print the last N messages', 'find where we talked about X', 'what did I ask you yesterday', 'pull up that earlier conversation', 'read our history', 'what was the conclusion in the other session'. The signature view is the clean transcript: each user prompt paired with only the agent's FINAL reply before the next prompt, tool-call noise stripped. Works cross-harness so you can read Codex/Gemini/Qwen/Pi/dsh logs from Claude and vice-versa. Triggers: 'last N messages', 'our conversation', 'previous session', 'what did we say', 'search my sessions', 'recall what I asked', 'read the transcript'."
 ---
 
 # convo — cross-harness conversation history
@@ -8,7 +8,7 @@ description: "Read past agent conversation history across harnesses (Claude Code
 `convo` reads your own (and sibling agents') session transcripts off disk and prints them
 as a clean human/agent-readable transcript. It is the right tool whenever the user wants to
 **look back at what was actually said** in this or another session — across Claude Code,
-Codex CLI, Gemini CLI, and Qwen Code.
+Codex CLI, Gemini CLI, Qwen Code, Pi, and the DeepSeek Harness (dsh).
 
 The legacy `list`, `show`, and `grep` commands are direct/raw readers, not a memory
 store. Use them for the *current* live turn and recent source logs. The additive local
@@ -59,9 +59,9 @@ search never claims it can reconstruct raw tool traces.
 failure that prevented the ledger from recording a valid source status; `status` separates
 those failures from partial coverage.
 
-Claude, Codex, and Qwen JSONL sources are normalized in a bounded-memory streaming pass;
-they are not limited by the former whole-source 64 MiB cap. Gemini remains a whole-document
-parser, so `CONVO_MAX_SOURCE_BYTES` (64 MiB by default) still applies to Gemini only. A
+Claude, Codex, Qwen, and Pi JSONL sources are normalized in a bounded-memory streaming pass;
+they are not limited by the former whole-source 64 MiB cap. Gemini and dsh remain whole-document
+parsers (dsh may be zstd-compressed), so `CONVO_MAX_SOURCE_BYTES` (64 MiB by default) still applies to Gemini only. A
 malformed complete JSONL row marks that source `partial` while retaining valid surrounding
 messages. An unterminated final row is `pending` until its writer completes it. Qwen
 `agent-fork-call_*.jsonl` files remain separate physical sources; their filenames never
@@ -88,7 +88,7 @@ unreadable source (permissions, a truncation mid-write with no valid trailing ro
 skipped entirely, with a `corrupt/unreadable session skipped` message.
 
 ### Flags for direct/raw read commands (`list`, `show`, `grep`)
-- `--harness claude|codex|gemini|qwen|claude-agent|all` (aliases `cc,cx,gm,qw,cca`; default
+- `--harness claude|codex|gemini|qwen|pi|dsh|claude-agent|all` (aliases `cc,cx,gm,qw,ds,cca`; default
   **all**, which deliberately EXCLUDES `claude-agent` — see Subagent transcripts below).
 - `--project SUBSTR` — filter by project/cwd. **Defaults to the current directory.**
 - `--all-projects` — don't filter by cwd (use when the user means "any session anywhere").
@@ -162,8 +162,22 @@ the history, print the plain text form directly.
   hits within the cap but more candidates existed, `grep` prints `scan bounded by --limit
   <n> per harness` to stderr — raise `--limit` or narrow with `--project`/`--since` for a
   scan you know covers every candidate.
-- **`pi` and other harnesses**: not yet supported (no logs found on disk). The loader registry
-  in `tools/convo/convo` (`HARNESSES`) is the extension point — add a `load_*`/`peek_*` pair.
+- **Pi** (`@earendil-works/pi-coding-agent`): sessions are
+  `<agentDir>/sessions/<cwd-slug>/<ISO-ts>_<uuid>.jsonl`. Discovery scans `~/.pi/agent`,
+  `$PI_CODING_AGENT_DIR`, `~/applications/*/.pi/agent`, `~/code/*/.pi/agent`, plus any
+  colon-separated agent or `sessions` dirs in `$CONVO_PI_ROOTS`. A path to a Pi file passed
+  to `show` is detected by content (header row), so it works from any location. Pi stores a
+  tree (`id`/`parentId`); `convo` reads file order and does not separate abandoned branches.
+  `[telegram] ...` prompts stay user turns. A `compaction` row shows as a marker plus its
+  summary in `--mode full` only. Pi `custom` rows (web-search results etc.) are ignored.
+- **dsh** (DeepSeek Harness): sessions are
+  `<$DSH_HOME or ~/.dsh>/sessions/<cwd-slug>/session-<uuid>/session.jsonl[.zstd]`. Only human
+  `user/message` events (`source.kind == "user"`) are prompts; runtime-context and skill
+  injections are skipped. **Verified on real data only for the header, user prompts and
+  error turns** (the sole real session on this machine failed on a missing API key).
+  Successful assistant replies (`assistant/message`, text chunks) and `tool/*` events are
+  parsed from inferred shapes and are untested against real dsh output. Reading `.zstd`
+  needs Python 3.14 (`compression.zstd`) or the `zstd` CLI.
 - **`--from-user`/task-notification turns**: Claude Code injects background-task-completion
   notices (`<task-notification>...</task-notification>`) as `type: "user"` rows. They are
   not yet recognized as system/meta content the way `<command-name>`/compaction markers are,

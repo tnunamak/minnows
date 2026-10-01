@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-convo — read agent conversation history across harnesses (Claude Code, Codex, Gemini CLI, Qwen Code).
+convo — read agent conversation history across harnesses (Claude Code, Codex, Gemini CLI, Qwen Code, Pi, DeepSeek Harness).
 
 Built for AGENTS to read their own session transcripts, with humans as a secondary user.
 The signature view is the "clean transcript": each of YOUR prompts paired with only the
@@ -62,6 +62,8 @@ ledger_lib = _load_lib("convo_ledger")
 LEDGER_POLICY_VERSION = "normalized-user-assistant-v2"
 LEDGER_JSONL_PARSER_VERSION = "stream-jsonl-v2"
 LEDGER_GEMINI_PARSER_VERSION = "whole-document-v1"
+# Whole-document parsers (Gemini JSON; dsh may be zstd-compressed, so it cannot be byte-streamed).
+WHOLE_DOCUMENT_HARNESSES = frozenset({"gemini", "dsh"})
 MAX_JSONL_ROW_BYTES = 32 * 1024 * 1024
 MAX_NORMALIZED_MESSAGE_BYTES = 8 * 1024 * 1024
 
@@ -578,6 +580,284 @@ def load_qwen(path: Path) -> Optional[Session]:
                     parse_errors=parse_errors)
 
 
+def _append_assistant(turns: list, ts: Optional[str], texts: list, events: list) -> None:
+    """Merge one assistant row into the running assistant turn (or start a new one)."""
+    if turns and turns[-1].role == "assistant":
+        previous = turns[-1]
+        if texts and not previous.texts:
+            previous.ts = ts   # stamp the turn with its first TEXT (what the ledger retains)
+        for text in texts:
+            previous.add_text(text)
+        previous.events.extend(events)
+        return
+    turn = Turn("assistant", "", ts, events=list(events))
+    for text in texts:
+        turn.add_text(text)
+    turns.append(turn)
+
+
+def _attach_events(turns: list, ts: Optional[str], events: list) -> None:
+    """Attach non-text events (tool results, compaction markers) to the assistant side."""
+    if not events:
+        return
+    if not turns or turns[-1].role != "assistant":
+        turns.append(Turn("assistant", "", ts))
+    turns[-1].events.extend(events)
+
+
+def _pi_text_blocks(content: Any) -> list:
+    """Visible text of a Pi content value: text blocks, '[image]' for images."""
+    if isinstance(content, str):
+        t = clean_text(content)
+        return [t] if t else []
+    parts = []
+    if isinstance(content, list):
+        for b in content:
+            if not isinstance(b, dict):
+                continue
+            if b.get("type") == "text":
+                t = clean_text(b.get("text", ""))
+                if t:
+                    parts.append(t)
+            elif b.get("type") == "image":
+                parts.append("[image]")
+    return parts
+
+
+def load_pi(path: Path) -> Optional[Session]:
+    """Pi coding agent: <agentDir>/sessions/<cwd-slug>/<ISO-ts>_<uuid>.jsonl
+
+    Header row {type:"session", id, cwd, ...}; then tree-linked rows (id/parentId) of type
+    message / compaction / model_change / thinking_level_change / custom. Rows are read in
+    file order; abandoned branches (rare) are not separated. Telegram-originated user
+    messages ("[telegram] ...") are ordinary user turns.
+    """
+    session_id = path.stem.split("_", 1)[-1]
+    cwd = None
+    turns: list[Turn] = []
+    parse_errors: list = []
+    for row in _read_jsonl(path, parse_errors=parse_errors):
+        if not isinstance(row, dict):
+            continue
+        rtype = row.get("type")
+        ts = row.get("timestamp")
+        if rtype == "session":
+            cwd = row.get("cwd") or cwd
+            session_id = row.get("id") or session_id
+        elif rtype == "compaction":
+            summary = clean_text(row.get("summary", "")) if isinstance(row.get("summary"), str) else ""
+            _attach_events(turns, ts, [{"kind": "compaction", "name": "",
+                                        "text": summary or "(context compacted)"}])
+        elif rtype == "message":
+            msg = row.get("message")
+            if not isinstance(msg, dict):
+                continue
+            role = msg.get("role")
+            content = msg.get("content")
+            if role == "user":
+                text = "\n\n".join(_pi_text_blocks(content))
+                if text:
+                    turns.append(Turn("user", text, ts))
+            elif role == "assistant":
+                texts, events = [], []
+                for b in content if isinstance(content, list) else []:
+                    if not isinstance(b, dict):
+                        continue
+                    bt = b.get("type")
+                    if bt == "text":
+                        t = clean_text(b.get("text", ""))
+                        if t:
+                            texts.append(t)
+                    elif bt == "thinking":
+                        events.append({"kind": "thinking", "name": "",
+                                       "text": clean_text(b.get("thinking", ""))})
+                    elif bt == "toolCall":
+                        events.append({"kind": "tool_use", "name": b.get("name", ""),
+                                       "text": _stringify_tool_input(b.get("arguments", {}))})
+                if msg.get("stopReason") in ("error", "aborted") and msg.get("errorMessage"):
+                    events.append({"kind": "error", "name": msg.get("stopReason", ""),
+                                   "text": str(msg["errorMessage"])[:1500]})
+                if texts or events:
+                    _append_assistant(turns, ts, texts, events)
+            elif role == "toolResult":
+                _attach_events(turns, ts, [{
+                    "kind": "tool_result", "name": msg.get("toolName", msg.get("toolCallId", "")),
+                    "text": _stringify_tool_result("\n".join(_pi_text_blocks(content)))}])
+            elif role == "bashExecution":
+                out = msg.get("output", "")
+                _attach_events(turns, ts, [
+                    {"kind": "tool_use", "name": "bash (user)", "text": str(msg.get("command", ""))},
+                    {"kind": "tool_result", "name": "bash (user)",
+                     "text": _stringify_tool_result(out if isinstance(out, str) else "")}])
+    if not any(t.role == "user" for t in turns):
+        return None
+    return Session("pi", session_id, str(path), cwd, path.stat().st_mtime, turns,
+                    parse_errors=parse_errors)
+
+
+def _read_maybe_zstd(path: Path) -> bytes:
+    """Raw bytes of a dsh session file, transparently decompressing `.zstd`/`.zst`."""
+    data = path.read_bytes()
+    if path.suffix not in (".zstd", ".zst"):
+        return data
+    try:
+        from compression import zstd  # Python 3.14+ stdlib
+        return zstd.decompress(data)
+    except ImportError:
+        pass
+    import subprocess
+    try:
+        return subprocess.run(["zstd", "-dc"], input=data, capture_output=True, check=True).stdout
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise ValueError(f"cannot decompress {path} (need Python 3.14 or the zstd CLI): {exc}") from exc
+
+
+def _ms_to_iso(ms: Any) -> Optional[str]:
+    if isinstance(ms, (int, float)) and not isinstance(ms, bool):
+        try:
+            return datetime.fromtimestamp(ms / 1000, tz=timezone.utc).isoformat().replace("+00:00", "Z")
+        except (OverflowError, OSError, ValueError):
+            return None
+    return None
+
+
+def _dsh_rows(path: Path, parse_errors: list) -> Iterable[dict]:
+    text = _read_maybe_zstd(path).decode("utf-8", errors="replace")
+    lines = text.split("\n")
+    for line_no, line in enumerate(lines, 1):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError as exc:
+            if line_no == len(lines) and not text.endswith("\n"):
+                return  # unterminated final row: writer still mid-write
+            parse_errors.append(f"line {line_no}: {exc.msg}")
+            continue
+        if isinstance(row, dict):
+            yield row
+
+
+_DSH_TEXT_CHUNKS = frozenset({"text", "text-delta", "text_delta", "text-chunk", "content"})
+_DSH_THINK_CHUNKS = frozenset({"reasoning", "reasoning-delta", "reasoning_delta", "thinking", "thinking-delta"})
+
+
+def _dsh_blocks(content: Any) -> tuple[list, list]:
+    """(texts, events) from a list of content blocks (text/thinking/tool-call shapes)."""
+    texts, events = [], []
+    for b in content if isinstance(content, list) else []:
+        if not isinstance(b, dict):
+            continue
+        bt = b.get("type")
+        if bt == "text":
+            t = clean_text(b.get("text", ""))
+            if t:
+                texts.append(t)
+        elif bt in ("thinking", "reasoning"):
+            events.append({"kind": "thinking", "name": "",
+                           "text": clean_text(b.get("thinking", b.get("text", "")))})
+        elif bt in ("tool_use", "toolCall", "tool-call", "tool_call"):
+            events.append({"kind": "tool_use", "name": b.get("name", b.get("toolName", "")),
+                           "text": _stringify_tool_input(b.get("input", b.get("arguments", b.get("args", {}))))})
+        elif bt in ("tool_result", "tool-result"):
+            events.append({"kind": "tool_result", "name": b.get("name", b.get("toolName", "")),
+                           "text": _stringify_tool_result(b.get("content", b.get("output", "")))})
+    return texts, events
+
+
+def load_dsh(path: Path) -> Optional[Session]:
+    """DeepSeek Harness (dsh): <DSH_HOME or ~/.dsh>/sessions/<cwd-slug>/session-<uuid>/session.jsonl[.zstd]
+
+    Event log of {type, seq, time(ms), data}. VERIFIED against a real on-disk session:
+    the `session` header (id, cwd, createdAt), `user/message` (a real human prompt has
+    data.source.kind == "user"; runtime-context and skill-list injections carry
+    kind "plugin" and are skipped), `turn/start|end`, `step/start|end`, and an
+    `assistant/chunk` whose chunk is a `finish` with an error reason.
+    NOT VERIFIED against real data (the only real session on this machine failed before the
+    model replied): successful assistant output (`assistant/message`, text chunks) and tool
+    events. Those paths are implemented from the event names seen and best-effort guesses.
+    """
+    parse_errors: list = []
+    session_id = path.parent.name
+    cwd = None
+    turns: list[Turn] = []
+    text_buf: list[str] = []
+    think_buf: list[str] = []
+    buf_ts: Optional[str] = None
+    last_error: Optional[str] = None
+
+    def flush(ts):
+        nonlocal text_buf, think_buf
+        texts = [clean_text("".join(text_buf))] if text_buf else []
+        events = [{"kind": "thinking", "name": "", "text": clean_text("".join(think_buf))}] if think_buf else []
+        text_buf, think_buf = [], []
+        texts = [t for t in texts if t]
+        if texts or events:
+            _append_assistant(turns, ts, texts, events)
+
+    for row in _dsh_rows(path, parse_errors):
+        rtype = row.get("type")
+        data = row.get("data") if isinstance(row.get("data"), dict) else {}
+        ts = _ms_to_iso(row.get("time"))
+        if rtype == "session":
+            cwd = row.get("cwd") or cwd
+            session_id = row.get("id") or session_id
+        elif rtype == "user/message":
+            source = data.get("source") if isinstance(data.get("source"), dict) else {}
+            if data.get("role", "user") != "user" or source.get("kind", "user") != "user":
+                continue
+            flush(ts)
+            text = "\n\n".join(_pi_text_blocks(data.get("content")))
+            if text:
+                turns.append(Turn("user", text, ts))
+        elif rtype == "assistant/message":
+            msg = data.get("message") if isinstance(data.get("message"), dict) else data
+            text_buf, think_buf = [], []   # a complete message supersedes streamed chunks
+            texts, events = _dsh_blocks(msg.get("content"))
+            if texts or events:
+                _append_assistant(turns, ts, texts, events)
+        elif rtype == "assistant/chunk":
+            chunk = data.get("chunk") if isinstance(data.get("chunk"), dict) else {}
+            ctype = chunk.get("type")
+            piece = next((chunk[k] for k in ("text", "delta", "content") if isinstance(chunk.get(k), str)), "")
+            if ctype == "finish":
+                reason = chunk.get("reason") if isinstance(chunk.get("reason"), dict) else {}
+                flush(ts)
+                if reason.get("kind") == "error":
+                    failure = reason.get("failure") if isinstance(reason.get("failure"), dict) else {}
+                    last_error = str(failure.get("message") or "error")[:1500]
+                    _attach_events(turns, ts, [{"kind": "error", "name": failure.get("code", ""),
+                                                "text": last_error}])
+            elif ctype in _DSH_TEXT_CHUNKS and piece:
+                text_buf.append(piece)
+            elif ctype in _DSH_THINK_CHUNKS and piece:
+                think_buf.append(piece)
+        elif rtype == "step/end":
+            flush(ts)
+        elif rtype == "turn/end":
+            flush(ts)
+            reason = data.get("reason") if isinstance(data.get("reason"), dict) else {}
+            err = reason.get("error") if isinstance(reason.get("error"), dict) else {}
+            msg = str(err.get("message") or "")[:1500]
+            if reason.get("kind") == "error" and msg and msg != last_error:
+                _attach_events(turns, ts, [{"kind": "error", "name": err.get("code", ""), "text": msg}])
+            last_error = None
+        elif isinstance(rtype, str) and rtype.startswith("tool/"):
+            name = data.get("name") or data.get("toolName") or data.get("tool") or ""
+            is_result = any(k in rtype for k in ("result", "output", "end"))
+            payload = (data.get("output") or data.get("result")) if is_result else (data.get("input") or data.get("args") or data.get("arguments"))
+            _attach_events(turns, ts, [{
+                "kind": "tool_result" if is_result else "tool_use", "name": name,
+                "text": _stringify_tool_result(payload) if is_result else _stringify_tool_input(payload or {})}])
+    flush(None)
+    if not any(t.role == "user" for t in turns):
+        return None
+    return Session("dsh", session_id, str(path), cwd, path.stat().st_mtime, turns,
+                    parse_errors=parse_errors)
+
+
+
 # --------------------------------------------------------------------------------------
 # Tool/content stringification helpers
 # --------------------------------------------------------------------------------------
@@ -753,9 +1033,101 @@ def peek_qwen(path: Path) -> Optional[Peek]:
                 first_user, user_msgs, truncated, parse_error_count=len(parse_errors))
 
 
+def peek_pi(path: Path) -> Optional[Peek]:
+    """Cheap Pi header scan: only rows that can matter (header / user messages) are parsed,
+    so a multi-hundred-MB session full of tool output costs I/O, not JSON decoding."""
+    cwd = None
+    first_user = ""
+    user_msgs = 0
+    truncated = False
+    parse_errors = 0
+    with open(path, "r", encoding="utf-8", errors="replace") as fh:
+        for i, line in enumerate(fh):
+            if i >= _PEEK_MAX_LINES:
+                truncated = True
+                break
+            head = line[:300]
+            if '"type":"session"' not in head and '"role":"user"' not in head:
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                if line.endswith("\n"):
+                    parse_errors += 1
+                continue
+            if not isinstance(row, dict):
+                continue
+            if row.get("type") == "session":
+                cwd = row.get("cwd") or cwd
+            elif row.get("type") == "message" and isinstance(row.get("message"), dict) \
+                    and row["message"].get("role") == "user":
+                text = "\n\n".join(_pi_text_blocks(row["message"].get("content")))
+                if text:
+                    user_msgs += 1
+                    first_user = first_user or text
+    if user_msgs == 0:
+        return None
+    return Peek("pi", path.stem.split("_", 1)[-1], str(path), cwd, path.stat().st_mtime,
+                first_user, user_msgs, truncated, parse_error_count=parse_errors)
+
+
+def peek_dsh(path: Path) -> Optional[Peek]:
+    """dsh sessions may be zstd-compressed and are small; a full load is cheap."""
+    s = load_dsh(path)
+    if not s:
+        return None
+    return Peek("dsh", s.session_id, s.path, s.project, s.mtime, s.first_user_text,
+                sum(1 for t in s.turns if t.role == "user"), False,
+                parse_error_count=len(s.parse_errors))
+
+
 # --------------------------------------------------------------------------------------
 # Discovery — find sessions across harnesses
 # --------------------------------------------------------------------------------------
+
+def _expand_session_root(entry: str) -> Path:
+    """An override entry may be a Pi agent dir (…/.pi/agent) or its sessions dir."""
+    p = Path(entry).expanduser()
+    return p if p.name == "sessions" else p / "sessions"
+
+
+def pi_session_roots() -> list[Path]:
+    """Every Pi `sessions` root worth scanning.
+
+    Pi keeps sessions under $PI_CODING_AGENT_DIR/sessions (default ~/.pi/agent/sessions),
+    and some projects (e.g. Daisy) point PI_CODING_AGENT_DIR at a per-project dir. So scan:
+    the default, $PI_CODING_AGENT_DIR, ~/applications/*/.pi/agent/sessions,
+    ~/code/*/.pi/agent/sessions, plus any colon-separated $CONVO_PI_ROOTS entries.
+    """
+    home = Path.home()
+    cands: list[Path] = [home / ".pi" / "agent" / "sessions"]
+    if os.environ.get("PI_CODING_AGENT_DIR"):
+        cands.append(_expand_session_root(os.environ["PI_CODING_AGENT_DIR"]))
+    for entry in filter(None, os.environ.get("CONVO_PI_ROOTS", "").split(os.pathsep)):
+        cands.append(_expand_session_root(entry))
+    for parent in ("applications", "code"):
+        try:
+            cands.extend(sorted((home / parent).glob("*/.pi/agent/sessions")))
+        except OSError:
+            pass
+    out, seen = [], set()
+    for c in cands:
+        try:
+            key = c.resolve()
+        except OSError:
+            key = c
+        if key not in seen and c.is_dir():
+            seen.add(key)
+            out.append(c)
+    return out
+
+
+def dsh_session_roots() -> list[Path]:
+    """dsh keeps sessions under $DSH_HOME/sessions (default ~/.dsh/sessions)."""
+    base = Path(os.environ["DSH_HOME"]).expanduser() if os.environ.get("DSH_HOME") else Path.home() / ".dsh"
+    root = base / "sessions"
+    return [root] if root.is_dir() else []
+
 
 HARNESSES: dict[str, dict] = {
     "claude": {
@@ -807,6 +1179,25 @@ HARNESSES: dict[str, dict] = {
         # ancestry or merges them with their parent from the filename alone.
         "skip": lambda p: False,
     },
+    # Pi coding agent (@earendil-works/pi-coding-agent). Roots are discovered, see
+    # pi_session_roots(); like claude, tests that replace "root" get only that root back.
+    "pi": {
+        "root": Path.home() / ".pi" / "agent" / "sessions",
+        "roots_fn": pi_session_roots,
+        "glob": "*/*.jsonl",
+        "loader": load_pi,
+        "peek": peek_pi,
+        "skip": lambda p: False,
+    },
+    # DeepSeek Harness. session.jsonl, or session.jsonl.zstd once compressed.
+    "dsh": {
+        "root": Path.home() / ".dsh" / "sessions",
+        "roots_fn": dsh_session_roots,
+        "glob": "*/session-*/session.jsonl*",
+        "loader": load_dsh,
+        "peek": peek_dsh,
+        "skip": lambda p: p.suffix not in (".jsonl", ".zstd", ".zst"),
+    },
 }
 
 
@@ -848,6 +1239,12 @@ def _slug_for_project(p: Path, harness: str) -> str:
     if harness == "gemini":
         # parent-of-parent is the project hash dir
         return p.parent.parent.name
+    if harness == "pi":
+        # <sessions>/<cwd-slug>/<ts>_<uuid>.jsonl
+        return p.parent.name
+    if harness == "dsh":
+        # <sessions>/<cwd-slug>/session-<uuid>/session.jsonl[.zstd]
+        return p.parent.parent.name
     return ""  # codex: cwd comes from session_meta, resolved after load
 
 
@@ -872,6 +1269,20 @@ def _candidate_may_match_project(harness: str, path: Path, flt: Optional[str]) -
             expected_slug = str(Path(flt).expanduser().resolve()).replace("/", "-")
             return project_dir.name == expected_slug
         return flt.lower() in project_dir.name.lower()
+    if harness == "pi":
+        # The header row (first line) carries the authoritative cwd; reading just that
+        # keeps a project-scoped command from decoding every huge unrelated session.
+        try:
+            with open(path, "r", encoding="utf-8", errors="replace") as fh:
+                header = json.loads(fh.readline())
+            cwd = header.get("cwd") if isinstance(header, dict) else None
+        except (OSError, json.JSONDecodeError):
+            return True   # unreadable header: let the loader report it
+        if not cwd:
+            return True
+        if "/" in flt:
+            return str(Path(cwd).expanduser().resolve()) == str(Path(flt).expanduser().resolve())
+        return flt.lower() in cwd.lower() or flt.lower() in path.parent.name.lower()
     if harness == "codex":
         try:
             with open(path, "r", encoding="utf-8", errors="replace") as fh:
@@ -1036,7 +1447,8 @@ def render_session(session: Session, mode: str, n: Optional[int], color: bool) -
                 kind = ev.get("kind")
                 name = ev.get("name", "")
                 label = {"tool_use": f"tool→ {name}", "tool_result": f"result← {name}",
-                         "thinking": "thinking"}.get(kind, kind)
+                         "thinking": "thinking", "compaction": "compaction — earlier context summarized",
+                         "error": f"error {name}".strip()}.get(kind, kind)
                 out.append(c(_terminal_safe(f"  [{label}]"), "2;33"))
                 body = ev.get("text", "")
                 body = _terminal_safe(body)
@@ -1046,7 +1458,8 @@ def render_session(session: Session, mode: str, n: Optional[int], color: bool) -
     return "\n".join(out)
 
 
-HARNESS_BADGES = {"claude": "CC", "claude-agent": "CCA", "codex": "CX", "gemini": "GM", "qwen": "QW"}
+HARNESS_BADGES = {"claude": "CC", "claude-agent": "CCA", "codex": "CX", "gemini": "GM", "qwen": "QW",
+                  "pi": "PI", "dsh": "DS"}
 
 
 def summary_line(pk: "Peek", idx: Optional[int] = None) -> str:
@@ -1126,7 +1539,7 @@ def resolve_harnesses(arg: Optional[str]) -> list[str]:
         alias = {
             "cc": "claude", "cx": "codex", "gm": "gemini", "gemini-cli": "gemini",
             "qw": "qwen", "qwen-code": "qwen", "cca": "claude-agent", "subagent": "claude-agent",
-            "subagents": "claude-agent",
+            "subagents": "claude-agent", "ds": "dsh", "deepseek": "dsh", "pi-agent": "pi",
         }.get(h, h)
         if alias in HARNESSES:
             out.append(alias)
@@ -1430,6 +1843,18 @@ def _normalized_jsonl_row(harness: str, row: dict, cwd: Optional[str]) -> tuple[
                     out.append(("user", text, ts))
                 elif role == "assistant" and text:
                     out.append(("assistant", text, ts))
+    elif harness == "pi":
+        msg = row.get("message")
+        if row.get("type") == "message" and isinstance(msg, dict):
+            if msg.get("role") == "user":
+                text = "\n\n".join(_pi_text_blocks(msg.get("content")))
+                if text:
+                    out.append(("user", text, ts))
+            elif msg.get("role") == "assistant":
+                blocks = [x for x in (msg.get("content") or []) if isinstance(x, dict) and x.get("type") == "text"]
+                texts = _pi_text_blocks(blocks)
+                if texts:
+                    out.append(("assistant", "\n\n".join(texts), ts))
     elif harness == "qwen":
         msg = row.get("message", {})
         parts = msg.get("parts", []) if isinstance(msg, dict) else []
@@ -1452,7 +1877,7 @@ def _normalized_jsonl_row(harness: str, row: dict, cwd: Optional[str]) -> tuple[
 
 
 def _stream_jsonl_source(harness: str, path: Path, stat_result, temp_dir: Path) -> _StreamParse:
-    """Normalize a Claude/Codex/Qwen source through a disk spool, not a Session list."""
+    """Normalize a Claude/Codex/Qwen/Pi source through a disk spool, not a Session list."""
     session_id = path.stem.replace("rollout-", "") if harness == "codex" else path.stem
     cwd: Optional[str] = None
     malformed_error_count = 0
@@ -1640,8 +2065,8 @@ def _cmd_sync_with_ledger(ledger, args):
             report_progress(index)
             continue
         observed_bytes += stat_result.st_size
-        parser_version = LEDGER_GEMINI_PARSER_VERSION if harness == "gemini" else LEDGER_JSONL_PARSER_VERSION
-        source_cap = max_source_bytes if harness == "gemini" else None
+        parser_version = LEDGER_GEMINI_PARSER_VERSION if harness in WHOLE_DOCUMENT_HARNESSES else LEDGER_JSONL_PARSER_VERSION
+        source_cap = max_source_bytes if harness in WHOLE_DOCUMENT_HARNESSES else None
         current_outcome = ledger.current_source_outcome(
             harness, path, stat_result, parser_version, LEDGER_POLICY_VERSION, source_cap)
         if current_outcome is not None:
@@ -1662,7 +2087,7 @@ def _cmd_sync_with_ledger(ledger, args):
             continue
         # Gemini is a whole-document format.  JSONL harnesses stream through a disk
         # spool and therefore have no whole-source size cap.
-        if harness == "gemini" and stat_result.st_size > max_source_bytes:
+        if harness in WHOLE_DOCUMENT_HARNESSES and stat_result.st_size > max_source_bytes:
             stage(lambda harness=harness, path=path, stat_result=stat_result,
                          parser_version=parser_version, source_cap=source_cap:
                   ledger.record_oversized(harness, path, stat_result, max_source_bytes,
@@ -1676,7 +2101,7 @@ def _cmd_sync_with_ledger(ledger, args):
         spool_path = None
         spool_staged = False
         try:
-            if harness in ("claude", "codex", "qwen"):
+            if harness in ("claude", "codex", "qwen", "pi"):
                 parsed = _stream_jsonl_source(harness, path, stat_result, ledger.data_dir / "spool")
                 source = parsed.source
                 spool_path = parsed.spool_path
@@ -1982,27 +2407,63 @@ def cmd_list(args):
         sys.exit(2)
 
 
+def _sniff_harness(path: Path) -> Optional[str]:
+    """Identify Pi/dsh files by CONTENT so they are never routed to another parser.
+
+    Both start with a `{"type":"session", ...}` header row (dsh: also `createdAt` and a
+    `session-<uuid>` id; Pi: `version` + ISO `timestamp`). A Gemini file is one pretty-
+    printed JSON document whose first line is not a complete JSON value, so it never
+    matches. Returns None when the format is not one of these (caller falls back).
+    """
+    try:
+        if path.suffix in (".zstd", ".zst"):
+            return "dsh"
+        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+            first = fh.readline()
+        row = json.loads(first)
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(row, dict) or row.get("type") != "session":
+        return None
+    if "createdAt" in row or str(row.get("id", "")).startswith("session-"):
+        return "dsh"
+    return "pi"
+
+
 def _pick_session(args, require: bool = True) -> Optional[Session]:
     """Resolve a single session from --session id/path, or the most recent match."""
     target = args.session
     if target:
         p = Path(target).expanduser()
         if p.exists() and p.is_file():
+            sniffed = _sniff_harness(p)
+            if sniffed:
+                s = HARNESSES[sniffed]["loader"](p)
+                if s:
+                    return s
+                sys.exit(f"convo: no readable {sniffed} messages in {p}")
             for h, cfg in HARNESSES.items():
                 # crude harness detection by location
                 if any(str(root) in str(p.resolve()) for root in _harness_roots(h, cfg)):
                     return cfg["loader"](p)
-            # fall back: try each loader
-            for cfg in HARNESSES.values():
-                s = cfg["loader"](p)
+            # fall back: try each loader, remembering why each one declined
+            failures = []
+            for h, cfg in HARNESSES.items():
+                try:
+                    s = cfg["loader"](p)
+                except Exception as exc:  # noqa: BLE001
+                    failures.append(f"{h}: {exc}")
+                    continue
                 if s:
                     return s
-            sys.exit(f"convo: could not parse session file {p}")
+            detail = "; ".join(failures[:3])
+            sys.exit(f"convo: could not parse session file {p}" + (f" ({detail})" if detail else ""))
         # treat as session-id substring
         harnesses = resolve_harnesses(args.harness)
         candidates = discover(harnesses, None, None, 9999)
         for h, pth in candidates:
-            if target in pth.name:
+            # dsh's file is always session.jsonl[.zstd]; its id is the parent directory name.
+            if target in pth.name or (h == "dsh" and target in pth.parent.name):
                 return HARNESSES[h]["loader"](pth)
         sys.exit(f"convo: no session matching id '{target}'")
     # no explicit session → most recent matching project/harness.
@@ -2208,14 +2669,14 @@ def cmd_grep(args):
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="convo",
-        description="Read agent conversation history across Claude Code, Codex, Gemini CLI, and Qwen Code.",
+        description="Read agent conversation history across Claude Code, Codex, Gemini CLI, Qwen Code, Pi, and DeepSeek Harness (dsh).",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap_epilog(),
     )
     sub = p.add_subparsers(dest="cmd")
 
     def common(sp):
-        sp.add_argument("--harness", help="claude|codex|gemini|qwen|all (or cc,cx,gm,qw). Default: all")
+        sp.add_argument("--harness", help="claude|codex|gemini|qwen|pi|dsh|all (or cc,cx,gm,qw,pi,ds). Default: all")
         sp.add_argument("--project", help="substring filter on project/cwd (default: current dir)")
         sp.add_argument("--all-projects", action="store_true", help="don't filter by current dir")
         sp.add_argument("--since", help="time window: 7d, 24h, 30m, 2w, or ISO date")
@@ -2294,8 +2755,8 @@ def textwrap_epilog() -> str:
         "transcript that's usually most useful when reviewing 'what did we actually say'.\n"
         "\nState boundary: list, show, and grep remain stateless direct/raw readers in this\n"
         "increment. Only sync, status, and search use the local SQLite ledger.\n"
-        "sync streams Claude, Codex, and Qwen JSONL; Gemini documents retain the configurable\n"
-        "64 MiB whole-document cap. Use --verbose for individual diagnostics.\n"
+        "sync streams Claude, Codex, Qwen, and Pi JSONL; Gemini and dsh (possibly zstd) documents\n"
+        "retain the configurable 64 MiB whole-document cap. Use --verbose for individual diagnostics.\n"
     )
 
 

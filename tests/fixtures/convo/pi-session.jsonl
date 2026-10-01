@@ -1,0 +1,12 @@
+{"type":"session","version":3,"id":"00000000-0000-7000-8000-000000000001","timestamp":"2026-07-17T18:38:58.525Z","cwd":"/home/user/proj"}
+{"type":"model_change","id":"a1","parentId":null,"timestamp":"2026-07-17T18:38:58.910Z","provider":"vivid","modelId":"default"}
+{"type":"thinking_level_change","id":"a2","parentId":"a1","timestamp":"2026-07-17T18:38:58.910Z","thinkingLevel":"high"}
+{"type":"message","id":"a3","parentId":"a2","timestamp":"2026-07-17T18:39:04.545Z","message":{"role":"user","content":[{"type":"text","text":"[telegram] please list the pelican files"}],"timestamp":1784313544544}}
+{"type":"message","id":"a4","parentId":"a3","timestamp":"2026-07-17T18:39:31.395Z","message":{"role":"assistant","content":[{"type":"thinking","thinking":"I should look at the directory first.","thinkingSignature":"reasoning_content"},{"type":"toolCall","id":"call1","name":"bash","arguments":{"command":"ls pelicans"}}],"stopReason":"toolUse","timestamp":1784313571395}}
+{"type":"message","id":"a5","parentId":"a4","timestamp":"2026-07-17T18:39:31.406Z","message":{"role":"toolResult","toolCallId":"call1","toolName":"bash","content":[{"type":"text","text":"brown.txt\nwhite.txt"}],"isError":false,"timestamp":1784313571406}}
+{"type":"message","id":"a6","parentId":"a5","timestamp":"2026-07-17T18:39:40.000Z","message":{"role":"assistant","content":[{"type":"text","text":"Checking the two files."}],"stopReason":"toolUse","timestamp":1784313580000}}
+{"type":"message","id":"a7","parentId":"a6","timestamp":"2026-07-17T18:39:41.000Z","message":{"role":"assistant","content":[{"type":"text","text":"Found two pelican files: brown.txt and white.txt."}],"stopReason":"stop","timestamp":1784313581000}}
+{"type":"custom","customType":"web-search-results","data":{"id":"x","type":"search"},"id":"a8","parentId":"a7","timestamp":"2026-07-17T18:39:42.000Z"}
+{"type":"compaction","id":"a9","parentId":"a8","timestamp":"2026-07-17T19:00:00.000Z","summary":"## Goal\nList pelican files.","firstKeptEntryId":"a7","tokensBefore":90000}
+{"type":"message","id":"b1","parentId":"a9","timestamp":"2026-07-17T19:01:00.000Z","message":{"role":"user","content":[{"type":"text","text":"now count them"},{"type":"image","data":"AAAA","mimeType":"image/png"}],"timestamp":1784314860000}}
+{"type":"message","id":"b2","parentId":"b1","timestamp":"2026-07-17T19:01:05.000Z","message":{"role":"assistant","content":[{"type":"text","text":"There are 2 files."}],"stopReason":"stop","timestamp":1784314865000}}

@@ -1,0 +1,10 @@
+{"type":"session","version":0,"id":"session-00000000-0000-4000-8000-000000000002","createdAt":1786709900000,"cwd":"/home/user/proj","delegationDepth":0}
+{"type":"turn/start","seq":1,"time":1786709900001,"data":{"turn":1}}
+{"type":"user/message","seq":2,"time":1786709900002,"data":{"content":[{"type":"text","text":"list the pelican files"}],"source":{"kind":"user"},"role":"user","id":"m1"}}
+{"type":"assistant/message","seq":3,"time":1786709900003,"data":{"message":{"content":[{"type":"thinking","thinking":"look first"},{"type":"tool_use","name":"bash","input":{"command":"ls pelicans"}}]}}}
+{"type":"tool/result","seq":4,"time":1786709900004,"data":{"name":"bash","output":"brown.txt\nwhite.txt"}}
+{"type":"assistant/chunk","seq":5,"time":1786709900005,"data":{"turn":1,"step":2,"chunk":{"type":"text","text":"Two files: "}}}
+{"type":"assistant/chunk","seq":6,"time":1786709900006,"data":{"turn":1,"step":2,"chunk":{"type":"text","text":"brown.txt and white.txt."}}}
+{"type":"assistant/chunk","seq":7,"time":1786709900007,"data":{"turn":1,"step":2,"chunk":{"type":"finish","reason":{"kind":"stop"}}}}
+{"type":"step/end","seq":8,"time":1786709900008,"data":{"turn":1,"step":2}}
+{"type":"turn/end","seq":9,"time":1786709900009,"data":{"turn":1,"reason":{"kind":"stop"}}}

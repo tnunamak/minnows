@@ -320,6 +320,221 @@ class SubagentTranscriptTests(unittest.TestCase):
         self.assertIn("parent-session/agent-cafef00d1", out)
 
 
+FIXTURES = Path(__file__).parent / "fixtures" / "convo"
+
+
+class PiDshHarnessTests(unittest.TestCase):
+    """Pi and dsh parsers, discovery, aliases, detection and ledger sync via the CLI."""
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.root = Path(self.directory.name)
+        self.data_dir = self.root / "ledger-data"
+        self.original_roots = {h: c["root"] for h, c in convo.HARNESSES.items()}
+        self.old_env = {k: os.environ.get(k) for k in ("CONVO_DATA_DIR", "CONVO_PI_ROOTS", "PI_CODING_AGENT_DIR", "DSH_HOME")}
+        os.environ["CONVO_DATA_DIR"] = str(self.data_dir)
+        for k in ("CONVO_PI_ROOTS", "PI_CODING_AGENT_DIR", "DSH_HOME"):
+            os.environ.pop(k, None)
+        for harness, config in convo.HARNESSES.items():
+            config["root"] = self.root / harness
+        self.pi_path = self.root / "pi" / "--home-user-proj--" / "2026-07-17T18-38-58-525Z_00000000-0000-7000-8000-000000000001.jsonl"
+        self.pi_path.parent.mkdir(parents=True)
+        self.pi_path.write_text((FIXTURES / "pi-session.jsonl").read_text())
+        self.dsh_dir = self.root / "dsh" / "--home-user-proj--"
+        self.dsh_real = self.dsh_dir / "session-00000000-0000-4000-8000-000000000001" / "session.jsonl"
+        self.dsh_syn = self.dsh_dir / "session-00000000-0000-4000-8000-000000000002" / "session.jsonl"
+        for dest, name in ((self.dsh_real, "dsh-real-error-session.jsonl"),
+                           (self.dsh_syn, "dsh-synthetic-success-session.jsonl")):
+            dest.parent.mkdir(parents=True)
+            dest.write_text((FIXTURES / name).read_text())
+
+    def tearDown(self):
+        for harness, root in self.original_roots.items():
+            convo.HARNESSES[harness]["root"] = root
+        for k, v in self.old_env.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+        self.directory.cleanup()
+
+    def run_convo(self, *args: str) -> tuple[str, str, int]:
+        stdout, stderr = io.StringIO(), io.StringIO()
+        code = 0
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            try:
+                convo.main(list(args))
+            except SystemExit as exc:
+                code = int(exc.code) if isinstance(exc.code, int) else 1
+        return stdout.getvalue(), stderr.getvalue(), code
+
+    # ---- Pi ----
+    def test_pi_final_mode_pairs_prompt_with_last_reply_and_keeps_telegram_prefix(self):
+        session = convo.load_pi(self.pi_path)
+        self.assertEqual(session.project, "/home/user/proj")
+        pairs = convo.build_pairs(session)
+        self.assertEqual(len(pairs), 2)
+        self.assertEqual(pairs[0]["user"], "[telegram] please list the pelican files")
+        self.assertEqual(pairs[0]["assistant_texts"][-1], "Found two pelican files: brown.txt and white.txt.")
+        self.assertEqual(pairs[1]["user"], "now count them\n\n[image]")
+        out, _, code = self.run_convo("show", str(self.pi_path), "--no-color")
+        self.assertEqual(code, 0)
+        self.assertIn("Found two pelican files", out)
+        self.assertNotIn("Checking the two files", out)
+        self.assertNotIn("brown.txt\nwhite.txt", out)
+
+    def test_pi_full_mode_shows_tools_thinking_and_compaction_marker(self):
+        out, _, code = self.run_convo("show", str(self.pi_path), "--mode", "full", "--no-color")
+        self.assertEqual(code, 0)
+        self.assertIn("[tool→ bash]", out)
+        self.assertIn('"command": "ls pelicans"', out)
+        self.assertIn("[result← bash]", out)
+        self.assertIn("[thinking]", out)
+        self.assertIn("[compaction", out)
+        self.assertIn("List pelican files.", out)
+
+    def test_pi_path_never_routes_to_gemini_even_outside_known_roots(self):
+        stray = self.root / "elsewhere" / "daisy-agent" / "s.jsonl"
+        stray.parent.mkdir(parents=True)
+        stray.write_text(self.pi_path.read_text())
+        out, err, code = self.run_convo("show", str(stray), "--no-color")
+        self.assertEqual(code, 0, err)
+        self.assertNotIn("Gemini", err)
+        self.assertIn("[telegram] please list the pelican files", out)
+        self.assertEqual(convo._sniff_harness(stray), "pi")
+
+    def test_pi_list_grep_json_and_aliases(self):
+        out, _, code = self.run_convo("list", "--harness", "pi", "--all-projects")
+        self.assertEqual(code, 0)
+        self.assertIn("[PI]", out)
+        self.assertIn("2msg", out)
+        out, _, _ = self.run_convo("grep", "pelican", "--harness", "pi", "--all-projects")
+        self.assertIn("pelican", out)
+        self.assertEqual(convo.resolve_harnesses("pi"), ["pi"])
+        self.assertEqual(convo.resolve_harnesses("ds"), ["dsh"])
+        self.assertEqual(convo.resolve_harnesses("deepseek"), ["dsh"])
+        self.assertIn("pi", convo.resolve_harnesses("all"))
+        self.assertIn("dsh", convo.resolve_harnesses("all"))
+        out, _, _ = self.run_convo("show", str(self.pi_path), "--json")
+        self.assertIn("pelican", out)
+
+    def test_pi_project_filter_uses_header_cwd(self):
+        out, _, _ = self.run_convo("list", "--harness", "pi", "--project", "/home/user/proj")
+        self.assertIn("[PI]", out)
+        out, err, _ = self.run_convo("list", "--harness", "pi", "--project", "/home/user/other")
+        self.assertNotIn("[PI]", out)
+
+    def test_pi_roots_include_env_override_and_per_project_agent_dirs(self):
+        home = self.root / "home"
+        per_project = home / "applications" / "daisy" / ".pi" / "agent" / "sessions"
+        default = home / ".pi" / "agent" / "sessions"
+        override = self.root / "custom-agent"
+        for d in (per_project, default, override / "sessions"):
+            d.mkdir(parents=True)
+        os.environ["CONVO_PI_ROOTS"] = str(override)
+        with mock.patch.object(Path, "home", return_value=home):
+            roots = convo.pi_session_roots()
+        self.assertEqual(set(roots), {per_project, default, override / "sessions"})
+        os.environ.pop("CONVO_PI_ROOTS")
+        os.environ["PI_CODING_AGENT_DIR"] = str(override)
+        with mock.patch.object(Path, "home", return_value=home):
+            self.assertIn(override / "sessions", convo.pi_session_roots())
+
+    def test_pi_sync_status_search_roundtrip_excludes_tools_and_thinking(self):
+        out, err, code = self.run_convo("sync", "--json")
+        self.assertEqual(code, 0, err)
+        report = json.loads(out)
+        self.assertGreaterEqual(report["imported"], 1)
+        out, _, code = self.run_convo("search", "pelican", "--json")
+        self.assertEqual(code, 0)
+        self.assertIn("pelican", out)
+        self.assertNotIn("brown.txt\\nwhite.txt", out)           # tool result not retained
+        self.assertNotIn("I should look at the directory", out)   # thinking not retained
+        out, _, code = self.run_convo("status", "--json")
+        self.assertEqual(code, 0)
+        self.assertEqual(json.loads(out)["sources"], {"present": 3})  # 1 pi + 2 dsh fixtures
+        second, _, _ = self.run_convo("sync", "--json")
+        self.assertEqual(json.loads(second)["imported"], 0)
+
+    def test_pi_stream_normalization_matches_raw_loader(self):
+        raw = convo.load_pi(self.pi_path)
+        expected = [(m.role, m.text, m.timestamp) for m in
+                    convo._normalized_source("pi", self.pi_path, raw, self.pi_path.stat()).messages]
+        streamed = convo._stream_jsonl_source("pi", self.pi_path, self.pi_path.stat(), self.data_dir / "spool")
+        try:
+            actual = [(m.role, m.text, m.timestamp) for m in streamed.source.messages]
+        finally:
+            streamed.spool_path.unlink(missing_ok=True)
+        self.assertEqual(actual, expected)
+
+    # ---- dsh ----
+    def test_dsh_real_error_session_keeps_only_human_prompt_and_surfaces_error_in_full_mode(self):
+        session = convo.load_dsh(self.dsh_real)
+        self.assertEqual(session.project, "/home/user/proj")
+        self.assertEqual([(t.role, t.text) for t in session.turns][0],
+                         ("user", "print the word banana and nothing else"))
+        self.assertEqual(sum(1 for t in session.turns if t.role == "user"), 1)  # plugin context skipped
+        final, _, _ = self.run_convo("show", str(self.dsh_real), "--no-color")
+        self.assertIn("(no text reply)", final)
+        full, _, _ = self.run_convo("show", str(self.dsh_real), "--mode", "full", "--no-color")
+        self.assertIn("MISSING_CREDENTIAL", full)
+        self.assertEqual(full.count("no API key"), 1)  # chunk + turn/end errors are not duplicated
+        self.assertNotIn("runtime context", full)
+
+    def test_dsh_synthetic_success_path_final_and_full(self):
+        # UNTESTED AGAINST REAL DATA: the success-path event shapes are inferred.
+        final, _, code = self.run_convo("show", str(self.dsh_syn), "--no-color")
+        self.assertEqual(code, 0)
+        self.assertIn("Two files: brown.txt and white.txt.", final)
+        full, _, _ = self.run_convo("show", str(self.dsh_syn), "--mode", "full", "--no-color")
+        self.assertIn("[tool→ bash]", full)
+        self.assertIn("[result← bash]", full)
+
+    def test_dsh_reads_zstd_sessions_and_sniffs_them(self):
+        try:
+            from compression import zstd
+        except ImportError:
+            self.skipTest("Python 3.14 compression.zstd unavailable")
+        packed = self.dsh_dir / "session-00000000-0000-4000-8000-000000000003" / "session.jsonl.zstd"
+        packed.parent.mkdir(parents=True)
+        packed.write_bytes(zstd.compress(self.dsh_syn.read_bytes()))
+        self.assertEqual(convo._sniff_harness(packed), "dsh")
+        out, _, code = self.run_convo("show", str(packed), "--no-color")
+        self.assertEqual(code, 0)
+        self.assertIn("Two files", out)
+        listing, _, _ = self.run_convo("list", "--harness", "dsh", "--all-projects")
+        self.assertEqual(listing.count("[DS]"), 3)
+
+    def test_dsh_sniffed_before_pi_and_sync_search_work(self):
+        self.assertEqual(convo._sniff_harness(self.dsh_syn), "dsh")
+        self.assertEqual(convo._sniff_harness(self.pi_path), "pi")
+        out, err, code = self.run_convo("sync", "--json")
+        self.assertEqual(code, 0, err)
+        out, _, _ = self.run_convo("search", "pelican", "--json")
+        self.assertIn("pelican", out)
+        status, _, _ = self.run_convo("status", "--json")
+        self.assertEqual(json.loads(status)["sources"], {"present": 3})
+
+    def test_show_resolves_dsh_and_pi_by_session_id_substring(self):
+        out, err, code = self.run_convo("show", "4000-8000-000000000002", "--harness", "dsh", "--no-color")
+        self.assertEqual(code, 0, err)
+        self.assertIn("Two files", out)
+        out, err, code = self.run_convo("show", "7000-8000-000000000001", "--harness", "pi", "--no-color")
+        self.assertEqual(code, 0, err)
+        self.assertIn("Found two pelican files", out)
+
+    def test_dsh_roots_honor_dsh_home(self):
+        home = self.root / "dshhome"
+        (home / "sessions").mkdir(parents=True)
+        os.environ["DSH_HOME"] = str(home)
+        self.assertEqual(convo.dsh_session_roots(), [home / "sessions"])
+
+    def test_gemini_pretty_json_is_not_sniffed_as_pi_or_dsh(self):
+        gem = self.root / "gem.json"
+        gem.write_text('{\n  "sessionId": "x",\n  "messages": []\n}\n')
+        self.assertIsNone(convo._sniff_harness(gem))
+
+
 class LedgerTests(unittest.TestCase):
     """The ledger is exercised through the CLI to keep its public boundary honest."""
 
