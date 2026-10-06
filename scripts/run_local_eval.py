@@ -128,7 +128,17 @@ def run_agent_task(
     model = expansion.get("model")
     effort = expansion.get("effort")
     if provider == "claude":
-        cmd = ["claude", "-p", "--model", str(model), "--effort", str(effort), prompt]
+        cmd = [
+            "claude",
+            "-p",
+            "--model",
+            str(model),
+            "--effort",
+            str(effort),
+            "--permission-mode",
+            "acceptEdits",
+            prompt,
+        ]
     elif provider == "codex":
         cmd = [
             "codex",
