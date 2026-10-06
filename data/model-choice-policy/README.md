@@ -56,8 +56,9 @@ and requires independent cross-model evidence for model changes. It never edits
 uv run --with pytest --with jsonschema pytest tests/test_recommend_ops.py
 ```
 
-Readers resolve from the installed pack path or a repository checkout. Keep
-expansion explicit in the caller; do not silently route by model name.
+`model-policy-ops` reads this checkout by default. Pass `--policy <path>` to
+read a separately installed pack. Keep expansion explicit in the caller; do
+not silently route by model name.
 
 ## Operating points (10)
 
