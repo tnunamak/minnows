@@ -198,24 +198,23 @@ def emit_result(
     RESULTS.mkdir(parents=True, exist_ok=True)
     exp = expansion["expands_to"]
     today = date.today().isoformat()
-    quality = False
     classification = "harness_smoke"
     score = 1.0 if passed else 0.0
     metric_base = task["metric"]
-    if not quality and not metric_base.startswith("smoke-"):
+    if not metric_base.startswith("smoke-"):
         metric_base = "smoke-" + metric_base.replace("local-", "")
     metric_id = metric_base.lower().replace(".", "-")
     row = {
         "model": exp.get("model"),
         "metric": metric_base,
         "score": score,
-        "unit": "pass_rate" if quality else "other",
+        "unit": "other",
         "effort": exp.get("effort"),
         "mode": exp.get("mode", "standard"),
         "harness": "direct_cli",
         "task_family": task.get("task_family"),
         "source_type": "local_eval",
-        "evidence_grade": "A" if quality else "D",
+        "evidence_grade": "D",
         "observed_at": today,
         "metric_id": metric_id,
         "comparable": False,
@@ -239,15 +238,13 @@ def emit_result(
         "notes": (
             f"{classification}. policy={expansion['policy_version']} "
             f"catalog_ref={expansion['catalog_ref']}. "
-            + (
-                "NOT model quality evidence (Sol+Fable P0.2)."
-            )
+            "NOT model quality evidence (Sol+Fable P0.2)."
         ),
         "scores": [row],
         "run": {
             "run_id": run_id,
             "classification": classification,
-            "not_quality_evidence": not quality,
+            "not_quality_evidence": True,
             "op": task["op"],
             "task_id": task["id"],
             "policy_version": expansion["policy_version"],
