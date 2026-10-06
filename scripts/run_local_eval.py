@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Run a fixed local-eval / harness-smoke task via waspflow.
+"""Run a fixed local-eval / harness-smoke task with the policy pack expansion.
 
-Results are harness_smoke by default (not quality evidence) unless
-LOCAL_EVAL_QUALITY=1 is set *and* the task declares quality_eligible: true.
+Results are harness_smoke only. The runner checks wiring and oracle plumbing;
+it is not a measured quality protocol.
 
 Usage:
   ./scripts/run_local_eval.py tasks/implement-standard-oracle-v1.json
@@ -14,6 +14,7 @@ import argparse
 import hashlib
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -113,70 +114,73 @@ def run_oracle(oracle: dict, cwd: Path, protected: dict[str, str] | None) -> tup
     return False, f"unknown oracle type {t}"
 
 
-def waspflow_spawn_wait(
+def run_agent_task(
     *,
     op: str,
-    lane: str,
     cwd: Path,
     prompt: str,
     report: str | None,
     timeout: int,
     dry_run: bool,
 ) -> dict:
-    cmd = [
-        "waspflow",
-        "spawn",
-        "--op",
-        op,
-        "--lane",
-        lane,
-        "--cwd",
-        str(cwd),
-    ]
-    if report:
-        cmd += ["--report", report]
-    cmd += ["--", prompt]
-    meta: dict = {"cmd": cmd, "started_at": datetime.now(timezone.utc).isoformat()}
+    expansion = op_expansion(op)["expands_to"]
+    provider = expansion.get("provider")
+    model = expansion.get("model")
+    effort = expansion.get("effort")
+    if provider == "claude":
+        cmd = ["claude", "-p", "--model", str(model), "--effort", str(effort), prompt]
+    elif provider == "codex":
+        cmd = [
+            "codex",
+            "exec",
+            "--model",
+            str(model),
+            "-C",
+            str(cwd),
+            "--sandbox",
+            "workspace-write",
+            "--skip-git-repo-check",
+            "-c",
+            f"model_reasoning_effort={effort}",
+            prompt,
+        ]
+    else:
+        raise SystemExit(f"unsupported local-eval provider: {provider}")
+    meta: dict = {
+        "cmd": cmd,
+        "provider": provider,
+        "model": model,
+        "effort": effort,
+        "report": report,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+    }
     if dry_run:
         meta["dry_run"] = True
-        meta["spawned_ok"] = True
+        meta["ran_ok"] = True
         return meta
     env = os.environ.copy()
     env.pop("ANTHROPIC_API_KEY", None)
-    print("+", " ".join(cmd), flush=True)
-    r = subprocess.run(cmd, env=env, capture_output=True, text=True)
-    meta["spawn_exit"] = r.returncode
-    meta["spawn_stdout"] = (r.stdout or "")[-2000:]
-    meta["spawn_stderr"] = (r.stderr or "")[-2000:]
-    combined = (r.stdout or "") + (r.stderr or "")
-    # Prefer explicit spawn success text; do NOT treat mere lane existence as ok
-    # (lane_set runs before provider_spawn).
-    spawned_ok = "spawned" in combined.lower() and "spawn aborted" not in combined.lower()
-    if not spawned_ok and r.returncode == 0:
-        spawned_ok = True
-    meta["spawned_ok"] = spawned_ok
-    if not spawned_ok:
-        return meta
-
-    wait = subprocess.run(
-        ["waspflow", "wait", lane, "--timeout", str(timeout)],
-        env=env,
-        capture_output=True,
-        text=True,
-    )
-    meta["wait_exit"] = wait.returncode
-    meta["wait_stdout"] = (wait.stdout or "")[-1000:]
-    st = subprocess.run(
-        ["waspflow", "status", lane],
-        env=env,
-        capture_output=True,
-        text=True,
-    )
+    print("+", " ".join(shlex.quote(part) for part in cmd), flush=True)
     try:
-        meta["lane_status"] = json.loads(st.stdout)
-    except json.JSONDecodeError:
-        meta["lane_status"] = {"raw": (st.stdout or "")[-2000:]}
-    subprocess.run(["waspflow", "reap", lane], env=env, capture_output=True, text=True)
+        r = subprocess.run(
+            cmd,
+            env=env,
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        meta["run_exit"] = None
+        meta["run_stdout"] = (exc.stdout or "")[-2000:] if isinstance(exc.stdout, str) else ""
+        meta["run_stderr"] = (exc.stderr or "")[-2000:] if isinstance(exc.stderr, str) else ""
+        meta["ran_ok"] = False
+        meta["finished_at"] = datetime.now(timezone.utc).isoformat()
+        return meta
+    meta["run_exit"] = r.returncode
+    meta["run_stdout"] = (r.stdout or "")[-2000:]
+    meta["run_stderr"] = (r.stderr or "")[-2000:]
+    meta["ran_ok"] = r.returncode == 0
     meta["finished_at"] = datetime.now(timezone.utc).isoformat()
     return meta
 
@@ -194,8 +198,8 @@ def emit_result(
     RESULTS.mkdir(parents=True, exist_ok=True)
     exp = expansion["expands_to"]
     today = date.today().isoformat()
-    quality = bool(task.get("quality_eligible")) and os.environ.get("LOCAL_EVAL_QUALITY") == "1"
-    classification = "quality_eval" if quality else "harness_smoke"
+    quality = False
+    classification = "harness_smoke"
     score = 1.0 if passed else 0.0
     metric_base = task["metric"]
     if not quality and not metric_base.startswith("smoke-"):
@@ -208,7 +212,7 @@ def emit_result(
         "unit": "pass_rate" if quality else "other",
         "effort": exp.get("effort"),
         "mode": exp.get("mode", "standard"),
-        "harness": "waspflow",
+        "harness": "direct_cli",
         "task_family": task.get("task_family"),
         "source_type": "local_eval",
         "evidence_grade": "A" if quality else "D",
@@ -231,14 +235,12 @@ def emit_result(
         "source_urls": [
             "https://github.com/tnunamak/minnows/tree/main/data/local-evals"
         ],
-        "source_ids": ["local-evals-waspflow-2026-07-09"],
+        "source_ids": ["local-evals-direct-cli-2026-10-05"],
         "notes": (
             f"{classification}. policy={expansion['policy_version']} "
             f"catalog_ref={expansion['catalog_ref']}. "
             + (
-                "Quality-eligible run."
-                if quality
-                else "NOT model quality evidence (Sol+Fable P0.2)."
+                "NOT model quality evidence (Sol+Fable P0.2)."
             )
         ),
         "scores": [row],
@@ -259,10 +261,8 @@ def emit_result(
                 for k in (
                     "started_at",
                     "finished_at",
-                    "spawn_exit",
-                    "wait_exit",
-                    "spawned_ok",
-                    "lane_status",
+                    "run_exit",
+                    "ran_ok",
                     "dry_run",
                 )
                 if k in run_meta
@@ -307,13 +307,9 @@ def run_one(task_path: Path, *, dry_run: bool) -> int:
     if task["oracle"].get("type") in ("file_contains", "file_equals"):
         report = task["oracle"]["path"]
 
-    lane = f"leval-{task['id'][:20]}-{run_id[:8]}"
-    lane = "".join(c if c.isalnum() or c in "._-" else "-" for c in lane)[:48]
-
-    print(f"== {task['id']} op={task['op']} lane={lane} run_id={run_id}", flush=True)
-    meta = waspflow_spawn_wait(
+    print(f"== {task['id']} op={task['op']} run_id={run_id}", flush=True)
+    meta = run_agent_task(
         op=task["op"],
-        lane=lane,
         cwd=work,
         prompt=task["prompt"],
         report=report,
@@ -325,9 +321,9 @@ def run_one(task_path: Path, *, dry_run: bool) -> int:
         shutil.rmtree(work, ignore_errors=True)
         return 0
 
-    if not meta.get("spawned_ok"):
-        print("spawn failed:", meta.get("spawn_stderr") or meta.get("spawn_stdout"), file=sys.stderr)
-        passed, detail = False, f"spawn failed: {meta.get('spawn_stderr', '')[:500]}"
+    if not meta.get("ran_ok"):
+        print("agent run failed:", meta.get("run_stderr") or meta.get("run_stdout"), file=sys.stderr)
+        passed, detail = False, f"agent run failed: {meta.get('run_stderr', '')[:500]}"
     else:
         passed, detail = run_oracle(task["oracle"], work, protected or None)
 

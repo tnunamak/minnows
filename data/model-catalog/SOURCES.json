@@ -398,6 +398,16 @@
       "kind": "local_eval"
     },
     {
+      "id": "local-evals-direct-cli-2026-10-05",
+      "url": "https://github.com/tnunamak/minnows/tree/main/data/local-evals",
+      "title": "Local direct-CLI fixed-harness eval runner",
+      "publisher": "minnows",
+      "published": "2026-10-05",
+      "retrieved_at": "2026-10-05",
+      "kind": "local_eval",
+      "notes": "Runner dispatches policy-pack expansions to provider CLIs directly. Existing July 2026 result files keep their waspflow provenance."
+    },
+    {
       "id": "alibaba-pricing-2026-07",
       "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
       "title": "Alibaba Cloud Model Studio model pricing",

@@ -14,8 +14,9 @@ Do **not** use these rows for cross-model selection or “grade A / high confide
 
 ## Purpose that remains valid
 
-Prove waspflow can spawn `--op`, write artifacts, and that the runner + oracle path works.
-Use `./scripts/run_local_eval.py` for wiring checks. A real multi-task, hidden-oracle suite is future work.
+Prove a policy op can expand to a provider CLI, write artifacts, and that the
+runner + oracle path works. Use `./scripts/run_local_eval.py` for wiring
+checks. A real multi-task, hidden-oracle suite is future work.
 
 ## Run
 

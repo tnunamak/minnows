@@ -1,8 +1,7 @@
 # Data pack: `model-choice-policy`
 
 **Policy**, not facts. Task-shaped **operating points** that expand to explicit
-`provider` / `model` / `effort` / `mode` flags for `waspflow` (and any thin
-resolver).
+`provider` / `model` / `effort` / `mode` flags for agent orchestration tools.
 
 Separates from [`model-catalog`](../model-catalog/) so recommendations never
 contaminate pricing or benchmark evidence.
@@ -33,13 +32,12 @@ curl -fsSL -L \
 5. Update ops only from source-backed catalog facts or local evals.
 6. Raw flags always win: `--provider` / `--model` / `--effort` override `--op`.
 
-## Use with waspflow
+## Read operating points
 
 ```bash
-waspflow ops list --task implementation --constraint balanced
-waspflow ops explain implement.standard
-waspflow ops resolve implement.standard --json
-waspflow spawn --op implement.standard --lane fix -- "…"
+model-policy-ops list
+model-policy-ops show implement.standard
+model-policy-ops check
 ```
 
 ## Derive ops from data (DRAFT)
@@ -58,11 +56,8 @@ and requires independent cross-model evidence for model changes. It never edits
 uv run --with pytest --with jsonschema pytest tests/test_recommend_ops.py
 ```
 
-Waspflow resolves from (first hit):
-
-1. `$WASPFLOW_OPS_POLICY` (file path)
-2. `$DATA_PACKS_HOME/model-choice-policy/operating-points.json`
-3. Bundled `waspflow/data/model-choice-policy/operating-points.json`
+Readers resolve from the installed pack path or a repository checkout. Keep
+expansion explicit in the caller; do not silently route by model name.
 
 ## Operating points (10)
 

@@ -168,7 +168,7 @@ Adds GPT-6 Sol and GPT-6 Luna (launched 2026-09-22, 19 days after GPT-6 Astra on
 
 ### v0.5.1 — 2026-07-09
 
-- **Local evals** mirrored: `performance/local-evals-2026-07.json` (grade A) for implement.standard, fanout.explore, review.audit on waspflow harness.
+- **Local evals** mirrored: `performance/local-evals-2026-07.json` for implement.standard, fanout.explore, review.audit on the historical waspflow harness. v0.5.2 reclassified them as grade D harness smoke.
 - SOURCES kind `local_eval`.
 
 ### v0.5.0 — 2026-07-09

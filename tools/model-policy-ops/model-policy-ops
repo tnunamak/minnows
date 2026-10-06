@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+"""Check and read the model-choice-policy data pack."""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+
+REPO = Path(__file__).resolve().parents[2]
+PACK = REPO / "data" / "model-choice-policy"
+OPERATING_POINTS = PACK / "operating-points.json"
+
+
+def load_policy(path: Path) -> dict:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        raise SystemExit(f"missing policy file: {path}") from None
+
+
+def check_policy(policy: dict) -> list[str]:
+    errors: list[str] = []
+    seen: set[str] = set()
+    for i, op in enumerate(policy.get("operating_points", [])):
+        where = f"operating_points[{i}]"
+        op_id = op.get("id")
+        if not op_id:
+            errors.append(f"{where}: missing id")
+        elif op_id in seen:
+            errors.append(f"{where}: duplicate id {op_id}")
+        else:
+            seen.add(op_id)
+        expands_to = op.get("expands_to")
+        if not isinstance(expands_to, dict):
+            errors.append(f"{where}: missing expands_to")
+            continue
+        for key in ("provider", "model", "effort"):
+            if not expands_to.get(key):
+                errors.append(f"{where}: missing expands_to.{key}")
+    if not policy.get("catalog_ref"):
+        errors.append("missing catalog_ref")
+    if not policy.get("policy_version"):
+        errors.append("missing policy_version")
+    return errors
+
+
+def print_list(policy: dict) -> None:
+    rows = []
+    for op in policy.get("operating_points", []):
+        expands_to = op["expands_to"]
+        rows.append(
+            (
+                op["id"],
+                op.get("task_family", ""),
+                op.get("constraint_family", ""),
+                expands_to.get("provider", ""),
+                expands_to.get("model", ""),
+                expands_to.get("effort", ""),
+            )
+        )
+    headers = ("op", "task", "constraint", "provider", "model", "effort")
+    widths = [
+        max(len(str(row[i])) for row in (headers, *rows))
+        for i in range(len(headers))
+    ]
+    print(" | ".join(headers[i].ljust(widths[i]) for i in range(len(headers))))
+    print("-+-".join("-" * width for width in widths))
+    for row in rows:
+        print(" | ".join(str(row[i]).ljust(widths[i]) for i in range(len(row))))
+
+
+def print_show(policy: dict, op_id: str) -> int:
+    for op in policy.get("operating_points", []):
+        if op.get("id") == op_id:
+            print(json.dumps(op, indent=2, sort_keys=True))
+            return 0
+    print(f"unknown op: {op_id}", file=sys.stderr)
+    return 1
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--policy", type=Path, default=OPERATING_POINTS)
+    parser.add_argument("command", nargs="?", choices=("check", "list", "show"))
+    parser.add_argument("op", nargs="?")
+    args = parser.parse_args()
+
+    policy = load_policy(args.policy)
+    errors = check_policy(policy)
+    if errors:
+        for error in errors:
+            print(f"FAIL {error}", file=sys.stderr)
+        return 1
+
+    command = args.command or "check"
+    if command == "list":
+        print_list(policy)
+    elif command == "show":
+        if not args.op:
+            parser.error("show requires an op id")
+        return print_show(policy, args.op)
+    else:
+        print(
+            f"PASS model-choice-policy {policy['policy_version']} "
+            f"({len(policy.get('operating_points', []))} operating points)"
+        )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

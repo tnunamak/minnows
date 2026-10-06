@@ -1,58 +1,36 @@
 #!/usr/bin/env bash
-# Executable lane → op → evidence_refs → catalog file → SOURCES.json → URL chain.
+# Operating point → evidence_refs → catalog file → SOURCES.json → URL chain.
 # Exit nonzero if any link breaks.
 set -euo pipefail
 
-LANE="${1:-}"
+OP="${1:-}"
 MINNOWS_ROOT="${MINNOWS_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 CATALOG="$MINNOWS_ROOT/data/model-catalog"
 POLICY_DEFAULT="$MINNOWS_ROOT/data/model-choice-policy/operating-points.json"
 
-if [[ -z "$LANE" ]]; then
-  echo "usage: demo_lane_trace.sh <lane>" >&2
+if [[ -z "$OP" ]]; then
+  echo "usage: demo_lane_trace.sh <op>" >&2
   exit 2
 fi
 
-if ! command -v jq >/dev/null || ! command -v waspflow >/dev/null; then
-  echo "need jq and waspflow" >&2
+if ! command -v jq >/dev/null; then
+  echo "need jq" >&2
   exit 2
 fi
 
-STATUS="$(waspflow status "$LANE" 2>/dev/null)" || {
-  echo "lane not found: $LANE" >&2
-  exit 1
-}
-
-echo "=== 1. Lane ==="
-echo "$STATUS" | jq '{
-  lane: $l, op, model, effort, policy_version, catalog_ref, policy_file,
-  op_expands_to, explicit_overrides, provider, status
-}' --arg l "$LANE"
-
-OP="$(echo "$STATUS" | jq -r '.op // empty')"
-POLICY_FILE="$(echo "$STATUS" | jq -r '.policy_file // empty')"
-CATALOG_REF="$(echo "$STATUS" | jq -r '.catalog_ref // empty')"
-[[ -n "$OP" ]] || { echo "lane has no op (raw spawn?)" >&2; exit 1; }
-
-if [[ -z "$POLICY_FILE" || ! -f "$POLICY_FILE" ]]; then
-  POLICY_FILE="$POLICY_DEFAULT"
-fi
+POLICY_FILE="${MODEL_CHOICE_POLICY:-$POLICY_DEFAULT}"
 [[ -f "$POLICY_FILE" ]] || { echo "policy file missing: $POLICY_FILE" >&2; exit 1; }
 
-echo
-echo "=== 2. Policy op ($OP) ==="
+echo "=== 1. Policy op ($OP) ==="
 ROW="$(jq -c --arg id "$OP" '.operating_points[] | select(.id==$id)' "$POLICY_FILE")"
 [[ -n "$ROW" ]] || { echo "op $OP not in $POLICY_FILE" >&2; exit 1; }
 echo "$ROW" | jq '{id, expands_to, evidence_refs, frontier_assumption, known_gaps}'
 
 POLICY_CATALOG="$(jq -r '.catalog_ref // empty' "$POLICY_FILE")"
 echo "policy catalog_ref: $POLICY_CATALOG"
-if [[ -n "$CATALOG_REF" && -n "$POLICY_CATALOG" && "$CATALOG_REF" != "$POLICY_CATALOG" ]]; then
-  echo "WARN: lane catalog_ref ($CATALOG_REF) != policy file catalog_ref ($POLICY_CATALOG)" >&2
-fi
 
 echo
-echo "=== 3. Evidence refs → catalog files / sources ==="
+echo "=== 2. Evidence refs -> catalog files / sources ==="
 mapfile -t REFS < <(echo "$ROW" | jq -r '.evidence_refs[]?')
 if [[ ${#REFS[@]} -eq 0 ]]; then
   echo "no evidence_refs" >&2

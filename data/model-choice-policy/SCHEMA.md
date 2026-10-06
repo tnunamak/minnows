@@ -83,9 +83,9 @@ $100 for `review.audit` and $50 for `advisor.deep`.
 
 ### Candidate and evidence rules
 
-The recommender preserves GA, tier, newest-in-tier across lanes, access, effort,
-and CLI-surface filters. The default provider list names all six waspflow
-lanes: `claude`, `codex`, `grok`, `antigravity`, `qwen`, `deepseek`.
+The recommender preserves GA, tier, newest-in-tier across provider arms, access,
+effort, and CLI-surface filters. The default provider list names:
+`claude`, `codex`, `grok`, `antigravity`, `qwen`, `deepseek`.
 The single `lane_scoped_freshness` flag defaults to `false`; changing it to
 `true` would retain an older model when it is newest only on its own lane.
 Freshness compares `models.json.released` when both models have dates, then

@@ -20,10 +20,10 @@ Updated 2026-07-09 after GPT-5.6 Sol + Claude Fable audits (honesty pass v0.5.2 
 
 ## Useful
 
-- [x] waspflow: policy at runtime, lane `policy_version`/`catalog_ref`/`op_expands_to`/`explicit_overrides`, effort hard-fail + capabilities whitelist enforce, capabilities-derived whitelist file
+- [x] Historical waspflow runtime captured policy version, catalog ref, op expansion, explicit overrides, effort hard-fail, and a capabilities-derived whitelist file. Current pack reader is `model-policy-ops`.
 - [x] tokensmash: pricing synced from catalog (vendored_from provenance)
 - [x] Query cookbook in model-catalog README
-- [x] Lane→op→evidence→source URL via `scripts/demo_lane_trace.sh` (executable, fails on broken links)
+- [x] Op→evidence→source URL via `scripts/demo_lane_trace.sh` (executable, fails on broken links)
 - [x] Freshness checker covers pricing + promised boards; GitHub Actions with jsonschema
 - [x] Kill list: no silent routing, no invented Grok curves, no quota↔$, no single score, no bulk digitization, no runtime catalog in spawn; **mixed metric_id rows marked `comparable: false`**
 
