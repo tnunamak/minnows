@@ -1,0 +1,220 @@
+{
+ "id": "self-hosted-open-weights-2026-10",
+ "schema_version": 1,
+ "kind": "api_usd",
+ "agent": "other",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://huggingface.co/api/models"
+ ],
+ "source_ids": [
+  "hf-model-repos"
+ ],
+ "role": "reference",
+ "notes": "Open-weight decision models: no vendor price. billing_basis self_host; cost per decision is a function of your GPU/CPU cost, utilization, state length and question packing (see local CPU measurements for scale). License strings are the Hugging Face cardData field and not verified against LICENSE files; JPT is CC-BY-NC-4.0 (non-commercial). The independent JevBench board prices self-hosted rows from a base-model reference, not from tariffs (see the JevBench doc).",
+ "models": {
+  "clef": {
+   "billing_basis": "self_host",
+   "source_id": "hf-model-repos",
+   "confidence": "medium",
+   "caveat_ids": [
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights, license Apache-2.0: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone)."
+  },
+  "clef-flash": {
+   "billing_basis": "self_host",
+   "source_id": "hf-model-repos",
+   "confidence": "medium",
+   "caveat_ids": [
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights, license Apache-2.0: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone)."
+  },
+  "pplx-decider-v1-27b": {
+   "billing_basis": "self_host",
+   "source_id": "hf-model-repos",
+   "confidence": "medium",
+   "caveat_ids": [
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights, license Apache-2.0: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone)."
+  },
+  "pplx-decider-v1.1-27b": {
+   "billing_basis": "self_host",
+   "source_id": "hf-model-repos",
+   "confidence": "medium",
+   "caveat_ids": [
+    "pplx-v1-1-repo-access-conflict",
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights, license Apache-2.0: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone)."
+  },
+  "decider-2b": {
+   "billing_basis": "self_host",
+   "source_id": "hf-model-repos",
+   "confidence": "medium",
+   "caveat_ids": [
+    "local-measurement-busy-cpu",
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights, license Apache-2.0: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone)."
+  },
+  "decider-4b": {
+   "billing_basis": "self_host",
+   "source_id": "hf-model-repos",
+   "confidence": "medium",
+   "caveat_ids": [
+    "local-measurement-busy-cpu",
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights, license Apache-2.0: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone)."
+  },
+  "eikos-27b": {
+   "billing_basis": "self_host",
+   "source_id": "hf-model-repos",
+   "confidence": "medium",
+   "caveat_ids": [
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights, license MIT: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone)."
+  },
+  "jebadiah-27b": {
+   "billing_basis": "self_host",
+   "source_id": "hf-model-repos",
+   "confidence": "medium",
+   "caveat_ids": [
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights, license Apache-2.0: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone)."
+  },
+  "winnow-12b": {
+   "billing_basis": "self_host",
+   "source_id": "hf-model-repos",
+   "confidence": "medium",
+   "caveat_ids": [
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights, license Apache-2.0: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone)."
+  },
+  "xor-26b-a4b": {
+   "billing_basis": "self_host",
+   "source_id": "hf-model-repos",
+   "confidence": "medium",
+   "caveat_ids": [
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights, license Apache-2.0: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone)."
+  },
+  "jet-v6.2": {
+   "billing_basis": "self_host",
+   "source_id": "hf-model-repos",
+   "confidence": "medium",
+   "caveat_ids": [
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights, license Apache-2.0: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone)."
+  },
+  "jpt-4b": {
+   "billing_basis": "self_host",
+   "source_id": "hf-model-repos",
+   "confidence": "medium",
+   "caveat_ids": [
+    "license-noncommercial-jpt",
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights, license CC-BY-NC-4.0: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone). NON-COMMERCIAL license: cannot ship in a commercial agent without separate terms."
+  },
+  "jpt-9b": {
+   "billing_basis": "self_host",
+   "source_id": "hf-model-repos",
+   "confidence": "medium",
+   "caveat_ids": [
+    "license-noncommercial-jpt",
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights, license CC-BY-NC-4.0: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone). NON-COMMERCIAL license: cannot ship in a commercial agent without separate terms."
+  },
+  "kev-27b": {
+   "billing_basis": "self_host",
+   "source_id": "hf-model-repos",
+   "confidence": "medium",
+   "caveat_ids": [
+    "self-hosting-friction-and-hardware-reality",
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights, license Apache-2.0: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone)."
+  },
+  "surogate-rune-26b-a4b": {
+   "billing_basis": "self_host",
+   "source_id": "hf-model-repos",
+   "confidence": "medium",
+   "caveat_ids": [
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights, license Apache-2.0 (HF cardData): no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone)."
+  }
+ },
+ "match": [
+  {
+   "pattern": "clef",
+   "model": "clef"
+  },
+  {
+   "pattern": "clef-flash",
+   "model": "clef-flash"
+  },
+  {
+   "pattern": "pplx-decider-v1-27b",
+   "model": "pplx-decider-v1-27b"
+  },
+  {
+   "pattern": "pplx-decider-v1.1-27b",
+   "model": "pplx-decider-v1.1-27b"
+  },
+  {
+   "pattern": "decider-2b",
+   "model": "decider-2b"
+  },
+  {
+   "pattern": "decider-4b",
+   "model": "decider-4b"
+  },
+  {
+   "pattern": "eikos-27b",
+   "model": "eikos-27b"
+  },
+  {
+   "pattern": "jebadiah-27b",
+   "model": "jebadiah-27b"
+  },
+  {
+   "pattern": "winnow-12b",
+   "model": "winnow-12b"
+  },
+  {
+   "pattern": "xor-26b-a4b",
+   "model": "xor-26b-a4b"
+  },
+  {
+   "pattern": "jet-v6.2",
+   "model": "jet-v6.2"
+  },
+  {
+   "pattern": "jpt-4b",
+   "model": "jpt-4b"
+  },
+  {
+   "pattern": "jpt-9b",
+   "model": "jpt-9b"
+  },
+  {
+   "pattern": "kev-27b",
+   "model": "kev-27b"
+  },
+  {
+   "pattern": "surogate-rune-26b-a4b",
+   "model": "surogate-rune-26b-a4b"
+  }
+ ]
+}

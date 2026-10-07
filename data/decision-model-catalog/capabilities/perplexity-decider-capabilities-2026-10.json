@@ -1,0 +1,130 @@
+{
+ "id": "perplexity-decider-capabilities-2026-10",
+ "schema_version": 1,
+ "kind": "capabilities",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://docs.perplexity.ai/docs/decisions/quickstart.md",
+  "https://docs.perplexity.ai/api-reference/decisions-post.md",
+  "https://docs.perplexity.ai/docs/getting-started/pricing.md",
+  "https://huggingface.co/perplexity-ai/pplx-decider-v1-27b",
+  "https://huggingface.co/perplexity-ai/pplx-decider-v1.1-27b",
+  "https://www.requesty.ai/blog/decision-model-benchmark-clef-sference-cloudflare-perplexity",
+  "https://openrouter.ai/api/v1/models?output_modalities=decisions"
+ ],
+ "source_ids": [
+  "perplexity-decisions-quickstart",
+  "perplexity-decisions-api-ref",
+  "perplexity-pricing",
+  "hf-pplx-decider-v1",
+  "hf-pplx-decider-v1-1",
+  "requesty-benchmark",
+  "openrouter-decisions-catalog"
+ ],
+ "notes": "Perplexity Decisions API (POST https://api.perplexity.ai/v1/decisions; any Perplexity API key; 10 requests per second per organization on every plan). Text, JSON and images (PNG/JPEG/WebP data URLs, up to 2,048 32x32 tiles each; oversize images wait about a minute then 504). Up to 128 questions and under 262,144 input tokens per request (state + images + all questions), body up to 32 MiB. `confidence` is \"the model's own certainty estimate ... not the top probability\" (a third definition; equals the max probability on a quarter of items per Requesty). \"Identical requests usually return identical numbers. Occasionally they differ in the second decimal place, so set thresholds with some margin.\" Output free, no per-request fee; $0.02/M direct vs $0.04/M on routers.",
+ "surfaces": [
+  {
+   "model": "pplx-decider-v1-27b",
+   "surface": "other",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": 255,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": null,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 262144
+   },
+   "questions_per_request": {
+    "max": 128,
+    "fan_out_supported": true,
+    "packing_supported": true
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "perplexity-decisions-quickstart",
+    "perplexity-decisions-api-ref",
+    "perplexity-pricing"
+   ],
+   "caveat_ids": [
+    "confidence-field-non-portable",
+    "same-weights-different-serving-limits-and-confidence",
+    "perplexity-price-conflict-direct-vs-router"
+   ],
+   "notes": "Choice 1-255 options, score levels 1-10 (Perplexity docs). total_tokens 262144 is the documented strict upper bound (\"under 262,144\"). calibration_claimed null: the README says predict() \"applies the saved calibration temperature\" but Perplexity publishes no calibration metric. Open weights (Apache-2.0) need about 49 GiB and custom PyTorch code (readout head, noncausal attention; no llama.cpp export)."
+  },
+  {
+   "model": "pplx-decider-v1.1-27b",
+   "surface": "other",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": 255,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": null,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 262144
+   },
+   "questions_per_request": {
+    "max": 128,
+    "fan_out_supported": true,
+    "packing_supported": true
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "perplexity-decisions-quickstart",
+    "hf-pplx-decider-v1-1"
+   ],
+   "caveat_ids": [
+    "confidence-field-non-portable",
+    "pplx-v1-1-repo-access-conflict"
+   ],
+   "notes": "Same Decisions API; v1.1 adds a noncausal full-attention mode and more training data. HF repo access conflict (card says private; HF API showed gated:false)."
+  },
+  {
+   "model": "pplx-decider-v1-27b",
+   "surface": "openrouter",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": null,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": null,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 262144
+   },
+   "questions_per_request": {
+    "max": 128,
+    "fan_out_supported": null,
+    "packing_supported": null
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "openrouter-decisions-catalog",
+    "requesty-benchmark"
+   ],
+   "caveat_ids": [
+    "perplexity-price-conflict-direct-vs-router"
+   ],
+   "notes": "OpenRouter perplexity/pplx-decider-v1-27b: context 262,144, max completion 235,929, $0.04/M input, completion $0. Requesty lists 262K and <=128 questions at $0.04/M."
+  }
+ ],
+ "missing": [
+  "Perplexity vendor-published calibration metric and abstain output: none found."
+ ]
+}

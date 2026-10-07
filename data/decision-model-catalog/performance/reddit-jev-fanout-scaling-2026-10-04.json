@@ -1,0 +1,53 @@
+{
+ "id": "reddit-jev-fanout-scaling-2026-10-04",
+ "schema_version": 1,
+ "kind": "performance",
+ "provider": "reddit",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://www.reddit.com/r/LocalLLaMA/comments/1wxcn49/can_someone_explain_how_jev_is_different_from_a/pdu9kuu/"
+ ],
+ "notes": "ANECDOTAL single-user measurement of hosted Jev latency vs questions per request (r/LocalLLaMA 1wxcn49, comment pdu9kuu by bonerfleximus, 2026-10-04): \"Up to about 50 questions against state of 4k or less, the timing was identical to one question (around 120ms per request)\". Past that latency rose with total tokens. No code or data shared; client location, concurrency, question types and repeats not stated; grade D. Reddit blocked this host; the text was read via the Arctic Shift mirror. Absolute ms are in claims (percentile not stated, so no ms score rows).",
+ "source_ids": [
+  "reddit-jev-embeddings-thread",
+  "typesafe-docs-fanout"
+ ],
+ "claims": [
+  {
+   "models": [
+    "jev-1.13.0"
+   ],
+   "statement": "\"Up to about 50 questions against state of 4k or less, the timing was identical to one question (around 120ms per request).\" Past that: 200 questions +30%, 500 questions 1.7x, 2,000 questions 4.9x, 3,500 questions 8.3x (991 ms). Hosted caller-side latency, one user, one run.",
+   "task_families": [
+    "fanout"
+   ],
+   "axes": [
+    "latency"
+   ],
+   "implication": "TypeSafe's \"adding more questions usually has little effect on response time\" held only up to ~50 questions at <=4k state in this one test. Other providers cap questions per request far lower (sference 16, Cloudflare 64).",
+   "source_id": "reddit-jev-embeddings-thread",
+   "caveat_ids": [
+    "fanout-latency-flat-only-to-a-point-and-question-caps-differ",
+    "latency-scales-with-state-size-and-question-count",
+    "small-sample-and-single-run-evidence"
+   ]
+  },
+  {
+   "models": [
+    "jev-1.13.0"
+   ],
+   "statement": "Same thread: another comment claims \"Do embedding models let you answer 1000 questions in a single request in the same time it takes to answer 1 question? Jev does ... ask 500 questions about those objects in one request that takes a 400ms round trip.\" The OP's embedding-router script scored 0.38-0.53 cosine for an out-of-scope query; a replier's log-loss chart (hosted Jev vs kNN/GLiClass baselines on five tasks) did not include Clef or the open 27B deciders.",
+   "source_id": "reddit-jev-embeddings-thread",
+   "caveat_ids": [
+    "cheap-baselines-embeddings-and-bert-are-competitive-on-narrow-tasks",
+    "small-sample-and-single-run-evidence"
+   ]
+  }
+ ],
+ "scores": [
+  {"model":"jev-1.13.0","metric":"Jev latency vs one question at 200 questions per request","metric_id":"reddit-jev-fanout-latency-ratio","score":1.3,"unit":"ratio","caveat":"200 questions: +30%; state size and tokens per question not stated (past ~50 questions latency \"increases linearly ... with total number of tokens\").","source_id":"reddit-jev-embeddings-thread","harness":"One user, $25 of TypeSafe API credits, a harness built with Claude; model version, region, concurrency, repeats, question types and question length not stated; text via Arctic Shift mirror","task_family":"fanout","source_type":"community_report","evidence_grade":"D","observed_at":"2026-10-04","comparability_group":"reddit-jev-fanout/latency-ratio","caveat_ids":["fanout-latency-flat-only-to-a-point-and-question-caps-differ","latency-scales-with-state-size-and-question-count","small-sample-and-single-run-evidence"],"measurement":{"measured_by":"bonerfleximus (Reddit user)","questions_per_request":200}},
+  {"model":"jev-1.13.0","metric":"Jev latency vs one question at 500 questions per request","metric_id":"reddit-jev-fanout-latency-ratio","score":1.7,"unit":"ratio","caveat":"500 questions: 1.7x; state size and tokens per question not stated (past ~50 questions latency \"increases linearly ... with total number of tokens\").","source_id":"reddit-jev-embeddings-thread","harness":"One user, $25 of TypeSafe API credits, a harness built with Claude; model version, region, concurrency, repeats, question types and question length not stated; text via Arctic Shift mirror","task_family":"fanout","source_type":"community_report","evidence_grade":"D","observed_at":"2026-10-04","comparability_group":"reddit-jev-fanout/latency-ratio","caveat_ids":["fanout-latency-flat-only-to-a-point-and-question-caps-differ","latency-scales-with-state-size-and-question-count","small-sample-and-single-run-evidence"],"measurement":{"measured_by":"bonerfleximus (Reddit user)","questions_per_request":500}},
+  {"model":"jev-1.13.0","metric":"Jev latency vs one question at 2000 questions per request","metric_id":"reddit-jev-fanout-latency-ratio","score":4.9,"unit":"ratio","caveat":"2,000 questions: 4.9x; state size and tokens per question not stated (past ~50 questions latency \"increases linearly ... with total number of tokens\").","source_id":"reddit-jev-embeddings-thread","harness":"One user, $25 of TypeSafe API credits, a harness built with Claude; model version, region, concurrency, repeats, question types and question length not stated; text via Arctic Shift mirror","task_family":"fanout","source_type":"community_report","evidence_grade":"D","observed_at":"2026-10-04","comparability_group":"reddit-jev-fanout/latency-ratio","caveat_ids":["fanout-latency-flat-only-to-a-point-and-question-caps-differ","latency-scales-with-state-size-and-question-count","small-sample-and-single-run-evidence"],"measurement":{"measured_by":"bonerfleximus (Reddit user)","questions_per_request":2000}},
+  {"model":"jev-1.13.0","metric":"Jev latency vs one question at 3500 questions per request","metric_id":"reddit-jev-fanout-latency-ratio","score":8.3,"unit":"ratio","caveat":"3,500 questions: 8.3x (991 ms); state size and tokens per question not stated (past ~50 questions latency \"increases linearly ... with total number of tokens\").","source_id":"reddit-jev-embeddings-thread","harness":"One user, $25 of TypeSafe API credits, a harness built with Claude; model version, region, concurrency, repeats, question types and question length not stated; text via Arctic Shift mirror","task_family":"fanout","source_type":"community_report","evidence_grade":"D","observed_at":"2026-10-04","comparability_group":"reddit-jev-fanout/latency-ratio","caveat_ids":["fanout-latency-flat-only-to-a-point-and-question-caps-differ","latency-scales-with-state-size-and-question-count","small-sample-and-single-run-evidence"],"measurement":{"measured_by":"bonerfleximus (Reddit user)","questions_per_request":3500}}
+ ]
+}

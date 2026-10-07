@@ -1,12 +1,2985 @@
 {
-  "$schema": "schemas/models-v1.schema.json",
-  "id": "decision-model-catalog-models",
-  "schema_version": 1,
-  "generated_at": "2026-10-06",
-  "notes": [
-    "L0 registry of DECISION models only. Join key for pricing, performance, capabilities and caveats.",
-    "General LLM baselines are NOT listed here: model strings resolve against this file first, then data/model-catalog/models.json (ids + aliases). Duplicating a baseline id or alias here is a validation error.",
-    "Harness-suffixed score ids (model@harness) resolve to the base id."
-  ],
-  "models": []
+ "$schema": "schemas/models-v1.schema.json",
+ "id": "decision-model-catalog-models",
+ "schema_version": 1,
+ "generated_at": "2026-10-07",
+ "notes": [
+  "L0 registry of DECISION models only (Decision Index 0.3 entrants with identifiable weights or hosts are included, most as community_finetune or third_party_board_only). Join key for pricing, performance, capabilities and caveats.",
+  "General LLM baselines are NOT listed here: model strings resolve against this file first, then data/model-catalog/models.json (ids + aliases). Rows for baselines used by sources (Opus 5.5, GPT-5.5, GPT-5.6 Luna, Haiku 4.5, DeepSeek V4.1 Flash, Gemini 3.5 Flash-Lite, Qwen3.8-27B, GPT-6 Astra, ...) reference the model-catalog id. Baselines that model-catalog lacks (gpt-5-nano, qwen3.6-27b, qwen3.5-4b, terra/luna/sol versions on TypeSafe Evals) are recorded in the missing[] of the document that uses them.",
+  "Harness-suffixed score ids (model@harness) resolve to the base id. Aliases include API ids, OpenRouter ids, @cf ids and Hugging Face repos; provider-qualified router ids (sference/clef, cloudflare/clef) are aliases so a row can keep its serving provider.",
+  "params_total is the Hugging Face safetensors total when a repo count was read (Clef, Clef-flash, Perplexity) and otherwise the Decision Index served_params, which uses the base-model figure; each model note says which. null means unknown.",
+  "status third_party_board_only = known only from a board or listing (no first-party docs or no identifiable weights). community_finetune = open weights from an independent author. Licenses are the Hugging Face cardData field, not verified against LICENSE files."
+ ],
+ "models": [
+  {
+   "id": "jev-1.13.0",
+   "provider": "typesafe",
+   "family": "Jev (System One)",
+   "status": "early_access",
+   "aliases": [
+    "jev-latest",
+    "jev-preview",
+    "typesafe/jev-1.13",
+    "~typesafe/jev-latest",
+    "typesafe/jev-latest",
+    "typesafe-ai/jev",
+    "Jev",
+    "jev"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": null,
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "typesafe-api",
+    "openrouter",
+    "other"
+   ],
+   "released": "2026-09-15",
+   "release_source_id": "typesafe-launch-blog",
+   "access": "general",
+   "caveat_ids": [
+    "model-version-and-api-drift",
+    "price-third-party-aggregator-sites",
+    "abstention-and-out-of-scope",
+    "determinism-and-option-order",
+    "context-window-and-rot",
+    "diogo-reliability-claim-untested"
+   ],
+   "notes": "TypeSafe hosted System One model (RLCD-trained). Weights closed; same weights serve every account (no fine-tuning). Aliases jev-latest and jev-preview both pointed to jev-1.13.0 on 2026-10-07 (docs: \"There is no preview build available right now.\"). Released 2026-09-15 as early access (launch blog); OpenRouter lists typesafe/jev-1.13 as created 2026-09-17/18. jev-1.12 appears only in the parallel-questions cookbook. Base model and parameter count are not disclosed. Also on Requesty (typesafe/jev-latest); Vercel AI Gateway listing reported by a third party only. Official price page: docs.typesafe.ai/models (not jevaihub.com)."
+  },
+  {
+   "id": "clef",
+   "provider": "cloudflare",
+   "family": "Clef",
+   "status": "ga",
+   "aliases": [
+    "@cf/cloudflare/clef",
+    "Cloudflare/clef",
+    "cloudflare/clef",
+    "sference/clef",
+    "Cloudflare clef",
+    "Clef"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.8-27B",
+   "params_total": 27356728560,
+   "params_active": null,
+   "hf_repo": "Cloudflare/clef",
+   "surfaces": [
+    "workers-ai",
+    "openrouter",
+    "self-host",
+    "hf-inference",
+    "other"
+   ],
+   "tier": "clef",
+   "released": "2026-10-01",
+   "release_source_id": "cloudflare-changelog-clef",
+   "access": "general",
+   "caveat_ids": [
+    "latency-hosted-rtt-vs-on-card",
+    "vendor-run-eval-of-competitor",
+    "workers-ai-state-truncation-2k",
+    "same-weights-different-serving-limits-and-confidence",
+    "confidence-field-non-portable",
+    "leaderboard-edition-and-weighting-flip-rankings"
+   ],
+   "notes": "Cloudflare Workers AI decision model: frozen Qwen3.8-27B backbone + vision encoder + joint schema head with rank-256 LoRA (blog); prefill-only. params_total is the HF safetensors total (27,356,728,560); the Cloudflare label is 27B and the Decision Index lists served_params 27.8B (base-model figure). HF repos created 2026-09-30; launch 2026-10-01. Open weights, Apache-2.0; training data and pipeline not published. Hosted on Workers AI (@cf/cloudflare/clef; body model field must be \"clef\"), OpenRouter, Requesty and sference (EU, <=16 questions). Needs about 54 GB VRAM in bf16 (independent report). RL fine-tuning service is design-partner only."
+  },
+  {
+   "id": "clef-flash",
+   "provider": "cloudflare",
+   "family": "Clef",
+   "status": "ga",
+   "aliases": [
+    "@cf/cloudflare/clef-flash",
+    "Cloudflare/clef-flash",
+    "cloudflare/clef-flash",
+    "Cloudflare clef-flash",
+    "Clef-flash",
+    "Clef Flash"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-9B",
+   "params_total": 9409813744,
+   "params_active": null,
+   "hf_repo": "Cloudflare/clef-flash",
+   "surfaces": [
+    "workers-ai",
+    "openrouter",
+    "self-host",
+    "hf-inference"
+   ],
+   "tier": "clef-flash",
+   "released": "2026-10-01",
+   "release_source_id": "cloudflare-changelog-clef",
+   "access": "general",
+   "caveat_ids": [
+    "latency-hosted-rtt-vs-on-card",
+    "vendor-run-eval-of-competitor",
+    "workers-ai-state-truncation-2k",
+    "abstention-and-out-of-scope",
+    "confidence-field-non-portable",
+    "leaderboard-edition-and-weighting-flip-rankings"
+   ],
+   "notes": "9B sibling of Clef (Qwen3.5-9B base; HF safetensors total 9,409,813,744; Decision Index served_params 9.65B). A different product from the 27B Clef: weaker on out-of-scope (CLINC150+OOS 66.77 vs 97.43 on Cloudflare card) and on the independent Nicia admission task. Same Workers AI schema, 64K context, <=64 questions."
+  },
+  {
+   "id": "openai-decisions-gpt-6-luna",
+   "provider": "openai",
+   "family": "OpenAI Decisions",
+   "status": "preview",
+   "aliases": [
+    "openai/gpt-6-luna-decisions",
+    "OpenAI Decisions",
+    "OpenAI Decisions (gpt-6-luna)",
+    "GPT-6 Luna Decisions",
+    "GPT-6-Luna (Decisions API)"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": "GPT-6 Luna (OpenAI: \"a version of GPT-6 Luna\")",
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "openai-api",
+    "openrouter"
+   ],
+   "access": "general",
+   "caveat_ids": [
+    "openai-decisions-api-limited-preview-now-measured-by-one-party",
+    "openai-decisions-status-changed",
+    "determinism-and-option-order"
+   ],
+   "notes": "POST https://api.openai.com/v1/decisions with gpt-6-luna (only model). Public beta on 2026-10-07 per docs (\"we expect to GA in the coming weeks\"); earlier research saw 403/limited preview, now superseded. Distinct from the generative gpt-6-luna in model-catalog (which has its own pricing and effort levels). OpenRouter listing openai/gpt-6-luna-decisions created 2026-10-06. Announced at DevDay 2026-09-29 (secondary reports). Not on the Decision Index. Question types predicate/choice/score; per-question refusal answer type."
+  },
+  {
+   "id": "pplx-decider-v1-27b",
+   "provider": "perplexity",
+   "family": "pplx-decider",
+   "status": "ga",
+   "aliases": [
+    "perplexity/pplx-decider-v1-27b",
+    "perplexity-ai/pplx-decider-v1-27b",
+    "Perplexity Decider V1 27B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.8-27B",
+   "params_total": 26085330160,
+   "params_active": null,
+   "hf_repo": "perplexity-ai/pplx-decider-v1-27b",
+   "surfaces": [
+    "other",
+    "openrouter",
+    "self-host",
+    "hf-inference"
+   ],
+   "access": "general",
+   "caveat_ids": [
+    "perplexity-price-conflict-direct-vs-router",
+    "parameter-counts-hf-vs-index"
+   ],
+   "notes": "Perplexity first-party Decisions API (POST https://api.perplexity.ai/v1/decisions; any Perplexity API key; 10 requests/s/org). Qwen3_5Model backbone + readout head [255,5120]; HF repo created 2026-10-01 (OpenRouter listing 2026-10-01). params_total is the HF safetensors total (26.09B); the Decision Index uses 27.8B. Direct price $0.02/M input vs $0.04/M on OpenRouter and Requesty (conflict, see pricing/ and caveats)."
+  },
+  {
+   "id": "pplx-decider-v1.1-27b",
+   "provider": "perplexity",
+   "family": "pplx-decider",
+   "status": "ga",
+   "aliases": [
+    "perplexity-ai/pplx-decider-v1.1-27b",
+    "Perplexity Decider v1.1 (27B)",
+    "pplx-decider-v1.1"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.8-27B",
+   "params_total": 26085330160,
+   "params_active": null,
+   "hf_repo": "perplexity-ai/pplx-decider-v1.1-27b",
+   "surfaces": [
+    "other",
+    "self-host",
+    "hf-inference"
+   ],
+   "access": "general",
+   "caveat_ids": [
+    "pplx-v1-1-repo-access-conflict",
+    "perplexity-price-conflict-direct-vs-router",
+    "parameter-counts-hf-vs-index"
+   ],
+   "notes": "Successor of v1; noncausal full-attention mode. HF repo created 2026-10-05. Rank 1 on the Decision Index 0.3 Full score (62.75). Not on OpenRouter or Requesty at retrieval. Card says private repository, Decision Index note says \"Repo access by request\", HF API showed gated:false on 2026-10-07 (unresolved)."
+  },
+  {
+   "id": "liquid-d1",
+   "provider": "liquid",
+   "family": "d1",
+   "status": "ga",
+   "aliases": [
+    "liquid/d1",
+    "d1",
+    "d1:free",
+    "Liquid AI d1",
+    "LiquidAI: d1"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": null,
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "other",
+    "openrouter"
+   ],
+   "access": "general",
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "Liquid AI decision model, public API (POST https://api.liquid.ai/decisions/v1/systemone; console key) plus free tier d1:free (text-only). Launched around 2026-09-29; OpenRouter created 2026-10-01. Not on the Decision Index. Liquid publishes no paid rate; $0.04/M is the OpenRouter listing. Docs: \"Each question is charged for its text and all supplied images\" (state may be billed per question; unverified)."
+  },
+  {
+   "id": "solar-decide",
+   "provider": "upstage",
+   "family": "Solar Decide",
+   "status": "preview",
+   "aliases": [
+    "upstage/solar-decide",
+    "Upstage Solar Decide"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": "Solar Mini 4",
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "other",
+    "openrouter"
+   ],
+   "released": "2026-09-28",
+   "release_source_id": "openrouter-page-upstage-solar-decide",
+   "caveat_ids": [
+    "solar-decide-price-discount-unclear"
+   ],
+   "notes": "Upstage beta (\"Solar Decide is in beta\"). Choice max 26 options (single-token labels A-Z; 422 beyond). 524,288-token context on OpenRouter. Parameter count is only in a third-party search summary (35B total / 3B active) and is not stored. Korean strength per Upstage."
+  },
+  {
+   "id": "mercury-decide",
+   "provider": "inception",
+   "family": "Mercury Decide",
+   "status": "third_party_board_only",
+   "aliases": [
+    "inception/mercury-decide:free",
+    "inception/mercury-decide"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": null,
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "openrouter"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "Known only from the OpenRouter free listing (created 2026-09-30, 32,768-token context). No Inception first-party docs found. Listing text says \"It makes up to 14 decisions per second\" (unit unclear)."
+  },
+  {
+   "id": "span-01",
+   "provider": "respan",
+   "family": "Span-01",
+   "status": "third_party_board_only",
+   "aliases": [
+    "respan/span-01",
+    "Span-01"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": null,
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "openrouter"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "Respan behavior scorer for AI traces (per behavior: present / absent / not_observable probabilities). Marketed as a behavior classifier, not a general typed-decision model; included because OpenRouter lists it in the decisions modality."
+  },
+  {
+   "id": "span-01-lite",
+   "provider": "respan",
+   "family": "Span-01",
+   "status": "third_party_board_only",
+   "aliases": [
+    "respan/span-01-lite",
+    "respan/span-01-lite:free",
+    "Span-01 Lite"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": null,
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "openrouter"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "Free Lite tier of Span-01 on OpenRouter (also a :free route). Highest OpenRouter decision-request volume after Jev in the rankings page."
+  },
+  {
+   "id": "fastino-glide-no-thinking-28b",
+   "provider": "fastino",
+   "family": "Fastino",
+   "status": "third_party_board_only",
+   "aliases": [
+    "decision-27b-ckpt-nothink",
+    "Fastino GLiDE no-thinking (28B)",
+    "Fastino GLiDE",
+    "GLiDE (Fastino)"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": null,
+   "params_total": 27800000000,
+   "params_active": null,
+   "hf_repo": null,
+   "notes": "Fastino GLiDE. Decision Index weights_note: \"Open weights coming soon\" (closed at retrieval). A hosted API appears on JevBench and StreamDecisionBench. Rank 2 on the Decision Index Full score (60.21). Per-benchmark times are batch wall-clock; the latency shown is the single-request measurement. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "decider-chat-gemma-4-31b",
+   "provider": "community",
+   "family": "Decider",
+   "status": "third_party_board_only",
+   "aliases": [
+    "decider-chat-gemma4-31b",
+    "Decider chat · Gemma-4-31B"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "google/gemma-4-31B",
+   "params_total": 32682372656,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key decider-chat-gemma4-31b). Kind: inference technique; technique: autoregressive. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "surogate-rune-26b-a4b",
+   "provider": "surogate",
+   "family": "Surogate",
+   "status": "community_finetune",
+   "aliases": [
+    "rune-26b-a4b-v3",
+    "Surogate Rune 26B-A4B v3",
+    "surogate/rune-26b-a4b-GGUF",
+    "Surogate Rune 26B-A4B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "google/gemma-4-26B-A4B-it",
+   "params_total": 25805936206,
+   "params_active": 4000000000.0,
+   "hf_repo": "surogate/rune-26b-a4b-GGUF",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Surogate (invergent-ai) Rune: full fine-tune of Gemma-4-26B-A4B-it. HF repo gated \"auto\" and README unreadable (HTTP 401) at retrieval; the official repo name ends in -GGUF but holds bf16 safetensors (51.6 GB). Serves POST /v1/decisions via the surogate engine. params_active of about 4B is read from the A4B model name and not independently verified. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-21 (HF API); not a release date."
+  },
+  {
+   "id": "vllm-sr-decision-2.0-vega-27b",
+   "provider": "vllm-semantic-router",
+   "family": "vLLM-SR",
+   "status": "community_finetune",
+   "aliases": [
+    "decision-2.0-vega-27b",
+    "vLLM-SR Decision 2.0 Vega 27B",
+    "vllm-sr/Decision-2.0-Vega-27B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.8-27B",
+   "params_total": 27800000000,
+   "params_active": null,
+   "hf_repo": "vllm-sr/Decision-2.0-Vega-27B",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key decision-2.0-vega-27b). Kind: LoRA + head; technique: autoregressive. Org on the board: vLLM Semantic Router. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-29 (HF API); not a release date."
+  },
+  {
+   "id": "kev-27b",
+   "provider": "community",
+   "family": "Kev",
+   "status": "community_finetune",
+   "aliases": [
+    "Kev 27B",
+    "jaredpalmer/kev-27b",
+    "Kev-27B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.8-27B",
+   "params_total": 27800000000,
+   "params_active": null,
+   "hf_repo": "jaredpalmer/kev-27b",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Jared Palmer Kev 1.0 family (Apache-2.0). Kev 27B reaches 58.78 Full score on Decision Index 0.3. Independent report: first cold start 6 minutes (51 GB download) on Modal. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-24 (HF API); not a release date."
+  },
+  {
+   "id": "xor-26b-a4b",
+   "provider": "juspay-technologies",
+   "family": "Xor",
+   "status": "community_finetune",
+   "aliases": [
+    "Xor 26B-A4B",
+    "juspay/Xor-26B-A4B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "google/gemma-4-26B-A4B-it",
+   "params_total": 25800000000,
+   "params_active": 4000000000.0,
+   "hf_repo": "juspay/Xor-26B-A4B",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Juspay Xor 26B-A4B 1.0 (HF repo created 2026-10-01), Gemma-4-26B-A4B-it LoRA; NVFP4 build exists. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-01 (HF API); not a release date."
+  },
+  {
+   "id": "jebadiah-27b",
+   "provider": "frontier-infra",
+   "family": "Jebadiah",
+   "status": "community_finetune",
+   "aliases": [
+    "Jebadiah 27B",
+    "frontier-infra/jebadiah-27b"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.8-27B",
+   "params_total": 27781427952,
+   "params_active": null,
+   "hf_repo": "frontier-infra/jebadiah-27b",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Frontier Infra merged LoRA on Qwen3.8-27B (thinking off). Latency was author-submitted (\"not re-timed by us\"). params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-26 (HF API); not a release date."
+  },
+  {
+   "id": "blink-v0.3-26b-a4b-nvfp4",
+   "provider": "pixilab-ai",
+   "family": "Blink",
+   "status": "community_finetune",
+   "aliases": [
+    "Blink v0.3 26B-A4B (NVFP4)",
+    "PixilabAI/Blink-v0.3-26B-A4B-NVFP4"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "google/gemma-4-26B-A4B-it",
+   "params_total": 25800000000,
+   "params_active": null,
+   "hf_repo": "PixilabAI/Blink-v0.3-26B-A4B-NVFP4",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key blink-v0.3-26b-a4b-nvfp4). Kind: full fine-tune; technique: autoregressive. Org on the board: Pixilab.ai. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-02 (HF API); not a release date."
+  },
+  {
+   "id": "simple-jev-qwen3.8-27b-featherless",
+   "provider": "community",
+   "family": "simple-jev",
+   "status": "third_party_board_only",
+   "aliases": [
+    "simple-jev-qwen3.8-27b",
+    "simple-jev · Qwen3.8-27B (featherless)"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "Qwen/Qwen3.8-27B",
+   "params_total": 27781427952,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key simple-jev-qwen3.8-27b). Kind: inference technique; technique: autoregressive. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "jev-27b",
+   "provider": "autotrust-ai-lab",
+   "family": "JEV-27B",
+   "status": "community_finetune",
+   "aliases": [
+    "JEV-27B",
+    "autotrust/JEV-27B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.8-27B",
+   "params_total": 27800000000,
+   "params_active": null,
+   "hf_repo": "autotrust/JEV-27B",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jev-27b). Kind: full fine-tune; technique: autoregressive. Org on the board: AutoTrust AI Lab. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-25 (HF API); not a release date."
+  },
+  {
+   "id": "eikos-27b",
+   "provider": "community",
+   "family": "Eikos-27B",
+   "status": "community_finetune",
+   "aliases": [
+    "eikos-27b-fp8",
+    "Eikos-27B",
+    "caiovicentino1/Eikos-27B",
+    "caiovicentino1/Eikos-27B-FP8"
+   ],
+   "weights": "open",
+   "license": "MIT",
+   "base_model": "Qwen/Qwen3.8-27B",
+   "params_total": 27781427952,
+   "params_active": null,
+   "hf_repo": "caiovicentino1/Eikos-27B-FP8",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "decision-index-contamination-handling",
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Finance/trading focus; LoRA on Qwen3.8-27B distilled from teacher GLM-5.3-Flash; MIT license per HF cardData. Up to 160 options in one pass. Contamination: 979 FinEntity items the entrant trained on count as wrong on the board. The Decision Index entrant ran the FP8 build. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-23 (HF API); not a release date."
+  },
+  {
+   "id": "jade",
+   "provider": "community",
+   "family": "JADE",
+   "status": "community_finetune",
+   "aliases": [
+    "JADE",
+    "theunnecessarythings/JADE"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.8-27B",
+   "params_total": 27800000000,
+   "params_active": null,
+   "hf_repo": "theunnecessarythings/JADE",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jade). Kind: LoRA; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-01 (HF API); not a release date."
+  },
+  {
+   "id": "gev-26b-decide",
+   "provider": "autotrust-ai-lab",
+   "family": "GEV-26B-Decide",
+   "status": "community_finetune",
+   "aliases": [
+    "jev-gemma4-26b-a4b",
+    "GEV-26B-Decide",
+    "autotrust/GEV-26B-Decide"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "google/gemma-4-26B-A4B-it",
+   "params_total": 25800000000,
+   "params_active": null,
+   "hf_repo": "autotrust/GEV-26B-Decide",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jev-gemma4-26b-a4b). Kind: LoRA; technique: autoregressive. Org on the board: AutoTrust AI Lab. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-02 (HF API); not a release date."
+  },
+  {
+   "id": "xor-1.2",
+   "provider": "juspay-technologies",
+   "family": "Xor",
+   "status": "community_finetune",
+   "aliases": [
+    "Xor 1.2",
+    "juspay/xor",
+    "Xor 1.1"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.6-35B-A3B",
+   "params_total": 35950000000,
+   "params_active": 3000000000.0,
+   "hf_repo": "juspay/xor",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Juspay Xor 1.2 (branch release/xor-1.2; main = Xor 1.1): LoRA r16 merged on Qwen3.6-35B-A3B. Images up to 8 or one video; body <= 8 MB. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-21 (HF API); not a release date."
+  },
+  {
+   "id": "reflex-27b",
+   "provider": "community",
+   "family": "reflex",
+   "status": "third_party_board_only",
+   "aliases": [
+    "reflex-27b-v2",
+    "reflex 27B"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "Qwen/Qwen3.8-27B",
+   "params_total": 27781427952,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key reflex-27b-v2). Kind: inference technique; technique: autoregressive. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "decider-chat-qwen3.6-27b",
+   "provider": "community",
+   "family": "Decider",
+   "status": "third_party_board_only",
+   "aliases": [
+    "Decider chat · Qwen3.6-27B"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "Qwen/Qwen3.6-27B",
+   "params_total": 27781427952,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key decider-chat-qwen3.6-27b). Kind: inference technique; technique: autoregressive. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "joshuasp-diffusiongemma-open-jev",
+   "provider": "community",
+   "family": "JoshuaSP",
+   "status": "third_party_board_only",
+   "aliases": [
+    "joshua-diffusion-full",
+    "JoshuaSP diffusiongemma (open-jev)"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "google/diffusiongemma-26B-A4B-it",
+   "params_total": 25823778864,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key joshua-diffusion-full). Kind: inference technique; technique: diffusion. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "winnow-12b",
+   "provider": "community",
+   "family": "Winnow-12B",
+   "status": "community_finetune",
+   "aliases": [
+    "winnow-12b-q8",
+    "Winnow-12B",
+    "EldanRing/Winnow-12B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "google/gemma-4-12B",
+   "params_total": 11959730224,
+   "params_active": null,
+   "hf_repo": "EldanRing/Winnow-12B",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "EldanRing Winnow-12B (Gemma-4-12B LoRA merged); GGUF Q8_0 12.67 GB; llama.cpp-based server. API.md: 1-256 questions per request and 2-64 alternatives per question. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-20 (HF API); not a release date."
+  },
+  {
+   "id": "jevfire",
+   "provider": "community",
+   "family": "Jevfire",
+   "status": "third_party_board_only",
+   "aliases": [
+    "jevfire-uncapped",
+    "Jevfire"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "Qwen/Qwen3.8-27B",
+   "params_total": 27781427952,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jevfire-uncapped). Kind: inference technique; technique: autoregressive. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "vllm-sr-decision-2.0-lux-9b",
+   "provider": "vllm-semantic-router",
+   "family": "vLLM-SR",
+   "status": "community_finetune",
+   "aliases": [
+    "decision-2.0-lux-9b",
+    "vLLM-SR Decision 2.0 Lux 9B",
+    "vllm-sr/Decision-2.0-Lux-9B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-9B",
+   "params_total": 9650000000,
+   "params_active": null,
+   "hf_repo": "vllm-sr/Decision-2.0-Lux-9B",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key decision-2.0-lux-9b). Kind: full fine-tune; technique: autoregressive. Org on the board: vLLM Semantic Router. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-29 (HF API); not a release date."
+  },
+  {
+   "id": "bespoke-nimble-9b-v3",
+   "provider": "bespoke-labs",
+   "family": "Bespoke",
+   "status": "community_finetune",
+   "aliases": [
+    "nimble-v3",
+    "Bespoke Nimble 9B v3",
+    "bespokelabs/Bespoke-Nimble-9B-v3"
+   ],
+   "weights": "open",
+   "license": "CC-BY-NC-4.0",
+   "base_model": "Qwen/Qwen3.5-9B",
+   "params_total": 9650000000,
+   "params_active": null,
+   "hf_repo": "bespokelabs/Bespoke-Nimble-9B-v3",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key nimble-v3). Kind: LoRA; technique: autoregressive. Org on the board: Bespoke Labs. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-30 (HF API); not a release date."
+  },
+  {
+   "id": "jevk5-9b-v0.3.3",
+   "provider": "community",
+   "family": "JevK5",
+   "status": "community_finetune",
+   "aliases": [
+    "JevK5 9B v0.3.3",
+    "alibiserikbay/JevK5-9B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-9B",
+   "params_total": 9650000000,
+   "params_active": null,
+   "hf_repo": "alibiserikbay/JevK5-9B",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jevk5-9b-v0.3.3). Kind: LoRA; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-25 (HF API); not a release date."
+  },
+  {
+   "id": "jpt-9b",
+   "provider": "community",
+   "family": "JPT-9B",
+   "status": "community_finetune",
+   "aliases": [
+    "JPT-9B",
+    "kirp/jpt-9b"
+   ],
+   "weights": "open",
+   "license": "CC-BY-NC-4.0",
+   "base_model": "Qwen/Qwen3.5-9B-Base",
+   "params_total": 9653104368,
+   "params_active": null,
+   "hf_repo": "kirp/jpt-9b",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "license-noncommercial-jpt",
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "kirp JPT family; license CC BY-NC 4.0 (NON-COMMERCIAL). params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-25 (HF API); not a release date."
+  },
+  {
+   "id": "jev-9b",
+   "provider": "autotrust-ai-lab",
+   "family": "JEV-9B",
+   "status": "community_finetune",
+   "aliases": [
+    "JEV-9B",
+    "autotrust/JEV-9B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-9B",
+   "params_total": 9650000000,
+   "params_active": null,
+   "hf_repo": "autotrust/JEV-9B",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jev-9b). Kind: full fine-tune; technique: autoregressive. Org on the board: AutoTrust AI Lab. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-23 (HF API); not a release date."
+  },
+  {
+   "id": "sieve-9b",
+   "provider": "sth-nika-ai",
+   "family": "Sieve",
+   "status": "community_finetune",
+   "aliases": [
+    "Sieve 9B",
+    "sthanika-ai/Sieve-9B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-9B",
+   "params_total": 9650000000,
+   "params_active": null,
+   "hf_repo": "sthanika-ai/Sieve-9B",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key sieve-9b). Kind: LoRA + head; technique: autoregressive. Org on the board: Sthānika AI. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-29 (HF API); not a release date."
+  },
+  {
+   "id": "kev-9b",
+   "provider": "community",
+   "family": "Kev",
+   "status": "community_finetune",
+   "aliases": [
+    "kev-9b-v2",
+    "Kev 9B v2",
+    "jaredpalmer/kev-9b",
+    "Kev 9B",
+    "Kev-9B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-9B-Base",
+   "params_total": 9650000000,
+   "params_active": null,
+   "hf_repo": "jaredpalmer/kev-9b",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Kev 9B v2 on the Decision Index; the Cloudflare card table used an earlier engine (kev-9b-raised). params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-20 (HF API); not a release date."
+  },
+  {
+   "id": "jev-omni",
+   "provider": "community",
+   "family": "Jev-Omni",
+   "status": "community_finetune",
+   "aliases": [
+    "Jev-Omni",
+    "akhilaaa3/Jev-Omni"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "google/gemma-4-12B",
+   "params_total": 11959730224,
+   "params_active": null,
+   "hf_repo": "akhilaaa3/Jev-Omni",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jev-omni). Kind: LoRA + head; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-20 (HF API); not a release date."
+  },
+  {
+   "id": "vllm-sr-decision-2.0-nox-4b",
+   "provider": "vllm-semantic-router",
+   "family": "vLLM-SR",
+   "status": "community_finetune",
+   "aliases": [
+    "decision-2.0-nox-4b",
+    "vLLM-SR Decision 2.0 Nox 4B",
+    "vllm-sr/Decision-2.0-Nox-4B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-4B-Base",
+   "params_total": 4210000000,
+   "params_active": null,
+   "hf_repo": "vllm-sr/Decision-2.0-Nox-4B",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key decision-2.0-nox-4b). Kind: LoRA + head; technique: autoregressive. Org on the board: vLLM Semantic Router. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-29 (HF API); not a release date."
+  },
+  {
+   "id": "decider-35b-a3b",
+   "provider": "community",
+   "family": "Decider",
+   "status": "community_finetune",
+   "aliases": [
+    "decider-35b-nvfp4",
+    "Decider 35B-A3B",
+    "Mapika/decider-35b-a3b",
+    "Mapika/decider-35b-a3b-nvfp4"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-35B-A3B-Base",
+   "params_total": 35951822704,
+   "params_active": 3000000000.0,
+   "hf_repo": "Mapika/decider-35b-a3b-nvfp4",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Mapika decider-35b-a3b (Qwen3.5-35B-A3B-Base; 3B active; 65 GB bf16, NVFP4 build 19.6 GB). The Decision Index ran the NVFP4 build. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-20 (HF API); not a release date."
+  },
+  {
+   "id": "djev",
+   "provider": "community",
+   "family": "djev",
+   "status": "third_party_board_only",
+   "aliases": [],
+   "weights": "open",
+   "license": null,
+   "base_model": "google/diffusiongemma-26B-A4B-it",
+   "params_total": 25823778864,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key djev). Kind: inference technique; technique: diffusion. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "jpt-4b",
+   "provider": "community",
+   "family": "JPT-4B",
+   "status": "community_finetune",
+   "aliases": [
+    "JPT-4B",
+    "kirp/jpt-4b"
+   ],
+   "weights": "open",
+   "license": "CC-BY-NC-4.0",
+   "base_model": "Qwen/Qwen3.5-4B-Base",
+   "params_total": 4659865088,
+   "params_active": null,
+   "hf_repo": "kirp/jpt-4b",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "license-noncommercial-jpt",
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "kirp JPT family; license CC BY-NC 4.0 (NON-COMMERCIAL). params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-24 (HF API); not a release date."
+  },
+  {
+   "id": "jet-v6.2",
+   "provider": "community",
+   "family": "Jet",
+   "status": "community_finetune",
+   "aliases": [
+    "Jet v6.2",
+    "michaljach/jet",
+    "Jet v6.2.0"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-4B-Base",
+   "params_total": 4659865088,
+   "params_active": null,
+   "hf_repo": "michaljach/jet",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "michaljach Jet v6.2.0 (full merged BF16 text model on Qwen3.5-4B). Author states its confidence is not calibrated. Runtime accepts prompts up to 16,384 tokens; questions processed separately. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-23 (HF API); not a release date."
+  },
+  {
+   "id": "bespoke-nimble-9b-v2",
+   "provider": "bespoke-labs",
+   "family": "Bespoke",
+   "status": "community_finetune",
+   "aliases": [
+    "nimble-v2",
+    "Bespoke Nimble 9B v2",
+    "bespokelabs/Bespoke-Nimble-9B-v2"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-9B-Base",
+   "params_total": 9653104368,
+   "params_active": null,
+   "hf_repo": "bespokelabs/Bespoke-Nimble-9B-v2",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key nimble-v2). Kind: LoRA; technique: autoregressive. Org on the board: Bespoke Labs. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-23 (HF API); not a release date."
+  },
+  {
+   "id": "hopper-g-1.2",
+   "provider": "hopitai",
+   "family": "Hopper",
+   "status": "community_finetune",
+   "aliases": [
+    "Hopper (G) 1.2",
+    "HopitAI/hopper-g"
+   ],
+   "weights": "open",
+   "license": "other (Hugging Face cardData license field: other)",
+   "base_model": "Qwen/Qwen3.5-4B-Base",
+   "params_total": 4659865088,
+   "params_active": null,
+   "hf_repo": "HopitAI/hopper-g",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key hopper-g-1.2). Kind: LoRA; technique: autoregressive. Org on the board: HopitAI. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-26 (HF API); not a release date."
+  },
+  {
+   "id": "razorback16-openjev-diffusiongemma-nvfp4-vllm",
+   "provider": "community",
+   "family": "razorback16",
+   "status": "third_party_board_only",
+   "aliases": [
+    "razorback-one-read-3e296f08",
+    "razorback16 openjev diffusiongemma (NVFP4, vLLM)"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "google/diffusiongemma-26B-A4B-it",
+   "params_total": 25823778864,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key razorback-one-read-3e296f08). Kind: inference technique; technique: diffusion. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "kev-4b",
+   "provider": "community",
+   "family": "Kev",
+   "status": "community_finetune",
+   "aliases": [
+    "kev-4b-r10",
+    "Kev 4B r10",
+    "jaredpalmer/kev-4b",
+    "Kev-4B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-4B-Base",
+   "params_total": 4660000000,
+   "params_active": null,
+   "hf_repo": "jaredpalmer/kev-4b",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Kev 4B r10. Hosted by SiliconFlow on OpenRouter as jaredpalmer/kev-4b (8,192-token context; p50 3.06 s on the OpenRouter page). params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-19 (HF API); not a release date."
+  },
+  {
+   "id": "lev",
+   "provider": "interfaze",
+   "family": "lev",
+   "status": "community_finetune",
+   "aliases": [
+    "interfaze-ai/lev"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-4B-Base",
+   "params_total": 4659865088,
+   "params_active": null,
+   "hf_repo": "interfaze-ai/lev",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key lev). Kind: LoRA + head; technique: autoregressive. Org on the board: Interfaze. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-24 (HF API); not a release date."
+  },
+  {
+   "id": "solomon-v1.1",
+   "provider": "doccy-health",
+   "family": "Solomon",
+   "status": "community_finetune",
+   "aliases": [
+    "solomon-v11-bf16-encoding",
+    "Solomon v1.1",
+    "DoccyHealth/Solomon"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.8-27B",
+   "params_total": 27781427952,
+   "params_active": null,
+   "hf_repo": "DoccyHealth/Solomon",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key solomon-v11-bf16-encoding). Kind: head / adapter; technique: autoregressive. Org on the board: Doccy Health. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-21 (HF API); not a release date."
+  },
+  {
+   "id": "jevk5-v0.3",
+   "provider": "community",
+   "family": "JevK5",
+   "status": "community_finetune",
+   "aliases": [
+    "JevK5 v0.3",
+    "alibiserikbay/JevK5"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-4B",
+   "params_total": 4660000000,
+   "params_active": null,
+   "hf_repo": "alibiserikbay/JevK5",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jevk5-v0.3). Kind: LoRA; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-22 (HF API); not a release date."
+  },
+  {
+   "id": "neohorse-jev-4b",
+   "provider": "tokenrhythm",
+   "family": "NeoHorse-Jev-4B",
+   "status": "community_finetune",
+   "aliases": [
+    "NeoHorse-Jev-4B",
+    "TokenRhythm/NeoHorse-Jev-4B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-4B-Base",
+   "params_total": 4659865088,
+   "params_active": null,
+   "hf_repo": "TokenRhythm/NeoHorse-Jev-4B",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key neohorse-jev-4b). Kind: head / adapter; technique: autoregressive. Org on the board: TokenRhythm. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-23 (HF API); not a release date."
+  },
+  {
+   "id": "ryotide-qwen-v0.3.1",
+   "provider": "community",
+   "family": "Ryotide",
+   "status": "third_party_board_only",
+   "aliases": [
+    "Ryotide Qwen v0.3.1"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "Qwen/Qwen3.5-4B",
+   "params_total": 4000000000,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key ryotide-qwen-v0.3.1). Kind: inference technique; technique: autoregressive. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "intern-decision-4b",
+   "provider": "intern-large-models",
+   "family": "Intern-Decision-4B",
+   "status": "community_finetune",
+   "aliases": [
+    "Intern-Decision-4B",
+    "internlm/Intern-Decision-4B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-4B-Base",
+   "params_total": 4659865088,
+   "params_active": null,
+   "hf_repo": "internlm/Intern-Decision-4B",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key intern-decision-4b). Kind: full fine-tune; technique: autoregressive. Org on the board: Intern Large Models. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-26 (HF API); not a release date."
+  },
+  {
+   "id": "winnow-e4b",
+   "provider": "community",
+   "family": "Winnow-E4B",
+   "status": "community_finetune",
+   "aliases": [
+    "winnow-e4b-q8",
+    "Winnow-E4B",
+    "EldanRing/Winnow-E4B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "google/gemma-4-E4B",
+   "params_total": 7996156490,
+   "params_active": null,
+   "hf_repo": "EldanRing/Winnow-E4B",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "EldanRing Winnow-E4B (Gemma-4-E4B base). params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-24 (HF API); not a release date."
+  },
+  {
+   "id": "decider-4b",
+   "provider": "community",
+   "family": "Decider",
+   "status": "community_finetune",
+   "aliases": [
+    "Decider 4B",
+    "decider-4b-v2.1",
+    "Mapika/decider-4b"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-4B-Base",
+   "params_total": 4659865088,
+   "params_active": null,
+   "hf_repo": "Mapika/decider-4b",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "local-measurement-busy-cpu",
+    "fanout-independence-holds-for-jev-only-per-vendor-evidence",
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Mapika decider-4b v2.1 on Qwen3.5-4B-Base (8.4 GB bf16). Our local CPU measurements use the Q4_K_M GGUF. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-22 (HF API); not a release date."
+  },
+  {
+   "id": "mmastrac-diffusiongemma-vllm-pr-57250",
+   "provider": "community",
+   "family": "mmastrac",
+   "status": "third_party_board_only",
+   "aliases": [
+    "vllm-pr57250",
+    "mmastrac diffusiongemma (vLLM PR 57250)"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "google/diffusiongemma-26B-A4B-it",
+   "params_total": 25823778864,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key vllm-pr57250). Kind: inference technique; technique: diffusion. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "intelif-qwen3-4b",
+   "provider": "community",
+   "family": "Intelif",
+   "status": "community_finetune",
+   "aliases": [
+    "Intelif Qwen3-4B",
+    "UserMoonlight/intelif-qwen3-4b"
+   ],
+   "weights": "open",
+   "license": "CC-BY-NC-4.0",
+   "base_model": "Qwen/Qwen3-4B",
+   "params_total": 4020000000,
+   "params_active": null,
+   "hf_repo": "UserMoonlight/intelif-qwen3-4b",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key intelif-qwen3-4b). Kind: LoRA + head; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-29 (HF API); not a release date."
+  },
+  {
+   "id": "jobe",
+   "provider": "community",
+   "family": "Jobe",
+   "status": "third_party_board_only",
+   "aliases": [
+    "Jobe"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "Qwen/Qwen3.5-4B-Base",
+   "params_total": 4659865088,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jobe). Kind: inference technique; technique: autoregressive. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "gevva-e4b",
+   "provider": "community",
+   "family": "Gevva",
+   "status": "community_finetune",
+   "aliases": [
+    "Gevva E4B",
+    "davidburhans/gevva-e4b"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "google/gemma-4-E4B-it",
+   "params_total": 8000000000,
+   "params_active": null,
+   "hf_repo": "davidburhans/gevva-e4b",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key gevva-e4b). Kind: full fine-tune; technique: encoder. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-25 (HF API); not a release date."
+  },
+  {
+   "id": "open-jev-pngwn",
+   "provider": "community",
+   "family": "open-jev",
+   "status": "community_finetune",
+   "aliases": [
+    "pngwn-space-uncapped-full",
+    "open-jev (pngwn)",
+    "pngwn/system-one-qwen3.5-4b-scorer-v2b"
+   ],
+   "weights": "open",
+   "license": "CC-BY-NC-4.0",
+   "base_model": "Qwen/Qwen3.5-4B-Base",
+   "params_total": 4659865088,
+   "params_active": null,
+   "hf_repo": "pngwn/system-one-qwen3.5-4b-scorer-v2b",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key pngwn-space-uncapped-full). Kind: LoRA; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-17 (HF API); not a release date."
+  },
+  {
+   "id": "tev1-4b",
+   "provider": "together",
+   "family": "Tev1-4B-experimental",
+   "status": "research_release",
+   "aliases": [
+    "Tev1-4B-experimental",
+    "togethercomputer/tev1-4b-experimental",
+    "togethercomputer/Tev1-4B-experimental"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "Qwen/Qwen3.5-4B-Base",
+   "params_total": 4659865088,
+   "params_active": null,
+   "hf_repo": "togethercomputer/Tev1-4B-experimental",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models",
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Together AI experimental 4B. NOT a probability-returning System One endpoint: chat completions that return a single option letter (temperature 0, max_tokens 8), single choice among 2-24 labeled options only. Listed in the OpenRouter decisions modality (32,768 context). params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-23 (HF API); not a release date."
+  },
+  {
+   "id": "openvons",
+   "provider": "community",
+   "family": "openvons",
+   "status": "third_party_board_only",
+   "aliases": [],
+   "weights": "open",
+   "license": null,
+   "base_model": "Qwen/Qwen3-4B-Instruct-2507",
+   "params_total": 4022468096,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key openvons). Kind: inference technique; technique: autoregressive. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "gevva-e2b",
+   "provider": "community",
+   "family": "Gevva",
+   "status": "community_finetune",
+   "aliases": [
+    "Gevva E2B",
+    "davidburhans/gevva-e2b"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "google/gemma-4-E2B-it",
+   "params_total": 5100000000,
+   "params_active": null,
+   "hf_repo": "davidburhans/gevva-e2b",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key gevva-e2b). Kind: full fine-tune; technique: encoder. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-24 (HF API); not a release date."
+  },
+  {
+   "id": "metask-jev-4b",
+   "provider": "metask-ai-lab",
+   "family": "Metask-Jev-4B",
+   "status": "community_finetune",
+   "aliases": [
+    "Metask-Jev-4B",
+    "wayfind/metask-jev-4b-policy-mix"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-4B-Base",
+   "params_total": 4659865088,
+   "params_active": null,
+   "hf_repo": "wayfind/metask-jev-4b-policy-mix",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key metask-jev-4b). Kind: LoRA; technique: autoregressive. Org on the board: Metask-AI-Lab. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-21 (HF API); not a release date."
+  },
+  {
+   "id": "semif",
+   "provider": "community",
+   "family": "SemIf",
+   "status": "third_party_board_only",
+   "aliases": [
+    "SemIf"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "Qwen/Qwen3.5-4B-Base",
+   "params_total": 4659865088,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key semif). Kind: inference technique; technique: autoregressive. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "jev-style-2b-v3",
+   "provider": "community",
+   "family": "Jev-Style",
+   "status": "community_finetune",
+   "aliases": [
+    "Jev-Style 2B v3",
+    "chaoliangUNSW/Jev-Style-2B-Decision-v3"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-2B",
+   "params_total": 2270000000,
+   "params_active": null,
+   "hf_repo": "chaoliangUNSW/Jev-Style-2B-Decision-v3",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jev-style-2b-v3). Kind: full fine-tune; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-27 (HF API); not a release date."
+  },
+  {
+   "id": "mini-jev",
+   "provider": "community",
+   "family": "mini-jev",
+   "status": "third_party_board_only",
+   "aliases": [],
+   "weights": "open",
+   "license": null,
+   "base_model": "Qwen/Qwen3-4B-Instruct-2507",
+   "params_total": 4022468096,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key mini-jev). Kind: inference technique; technique: autoregressive. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "sieve-2b",
+   "provider": "sth-nika-ai",
+   "family": "Sieve",
+   "status": "community_finetune",
+   "aliases": [
+    "Sieve 2B",
+    "sthanika-ai/sieve-2b"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-2B-Base",
+   "params_total": 2270000000,
+   "params_active": null,
+   "hf_repo": "sthanika-ai/sieve-2b",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key sieve-2b). Kind: LoRA + head; technique: autoregressive. Org on the board: Sthānika AI. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-29 (HF API); not a release date."
+  },
+  {
+   "id": "decider-2b",
+   "provider": "community",
+   "family": "Decider",
+   "status": "community_finetune",
+   "aliases": [
+    "decider-2b-fp8-http",
+    "Decider 2B",
+    "decider-2b-v11",
+    "Mapika/decider-2b"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-2B-Base",
+   "params_total": 2274069824,
+   "params_active": null,
+   "hf_repo": "Mapika/decider-2b",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "local-measurement-busy-cpu",
+    "fanout-independence-holds-for-jev-only-per-vendor-evidence",
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Mapika open reproduction of System One (decider-ai package; TypeSafe-shaped /v1/systemone). Card model decider-2b v11 on Qwen3.5-2B-Base. Decision Index entrant \"Decider 2B\" ran FP8 over HTTP with CUDA graphs (latency 8.1 ms median). Our own local CPU measurements use the v11 Q8_0 GGUF. HF safetensors total 1,881,825,088; Decision Index served_params 2,274,069,824. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-16 (HF API); not a release date."
+  },
+  {
+   "id": "vllm-sr-decision-2.0-sol-2b",
+   "provider": "vllm-semantic-router",
+   "family": "vLLM-SR",
+   "status": "community_finetune",
+   "aliases": [
+    "decision-2.0-sol-2b",
+    "vLLM-SR Decision 2.0 Sol 2B",
+    "vllm-sr/Decision-2.0-Sol-2B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-2B",
+   "params_total": 2270000000,
+   "params_active": null,
+   "hf_repo": "vllm-sr/Decision-2.0-Sol-2B",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key decision-2.0-sol-2b). Kind: full fine-tune; technique: autoregressive. Org on the board: vLLM Semantic Router. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-28 (HF API); not a release date."
+  },
+  {
+   "id": "intern-decision-2b",
+   "provider": "intern-large-models",
+   "family": "Intern-Decision-2B",
+   "status": "community_finetune",
+   "aliases": [
+    "Intern-Decision-2B",
+    "internlm/Intern-Decision-2B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-2B-Base",
+   "params_total": 2274069824,
+   "params_active": null,
+   "hf_repo": "internlm/Intern-Decision-2B",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key intern-decision-2b). Kind: full fine-tune; technique: autoregressive. Org on the board: Intern Large Models. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-26 (HF API); not a release date."
+  },
+  {
+   "id": "jpt-0.8b",
+   "provider": "community",
+   "family": "JPT-0.8B",
+   "status": "community_finetune",
+   "aliases": [
+    "JPT-0.8B",
+    "kirp/jpt-0.8b"
+   ],
+   "weights": "open",
+   "license": "CC-BY-NC-4.0",
+   "base_model": "Qwen/Qwen3.5-0.8B-Base",
+   "params_total": 873438784,
+   "params_active": null,
+   "hf_repo": "kirp/jpt-0.8b",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "license-noncommercial-jpt",
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "kirp JPT family; license CC BY-NC 4.0 (NON-COMMERCIAL). params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-24 (HF API); not a release date."
+  },
+  {
+   "id": "this-that-1.2",
+   "provider": "flock-io",
+   "family": "this-that",
+   "status": "community_finetune",
+   "aliases": [
+    "this-that 1.2",
+    "flock-io/this-that-model-1.2"
+   ],
+   "weights": "open",
+   "license": "MIT",
+   "base_model": "Mapika/decider-2b",
+   "params_total": 1881825088,
+   "params_active": null,
+   "hf_repo": "flock-io/this-that-model-1.2",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key this-that-1.2). Kind: full fine-tune; technique: autoregressive. Org on the board: FLock.io. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-23 (HF API); not a release date."
+  },
+  {
+   "id": "bosun-v3.1-1.7b",
+   "provider": "hanno-labs",
+   "family": "Bosun",
+   "status": "community_finetune",
+   "aliases": [
+    "Bosun v3.1 1.7B",
+    "Hanno-Labs/bosun-v3.1-1.7b"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3-1.7B-Base",
+   "params_total": 1720574976,
+   "params_active": null,
+   "hf_repo": "Hanno-Labs/bosun-v3.1-1.7b",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key bosun-v3.1-1.7b). Kind: LoRA + head; technique: autoregressive. Org on the board: Hanno Labs. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-22 (HF API); not a release date."
+  },
+  {
+   "id": "dinah-0",
+   "provider": "community",
+   "family": "Dinah-0",
+   "status": "community_finetune",
+   "aliases": [
+    "Dinah-0",
+    "Lukitaduarte/dinah-0"
+   ],
+   "weights": "open",
+   "license": "CC-BY-NC-4.0",
+   "base_model": "Tropic-AI/moBERTo",
+   "params_total": 150000000,
+   "params_active": null,
+   "hf_repo": "Lukitaduarte/dinah-0",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key dinah-0). Kind: full fine-tune; technique: encoder. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-28 (HF API); not a release date."
+  },
+  {
+   "id": "kodiak-v0.2-1b-accuracy",
+   "provider": "cortex-agent-llc",
+   "family": "Kodiak",
+   "status": "community_finetune",
+   "aliases": [
+    "Kodiak v0.2 1B (accuracy)",
+    "cortex-agent-llc/kodiak-v0.2-1b-accuracy"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "jhu-clsp/ettin-encoder-1b",
+   "params_total": 3000000000,
+   "params_active": null,
+   "hf_repo": "cortex-agent-llc/kodiak-v0.2-1b-accuracy",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key kodiak-v0.2-1b-accuracy). Kind: full fine-tune; technique: encoder. Org on the board: Cortex Agent LLC. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-02 (HF API); not a release date."
+  },
+  {
+   "id": "onejev-0.8b",
+   "provider": "omnijev",
+   "family": "OneJev",
+   "status": "community_finetune",
+   "aliases": [
+    "OneJev 0.8B",
+    "OmniJev/OneJev-0.8B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-0.8B",
+   "params_total": 870000000,
+   "params_active": null,
+   "hf_repo": "OmniJev/OneJev-0.8B",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key onejev-0.8b). Kind: full fine-tune; technique: autoregressive. Org on the board: OmniJev. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-27 (HF API); not a release date."
+  },
+  {
+   "id": "vllm-sr-decision-2.0-kai-0.6b",
+   "provider": "vllm-semantic-router",
+   "family": "vLLM-SR",
+   "status": "community_finetune",
+   "aliases": [
+    "decision-2.0-kai-0.6b",
+    "vLLM-SR Decision 2.0 Kai 0.6B",
+    "vllm-sr/Decision-2.0-Kai-0.6B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3-0.6B-Base",
+   "params_total": 600000000,
+   "params_active": null,
+   "hf_repo": "vllm-sr/Decision-2.0-Kai-0.6B",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key decision-2.0-kai-0.6b). Kind: full fine-tune; technique: autoregressive. Org on the board: vLLM Semantic Router. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-28 (HF API); not a release date."
+  },
+  {
+   "id": "vllm-sr-decision-2.0-eos-0.8b",
+   "provider": "vllm-semantic-router",
+   "family": "vLLM-SR",
+   "status": "community_finetune",
+   "aliases": [
+    "decision-2.0-eos-0.8b",
+    "vLLM-SR Decision 2.0 Eos 0.8B",
+    "vllm-sr/Decision-2.0-Eos-0.8B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-0.8B",
+   "params_total": 870000000,
+   "params_active": null,
+   "hf_repo": "vllm-sr/Decision-2.0-Eos-0.8B",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key decision-2.0-eos-0.8b). Kind: full fine-tune; technique: autoregressive. Org on the board: vLLM Semantic Router. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-28 (HF API); not a release date."
+  },
+  {
+   "id": "tev1-0.8b",
+   "provider": "together",
+   "family": "Tev1-0.8B-experimental",
+   "status": "research_release",
+   "aliases": [
+    "Tev1-0.8B-experimental",
+    "togethercomputer/Tev1-0.8B-experimental"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "Qwen/Qwen3.5-0.8B-Base",
+   "params_total": 873438784,
+   "params_active": null,
+   "hf_repo": "togethercomputer/Tev1-0.8B-experimental",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models",
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Together AI experimental 0.8B; same single-letter interface as Tev1-4B. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-25 (HF API); not a release date."
+  },
+  {
+   "id": "intern-decision-0.8b",
+   "provider": "intern-large-models",
+   "family": "Intern-Decision-0.8B",
+   "status": "community_finetune",
+   "aliases": [
+    "Intern-Decision-0.8B",
+    "internlm/Intern-Decision-0.8B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-0.8B-Base",
+   "params_total": 873438784,
+   "params_active": null,
+   "hf_repo": "internlm/Intern-Decision-0.8B",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key intern-decision-0.8b). Kind: full fine-tune; technique: autoregressive. Org on the board: Intern Large Models. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-26 (HF API); not a release date."
+  },
+  {
+   "id": "kev-0.8b",
+   "provider": "community",
+   "family": "Kev",
+   "status": "community_finetune",
+   "aliases": [
+    "kev-0.8b-r15",
+    "Kev 0.8B r15",
+    "jaredpalmer/kev-0.8b"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-0.8B-Base",
+   "params_total": 870000000,
+   "params_active": null,
+   "hf_repo": "jaredpalmer/kev-0.8b",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Kev 0.8B r15. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-20 (HF API); not a release date."
+  },
+  {
+   "id": "von-1.3",
+   "provider": "community",
+   "family": "Von",
+   "status": "community_finetune",
+   "aliases": [
+    "Von 1.3",
+    "wfzyx/von"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "answerdotai/ModernBERT-large",
+   "params_total": 400000000,
+   "params_active": null,
+   "hf_repo": "wfzyx/von",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key von-1.3). Kind: full fine-tune; technique: encoder. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-19 (HF API); not a release date."
+  },
+  {
+   "id": "jevk5-lite",
+   "provider": "community",
+   "family": "JevK5",
+   "status": "community_finetune",
+   "aliases": [
+    "JevK5 Lite",
+    "alibiserikbay/JevK5-Lite"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "microsoft/deberta-v3-large",
+   "params_total": 300000000,
+   "params_active": null,
+   "hf_repo": "alibiserikbay/JevK5-Lite",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jevk5-lite). Kind: full fine-tune; technique: encoder. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-25 (HF API); not a release date."
+  },
+  {
+   "id": "gliner-2.5-decide",
+   "provider": "fastino",
+   "family": "GLiNER2.5-Decide",
+   "status": "community_finetune",
+   "aliases": [
+    "gliner-decide",
+    "GLiNER2.5-Decide",
+    "fastino/GLiNER2.5-Decide",
+    "Fastino GLiNER2.5-Decide"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "fastino/gliner2-large-v1",
+   "params_total": 486444053,
+   "params_active": null,
+   "hf_repo": "fastino/GLiNER2.5-Decide",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Fastino GLiNER2.5-Decide (0.49B encoder, DeBERTa-v3-large-based). params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-23 (HF API); not a release date."
+  },
+  {
+   "id": "bosun-v3.1-0.6b",
+   "provider": "hanno-labs",
+   "family": "Bosun",
+   "status": "community_finetune",
+   "aliases": [
+    "Bosun v3.1 0.6B",
+    "Hanno-Labs/bosun-v3.1-0.6b"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3-0.6B-Base",
+   "params_total": 596049920,
+   "params_active": null,
+   "hf_repo": "Hanno-Labs/bosun-v3.1-0.6b",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key bosun-v3.1-0.6b). Kind: LoRA + head; technique: autoregressive. Org on the board: Hanno Labs. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-22 (HF API); not a release date."
+  },
+  {
+   "id": "jev-style-0.8b-v3",
+   "provider": "community",
+   "family": "Jev-Style",
+   "status": "community_finetune",
+   "aliases": [
+    "Jev-Style 0.8B v3",
+    "chaoliangUNSW/Jev-Style-0.8B-Decision-v3"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-0.8B",
+   "params_total": 870000000,
+   "params_active": null,
+   "hf_repo": "chaoliangUNSW/Jev-Style-0.8B-Decision-v3",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jev-style-0.8b-v3). Kind: full fine-tune; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-24 (HF API); not a release date."
+  },
+  {
+   "id": "lavoir",
+   "provider": "mogan-ai",
+   "family": "Lavoir",
+   "status": "community_finetune",
+   "aliases": [
+    "Lavoir",
+    "moganai/lavoir"
+   ],
+   "weights": "open",
+   "license": "CC-BY-NC-4.0",
+   "base_model": "answerdotai/ModernBERT-large",
+   "params_total": 395881664,
+   "params_active": null,
+   "hf_repo": "moganai/lavoir",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key lavoir). Kind: full fine-tune; technique: encoder. Org on the board: Mogan AI. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-24 (HF API); not a release date."
+  },
+  {
+   "id": "jeff",
+   "provider": "community",
+   "family": "jeff",
+   "status": "third_party_board_only",
+   "aliases": [
+    "jeff-uncapped"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "knowledgator/gliformer-large-v1",
+   "params_total": 575683963,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jeff-uncapped). Kind: inference technique; technique: GLi family. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "lfm2.5-2.6b-rlcd",
+   "provider": "community",
+   "family": "LFM2.5-2.6B-RLCD",
+   "status": "community_finetune",
+   "aliases": [
+    "lfm2600",
+    "LFM2.5-2.6B-RLCD",
+    "monotykamary/LFM2.5-2.6B-RLCD"
+   ],
+   "weights": "open",
+   "license": "other (Hugging Face cardData license field: other)",
+   "base_model": "LiquidAI/LFM2.5-2.6B-Base",
+   "params_total": 2697198592,
+   "params_active": null,
+   "hf_repo": "monotykamary/LFM2.5-2.6B-RLCD",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key lfm2600). Kind: full fine-tune; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-16 (HF API); not a release date."
+  },
+  {
+   "id": "sifr-0.8b-v3.1",
+   "provider": "community",
+   "family": "Sifr",
+   "status": "community_finetune",
+   "aliases": [
+    "Sifr 0.8B v3.1",
+    "mohamedlotfy50/sifr-0.8b-v3"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-0.8B",
+   "params_total": 870000000,
+   "params_active": null,
+   "hf_repo": "mohamedlotfy50/sifr-0.8b-v3",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key sifr-0.8b-v3.1). Kind: full fine-tune; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-01 (HF API); not a release date."
+  },
+  {
+   "id": "laya",
+   "provider": "community",
+   "family": "Laya",
+   "status": "community_finetune",
+   "aliases": [
+    "laya-1e28ac20",
+    "Laya",
+    "convaiinnovations/laya",
+    "Convai Laya"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": null,
+   "params_total": 421293830,
+   "params_active": null,
+   "hf_repo": "convaiinnovations/laya",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Convai Innovations Laya 0.42B non-autoregressive encoder; HF repo created 2026-09-18. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-18 (HF API); not a release date."
+  },
+  {
+   "id": "clm-v0.1-8b",
+   "provider": "community",
+   "family": "CLM-v0.1-8B",
+   "status": "community_finetune",
+   "aliases": [
+    "CLM-v0.1-8B",
+    "Contrastive-LM/CLM-v0.1-8B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3-8B-Base",
+   "params_total": 8190735360,
+   "params_active": null,
+   "hf_repo": "Contrastive-LM/CLM-v0.1-8B",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key clm-v0.1-8b). Kind: full fine-tune; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-21 (HF API); not a release date."
+  },
+  {
+   "id": "qwen-2.5-1b-rlcd",
+   "provider": "community",
+   "family": "Qwen-2.5-1B-RLCD",
+   "status": "third_party_board_only",
+   "aliases": [
+    "harsha",
+    "Qwen-2.5-1B-RLCD"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "Qwen/Qwen2.5-1.5B",
+   "params_total": 1543714304,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key harsha). Kind: inference technique; technique: autoregressive. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "system-one-gemma",
+   "provider": "community",
+   "family": "system-one-gemma",
+   "status": "third_party_board_only",
+   "aliases": [
+    "akash-gemma"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": "google/gemma-3-270m",
+   "params_total": 268098176,
+   "params_active": null,
+   "hf_repo": null,
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key akash-gemma). Kind: LoRA + head; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
+  },
+  {
+   "id": "julia-1",
+   "provider": "supersonic-labs",
+   "family": "Julia",
+   "status": "community_finetune",
+   "aliases": [
+    "Julia 1",
+    "SupersonicLabs/Julia-1",
+    "Julia-1-ONNX"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "jhu-clsp/mmBERT-small",
+   "params_total": 140908331,
+   "params_active": null,
+   "hf_repo": "SupersonicLabs/Julia-1",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Supersonic Labs Julia-1 (mmBERT-small encoder). Card claims 71.5% on MASSIVE with scenario descriptions; an independent run with bare label names measured 0.402. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-23 (HF API); not a release date."
+  },
+  {
+   "id": "verdict",
+   "provider": "community",
+   "family": "Verdict",
+   "status": "community_finetune",
+   "aliases": [
+    "verdict-8af2496e",
+    "Verdict",
+    "heman10x/rlcd-modernbert-151m"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "knowledgator/gliclass-modern-base-v2.0",
+   "params_total": 151378176,
+   "params_active": null,
+   "hf_repo": "heman10x/rlcd-modernbert-151m",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key verdict-8af2496e). Kind: full fine-tune; technique: GLi family. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-17 (HF API); not a release date."
+  },
+  {
+   "id": "lfm2.5-350m-rlcd",
+   "provider": "community",
+   "family": "LFM2.5-350M-RLCD",
+   "status": "community_finetune",
+   "aliases": [
+    "lfm350-sdpa",
+    "LFM2.5-350M-RLCD",
+    "notnotsamuel/LFM2.5-350M-RLCD"
+   ],
+   "weights": "open",
+   "license": "other (Hugging Face cardData license field: other)",
+   "base_model": null,
+   "params_total": 354483968,
+   "params_active": null,
+   "hf_repo": "notnotsamuel/LFM2.5-350M-RLCD",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key lfm350-sdpa). Kind: full fine-tune; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-16 (HF API); not a release date."
+  },
+  {
+   "id": "jpt-35b-a3b",
+   "provider": "community",
+   "family": "JPT-35B-A3B",
+   "status": "community_finetune",
+   "aliases": [
+    "JPT-35B-A3B",
+    "kirp/jpt-35b-a3b"
+   ],
+   "weights": "open",
+   "license": "CC-BY-NC-4.0",
+   "base_model": "Qwen/Qwen3.5-35B-A3B",
+   "params_total": 35950000000,
+   "params_active": 3000000000.0,
+   "hf_repo": "kirp/jpt-35b-a3b",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "license-noncommercial-jpt",
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "kirp JPT-35B-A3B; license CC BY-NC 4.0 (NON-COMMERCIAL). Decision Index note: \"Public board run by the lab (results dataset gated).\" params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-27 (HF API); not a release date."
+  },
+  {
+   "id": "zev",
+   "provider": "community",
+   "family": "Zev",
+   "status": "third_party_board_only",
+   "aliases": [
+    "zev-latest",
+    "Zev"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": null,
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "notes": "Decision Index note: \"Rule-based engine, no weights; its three submitted variants give identical rows.\" A baseline, not a model."
+  },
+  {
+   "id": "exaone-4.0-1.2b-jev-v0.3",
+   "provider": "community",
+   "family": "EXAONE-4.0-1.2B-JEV",
+   "status": "community_finetune",
+   "aliases": [
+    "EXAONE-4.0-1.2B-JEV v0.3",
+    "carrtesy/EXAONE-4.0-1.2B-JEV"
+   ],
+   "weights": "open",
+   "license": "other (Hugging Face cardData license field: other)",
+   "base_model": "LGAI-EXAONE/EXAONE-4.0-1.2B",
+   "params_total": 1280000000,
+   "params_active": null,
+   "hf_repo": "carrtesy/EXAONE-4.0-1.2B-JEV",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key exaone-4.0-1.2b-jev-v0.3). Kind: full fine-tune; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-02 (HF API); not a release date. Board note: Training includes When2Call train preferences (author-declared)."
+  },
+  {
+   "id": "rsi-jev-v5.0-vl-3b",
+   "provider": "community",
+   "family": "RSI-Jev",
+   "status": "community_finetune",
+   "aliases": [
+    "RSI-Jev v5.0 VL 3B",
+    "shgao/rsi-jev-v5.0-vl-3b"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-4B-Base",
+   "params_total": 4660000000,
+   "params_active": null,
+   "hf_repo": "shgao/rsi-jev-v5.0-vl-3b",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key rsi-jev-v5.0-vl-3b). Kind: full fine-tune; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-03 (HF API); not a release date. Board note: Training sources include GSM8K and ANLI (author-declared)."
+  },
+  {
+   "id": "ajev-lora5-gemma-4-12b",
+   "provider": "community",
+   "family": "AJev",
+   "status": "community_finetune",
+   "aliases": [
+    "ajev-lora5",
+    "AJev lora5 (Gemma 4 12B)",
+    "andyzhang232/ajev-gemma4-12b-lora5"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "google/gemma-4-12B-it",
+   "params_total": 11960000000,
+   "params_active": null,
+   "hf_repo": "andyzhang232/ajev-gemma4-12b-lora5",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key ajev-lora5). Kind: LoRA; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-03 (HF API); not a release date. Board note: Training includes train splits of about 14 board benchmarks (author-declared)."
+  },
+  {
+   "id": "ezjev-4b-s2",
+   "provider": "community",
+   "family": "ezjev",
+   "status": "community_finetune",
+   "aliases": [
+    "ezjev 4B s2",
+    "everettjf/ezjev-4b-s2"
+   ],
+   "weights": "open",
+   "license": "other (Hugging Face cardData license field: other)",
+   "base_model": "Qwen/Qwen3.5-4B",
+   "params_total": 4660000000,
+   "params_active": null,
+   "hf_repo": "everettjf/ezjev-4b-s2",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key ezjev-4b-s2). Kind: LoRA; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-03 (HF API); not a release date. Board note: Training includes train/dev splits of about 17 index benchmarks (author-declared)."
+  },
+  {
+   "id": "bekko-system-one-v0-17m",
+   "provider": "community",
+   "family": "Bekko",
+   "status": "community_finetune",
+   "aliases": [
+    "bekko-v0-17m",
+    "Bekko System One v0 17M",
+    "hotchpotch/bekko-system-one-v0-17m"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "jhu-clsp/ettin-encoder-17m",
+   "params_total": 17000000,
+   "params_active": null,
+   "hf_repo": "hotchpotch/bekko-system-one-v0-17m",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key bekko-v0-17m). Kind: full fine-tune; technique: encoder. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-29 (HF API); not a release date. Board note: Encoder; 8 self-declared training matches counted wrong."
+  },
+  {
+   "id": "bekko-system-one-v0-68m",
+   "provider": "community",
+   "family": "Bekko",
+   "status": "community_finetune",
+   "aliases": [
+    "bekko-v0-68m",
+    "Bekko System One v0 68M",
+    "hotchpotch/bekko-system-one-v0-68m"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "jhu-clsp/ettin-encoder-68m",
+   "params_total": 68000000,
+   "params_active": null,
+   "hf_repo": "hotchpotch/bekko-system-one-v0-68m",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key bekko-v0-68m). Kind: full fine-tune; technique: encoder. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-29 (HF API); not a release date. Board note: Encoder; 8 self-declared training matches counted wrong."
+  },
+  {
+   "id": "bekko-system-one-v0-400m",
+   "provider": "community",
+   "family": "Bekko",
+   "status": "community_finetune",
+   "aliases": [
+    "bekko-v0-400m",
+    "Bekko System One v0 400M",
+    "hotchpotch/bekko-system-one-v0-400m"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "jhu-clsp/ettin-encoder-400m",
+   "params_total": 400000000,
+   "params_active": null,
+   "hf_repo": "hotchpotch/bekko-system-one-v0-400m",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key bekko-v0-400m). Kind: full fine-tune; technique: encoder. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-29 (HF API); not a release date. Board note: Encoder; 8 self-declared training matches counted wrong."
+  },
+  {
+   "id": "torchcast-decision-27b",
+   "provider": "torchcast-ai",
+   "family": "Torchcast",
+   "status": "community_finetune",
+   "aliases": [
+    "Torchcast Decision 27B",
+    "torchcast-ai/torchcast-decision-27b"
+   ],
+   "weights": "open",
+   "license": "CC-BY-NC-4.0",
+   "base_model": "Qwen/Qwen3.8-27B",
+   "params_total": 27800000000,
+   "params_active": null,
+   "hf_repo": "torchcast-ai/torchcast-decision-27b",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key torchcast-decision-27b). Kind: LoRA; technique: autoregressive. Org on the board: Torchcast AI. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-03 (HF API); not a release date. Board note: Index results guided checkpoint selection (author-declared)."
+  },
+  {
+   "id": "kas-4b",
+   "provider": "community",
+   "family": "Kas",
+   "status": "community_finetune",
+   "aliases": [
+    "Kas 4B",
+    "kpiya/kas-4b"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3-4B",
+   "params_total": 4020000000,
+   "params_active": null,
+   "hf_repo": "kpiya/kas-4b",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key kas-4b). Kind: LoRA; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-04 (HF API); not a release date. Board note: Public board run by the lab (results dataset unavailable)."
+  },
+  {
+   "id": "lev1-3.7b",
+   "provider": "community",
+   "family": "Lev1",
+   "status": "community_finetune",
+   "aliases": [
+    "Lev1 3.7B",
+    "theaviv/Lev1-3.7B"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "IFM/K2-Horizon-3.7B",
+   "params_total": 3700000000,
+   "params_active": null,
+   "hf_repo": "theaviv/Lev1-3.7B",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key lev1-3.7b). Kind: LoRA; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-04 (HF API); not a release date. Board note: Base run by the lab (stock K2-Horizon-3.7B)."
+  },
+  {
+   "id": "decisio-0.4.0-qwen3.6-35b-a3b",
+   "provider": "community",
+   "family": "decisio",
+   "status": "third_party_board_only",
+   "aliases": [
+    "decisio 0.4.0 (Qwen3.6-35B-A3B)"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "Qwen/Qwen3.6-35B-A3B",
+   "params_total": 35950000000,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key decisio-0.4.0-qwen3.6-35b-a3b). Kind: inference technique; technique: autoregressive. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). Board note: Inference technique on frozen weights; prompt partly chosen on index rows (author-declared)."
+  },
+  {
+   "id": "decisio-0.4.0-gemma-4-12b",
+   "provider": "community",
+   "family": "decisio",
+   "status": "third_party_board_only",
+   "aliases": [
+    "decisio 0.4.0 (Gemma 4 12B)"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "google/gemma-4-12B-it",
+   "params_total": 11960000000,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key decisio-0.4.0-gemma-4-12b). Kind: inference technique; technique: autoregressive. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). Board note: Inference technique on frozen weights; prompt partly chosen on index rows (author-declared)."
+  },
+  {
+   "id": "hopper-12b-trained",
+   "provider": "hopitai",
+   "family": "Hopper",
+   "status": "community_finetune",
+   "aliases": [
+    "Hopper 12B (trained)",
+    "HopitAI/hopper"
+   ],
+   "weights": "open",
+   "license": "other (Hugging Face cardData license field: other)",
+   "base_model": "google/gemma-4-12B-it",
+   "params_total": 11960000000,
+   "params_active": null,
+   "hf_repo": "HopitAI/hopper",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key hopper-12b-trained). Kind: LoRA; technique: autoregressive. Org on the board: HopitAI. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-21 (HF API); not a release date. Board note: Public board run by the lab; submitted rows not adoptable."
+  },
+  {
+   "id": "dm-jepa-1.1",
+   "provider": "danger-labs",
+   "family": "DM-JEPA",
+   "status": "community_finetune",
+   "aliases": [
+    "DM-JEPA 1.1",
+    "DangerLabs/DM-JEPA"
+   ],
+   "weights": "open",
+   "license": "MIT",
+   "base_model": "answerdotai/ModernBERT-base",
+   "params_total": 149000000,
+   "params_active": null,
+   "hf_repo": "DangerLabs/DM-JEPA",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key dm-jepa-1.1). Kind: full fine-tune; technique: encoder. Org on the board: Danger Labs. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-04 (HF API); not a release date. Board note: DM-JEPA 1.1 run by the lab; submitted rows not adoptable."
+  },
+  {
+   "id": "jevstral-8b",
+   "provider": "community",
+   "family": "Jevstral",
+   "status": "community_finetune",
+   "aliases": [
+    "Jevstral 8B",
+    "AmirBraham/jevstral-8b"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "mistralai/Ministral-3-8B-Base-2512",
+   "params_total": 8000000000,
+   "params_active": null,
+   "hf_repo": "AmirBraham/jevstral-8b",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jevstral-8b). Kind: LoRA; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-04 (HF API); not a release date. Board note: Base not runnable on the stock harness, so compared with Jev."
+  },
+  {
+   "id": "jiwo-0.8b",
+   "provider": "community",
+   "family": "jiwo",
+   "status": "community_finetune",
+   "aliases": [
+    "jiwo 0.8B",
+    "eljiwo/jiwo-0.8b"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-0.8B",
+   "params_total": 870000000,
+   "params_active": null,
+   "hf_repo": "eljiwo/jiwo-0.8b",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jiwo-0.8b). Kind: full fine-tune; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-03 (HF API); not a release date. Board note: Author check found shared source text with six index benchmarks."
+  },
+  {
+   "id": "jiwo-4b",
+   "provider": "community",
+   "family": "jiwo",
+   "status": "community_finetune",
+   "aliases": [
+    "jiwo 4B",
+    "eljiwo/jiwo-4b"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-4B",
+   "params_total": 4660000000,
+   "params_active": null,
+   "hf_repo": "eljiwo/jiwo-4b",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key jiwo-4b). Kind: full fine-tune; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-05 (HF API); not a release date. Board note: Author check found shared source text with six index benchmarks."
+  },
+  {
+   "id": "deck31b-gemma-4-31b",
+   "provider": "community",
+   "family": "deck31b",
+   "status": "third_party_board_only",
+   "aliases": [
+    "deck31b",
+    "deck31b (Gemma 4 31B)"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "google/gemma-4-31B-it",
+   "params_total": 32680000000,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key deck31b). Kind: inference technique; technique: autoregressive. Inference technique over an open base model: no trained weights are published for this entry. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). Board note: Public board run by the lab; option cap lifted (two-letter labels)."
+  },
+  {
+   "id": "quyet-1.0-large",
+   "provider": "community",
+   "family": "Quyet-1.0-Large",
+   "status": "community_finetune",
+   "aliases": [
+    "Quyet-1.0-Large",
+    "chinhnc/Quyet-1.0-Large"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "google/gemma-4-31B-it",
+   "params_total": 32680000000,
+   "params_active": null,
+   "hf_repo": "chinhnc/Quyet-1.0-Large",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "coverage-below-one-inflates-headline"
+   ],
+   "notes": "Decision Index 0.3 entrant (engine key quyet-1.0-large). Kind: LoRA; technique: autoregressive. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-10-03 (HF API); not a release date. Board note: Public board run by the lab; option cap lifted."
+  },
+  {
+   "id": "nanojev",
+   "provider": "community",
+   "family": "NanoJev (research replica)",
+   "status": "research_release",
+   "aliases": [
+    "C-Tianyu/NanoJev",
+    "NanoJev"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "Qwen3-0.6B backbone with structured decision heads",
+   "params_total": 600000000.0,
+   "params_active": null,
+   "hf_repo": "C-Tianyu/NanoJev",
+   "surfaces": [
+    "self-host"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "Games-scoped research release (Maze, Snake, ViZDoom Basic, Predict Position), not a general decision model; not on the Decision Index board. Facts come from search summaries and the awesome-decision-models list; the HF/GitHub pages were NOT opened (UNVERIFIED). License and release date missing. Reported in a search summary (unverified, author split, not independently run): 128/128 test successes on ViZDoom Basic versus 56/128 for Jev. params_total 0.6B is the base-model label."
+  },
+  {
+   "id": "strands-decider-2b",
+   "provider": "aws-strands-labs",
+   "family": "Strands Decider",
+   "status": "community_finetune",
+   "aliases": [
+    "AWS Strands Decider 2B",
+    "Strands Decider 2B",
+    "strands-labs/strands-decider"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "Qwen3.5-2B",
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "AWS Strands Labs decider: per the awesome-decision-models list, Qwen3.5-2B with the LM head replaced by a ~1M-parameter pointer head plus a rank-16 LoRA; weights, data and scripts public. The Strands README (raw URL) returned 404 and was not read: UNVERIFIED. The Strands Decider 2B hobson-v19 JevBench public result (0.723, ECE 0.050, 115 ms median / 299 ms p95 per question on an RTX 3090 WSL2) came from a search summary of that README and is NOT stored."
+  },
+  {
+   "id": "standard-one-8b",
+   "provider": "standard-thinking",
+   "family": "Standard One",
+   "status": "community_finetune",
+   "aliases": [
+    "StandardThinking/StandardOne-8B",
+    "Standard One 8B (Standard Thinking)"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Ministral 3 base (vision retained)",
+   "params_total": 8900000000.0,
+   "params_active": null,
+   "hf_repo": "StandardThinking/StandardOne-8B",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Standard Thinking Standard One 3B/8B on Ministral 3, /v1/systemone server; HF repo created 2026-09-24, v2.2 weights 2026-10-04 (HF API; license from cardData). Appears on JevBench (composite rank 52, 16.9) but not stored as score rows (not mapped); not on the Decision Index."
+  },
+  {
+   "id": "sage-1.3.0",
+   "provider": "community",
+   "family": "board-only (JevBench hosted API)",
+   "status": "third_party_board_only",
+   "aliases": [
+    "Sage 1.3.0 (Levanto Labs)"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": null,
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "other"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "Levanto Labs hosted decision API. Known only from the JevBench hosted-API table (composite rank 1 on v1.6.1). Base model undisclosed. No first-party documentation found."
+  },
+  {
+   "id": "wity-1",
+   "provider": "community",
+   "family": "board-only (JevBench hosted API)",
+   "status": "third_party_board_only",
+   "aliases": [
+    "wity-1 (Wity)",
+    "Wity-1",
+    "wity-1 (Wity, reasoning auto)"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": null,
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "other"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "Wity hosted decision API with reasoning modes auto / always / off (JevBench rows differ by mode). Known only from JevBench and StreamDecisionBench."
+  },
+  {
+   "id": "instinct-27b",
+   "provider": "community",
+   "family": "board-only (JevBench hosted API)",
+   "status": "third_party_board_only",
+   "aliases": [
+    "Instinct (ZooWork, Qwen3.8-27B)"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": "Qwen/Qwen3.8-27B",
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "other"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "ZooWork hosted API on Qwen3.8-27B (board: \"source*\"; self-reported base). Known only from JevBench."
+  },
+  {
+   "id": "instinct-dual-4b",
+   "provider": "community",
+   "family": "board-only (JevBench hosted API)",
+   "status": "third_party_board_only",
+   "aliases": [
+    "Instinct Dual 4B"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": "Qwen3.5-4B",
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "other"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "ZooWork hosted API; board lists base model Qwen3.5-4B (self-reported). Known only from JevBench."
+  },
+  {
+   "id": "vansa-3.4",
+   "provider": "community",
+   "family": "board-only (JevBench hosted API)",
+   "status": "third_party_board_only",
+   "aliases": [
+    "Vansa-3.4 (Vansa, hosted System One API)"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": "Qwen3.5-4B",
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "other"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "Vansa hosted System One API; base model Qwen3.5-4B self-reported (board). Known only from JevBench."
+  },
+  {
+   "id": "autoloops-gemma-4-31b-it",
+   "provider": "community",
+   "family": "board-only (JevBench hosted API)",
+   "status": "third_party_board_only",
+   "aliases": [
+    "Autoloops - Gemma 4 31B IT"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": "google/gemma-4-31B-it",
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "other"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "Autoloops hosted API (Gemma 4 31B IT). Known only from JevBench."
+  },
+  {
+   "id": "decision-machine-1",
+   "provider": "community",
+   "family": "board-only (JevBench hosted API)",
+   "status": "third_party_board_only",
+   "aliases": [
+    "decision-machine-1 (milliseconds.ai)"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": null,
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "other"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "milliseconds.ai hosted API. Known only from JevBench."
+  },
+  {
+   "id": "meragpt-decider-1",
+   "provider": "meragpt",
+   "family": "Decider 1 (state-decider-1 / sd-1)",
+   "status": "third_party_board_only",
+   "aliases": [
+    "meraGPT Decider 1",
+    "state-decider-1",
+    "sd-1"
+   ],
+   "weights": "closed",
+   "license": null,
+   "base_model": null,
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "surfaces": [
+    "other"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "meraGPT hosted decision model. Known from the LocalLLaMA/typed-decisions card leaderboard (rank 1, self-run by the card author) and the awesome-decision-models list (\"requests are limited to 4,096 tokens and Choice to ten labels\"; third-party list, primary meragpt.com/docs not readable). Priced $0.03 per 1M input on that card."
+  },
+  {
+   "id": "diffusiongemma-jev",
+   "provider": "cloudflare",
+   "family": "DiffusionGemma Jev (Cloudflare launch-table column)",
+   "status": "third_party_board_only",
+   "aliases": [
+    "DiffusionGemma Jev",
+    "DiffusionGemma Jev (Cloudflare table)"
+   ],
+   "weights": "open",
+   "license": null,
+   "base_model": "google/diffusiongemma-26B-A4B-it",
+   "params_total": null,
+   "params_active": null,
+   "hf_repo": null,
+   "notes": "Label used in Cloudflare launch tables. The blog calls it \"our own homegrown decision model\" (a DiffusionGemma adaptation exposing logprobs). IDENTITY IS AMBIGUOUS: its BFCL and When2Call scores equal Decision Index entrant joshua-diffusion-full (JoshuaSP diffusiongemma), while its latency (84.4 / 211.2 ms) equals Decision Index entrant djev. Treat as an unresolved label, not as either entrant."
+  }
+ ]
 }

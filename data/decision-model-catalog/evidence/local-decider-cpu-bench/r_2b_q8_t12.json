@@ -1,0 +1,148 @@
+{
+ "gguf": "decider-2b-v11-Q8_0.gguf",
+ "threads": 12,
+ "n_ctx": 4096,
+ "rss_after_imports_mb": 343,
+ "rss_after_load_mb": 2612,
+ "load_s": 4.98,
+ "loadavg_start": 14.66748046875,
+ "single_choice12": {
+  "cold_ms": 3034,
+  "median_ms": 3093,
+  "min_ms": 2854,
+  "max_ms": 3187,
+  "input_tokens": 696,
+  "answers": {
+   "first_action": {
+    "choice": "job_status",
+    "confidence": 0.396
+   }
+  },
+  "top3": {
+   "first_action": [
+    [
+     "job_status",
+     0.446
+    ],
+    [
+     "bg_run_video",
+     0.156
+    ],
+    [
+     "ask_clarifying_question",
+     0.122
+    ]
+   ]
+  }
+ },
+ "choice20": {
+  "cold_ms": 2712,
+  "median_ms": 2694,
+  "min_ms": 2617,
+  "max_ms": 2859,
+  "input_tokens": 596,
+  "answers": {
+   "route": {
+    "choice": "weather",
+    "confidence": 0.188
+   }
+  },
+  "top3": {
+   "route": [
+    [
+     "weather",
+     0.229
+    ],
+    [
+     "reminder",
+     0.105
+    ],
+    [
+     "ops-request",
+     0.105
+    ]
+   ]
+  }
+ },
+ "mixed4_independent": {
+  "cold_ms": 19023,
+  "median_ms": 17159,
+  "min_ms": 15535,
+  "max_ms": 19243,
+  "input_tokens": 940,
+  "answers": {
+   "first_action": {
+    "choice": "job_status",
+    "confidence": 0.396
+   },
+   "needs_background": {
+    "noul": 0.468
+   },
+   "urgency": {
+    "score": 1.1,
+    "confidence": 0.391
+   },
+   "violates_policy": {
+    "noul": 0.266
+   }
+  },
+  "top3": {
+   "first_action": [
+    [
+     "job_status",
+     0.446
+    ],
+    [
+     "bg_run_video",
+     0.156
+    ],
+    [
+     "ask_clarifying_question",
+     0.122
+    ]
+   ]
+  }
+ },
+ "mixed4_packed": {
+  "cold_ms": 3003,
+  "median_ms": 3303,
+  "min_ms": 3254,
+  "max_ms": 3576,
+  "input_tokens": 839,
+  "answers": {
+   "first_action": {
+    "choice": "job_status",
+    "confidence": 0.498
+   },
+   "needs_background": {
+    "noul": 0.565
+   },
+   "urgency": {
+    "score": 0.91,
+    "confidence": 0.516
+   },
+   "violates_policy": {
+    "noul": 0.094
+   }
+  },
+  "top3": {
+   "first_action": [
+    [
+     "job_status",
+     0.54
+    ],
+    [
+     "bg_run_video",
+     0.162
+    ],
+    [
+     "ask_clarifying_question",
+     0.1
+    ]
+   ]
+  }
+ },
+ "rss_peak_mb": 2752,
+ "rss_end_mb": 2752,
+ "loadavg_end": 18.4853515625
+}

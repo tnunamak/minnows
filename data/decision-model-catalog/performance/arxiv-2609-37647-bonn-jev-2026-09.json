@@ -1,0 +1,49 @@
+{
+ "id": "arxiv-2609-37647-bonn-jev-2026-09",
+ "schema_version": 1,
+ "kind": "performance",
+ "provider": "bonn",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://arxiv.org/abs/2609.37647"
+ ],
+ "notes": "Univ. of Bonn paper \"Evaluating and Benchmarking the System One Model Jev\": Jev (jev-1.13.0) zero-shot on 37 datasets (classification, routing, NLI, reading comprehension, commonsense, moderation, legal clause analysis, rubric scoring), 346,009 requests for under US$10, vs Qwen3.8-27B and Gemma-4-E4B scored via next-token option probabilities on identical requests. Run by the authors; independent of TypeSafe. Rows here are the paper pooled calibration, mean latency and cost; per-dataset accuracy tables are NOT stored (37 datasets). Latency is client-side including network at 32 concurrent requests.",
+ "source_ids": [
+  "arxiv-2609-37647-bonn-jev"
+ ],
+ "claims": [
+  {
+   "models": [
+    "jev-1.13.0",
+    "qwen3.8-27b"
+   ],
+   "statement": "Bonn: \"Jev reaches 95-99% accuracy on IMDB, SST-2, HellaSwag and ARC and 86.7% on Belebele across 122 languages. It beats Qwen on 27 of 37 datasets, with none of Qwen's nine leads outside the bootstrap intervals, and Gemma on all 37. All three models degrade on low-resource languages, fine-grained or noisy labels, and rubric-based quality judgments.\" Possible contamination: Jev answers MMLU's calculation-heavy questions more accurately than other MMLU questions (94% vs 91%) whereas both open models find them harder.",
+   "task_families": [
+    "classification",
+    "reading_comprehension"
+   ],
+   "axes": [
+    "quality"
+   ],
+   "source_id": "arxiv-2609-37647-bonn-jev",
+   "caveat_ids": [
+    "public-benchmark-overfit-and-label-provenance"
+   ]
+  },
+  {
+   "models": [
+    "jev-1.13.0"
+   ],
+   "statement": "Bonn limits: each request run once (no run-to-run variance), latency measured client-side including network, results refer to jev-1.13.0 and the jev-latest alias \"will likely move to newer versions\". Rotating the options leaves Jev accuracy unchanged and withholding the question drops it to near chance.",
+   "source_id": "arxiv-2609-37647-bonn-jev",
+   "caveat_ids": [
+    "model-version-and-api-drift"
+   ]
+  }
+ ],
+ "scores": [
+  {"model":"jev-1.13.0","metric":"Bonn: pooled choice ECE (22 choice datasets)","metric_id":"bonn-pooled-choice-ece","score":0.028,"unit":"ece","caveat":"Pooled over 22 choice datasets; the paper also notes that binary probabilities rank well but are poorly placed relative to a fixed 0.5 threshold.","source_id":"arxiv-2609-37647-bonn-jev","harness":"Jev jev-1.13.0 zero-shot via the hosted API, 37 datasets, one frozen template per dataset, full evaluation splits, 346,009 requests, client-side latency at 32 concurrent requests","task_family":"calibration","source_type":"third_party_report","evidence_grade":"B","observed_at":"2026-09-30","comparability_group":"paper/bonn-pooled-choice-ece","n":279925,"caveat_ids":["calibration-unverified-and-nonportable"]},
+  {"model":"jev-1.13.0","metric":"Bonn: mean client-side latency per request (32 concurrent)","metric_id":"bonn-mean-latency-ms","score":360,"unit":"ms","caveat":"\"The mean latency per request was 0.36 s, and throughput was limited by the rate limit rather than by the service.\" Client-side, includes network, 32 concurrent requests.","source_id":"arxiv-2609-37647-bonn-jev","harness":"Jev jev-1.13.0 zero-shot via the hosted API, 37 datasets, one frozen template per dataset, full evaluation splits, 346,009 requests, client-side latency at 32 concurrent requests","task_family":"latency","source_type":"third_party_report","evidence_grade":"B","observed_at":"2026-09-30","comparability_group":"paper/bonn-mean-latency-ms","n":346009,"caveat_ids":["latency-independent-caller-rtt-disagrees"],"measurement":{"measured_by":"Univ. of Bonn authors","vantage":"hosted_rtt","percentile":"mean","region":"not stated","input_tokens":630,"n":346009}},
+  {"model":"jev-1.13.0","metric":"Bonn: measured cost per request (US$9.15 / 346,009 requests)","metric_id":"bonn-cost-per-request-usd","score":2.644e-05,"unit":"usd_per_decision","caveat":"Computed from US$9.15 / 346,009 requests (both stated in the paper); includes multi-question requests; not a per-token price.","source_id":"arxiv-2609-37647-bonn-jev","harness":"Jev jev-1.13.0 zero-shot via the hosted API, 37 datasets, one frozen template per dataset, full evaluation splits, 346,009 requests, client-side latency at 32 concurrent requests","task_family":"cost","source_type":"third_party_report","evidence_grade":"B","observed_at":"2026-09-30","comparability_group":"paper/bonn-cost-per-request-usd","caveat_ids":["price-per-token-is-not-cost-per-decision"],"measurement":{"measured_by":"Univ. of Bonn authors (computed from paper totals)","input_tokens":630},"cost":{"value":2.644e-05,"unit":"usd_per_decision","basis":"api_usd"}}
+ ]
+}

@@ -1,0 +1,53 @@
+{
+ "id": "typesafe-launch-claims-2026-09-15",
+ "schema_version": 1,
+ "kind": "performance",
+ "provider": "typesafe",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://typesafe.ai/blog/introducing-system-one-models-and-jev"
+ ],
+ "notes": "TypeSafe vendor claims (launch blog 2026-09-15 and home page): \"End-to-end response time is 70ms-500ms for TypeSafe. This can range from 40x-200x faster for the same levels of frontier intelligence for System One shaped queries.\" The home-page claim \"193.6x Faster, 444.6x Cheaper.\" comes from a best-case workflow; the blog says \"we expect that these are on the higher end of real world gains.\" No payload size, region or percentile is stated. Stored as claims and one ratio row; independent measurements of Jev are in the Decision Index, OpenRouter, morrenhale, Nicia, Bonn and siujev docs (about 100-400 ms hosted caller-side on short states).",
+ "source_ids": [
+  "typesafe-launch-blog"
+ ],
+ "claims": [
+  {
+   "models": [
+    "jev-1.13.0"
+   ],
+   "statement": "\"End-to-end response time is 70ms-500ms for TypeSafe. This can range from 40x-200x faster for the same levels of frontier intelligence for System One shaped queries.\" / \"This is where the claims of 193.6x faster, 444.6x cheaper on our home page comes from, and we expect that these are on the higher end of real world gains.\"",
+   "axes": [
+    "latency",
+    "cost"
+   ],
+   "implication": "Treat as best-case marketing; compare against the actual alternative (often a cheap flash LLM).",
+   "source_id": "typesafe-launch-blog",
+   "caveat_ids": [
+    "price-vendor-multiples-are-best-case-and-baseline-dependent",
+    "latency-hosted-rtt-vs-on-card"
+   ]
+  },
+  {
+   "models": [
+    "jev-1.13.0"
+   ],
+   "statement": "TypeSafe cookbook (parallel questions, jev-1.12): batching 13 questions into one call on a ~54,000-character article was \"12.2x cheaper, 10.0x faster\" than 13 single-question calls with answers independent of the other questions (std dev exactly 0.0 for most over 5 repeats); the speed figure sums the 13 single-call latencies (sequential), and the primitives page states 11.5x / 9.6x for the same pattern.",
+   "task_families": [
+    "fanout"
+   ],
+   "axes": [
+    "cost",
+    "latency"
+   ],
+   "source_id": "typesafe-docs-parallel-questions",
+   "caveat_ids": [
+    "price-fanout-saving-depends-on-no-prefix-cache",
+    "fanout-speculative-questions-are-not-free-and-claims-are-vendor"
+   ]
+  }
+ ],
+ "scores": [
+  {"model":"jev-1.13.0","metric":"TypeSafe launch blog: claimed speed multiple vs frontier LLMs","metric_id":"vc-typesafe-launch-latency-multiple","score":193.6,"unit":"ratio","caveat":"Home-page \"193.6x Faster\" (the \"444.6x Cheaper\" cost multiple is in the claim text); best-case workflow vs a frontier LLM.","source_id":"typesafe-launch-blog","harness":"Vendor marketing; \"System One shaped queries\"; frontier-LLM baselines with end-to-end times of 3 to 329 s; no payload, region or percentile","task_family":"latency","source_type":"vendor_claim","evidence_grade":"C","observed_at":"2026-09-15","comparability_group":"vendor-claims/typesafe-launch-latency-multiple","caveat_ids":["price-vendor-multiples-are-best-case-and-baseline-dependent","latency-hosted-rtt-vs-on-card"]}
+ ]
+}

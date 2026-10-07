@@ -1,0 +1,24 @@
+{
+ "id": "s1mb-system-one-mosaic-2026-09-30",
+ "schema_version": 1,
+ "kind": "performance",
+ "provider": "hotchpotch",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://huggingface.co/blog/hotchpotch/system-one-mosaic-benchmark"
+ ],
+ "notes": "S1MB blog (hotchpotch, community article, Sept 30 2026): \"Jev 1.13 ranks first with a Borda Score of 86.51. My bekko-system-one-v0-400m is second at 76.21.\" Broad coverage (137 benchmarks, 95 complete models) but the author's own models are on the board with a disclosed train/eval overlap, and Clef, Clef-flash, Perplexity and OpenAI Decisions are absent (Liquid d1 only on 6 generalisation benchmarks). No latency or cost. Open-Jev-9B (Borda 72.54, Task Avg 52.10) has no registry id and is not stored.",
+ "source_ids": [
+  "s1mb-blog"
+ ],
+ "scores": [
+  {"model":"jev-1.13.0","metric":"S1MB Borda score (95 complete models)","metric_id":"s1mb-borda-score","score":86.51,"unit":"other","source_id":"s1mb-blog","harness":"S1MB (System One Mosaic Benchmark): 137 benchmarks, 95 complete models, Borda score over many benchmarks; author own bekko models are on the board (disclosed 77 train/eval subset overlap); no latency or cost","task_family":"decision_breadth","source_type":"third_party_board","evidence_grade":"C","observed_at":"2026-09-30","comparability_group":"s1mb/borda","snapshot_id":"s1mb-blog-2026-09-30","n":137,"caveat_ids":["public-benchmark-overfit-and-label-provenance"]},
+  {"model":"jev-1.13.0","metric":"S1MB Task Avg","metric_id":"s1mb-task-average","score":59.59,"unit":"other","source_id":"s1mb-blog","harness":"S1MB (System One Mosaic Benchmark): 137 benchmarks, 95 complete models, Borda score over many benchmarks; author own bekko models are on the board (disclosed 77 train/eval subset overlap); no latency or cost","task_family":"decision_breadth","source_type":"third_party_board","evidence_grade":"C","observed_at":"2026-09-30","comparability_group":"s1mb/task-avg","snapshot_id":"s1mb-blog-2026-09-30","caveat_ids":["public-benchmark-overfit-and-label-provenance"]},
+  {"model":"bekko-system-one-v0-400m","metric":"S1MB Borda score (95 complete models)","metric_id":"s1mb-borda-score","score":76.21,"unit":"other","caveat":"Author own model; disclosed 77 train/eval subset overlap.","source_id":"s1mb-blog","harness":"S1MB (System One Mosaic Benchmark): 137 benchmarks, 95 complete models, Borda score over many benchmarks; author own bekko models are on the board (disclosed 77 train/eval subset overlap); no latency or cost","task_family":"decision_breadth","source_type":"third_party_board","evidence_grade":"C","observed_at":"2026-09-30","comparability_group":"s1mb/borda","snapshot_id":"s1mb-blog-2026-09-30","n":137,"caveat_ids":["public-benchmark-overfit-and-label-provenance"]},
+  {"model":"bekko-system-one-v0-400m","metric":"S1MB Task Avg","metric_id":"s1mb-task-average","score":50.6,"unit":"other","source_id":"s1mb-blog","harness":"S1MB (System One Mosaic Benchmark): 137 benchmarks, 95 complete models, Borda score over many benchmarks; author own bekko models are on the board (disclosed 77 train/eval subset overlap); no latency or cost","task_family":"decision_breadth","source_type":"third_party_board","evidence_grade":"C","observed_at":"2026-09-30","comparability_group":"s1mb/task-avg","snapshot_id":"s1mb-blog-2026-09-30","caveat_ids":["public-benchmark-overfit-and-label-provenance"]}
+ ],
+ "missing": [
+  "Open-Jev-9B (ZefanCai) Borda 72.54, Task Avg 52.10: no id in this registry; not stored.",
+  "Clef, Clef-flash, Perplexity deciders and OpenAI Decisions are not on S1MB."
+ ]
+}

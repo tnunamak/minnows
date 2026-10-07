@@ -1,8 +1,890 @@
 {
-  "$schema": "schemas/sources-v1.schema.json",
-  "schema_version": 1,
-  "id": "decision-model-catalog-sources",
-  "retrieved_at": "2026-10-06",
-  "description": "Canonical provenance registry. Every pricing/performance/capabilities payload references these ids via source_ids[]; caveat evidence and usd_conversion cite them too. Seed: empty until the populate step.",
-  "sources": []
+ "$schema": "schemas/sources-v1.schema.json",
+ "schema_version": 1,
+ "id": "decision-model-catalog-sources",
+ "retrieved_at": "2026-10-07",
+ "description": "Canonical provenance registry. Every pricing/performance/capabilities payload references these ids via source_ids[]; caveat evidence and usd_conversion cite them too. retrieved_at is UTC: the research ran the evening of 2026-10-06 US Central, which is 2026-10-07 UTC. Third-party resellers and aggregators (jevaihub.com) are registered only so conflicts can be recorded; they are never price sources.",
+ "sources": [
+  {
+   "id": "typesafe-docs-models",
+   "url": "https://docs.typesafe.ai/models.md",
+   "title": "TypeSafe docs: Models (price, limits, aliases)",
+   "publisher": "TypeSafe AI",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs",
+   "notes": "Official Jev price, rate limits, context and alias page. typesafe.ai/pricing returned 404 on 2026-10-07; this page is the price source."
+  },
+  {
+   "id": "typesafe-docs-api",
+   "url": "https://docs.typesafe.ai/api.md",
+   "title": "TypeSafe docs: API reference",
+   "publisher": "TypeSafe AI",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs"
+  },
+  {
+   "id": "typesafe-docs-primitives",
+   "url": "https://docs.typesafe.ai/primitives.md",
+   "title": "TypeSafe docs: Primitives (noul, choice, score)",
+   "publisher": "TypeSafe AI",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs"
+  },
+  {
+   "id": "typesafe-docs-choice",
+   "url": "https://docs.typesafe.ai/primitives/choice.md",
+   "title": "TypeSafe docs: Choice primitive",
+   "publisher": "TypeSafe AI",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs"
+  },
+  {
+   "id": "typesafe-docs-system-one",
+   "url": "https://docs.typesafe.ai/concepts/system-one.md",
+   "title": "TypeSafe docs: System One concepts",
+   "publisher": "TypeSafe AI",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs"
+  },
+  {
+   "id": "typesafe-docs-fanout",
+   "url": "https://docs.typesafe.ai/patterns/fan-out.md",
+   "title": "TypeSafe docs: Fan-out pattern",
+   "publisher": "TypeSafe AI",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs"
+  },
+  {
+   "id": "typesafe-docs-parallel-questions",
+   "url": "https://docs.typesafe.ai/cookbooks/parallel_questions.md",
+   "title": "TypeSafe docs: Parallel questions cookbook",
+   "publisher": "TypeSafe AI",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs",
+   "notes": "Cookbook ran jev-1.12, not the current jev-1.13.0."
+  },
+  {
+   "id": "typesafe-docs-jaggedness",
+   "url": "https://docs.typesafe.ai/model-jaggedness/jev-1.13.md",
+   "title": "TypeSafe docs: jev-1.13 jaggedness (known limits)",
+   "publisher": "TypeSafe AI",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs"
+  },
+  {
+   "id": "typesafe-launch-blog",
+   "url": "https://typesafe.ai/blog/introducing-system-one-models-and-jev",
+   "title": "Introducing System One models and Jev",
+   "publisher": "TypeSafe AI",
+   "published": "2026-09-15",
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_blog"
+  },
+  {
+   "id": "typesafe-evals",
+   "url": "https://evals.typesafe.ai/",
+   "title": "TypeSafe Evals (Jev vs LLM workflow evals)",
+   "publisher": "TypeSafe AI",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_blog",
+   "notes": "Vendor-run. Per-point tooltips in four workflow pages: invoice_processing, customer_service, security_incidents, agent_trace_observability. Reference labels are LLM-generated."
+  },
+  {
+   "id": "openrouter-jev-doc",
+   "url": "https://openrouter.ai/docs/guides/community/jev.md",
+   "title": "OpenRouter docs: Jev",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs"
+  },
+  {
+   "id": "jevaihub-pricing",
+   "url": "https://www.jevaihub.com/pricing/",
+   "title": "Jev AI Hub: pricing (THIRD PARTY, not official TypeSafe)",
+   "publisher": "Jev AI Hub (independent, unaffiliated)",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_blog",
+   "notes": "States: \"Jev AI Hub is an independent educational and developer resource. It is not affiliated with or endorsed by TypeSafe.\" Used only to record conflicts; never as a price source."
+  },
+  {
+   "id": "cloudflare-blog-clef",
+   "url": "https://blog.cloudflare.com/clef-decision-models/",
+   "title": "Clef decision models (launch blog)",
+   "publisher": "Cloudflare",
+   "published": "2026-10-01",
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_blog",
+   "notes": "Vendor-run comparison including the Jev rows."
+  },
+  {
+   "id": "cloudflare-changelog-clef",
+   "url": "https://developers.cloudflare.com/changelog/post/2026-10-01-clef-workers-ai/",
+   "title": "Introducing Clef: Cloudflare first open-source decision models, now on Workers AI",
+   "publisher": "Cloudflare",
+   "published": "2026-10-01",
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_changelog"
+  },
+  {
+   "id": "cloudflare-hf-clef",
+   "url": "https://huggingface.co/Cloudflare/clef",
+   "title": "Cloudflare/clef model card",
+   "publisher": "Cloudflare",
+   "published": "2026-10-01",
+   "retrieved_at": "2026-10-07",
+   "kind": "model_card",
+   "notes": "Card holds the full Decision Index 0.2.1 table (\"our internal run\") and workflow evals."
+  },
+  {
+   "id": "cloudflare-hf-clef-flash",
+   "url": "https://huggingface.co/Cloudflare/clef-flash",
+   "title": "Cloudflare/clef-flash model card",
+   "publisher": "Cloudflare",
+   "published": "2026-10-01",
+   "retrieved_at": "2026-10-07",
+   "kind": "model_card"
+  },
+  {
+   "id": "cloudflare-clef-evals-board",
+   "url": "https://clef-evals.workers-ai-mle.workers.dev/data/leaderboard.json",
+   "title": "Cloudflare Clef evals mirror board (leaderboard.json)",
+   "publisher": "Cloudflare",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_blog",
+   "notes": "Clef rows are marked self-reported. Not ingested as scores; used for its caption only."
+  },
+  {
+   "id": "cloudflare-workers-ai-pricing",
+   "url": "https://developers.cloudflare.com/workers-ai/platform/pricing/",
+   "title": "Workers AI pricing",
+   "publisher": "Cloudflare",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs",
+   "notes": "Pricing page says \"Last updated Oct 1, 2026\". Source of the per-M-token and neuron rates and of $0.011 per 1,000 neurons."
+  },
+  {
+   "id": "cloudflare-workers-ai-clef-page",
+   "url": "https://developers.cloudflare.com/workers-ai/models/clef/",
+   "title": "Workers AI model page: @cf/cloudflare/clef",
+   "publisher": "Cloudflare",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs"
+  },
+  {
+   "id": "jev-decision-index-data",
+   "url": "https://multimodalart-jev-decision-index.static.hf.space/data/index.json",
+   "title": "Jev Decision Index 0.3: index.json (generated 2026-10-06T17:39:21Z)",
+   "publisher": "multimodalart (community, unofficial)",
+   "published": "2026-10-06",
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Unofficial community board by HF user multimodalart; \"not affiliated with TypeSafe AI\". Single maintainer. Full score is 80% private tests that outsiders cannot reproduce."
+  },
+  {
+   "id": "jev-decision-index-methodology",
+   "url": "https://multimodalart-jev-decision-index.static.hf.space/data/methodology.json",
+   "title": "Jev Decision Index: methodology.json (generated 2026-09-28T00:39:48Z, partly stale)",
+   "publisher": "multimodalart (community, unofficial)",
+   "published": "2026-09-28",
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Older than index.json: still describes the 0.2.1 world in places. Holds the latency-v1 protocol, hard rules and Jev release-v1 http_wall statistics."
+  },
+  {
+   "id": "jev-decision-index-github",
+   "url": "https://github.com/apolinario/decision-index",
+   "title": "Decision Index repository (PR #54 adds Clef; submission path)",
+   "publisher": "apolinario / multimodalart",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Repo had 0 merged PRs of 73 at retrieval; Clef PR #54 is by third party lucataco, not Cloudflare."
+  },
+  {
+   "id": "openrouter-decisions-catalog",
+   "url": "https://openrouter.ai/api/v1/models?output_modalities=decisions",
+   "title": "OpenRouter model catalog, output_modalities=decisions (14 ids)",
+   "publisher": "OpenRouter",
+   "published": "2026-10-06",
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Prices, context and created timestamps. Per-endpoint latency_last_30m was null for every decision model."
+  },
+  {
+   "id": "openrouter-rankings-decisions",
+   "url": "https://openrouter.ai/rankings/decisions",
+   "title": "OpenRouter: Decision Model Rankings (usage)",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Weekly request volume (traffic, not quality). Rankings data licensed CC BY 4.0 per the page footer. Window not stated on the page."
+  },
+  {
+   "id": "requesty-benchmark",
+   "url": "https://www.requesty.ai/blog/decision-model-benchmark-clef-sference-cloudflare-perplexity",
+   "title": "Requesty ~22k-decision benchmark: Clef, sference, Cloudflare, Perplexity",
+   "publisher": "Requesty",
+   "published": "2026-10-05",
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_blog",
+   "notes": "Router vendor that sells these models. Values read from labelled bars in 23 chart PNGs plus article text."
+  },
+  {
+   "id": "requesty-docs-decisions",
+   "url": "https://docs.requesty.ai/features/decisions",
+   "title": "Requesty docs: Decisions",
+   "publisher": "Requesty",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs",
+   "notes": "Marked Experimental; non-streaming only."
+  },
+  {
+   "id": "sference-docs-models",
+   "url": "https://www.sference.com/docs/models",
+   "title": "sference docs: Models",
+   "publisher": "sference",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs"
+  },
+  {
+   "id": "sference-docs-decisions",
+   "url": "https://www.sference.com/docs/guides/decisions",
+   "title": "sference docs: Decisions guide",
+   "publisher": "sference",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs"
+  },
+  {
+   "id": "morrenhale-benchmark",
+   "url": "https://huggingface.co/datasets/morrenhale/decision-benchmark-jev-laya-julia",
+   "title": "morrenhale/decision-benchmark-jev-laya-julia (HF dataset, results.json)",
+   "publisher": "morrenhale (independent individual)",
+   "published": "2026-09-27",
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "19,776 decisions x 3 engines; open predictions. Latency is end-to-end deployment latency on different hardware."
+  },
+  {
+   "id": "jevbench-v1-6-1",
+   "url": "https://benchmarkheaven.com/api/jevbench/v1.6.1",
+   "title": "JevBench v1.6.1 (Benchmark Heaven) JSON API",
+   "publisher": "Benchmark Heaven",
+   "published": "2026-10-05",
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Operator runs every row. Board v1.7.12; benchmark v1.6.1. Scores not comparable across v1.4/v1.5/v1.6. Some pages are stamped 2026-10-07."
+  },
+  {
+   "id": "jevbench-hosted-api-table",
+   "url": "https://benchmarkheaven.com/jev-models/api",
+   "title": "JevBench hosted-API status table",
+   "publisher": "Benchmark Heaven",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval"
+  },
+  {
+   "id": "streamdecisionbench",
+   "url": "https://jacoblincool.github.io/StreamDecisionBench/data.json",
+   "title": "StreamDecisionBench data.json (arXiv 2609.38612)",
+   "publisher": "Jacob Lin (community)",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Single author; time-budgeted evolving-stream decisions; 480 states, 8 scenarios."
+  },
+  {
+   "id": "s1mb-blog",
+   "url": "https://huggingface.co/blog/hotchpotch/system-one-mosaic-benchmark",
+   "title": "S1MB: System One Mosaic Benchmark",
+   "publisher": "hotchpotch (community)",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_blog",
+   "notes": "Author own bekko models are on the board. No latency or cost."
+  },
+  {
+   "id": "hf-typed-decisions",
+   "url": "https://huggingface.co/datasets/LocalLLaMA/typed-decisions",
+   "title": "LocalLLaMA/typed-decisions (HF dataset card leaderboard)",
+   "publisher": "LocalLLaMA (community)",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Gold labels are teacher samples; card leaderboard is hand-maintained and partly self-reported."
+  },
+  {
+   "id": "hard-decisions",
+   "url": "https://hard-decisions.anth.us/",
+   "title": "Hard-Decisions (ProofWriter depth curves)",
+   "publisher": "Anthus AI Solutions",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Operator sells Jev-alignment services (conflict of interest)."
+  },
+  {
+   "id": "skill-siujev-issue2",
+   "url": "https://github.com/maciejczub/skill-siujev/issues/2",
+   "title": "skill-siujev issue #2: cross-vendor decision-model evals (evidence.md)",
+   "publisher": "maciejczub (individual)",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "n=200 per public set; run 2026-10-01 (Mercury fresh-set run 2026-10-02) through OpenRouter from one client in Poland."
+  },
+  {
+   "id": "nicia-admission-eval",
+   "url": "https://github.com/nicia-ai/admission-decision-eval",
+   "title": "nicia-ai/admission-decision-eval (README with results)",
+   "publisher": "Nicia (independent practitioner)",
+   "published": "2026-10-06",
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "85 synthetic cases; one US-west laptop over public HTTPS; GPT-6 Luna Decisions added 2026-10-06 from a cloud executor."
+  },
+  {
+   "id": "devto-clef-flash-vs-jev",
+   "url": "https://dev.to/prodbymarcu/i-benchmarked-cloudflares-new-open-decision-model-against-the-hosted-api-its-trying-to-replace-2ded",
+   "title": "I benchmarked Cloudflare new open decision model against the hosted API it is trying to replace",
+   "publisher": "prodbymarcu (individual, DEV Community)",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_blog",
+   "notes": "42 cases from one agent; Clef-Flash run locally on one RTX 3090."
+  },
+  {
+   "id": "wavect-clef-vs-jev",
+   "url": "https://wavect.io/blog/cloudflare-clef-vs-jev/",
+   "title": "Cloudflare Clef vs Jev (Wavect)",
+   "publisher": "Wavect",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_blog",
+   "notes": "Source for the confidence-definition differences (reviewed Cloudflare release code)."
+  },
+  {
+   "id": "digitalapplied-open-decision-models",
+   "url": "https://www.digitalapplied.com/blog/open-decision-models-compared-clef-decider-jev",
+   "title": "Open decision models compared: Clef, Decider, Jev",
+   "publisher": "Digital Applied",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_blog"
+  },
+  {
+   "id": "beri-clef-strands-decider",
+   "url": "https://www.beri.net/article/cloudflare-clef-amazon-strands-decider-open-weight-decision-models-vs-jev-benchmarks-pricing",
+   "title": "Cloudflare Clef and Amazon Strands Decider vs Jev (Beri)",
+   "publisher": "beri.net",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_blog"
+  },
+  {
+   "id": "gigazine-clef",
+   "url": "https://gigazine.net/gsc_news/en/20261005-clef-cloudflare-decision-model/",
+   "title": "Gigazine: Clef Cloudflare decision model (relays X posts)",
+   "publisher": "Gigazine",
+   "published": "2026-10-05",
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_blog"
+  },
+  {
+   "id": "befailproof-multiple-questions",
+   "url": "https://befailproof.ai/jev/multiple-questions-one-call/",
+   "title": "Multiple questions in one call (befailproof)",
+   "publisher": "befailproof.ai",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_blog"
+  },
+  {
+   "id": "developersdigest-clef",
+   "url": "https://www.developersdigest.tech/blog/cloudflare-clef-decision-models-2026",
+   "title": "Developers Digest: Cloudflare Clef decision models",
+   "publisher": "Developers Digest",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_blog",
+   "notes": "Secondary restatement of Cloudflare numbers. Adds nothing independent."
+  },
+  {
+   "id": "hn-clef-thread",
+   "url": "https://news.ycombinator.com/item?id=49923692",
+   "title": "Hacker News thread 49923692 (Clef vs Jev)",
+   "publisher": "Hacker News commenters",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "community_post",
+   "notes": "Anecdotal comments."
+  },
+  {
+   "id": "reddit-jev-embeddings-thread",
+   "url": "https://www.reddit.com/r/LocalLLaMA/comments/1wxcn49/can_someone_explain_how_jev_is_different_from_a/pdu9kuu/",
+   "title": "r/LocalLLaMA 1wxcn49: Jev vs a simple embeddings model (comment pdu9kuu by bonerfleximus)",
+   "publisher": "Reddit commenters",
+   "published": "2026-10-04",
+   "retrieved_at": "2026-10-07",
+   "kind": "community_post",
+   "notes": "reddit.com returned 403 from this host; text read via the Arctic Shift mirror https://arctic-shift.photon-reddit.com/api/comments/ids?ids=t1_pdu9kuu and the thread tree. Single user, informal run."
+  },
+  {
+   "id": "arxiv-2609-37647-bonn-jev",
+   "url": "https://arxiv.org/abs/2609.37647",
+   "title": "Evaluating and Benchmarking the System One Model Jev (Univ. of Bonn)",
+   "publisher": "Univ. of Bonn authors",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "academic"
+  },
+  {
+   "id": "arxiv-2609-24574-css-annotation",
+   "url": "https://arxiv.org/abs/2609.24574",
+   "title": "Evaluating Decision Models for Text Annotation in Computational Social Science (Ibrahim et al.)",
+   "publisher": "Ibrahim et al.",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "academic"
+  },
+  {
+   "id": "arxiv-2610-00346-decision-gates",
+   "url": "https://arxiv.org/abs/2610.00346",
+   "title": "Decision gates (Rafe): option-key likelihood baselines and flip tests",
+   "publisher": "Rafe",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "academic"
+  },
+  {
+   "id": "arxiv-2609-27678-legal",
+   "url": "https://arxiv.org/abs/2609.27678",
+   "title": "Decision models on long legal documents (123 contracts)",
+   "publisher": "arXiv authors",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "academic"
+  },
+  {
+   "id": "openai-decisions-guide",
+   "url": "https://developers.openai.com/api/docs/guides/decisions.md",
+   "title": "OpenAI docs: Decisions API guide",
+   "publisher": "OpenAI",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs",
+   "notes": "Public beta at retrieval; GA expected \"in the coming weeks\". Published no benchmark, latency or calibration number."
+  },
+  {
+   "id": "openai-decisions-reference",
+   "url": "https://developers.openai.com/api/reference/python/resources/decisions/methods/create.md",
+   "title": "OpenAI API reference: decisions.create",
+   "publisher": "OpenAI",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs"
+  },
+  {
+   "id": "openai-luna-model-page",
+   "url": "https://developers.openai.com/api/docs/models/gpt-6-luna.md",
+   "title": "OpenAI docs: gpt-6-luna model page",
+   "publisher": "OpenAI",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs"
+  },
+  {
+   "id": "perplexity-decisions-quickstart",
+   "url": "https://docs.perplexity.ai/docs/decisions/quickstart.md",
+   "title": "Perplexity docs: Decisions quickstart",
+   "publisher": "Perplexity",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs"
+  },
+  {
+   "id": "perplexity-pricing",
+   "url": "https://docs.perplexity.ai/docs/getting-started/pricing.md",
+   "title": "Perplexity docs: pricing",
+   "publisher": "Perplexity",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs"
+  },
+  {
+   "id": "perplexity-decisions-api-ref",
+   "url": "https://docs.perplexity.ai/api-reference/decisions-post.md",
+   "title": "Perplexity API reference: POST /v1/decisions",
+   "publisher": "Perplexity",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs"
+  },
+  {
+   "id": "hf-pplx-decider-v1",
+   "url": "https://huggingface.co/perplexity-ai/pplx-decider-v1-27b",
+   "title": "perplexity-ai/pplx-decider-v1-27b model card",
+   "publisher": "Perplexity",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "model_card"
+  },
+  {
+   "id": "hf-pplx-decider-v1-1",
+   "url": "https://huggingface.co/perplexity-ai/pplx-decider-v1.1-27b",
+   "title": "perplexity-ai/pplx-decider-v1.1-27b model card",
+   "publisher": "Perplexity",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "model_card"
+  },
+  {
+   "id": "liquid-docs-decision-models",
+   "url": "https://docs.liquid.ai/lfm/models/decision-models.md",
+   "title": "Liquid docs: decision models (d1)",
+   "publisher": "Liquid AI",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs",
+   "notes": "Publishes no paid rate; $0.04/M comes from the OpenRouter listing."
+  },
+  {
+   "id": "upstage-api-systemone",
+   "url": "https://console.upstage.ai/api/systemone.md",
+   "title": "Upstage API: systemone (Solar Decide)",
+   "publisher": "Upstage",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs",
+   "notes": "Console page for Solar Decide is JS-rendered; only the API page was readable."
+  },
+  {
+   "id": "respan-span-01-blog",
+   "url": "https://www.respan.ai/blog/introducing-span-1",
+   "title": "Respan: Introducing Span-01",
+   "publisher": "Respan",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_blog"
+  },
+  {
+   "id": "awesome-decision-models",
+   "url": "https://raw.githubusercontent.com/TuringCorp-net/awesome-decision-models/main/README.md",
+   "title": "awesome-decision-models list (TuringCorp-net)",
+   "publisher": "TuringCorp-net (community)",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "community_post",
+   "notes": "Discovery list; secondary."
+  },
+  {
+   "id": "hf-model-repos",
+   "url": "https://huggingface.co/api/models",
+   "title": "Hugging Face model API and cards (one per repo; see each model hf_repo)",
+   "publisher": "Hugging Face / repo owners",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "model_card",
+   "notes": "Pattern: https://huggingface.co/api/models/<owner>/<name>. Used for license, base model, created date and parameter counts of Decision Index entrants. License is the HF cardData field, not verified against a LICENSE file. The Decision Index index.json is the source for each entrant name, org, base model and served_params."
+  },
+  {
+   "id": "hf-mapika-decider-2b",
+   "url": "https://huggingface.co/Mapika/decider-2b",
+   "title": "Mapika/decider-2b model card",
+   "publisher": "Mapika (independent developer)",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "model_card"
+  },
+  {
+   "id": "hf-mapika-decider-2b-gguf",
+   "url": "https://huggingface.co/Mapika/decider-2b-GGUF",
+   "title": "Mapika/decider-2b-GGUF model card",
+   "publisher": "Mapika (independent developer)",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "model_card"
+  },
+  {
+   "id": "hf-kirp-jpt",
+   "url": "https://huggingface.co/kirp/jpt-4b",
+   "title": "kirp/jpt-4b model card (CC BY-NC 4.0)",
+   "publisher": "kirp (independent)",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "model_card"
+  },
+  {
+   "id": "divan-decider-2b-cpu",
+   "url": "https://github.com/tnunamak/divan/blob/main/llm-serving/decider-2b-gguf-on-a-busy-ryzen-cpu-gives-calibrated-typesafe-shaped-decisions-in-about-0-2-s-for-short-states-and-2-5-to-3-s-at-700-tokens-in-2-4-gb-ram.md",
+   "title": "divan: decider-2b GGUF on a busy Ryzen CPU (our local measurements)",
+   "publisher": "tnunamak (local)",
+   "published": "2026-10-03",
+   "retrieved_at": "2026-10-07",
+   "kind": "local_eval",
+   "notes": "Local research note in the private divan repo (local path ~/code/divan/llm-serving/...). Raw JSON is vendored in this pack under evidence/local-decider-cpu-bench/. One busy machine (load average 11-21), tiny n."
+  },
+  {
+   "id": "local-bench-decisions-design",
+   "url": "https://github.com/tnunamak/minnows/blob/main/data/decision-model-catalog/evidence/local-decider-cpu-bench/",
+   "title": "Local benchmark run files (vendored): r_2b_q8_t8.json, r_4b_q4_t8.json, r_2b_q8_t12.json, r_2b_q8_server.json, r_2b_q8_server_prime.json, r_basic.jsonl.txt + the bench scripts that produced them (scenarios.py is withheld: it contains a private agent conversation; the scenario is a 461-token agent state with 12 tools, 20 routes and 4 mixed questions)",
+   "publisher": "tnunamak (local)",
+   "published": "2026-10-03",
+   "retrieved_at": "2026-10-07",
+   "kind": "local_eval",
+   "notes": "Run on one busy Ryzen 9 7900X on 2026-10-03; original path ~/.tmp/decisions-design/bench/."
+  },
+  {
+   "id": "divan-early-adopters",
+   "url": "https://github.com/tnunamak/divan/blob/main/llm-integration/early-jev-adopters-win-on-bounded-grading-at-one-percent-of-frontier-cost-lose-on-wide-classification-and-nobody-else-is-using-probabilities-as-ml-features.md",
+   "title": "divan: early Jev adopters win on bounded grading, lose on wide classification",
+   "publisher": "tnunamak (research note)",
+   "published": "2026-10-03",
+   "retrieved_at": "2026-10-07",
+   "kind": "other",
+   "notes": "Our research note quoting Langfuse and Cribl reports; secondary."
+  },
+  {
+   "id": "divan-typesafe-jev",
+   "url": "https://github.com/tnunamak/divan/blob/main/llm-integration/typesafe-jev-is-a-high-volume-low-latency-decision-primitive-for-code-consumed-judgments-not-a-grader-for-one-off-subjective-prose.md",
+   "title": "divan: Jev is a high-volume low-latency decision primitive",
+   "publisher": "tnunamak (research note)",
+   "published": "2026-10-03",
+   "retrieved_at": "2026-10-07",
+   "kind": "other"
+  },
+  {
+   "id": "divan-decision-index-sep",
+   "url": "https://github.com/tnunamak/divan/blob/main/llm-serving/on-the-jev-decision-index-sep-2026-open-26b-28b-models-reach-about-85-91-percent-of-jev-and-fit-one-24gb-gpu-at-q4.md",
+   "title": "divan: Decision Index Sep 2026 (0.2.1-era numbers, superseded)",
+   "publisher": "tnunamak (research note)",
+   "published": "2026-10-03",
+   "retrieved_at": "2026-10-07",
+   "kind": "other",
+   "notes": "Quotes Decision Index 0.2.1 numbers that are NOT comparable with 0.3."
+  },
+  {
+   "id": "bfcl-official-leaderboard",
+   "url": "https://gorilla.cs.berkeley.edu/leaderboard.html",
+   "title": "Berkeley Function-Calling Leaderboard V4",
+   "publisher": "UC Berkeley Gorilla",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "data_overall.csv \"Last Updated: 2026-04-12\"; 109 rows; no decision model among them."
+  },
+  {
+   "id": "when2call-dataset",
+   "url": "https://huggingface.co/datasets/nvidia/When2Call",
+   "title": "nvidia/When2Call dataset card",
+   "publisher": "NVIDIA",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "model_card"
+  },
+  {
+   "id": "winnow-api-doc",
+   "url": "https://github.com/EldanRing/winnow-inference/blob/main/docs/API.md",
+   "title": "Winnow inference API.md (EldanRing)",
+   "publisher": "EldanRing",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs",
+   "notes": "Fetched via raw.githubusercontent.com on 2026-10-07: \"There must be 1-256 questions and 2-64 alternatives per question.\" Max 16 images."
+  },
+  {
+   "id": "hf-eikos-27b",
+   "url": "https://huggingface.co/caiovicentino1/Eikos-27B",
+   "title": "caiovicentino1/Eikos-27B model card",
+   "publisher": "caiovicentino1 (independent)",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "model_card"
+  },
+  {
+   "id": "hf-michaljach-jet",
+   "url": "https://huggingface.co/michaljach/jet",
+   "title": "michaljach/jet model card",
+   "publisher": "michaljach (independent)",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "model_card"
+  },
+  {
+   "id": "hf-juspay-xor-26b-a4b",
+   "url": "https://huggingface.co/juspay/Xor-26B-A4B",
+   "title": "juspay/Xor-26B-A4B model card",
+   "publisher": "Juspay Technologies",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "model_card"
+  },
+  {
+   "id": "hf-eldanring-winnow-12b",
+   "url": "https://huggingface.co/EldanRing/Winnow-12B",
+   "title": "EldanRing/Winnow-12B model card",
+   "publisher": "EldanRing",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "model_card"
+  },
+  {
+   "id": "openrouter-page-openai-gpt-6-luna-decisions",
+   "url": "https://openrouter.ai/openai/gpt-6-luna-decisions",
+   "title": "OpenRouter model page: OpenAI: GPT-6 Luna Decisions",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Server-rendered page: Latency P50 (best provider, all locations, window as listed), uptime 3d, provider pricing. Page text captured 2026-10-06."
+  },
+  {
+   "id": "openrouter-page-perplexity-pplx-decider-v1-27b",
+   "url": "https://openrouter.ai/perplexity/pplx-decider-v1-27b",
+   "title": "OpenRouter model page: Perplexity: Decider V1 27B",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Server-rendered page: Latency P50 (best provider, all locations, window as listed), uptime 3d, provider pricing. Page text captured 2026-10-06."
+  },
+  {
+   "id": "openrouter-page-liquid-d1",
+   "url": "https://openrouter.ai/liquid/d1",
+   "title": "OpenRouter model page: LiquidAI: d1",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Server-rendered page: Latency P50 (best provider, all locations, window as listed), uptime 3d, provider pricing. Page text captured 2026-10-06."
+  },
+  {
+   "id": "openrouter-page-cloudflare-clef-flash",
+   "url": "https://openrouter.ai/cloudflare/clef-flash",
+   "title": "OpenRouter model page: Cloudflare: Clef Flash",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Server-rendered page: Latency P50 (best provider, all locations, window as listed), uptime 3d, provider pricing. Page text captured 2026-10-06."
+  },
+  {
+   "id": "openrouter-page-cloudflare-clef",
+   "url": "https://openrouter.ai/cloudflare/clef",
+   "title": "OpenRouter model page: Cloudflare: Clef",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Server-rendered page: Latency P50 (best provider, all locations, window as listed), uptime 3d, provider pricing. Page text captured 2026-10-06."
+  },
+  {
+   "id": "openrouter-page-togethercomputer-tev1-4b-experimental",
+   "url": "https://openrouter.ai/togethercomputer/tev1-4b-experimental",
+   "title": "OpenRouter model page: Together: Tev1 4B Experimental",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Server-rendered page: Latency P50 (best provider, all locations, window as listed), uptime 3d, provider pricing. Page text captured 2026-10-06."
+  },
+  {
+   "id": "openrouter-page-inception-mercury-decide-free",
+   "url": "https://openrouter.ai/inception/mercury-decide:free",
+   "title": "OpenRouter model page: Inception: Mercury Decide (free)",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Server-rendered page: Latency P50 (best provider, all locations, window as listed), uptime 3d, provider pricing. Page text captured 2026-10-06."
+  },
+  {
+   "id": "openrouter-page-upstage-solar-decide",
+   "url": "https://openrouter.ai/upstage/solar-decide",
+   "title": "OpenRouter model page: Upstage: Solar Decide",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Server-rendered page: Latency P50 (best provider, all locations, window as listed), uptime 3d, provider pricing. Page text captured 2026-10-06."
+  },
+  {
+   "id": "openrouter-page-respan-span-01",
+   "url": "https://openrouter.ai/respan/span-01",
+   "title": "OpenRouter model page: Respan: Span-01",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Server-rendered page: Latency P50 (best provider, all locations, window as listed), uptime 3d, provider pricing. Page text captured 2026-10-06."
+  },
+  {
+   "id": "openrouter-page-respan-span-01-lite",
+   "url": "https://openrouter.ai/respan/span-01-lite",
+   "title": "OpenRouter model page: Respan: Span-01 Lite",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Server-rendered page: Latency P50 (best provider, all locations, window as listed), uptime 3d, provider pricing. Page text captured 2026-10-06."
+  },
+  {
+   "id": "openrouter-page-respan-span-01-lite-free",
+   "url": "https://openrouter.ai/respan/span-01-lite:free",
+   "title": "OpenRouter model page: Respan: Span-01 Lite (free)",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Server-rendered page: Latency P50 (best provider, all locations, window as listed), uptime 3d, provider pricing. Page text captured 2026-10-06."
+  },
+  {
+   "id": "openrouter-page-jaredpalmer-kev-4b",
+   "url": "https://openrouter.ai/jaredpalmer/kev-4b",
+   "title": "OpenRouter model page: Jared Palmer: Kev 4B",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Server-rendered page: Latency P50 (best provider, all locations, window as listed), uptime 3d, provider pricing. Page text captured 2026-10-06."
+  },
+  {
+   "id": "openrouter-page-typesafe-jev-1-13",
+   "url": "https://openrouter.ai/typesafe/jev-1.13",
+   "title": "OpenRouter model page: TypeSafe: Jev 1.13",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "third_party_eval",
+   "notes": "Server-rendered page: Latency P50 (best provider, all locations, window as listed), uptime 3d, provider pricing. Page text captured 2026-10-06."
+  },
+  {
+   "id": "upstage-console-solar-decide",
+   "url": "https://console.upstage.ai/docs/models/solar-decide",
+   "title": "Upstage console: Solar Decide model page (banner)",
+   "publisher": "Upstage",
+   "published": null,
+   "retrieved_at": "2026-10-07",
+   "kind": "vendor_docs",
+   "notes": "JS-rendered page; the banner text was captured. Price detail is not on this page."
+  }
+ ]
 }

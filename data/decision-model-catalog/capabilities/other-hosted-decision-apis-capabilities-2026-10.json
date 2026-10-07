@@ -1,0 +1,251 @@
+{
+ "id": "other-hosted-decision-apis-capabilities-2026-10",
+ "schema_version": 1,
+ "kind": "capabilities",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://docs.liquid.ai/lfm/models/decision-models.md",
+  "https://console.upstage.ai/api/systemone.md",
+  "https://openrouter.ai/api/v1/models?output_modalities=decisions",
+  "https://openrouter.ai/inception/mercury-decide:free",
+  "https://www.respan.ai/blog/introducing-span-1",
+  "https://openrouter.ai/togethercomputer/tev1-4b-experimental",
+  "https://openrouter.ai/jaredpalmer/kev-4b",
+  "https://raw.githubusercontent.com/TuringCorp-net/awesome-decision-models/main/README.md",
+  "https://huggingface.co/datasets/LocalLLaMA/typed-decisions"
+ ],
+ "source_ids": [
+  "liquid-docs-decision-models",
+  "upstage-api-systemone",
+  "openrouter-decisions-catalog",
+  "openrouter-page-inception-mercury-decide-free",
+  "respan-span-01-blog",
+  "openrouter-page-togethercomputer-tev1-4b-experimental",
+  "openrouter-page-jaredpalmer-kev-4b",
+  "awesome-decision-models",
+  "hf-typed-decisions"
+ ],
+ "notes": "Other hosted decision endpoints, mostly known from OpenRouter listings. Liquid d1 (POST https://api.liquid.ai/decisions/v1/systemone; text and images on paid d1, d1:free text-only; remote image URLs not accepted; 65,536 context). Upstage Solar Decide (beta; choice takes 2 to 26 options because it reads single-token labels A-Z, 27+ returns 422; 524,288 context; Korean strength). Inception Mercury Decide (free OpenRouter route, 32,768 context; no first-party docs found). Respan Span-01 (behavior scorer: present / absent / not_observable probability per behavior; a native not-observable class; marketed for AI traces). Together Tev1 4B (NOT a probability endpoint: chat completions return a single option letter, 2-24 labeled options, temperature 0, max_tokens 8). Kev 4B on SiliconFlow via OpenRouter (8,192 context). meraGPT Decider 1 (hosted; 4,096-token requests and Choice limited to ten labels per the awesome list, primary docs unreadable). Unknowns stay null.",
+ "surfaces": [
+  {
+   "model": "liquid-d1",
+   "surface": "other",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": null,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": null,
+   "rationale_supported": null,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 65536
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": null,
+    "packing_supported": null
+   },
+   "output_tokens_billed": null,
+   "source_ids": [
+    "liquid-docs-decision-models",
+    "openrouter-decisions-catalog"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "Docs: \"Each question is charged for its text and all supplied images.\" (state may be billed per question; unverified). Question limits not read."
+  },
+  {
+   "model": "solar-decide",
+   "surface": "other",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": 26,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": null,
+   "rationale_supported": null,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 524288
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": null,
+    "packing_supported": null
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "upstage-api-systemone",
+    "openrouter-decisions-catalog"
+   ],
+   "caveat_ids": [
+    "solar-decide-price-discount-unclear"
+   ],
+   "notes": "Choice 2-26 options; 422 beyond (\"27 candidates exceed the 26 single-token labels this route supports\"). Beta. OpenRouter p50 17.30 s at retrieval."
+  },
+  {
+   "model": "mercury-decide",
+   "surface": "openrouter",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": null,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": null,
+   "rationale_supported": null,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 32768
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": null,
+    "packing_supported": null
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "openrouter-decisions-catalog",
+    "openrouter-page-inception-mercury-decide-free"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "Free OpenRouter route; listing text \"It makes up to 14 decisions per second\" (unit unclear)."
+  },
+  {
+   "model": "span-01",
+   "surface": "openrouter",
+   "question_types": [
+    "behavior"
+   ],
+   "max_options": null,
+   "abstain_supported": true,
+   "returns_probabilities": true,
+   "calibration_claimed": null,
+   "rationale_supported": null,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": null
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": null,
+    "packing_supported": null
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "respan-span-01-blog",
+    "openrouter-decisions-catalog"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "Per plain-language behavior it returns present / absent / not_observable probabilities: the not_observable class is an abstain-like output. Context listed as 0 on OpenRouter (unknown)."
+  },
+  {
+   "model": "tev1-4b",
+   "surface": "openrouter",
+   "question_types": [
+    "choice"
+   ],
+   "max_options": 24,
+   "abstain_supported": null,
+   "returns_probabilities": false,
+   "calibration_claimed": null,
+   "rationale_supported": null,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 32768
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": null,
+    "packing_supported": null
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "openrouter-page-togethercomputer-tev1-4b-experimental",
+    "openrouter-decisions-catalog"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "Single choice among 2-24 labeled options via chat completions (one option letter, temperature 0, max_tokens 8); no probabilities returned although listed in the decisions modality."
+  },
+  {
+   "model": "kev-4b",
+   "surface": "openrouter",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": null,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": null,
+   "rationale_supported": null,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 8192
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": null,
+    "packing_supported": null
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "openrouter-page-jaredpalmer-kev-4b",
+    "openrouter-decisions-catalog"
+   ],
+   "notes": "SiliconFlow (fp8). Kev confidence is strongly underconfident per one independent test (thresholds do not transfer)."
+  },
+  {
+   "model": "meragpt-decider-1",
+   "surface": "other",
+   "question_types": [
+    "choice",
+    "noul",
+    "score"
+   ],
+   "max_options": 10,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": null,
+   "rationale_supported": null,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 4096
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": null,
+    "packing_supported": null
+   },
+   "output_tokens_billed": null,
+   "source_ids": [
+    "awesome-decision-models"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "Secondary (awesome list, primary meragpt.com/docs not readable): \"requests are limited to 4,096 tokens and Choice to ten labels\". Question types not confirmed."
+  }
+ ],
+ "missing": [
+  "Liquid d1 max questions, max options and rate limits; Mercury Decide limits; Span-01 context: not found.",
+  "Upstage Solar Decide console page is JS-rendered; only the API page was readable."
+ ]
+}

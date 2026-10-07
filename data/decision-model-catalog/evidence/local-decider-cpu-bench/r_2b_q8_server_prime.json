@@ -1,0 +1,40 @@
+{
+ "gguf": "decider-2b-v11-Q8_0.gguf",
+ "loadavg_start": 16.546875,
+ "mixed4_independent": {
+  "first_ms": 4250,
+  "warm_median_ms": 2798,
+  "prompt_tokens_processed_first": [
+   [
+    "prime",
+    467
+   ],
+   229,
+   36,
+   36,
+   36,
+   35,
+   36,
+   35,
+   30
+  ],
+  "prompt_tokens_processed_warm": [
+   [
+    "prime",
+    4
+   ],
+   229,
+   36,
+   36,
+   36,
+   35,
+   36,
+   35,
+   30
+  ],
+  "max_abs_prob_diff_vs_inprocess": 0.0176,
+  "same_argmax": true
+ },
+ "server_rss_mb": 2384,
+ "loadavg_end": 16.1806640625
+}

@@ -118,11 +118,23 @@ def write(pack: Path, rel: str, doc: dict) -> None:
         (pack / "pack.json").write_text(json.dumps(pj, indent=2))
 
 
+def skeleton(dst: Path) -> None:
+    """Empty pack: real schemas and docs, no data files (the live pack is populated; tests start clean)."""
+    dst.mkdir()
+    shutil.copytree(SEED / "schemas", dst / "schemas")
+    for name in ("README.md", "SCHEMA.md", "FRESHNESS.md", "CHANGELOG.md"):
+        shutil.copy(SEED / name, dst / name)
+    pj = json.loads((SEED / "pack.json").read_text())
+    data_files = {"SOURCES.json", "caveats.json", "metrics.json", "models.json"}
+    pj["files"] = sorted(f for f in pj["files"] if (f.startswith("schemas/") or "/" not in f) and f not in data_files)
+    (dst / "pack.json").write_text(json.dumps(pj, indent=2))
+
+
 @pytest.fixture
 def pack(tmp_path: Path) -> Path:
     """A populated, valid decision pack in a tmp dir (real schemas, fake data)."""
     dst = tmp_path / "decision-model-catalog"
-    shutil.copytree(SEED, dst)
+    skeleton(dst)
     write(dst, "SOURCES.json", SOURCES)
     write(dst, "models.json", MODELS)
     write(dst, "metrics.json", METRICS)
@@ -320,6 +332,7 @@ def test_unknown_source_id_fails(pack):
 
 
 def test_pack_file_list_must_match_disk(pack):
+    (pack / "performance").mkdir(exist_ok=True)
     (pack / "performance" / "unlisted.json").write_text("{}")
     assert has(run(pack), "file on disk not listed in pack.json: performance/unlisted.json")
 

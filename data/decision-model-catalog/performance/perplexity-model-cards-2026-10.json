@@ -1,0 +1,38 @@
+{
+ "id": "perplexity-model-cards-2026-10",
+ "schema_version": 1,
+ "kind": "performance",
+ "provider": "perplexity",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://huggingface.co/perplexity-ai/pplx-decider-v1-27b",
+  "https://huggingface.co/perplexity-ai/pplx-decider-v1.1-27b"
+ ],
+ "notes": "Vendor-run numbers from Perplexity model cards (grade C, vendor table): v1 card: Jev 84.51%, Qwen3.8-27B 74.76%, pplx-decider-v1-27b 85.71% over 11 benchmarks \"measured through the Perplexity API\"; v1.1 card: Decision Index overall Jev 57.9, v1 56.4, v1.1 61.56 (\"now outperforming Jev by more than 3.5 points\"). On the live Decision Index 0.3 board the Perplexity v1.1 Full score is 62.75 and the public-only 62.25 (see Decision Index doc). The v1 card panel is Perplexity-chosen; Jev has the best score on 6 of 11 rows there (pplx-decider-v1 on 4, one tie). Quoted v1.1 category scores (Knowledge 48.18, Language 69.45, Retrieval 61.26, Tools 78.88, Arts 44.66) are on the card edition scale.",
+ "source_ids": [
+  "hf-pplx-decider-v1",
+  "hf-pplx-decider-v1-1"
+ ],
+ "claims": [
+  {
+   "models": [
+    "pplx-decider-v1.1-27b"
+   ],
+   "statement": "Perplexity v1.1 card: the update lifts the Decision Index score \"from 56.4 to 61.56\", \"now outperforming Jev by more than 3.5 points, while using the same backbone\"; \"Most of the gains are driven by the lifting of the causal mask and training on more data\". Card access note: \"authenticated Hugging Face access to this private repository\" vs HF API gated:false (unresolved).",
+   "source_id": "hf-pplx-decider-v1-1",
+   "caveat_ids": [
+    "vendor-run-eval-of-competitor",
+    "leaderboard-edition-and-weighting-flip-rankings",
+    "pplx-v1-1-repo-access-conflict"
+   ]
+  }
+ ],
+ "scores": [
+  {"model":"pplx-decider-v1-27b","metric":"Perplexity v1 card: overall accuracy over 11 benchmarks (measured through the Perplexity API)","metric_id":"vc-pplx-v1-card-overall","score":85.71,"unit":"accuracy","caveat":"Perplexity v1 card","source_id":"hf-pplx-decider-v1","harness":"Perplexity-run, same 11 tasks (WinoGrande, FinancialPhraseBank, RAGTruth, JudgeBench, BBH, JevBench public hard, TabFact, ContractNLI, Circa, Belebele, TruthfulQA binary) for Jev, Qwen3.8-27B and pplx-decider-v1; results for the pplx model were measured through the Perplexity API","task_family":"decision_benchmark_panel","source_type":"vendor_table","evidence_grade":"C","observed_at":"2026-10-05","comparability_group":"vendor-claims/pplx-v1-card-overall","snapshot_id":"perplexity-cards-2026-10-07","caveat_ids":["vendor-run-eval-of-competitor","leaderboard-edition-and-weighting-flip-rankings"]},
+  {"model":"jev-1.13.0","metric":"Perplexity v1 card: overall accuracy over 11 benchmarks (measured through the Perplexity API)","metric_id":"vc-pplx-v1-card-overall","score":84.51,"unit":"accuracy","caveat":"Jev on the Perplexity v1 card (Perplexity-run)","source_id":"hf-pplx-decider-v1","harness":"Perplexity-run, same 11 tasks (WinoGrande, FinancialPhraseBank, RAGTruth, JudgeBench, BBH, JevBench public hard, TabFact, ContractNLI, Circa, Belebele, TruthfulQA binary) for Jev, Qwen3.8-27B and pplx-decider-v1; results for the pplx model were measured through the Perplexity API","task_family":"decision_benchmark_panel","source_type":"vendor_table","evidence_grade":"C","observed_at":"2026-10-05","comparability_group":"vendor-claims/pplx-v1-card-overall","snapshot_id":"perplexity-cards-2026-10-07","caveat_ids":["vendor-run-eval-of-competitor","leaderboard-edition-and-weighting-flip-rankings"]},
+  {"model":"qwen3.8-27b","metric":"Perplexity v1 card: overall accuracy over 11 benchmarks (measured through the Perplexity API)","metric_id":"vc-pplx-v1-card-overall","score":74.76,"unit":"accuracy","caveat":"Qwen3.8-27B on the Perplexity v1 card (Perplexity-run; base model, not a decision model)","source_id":"hf-pplx-decider-v1","harness":"Perplexity-run, same 11 tasks (WinoGrande, FinancialPhraseBank, RAGTruth, JudgeBench, BBH, JevBench public hard, TabFact, ContractNLI, Circa, Belebele, TruthfulQA binary) for Jev, Qwen3.8-27B and pplx-decider-v1; results for the pplx model were measured through the Perplexity API","task_family":"decision_benchmark_panel","source_type":"vendor_table","evidence_grade":"C","observed_at":"2026-10-05","comparability_group":"vendor-claims/pplx-v1-card-overall","snapshot_id":"perplexity-cards-2026-10-07","caveat_ids":["vendor-run-eval-of-competitor","leaderboard-edition-and-weighting-flip-rankings"]},
+  {"model":"pplx-decider-v1.1-27b","metric":"Perplexity v1.1 card: Decision Index overall (0.2.1-era scale)","metric_id":"vc-pplx-v11-card-decision-index","score":61.56,"unit":"other","caveat":"v1.1 card","source_id":"hf-pplx-decider-v1-1","harness":"Decision Index public-scale overall as quoted by Perplexity on its card (not the 0.3 Full score); Jev 57.9 and pplx-decider-v1 56.4 on the same card","task_family":"decision_index_headline","source_type":"vendor_table","evidence_grade":"C","observed_at":"2026-10-05","comparability_group":"vendor-claims/pplx-v11-card-decision-index","snapshot_id":"perplexity-cards-2026-10-07","caveat_ids":["vendor-run-eval-of-competitor","leaderboard-edition-and-weighting-flip-rankings"]},
+  {"model":"pplx-decider-v1-27b","metric":"Perplexity v1.1 card: Decision Index overall (0.2.1-era scale)","metric_id":"vc-pplx-v11-card-decision-index","score":56.4,"unit":"other","caveat":"v1 on the v1.1 card","source_id":"hf-pplx-decider-v1-1","harness":"Decision Index public-scale overall as quoted by Perplexity on its card (not the 0.3 Full score); Jev 57.9 and pplx-decider-v1 56.4 on the same card","task_family":"decision_index_headline","source_type":"vendor_table","evidence_grade":"C","observed_at":"2026-10-05","comparability_group":"vendor-claims/pplx-v11-card-decision-index","snapshot_id":"perplexity-cards-2026-10-07","caveat_ids":["vendor-run-eval-of-competitor","leaderboard-edition-and-weighting-flip-rankings"]},
+  {"model":"jev-1.13.0","metric":"Perplexity v1.1 card: Decision Index overall (0.2.1-era scale)","metric_id":"vc-pplx-v11-card-decision-index","score":57.9,"unit":"other","caveat":"Jev on the v1.1 card","source_id":"hf-pplx-decider-v1-1","harness":"Decision Index public-scale overall as quoted by Perplexity on its card (not the 0.3 Full score); Jev 57.9 and pplx-decider-v1 56.4 on the same card","task_family":"decision_index_headline","source_type":"vendor_table","evidence_grade":"C","observed_at":"2026-10-05","comparability_group":"vendor-claims/pplx-v11-card-decision-index","snapshot_id":"perplexity-cards-2026-10-07","caveat_ids":["vendor-run-eval-of-competitor","leaderboard-edition-and-weighting-flip-rankings"]}
+ ]
+}

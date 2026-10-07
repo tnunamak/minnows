@@ -1,0 +1,56 @@
+{
+ "gguf": "decider-2b-v11-Q8_0.gguf",
+ "loadavg_start": 10.978515625,
+ "single_choice12": {
+  "first_ms": 2764,
+  "warm_median_ms": 66,
+  "prompt_tokens_processed_first": [
+   696
+  ],
+  "prompt_tokens_processed_warm": [
+   4
+  ],
+  "max_abs_prob_diff_vs_inprocess": 0.0036,
+  "same_argmax": true
+ },
+ "choice20": {
+  "first_ms": 2003,
+  "warm_median_ms": 67,
+  "prompt_tokens_processed_first": [
+   416
+  ],
+  "prompt_tokens_processed_warm": [
+   4
+  ],
+  "max_abs_prob_diff_vs_inprocess": 0.0027,
+  "same_argmax": true
+ },
+ "mixed4_independent": {
+  "first_ms": 12185,
+  "warm_median_ms": 12179,
+  "prompt_tokens_processed_first": [
+   516,
+   323,
+   323,
+   323,
+   322,
+   323,
+   322,
+   317
+  ],
+  "prompt_tokens_processed_warm": [
+   516,
+   323,
+   323,
+   323,
+   322,
+   323,
+   322,
+   317
+  ],
+  "max_abs_prob_diff_vs_inprocess": 0.0036,
+  "same_argmax": true
+ },
+ "server_rss_mb": 2367,
+ "loadavg_end": 21.48974609375
+}

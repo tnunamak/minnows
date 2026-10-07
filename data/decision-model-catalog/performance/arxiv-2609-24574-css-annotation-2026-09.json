@@ -1,0 +1,40 @@
+{
+ "id": "arxiv-2609-24574-css-annotation-2026-09",
+ "schema_version": 1,
+ "kind": "performance",
+ "provider": "ibrahim",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://arxiv.org/abs/2609.24574"
+ ],
+ "notes": "Pre-registered evaluation (Ibrahim et al.) of Jev (a decision model) for computational-social-science text annotation: the Ziems et al. 18-task suite (7,977 items), 19 LLM baselines, 11 open decision systems added in an appendix after the analysis plan was filed. Jev trails the per-task best LLM on 14 of 15 tasks, but at about 44x lower cost; calibration beats 16 of 19 LLMs verbalised confidence. Clef is not included. Quality rows stored are Jev medians; per-task tables are not stored. The per-task best LLM is chosen on the same test items, which favors the LLM side.",
+ "source_ids": [
+  "arxiv-2609-24574-css-annotation"
+ ],
+ "claims": [
+  {
+   "models": [
+    "jev-1.13.0"
+   ],
+   "statement": "Ibrahim et al.: \"The decision model trails the per-task best LLM on 14 of 15 evaluation tasks, with a median deficit of 11.6 macro-F1 points, at a median 44 times lower measured cost. Its confidence is better calibrated than the verbalized confidence of 16 of the 19 LLMs, yet three frontier models show lower median calibration error (0.157 against 0.066).\" Typed interface: zero invalid answers across the 23,703 decision-model calls. Cascades that keep confident items on the decision model and escalate the rest match the partner LLM alone at roughly a quarter to half of its measured cost. The paper adds eleven open decision systems in an appendix on a 17-task local grid (not stored).",
+   "task_families": [
+    "text_annotation"
+   ],
+   "axes": [
+    "quality",
+    "cost"
+   ],
+   "implication": "A decision model is a cost play on annotation tasks, not a quality leader: use cascades with an LLM fallback.",
+   "source_id": "arxiv-2609-24574-css-annotation",
+   "caveat_ids": [
+    "public-benchmark-overfit-and-label-provenance",
+    "price-vendor-multiples-are-best-case-and-baseline-dependent"
+   ]
+  }
+ ],
+ "scores": [
+  {"model":"jev-1.13.0","metric":"Ibrahim et al.: median macro-F1 across the 15 evaluation tasks","metric_id":"ibrahim-median-macro-f1","score":0.581,"unit":"other","caveat":"Median macro-F1 over 15 tasks; median accuracy 0.610; median deficit to the per-task best LLM 11.6 macro-F1 points, significant on 12 of 15 tasks.","source_id":"arxiv-2609-24574-css-annotation","harness":"Ziems et al. CSS evaluation suite: 18 closed-choice tasks (7,977 items; 15 evaluation tasks for the headline), zero-shot, Jev vs 19 LLM baselines; per-task best LLM selected on the same test items (an oracle comparator that favors the LLM side)","task_family":"text_annotation","source_type":"third_party_report","evidence_grade":"B","observed_at":"2026-09-29","comparability_group":"paper/ibrahim-median-macro-f1","n":15,"caveat_ids":["benchmark-vs-task-shape"]},
+  {"model":"jev-1.13.0","metric":"Ibrahim et al.: median expected calibration error (decision model confidence)","metric_id":"ibrahim-median-ece","score":0.157,"unit":"ece","caveat":"Best baseline median ECE 0.066 (Claude, verbalized). On the empathy task confidence carries no information (ECE 0.538).","source_id":"arxiv-2609-24574-css-annotation","harness":"Ziems et al. CSS evaluation suite: 18 closed-choice tasks (7,977 items; 15 evaluation tasks for the headline), zero-shot, Jev vs 19 LLM baselines; per-task best LLM selected on the same test items (an oracle comparator that favors the LLM side)","task_family":"calibration","source_type":"third_party_report","evidence_grade":"B","observed_at":"2026-09-29","comparability_group":"paper/ibrahim-median-ece","caveat_ids":["calibration-unverified-and-nonportable"]},
+  {"model":"jev-1.13.0","metric":"Ibrahim et al.: measured cost per item (USD per 1,000 items / 1,000)","metric_id":"ibrahim-cost-per-decision-usd","score":2.7e-05,"unit":"usd_per_decision","caveat":"Printed $0.027 per 1,000 items; $0.21 for all 7,977 items.","source_id":"arxiv-2609-24574-css-annotation","harness":"Ziems et al. CSS evaluation suite: 18 closed-choice tasks (7,977 items; 15 evaluation tasks for the headline), zero-shot, Jev vs 19 LLM baselines; per-task best LLM selected on the same test items (an oracle comparator that favors the LLM side)","task_family":"cost","source_type":"third_party_report","evidence_grade":"B","observed_at":"2026-09-29","comparability_group":"paper/ibrahim-cost-per-decision-usd","caveat_ids":["price-per-token-is-not-cost-per-decision"],"measurement":{"measured_by":"Ibrahim et al. (measured cost)"},"cost":{"value":2.7e-05,"unit":"usd_per_decision","basis":"api_usd"}}
+ ]
+}

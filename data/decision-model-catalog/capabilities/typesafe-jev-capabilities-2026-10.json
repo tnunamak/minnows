@@ -1,0 +1,104 @@
+{
+ "id": "typesafe-jev-capabilities-2026-10",
+ "schema_version": 1,
+ "kind": "capabilities",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://docs.typesafe.ai/api.md",
+  "https://docs.typesafe.ai/models.md",
+  "https://docs.typesafe.ai/primitives.md",
+  "https://docs.typesafe.ai/primitives/choice.md",
+  "https://docs.typesafe.ai/patterns/fan-out.md",
+  "https://docs.typesafe.ai/cookbooks/parallel_questions.md",
+  "https://docs.typesafe.ai/model-jaggedness/jev-1.13.md",
+  "https://docs.typesafe.ai/concepts/system-one.md"
+ ],
+ "source_ids": [
+  "typesafe-docs-api",
+  "typesafe-docs-models",
+  "typesafe-docs-primitives",
+  "typesafe-docs-choice",
+  "typesafe-docs-fanout",
+  "typesafe-docs-parallel-questions",
+  "typesafe-docs-jaggedness",
+  "typesafe-docs-system-one"
+ ],
+ "notes": "Jev decision interface on the TypeSafe API (POST https://api.typesafe.ai/v1/systemone; models listing GET /v1/models). Text only. Choice up to 255 options; Score at least 2 levels (API accepts up to 10); max questions per request is NOT documented (the fan-out page says adding questions usually has little effect on response time; the cookbook uses 13; one independent user saw flat latency to ~50 questions at <=4k state). No native abstain or unknown output: docs recommend an explicit \"other\" / \"none of the above\" option. No rationale text. Not fine-tunable (\"the same weights serve every account\"). Known limits listed by TypeSafe: counting, numeric precision, date arithmetic, indirection, irrelevant state (accuracy falls), adversarial state, option order (leans toward the first Choice option), generation. Rate limits 100K tokens/s and 80 requests/s. Context: \"64k tokens per request; 32k tokens for state plus the longest question\" (OpenRouter lists 32,000; Cloudflare blog says \"Jev's 32k\").",
+ "surfaces": [
+  {
+   "model": "jev-1.13.0",
+   "surface": "typesafe-api",
+   "question_types": [
+    "choice",
+    "score",
+    "noul"
+   ],
+   "max_options": 255,
+   "abstain_supported": false,
+   "returns_probabilities": true,
+   "calibration_claimed": true,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": 32000,
+    "total_tokens": 64000
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": true,
+    "packing_supported": true
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "typesafe-docs-api",
+    "typesafe-docs-models",
+    "typesafe-docs-choice",
+    "typesafe-docs-fanout"
+   ],
+   "caveat_ids": [
+    "abstention-and-out-of-scope",
+    "calibration-unverified-and-nonportable",
+    "context-window-and-rot",
+    "determinism-and-option-order",
+    "fanout-speculative-questions-are-not-free-and-claims-are-vendor",
+    "model-version-and-api-drift"
+   ],
+   "notes": "total_tokens 64000 and state_tokens 32000 are the \"64k\" and \"32k\" figures in the docs (state plus the longest question). Score levels 2-10. Choice and Score answers carry a `confidence` derived from the distribution; Noul has none. Confidence = (p_max - 1/n)/(1 - 1/n) per TypeSafe, which differs from Cloudflare and Perplexity definitions. Calibration is a vendor claim (RLCD); independent measurements: Decision Index ECE 0.074; Bonn pooled choice ECE 0.028; Ibrahim median ECE 0.157."
+  },
+  {
+   "model": "jev-1.13.0",
+   "surface": "openrouter",
+   "question_types": [
+    "choice",
+    "score",
+    "noul"
+   ],
+   "max_options": 255,
+   "abstain_supported": false,
+   "returns_probabilities": true,
+   "calibration_claimed": true,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 32000
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": true,
+    "packing_supported": true
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "openrouter-jev-doc",
+    "openrouter-decisions-catalog"
+   ],
+   "caveat_ids": [
+    "context-window-and-rot"
+   ],
+   "notes": "OpenRouter serves Jev at POST /api/v1/systemone (TypeSafe shape) and /api/alpha/decisions; listing context_length 32000, max_completion 28,800; price $0.042/M, completion $0."
+  }
+ ],
+ "missing": [
+  "Jev maximum questions per request, streaming and batch API: undocumented (searched docs api/primitives/models/fan-out/parallel-questions).",
+  "Jev cached-input-token rate and any free tier: not documented in the pages read."
+ ]
+}

@@ -1,0 +1,41 @@
+{
+ "id": "typesafe-api-2026-10",
+ "schema_version": 1,
+ "kind": "api_usd",
+ "agent": "other",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://docs.typesafe.ai/models.md"
+ ],
+ "source_ids": [
+  "typesafe-docs-models",
+  "jevaihub-pricing",
+  "openrouter-jev-doc"
+ ],
+ "role": "reference",
+ "notes": "TypeSafe official price for Jev, from docs.typesafe.ai/models (typesafe.ai/pricing returned 404; there is no separate marketing price page). Raw unit as published: $42 per Btok, i.e. $0.042 per Mtok (\"Price (per Btok / per Mtok) | $42 / $0.042\"), charged per input token; output tokens are free; no per-request fee or free tier is listed. Rate limits on the docs page 2026-10-07: \"100K tokens per second / 80 requests per second\" (\"adjusting dynamically\"; higher limits on custom/enterprise plans). THIRD-PARTY RESELLER/AGGREGATOR NOT USED AS A PRICE SOURCE: jevaihub.com/pricing is an independent site (\"not affiliated with or endorsed by TypeSafe\"); its price matches ($0.042) but its snapshot of 2026-09-30 recorded 40 requests per second, a conflict with the official 80 (limits changed). A Vercel AI Gateway price for Jev ($0.042 under typesafe-ai/jev) is reported only by that third-party site and was not verified (Vercel page 404). Context: docs say 64k tokens per request and 32k for state plus the longest question; OpenRouter lists 32,000. Jev price per decision depends on state size, questions and fan-out; this table is the raw rate only. Cache fields: cache_read_per_m and cache_write_per_m are set EQUAL to fresh_input_per_m because the vendor documents no caching discount or surcharge; they are not published rates.",
+ "models": {
+  "jev-1.13.0": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.042,
+   "cache_read_per_m": 0.042,
+   "cache_write_per_m": 0.042,
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "typesafe-docs-models",
+   "caveat_ids": [
+    "price-per-token-is-not-cost-per-decision",
+    "price-third-party-aggregator-sites",
+    "price-free-output-is-small-but-nonzero-value"
+   ],
+   "notes": "Official: \"| Price (per Btok / per Mtok) | $42 / $0.042 |\" and \"Charged per input token. Output tokens are free.\" Rate limit 100K tokens/s, 80 requests/s. No per-request fee listed. Raw unit: $42 per billion tokens."
+  }
+ },
+ "match": [
+  {
+   "pattern": "jev",
+   "model": "jev-1.13.0"
+  }
+ ]
+}

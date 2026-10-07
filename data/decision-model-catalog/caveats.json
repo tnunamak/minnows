@@ -1,10 +1,2692 @@
 {
-  "$schema": "schemas/caveats-v1.schema.json",
-  "id": "decision-model-catalog-caveats",
-  "schema_version": 1,
-  "generated_at": "2026-10-06",
-  "notes": [
-    "Nuance registry. Rows cite caveats via caveat_ids[]; a consumer that shows a row must show its caveats."
-  ],
-  "caveats": []
+ "$schema": "schemas/caveats-v1.schema.json",
+ "id": "decision-model-catalog-caveats",
+ "schema_version": 1,
+ "generated_at": "2026-10-07",
+ "notes": [
+  "Nuance registry (56 caveats). Rows cite caveats via caveat_ids[]; a consumer that shows a row must show its caveats. Evidence quotes are verbatim spans from captured source text (JSON snippets are verbatim from the raw files; whitespace in pretty-printed JSON and markdown links may be collapsed). strength: strong = measured or primary-source; moderate = credible but indirect; anecdotal = a single report or comment."
+ ],
+ "caveats": [
+  {
+   "id": "latency-hosted-rtt-vs-on-card",
+   "statement": "Jev's 524.1 ms median / 536.0 ms p95 is a hosted-API HTTPS round trip from the Index maintainers' lab; open-model figures in the same tables are on-card or in-platform. The 2.5x (Clef) and 13x (Clef-flash) speed ratios compare different quantities.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "clef-flash"
+    ],
+    "sources": [
+     "cloudflare-changelog-clef",
+     "jev-decision-index-data",
+     "jev-decision-index-methodology",
+     "nicia-admission-eval"
+    ],
+    "metrics": [
+     "cf-launch-latency-median-ms",
+     "cf-launch-latency-p95-ms",
+     "devto-42case-p50-latency-ms",
+     "di03-jev-http-median-per-benchmark-ms",
+     "di03-jev-http-p95-per-benchmark-ms",
+     "di03-jev-http-suite-ms",
+     "di03-latency-mean-on-card-ms",
+     "di03-latency-median-hosted-rtt-ms",
+     "di03-latency-median-on-card-ms",
+     "di03-latency-p95-hosted-rtt-ms",
+     "di03-latency-p95-on-card-ms",
+     "jevbench-v161-capability",
+     "jevbench-v161-composite",
+     "jevbench-v161-latency-p50-adjusted-ms",
+     "jevbench-v161-latency-p50-raw-ms",
+     "jevbench-v161-usd-per-decision",
+     "morr-latency-p50-hosted-rtt-ms",
+     "morr-latency-p50-local-cpu-ms",
+     "morr-latency-p50-local-gpu-ms",
+     "morr-latency-p95-hosted-rtt-ms",
+     "morr-latency-p95-local-cpu-ms",
+     "morr-latency-p95-local-gpu-ms",
+     "openrouter-p50-latency-ms",
+     "td-p50-latency-ms",
+     "vc-typesafe-launch-latency-multiple"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Never rank 524.1 ms (a hosted round trip) against 209.3 / 38.8 ms (unstated conditions) or against on-card figures. This pack stores latency under separate metric ids per vantage, so a cross-vantage speed ratio is not computable from it.",
+   "evidence": [
+    {
+     "source_id": "jev-decision-index-data",
+     "quote": "Hosted API, network round-trip from our lab: one sequential HTTPS client on the latency-v1 sample. Not comparable to the on-card single-process figures."
+    },
+    {
+     "source_id": "jev-decision-index-methodology",
+     "quote": "Latency includes HTTPS and concurrent service scheduling; not isolated model inference."
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "Their leaderboard data notes that the Jev number is a network round trip to the hosted API and the Clef number is measured on the GPU in one process, and that the two are not comparable."
+    },
+    {
+     "source_id": "cloudflare-changelog-clef",
+     "quote": "Median 209.3 ms 38.8 ms 524.1 ms"
+    },
+    {
+     "source_id": "cloudflare-changelog-clef",
+     "quote": "we achieved speeds where Clef is 2.5x faster than Jev at the median, and Clef-flash 13x faster."
+    }
+   ]
+  },
+  {
+   "id": "latency-independent-caller-rtt-disagrees",
+   "statement": "Caller-side measurements by independent parties do not reproduce the launch speed ordering: Jev is usually the fastest hosted endpoint, hosted Clef is slower than Jev, and absolute Jev numbers range from ~100 ms to ~1.2 s depending on state size, client and day.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "clef-flash",
+     "pplx-decider-v1-27b",
+     "kev-27b",
+     "openai-decisions-gpt-6-luna"
+    ],
+    "sources": [
+     "arxiv-2609-27678-legal",
+     "devto-clef-flash-vs-jev",
+     "hn-clef-thread",
+     "nicia-admission-eval",
+     "reddit-jev-embeddings-thread",
+     "requesty-benchmark"
+    ],
+    "metrics": [
+     "bonn-mean-latency-ms",
+     "legal-nli-median-time-s",
+     "rafe-hosted-median-latency-ms",
+     "requesty-agnews-p50-latency-ms",
+     "requesty-banking77-p50-latency-ms",
+     "requesty-emotion-p50-latency-ms",
+     "requesty-gateway-item-latency-p50-ms",
+     "requesty-gateway-item-latency-p95-ms",
+     "requesty-massive-1k-p50-latency-ms",
+     "requesty-typed-p50-latency-ms",
+     "sdb-latency-p50-hosted-ms",
+     "sdb-latency-p50-self-hosted-ms",
+     "sdb-latency-p95-hosted-ms",
+     "sdb-latency-p95-self-hosted-ms",
+     "siujev-latency-p50-ms",
+     "siujev-latency-p95-ms",
+     "td-p50-latency-ms"
+    ]
+   },
+   "strength": "strong",
+   "implication": "For a hot-path choice, measure from your own region with your own state size and concurrency. Treat any single published ms as a (publisher, place, protocol, day) tuple. Hosted Clef from a laptop/US-west was 4-7x slower than hosted Jev in the only head-to-head with raw numbers.",
+   "evidence": [
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "Jev 1.13.0 | 98–167 ms / 156–260 ms"
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "Clef-flash | 429–533 ms / 677–732 ms"
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "Clef | 638–717 ms / 0.9–1.1 s"
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "Clef's latency runs opposite to the launch claim."
+    },
+    {
+     "source_id": "devto-clef-flash-vs-jev",
+     "quote": "Latency: Jev p50 225ms over the network. Clef-Flash p50 315ms fully local, single 3090, no batching."
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "Perplexity is the fastest at about 385 ms regardless of dataset. Sference Clef is 407 to 566 ms, Cloudflare Clef 626 to 780 ms. These are deployment numbers for one client location on one day, not model properties: the same weights are 200 ms apart depending on who serves them."
+    },
+    {
+     "source_id": "arxiv-2609-27678-legal",
+     "quote": "Jev also has the lowest observed median baseline response time: 1.24 seconds, compared with 1.60 for Flash-Lite and 1.74 for Luna."
+    },
+    {
+     "source_id": "hn-clef-thread",
+     "quote": "Clef was 2-3x slower and worse"
+    },
+    {
+     "source_id": "hn-clef-thread",
+     "quote": "it caught less hate speech) than Jev."
+    },
+    {
+     "source_id": "hn-clef-thread",
+     "quote": "it ended up being significantly slower and the results were worse."
+    },
+    {
+     "source_id": "reddit-jev-embeddings-thread",
+     "quote": "Up to about 50 questions against state of 4k or less, the timing was identical to one question (around 120ms per request)"
+    }
+   ]
+  },
+  {
+   "id": "latency-measurement-protocol-drift",
+   "statement": "The Index's latency protocol changed: current board medians come from latency-v1 (one sequential client, one RTX PRO 6000, 750 timed rows), and earlier figures from scoring runs (some with 6-12 processes sharing a card) were withdrawn. Today's Index lists Clef 102.1 ms and Clef-flash 53.4 ms, versus 209.3 / 38.8 ms in Cloudflare's launch table; it is not stated which protocol Cloudflare's numbers used.",
+   "affects": {
+    "models": [
+     "clef",
+     "clef-flash"
+    ],
+    "sources": [
+     "cloudflare-blog-clef",
+     "jev-decision-index-methodology",
+     "jev-decision-index-data"
+    ],
+    "metrics": [
+     "cf-launch-latency-median-ms",
+     "cf-launch-latency-p95-ms",
+     "di03-jev-http-median-per-benchmark-ms",
+     "di03-jev-http-p95-per-benchmark-ms",
+     "di03-jev-http-suite-ms",
+     "di03-latency-mean-on-card-ms",
+     "di03-latency-median-hosted-rtt-ms",
+     "di03-latency-median-on-card-ms",
+     "di03-latency-p95-hosted-rtt-ms",
+     "di03-latency-p95-on-card-ms"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Pin latency to a protocol id (latency-v1) and edition. Do not mix Cloudflare-table latencies with Index-v0.3 latencies. Flag p95 as missing for Index rows.",
+   "evidence": [
+    {
+     "source_id": "jev-decision-index-methodology",
+     "quote": "Earlier board figures came from the scoring runs, some timed with 6 to 12 processes sharing a card or with queue waits removed; they are no longer shown."
+    },
+    {
+     "source_id": "cloudflare-blog-clef",
+     "quote": "Median latency · ms 209.3 38.8 524.1 84.4 51.4 5.8"
+    },
+    {
+     "source_id": "jev-decision-index-data",
+     "quote": "\"v03\":{\"engine\":\"clef\",\"pub\":61.71,\"same_skills\":53.11,\"new_domains\":41.88,\"v\":53.08,\"lab\":false,\"jev\":false,\"rank_v\":19,\"rank_pub\":3",
+     "location": "index.json models[engine=clef].v03 (compact JSON)"
+    }
+   ]
+  },
+  {
+   "id": "latency-scales-with-state-size-and-question-count",
+   "statement": "Latency depends on total tokens. Hosted Jev is nearly flat to ~50 questions at <=4k state then grows roughly linearly; self-hosted open models are prefill-bound (about 0.2 s for tiny states, 2.5-3 s at ~700 tokens on a busy CPU); median-only launch numbers hide the curve.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "decider-2b",
+     "decider-4b"
+    ],
+    "sources": [
+     "hn-clef-thread",
+     "reddit-jev-embeddings-thread",
+     "divan-decider-2b-cpu"
+    ],
+    "metrics": [
+     "local-decider-latency-median-ms",
+     "local-decider-latency-server-ms",
+     "reddit-jev-fanout-latency-ratio"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Compare latency only at the same input size and question count; a median alone is one point on a curve. Short-state routing favours small local models; long-state or many-question workloads favour hosted Jev's flat curve (to dozens of questions).",
+   "evidence": [
+    {
+     "source_id": "reddit-jev-embeddings-thread",
+     "quote": "Latency increases linearly past that with total number of tokens"
+    },
+    {
+     "source_id": "reddit-jev-embeddings-thread",
+     "quote": "* 200 questions: +30% * 500 questions: 1.7× * 2,000 questions: 4.9× * 3,500 questions: 8.3× (991 ms)"
+    },
+    {
+     "source_id": "hn-clef-thread",
+     "quote": "For small inputs Jev is slow, but its latency curve is very flat."
+    },
+    {
+     "source_id": "hn-clef-thread",
+     "quote": "Characterizing it as \"faster than Jev\" is very misleading, unless you know all your questions have tiny context (less than 1k tokens or so)"
+    },
+    {
+     "source_id": "divan-decider-2b-cpu",
+     "quote": "| 1 choice, 12 described options, 696 tokens | median 2,823 ms (12 threads: 3,093) | 5,339 ms |",
+     "location": "divan measurement table"
+    },
+    {
+     "source_id": "divan-decider-2b-cpu",
+     "quote": "| 12 basic one-question cases (≤40-token states: routing, sentiment, yes/no) | 11/12 correct, median 220 ms, max 288 | 11/12, median 440 ms, max 655 |",
+     "location": "divan measurement table"
+    }
+   ]
+  },
+  {
+   "id": "latency-tail-load-and-capacity",
+   "statement": "Tail behaviour differs from medians: hosted Clef had 9-26 s calls, two calls never returned within 60 s, ~1/5 of calls at six-in-flight got 429 shortly after launch, Clef-flash p95 is ~3x its median, a single Kev container queued to >1 s under six-in-flight, and Requesty's Cloudflare account hit its daily Workers AI quota mid-run.",
+   "affects": {
+    "models": [
+     "clef",
+     "clef-flash",
+     "kev-27b",
+     "jev-1.13.0"
+    ],
+    "sources": [
+     "cloudflare-blog-clef",
+     "nicia-admission-eval",
+     "requesty-benchmark"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Launch-week reliability is not steady state: check the measurement date on the row and read p95/max and error rates, not medians alone.",
+   "evidence": [
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "The hosted Clef endpoints have a slow tail. Several calls took 9 to 26 seconds. Earlier the same day, a few hours after launch, about a fifth of Clef calls at six in flight returned 429 \"Capacity temporarily exceeded\"; by these runs there were none."
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "Clef-flash is about twice as fast, and Clef's median at six in flight dropped by about 150 ms. No call failed or hung."
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "our Cloudflare account hit its daily Workers AI quota midway through the open benchmark, so cloudflare/clef has full coverage on typed decisions, Banking77 and Emotion, only 62 AG News items, and no MASSIVE run."
+    },
+    {
+     "source_id": "cloudflare-blog-clef",
+     "quote": "p95 latency · ms 238.6 122.4 536.0"
+    }
+   ]
+  },
+  {
+   "id": "price-per-token-is-not-cost-per-decision",
+   "statement": "A per-input-token rate does not give cost per decision: cost = (state + question + criteria tokens) x rate, so it depends on state size, number of questions, option-list length, fan-out and (for self-hosting) GPU time. Hosted decision models bill input only; frontier LLM baselines also bill output and reasoning tokens.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "clef-flash",
+     "pplx-decider-v1-27b"
+    ],
+    "sources": [
+     "developersdigest-clef",
+     "jevaihub-pricing",
+     "requesty-benchmark",
+     "typesafe-docs-models"
+    ],
+    "metrics": [
+     "bonn-cost-per-request-usd",
+     "ibrahim-cost-per-decision-usd",
+     "jevbench-v161-usd-per-decision",
+     "legal-nli-cost-per-contract-usd",
+     "rafe-cost-per-decision-usd",
+     "requesty-gateway-cost-per-item-usd",
+     "siujev-cost-ag-news-usd-per-decision",
+     "siujev-cost-banking77-usd-per-decision"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Compare cost per decision at your own token profile (formula and worked example in the README), not $/M. Price ratios (Clef 5.7x, Clef-flash 2.1x Jev per input token) hold only if token counts are equal.",
+   "evidence": [
+    {
+     "source_id": "typesafe-docs-models",
+     "quote": "Price (per Btok"
+    },
+    {
+     "source_id": "typesafe-docs-models",
+     "quote": "per Mtok) | $42 / $0.042"
+    },
+    {
+     "source_id": "developersdigest-clef",
+     "quote": "Worked example: 1 million decisions with a 2,000-token state is 2 billion input tokens, which costs $480 on Clef, $180 on Clef-flash and $84 on Jev."
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "Opus and GPT-5.5 are $3.80 and $4.13."
+    },
+    {
+     "source_id": "jevaihub-pricing",
+     "quote": "Official InformationTypeSafe models page"
+    },
+    {
+     "source_id": "jevaihub-pricing",
+     "quote": "Charged per input token. Output tokens are free."
+    }
+   ]
+  },
+  {
+   "id": "price-free-output-is-small-but-nonzero-value",
+   "statement": "'Free output' is real but is not the main saving: decision-model outputs are small (Index billing shows output tokens ~15% of input tokens for Jev, all free), whereas the big LLM saving is avoiding reasoning/generation latency and refusals. Some practitioners call the 'free output' framing misleading.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "clef-flash"
+    ],
+    "sources": [
+     "hn-clef-thread",
+     "jev-decision-index-methodology"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Do not count 'free output' as a cost advantage versus other decision models (all bill input only). It matters only versus generative LLM baselines.",
+   "evidence": [
+    {
+     "source_id": "hn-clef-thread",
+     "quote": "Jev hyping \"free output\" is almost lying by omission."
+    },
+    {
+     "source_id": "jev-decision-index-methodology",
+     "quote": "\"jev_api_cost_usd\":12.2567,\"jev_billed_tokens\":{\"input_tokens\":291826668,\"output_tokens\":44483219}",
+     "location": "methodology.json suite (compact JSON); 291.83M x $0.042 = $12.2567, i.e. output billed at $0"
+    }
+   ]
+  },
+  {
+   "id": "price-fanout-saving-depends-on-no-prefix-cache",
+   "statement": "The 12.2x cheaper / 10.0x faster fan-out saving is a re-send-the-document saving. It does not exist where the state prefix is cached or the engine is self-hosted with prefix reuse, and the speed figure sums sequential single calls (the vendor notes concurrency shrinks the gap).",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "decider-2b"
+    ],
+    "sources": [
+     "divan-decider-2b-cpu",
+     "typesafe-docs-parallel-questions"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "For hosted Jev the token saving is real (no documented cached-token rate was found in the pages read). For self-hosted deciders prefix caching captures most of the gain without changing question semantics; compare packed vs primed-independent, not packed vs cold-independent.",
+   "evidence": [
+    {
+     "source_id": "typesafe-docs-parallel-questions",
+     "quote": "Speed: the figure sums the 13 single-call latencies, so it assumes they run one after another. Fire them concurrently and the gap shrinks, but the 13x token cost stays."
+    },
+    {
+     "source_id": "typesafe-docs-parallel-questions",
+     "quote": "12.2x cheaper, 10.0x faster"
+    },
+    {
+     "source_id": "divan-decider-2b-cpu",
+     "quote": "The second request with the same state took 2,798 ms."
+    }
+   ]
+  },
+  {
+   "id": "price-vendor-multiples-are-best-case-and-baseline-dependent",
+   "statement": "Headline cost/speed multiples (e.g. '193.6x faster, 444.6x cheaper', 25x/580x, 200x, 20x) are best-case workflow results against frontier or reasoning baselines; against cheap LLMs the gap is single digits, and one independent test found a flash-class LLM ~6x costlier for ~5 points more accuracy.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef"
+    ],
+    "sources": [
+     "arxiv-2609-27678-legal",
+     "divan-early-adopters",
+     "jevaihub-pricing"
+    ],
+    "metrics": [
+     "tse-agent-trace-observability-accuracy",
+     "tse-customer-service-accuracy",
+     "tse-invoice-processing-accuracy",
+     "tse-security-incidents-accuracy",
+     "vc-typesafe-launch-latency-multiple"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Always attach the baseline to a multiple. Choose by accuracy at a cost ceiling vs the actual alternative (often a cheap flash LLM), not vs Opus.",
+   "evidence": [
+    {
+     "source_id": "jevaihub-pricing",
+     "quote": "Third-party summaries of TypeSafe marketing cite headline multiples such as “193.6x faster, 444.6x cheaper” versus frontier LLMs. TypeSafe itself frames those as high-end workflow evaluations. Do not treat them as the cost you will see."
+    },
+    {
+     "source_id": "arxiv-2609-27678-legal",
+     "quote": "Flash-Lite gains 5.16 percentage points over Jev at approximately six times the cost."
+    },
+    {
+     "source_id": "divan-early-adopters",
+     "quote": "Jev matched Claude Fable 5.1's verdict 91.5% of the time at $160 per million graded answers, against $33,000"
+    },
+    {
+     "source_id": "divan-early-adopters",
+     "quote": "DeepSeek V4.1 Flash reached 93.5% agreement at $260 per million"
+    }
+   ]
+  },
+  {
+   "id": "price-third-party-aggregator-sites",
+   "statement": "jevaihub.com/pricing is NOT official TypeSafe; it is an independent educational site. Its rate-limit figure (40 req/s, verified 2026-09-30) disagrees with TypeSafe's models page (80 req/s). Several 'Jev explainer/compare' SEO sites in the results are similarly unofficial.",
+   "affects": {
+    "models": [
+     "jev-1.13.0"
+    ],
+    "sources": [
+     "jevaihub-pricing",
+     "typesafe-docs-models"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Cite docs.typesafe.ai/models.md for Jev price/limits; mark jevaihub as third-party; re-pull limits (they 'adjust dynamically').",
+   "evidence": [
+    {
+     "source_id": "jevaihub-pricing",
+     "quote": "Jev AI Hub is an independent educational and developer resource. It is not affiliated with or endorsed by TypeSafe."
+    },
+    {
+     "source_id": "jevaihub-pricing",
+     "quote": "The same page listed 100,000 tokens per second and 40 requests per second, and said those limits can change."
+    },
+    {
+     "source_id": "typesafe-docs-models",
+     "quote": "Rate limits | 100K tokens per second / 80 requests per second"
+    }
+   ]
+  },
+  {
+   "id": "same-weights-different-serving-limits-and-confidence",
+   "statement": "The same Clef weights behave differently by provider: per-request question caps (Sference 16, Cloudflare 64, Perplexity 128), latency (200 ms apart), tiny numerical answer differences (97.3% same answer; 66% agreement when margin<0.1), and the 'confidence' field is not portable.",
+   "affects": {
+    "models": [
+     "pplx-decider-v1-27b"
+    ],
+    "sources": [
+     "requesty-benchmark"
+    ],
+    "metrics": [
+     "requesty-agnews-p50-latency-ms",
+     "requesty-banking77-p50-latency-ms",
+     "requesty-emotion-p50-latency-ms",
+     "requesty-massive-1k-p50-latency-ms",
+     "requesty-same-model-agreement",
+     "requesty-same-model-same-answer-rate",
+     "requesty-typed-p50-latency-ms"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Treat (model, serving provider) as the unit: limits, latency and `confidence` differ by provider. Compare deciders on probabilities, never on the confidence field.",
+   "evidence": [
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "Sference Clef and Cloudflare Clef are the same model, served differently. 97.3% identical answers on 7,137 shared items, median probability difference 0.010, 100% agreement once the model's own margin is above 0.5."
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "Sference caps a request at 16 questions, Cloudflare at 64, Perplexity at 128. Do not port a confidence threshold between them."
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "Sference returns the maximum probability. Cloudflare returns something else, consistently lower. Perplexity returns a third thing that equals the max probability on a quarter of items"
+    }
+   ]
+  },
+  {
+   "id": "leaderboard-edition-and-weighting-flip-rankings",
+   "statement": "Decision Index 0.3 (2026-10-06) changed the headline: Full score = 0.20 x public + 0.50 x private same-skill tests + 0.30 x private new-domain tasks. On the public part Clef is 3rd (61.71) and Jev 10th (57.96); on the Full score Clef falls to 19th (53.08; new-domains 41.88) while Jev is 3rd (60.11; new-domains 54.98) and Perplexity Decider v1.1 is 1st (62.75). 'Clef leads the Jev Decision Index' is true only for the earlier public-only edition.",
+   "affects": {
+    "models": [
+     "clef",
+     "clef-flash",
+     "jev-1.13.0",
+     "pplx-decider-v1.1-27b"
+    ],
+    "sources": [
+     "cloudflare-blog-clef",
+     "divan-decision-index-sep",
+     "jev-decision-index-methodology",
+     "jev-decision-index-data"
+    ],
+    "metrics": [
+     "cf-di021-acos",
+     "cf-di021-amazon-esci",
+     "cf-di021-anli",
+     "cf-di021-api-bank",
+     "cf-di021-arc-challenge",
+     "cf-di021-arc-easy",
+     "cf-di021-banking77",
+     "cf-di021-bbh",
+     "cf-di021-bfcl",
+     "cf-di021-bpomp",
+     "cf-di021-bright",
+     "cf-di021-cfcolor",
+     "cf-di021-chessbench",
+     "cf-di021-cladder",
+     "cf-di021-clinc150plusoos",
+     "cf-di021-contractnli",
+     "cf-di021-cruxeval",
+     "cf-di021-finentity",
+     "cf-di021-forecastbench",
+     "cf-di021-gpqa-diamond",
+     "cf-di021-gsm8k",
+     "cf-di021-habermas-machine",
+     "cf-di021-hellaswag",
+     "cf-di021-home-appliance-simulator",
+     "cf-di021-hover",
+     "cf-di021-humicroedit",
+     "cf-di021-mmlu",
+     "cf-di021-mmlu-pro",
+     "cf-di021-musr",
+     "cf-di021-new-yorker",
+     "cf-di021-nli4ct",
+     "cf-di021-phishnchips",
+     "cf-di021-pop909-cl",
+     "cf-di021-ragtruth",
+     "cf-di021-routerbench",
+     "cf-di021-sata-bench",
+     "cf-di021-sgd-sgd-x",
+     "cf-di021-toolret",
+     "cf-di021-vast",
+     "cf-di021-when2call-mcq",
+     "cf-di021-winogrande",
+     "di03-full-balanced-skill",
+     "di03-full-new-domains-part",
+     "di03-full-rank",
+     "di03-full-same-skills-part",
+     "di03-public-balanced-raw",
+     "di03-public-balanced-skill",
+     "di03-public-breadth-skill",
+     "di03-public-rank",
+     "vc-pplx-v1-card-overall",
+     "vc-pplx-v11-card-decision-index"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Name the edition, metric id and formula with any Decision Index number. The divan 2026-09-28 numbers (Jev 43.61 / 57.91) are from an older edition and are not comparable. Private tests are unauditable by outsiders, so treat them as maintainer-run evidence; they are also the only contamination-resistant signal available. Do not claim 'Clef beats Jev' without naming public vs full score.",
+   "evidence": [
+    {
+     "source_id": "jev-decision-index-methodology",
+     "quote": "Full score = 0.20 × public + 0.50 × private tests of the same skills + 0.30 × private tasks from new domains. The private parts are mapped onto the public scale using untuned stock models."
+    },
+    {
+     "source_id": "jev-decision-index-methodology",
+     "quote": "Most of the score comes from tests nobody can train on, so a public-only advantage counts for little."
+    },
+    {
+     "source_id": "cloudflare-blog-clef",
+     "quote": "Clef is currently the leader when evaluated against the Jev Decision Index"
+    },
+    {
+     "source_id": "divan-decision-index-sep",
+     "quote": "Jev's headline scores are balanced_skill 57.91 at coverage 1.0, and frozen_scores balanced_skill 43.61."
+    },
+    {
+     "source_id": "jev-decision-index-data",
+     "quote": "\"v03\":{\"engine\":\"clef\",\"pub\":61.71,\"same_skills\":53.11,\"new_domains\":41.88,\"v\":53.08,\"lab\":false,\"jev\":false,\"rank_v\":19,\"rank_pub\":3",
+     "location": "index.json models[engine=clef].v03 (compact JSON); Jev reference row v03 is in the Decision Index headline doc"
+    }
+   ]
+  },
+  {
+   "id": "vendor-run-eval-of-competitor",
+   "statement": "Every Clef-vs-Jev number in Cloudflare's launch material was produced by Cloudflare (including the Jev rows); TypeSafe's own workflow evals were re-run by Cloudflare; the Index host is a third party, but the Clef rows were submitted/run by Cloudflare at launch. Jev's creator publicly dismisses benchmark leads as 'benchmaxxed'.",
+   "affects": {
+    "models": [
+     "clef",
+     "clef-flash",
+     "jev-1.13.0"
+    ],
+    "sources": [
+     "cloudflare-blog-clef",
+     "developersdigest-clef",
+     "digitalapplied-open-decision-models",
+     "gigazine-clef"
+    ],
+    "metrics": [
+     "cf-di021-acos",
+     "cf-di021-amazon-esci",
+     "cf-di021-anli",
+     "cf-di021-api-bank",
+     "cf-di021-arc-challenge",
+     "cf-di021-arc-easy",
+     "cf-di021-banking77",
+     "cf-di021-bbh",
+     "cf-di021-bfcl",
+     "cf-di021-bpomp",
+     "cf-di021-bright",
+     "cf-di021-cfcolor",
+     "cf-di021-chessbench",
+     "cf-di021-cladder",
+     "cf-di021-clinc150plusoos",
+     "cf-di021-contractnli",
+     "cf-di021-cruxeval",
+     "cf-di021-finentity",
+     "cf-di021-forecastbench",
+     "cf-di021-gpqa-diamond",
+     "cf-di021-gsm8k",
+     "cf-di021-habermas-machine",
+     "cf-di021-hellaswag",
+     "cf-di021-home-appliance-simulator",
+     "cf-di021-hover",
+     "cf-di021-humicroedit",
+     "cf-di021-mmlu",
+     "cf-di021-mmlu-pro",
+     "cf-di021-musr",
+     "cf-di021-new-yorker",
+     "cf-di021-nli4ct",
+     "cf-di021-phishnchips",
+     "cf-di021-pop909-cl",
+     "cf-di021-ragtruth",
+     "cf-di021-routerbench",
+     "cf-di021-sata-bench",
+     "cf-di021-sgd-sgd-x",
+     "cf-di021-toolret",
+     "cf-di021-vast",
+     "cf-di021-when2call-mcq",
+     "cf-di021-winogrande",
+     "cf-workflow-agent-trace-observability-primary-action",
+     "cf-workflow-customer-service-exact-actions",
+     "cf-workflow-invoice-processing-exact-actions",
+     "cf-workflow-invoice-processing-primary-action",
+     "cf-workflow-security-incidents-exact-actions",
+     "vc-pplx-v1-card-overall",
+     "vc-pplx-v11-card-decision-index"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Check who ran each score (vendor, index maintainer, independent) and whether the runner was the competitor; rows carry source_type for this. Both vendors have an incentive and neither is a neutral oracle.",
+   "evidence": [
+    {
+     "source_id": "digitalapplied-open-decision-models",
+     "quote": "Every score comparing Clef to Jev was run by Cloudflare. Jev leads on two of the six rows shown, so read them as a vendor table, not a verdict."
+    },
+    {
+     "source_id": "digitalapplied-open-decision-models",
+     "quote": "We found no independent replication by October 3."
+    },
+    {
+     "source_id": "cloudflare-blog-clef",
+     "quote": "We also ran benchmarks across Typesafe’s own eval suite and our Clef models fared well, beating Jev in 3 out of 4 areas."
+    },
+    {
+     "source_id": "gigazine-clef",
+     "quote": "there's a critical difference between benchmaxxed models and ones made by people who truly care about reliability that, by definition, doesn't show up on benchmarks"
+    },
+    {
+     "source_id": "developersdigest-clef",
+     "quote": "Cloudflare's published run of the Jev Decision Index 0.2.1 (vendor-run, so score it like any launch deck)"
+    }
+   ]
+  },
+  {
+   "id": "typesafe-workflow-eval-3-of-4-is-within-noise",
+   "statement": "'Clef beats Jev on 3 of 4 TypeSafe workflow evals' hides tiny margins and a 3-point loss: customer service 76.3 vs 76.0 (full Clef) and Clef-flash wins it; security incidents 62.9 vs 61.7; invoice 64.7 vs 61.8; agent-trace observability Jev 71.6 vs Clef 68.5. Per-eval sample sizes are not given.",
+   "affects": {
+    "models": [
+     "clef",
+     "clef-flash",
+     "jev-1.13.0"
+    ],
+    "sources": [
+     "cloudflare-blog-clef",
+     "developersdigest-clef"
+    ],
+    "metrics": [
+     "cf-workflow-agent-trace-observability-primary-action",
+     "cf-workflow-customer-service-exact-actions",
+     "cf-workflow-invoice-processing-exact-actions",
+     "cf-workflow-invoice-processing-primary-action",
+     "cf-workflow-security-incidents-exact-actions"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Do not summarise as '3/4 wins': read the per-eval scores and treat margins under 1 point as ties.",
+   "evidence": [
+    {
+     "source_id": "cloudflare-blog-clef",
+     "quote": "Invoice processing 64.7 57.1 61.8 | Customer service 76.3 77 76.0 | Security incidents 62.9 61.7 61.7 | Agent trace observability 68.5 69.8 71.6"
+    },
+    {
+     "source_id": "developersdigest-clef",
+     "quote": "On the four Typesafe workflow evals, Clef wins invoice processing and security incidents, Clef-flash wins customer service, and Jev holds agent trace observability."
+    }
+   ]
+  },
+  {
+   "id": "benchmark-vs-task-shape",
+   "statement": "Wins are task-shape dependent. Jev wins bounded grading/agreement and reasoning-heavy and judgement tasks (When2Call, GPQA, MMLU-Pro, agent-trace observability, triage); Clef leads fine-grained intent (Banking77, MASSIVE), tool-name selection (BFCL, API-Bank, Home appliances) and phishing; decision models of every kind lose to LLMs on tool-call gating and 3-level complexity; the 9B Clef-flash is a different product from 27B Clef.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "clef-flash",
+     "pplx-decider-v1-27b"
+    ],
+    "sources": [
+     "cloudflare-blog-clef",
+     "developersdigest-clef",
+     "devto-clef-flash-vs-jev",
+     "divan-early-adopters",
+     "requesty-benchmark"
+    ],
+    "metrics": [
+     "devto-42case-overall-accuracy",
+     "hd-closed-world-depth-0-accuracy",
+     "hd-closed-world-depth-5-accuracy",
+     "hd-closed-world-overall-accuracy",
+     "hd-open-world-depth-0-accuracy",
+     "hd-open-world-depth-5-accuracy",
+     "hd-open-world-overall-accuracy",
+     "ibrahim-median-macro-f1",
+     "jevbench-v161-capability",
+     "jevbench-v161-composite",
+     "jevbench-v161-latency-p50-adjusted-ms",
+     "jevbench-v161-latency-p50-raw-ms",
+     "jevbench-v161-usd-per-decision",
+     "morr-massive-accuracy",
+     "morr-massive-brier",
+     "morr-massive-ece",
+     "morr-massive-macrof1",
+     "requesty-gateway-routing-complexity-0-1-2-vs-opus-labels",
+     "requesty-gateway-tool-call-gating-glaive-derived",
+     "requesty-typed-choice-accuracy",
+     "requesty-typed-noul-accuracy",
+     "requesty-typed-score-accuracy"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Read scores per (model, task shape, benchmark), not as one number: wide-choice classification, out-of-scope, tool-name selection, tool-call gating, grading, scoring and binary moderation are different tasks. Home appliances (Clef-flash 97.73 vs Jev 52.27) is a purpose-built benchmark in the index host's own suite; do not generalise it.",
+   "evidence": [
+    {
+     "source_id": "cloudflare-blog-clef",
+     "quote": "When2Call · accuracy 72.37 65.58 80.97"
+    },
+    {
+     "source_id": "developersdigest-clef",
+     "quote": "Jev still leads GPQA Diamond (78.3 vs 48.0), MMLU-Pro (82.7 vs 65.9), When2Call accuracy (81.0 vs 72.4) and BRIGHT retrieval (47.5 vs 45.9 nDCG@10)."
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "The one place the decision models lose clearly is tool-call gating: 68.7% for both Clef and the Perplexity decider against 90.0% for Opus and 85.7% for GPT-5.5."
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "three-level complexity, where Clef agrees with Opus 51.9% of the time"
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "GPT-5.5 81.7%."
+    },
+    {
+     "source_id": "devto-clef-flash-vs-jev",
+     "quote": "Overall accuracy: Jev 71.4%, Clef-Flash 66.7%."
+    },
+    {
+     "source_id": "devto-clef-flash-vs-jev",
+     "quote": "That headline is misleading and the per-task split is the actual story."
+    },
+    {
+     "source_id": "divan-early-adopters",
+     "quote": "28-category log-type classification Jev misclassified \"2-3x more frequently than a purpose-built classifier or GPT-5.6 Terra\""
+    }
+   ]
+  },
+  {
+   "id": "abstention-and-out-of-scope",
+   "statement": "Jev has no 'unknown' outcome (out-of-domain input is forced into a category; the Cribl 'other' bucket failure). The closest published tests are CLINC150+OOS and When2Call, and they split by model and by size (Clef-flash 66.77 vs Jev 89.27 vs Clef 97.43 on OOS; Jev leads When2Call). A decision model that 'abstains' on the Index is recorded as abstaining, which costs coverage.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "clef-flash"
+    ],
+    "sources": [
+     "beri-clef-strands-decider",
+     "divan-early-adopters",
+     "hn-clef-thread",
+     "jev-decision-index-methodology"
+    ],
+    "metrics": [
+     "cf-di021-clinc150plusoos",
+     "nicia-decisions-changed-by-order",
+     "nicia-recall-original",
+     "nicia-recall-reversed",
+     "nicia-routine-admit-original",
+     "nicia-routine-admit-reversed",
+     "nicia-unsure-band-answers",
+     "rafe-oos-accepted-at-5pct-risk"
+    ]
+   },
+   "strength": "strong",
+   "implication": "For routing with unseen intents, add an explicit none/other option with a described criterion AND a probability/confidence floor, and test on an OOS set. Prefer 27B-class over 9B for OOS on current evidence.",
+   "evidence": [
+    {
+     "source_id": "divan-early-adopters",
+     "quote": "Cannot abstain. No \"unknown\" outcome, so an out-of-domain input is forced into a category. This is the mechanism behind Cribl's \"other\"-bucket failure. [langfuse]"
+    },
+    {
+     "source_id": "beri-clef-strands-decider",
+     "quote": "Out-of-scope detection is the part of intent routing that keeps a request about a mortgage from landing in the card-dispute flow. If your router has to say \"none of the above\", the 9B model is the wrong default on this evidence."
+    },
+    {
+     "source_id": "jev-decision-index-methodology",
+     "quote": "Verdict"
+    },
+    {
+     "source_id": "hn-clef-thread",
+     "quote": "if nomic-embed routing already works, the upgrade case is when routes are better described in prose than in example utterances, or when you need a real abstain signal."
+    },
+    {
+     "source_id": "jev-decision-index-methodology",
+     "quote": "\"reason\":\"chose its own abstain option instead of an answer\",\"count\":56045",
+     "location": "methodology.json answer_gaps[engine=verdict-8af2496e]"
+    }
+   ]
+  },
+  {
+   "id": "calibration-unverified-and-nonportable",
+   "statement": "Calibration claims are mostly vendor/public-benchmark and in-distribution; confidence is defined differently across providers (Jev: (p_max-1/n)/(1-1/n); Cloudflare release code: p_max; Sference: p_max; Perplexity: other); and calibration is a group statistic, not a per-answer guarantee. Requesty's ECE (Clef 0.017-0.040, Perplexity 0.031-0.096, published Jev 0.038-0.135) is on public datasets and is near 0.17-0.28 for all on noisy labels (Emotion).",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "clef-flash",
+     "pplx-decider-v1-27b"
+    ],
+    "sources": [
+     "divan-typesafe-jev",
+     "hn-clef-thread",
+     "requesty-benchmark",
+     "wavect-clef-vs-jev",
+     "jev-decision-index-data"
+    ],
+    "metrics": [
+     "bonn-pooled-choice-ece",
+     "di03-calibration-brier",
+     "di03-calibration-ece",
+     "ibrahim-median-ece",
+     "morr-agnews-brier",
+     "morr-agnews-ece",
+     "morr-banking77-brier",
+     "morr-banking77-ece",
+     "morr-emotion-brier",
+     "morr-emotion-ece",
+     "morr-massive-brier",
+     "morr-massive-ece",
+     "morr-massive-en-brier",
+     "morr-massive-en-ece",
+     "morr-massive-non-en-brier",
+     "morr-massive-non-en-ece",
+     "morr-overall-brier",
+     "morr-overall-ece",
+     "morr-typed-choice-brier",
+     "morr-typed-choice-ece",
+     "morr-typed-decisions-brier",
+     "morr-typed-decisions-ece",
+     "morr-typed-noul-brier",
+     "morr-typed-noul-ece",
+     "morr-typed-score-brier",
+     "morr-typed-score-ece",
+     "requesty-agnews-ece",
+     "requesty-banking77-ece",
+     "requesty-emotion-ece",
+     "requesty-massive-1k-ece",
+     "requesty-typed-ece",
+     "siujev-ag-news-ece",
+     "siujev-banking77-ece",
+     "siujev-boolq-ece",
+     "td-ece"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Threshold on per-option probabilities with thresholds fitted on your own labelled traffic; never carry a 'confidence >= x' rule across providers or versions. Read an ECE together with its dataset and the confidence definition used.",
+   "evidence": [
+    {
+     "source_id": "wavect-clef-vs-jev",
+     "quote": "TypeSafe defines Choice confidence as (p_max - 1/n) / (1 - 1/n)"
+    },
+    {
+     "source_id": "wavect-clef-vs-jev",
+     "quote": "In Cloudflare’s reviewed release code, systemone_answer sets Choice confidence to the winning probability itself"
+    },
+    {
+     "source_id": "wavect-clef-vs-jev",
+     "quote": "An existing confidence >= 0.75 rule would reject the former and accept the latter, even though the distribution is identical."
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "Clef's expected calibration error is 0.02 to 0.04 on four of five datasets; the published Jev range is 0.04 to 0.28."
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "Emotion is badly calibrated for everyone (0.17 to 0.28)"
+    },
+    {
+     "source_id": "hn-clef-thread",
+     "quote": "Even if your estimates are well-calibrated"
+    },
+    {
+     "source_id": "hn-clef-thread",
+     "quote": "on in-distribution data using the output logits, those estimates can be grossly uncalibrated in the presence of covariate shifts"
+    },
+    {
+     "source_id": "divan-typesafe-jev",
+     "quote": "Calibration is measured across groups of predictions; it does not guarantee that an individual answer is correct."
+    },
+    {
+     "source_id": "jev-decision-index-data",
+     "quote": "\"ece\":0.0395",
+     "location": "index.json models[engine=clef].calibration (compact JSON); clef-flash ece 0.0249, Jev ece 0.074"
+    }
+   ]
+  },
+  {
+   "id": "model-version-and-api-drift",
+   "statement": "Jev results are tied to a moving target: jev-1.13.0 vs the jev-latest / jev-preview aliases (both currently -> 1.13.0), prior versions in docs (cookbook ran jev-1.12), API output that drifted since the Index run, and non-determinism across identical calls.",
+   "affects": {
+    "models": [
+     "jev-1.13.0"
+    ],
+    "sources": [
+     "jev-decision-index-data",
+     "jevaihub-pricing",
+     "nicia-admission-eval",
+     "typesafe-docs-jaggedness",
+     "typesafe-docs-parallel-questions"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Pin model ids (jev-1.13.0), note the date an alias was resolved, and treat Jev rows as dated. Do not infer that 'jev-latest' later equals what the Index scored.",
+   "evidence": [
+    {
+     "source_id": "jev-decision-index-data",
+     "quote": "Its answers on this sample differ from the Sep-19 board rows in 20 choices: API output drifted since the board run; scores are unchanged."
+    },
+    {
+     "source_id": "typesafe-docs-parallel-questions",
+     "quote": "TYPESAFE_MODEL = \"jev-1.12\""
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "Jev is not deterministic. Identical requests to Jev moved by up to 0.12 between passes, and reordering moved it by up to 0.27. Neither changed a decision in these runs."
+    },
+    {
+     "source_id": "jevaihub-pricing",
+     "quote": "Forgetting that aliases can change behavior without changing the price row."
+    },
+    {
+     "source_id": "typesafe-docs-jaggedness",
+     "quote": "Applies to `jev-1.13`. Last reviewed 2026-10-02."
+    }
+   ]
+  },
+  {
+   "id": "coverage-below-one-inflates-headline",
+   "statement": "Many open entrants have coverage < 1.0 (0.76 / 0.9481 / 0.6927 on the Index) because they cannot take wide choices, long state or many options; their headline scores skip the hardest rows. The Index offers 'frozen_scores' and a 'lifts' mechanism for like-for-like but not every entrant has them. Clef/Clef-flash and Jev have coverage 1.0.",
+   "affects": {
+    "models": [
+     "surogate-rune-26b-a4b",
+     "eikos-27b",
+     "jebadiah-27b",
+     "decider-chat-gemma-4-31b",
+     "winnow-12b",
+     "reflex-27b",
+     "simple-jev-qwen3.8-27b-featherless"
+    ],
+    "sources": [
+     "divan-decision-index-sep",
+     "jev-decision-index-methodology"
+    ],
+    "metrics": [
+     "di03-bench-acos",
+     "di03-bench-amazon-esci",
+     "di03-bench-anli",
+     "di03-bench-api-bank",
+     "di03-bench-arc-challenge",
+     "di03-bench-arc-easy",
+     "di03-bench-banking77",
+     "di03-bench-bbh",
+     "di03-bench-bfcl",
+     "di03-bench-bpomp",
+     "di03-bench-bright",
+     "di03-bench-cfcolor",
+     "di03-bench-chessbench",
+     "di03-bench-cladder",
+     "di03-bench-contractnli",
+     "di03-bench-cruxeval",
+     "di03-bench-gpqa-diamond",
+     "di03-bench-gsm8k",
+     "di03-bench-habermas-machine",
+     "di03-bench-hellaswag",
+     "di03-bench-hle",
+     "di03-bench-home-appliance-simulator",
+     "di03-bench-hover",
+     "di03-bench-humicroedit",
+     "di03-bench-isarcasmeval",
+     "di03-bench-mmlu",
+     "di03-bench-mmlu-pro",
+     "di03-bench-musr",
+     "di03-bench-new-yorker",
+     "di03-bench-nli4ct",
+     "di03-bench-phishnchips-phishing-decisions",
+     "di03-bench-pop909-cl",
+     "di03-bench-ragtruth",
+     "di03-bench-routerbench",
+     "di03-bench-sata-bench",
+     "di03-bench-toolret",
+     "di03-bench-vast",
+     "di03-bench-when2call",
+     "di03-bench-winogrande",
+     "di03-calibration-brier",
+     "di03-calibration-ece",
+     "di03-category-arts-skill",
+     "di03-category-knowledge-skill",
+     "di03-category-language-skill",
+     "di03-category-retrieval-skill",
+     "di03-category-tools-skill",
+     "di03-coverage",
+     "di03-full-balanced-skill",
+     "di03-full-new-domains-part",
+     "di03-full-rank",
+     "di03-full-same-skills-part",
+     "di03-public-balanced-raw",
+     "di03-public-balanced-skill",
+     "di03-public-breadth-skill",
+     "di03-public-rank"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Read coverage next to every score; exclude coverage<1 rows from 'beats Jev' rankings or compare them on the same covered subset; keep the reason (option-count or context limits) because it is a deployment constraint for wide choices.",
+   "evidence": [
+    {
+     "source_id": "divan-decision-index-sep",
+     "quote": "Jev's headline scores are balanced_skill 57.91 at coverage 1.0"
+    },
+    {
+     "source_id": "divan-decision-index-sep",
+     "quote": "Entrant headline scores have coverage 0.76, so the like-for-like comparison is frozen_scores."
+    },
+    {
+     "source_id": "jev-decision-index-methodology",
+     "quote": "Metrics exclude failed/incomplete cases; coverage is explicit. No silent replacement of failures."
+    }
+   ]
+  },
+  {
+   "id": "public-benchmark-overfit-and-label-provenance",
+   "statement": "Public-benchmark leads can reflect training on the benchmark ('benchmaxxed'), and several gold labels are LLM-produced: Requesty's routing labels are Opus 5.5 outputs, TypeSafe's own 711-case benchmark used averaged LLM judgments, and support-ticket-type labels are inconsistent (every model 66-77%).",
+   "affects": {
+    "sources": [
+     "divan-typesafe-jev",
+     "hn-clef-thread",
+     "jev-decision-index-methodology",
+     "requesty-benchmark"
+    ],
+    "metrics": [
+     "cf-workflow-agent-trace-observability-primary-action",
+     "cf-workflow-customer-service-exact-actions",
+     "cf-workflow-invoice-processing-exact-actions",
+     "cf-workflow-invoice-processing-primary-action",
+     "cf-workflow-security-incidents-exact-actions",
+     "requesty-gateway-human-label-mean-accuracy",
+     "requesty-gateway-routing-complexity-0-1-2-vs-opus-labels",
+     "requesty-gateway-routing-long-output-vs-opus-labels",
+     "requesty-gateway-routing-needs-tools-vs-opus-labels",
+     "requesty-gateway-routing-pii-vs-opus-labels",
+     "requesty-gateway-routing-task-type-vs-opus-5-5-labels",
+     "s1mb-borda-score",
+     "s1mb-task-average",
+     "siujev-ag-news-accuracy",
+     "siujev-ag-news-ece",
+     "siujev-banking77-accuracy",
+     "siujev-banking77-ece",
+     "siujev-boolq-accuracy",
+     "siujev-boolq-ece",
+     "siujev-cost-ag-news-usd-per-decision",
+     "siujev-cost-banking77-usd-per-decision",
+     "siujev-latency-p50-ms",
+     "siujev-latency-p95-ms",
+     "siujev-yelp-exact-accuracy",
+     "td-accuracy",
+     "td-brier",
+     "td-ece",
+     "td-p50-latency-ms",
+     "tse-agent-trace-observability-accuracy",
+     "tse-customer-service-accuracy",
+     "tse-invoice-processing-accuracy",
+     "tse-security-incidents-accuracy"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Check each benchmark's reference-label provenance (human / dataset / LLM). Prefer human-labelled and private-test evidence; discount agreement-with-LLM numbers.",
+   "evidence": [
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "The gateway routing labels are Opus 5.5 labels. Agreement with them is agreement with Opus, and a model that reasons like Opus will score well on them for that reason."
+    },
+    {
+     "source_id": "divan-typesafe-jev",
+     "quote": "TypeSafe's own 711-case benchmark used reference labels derived from the average judgment of two other LLMs rather than verified ground truth"
+    },
+    {
+     "source_id": "hn-clef-thread",
+     "quote": "Public benchmarks are easy to cheat"
+    },
+    {
+     "source_id": "hn-clef-thread",
+     "quote": "A lot of people claim to have made better than jev"
+    },
+    {
+     "source_id": "hn-clef-thread",
+     "quote": "most of the ones that are supposedly on jev level end up playing a terrible game, showing that they are very narrow."
+    },
+    {
+     "source_id": "jev-decision-index-methodology",
+     "quote": "Rows an entrant trained on count as wrong here too."
+    }
+   ]
+  },
+  {
+   "id": "small-sample-and-single-run-evidence",
+   "statement": "Most independent comparisons are small, single-run and single-site: nicia 85 synthetic cases (one case = 0.02 recall), dev.to 42 cases, Requesty one run/one day/one location, the arXiv legal paper 123 contracts, the Reddit measurement one user's $25 run, and the 0.3 Index's private tests unverifiable.",
+   "affects": {
+    "sources": [
+     "devto-clef-flash-vs-jev",
+     "nicia-admission-eval",
+     "reddit-jev-embeddings-thread",
+     "requesty-benchmark"
+    ],
+    "metrics": [
+     "devto-42case-overall-accuracy",
+     "devto-42case-p50-latency-ms",
+     "devto-42case-triage-correct",
+     "legal-nli-accuracy",
+     "legal-nli-cost-per-contract-usd",
+     "legal-nli-median-time-s",
+     "morr-agnews-accuracy",
+     "morr-agnews-brier",
+     "morr-agnews-ece",
+     "morr-agnews-macrof1",
+     "morr-banking77-accuracy",
+     "morr-banking77-brier",
+     "morr-banking77-ece",
+     "morr-banking77-macrof1",
+     "morr-emotion-accuracy",
+     "morr-emotion-brier",
+     "morr-emotion-ece",
+     "morr-emotion-macrof1",
+     "morr-latency-p50-hosted-rtt-ms",
+     "morr-latency-p50-local-cpu-ms",
+     "morr-latency-p50-local-gpu-ms",
+     "morr-latency-p95-hosted-rtt-ms",
+     "morr-latency-p95-local-cpu-ms",
+     "morr-latency-p95-local-gpu-ms",
+     "morr-massive-accuracy",
+     "morr-massive-brier",
+     "morr-massive-ece",
+     "morr-massive-en-accuracy",
+     "morr-massive-en-brier",
+     "morr-massive-en-ece",
+     "morr-massive-en-macrof1",
+     "morr-massive-macrof1",
+     "morr-massive-non-en-accuracy",
+     "morr-massive-non-en-brier",
+     "morr-massive-non-en-ece",
+     "morr-massive-non-en-macrof1",
+     "morr-overall-accuracy",
+     "morr-overall-brier",
+     "morr-overall-ece",
+     "morr-overall-macrof1",
+     "morr-typed-choice-accuracy",
+     "morr-typed-choice-brier",
+     "morr-typed-choice-ece",
+     "morr-typed-choice-macrof1",
+     "morr-typed-decisions-accuracy",
+     "morr-typed-decisions-brier",
+     "morr-typed-decisions-ece",
+     "morr-typed-decisions-macrof1",
+     "morr-typed-noul-accuracy",
+     "morr-typed-noul-brier",
+     "morr-typed-noul-ece",
+     "morr-typed-noul-macrof1",
+     "morr-typed-score-accuracy",
+     "morr-typed-score-brier",
+     "morr-typed-score-ece",
+     "morr-typed-score-macrof1",
+     "nicia-decisions-changed-by-order",
+     "nicia-recall-original",
+     "nicia-recall-reversed",
+     "nicia-routine-admit-original",
+     "nicia-routine-admit-reversed",
+     "nicia-unsure-band-answers",
+     "rafe-clef150-accuracy",
+     "rafe-oos-accepted-at-5pct-risk",
+     "rafe-typed-decisions-accuracy",
+     "rafe-yes-no-swap-flips-per-100",
+     "reddit-jev-fanout-latency-ratio",
+     "requesty-agnews-accuracy",
+     "requesty-agnews-ece",
+     "requesty-agnews-macro-f1",
+     "requesty-agnews-p50-latency-ms",
+     "requesty-banking77-accuracy",
+     "requesty-banking77-ece",
+     "requesty-banking77-macro-f1",
+     "requesty-banking77-p50-latency-ms",
+     "requesty-emotion-accuracy",
+     "requesty-emotion-ece",
+     "requesty-emotion-macro-f1",
+     "requesty-emotion-p50-latency-ms",
+     "requesty-gateway-cost-per-item-usd",
+     "requesty-gateway-failures-of-2000",
+     "requesty-gateway-human-label-mean-accuracy",
+     "requesty-gateway-item-latency-p50-ms",
+     "requesty-gateway-item-latency-p95-ms",
+     "requesty-gateway-jailbreak-toxic-chat",
+     "requesty-gateway-routing-complexity-0-1-2-vs-opus-labels",
+     "requesty-gateway-routing-long-output-vs-opus-labels",
+     "requesty-gateway-routing-needs-tools-vs-opus-labels",
+     "requesty-gateway-routing-pii-vs-opus-labels",
+     "requesty-gateway-routing-task-type-vs-opus-5-5-labels",
+     "requesty-gateway-tool-call-gating-glaive-derived",
+     "requesty-gateway-toxic-prompt-toxic-chat-human",
+     "requesty-gateway-unsafe-prompt-aegis-2-0",
+     "requesty-massive-1k-accuracy",
+     "requesty-massive-1k-ece",
+     "requesty-massive-1k-macro-f1",
+     "requesty-massive-1k-p50-latency-ms",
+     "requesty-same-model-agreement",
+     "requesty-same-model-same-answer-rate",
+     "requesty-typed-accuracy",
+     "requesty-typed-choice-accuracy",
+     "requesty-typed-ece",
+     "requesty-typed-macro-f1",
+     "requesty-typed-noul-accuracy",
+     "requesty-typed-p50-latency-ms",
+     "requesty-typed-score-accuracy",
+     "siujev-ag-news-accuracy",
+     "siujev-ag-news-ece",
+     "siujev-banking77-accuracy",
+     "siujev-banking77-ece",
+     "siujev-boolq-accuracy",
+     "siujev-boolq-ece",
+     "siujev-cost-ag-news-usd-per-decision",
+     "siujev-cost-banking77-usd-per-decision",
+     "siujev-latency-p50-ms",
+     "siujev-latency-p95-ms",
+     "siujev-yelp-exact-accuracy",
+     "td-accuracy",
+     "td-brier",
+     "td-ece",
+     "td-p50-latency-ms"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Weigh each independent result by n, label provenance and reproducibility, not by publication prominence.",
+   "evidence": [
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "85 synthetic cases is a small set. One case moves recall by 0.02."
+    },
+    {
+     "source_id": "devto-clef-flash-vs-jev",
+     "quote": "This is a 42-case benchmark from one person's agent, not a paper."
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "One run, one day, one client location. Latency numbers describe the deployments on October 5, 2026, through our router, and will move."
+    },
+    {
+     "source_id": "reddit-jev-embeddings-thread",
+     "quote": "I tried for my own purposes (bought $25 in api credits at console.typesafe.ai and created a harness to test using claude)."
+    }
+   ]
+  },
+  {
+   "id": "llm-baselines-answered-subset-and-untuned",
+   "statement": "LLM-vs-decision-model comparisons are flattered or handicapped by method: accuracy for LLMs counts only items they answered (refusals/content filters excluded), baselines are single-shot JSON prompts with no few-shot or retries (probably understated), and decision models cannot refuse.",
+   "affects": {
+    "models": [
+     "gpt-5.5",
+     "gpt-5.6-luna",
+     "claude-opus-5-5",
+     "claude-haiku-4-5",
+     "deepseek-v4-1-flash",
+     "gemini-3.5-flash-lite"
+    ],
+    "sources": [
+     "requesty-benchmark"
+    ],
+    "metrics": [
+     "hd-closed-world-depth-0-accuracy",
+     "hd-closed-world-depth-5-accuracy",
+     "hd-closed-world-overall-accuracy",
+     "hd-open-world-depth-0-accuracy",
+     "hd-open-world-depth-5-accuracy",
+     "hd-open-world-overall-accuracy",
+     "jevbench-v161-capability",
+     "jevbench-v161-composite",
+     "jevbench-v161-latency-p50-adjusted-ms",
+     "jevbench-v161-usd-per-decision",
+     "legal-nli-accuracy",
+     "legal-nli-cost-per-contract-usd",
+     "legal-nli-median-time-s",
+     "requesty-gateway-human-label-mean-accuracy",
+     "siujev-ag-news-accuracy",
+     "siujev-banking77-accuracy",
+     "siujev-boolq-accuracy",
+     "siujev-yelp-exact-accuracy"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Read an LLM baseline's accuracy together with its answered fraction and prompt method. 'Decision models never refuse' is a real operational advantage for moderation.",
+   "evidence": [
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "GPT-5.6 Luna and GPT-5 Nano post 83.5% and 82.2%, but only on the 93% to 94% of items they answered; their refusals are concentrated on the hardest moderation prompts, which flatters their accuracy."
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "LLM baselines were prompted once, for JSON, with no few-shot examples and no retries on refusals. A tuned prompt would move them, probably upward"
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "GPT-5.5, GPT-5.6 Luna and GPT-5 Nano on Azure could not answer 33% to 36% of the toxic-chat prompts"
+    }
+   ]
+  },
+  {
+   "id": "openai-decisions-api-limited-preview-now-measured-by-one-party",
+   "statement": "The independent evidence on OpenAI Decisions (gpt-6-luna) is thin: Nicia ran it once on 2026-10-06 on 85 synthetic cases (price $0.10/M input; p50 about 170 ms from a cloud executor whose region was not recorded; sensitive to record order), and a few boards (JevBench, OpenRouter, StreamDecisionBench) have measured it since. OpenAI itself published no accuracy, latency or calibration number. Status is public beta and changed within days (see openai-decisions-status-changed).",
+   "affects": {
+    "models": [
+     "openai-decisions-gpt-6-luna"
+    ],
+    "sources": [
+     "nicia-admission-eval"
+    ],
+    "metrics": [
+     "nicia-decisions-changed-by-order",
+     "nicia-recall-original",
+     "nicia-recall-reversed",
+     "nicia-routine-admit-original",
+     "nicia-routine-admit-reversed",
+     "nicia-unsure-band-answers"
+    ]
+   },
+   "strength": "anecdotal",
+   "implication": "Treat OpenAI Decisions as a single-source, beta, dated row; do not compare its 170 ms (cloud executor, region unrecorded) with laptop-measured rows.",
+   "evidence": [
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "GPT-6 Luna passes in the original order, but is sensitive to record order. Eight of 85 decisions change when reversed, and the largest change in evidence is 0.63."
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "At the published base rate of $0.10 per million input tokens"
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "excluding any premiums."
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "These calls ran from a cloud executor through its HTTPS proxy; its region was not recorded. The latency figures therefore describe this environment and are not a controlled speed comparison"
+    }
+   ]
+  },
+  {
+   "id": "self-hosting-friction-and-hardware-reality",
+   "statement": "Open weights are not plug-and-play: Clef 27B needs ~54 GB VRAM in bf16 (24 GB single card cannot hold it), community GGUF quants cover only the language backbone (the joint decision head needs the transformers path), decider-ai's GGUF path imports torch and has no prefix cache, Kev-27B had a 6-minute cold start, and a laptop CPU is prefill-bound.",
+   "affects": {
+    "models": [
+     "clef",
+     "clef-flash",
+     "decider-2b",
+     "decider-4b",
+     "kev-27b"
+    ],
+    "sources": [
+     "devto-clef-flash-vs-jev",
+     "divan-decider-2b-cpu",
+     "nicia-admission-eval"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Check runtime support, minimum VRAM per quant and the decision-head requirement per model before choosing open weights: 'open weights' != 'runs in llama.cpp / fits a 24 GB card'. Cloudflare's Apache-2.0 weights come without published data or training pipeline (open weights, not open source).",
+   "evidence": [
+    {
+     "source_id": "devto-clef-flash-vs-jev",
+     "quote": "the community GGUF quants of Clef on Hugging Face only cover the language backbone. The joint decision head needs the transformers code path, so you can't run the actual decision part in llama.cpp today."
+    },
+    {
+     "source_id": "devto-clef-flash-vs-jev",
+     "quote": "The full Clef-27B"
+    },
+    {
+     "source_id": "devto-clef-flash-vs-jev",
+     "quote": "wants about 54GB of VRAM in bf16. My single 3090 has 24."
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "Kev-27B scales to zero when idle. Its first start took 6 minutes while it downloaded 51 GB of weights, and a later start from the cached weights took just under 3 minutes."
+    },
+    {
+     "source_id": "divan-decider-2b-cpu",
+     "quote": "decider-ai's GGUF engine has no prefix cache. Its source says \"score_shared has no prefix cache here and scores every row in full\"."
+    },
+    {
+     "source_id": "divan-decider-2b-cpu",
+     "quote": "decider.infer and decider.engine_gguf import torch even on the GGUF path."
+    }
+   ]
+  },
+  {
+   "id": "cheap-baselines-embeddings-and-bert-are-competitive-on-narrow-tasks",
+   "statement": "For narrow, stable label sets, embedding kNN / small trained classifiers can be competitive or faster, and the Reddit thread's central objection ('is it just embeddings?') is right for easy routing and wrong for zero-shot, conflicting-choice and calibrated-probability tasks. The one posted chart (log loss) shows hosted Jev beating kNN/GLiClass baselines by large margins on 5 tasks but did not include Clef or the open 27B deciders; on skill routing the gap to a 600M kNN was small (0.39 vs 0.45).",
+   "affects": {
+    "models": [
+     "jev-1.13.0"
+    ],
+    "sources": [
+     "hn-clef-thread",
+     "reddit-jev-embeddings-thread"
+    ],
+    "metrics": [
+     "rafe-clef150-accuracy"
+    ]
+   },
+   "strength": "anecdotal",
+   "implication": "If options are few and stable and you have labelled data, shadow-test an embedding/BERT baseline before paying per call. Decision models earn their keep with changing option sets, prose-described policies and calibrated probabilities.",
+   "evidence": [
+    {
+     "source_id": "reddit-jev-embeddings-thread",
+     "quote": "That's log loss, not accuracy, since while on my small dataset I managed to get accuracy to 100% with both top model and Jev, the confidence scores were way different."
+    },
+    {
+     "source_id": "hn-clef-thread",
+     "quote": "If you have a very narrow use case you can train a BERT based decision model on a laptop an hour if you have good data to train it on. It'll answer faster than the roundtrip to clef/jev and use <1gb memory"
+    },
+    {
+     "source_id": "reddit-jev-embeddings-thread",
+     "quote": "JEV looks at both the input and candidate list, all at the same time."
+    },
+    {
+     "source_id": "reddit-jev-embeddings-thread",
+     "quote": "raw cosine scores are not the same as probabilities."
+    }
+   ]
+  },
+  {
+   "id": "fanout-latency-flat-only-to-a-point-and-question-caps-differ",
+   "statement": "TypeSafe's claim that adding questions 'usually has little effect on response time' held in one independent test only up to ~50 questions on <=4k-token state; beyond that latency rose (8.3x at 3,500 questions). Providers also cap questions per request very differently (Clef 64 on Workers AI; Sference 16; Perplexity 128), so fan-out depth on Jev does not transfer.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "pplx-decider-v1-27b"
+    ],
+    "sources": [
+     "arxiv-2609-27678-legal",
+     "befailproof-multiple-questions",
+     "cloudflare-changelog-clef",
+     "reddit-jev-embeddings-thread",
+     "typesafe-docs-fanout"
+    ],
+    "metrics": [
+     "reddit-jev-fanout-latency-ratio"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Fan out to ~dozens of questions on hosted Jev with confidence; beyond that benchmark your own state size. On Clef/Sference/Perplexity respect the per-request cap and chunk. The Reddit 'vs separate Decisions API threads' comparison was asserted without numbers.",
+   "evidence": [
+    {
+     "source_id": "typesafe-docs-fanout",
+     "quote": "All questions are evaluated in parallel, so adding more questions usually has little effect on response time."
+    },
+    {
+     "source_id": "reddit-jev-embeddings-thread",
+     "quote": "Up to about 50 questions against state of 4k or less, the timing was identical to one question (around 120ms per request)"
+    },
+    {
+     "source_id": "reddit-jev-embeddings-thread",
+     "quote": "3,500 questions: 8.3× (991 ms)"
+    },
+    {
+     "source_id": "arxiv-2609-27678-legal",
+     "quote": "requesting 17 labels instead of one (B–C) changes Jev’s median response time from 1.15 to 1.22 seconds"
+    },
+    {
+     "source_id": "arxiv-2609-27678-legal",
+     "quote": "It does not identify internal parallelism: fixed network overhead and serving policies can also affect the increase."
+    },
+    {
+     "source_id": "cloudflare-changelog-clef",
+     "quote": "Ask up to 64 questions per request"
+    },
+    {
+     "source_id": "befailproof-multiple-questions",
+     "quote": "Do not infer linear speedup from the word “parallel.” TypeSafe’s architecture claim describes model behavior, not a guarantee that end-to-end latency stays constant as questions grow."
+    }
+   ]
+  },
+  {
+   "id": "fanout-independence-holds-for-jev-only-per-vendor-evidence",
+   "statement": "TypeSafe's 'answers do not depend on other questions' is documented and vendor-tested for Jev (13 questions, one 54k-char document, 5 repeats, std dev 0 for most), but (a) Cloudflare's Clef architecture explicitly uses joint cross-field attention, (b) Clef answers changed with record position in an independent 5-10-question test (0.04 vs 0.60), (c) our local decider-2b/4b packed-vs-independent runs gave materially different probabilities (e.g. violates_policy 0.266 -> 0.094 on 2B; urgency 0.46 -> 0.89 on 4B), and (d) Jev itself moved up to 0.27 under reordering and 0.12 between identical calls. Independence is a per-model property, not a category property.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "clef-flash",
+     "decider-2b",
+     "decider-4b",
+     "kev-27b"
+    ],
+    "sources": [
+     "arxiv-2609-27678-legal",
+     "cloudflare-blog-clef",
+     "nicia-admission-eval",
+     "typesafe-docs-parallel-questions",
+     "local-bench-decisions-design"
+    ],
+    "metrics": [
+     "local-decider-latency-median-ms"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Before packing questions on any model other than Jev, run a packed-vs-singleton and shuffled-order test and compare probabilities (not just argmax). On decider-ai prefer llama-server prefix priming (independent semantics, ~3x faster) over independent=False if semantics matter. Do not assume the Jev cookbook result transfers.",
+   "evidence": [
+    {
+     "source_id": "typesafe-docs-parallel-questions",
+     "quote": "each question is scored on its own against the document, so its answer doesn't depend on what else is in the request."
+    },
+    {
+     "source_id": "typesafe-docs-parallel-questions",
+     "quote": "no question's answer depends on the 12 other questions sharing its request."
+    },
+    {
+     "source_id": "cloudflare-blog-clef",
+     "quote": "allowing individual field parameters to cross-attend with other fields and back to the original payload prior to scoring"
+    },
+    {
+     "source_id": "cloudflare-blog-clef",
+     "quote": "the architecture unites option-specific evidence routing, joint cross-field attention, and schema-bound scoring."
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "In its one miss, the colliding record scored 0.04 for `contradicts` in first position and 0.60 in last position."
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "Clef"
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "Two of its decisions changed, and the largest shift in evidence was 0.49."
+    },
+    {
+     "source_id": "arxiv-2609-27678-legal",
+     "quote": "Controlled comparisons vary hypothesis visibility, requested outputs, and output order while keeping the contract and target judgment fixed"
+    },
+    {
+     "source_id": "arxiv-2609-27678-legal",
+     "quote": "Haiku changes 14 of 90 paired responses from C to D"
+    },
+    {
+     "source_id": "local-bench-decisions-design",
+     "quote": "\"violates_policy\": {\"noul\": 0.266}",
+     "location": "r_2b_q8_t8.json mixed4_independent.answers (file is pretty-printed JSON)"
+    },
+    {
+     "source_id": "local-bench-decisions-design",
+     "quote": "\"violates_policy\": {\"noul\": 0.094}",
+     "location": "r_2b_q8_t8.json mixed4_packed.answers"
+    }
+   ]
+  },
+  {
+   "id": "fanout-speculative-questions-are-not-free-and-claims-are-vendor",
+   "statement": "'Asking a question you might not need is close to free' is a per-question-token statement. Cost still scales with every unused question and option list (up to 255 options per Choice), retries repeat the whole batch, and speculative sibling questions share the same state-length/context-rot risk. All fan-out evidence is vendor-authored except the single Reddit measurement and one arXiv latency note; the docs internally disagree on the headline (primitives page 11.5x/9.6x vs cookbook 12.2x/10.0x).",
+   "affects": {
+    "models": [
+     "jev-1.13.0"
+    ],
+    "sources": [
+     "befailproof-multiple-questions",
+     "typesafe-docs-primitives",
+     "typesafe-docs-parallel-questions"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Estimate cost from serialized request tokens; cap batch size; version questions individually. The fan-out doc is a design pattern backed by vendor tests, not an independent result.",
+   "evidence": [
+    {
+     "source_id": "typesafe-docs-primitives",
+     "quote": "Adding questions barely changes the response time and costs only the tokens for the extra questions, which are cheap. Asking a question you might not need is close to free."
+    },
+    {
+     "source_id": "typesafe-docs-primitives",
+     "quote": "batching 13 questions into one call is 11.5x cheaper and 9.6x faster than 13 separate calls, with no change in the answers."
+    },
+    {
+     "source_id": "befailproof-multiple-questions",
+     "quote": "batching"
+    },
+    {
+     "source_id": "befailproof-multiple-questions",
+     "quote": "may make retrying one failed transport repeat every judgment."
+    },
+    {
+     "source_id": "befailproof-multiple-questions",
+     "quote": "One long shared transcript with two short questions can cost more than many questions over compact state."
+    },
+    {
+     "source_id": "typesafe-docs-parallel-questions",
+     "quote": "batching every question into one TypeSafe call is 12.2x cheaper and 10.0x faster with no change in answers",
+     "location": "cookbook intro"
+    }
+   ]
+  },
+  {
+   "id": "context-window-and-rot",
+   "statement": "Context claims are not like-for-like and accuracy degrades with irrelevant state: Cloudflare says Clef has 64k vs 'Jev's 32k' while TypeSafe documents 64k per request with 32k for state plus the longest question; TypeSafe's own jaggedness page admits context rot; the Index excluded 380 ToolRet/BRIGHT rows because almost no entrant could take them.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "clef-flash"
+    ],
+    "sources": [
+     "cloudflare-blog-clef",
+     "typesafe-docs-jaggedness",
+     "typesafe-docs-models"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Check both the total and the state-plus-longest-question limits; filter state before the call regardless of model; do not credit a bigger window with better long-state accuracy without a test.",
+   "evidence": [
+    {
+     "source_id": "cloudflare-blog-clef",
+     "quote": "our model has a 64k context window (compared to Jev’s 32k)"
+    },
+    {
+     "source_id": "typesafe-docs-models",
+     "quote": "Context length | 64k tokens per request; 32k tokens for `state` plus the longest question"
+    },
+    {
+     "source_id": "typesafe-docs-jaggedness",
+     "quote": "Accuracy falls as the state grows with content unrelated to the decision."
+    },
+    {
+     "source_id": "typesafe-docs-jaggedness",
+     "quote": "Jev suffers from context rot, so unrelated material in the `state` costs you accuracy."
+    }
+   ]
+  },
+  {
+   "id": "determinism-and-option-order",
+   "statement": "Decision models are not reliably order- or run-invariant: Jev leans toward the first Choice option (vendor-admitted) and varied up to 0.12 between identical calls; Clef was deterministic but order-sensitive; GPT-6 Luna Decisions flipped 8/85 decisions on reversal; an arXiv legal-document study found paired decision flips (regressions cancelling corrections) at constant aggregate accuracy when hypothesis visibility or output order changed.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "kev-27b",
+     "openai-decisions-gpt-6-luna"
+    ],
+    "sources": [
+     "arxiv-2609-27678-legal",
+     "nicia-admission-eval",
+     "typesafe-docs-jaggedness"
+    ],
+    "metrics": [
+     "nicia-decisions-changed-by-order",
+     "nicia-recall-original",
+     "nicia-recall-reversed",
+     "nicia-routine-admit-original",
+     "nicia-routine-admit-reversed",
+     "nicia-unsure-band-answers",
+     "rafe-clef150-accuracy",
+     "rafe-oos-accepted-at-5pct-risk",
+     "rafe-typed-decisions-accuracy",
+     "rafe-yes-no-swap-flips-per-100"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Test every threshold-critical decision under shuffled option/record order; use consensus over 2 orders when stakes warrant; check order sensitivity per model.",
+   "evidence": [
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "Kev-27B"
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "identical requests moved by at most 0.02, and reordering by at most 0.11."
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "Clef"
+    },
+    {
+     "source_id": "nicia-admission-eval",
+     "quote": "is deterministic: identical requests returned identical probabilities in every pass, so the change is the order alone."
+    },
+    {
+     "source_id": "arxiv-2609-27678-legal",
+     "quote": "For Qwen4B, A and B have identical accuracy, yet nine of 90 paired responses change: four regressions, four corrections, and one switch between wrong labels."
+    },
+    {
+     "source_id": "typesafe-docs-jaggedness",
+     "quote": "leans toward the option that comes first.",
+     "location": "jaggedness page"
+    }
+   ]
+  },
+  {
+   "id": "diogo-reliability-claim-untested",
+   "statement": "TypeSafe's founder argues that benchmark-leading decision models are 'benchmaxxed' and that reliability does not show on benchmarks, and claims a quarter of the Fortune 500 onboarded; neither claim is independently evidenced, and Cloudflare and others make symmetric claims in the opposite direction. Customer-side anecdotes (agrippanux, andrewingram, nicia, Cribl) lean toward Jev on latency and sometimes quality; the DEV 42-case test and Requesty lean toward Clef/Perplexity on specific tasks.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef"
+    ],
+    "sources": [
+     "gigazine-clef"
+    ]
+   },
+   "strength": "anecdotal",
+   "implication": "Treat both sides' reliability statements as untested hypotheses; the only operational test is a shadow test on your traffic.",
+   "evidence": [
+    {
+     "source_id": "gigazine-clef",
+     "quote": "there's a critical difference between benchmaxxed models and ones made by people who truly care about reliability that, by definition, doesn't show up on benchmarks"
+    },
+    {
+     "source_id": "gigazine-clef",
+     "quote": "he's onboarded a quarter of the fortune 500 already"
+    }
+   ]
+  },
+  {
+   "id": "decision-index-full-vs-public-field-trap",
+   "statement": "In Decision Index 0.3 index.json the field `scores.balanced_skill` is the FULL score (20% public + 50% private same-skill tests + 30% private new-domain tasks); the public-only, chance-corrected 37-benchmark score is `scores.public_skill` and equals `frozen_scores.balanced_skill` (verified here for all 112 rows). A consumer who reads `frozen_scores.balanced_skill` as \"the headline\" will quote the public score, and one who reads `balanced_skill` next to an older edition will compare unlike quantities. Jev: Full 60.11, public 57.96. Clef: Full 53.08, public 61.71. Cloudflare \"Clef is currently the leader\" is true only on the public column.",
+   "affects": {
+    "models": [
+     "clef",
+     "jev-1.13.0",
+     "pplx-decider-v1.1-27b"
+    ],
+    "sources": [
+     "jev-decision-index-data"
+    ],
+    "metrics": [
+     "di03-full-balanced-skill",
+     "di03-full-new-domains-part",
+     "di03-full-rank",
+     "di03-full-same-skills-part",
+     "di03-public-balanced-raw",
+     "di03-public-balanced-skill",
+     "di03-public-breadth-skill",
+     "di03-public-rank"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Store and quote the metric id (di03-full-balanced-skill vs di03-public-balanced-skill), never a bare \"Decision Index score\". Pin the edition (0.3) and re-pull: the 0.2.1 numbers in earlier notes are not comparable.",
+   "evidence": [
+    {
+     "source_id": "jev-decision-index-data",
+     "quote": "The main ranking is the Full score: 20% public benchmarks, 50% private tests of the same skills and 30% private tasks from new domains, each put on the public scale using untuned stock models."
+    },
+    {
+     "source_id": "jev-decision-index-data",
+     "quote": "0.20*public + 0.50*private_same_skills + 0.30*private_new_domains, private parts mapped onto the public scale with untuned stock models",
+     "location": "suite.formulas[id=balanced_skill], label \"Full score\""
+    }
+   ]
+  },
+  {
+   "id": "jev-adapted-benchmarks-not-official-boards",
+   "statement": "BFCL, ToolRet, API-Bank, When2Call, RouterBench and SGD on the Decision Index (and on Cloudflare launch tables that reuse the Index) are JEV-ADAPTED PROJECTIONS, not the official boards: BFCL is reduced to per-function yes/no tool-name exact-set accuracy (\"Arguments/order/execution are not evaluated\"), API-Bank to next-API tool-name selection, ToolRet to BM25 top-32 candidate ranking. A score on them is not comparable with the Berkeley Function-Calling Leaderboard (V4, 109 rows in data_overall.csv, none a decision model), NVIDIA's When2Call board or Alibaba's API-Bank. Official vs Jev-adapted therefore get different metric ids here.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "clef-flash"
+    ],
+    "sources": [
+     "jev-decision-index-methodology",
+     "bfcl-official-leaderboard",
+     "when2call-dataset"
+    ],
+    "metrics": [
+     "cf-di021-api-bank",
+     "cf-di021-bfcl",
+     "cf-di021-routerbench",
+     "cf-di021-sgd-sgd-x",
+     "cf-di021-toolret",
+     "cf-di021-when2call-mcq",
+     "di03-bench-api-bank",
+     "di03-bench-bfcl",
+     "di03-bench-routerbench",
+     "di03-bench-sgd-sgd-x",
+     "di03-bench-toolret",
+     "di03-bench-when2call"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Never put a Decision Index \"BFCL 98.76\" next to an official BFCL V4 percentage. Use the di03-bench-* and cf-di021-* metric ids only against rows of the same publisher and edition.",
+   "evidence": [
+    {
+     "source_id": "jev-decision-index-methodology",
+     "quote": "Published candidate schemas projected to tool-name decisions. Arguments/order/execution are not evaluated.",
+     "location": "benchmarks[id=1] BFCL note"
+    },
+    {
+     "source_id": "jev-decision-index-methodology",
+     "quote": "Tool-name selection only, not argument/execution success.",
+     "location": "benchmarks[id=3] API-Bank"
+    },
+    {
+     "source_id": "jev-decision-index-methodology",
+     "quote": "Query-only FTS5 BM25 candidate retrieval plus Jev relevance ranking.",
+     "location": "benchmarks[id=2] ToolRet note"
+    },
+    {
+     "source_id": "bfcl-official-leaderboard",
+     "quote": "Rank,Overall Acc,Model,Model Link,Total Cost ($)",
+     "location": "data_overall.csv header; 109 rows, \"Last Updated: 2026-04-12\" per the leaderboard page; no decision model among the model names (searched)"
+    }
+   ]
+  },
+  {
+   "id": "home-appliances-synthetic-n88",
+   "statement": "Home appliances is a purpose-built, synthetic benchmark made by the Decision Index author (seeded generator, executable intent oracle) and has n=88 cases on the live index after dropping duplicate and dev-set rows (160 prepared test rows). The headline Clef-flash 97.73 vs Jev 52.27 on it is 86 vs 46 whole-case exact matches of 88: one case is 1.1 points, the benchmark sits inside the board host's own suite, and Clef and Perplexity decider both score 80.68 on it. Cloudflare's card prints 82.95 for Clef (dedup edition) vs 80.68 live.",
+   "affects": {
+    "models": [
+     "clef",
+     "clef-flash",
+     "jev-1.13.0",
+     "pplx-decider-v1.1-27b"
+    ],
+    "sources": [
+     "jev-decision-index-methodology"
+    ],
+    "metrics": [
+     "cf-di021-home-appliance-simulator",
+     "di03-bench-home-appliance-simulator"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Do not generalise \"flash beats Jev on tool use\" from this row; treat it as a single small synthetic probe and prefer BFCL/API-Bank-style rows with larger n for tool-name selection.",
+   "evidence": [
+    {
+     "source_id": "jev-decision-index-methodology",
+     "quote": "Given a simulated home and a command, answers ~18 questions on handling it; all must be right. Duplicate and dev-set rows removed.",
+     "location": "benchmarks[id=9]"
+    },
+    {
+     "source_id": "jev-decision-index-methodology",
+     "quote": "Executable intent oracle and semantic validation; structural novelty does not establish pretraining or semantic independence.",
+     "location": "benchmarks[id=9] note"
+    }
+   ]
+  },
+  {
+   "id": "cloudflare-self-reported-latency-and-scores",
+   "statement": "Cloudflare's own mirror board states that Clef scores and latency are self-reported, with missing benchmarks scored 0 and latency not measured on the board hardware; the launch card calls the quality table \"our internal run\" of the Decision Index 0.2.1 suite. The 209.3 / 38.8 ms figures have no stated hardware, region, payload or percentile procedure, and the third-party index measures the same models at 102.1 / 53.4 ms.",
+   "affects": {
+    "models": [
+     "clef",
+     "clef-flash"
+    ],
+    "sources": [
+     "cloudflare-clef-evals-board",
+     "cloudflare-hf-clef"
+    ],
+    "metrics": [
+     "cf-launch-latency-median-ms",
+     "cf-launch-latency-p95-ms"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Store Cloudflare launch numbers as vendor_table rows (grade C) with vantage vendor_claim. Never mix them with board latency in one ranking.",
+   "evidence": [
+    {
+     "source_id": "cloudflare-clef-evals-board",
+     "quote": "Clef scores and latency are self-reported (missing benchmarks scored 0; latency not measured on the board's hardware)",
+     "location": "leaderboard caption in the SPA bundle"
+    },
+    {
+     "source_id": "cloudflare-hf-clef",
+     "quote": "Per-benchmark results from our internal run of the",
+     "location": "HF card, Results > Decision Index"
+    }
+   ]
+  },
+  {
+   "id": "confidence-field-non-portable",
+   "statement": "The `confidence` field is defined differently per provider and must not be thresholded across them: TypeSafe defines Choice confidence as (p_max - 1/n)/(1 - 1/n), sference returns the maximum probability, Cloudflare Workers AI returns something else that is consistently lower, and Perplexity returns \"the model's own certainty estimate ... not the top probability\" (equal to p_max on a quarter of items per Requesty). The same Clef weights give different confidence values on sference and Cloudflare.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "clef-flash",
+     "pplx-decider-v1-27b"
+    ],
+    "sources": [
+     "requesty-benchmark",
+     "typesafe-docs-api",
+     "wavect-clef-vs-jev"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Threshold on the per-option probabilities (fitted on your own labeled traffic, per provider and version), not on `confidence`. Store the confidence definition with any ECE or threshold result.",
+   "evidence": [
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "Sference returns the maximum probability. Cloudflare returns something else, consistently lower. Perplexity returns a third thing that equals the max probability on a quarter of items"
+    },
+    {
+     "source_id": "wavect-clef-vs-jev",
+     "quote": "TypeSafe defines Choice confidence as (p_max - 1/n) / (1 - 1/n)"
+    },
+    {
+     "source_id": "typesafe-docs-api",
+     "quote": "Choice and Score answers also carry a `confidence` between 0 to 1, derived from the answer's probability distribution."
+    }
+   ]
+  },
+  {
+   "id": "workers-ai-state-truncation-2k",
+   "statement": "Hosted Clef and Clef-flash on Workers AI advertise a 65,536-token context, but OpenRouter's listing says \"Workers AI currently truncates long text state to roughly the first 2K tokens, so content beyond that is not read; images are counted separately\", while Cloudflare's model page says only that \"Long text state is truncated to fit the model's token limit\". Cloudflare does not confirm or deny the 2K figure in the pages read. If true, hosted Clef cannot use long state, unlike the self-hosted weights (the Decision Index ran Clef from local weights with a 65,536-token harness). The open-weight release code itself cuts state to 16,384 tokens by default (`encode_record`, per the Decision Index submission PR), which the board run overrode. Possible, UNVERIFIED explanation for Clef's weak StreamDecisionBench result (38.96% untimed vs Perplexity 70.00%).",
+   "affects": {
+    "models": [
+     "clef",
+     "clef-flash"
+    ],
+    "sources": [
+     "cloudflare-workers-ai-clef-page",
+     "jev-decision-index-github",
+     "openrouter-page-cloudflare-clef"
+    ],
+    "metrics": [
+     "openrouter-p50-latency-ms",
+     "sdb-in-force-accuracy",
+     "sdb-latency-p50-hosted-ms",
+     "sdb-latency-p95-hosted-ms",
+     "sdb-untimed-accuracy"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Do not assume 64K of usable state on Workers AI: test with a long-state canary before trusting hosted Clef for documents, and retrieve/trim state to about 2K tokens until Cloudflare documents the limit. Keep hosted and self-hosted Clef results separate.",
+   "evidence": [
+    {
+     "source_id": "openrouter-page-cloudflare-clef",
+     "quote": "Note: Workers AI currently truncates long text state to roughly the first 2K tokens, so content beyond that is not read; images are counted separately.",
+     "location": "OpenRouter model description"
+    },
+    {
+     "source_id": "cloudflare-workers-ai-clef-page",
+     "quote": "Long text state is truncated to fit the model's token limit.",
+     "location": "model page, API schema"
+    },
+    {
+     "source_id": "jev-decision-index-github",
+     "quote": "The release `encode_record` silently cuts the state to fit 16,384 tokens by default, which would have truncated 107 suite requests (BRIGHT 81, ToolRet 25, POP909 1).",
+     "location": "PR #54 (open, by third party lucataco) Engine section: the board run encoded uncapped"
+    }
+   ]
+  },
+  {
+   "id": "perplexity-price-conflict-direct-vs-router",
+   "statement": "The Perplexity decider is $0.02 per million input tokens on Perplexity's own docs but $0.04 per million on OpenRouter and in Requesty's price table: a 2x gap. It is unresolved whether the routers add a markup or the direct price changed. Perplexity direct also has a 10 requests per second per organization limit.",
+   "affects": {
+    "models": [
+     "pplx-decider-v1-27b",
+     "pplx-decider-v1.1-27b"
+    ],
+    "sources": [
+     "openrouter-decisions-catalog",
+     "perplexity-decisions-quickstart",
+     "requesty-benchmark"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Use the direct price for Perplexity and the router price when buying through that router; record both. Re-check at the 45-day freshness cadence.",
+   "evidence": [
+    {
+     "source_id": "perplexity-decisions-quickstart",
+     "quote": "The Decisions API costs $0.02 per million input tokens."
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "perplexity/pplx-decider-v1-27b | decision, 27B | $0.04",
+     "location": "price table"
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "M | free | 262K |",
+     "location": "price table"
+    },
+    {
+     "source_id": "openrouter-decisions-catalog",
+     "quote": "\"prompt\": \"0.00000004\"",
+     "location": "perplexity/pplx-decider-v1-27b pricing in the decisions catalog JSON"
+    }
+   ]
+  },
+  {
+   "id": "openai-decisions-status-changed",
+   "statement": "The OpenAI Decisions API changed status within days: on 2026-10-01/03 research found HTTP 403 \"Decision API is not enabled for this user\" and no price (limited preview); by 2026-10-07 the docs say public beta with GA expected \"in the coming weeks\" and $0.10/M input. Anything recorded before 2026-10-06 (including our own earlier divan notes) is superseded, and a beta can change price and limits before GA.",
+   "affects": {
+    "models": [
+     "openai-decisions-gpt-6-luna"
+    ],
+    "sources": [
+     "divan-decider-2b-cpu",
+     "openai-decisions-guide"
+    ],
+    "metrics": [
+     "jevbench-v161-capability",
+     "jevbench-v161-composite",
+     "jevbench-v161-latency-p50-adjusted-ms",
+     "jevbench-v161-usd-per-decision",
+     "nicia-decisions-changed-by-order",
+     "nicia-recall-original",
+     "nicia-recall-reversed",
+     "nicia-routine-admit-original",
+     "nicia-routine-admit-reversed",
+     "nicia-unsure-band-answers"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Treat OpenAI Decisions rows as dated beta evidence; re-check price, limits and status at the board cadence; do not cite the earlier 403/limited-preview notes.",
+   "evidence": [
+    {
+     "source_id": "openai-decisions-guide",
+     "quote": "The Decisions API is in public beta, and we expect to GA in the coming weeks."
+    },
+    {
+     "source_id": "divan-decider-2b-cpu",
+     "quote": "Decision API is not enabled for this user.",
+     "location": "earlier research: standard keys returned 403 on 2026-10-01/02"
+    }
+   ]
+  },
+  {
+   "id": "jevbench-version-and-cost-method",
+   "statement": "JevBench scores depend on version and on the board's own cost and latency conventions: v1.6.1 is not comparable with v1.4/v1.5 (Imajev-4B was #1 in v1.4.2.2 and #29 in v1.6.1; the GitHub README is stale at v1.4.2.2), self-hosted open-weight rows are priced from a base-model reference rather than a vendor tariff (\"ESTIMATE ... no public tariff\"), and self-hosted latency receives an assumed x2 + 0.15 s adjustment to look like API wall-clock (\"an assumption, not a hardware normalization\"). The composite therefore penalises 27B open models on cost and can be low where capability is rank 1.",
+   "affects": {
+    "models": [
+     "pplx-decider-v1.1-27b",
+     "clef",
+     "clef-flash",
+     "jev-1.13.0"
+    ],
+    "sources": [
+     "jevbench-v1-6-1"
+    ],
+    "metrics": [
+     "jevbench-v161-capability",
+     "jevbench-v161-composite",
+     "jevbench-v161-latency-p50-adjusted-ms",
+     "jevbench-v161-latency-p50-raw-ms",
+     "jevbench-v161-usd-per-decision"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Use capability for quality, show the cost basis (tariff vs estimate) beside any JevBench cost, and never compare adjusted self-hosted latency with measured hosted latency as a speed ranking.",
+   "evidence": [
+    {
+     "source_id": "jevbench-v1-6-1",
+     "quote": "The standard x2 + 0.15 s self-hosted adjustment is an assumption, not a hardware normalization."
+    },
+    {
+     "source_id": "jevbench-v1-6-1",
+     "quote": "ESTIMATE (v1.5-M2 base-model reference; self-hosted open weights, no public tariff)"
+    }
+   ]
+  },
+  {
+   "id": "openrouter-latency-router-inclusive",
+   "statement": "OpenRouter page latency is the wall-clock round trip through the router to the provider (\"Latency is total round-trip time\"), best provider, all locations, over a stated window (1 week; 3 days for GPT-6 Luna Decisions); payload mix and client region are not stated and the model pages show the figure to two decimals in seconds. It is the best like-for-like hosted figure across models but is not a model property.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "clef-flash",
+     "pplx-decider-v1-27b",
+     "openai-decisions-gpt-6-luna"
+    ],
+    "sources": [
+     "openrouter-page-cloudflare-clef"
+    ],
+    "metrics": [
+     "openrouter-p50-latency-ms"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Compare OpenRouter p50s only with each other; add your own hosted measurement from your region and state size before choosing on 100 ms differences.",
+   "evidence": [
+    {
+     "source_id": "openrouter-page-cloudflare-clef",
+     "quote": "Latency is total round-trip time (lower is better).",
+     "location": "model page, Performance section"
+    }
+   ]
+  },
+  {
+   "id": "openrouter-usage-is-traffic-not-quality",
+   "statement": "OpenRouter's Decision Model Rankings page ranks models by request volume (Jev ~982M, Span-01 Lite 12.4M, d1 2.87M, Clef-flash 2.38M, Clef 1.8M, Perplexity 1.27M, GPT-6 Luna Decisions 344K in the capture). Volume reflects traffic, integrations, benchmark and test runs and free routes; it says nothing about accuracy, and the window and week-over-week \"change\" basis are only partly stated on the page.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "clef-flash"
+    ],
+    "sources": [
+     "openrouter-rankings-decisions"
+    ],
+    "metrics": [
+     "openrouter-weekly-requests"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Use usage only as an adoption signal; do not read Jev's volume as evidence of quality or Clef's as evidence of weakness.",
+   "evidence": [
+    {
+     "source_id": "openrouter-rankings-decisions",
+     "quote": "Live rankings based on real usage data from people classifying, scoring, and labeling inputs through decision models on OpenRouter."
+    }
+   ]
+  },
+  {
+   "id": "requesty-commercial-interest-and-chart-read",
+   "statement": "The Requesty benchmark is published by a router vendor that sells these models, from one run on one day through its own router from one client location; its latency includes the router hop; values are read from labelled chart bars; routing labels are Claude Opus 5.5 outputs; LLM baselines are single-shot JSON prompts and are scored on answered items only; and Cloudflare's coverage is partial (62 AG News items, no MASSIVE).",
+   "affects": {
+    "models": [
+     "clef",
+     "pplx-decider-v1-27b"
+    ],
+    "sources": [
+     "requesty-benchmark"
+    ],
+    "metrics": [
+     "requesty-agnews-accuracy",
+     "requesty-agnews-ece",
+     "requesty-agnews-macro-f1",
+     "requesty-agnews-p50-latency-ms",
+     "requesty-banking77-accuracy",
+     "requesty-banking77-ece",
+     "requesty-banking77-macro-f1",
+     "requesty-banking77-p50-latency-ms",
+     "requesty-emotion-accuracy",
+     "requesty-emotion-ece",
+     "requesty-emotion-macro-f1",
+     "requesty-emotion-p50-latency-ms",
+     "requesty-gateway-cost-per-item-usd",
+     "requesty-gateway-failures-of-2000",
+     "requesty-gateway-human-label-mean-accuracy",
+     "requesty-gateway-item-latency-p50-ms",
+     "requesty-gateway-item-latency-p95-ms",
+     "requesty-gateway-jailbreak-toxic-chat",
+     "requesty-gateway-routing-complexity-0-1-2-vs-opus-labels",
+     "requesty-gateway-routing-long-output-vs-opus-labels",
+     "requesty-gateway-routing-needs-tools-vs-opus-labels",
+     "requesty-gateway-routing-pii-vs-opus-labels",
+     "requesty-gateway-routing-task-type-vs-opus-5-5-labels",
+     "requesty-gateway-tool-call-gating-glaive-derived",
+     "requesty-gateway-toxic-prompt-toxic-chat-human",
+     "requesty-gateway-unsafe-prompt-aegis-2-0",
+     "requesty-massive-1k-accuracy",
+     "requesty-massive-1k-ece",
+     "requesty-massive-1k-macro-f1",
+     "requesty-massive-1k-p50-latency-ms",
+     "requesty-same-model-agreement",
+     "requesty-same-model-same-answer-rate",
+     "requesty-typed-accuracy",
+     "requesty-typed-choice-accuracy",
+     "requesty-typed-ece",
+     "requesty-typed-macro-f1",
+     "requesty-typed-noul-accuracy",
+     "requesty-typed-p50-latency-ms",
+     "requesty-typed-score-accuracy"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Treat Requesty as an independent-of-the-model-vendors, commercially interested, single-run source. Prefer its text-quoted values and the same-model check; discount absolute latency and LLM-vs-decision-model accuracy gaps.",
+   "evidence": [
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "Three decision models are now available through the Requesty router: sference/clef, cloudflare/clef and perplexity/pplx-decider-v1-27b."
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "One run, one day, one client location."
+    },
+    {
+     "source_id": "requesty-benchmark",
+     "quote": "Latency is wall-clock from the client, so it includes the router hop."
+    }
+   ]
+  },
+  {
+   "id": "cloudflare-card-vs-index-suite-revision",
+   "statement": "The Cloudflare launch tables use the Decision Index 0.2.1 suite as run by Cloudflare; the live index moved to 0.3 on 2026-10-06 (GSM8K rebuilt, ForecastBench retired, Home appliances deduplicated, BRIGHT subset changed). Accuracy rows agree within 1 point on 120 model-benchmark pairs except GSM8K (Clef 80.8 card vs 59.93 live; Jev 79.9 vs 71.76), Home appliances (83.0 vs 80.68) and BRIGHT (-1.56/+1.05). The Kev 9B column is an earlier engine (kev-9b-raised) that the board has since replaced by kev-9b-v2.",
+   "affects": {
+    "models": [
+     "clef",
+     "clef-flash",
+     "jev-1.13.0",
+     "kev-9b"
+    ],
+    "sources": [
+     "cloudflare-hf-clef",
+     "jev-decision-index-data"
+    ],
+    "metrics": [
+     "cf-di021-acos",
+     "cf-di021-amazon-esci",
+     "cf-di021-anli",
+     "cf-di021-api-bank",
+     "cf-di021-arc-challenge",
+     "cf-di021-arc-easy",
+     "cf-di021-banking77",
+     "cf-di021-bbh",
+     "cf-di021-bfcl",
+     "cf-di021-bpomp",
+     "cf-di021-bright",
+     "cf-di021-cfcolor",
+     "cf-di021-chessbench",
+     "cf-di021-cladder",
+     "cf-di021-clinc150plusoos",
+     "cf-di021-contractnli",
+     "cf-di021-cruxeval",
+     "cf-di021-finentity",
+     "cf-di021-forecastbench",
+     "cf-di021-gpqa-diamond",
+     "cf-di021-gsm8k",
+     "cf-di021-habermas-machine",
+     "cf-di021-hellaswag",
+     "cf-di021-home-appliance-simulator",
+     "cf-di021-hover",
+     "cf-di021-humicroedit",
+     "cf-di021-mmlu",
+     "cf-di021-mmlu-pro",
+     "cf-di021-musr",
+     "cf-di021-new-yorker",
+     "cf-di021-nli4ct",
+     "cf-di021-phishnchips",
+     "cf-di021-pop909-cl",
+     "cf-di021-ragtruth",
+     "cf-di021-routerbench",
+     "cf-di021-sata-bench",
+     "cf-di021-sgd-sgd-x",
+     "cf-di021-toolret",
+     "cf-di021-vast",
+     "cf-di021-when2call-mcq",
+     "cf-di021-winogrande"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Compare Cloudflare card and Decision Index 0.3 rows only after reading both edition labels; for GSM8K, Home appliances and BRIGHT do not mix them.",
+   "evidence": [
+    {
+     "source_id": "jev-decision-index-data",
+     "quote": "GSM8K is rebuilt, ForecastBench is retired from the public index, and WinoGrande now counts under Knowledge & Reasoning.",
+     "location": "suite.changes"
+    },
+    {
+     "source_id": "cloudflare-hf-clef",
+     "quote": "Per-benchmark results from our internal run of the",
+     "location": "HF card"
+    }
+   ]
+  },
+  {
+   "id": "decision-index-private-tests-unauditable",
+   "statement": "Eighty percent of the Decision Index 0.3 Full score (50% private same-skill tests + 30% private new-domain tasks) comes from private tests that only the maintainer runs and that are \"mapped onto the public scale using untuned stock models\"; the board has one maintainer, 0 merged PRs of 73 at retrieval, and an undocumented submission path in practice. The design resists training on the test, but outsiders cannot reproduce or audit that part, and the Clef rows were submitted by a third party (PR #54 by lucataco) rather than by Cloudflare.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "clef",
+     "pplx-decider-v1.1-27b"
+    ],
+    "sources": [
+     "jev-decision-index-data"
+    ],
+    "metrics": [
+     "di03-full-balanced-skill",
+     "di03-full-new-domains-part",
+     "di03-full-rank",
+     "di03-full-same-skills-part",
+     "di03-public-balanced-raw",
+     "di03-public-balanced-skill",
+     "di03-public-breadth-skill",
+     "di03-public-rank"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Weight Full-score evidence as maintainer-run, contamination-resistant and unauditable; keep the public score alongside it; do not treat either as a neutral oracle.",
+   "evidence": [
+    {
+     "source_id": "jev-decision-index-data",
+     "quote": "Most of the score comes from tests nobody can train on, so a public-only advantage counts for little.",
+     "location": "suite.changes"
+    },
+    {
+     "source_id": "jev-decision-index-data",
+     "quote": "The private parts are mapped onto the public scale using untuned stock models.",
+     "location": "suite.changes"
+    },
+    {
+     "source_id": "jev-decision-index-data",
+     "quote": "Unofficial, community-maintained, not affiliated with TypeSafe AI.",
+     "location": "news page disclaimer"
+    }
+   ]
+  },
+  {
+   "id": "decision-index-contamination-handling",
+   "statement": "The Decision Index scores rows an entrant trained on as wrong (for example Eikos-27B: 979 FinEntity items; JevK5: 980 MMLU-Pro items), removes entrants for leakage (reflex 4B), and relies on entrants declaring their training data; Perplexity v1 declared checkpoint selection on WinoGrande and BBH/RAGTruth rows. Undeclared overlap is not detectable, so public scores of entrants remain contamination-uncertain.",
+   "affects": {
+    "models": [
+     "eikos-27b",
+     "pplx-decider-v1-27b"
+    ],
+    "sources": [
+     "jev-decision-index-data"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Prefer private-part and fresh-set evidence for entrants; flag declared overlaps; treat a public-benchmark gap to Jev of a few points as inconclusive.",
+   "evidence": [
+    {
+     "source_id": "jev-decision-index-data",
+     "quote": "Rows an entrant trained on count as wrong here too.",
+     "location": "suite.calibration_note"
+    }
+   ]
+  },
+  {
+   "id": "streamdecisionbench-time-budgeted-single-author",
+   "statement": "StreamDecisionBench is a single-author community board measuring evolving-stream decisions where slow answers are penalised (\"in-force accuracy\"); its 480 states and 8 scenarios are a different task shape from classification or tool selection; Wity-1 settings have one pass, others three; and the board prints no model versions for its generative references (Astra/Terra/Luna). Clef's 38.96% untimed accuracy contradicts its strong classification rows; the hosted 2K truncation is a possible, unverified cause.",
+   "affects": {
+    "models": [
+     "clef",
+     "clef-flash",
+     "pplx-decider-v1-27b",
+     "jev-1.13.0"
+    ],
+    "sources": [
+     "streamdecisionbench"
+    ],
+    "metrics": [
+     "sdb-in-force-accuracy",
+     "sdb-latency-p50-hosted-ms",
+     "sdb-latency-p50-self-hosted-ms",
+     "sdb-latency-p95-hosted-ms",
+     "sdb-latency-p95-self-hosted-ms",
+     "sdb-untimed-accuracy"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Use it as one task-shape probe (time-budgeted streams), not as a general quality ranking; do not use it to rank Clef overall.",
+   "evidence": [
+    {
+     "source_id": "streamdecisionbench",
+     "quote": "In-force accuracy measures whether the decision being applied is correct for the current state.",
+     "location": "leaderboard page text"
+    },
+    {
+     "source_id": "streamdecisionbench",
+     "quote": "Wity auto/off each have one pass; other settings average three.",
+     "location": "leaderboard page text"
+    }
+   ]
+  },
+  {
+   "id": "hard-decisions-vendor-conflict",
+   "statement": "Hard-Decisions is run by Anthus AI Solutions, an AI engineering consultancy that describes itself as independent and self-funded; it is not neutral about decision-model adoption. Its GLiDE rerun was requested by Fastino's CEO and scored much lower (76.4 vs 82.9 open-world) with no explained cause, and the GPT-6 Luna rows are the generative model through Chat Completions with reasoning none, not the OpenAI Decisions API.",
+   "affects": {
+    "models": [
+     "fastino-glide-no-thinking-28b",
+     "jev-1.13.0",
+     "openai-decisions-gpt-6-luna"
+    ],
+    "sources": [
+     "hard-decisions"
+    ],
+    "metrics": [
+     "hd-closed-world-depth-0-accuracy",
+     "hd-closed-world-depth-5-accuracy",
+     "hd-closed-world-overall-accuracy",
+     "hd-open-world-depth-0-accuracy",
+     "hd-open-world-depth-5-accuracy",
+     "hd-open-world-overall-accuracy"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Use Hard-Decisions as multi-hop reasoning evidence only, keep both GLiDE runs, and do not attribute its Luna rows to the Decisions API.",
+   "evidence": [
+    {
+     "source_id": "hard-decisions",
+     "quote": "Hard-Decisions is made by Anthus AI Solutions, an independent AI engineering consultancy. The work is self-funded.",
+     "location": "About page"
+    },
+    {
+     "source_id": "hard-decisions",
+     "quote": "because Fastino's CEO asked us to re-evaluate it",
+     "location": "About page, GLiDE Oct 3 rerun"
+    }
+   ]
+  },
+  {
+   "id": "local-measurement-busy-cpu",
+   "statement": "Our own decider-2b/4b CPU measurements were taken on one busy Ryzen 9 7900X (load average 11-21 from other services), with 5 timed repeats of one 461-token agent scenario and 12 basic cases: absolute latencies are numbers for a busy box and the quality example is one scenario, not a benchmark. Evidence grade D by design.",
+   "affects": {
+    "models": [
+     "decider-2b",
+     "decider-4b"
+    ],
+    "sources": [
+     "divan-decider-2b-cpu"
+    ],
+    "metrics": [
+     "local-decider-basic-correct",
+     "local-decider-latency-median-ms",
+     "local-decider-latency-server-ms"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Use our local numbers only as order-of-magnitude scale for CPU-only deployment (0.2 s short states, seconds at ~700 tokens) and re-measure on your hardware.",
+   "evidence": [
+    {
+     "source_id": "divan-decider-2b-cpu",
+     "quote": "Load average was 11–21 during every run."
+    },
+    {
+     "source_id": "divan-decider-2b-cpu",
+     "quote": "treat absolute latencies as numbers for a busy box."
+    }
+   ]
+  },
+  {
+   "id": "workers-ai-neuron-pricing-output-unlisted",
+   "statement": "Workers AI bills in Neurons: Cloudflare prints \"$0.240 per M input tokens | 21818 neurons per M input tokens\" for Clef and \"$0.090 | 8182\" for Clef-flash, converts at $0.011 per 1,000 Neurons, and gives a free allowance of 10,000 Neurons per day. No output rate and no per-request fee is listed for these models; OpenRouter and Requesty list completion $0 (third-party). Keep the raw unit and the USD conversion separate.",
+   "affects": {
+    "models": [
+     "clef",
+     "clef-flash"
+    ],
+    "sources": [
+     "cloudflare-workers-ai-pricing"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Use the raw neuron figure plus the sourced conversion when planning; confirm in the Cloudflare dashboard whether output is metered before assuming it is free.",
+   "evidence": [
+    {
+     "source_id": "cloudflare-workers-ai-pricing",
+     "quote": "Workers AI has updated pricing to be more granular, with per-model unit-based pricing presented, but still billing in neurons in the back end."
+    },
+    {
+     "source_id": "cloudflare-workers-ai-pricing",
+     "quote": "Workers AI is included in both the Free and Paid Workers plans and is priced at $0.011 per 1,000 Neurons."
+    }
+   ]
+  },
+  {
+   "id": "typed-decisions-teacher-labels",
+   "statement": "The LocalLLaMA/typed-decisions gold labels are the mean of three samples from a roughly 4B-class teacher, so a score measures agreement with that teacher, not correctness; teacher self-agreement is 0.735, so scores far above it mean a model is learning the teacher's quirks (and a better model can score lower where the teacher is wrong). TypeSafe Evals similarly uses an average of GPT-6 Astra and Claude Fable 5.1 as reference labels.",
+   "affects": {
+    "models": [
+     "jev-1.13.0",
+     "liquid-d1",
+     "meragpt-decider-1"
+    ],
+    "sources": [
+     "hf-typed-decisions"
+    ],
+    "metrics": [
+     "td-accuracy",
+     "td-brier",
+     "td-ece",
+     "td-p50-latency-ms"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Read typed-decisions and TypeSafe Evals accuracies as agreement with an LLM consensus; prefer human-labeled sets for absolute accuracy.",
+   "evidence": [
+    {
+     "source_id": "hf-typed-decisions",
+     "quote": "a score measures agreement with that teacher, not correctness."
+    }
+   ]
+  },
+  {
+   "id": "pplx-v1-1-repo-access-conflict",
+   "statement": "The Perplexity v1.1 model card says access is via an authenticated private repository and the Decision Index note says \"Repo access by request\", yet the Hugging Face API showed the repo as public (gated:false, Apache-2.0) on 2026-10-07. It is unresolved whether the weights are freely downloadable.",
+   "affects": {
+    "models": [
+     "pplx-decider-v1.1-27b"
+    ],
+    "sources": [
+     "hf-pplx-decider-v1-1",
+     "jev-decision-index-data"
+    ]
+   },
+   "strength": "anecdotal",
+   "implication": "Do not assume v1.1 weights are open until you can download them; v1 weights are public.",
+   "evidence": [
+    {
+     "source_id": "hf-pplx-decider-v1-1",
+     "quote": "authenticated Hugging Face access to this private repository"
+    },
+    {
+     "source_id": "jev-decision-index-data",
+     "quote": "Repo access by request.",
+     "location": "entrant note for pplx-decider-v1.1-27b"
+    }
+   ]
+  },
+  {
+   "id": "parameter-counts-hf-vs-index",
+   "statement": "Parameter counts differ by source: Clef is labelled 27B by Cloudflare, has 27,356,728,560 safetensors parameters on Hugging Face, and 27.8B \"served_params\" on the Decision Index (which uses the base-model figure); Perplexity v1/v1.1 are 26,085,330,160 on HF vs 27.8B on the index. models.json stores the HF safetensors total for models with a repo and the Decision Index served_params for other entrants, and says which in the notes.",
+   "affects": {
+    "models": [
+     "clef",
+     "pplx-decider-v1-27b"
+    ],
+    "sources": [
+     "cloudflare-hf-clef",
+     "jev-decision-index-data"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Use params_total for rough size classes only; do not compute memory from the Decision Index figure.",
+   "evidence": [
+    {
+     "source_id": "cloudflare-hf-clef",
+     "quote": "\"parameters\":{\"BF16\":27356728560},\"total\":27356728560",
+     "location": "HF API safetensors block for Cloudflare/clef (compact JSON)"
+    },
+    {
+     "source_id": "jev-decision-index-data",
+     "quote": "\"served_params\":27800000000",
+     "location": "entrant meta (compact JSON); identical for Clef, Perplexity and Qwen3.8-27B entrants"
+    }
+   ]
+  },
+  {
+   "id": "license-noncommercial-jpt",
+   "statement": "The JPT family (kirp: 0.8B, 4B, 9B, 35B-A3B) is licensed CC-BY-NC-4.0: non-commercial. It cannot be used in a commercial agent without separate terms, however well it scores. Ten Decision Index entrants carry a non-commercial HF license field; the JPT rows are flagged here because they are among the most cited open small models.",
+   "affects": {
+    "models": [
+     "jpt-4b",
+     "jpt-9b",
+     "jpt-0.8b",
+     "jpt-35b-a3b"
+    ],
+    "sources": [
+     "hf-kirp-jpt"
+    ]
+   },
+   "strength": "strong",
+   "implication": "Check the license field before adopting any open-weight entrant; exclude JPT from commercial shortlists.",
+   "evidence": [
+    {
+     "source_id": "hf-kirp-jpt",
+     "quote": "license: cc-by-nc-4.0"
+    }
+   ]
+  },
+  {
+   "id": "scope-limited-decision-models",
+   "statement": "Several models in the decisions modality or the board are not general typed decision models: Together Tev1 returns a single option letter through chat completions (no probabilities, 2-24 options; \"supports only 2-24 answer options per question\" on the Decision Index), Respan Span-01 is a behavior scorer for AI traces (present / absent / not_observable), NanoJev is a games-scoped research replica, Inception Mercury Decide and meraGPT Decider 1 are known only from listings or a card, and Liquid d1 is closed with an unpublished paid rate.",
+   "affects": {
+    "models": [
+     "tev1-4b",
+     "span-01",
+     "nanojev",
+     "mercury-decide",
+     "meragpt-decider-1",
+     "liquid-d1"
+    ],
+    "sources": [
+     "jev-decision-index-methodology",
+     "respan-span-01-blog"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Check the interface (probabilities? options? scope?) before using a model as a decision model; do not compare scope-limited rows with general ones.",
+   "evidence": [
+    {
+     "source_id": "jev-decision-index-methodology",
+     "quote": "supports only 2–24 answer options per question",
+     "location": "answer_gaps reason for Tev1 (JSON escape \\u2013 in the raw file)"
+    },
+    {
+     "source_id": "respan-span-01-blog",
+     "quote": "not_observable"
+    }
+   ]
+  },
+  {
+   "id": "solar-decide-price-discount-unclear",
+   "statement": "Upstage Solar Decide is $0.05/M input on OpenRouter with a \"50% off\" badge (standard $0.10) and the Upstage console shows a banner \"Solar Mini 4 is live. 70% off through Oct 10 (UTC)\". It is unresolved whether $0.05 is the discounted or the list price, and the promo may expire; OpenRouter p50 latency for the route was 17.30 s at retrieval and the independent n=200 test saw p95 12.5 s.",
+   "affects": {
+    "models": [
+     "solar-decide"
+    ],
+    "sources": [
+     "openrouter-page-upstage-solar-decide",
+     "upstage-console-solar-decide"
+    ],
+    "metrics": [
+     "openrouter-p50-latency-ms"
+    ]
+   },
+   "strength": "moderate",
+   "implication": "Treat the Solar Decide price as promotional and the route as not hot-path ready until latency is re-measured.",
+   "evidence": [
+    {
+     "source_id": "upstage-console-solar-decide",
+     "quote": "Solar Mini 4 is live. 70% off through Oct 10 (UTC)",
+     "location": "console banner"
+    },
+    {
+     "source_id": "openrouter-page-upstage-solar-decide",
+     "quote": "Solar Decide was released on September 28, 2026.",
+     "location": "OpenRouter model description"
+    }
+   ]
+  }
+ ]
 }

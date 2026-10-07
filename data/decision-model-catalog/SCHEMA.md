@@ -183,3 +183,15 @@ Nuance lives here so a consumer cannot drop it. Each caveat:
 ./scripts/validate_data_pack.py decision-model-catalog --require-jsonschema
 ./scripts/validate_data_pack.py   # all packs + index
 ```
+
+## Conventions added in v0.2.0
+
+- **Dates.** `retrieved_at` and `generated_at` are UTC dates. The v0.2.0 research ran the evening of 2026-10-06 US Central (2026-10-07 UTC); everything is dated 2026-10-07.
+- **Cache fields.** A `per_token` row needs all four rates. When a vendor documents no caching discount or surcharge, `cache_read_per_m` and `cache_write_per_m` are set equal to `fresh_input_per_m` and the row `notes` or the document `notes` say so. They are not published rates.
+- **Raw units.** Workers AI is billed in neurons: the row is `billing_basis: raw_units`, `raw_units.unit: neurons`, the USD figure the vendor prints sits in `fresh_input_per_m`, and `usd_conversion` (`0.000011` USD per neuron, source cited) is stored separately.
+- **Score scale.** Per-benchmark scores from the Decision Index and Cloudflare tables are percent (the Index publishes 0-1 fractions; stored x100 and rounded to four decimals). `ece` and `brier` are stored as published (0-1). Chance-corrected "skill" is an index, not an accuracy.
+- **Metric ids.** One id per benchmark and publisher/harness/edition. Latency has one id per vantage (`...-hosted-rtt-ms` vs `...-on-card-ms`). `ci_lo`/`ci_hi` are fractions (0-1) even when `score` is percent.
+- **Router ids.** Provider-qualified ids such as `sference/clef` and `cloudflare/clef` are aliases of the model, so a row can name the serving provider while resolving to one model.
+- **LLM baselines.** `effort` carries the reasoning mode a baseline was run at (for example `none`, `low`, `medium`). A baseline missing from `model-catalog` is recorded in the document `missing[]`.
+- **Compact documents.** The two largest Decision Index documents omit per-row `harness` and `task_family`; both are on the metric entry in `metrics.json`.
+- **Evidence.** `evidence/` holds vendored raw runs of our own local measurements (the `local_eval` source). A private input file is withheld and named in the source `notes`.
