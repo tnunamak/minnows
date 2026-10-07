@@ -7,6 +7,7 @@ validation against the shipped .schema.json files.
 Usage:
   ./scripts/validate_data_pack.py                 # all packs + index
   ./scripts/validate_data_pack.py model-catalog   # one pack
+  ./scripts/validate_data_pack.py decision-model-catalog   # shares code with model-catalog (PackProfile)
   ./scripts/validate_data_pack.py --index-only
 """
 
@@ -16,6 +17,7 @@ import argparse
 import json
 import re
 import sys
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -38,6 +40,77 @@ RATE_FIELDS = (
 PERF_PROVIDERS = frozenset({"anthropic", "openai", "xai", "google", "alibaba", "deepseek", "xiaomi", "other"})
 PERF_AXES = frozenset({"quality", "cost", "effort", "speed", "latency", "tokens"})
 PERF_UNITS = frozenset({"accuracy", "pass_rate", "error_rate", "elo", "other"})
+SOURCE_KINDS = frozenset(
+    {"vendor_blog", "vendor_docs", "third_party_eval", "academic", "digitized_chart", "local_eval", "other"}
+)
+SOURCE_ID_RE = re.compile(r"^[a-z][a-z0-9-]+$")
+
+# --- decision-model-catalog vocabularies -------------------------------------
+DECISION_PERF_UNITS = PERF_UNITS | {"ms", "ece", "brier", "usd_per_decision", "ratio"}
+DECISION_SOURCE_KINDS = SOURCE_KINDS | {
+    "model_card", "vendor_changelog", "third_party_blog", "community_post",
+}
+DECISION_MODEL_STATUSES = frozenset({
+    "ga", "preview", "early_access", "limited_preview", "community_finetune",
+    "research_release", "historical", "deprecated", "third_party_board_only",
+})
+DECISION_SURFACES = frozenset({
+    "typesafe-api", "workers-ai", "openai-api", "openrouter", "self-host", "hf-inference", "other",
+})
+DECISION_WEIGHTS = frozenset({"open", "closed"})
+DECISION_BILLING_BASES = frozenset({"per_token", "per_request", "per_decision", "raw_units", "free", "self_host"})
+LATENCY_VANTAGES = frozenset({
+    "hosted_rtt", "on_platform", "on_card", "local_cpu", "local_gpu", "vendor_claim",
+})
+LATENCY_PERCENTILES = frozenset({"p50", "p95", "p99", "mean"})
+CAVEAT_STRENGTHS = frozenset({"strong", "moderate", "anecdotal"})
+SLUG_RE = re.compile(r"^[a-z][a-z0-9-]*$")
+
+
+@dataclass(frozen=True)
+class PackProfile:
+    """Per-pack knobs for the shared catalog validation functions.
+
+    MODEL_CATALOG reproduces the historical behavior exactly; DECISION_CATALOG
+    layers the decision-model extensions on the same code paths.
+    """
+
+    name: str
+    allow_empty: bool = False  # empty sources/models/metrics/pricing dir are valid seeds
+    strict_files: bool = False  # every non-dot file on disk must be listed in pack.json
+    decision: bool = False  # enable decision-model row rules, caveats, measurement
+    perf_units: frozenset = PERF_UNITS
+    perf_providers: frozenset | None = PERF_PROVIDERS  # None = any slug
+    source_kinds: frozenset = SOURCE_KINDS
+    baseline: str | None = None  # pack dir name whose models.json is a fallback resolver
+    required_schemas: tuple = ("pricing-v1.schema.json", "performance-v1.schema.json", "sources-v1.schema.json")
+
+
+MODEL_CATALOG = PackProfile(name="model-catalog")
+DECISION_CATALOG = PackProfile(
+    name="decision-model-catalog",
+    allow_empty=True,
+    strict_files=True,
+    decision=True,
+    perf_units=DECISION_PERF_UNITS,
+    perf_providers=None,
+    source_kinds=DECISION_SOURCE_KINDS,
+    baseline="model-catalog",
+    required_schemas=(
+        "pricing-v1.schema.json", "performance-v1.schema.json", "sources-v1.schema.json",
+        "models-v1.schema.json", "metrics-v1.schema.json", "capabilities-v1.schema.json",
+        "caveats-v1.schema.json", "pack-v1.schema.json",
+    ),
+)
+PROFILES = {p.name: p for p in (MODEL_CATALOG, DECISION_CATALOG)}
+
+
+def rel(path: Path) -> str:
+    """Repo-relative path for messages; falls back to the absolute path (tests use tmp dirs)."""
+    try:
+        return str(Path(path).relative_to(REPO))
+    except ValueError:
+        return str(path)
 
 
 class Errors:
@@ -72,7 +145,7 @@ def validate_index(errors: Errors) -> None:
     data = load_json(path, errors)
     if not isinstance(data, dict):
         return
-    p = str(path.relative_to(REPO))
+    p = rel(path)
     require_keys(data, ("schema_version", "updated_at", "repo", "packs"), p, errors)
     if data.get("schema_version") != 1:
         errors.add(p, f"schema_version must be 1 (got {data.get('schema_version')!r})")
@@ -114,12 +187,14 @@ def validate_index(errors: Errors) -> None:
             errors.add(ep, f"no data/{name}/pack.json on disk")
 
 
-def validate_pack_envelope(pack_dir: Path, errors: Errors) -> dict | None:
+def validate_pack_envelope(
+    pack_dir: Path, errors: Errors, *, strict_files: bool = False
+) -> dict | None:
     path = pack_dir / "pack.json"
     data = load_json(path, errors)
     if not isinstance(data, dict):
         return None
-    p = str(path.relative_to(REPO))
+    p = rel(path)
     require_keys(
         data,
         ("name", "schema_version", "tag", "generated_at", "description", "files"),
@@ -143,29 +218,33 @@ def validate_pack_envelope(pack_dir: Path, errors: Errors) -> dict | None:
         errors.add(p, "files must be a non-empty array")
         return data
     seen: set[str] = set()
-    for rel in files:
-        if not isinstance(rel, str) or not rel or rel.startswith("/") or ".." in rel:
-            errors.add(p, f"invalid files entry {rel!r}")
+    for entry in files:
+        if not isinstance(entry, str) or not entry or entry.startswith("/") or ".." in entry:
+            errors.add(p, f"invalid files entry {entry!r}")
             continue
-        if rel in seen:
-            errors.add(p, f"duplicate files entry {rel!r}")
-        seen.add(rel)
-        fp = pack_dir / rel
+        if entry in seen:
+            errors.add(p, f"duplicate files entry {entry!r}")
+        seen.add(entry)
+        fp = pack_dir / entry
         if not fp.is_file():
-            errors.add(p, f"listed file missing: {rel}")
+            errors.add(p, f"listed file missing: {entry}")
+    if strict_files:
+        on_disk = {
+            f.relative_to(pack_dir).as_posix()
+            for f in pack_dir.rglob("*")
+            if f.is_file() and not any(part.startswith(".") for part in f.relative_to(pack_dir).parts)
+        } - {"pack.json"}
+        for extra in sorted(on_disk - seen):
+            errors.add(p, f"file on disk not listed in pack.json: {extra}")
     return data
 
 
-SOURCE_KINDS = frozenset(
-    {"vendor_blog", "vendor_docs", "third_party_eval", "academic", "digitized_chart", "local_eval", "other"}
-)
-SOURCE_ID_RE = re.compile(r"^[a-z][a-z0-9-]+$")
-
-
-def load_source_registry(pack_dir: Path, errors: Errors) -> set[str]:
+def load_source_registry(
+    pack_dir: Path, errors: Errors, profile: PackProfile = MODEL_CATALOG
+) -> set[str]:
     """Load SOURCES.json id set. Empty set if absent (with error)."""
     path = pack_dir / "SOURCES.json"
-    p = str(path.relative_to(REPO))
+    p = rel(path)
     if not path.is_file():
         errors.add(p, "SOURCES.json missing — required provenance registry")
         return set()
@@ -175,13 +254,13 @@ def load_source_registry(pack_dir: Path, errors: Errors) -> set[str]:
     require_keys(data, ("id", "schema_version", "retrieved_at", "sources"), p, errors)
     if data.get("schema_version") != 1:
         errors.add(p, "schema_version must be 1")
-    if data.get("id") != "model-catalog-sources":
-        errors.add(p, "id must be 'model-catalog-sources'")
+    if data.get("id") != f"{profile.name}-sources":
+        errors.add(p, f"id must be '{profile.name}-sources'")
     if not DATE_RE.match(str(data.get("retrieved_at", ""))):
         errors.add(p, "retrieved_at must be YYYY-MM-DD")
     sources = data.get("sources")
     ids: set[str] = set()
-    if not isinstance(sources, list) or not sources:
+    if not isinstance(sources, list) or (not sources and not profile.allow_empty):
         errors.add(p, "sources must be a non-empty array")
         return ids
     for i, s in enumerate(sources):
@@ -200,8 +279,8 @@ def load_source_registry(pack_dir: Path, errors: Errors) -> set[str]:
                 errors.add(sp, f"duplicate source id {sid!r}")
             else:
                 ids.add(sid)
-        if s.get("kind") not in SOURCE_KINDS:
-            errors.add(sp, f"kind must be one of {sorted(SOURCE_KINDS)}")
+        if s.get("kind") not in profile.source_kinds:
+            errors.add(sp, f"kind must be one of {sorted(profile.source_kinds)}")
         if not DATE_RE.match(str(s.get("retrieved_at", ""))):
             errors.add(sp, "retrieved_at must be YYYY-MM-DD")
         url = str(s.get("url", ""))
@@ -243,17 +322,105 @@ def check_row_source_id(row: dict, row_path: str, registry: set[str], errors: Er
         errors.add(row_path, f"source_id {sid!r} not in SOURCES.json")
 
 
+def check_caveat_ids(
+    row: dict, row_path: str, caveat_ids: set[str] | None, errors: Errors
+) -> None:
+    """Rows may cite caveats by id; every cited id must exist in caveats.json."""
+    cids = row.get("caveat_ids")
+    if cids is None or caveat_ids is None:
+        return
+    if not isinstance(cids, list) or not cids:
+        errors.add(row_path, "caveat_ids must be a non-empty array when present")
+        return
+    for cid in cids:
+        if not isinstance(cid, str) or not SOURCE_ID_RE.match(cid):
+            errors.add(row_path, f"invalid caveat_ids entry {cid!r}")
+        elif cid not in caveat_ids:
+            errors.add(row_path, f"caveat_ids entry {cid!r} not in caveats.json")
+
+
+def _is_number(v: Any) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def check_decision_price_row(
+    rates: dict,
+    rp: str,
+    registry: set[str] | None,
+    caveat_ids: set[str] | None,
+    errors: Errors,
+) -> None:
+    """Decision pricing row: tokensmash rate fields when per-token, plus free output,
+    per-request fees, and raw vendor units kept next to a sourced USD conversion."""
+    allowed = set(RATE_FIELDS) | {
+        "valid_from", "valid_until", "confidence", "post_valid_until",
+        "billing_basis", "output_free", "per_request_usd", "min_request_usd",
+        "per_decision_usd", "raw_units", "usd_conversion", "source_id", "caveat_ids", "notes",
+    }
+    extra = set(rates) - allowed
+    if extra:
+        errors.add(rp, f"unknown fields: {sorted(extra)}")
+    basis = rates.get("billing_basis")
+    if basis not in DECISION_BILLING_BASES:
+        errors.add(rp, f"billing_basis must be one of {sorted(DECISION_BILLING_BASES)}")
+    if basis == "per_token":
+        for f in RATE_FIELDS:
+            if f not in rates:
+                errors.add(rp, f"per_token row missing {f}")
+    for f in (*RATE_FIELDS, "per_request_usd", "min_request_usd", "per_decision_usd"):
+        if f in rates and (not _is_number(rates[f]) or rates[f] < 0):
+            errors.add(rp, f"{f} must be a number >= 0")
+    if "output_free" in rates and not isinstance(rates["output_free"], bool):
+        errors.add(rp, "output_free must be a boolean")
+    if rates.get("output_free") is True and rates.get("output_per_m", 0) != 0:
+        errors.add(rp, "output_free=true requires output_per_m == 0 (or absent)")
+    if basis == "per_request" and "per_request_usd" not in rates:
+        errors.add(rp, "billing_basis per_request requires per_request_usd")
+    if basis == "per_decision" and "per_decision_usd" not in rates:
+        errors.add(rp, "billing_basis per_decision requires per_decision_usd")
+    raw = rates.get("raw_units")
+    conv = rates.get("usd_conversion")
+    if basis == "raw_units" and raw is None:
+        errors.add(rp, "billing_basis raw_units requires raw_units")
+    if raw is not None:
+        if not isinstance(raw, dict) or not isinstance(raw.get("unit"), str) or not raw.get("unit"):
+            errors.add(rp, "raw_units must be an object with a unit name")
+        else:
+            for f in ("input_per_m", "output_per_m", "per_request"):
+                if f in raw and (not _is_number(raw[f]) or raw[f] < 0):
+                    errors.add(rp, f"raw_units.{f} must be a number >= 0")
+            if set(raw) - {"unit", "input_per_m", "output_per_m", "per_request", "notes"}:
+                errors.add(rp, "raw_units has unknown fields")
+        usd_present = any(f in rates for f in (*RATE_FIELDS, "per_request_usd", "per_decision_usd"))
+        if usd_present and conv is None:
+            errors.add(rp, "USD rates next to raw_units need usd_conversion (with a source)")
+    if conv is not None:
+        if not isinstance(conv, dict) or not _is_number(conv.get("usd_per_unit")) or conv["usd_per_unit"] < 0:
+            errors.add(rp, "usd_conversion.usd_per_unit must be a number >= 0")
+        elif not isinstance(conv.get("source_id"), str):
+            errors.add(rp, "usd_conversion.source_id required")
+        else:
+            check_row_source_id(conv, rp + ".usd_conversion", registry or set(), errors)
+        if raw is None:
+            errors.add(rp, "usd_conversion requires raw_units")
+    if registry is not None:
+        check_row_source_id(rates, rp, registry, errors)
+    check_caveat_ids(rates, rp, caveat_ids, errors)
+
+
 def validate_pricing(
     path: Path,
     errors: Errors,
     registry: set[str] | None = None,
     model_registry: dict[str, str] | None = None,
     model_status: dict[str, str] | None = None,
+    profile: PackProfile = MODEL_CATALOG,
+    caveat_ids: set[str] | None = None,
 ) -> None:
     data = load_json(path, errors)
     if not isinstance(data, dict):
         return
-    p = str(path.relative_to(REPO))
+    p = rel(path)
     require_keys(
         data,
         ("id", "schema_version", "kind", "agent", "retrieved_at", "source_urls", "models", "match"),
@@ -262,8 +429,9 @@ def validate_pricing(
     )
     if data.get("schema_version") != 1:
         errors.add(p, "schema_version must be 1")
-    if data.get("kind") not in PRICING_KINDS:
-        errors.add(p, f"kind must be one of {sorted(PRICING_KINDS)}")
+    kinds = PRICING_KINDS if not profile.decision else frozenset({"api_usd"})
+    if data.get("kind") not in kinds:
+        errors.add(p, f"kind must be one of {sorted(kinds)}")
     if data.get("agent") not in PRICING_AGENTS:
         errors.add(p, f"agent must be one of {sorted(PRICING_AGENTS)}")
     if not DATE_RE.match(str(data.get("retrieved_at", ""))):
@@ -284,17 +452,20 @@ def validate_pricing(
             continue
         if model_registry is not None:
             check_model_id(mid, rp, model_registry, errors)
-        for f in RATE_FIELDS:
-            if f not in rates:
-                errors.add(rp, f"missing {f}")
-            elif not isinstance(rates[f], (int, float)) or isinstance(rates[f], bool):
-                errors.add(rp, f"{f} must be a number")
-            elif rates[f] < 0:
-                errors.add(rp, f"{f} must be >= 0")
-        allowed = set(RATE_FIELDS) | {"valid_from", "valid_until", "confidence", "post_valid_until"}
-        extra = set(rates) - allowed
-        if extra:
-            errors.add(rp, f"unknown fields: {sorted(extra)}")
+        if profile.decision:
+            check_decision_price_row(rates, rp, registry, caveat_ids, errors)
+        else:
+            for f in RATE_FIELDS:
+                if f not in rates:
+                    errors.add(rp, f"missing {f}")
+                elif not isinstance(rates[f], (int, float)) or isinstance(rates[f], bool):
+                    errors.add(rp, f"{f} must be a number")
+                elif rates[f] < 0:
+                    errors.add(rp, f"{f} must be >= 0")
+            allowed = set(RATE_FIELDS) | {"valid_from", "valid_until", "confidence", "post_valid_until"}
+            extra = set(rates) - allowed
+            if extra:
+                errors.add(rp, f"unknown fields: {sorted(extra)}")
         for vk in ("valid_from", "valid_until"):
             if vk in rates and not DATE_RE.match(str(rates[vk])):
                 errors.add(rp, f"{vk} must be YYYY-MM-DD")
@@ -343,11 +514,13 @@ def validate_performance(
     registry: set[str] | None = None,
     model_registry: dict[str, str] | None = None,
     metric_ids: set[str] | None = None,
+    profile: PackProfile = MODEL_CATALOG,
+    caveat_ids: set[str] | None = None,
 ) -> None:
     data = load_json(path, errors)
     if not isinstance(data, dict):
         return
-    p = str(path.relative_to(REPO))
+    p = rel(path)
     require_keys(
         data,
         ("id", "schema_version", "kind", "provider", "retrieved_at", "source_urls"),
@@ -358,8 +531,11 @@ def validate_performance(
         errors.add(p, "schema_version must be 1")
     if data.get("kind") != "performance":
         errors.add(p, "kind must be 'performance'")
-    if data.get("provider") not in PERF_PROVIDERS:
-        errors.add(p, f"provider must be one of {sorted(PERF_PROVIDERS)}")
+    if profile.perf_providers is None:
+        if not isinstance(data.get("provider"), str) or not SLUG_RE.match(data["provider"]):
+            errors.add(p, "provider must be a lowercase slug (publisher of the claims/scores)")
+    elif data.get("provider") not in profile.perf_providers:
+        errors.add(p, f"provider must be one of {sorted(profile.perf_providers)}")
     if not DATE_RE.match(str(data.get("retrieved_at", ""))):
         errors.add(p, "retrieved_at must be YYYY-MM-DD")
     sources = data.get("source_urls")
@@ -402,6 +578,7 @@ def validate_performance(
                                 errors.add(cp, f"unknown axis {a!r}")
                 if registry is not None:
                     check_row_source_id(c, cp, registry, errors)
+                check_caveat_ids(c, cp, caveat_ids, errors)
 
     if scores is not None:
         if not isinstance(scores, list):
@@ -417,8 +594,8 @@ def validate_performance(
                         errors.add(sp, f"missing {k}")
                 if "score" in s and not isinstance(s["score"], (int, float)):
                     errors.add(sp, "score must be a number")
-                if s.get("unit") not in PERF_UNITS and "unit" in s:
-                    errors.add(sp, f"unit must be one of {sorted(PERF_UNITS)}")
+                if s.get("unit") not in profile.perf_units and "unit" in s:
+                    errors.add(sp, f"unit must be one of {sorted(profile.perf_units)}")
                 if model_registry is not None and isinstance(s.get("model"), str):
                     check_model_id(s["model"], sp, model_registry, errors)
                 mid = s.get("metric_id")
@@ -435,10 +612,47 @@ def validate_performance(
                                 errors.add(sp, f"comparisons.{mk} must be number")
                 if registry is not None:
                     check_row_source_id(s, sp, registry, errors)
+                check_caveat_ids(s, sp, caveat_ids, errors)
+                if profile.decision:
+                    check_decision_score(s, sp, metric_ids, errors)
 
     if "missing" in data and not isinstance(data["missing"], list):
         errors.add(p, "missing must be an array")
 
+
+
+def check_decision_score(s: dict, sp: str, metric_ids: set[str] | None, errors: Errors) -> None:
+    """Decision score rows must name a registered metric; latency and cost rows must say
+    who measured, from where, and at which percentile (a bare ms number is not evidence)."""
+    if not isinstance(s.get("metric_id"), str):
+        errors.add(sp, "decision score rows require metric_id (registered in metrics.json)")
+    unit = s.get("unit")
+    meas = s.get("measurement")
+    if meas is not None:
+        if not isinstance(meas, dict):
+            errors.add(sp, "measurement must be an object")
+            meas = None
+        else:
+            known = {"measured_by", "vantage", "hardware", "region", "percentile",
+                     "input_tokens", "questions_per_request", "prefix_cache", "n"}
+            if set(meas) - known:
+                errors.add(sp, f"measurement has unknown fields: {sorted(set(meas) - known)}")
+            if "vantage" in meas and meas["vantage"] not in LATENCY_VANTAGES:
+                errors.add(sp, f"measurement.vantage must be one of {sorted(LATENCY_VANTAGES)}")
+            if "percentile" in meas and meas["percentile"] not in LATENCY_PERCENTILES:
+                errors.add(sp, f"measurement.percentile must be one of {sorted(LATENCY_PERCENTILES)}")
+            if "prefix_cache" in meas and meas["prefix_cache"] is not None and not isinstance(meas["prefix_cache"], bool):
+                errors.add(sp, "measurement.prefix_cache must be boolean or null")
+            for k in ("input_tokens", "questions_per_request", "n"):
+                if k in meas and (not isinstance(meas[k], int) or isinstance(meas[k], bool) or meas[k] < 0):
+                    errors.add(sp, f"measurement.{k} must be a non-negative integer")
+    if unit == "ms":
+        for k in ("measured_by", "vantage", "percentile"):
+            if not isinstance(meas, dict) or k not in meas:
+                errors.add(sp, f"latency row (unit ms) requires measurement.{k}")
+    if unit == "usd_per_decision":
+        if not isinstance(meas, dict) or "measured_by" not in meas:
+            errors.add(sp, "cost row (unit usd_per_decision) requires measurement.measured_by")
 
 
 def validate_capabilities(
@@ -446,11 +660,13 @@ def validate_capabilities(
     errors: Errors,
     registry: set[str] | None = None,
     model_registry: dict[str, str] | None = None,
+    profile: PackProfile = MODEL_CATALOG,
+    caveat_ids: set[str] | None = None,
 ) -> None:
     data = load_json(path, errors)
     if not isinstance(data, dict):
         return
-    p = str(path.relative_to(REPO))
+    p = rel(path)
     require_keys(
         data,
         ("id", "schema_version", "kind", "retrieved_at", "source_urls", "surfaces"),
@@ -474,6 +690,9 @@ def validate_capabilities(
         if not isinstance(s, dict):
             errors.add(sp, "must be an object")
             continue
+        if profile.decision:
+            check_decision_surface(s, sp, registry, model_registry, caveat_ids, errors)
+            continue
         for k in ("provider", "model", "surface", "valid_efforts", "unsupported_behavior"):
             if k not in s:
                 errors.add(sp, f"missing {k}")
@@ -485,14 +704,65 @@ def validate_capabilities(
 
 
 
+def check_decision_surface(
+    s: dict,
+    sp: str,
+    registry: set[str] | None,
+    model_registry: dict[str, str] | None,
+    caveat_ids: set[str] | None,
+    errors: Errors,
+) -> None:
+    """Decision-interface surface: what a model exposes on one serving surface."""
+    for k in ("model", "surface"):
+        if k not in s:
+            errors.add(sp, f"missing {k}")
+    if s.get("surface") not in DECISION_SURFACES:
+        errors.add(sp, f"surface must be one of {sorted(DECISION_SURFACES)}")
+    if model_registry is not None and isinstance(s.get("model"), str):
+        check_model_id(s["model"], sp, model_registry, errors)
+    qt = s.get("question_types")
+    if qt is not None and (not isinstance(qt, list) or not all(isinstance(x, str) and SLUG_RE.match(x) for x in qt)):
+        errors.add(sp, "question_types must be an array of lowercase slugs (choice, score, noul, binary, ...)")
+    for k in ("abstain_supported", "returns_probabilities", "calibration_claimed", "rationale_supported",
+              "output_tokens_billed"):
+        if k in s and s[k] is not None and not isinstance(s[k], bool):
+            errors.add(sp, f"{k} must be boolean or null (null = unknown)")
+    if "max_options" in s and s["max_options"] is not None and (
+        not isinstance(s["max_options"], int) or isinstance(s["max_options"], bool) or s["max_options"] < 1
+    ):
+        errors.add(sp, "max_options must be a positive integer or null")
+    ctx = s.get("context")
+    if ctx is not None:
+        if not isinstance(ctx, dict) or set(ctx) - {"state_tokens", "total_tokens"}:
+            errors.add(sp, "context must be an object with state_tokens and/or total_tokens")
+        else:
+            for k, v in ctx.items():
+                if v is not None and (not isinstance(v, int) or isinstance(v, bool) or v < 1):
+                    errors.add(sp, f"context.{k} must be a positive integer or null")
+    qpr = s.get("questions_per_request")
+    if qpr is not None:
+        if not isinstance(qpr, dict) or set(qpr) - {"max", "fan_out_supported", "packing_supported"}:
+            errors.add(sp, "questions_per_request must be an object (max, fan_out_supported, packing_supported)")
+        else:
+            m = qpr.get("max")
+            if m is not None and (not isinstance(m, int) or isinstance(m, bool) or m < 1):
+                errors.add(sp, "questions_per_request.max must be a positive integer or null")
+            for k in ("fan_out_supported", "packing_supported"):
+                if qpr.get(k) is not None and not isinstance(qpr.get(k), bool):
+                    errors.add(sp, f"questions_per_request.{k} must be boolean or null")
+    if registry is not None:
+        check_source_ids(s, sp, registry, errors, require_doc=False)
+    check_caveat_ids(s, sp, caveat_ids, errors)
+
+
 def load_model_registry(
-    pack_dir: Path, errors: Errors
+    pack_dir: Path, errors: Errors, profile: PackProfile = MODEL_CATALOG
 ) -> tuple[dict[str, str], dict[str, str]]:
     """Return (resolve, status) maps. resolve: id/alias -> canonical id.
     status: canonical id -> status (e.g. "ga", "historical"). Empty if models.json missing.
     """
     path = pack_dir / "models.json"
-    p = str(path.relative_to(REPO))
+    p = rel(path)
     if not path.is_file():
         errors.add(p, "models.json missing — L0 model registry required")
         return {}, {}
@@ -502,14 +772,14 @@ def load_model_registry(
     require_keys(data, ("id", "schema_version", "generated_at", "models"), p, errors)
     if data.get("schema_version") != 1:
         errors.add(p, "schema_version must be 1")
-    if data.get("id") != "model-catalog-models":
-        errors.add(p, "id must be 'model-catalog-models'")
+    if data.get("id") != f"{profile.name}-models":
+        errors.add(p, f"id must be '{profile.name}-models'")
     if not DATE_RE.match(str(data.get("generated_at", ""))):
         errors.add(p, "generated_at must be YYYY-MM-DD")
     models = data.get("models")
     resolve: dict[str, str] = {}
     status: dict[str, str] = {}
-    if not isinstance(models, list) or not models:
+    if not isinstance(models, list) or (not models and not profile.allow_empty):
         errors.add(p, "models must be a non-empty array")
         return resolve, status
     seen_ids: set[str] = set()
@@ -573,16 +843,150 @@ def check_model_id(
         errors.add(path, f"{field} {mid!r} not in models.json (id or alias)")
 
 
-def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
-    validate_pack_envelope(pack_dir, errors)
-    source_registry = load_source_registry(pack_dir, errors)
-    model_registry, model_status = load_model_registry(pack_dir, errors)
+def load_caveats(
+    pack_dir: Path,
+    errors: Errors,
+    profile: PackProfile,
+    source_registry: set[str],
+    model_registry: dict[str, str],
+    metric_ids: set[str],
+) -> set[str]:
+    """Validate caveats.json (decision packs) and return the set of caveat ids."""
+    path = pack_dir / "caveats.json"
+    p = rel(path)
+    ids: set[str] = set()
+    if not path.is_file():
+        errors.add(p, "caveats.json missing — nuance registry required")
+        return ids
+    data = load_json(path, errors)
+    if not isinstance(data, dict):
+        return ids
+    require_keys(data, ("id", "schema_version", "generated_at", "caveats"), p, errors)
+    if data.get("schema_version") != 1:
+        errors.add(p, "schema_version must be 1")
+    if data.get("id") != f"{profile.name}-caveats":
+        errors.add(p, f"id must be '{profile.name}-caveats'")
+    if not DATE_RE.match(str(data.get("generated_at", ""))):
+        errors.add(p, "generated_at must be YYYY-MM-DD")
+    caveats = data.get("caveats")
+    if not isinstance(caveats, list):
+        errors.add(p, "caveats must be an array")
+        return ids
+    for i, c in enumerate(caveats):
+        cp = f"{p}#caveats[{i}]"
+        if not isinstance(c, dict):
+            errors.add(cp, "must be an object")
+            continue
+        require_keys(c, ("id", "statement", "affects", "strength", "implication", "evidence"), cp, errors)
+        cid = c.get("id")
+        if not isinstance(cid, str) or not SOURCE_ID_RE.match(cid):
+            errors.add(cp, f"invalid caveat id {cid!r}")
+        elif cid in ids:
+            errors.add(cp, f"duplicate caveat id {cid!r}")
+        else:
+            ids.add(cid)
+        for k in ("statement", "implication"):
+            if k in c and (not isinstance(c[k], str) or not c[k].strip()):
+                errors.add(cp, f"{k} must be a non-empty string")
+        if c.get("strength") not in CAVEAT_STRENGTHS:
+            errors.add(cp, f"strength must be one of {sorted(CAVEAT_STRENGTHS)}")
+        affects = c.get("affects")
+        if not isinstance(affects, dict) or set(affects) - {"models", "metrics", "sources"}:
+            errors.add(cp, "affects must be an object with models[], metrics[], sources[]")
+        else:
+            if not any(isinstance(affects.get(k), list) and affects[k] for k in ("models", "metrics", "sources")):
+                errors.add(cp, "affects must name at least one model, metric, or source")
+            for mid in affects.get("models") or []:
+                if not isinstance(mid, str) or resolve_model_id(mid, model_registry) is None:
+                    errors.add(cp, f"affects.models entry {mid!r} not in models.json or baseline (id or alias)")
+            for mid in affects.get("metrics") or []:
+                if mid not in metric_ids:
+                    errors.add(cp, f"affects.metrics entry {mid!r} not in metrics.json")
+            for sid in affects.get("sources") or []:
+                if sid not in source_registry:
+                    errors.add(cp, f"affects.sources entry {sid!r} not in SOURCES.json")
+        ev = c.get("evidence")
+        if not isinstance(ev, list) or not ev:
+            errors.add(cp, "evidence must be a non-empty array of {source_id, quote}")
+        else:
+            for j, e in enumerate(ev):
+                ep = f"{cp}.evidence[{j}]"
+                if not isinstance(e, dict) or set(e) - {"source_id", "quote", "location"}:
+                    errors.add(ep, "must be an object with source_id, quote, optional location")
+                    continue
+                if not isinstance(e.get("quote"), str) or not e["quote"].strip():
+                    errors.add(ep, "quote required (verbatim)")
+                if e.get("source_id") not in source_registry:
+                    errors.add(ep, f"source_id {e.get('source_id')!r} not in SOURCES.json")
+    return ids
+
+
+def validate_decision_models(
+    pack_dir: Path,
+    errors: Errors,
+    baseline_resolve: dict[str, str],
+    caveat_ids: set[str],
+) -> None:
+    """Decision-model fields on local models.json entries, plus the no-duplicate-baseline rule."""
+    data = load_json(pack_dir / "models.json", Errors())
+    if not isinstance(data, dict):
+        return
+    for i, m in enumerate(data.get("models") or []):
+        if not isinstance(m, dict):
+            continue
+        mp = rel(pack_dir / "models.json") + f"#models[{i}]"
+        for name in [m.get("id"), *(m.get("aliases") or [])]:
+            if isinstance(name, str) and name in baseline_resolve:
+                errors.add(mp, f"{name!r} already exists in the baseline model-catalog; reference it, do not duplicate")
+        if m.get("status") not in DECISION_MODEL_STATUSES:
+            errors.add(mp, f"status must be one of {sorted(DECISION_MODEL_STATUSES)}")
+        if m.get("weights") not in DECISION_WEIGHTS:
+            errors.add(mp, "weights must be 'open' or 'closed'")
+        for k in ("license", "base_model", "hf_repo"):
+            if k in m and m[k] is not None and (not isinstance(m[k], str) or not m[k].strip()):
+                errors.add(mp, f"{k} must be a non-empty string or null")
+        for k in ("params_total", "params_active"):
+            if k in m and m[k] is not None and (not _is_number(m[k]) or m[k] <= 0):
+                errors.add(mp, f"{k} must be a positive number or null")
+        pt, pa = m.get("params_total"), m.get("params_active")
+        if _is_number(pt) and _is_number(pa) and pa > pt:
+            errors.add(mp, "params_active must not exceed params_total")
+        surf = m.get("surfaces")
+        if surf is not None:
+            if not isinstance(surf, list) or any(x not in DECISION_SURFACES for x in surf):
+                errors.add(mp, f"surfaces must be an array drawn from {sorted(DECISION_SURFACES)}")
+        check_caveat_ids(m, mp, caveat_ids, errors)
+
+
+def validate_catalog_pack(
+    pack_dir: Path,
+    errors: Errors,
+    profile: PackProfile = MODEL_CATALOG,
+    baseline_dir: Path | None = None,
+) -> None:
+    """Shared validation for model-catalog and decision-model-catalog.
+
+    baseline_dir overrides where the fallback models.json is read from (tests).
+    """
+    validate_pack_envelope(pack_dir, errors, strict_files=profile.strict_files)
+    source_registry = load_source_registry(pack_dir, errors, profile)
+    model_registry, model_status = load_model_registry(pack_dir, errors, profile)
+    baseline_resolve: dict[str, str] = {}
+    if profile.baseline:
+        bdir = baseline_dir or (DATA / profile.baseline)
+        if (bdir / "models.json").is_file():
+            baseline_resolve, baseline_status = load_model_registry(bdir, Errors())
+            # Local entries win; baseline fills in general-LLM ids and aliases.
+            model_registry = {**baseline_resolve, **model_registry}
+            model_status = {**baseline_status, **model_status}
+        else:
+            errors.add(rel(pack_dir), f"baseline {profile.baseline}/models.json not found for model fallback")
     model_data = load_json(pack_dir / "models.json", Errors())
     if isinstance(model_data, dict):
         for i, model in enumerate(model_data.get("models") or []):
             if not isinstance(model, dict) or "released" not in model:
                 continue
-            mp = str((pack_dir / "models.json").relative_to(REPO)) + f"#models[{i}]"
+            mp = rel((pack_dir / "models.json")) + f"#models[{i}]"
             if not DATE_RE.match(str(model.get("released", ""))):
                 errors.add(mp, "released must be YYYY-MM-DD")
             sid = model.get("release_source_id")
@@ -596,23 +1000,27 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
             for m in mdata.get("metrics") or []:
                 if isinstance(m, dict) and m.get("id"):
                     metric_ids.add(str(m["id"]))
+    caveat_ids: set[str] | None = None
+    if profile.decision:
+        caveat_ids = load_caveats(pack_dir, errors, profile, source_registry, model_registry, metric_ids)
+        validate_decision_models(pack_dir, errors, baseline_resolve, caveat_ids)
     pricing_dir = pack_dir / "pricing"
     perf_dir = pack_dir / "performance"
     if pricing_dir.is_dir():
         paths = sorted(pricing_dir.glob("*.json"))
-        if not paths:
-            errors.add(str(pack_dir.relative_to(REPO)), "pricing/ has no JSON tables")
+        if not paths and not profile.allow_empty:
+            errors.add(rel(pack_dir), "pricing/ has no JSON tables")
         for path in paths:
-            validate_pricing(path, errors, source_registry, model_registry, model_status)
-    else:
-        errors.add(str(pack_dir.relative_to(REPO)), "missing pricing/")
+            validate_pricing(path, errors, source_registry, model_registry, model_status, profile, caveat_ids)
+    elif not profile.allow_empty:
+        errors.add(rel(pack_dir), "missing pricing/")
     if perf_dir.is_dir():
         for path in sorted(perf_dir.glob("*.json")):
-            validate_performance(path, errors, source_registry, model_registry, metric_ids)
+            validate_performance(path, errors, source_registry, model_registry, metric_ids, profile, caveat_ids)
     cap_dir = pack_dir / "capabilities"
     if cap_dir.is_dir():
         for path in sorted(cap_dir.glob("*.json")):
-            validate_capabilities(path, errors, source_registry, model_registry)
+            validate_capabilities(path, errors, source_registry, model_registry, profile, caveat_ids)
 
 
     # Comparability: metric_ids that mix source_type or harness must set comparable=false on rows
@@ -630,7 +1038,7 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
                 continue
             by_mid.setdefault(mid, []).append(
                 (
-                    str(path.relative_to(REPO)) + f"#scores[{i}]",
+                    rel(path) + f"#scores[{i}]",
                     str(s.get("source_type") or "unknown"),
                     s.get("harness"),
                     s.get("comparable"),
@@ -662,7 +1070,7 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
             snapshot_id = row.get("snapshot_id")
             group = row.get("comparability_group")
             source_type = row.get("source_type")
-            loc = str(path.relative_to(REPO)) + f"#scores[{i}]"
+            loc = rel(path) + f"#scores[{i}]"
             if source_type in {"third_party_board", "vendor_table"}:
                 if not isinstance(snapshot_id, str) or not snapshot_id.strip():
                     errors.add(loc, f"{source_type} score row requires snapshot_id")
@@ -683,26 +1091,43 @@ def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
                     f"comparability_groups {sorted(groups)!r} (row has {group!r})",
                 )
 
-    for name in (
-        "pricing-v1.schema.json",
-        "performance-v1.schema.json",
-        "sources-v1.schema.json",
-    ):
+    for name in profile.required_schemas:
         if not (pack_dir / "schemas" / name).is_file():
-            errors.add(str(pack_dir.relative_to(REPO)), f"missing schemas/{name}")
+            errors.add(rel(pack_dir), f"missing schemas/{name}")
     if not (pack_dir / "SCHEMA.md").is_file() and not (pack_dir / "schemas" / "README.md").is_file():
-        errors.add(str(pack_dir.relative_to(REPO)), "missing SCHEMA.md or schemas/README.md")
+        errors.add(rel(pack_dir), "missing SCHEMA.md or schemas/README.md")
     # metrics.json optional but if present must be well-formed
     mpath = pack_dir / "metrics.json"
     if mpath.is_file():
         mdata = load_json(mpath, errors)
-        mp = str(mpath.relative_to(REPO))
+        mp = rel(mpath)
         if isinstance(mdata, dict):
             require_keys(mdata, ("id", "schema_version", "generated_at", "metrics"), mp, errors)
-            if mdata.get("id") != "model-catalog-metrics":
-                errors.add(mp, "id must be 'model-catalog-metrics'")
-            if not isinstance(mdata.get("metrics"), list) or not mdata["metrics"]:
+            if mdata.get("id") != f"{profile.name}-metrics":
+                errors.add(mp, f"id must be '{profile.name}-metrics'")
+            if not isinstance(mdata.get("metrics"), list) or (not mdata["metrics"] and not profile.allow_empty):
                 errors.add(mp, "metrics must be non-empty array")
+            elif profile.decision:
+                seen_m: set[str] = set()
+                for k, m in enumerate(mdata["metrics"]):
+                    if not isinstance(m, dict) or not isinstance(m.get("id"), str):
+                        errors.add(f"{mp}#metrics[{k}]", "id required")
+                    elif m["id"] in seen_m:
+                        errors.add(f"{mp}#metrics[{k}]", f"duplicate metric id {m['id']!r}")
+                    else:
+                        seen_m.add(m["id"])
+    elif profile.decision:
+        errors.add(rel(pack_dir), "metrics.json missing")
+
+
+def validate_model_catalog(pack_dir: Path, errors: Errors) -> None:
+    validate_catalog_pack(pack_dir, errors, MODEL_CATALOG)
+
+
+def validate_decision_model_catalog(
+    pack_dir: Path, errors: Errors, baseline_dir: Path | None = None
+) -> None:
+    validate_catalog_pack(pack_dir, errors, DECISION_CATALOG, baseline_dir)
 
 
 
@@ -710,7 +1135,7 @@ def validate_policy_pack(pack_dir: Path, errors: Errors) -> None:
     """Validate model-choice-policy: envelope, ops integrity, catalog pin, evidence refs."""
     envelope = validate_pack_envelope(pack_dir, errors)
     path = pack_dir / "operating-points.json"
-    p = str(path.relative_to(REPO))
+    p = rel(path)
     data = load_json(path, errors)
     if not isinstance(data, dict):
         return
@@ -739,7 +1164,7 @@ def validate_policy_pack(pack_dir: Path, errors: Errors) -> None:
             rel_cat = related.get("catalog")
             if rel_cat and rel_cat != catalog_ref:
                 errors.add(
-                    str((pack_dir / "pack.json").relative_to(REPO)),
+                    rel((pack_dir / "pack.json")),
                     f"related.catalog {rel_cat!r} != operating-points catalog_ref {catalog_ref!r}",
                 )
         # pack tag vs policy_version
@@ -747,7 +1172,7 @@ def validate_policy_pack(pack_dir: Path, errors: Errors) -> None:
         pv = str(data.get("policy_version", ""))
         if tag and pv and not tag.endswith(f"-v{pv}"):
             errors.add(
-                str((pack_dir / "pack.json").relative_to(REPO)),
+                rel((pack_dir / "pack.json")),
                 f"tag {tag!r} should end with -v{pv} (policy_version)",
             )
 
@@ -901,14 +1326,25 @@ def try_jsonschema(errors: Errors, pack: str | None) -> None:
         validator = Draft202012Validator(schema)
         for err in sorted(validator.iter_errors(inst), key=lambda e: list(e.path)):
             loc = "/".join(str(x) for x in err.path) or "(root)"
-            errors.add(f"{instance_path.relative_to(REPO)}[{loc}]", err.message)
+            errors.add(f"{rel(instance_path)}[{loc}]", err.message)
 
     check(DATA / "index.json", DATA / "schemas" / "index-v1.schema.json")
     packs = [pack] if pack else [d.name for d in DATA.iterdir() if (d / "pack.json").is_file()]
     for name in packs:
         pdir = DATA / name
         check(pdir / "pack.json", DATA / "schemas" / "pack-v1.schema.json")
-        if name == "model-catalog":
+        if name == "decision-model-catalog":
+            for fname, schema in (
+                ("SOURCES.json", "sources-v1"), ("models.json", "models-v1"),
+                ("metrics.json", "metrics-v1"), ("caveats.json", "caveats-v1"),
+            ):
+                if (pdir / fname).is_file():
+                    check(pdir / fname, pdir / "schemas" / f"{schema}.schema.json")
+            for sub, schema in (("pricing", "pricing-v1"), ("performance", "performance-v1"),
+                                ("capabilities", "capabilities-v1")):
+                for path in sorted((pdir / sub).glob("*.json")):
+                    check(path, pdir / "schemas" / f"{schema}.schema.json")
+        elif name == "model-catalog":
             src = pdir / "SOURCES.json"
             if src.is_file():
                 check(src, pdir / "schemas" / "sources-v1.schema.json")
@@ -934,8 +1370,8 @@ def main() -> int:
             pdir = DATA / args.pack
             if not pdir.is_dir():
                 errors.add(args.pack, "pack directory not found")
-            elif args.pack == "model-catalog":
-                validate_model_catalog(pdir, errors)
+            elif args.pack in PROFILES:
+                validate_catalog_pack(pdir, errors, PROFILES[args.pack])
             elif args.pack == "model-choice-policy":
                 validate_policy_pack(pdir, errors)
             else:
@@ -943,8 +1379,8 @@ def main() -> int:
         else:
             for pdir in sorted(DATA.iterdir()):
                 if (pdir / "pack.json").is_file():
-                    if pdir.name == "model-catalog":
-                        validate_model_catalog(pdir, errors)
+                    if pdir.name in PROFILES:
+                        validate_catalog_pack(pdir, errors, PROFILES[pdir.name])
                     elif pdir.name == "model-choice-policy":
                         validate_policy_pack(pdir, errors)
                     else:

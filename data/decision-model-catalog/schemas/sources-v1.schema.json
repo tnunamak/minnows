@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tnunamak/minnows/data/decision-model-catalog/schemas/sources-v1.schema.json",
+  "title": "decision-model-catalog provenance registry v1",
+  "description": "Canonical source registry. Payload source_ids[], row source_id and caveat evidence source_id must resolve here. May be empty in a seed pack.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "schema_version",
+    "retrieved_at",
+    "sources"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "const": "decision-model-catalog-sources"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "retrieved_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "description": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "url",
+          "title",
+          "publisher",
+          "retrieved_at",
+          "kind"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]+$",
+            "minLength": 3
+          },
+          "url": {
+            "type": "string",
+            "minLength": 8
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "publisher": {
+            "type": "string",
+            "minLength": 1
+          },
+          "published": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "retrieved_at": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "vendor_blog",
+              "vendor_docs",
+              "vendor_changelog",
+              "model_card",
+              "third_party_eval",
+              "third_party_blog",
+              "community_post",
+              "academic",
+              "digitized_chart",
+              "local_eval",
+              "other"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

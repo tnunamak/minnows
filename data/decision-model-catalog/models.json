@@ -1,0 +1,12 @@
+{
+  "$schema": "schemas/models-v1.schema.json",
+  "id": "decision-model-catalog-models",
+  "schema_version": 1,
+  "generated_at": "2026-10-06",
+  "notes": [
+    "L0 registry of DECISION models only. Join key for pricing, performance, capabilities and caveats.",
+    "General LLM baselines are NOT listed here: model strings resolve against this file first, then data/model-catalog/models.json (ids + aliases). Duplicating a baseline id or alias here is a validation error.",
+    "Harness-suffixed score ids (model@harness) resolve to the base id."
+  ],
+  "models": []
+}

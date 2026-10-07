@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tnunamak/minnows/data/decision-model-catalog/schemas/metrics-v1.schema.json",
+  "title": "decision-model-catalog metric registry v1",
+  "description": "Distinct metric ids are never comparable. Official boards, vendor tables and our own re-runs must not share an id. May be empty in a seed pack.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "schema_version",
+    "generated_at",
+    "metrics"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "const": "decision-model-catalog-metrics"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "direction",
+          "unit_default"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]+$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "higher_better",
+              "lower_better",
+              "context_dependent"
+            ]
+          },
+          "unit_default": {
+            "type": "string",
+            "enum": [
+              "accuracy",
+              "pass_rate",
+              "error_rate",
+              "elo",
+              "ms",
+              "ece",
+              "brier",
+              "usd_per_decision",
+              "ratio",
+              "other"
+            ]
+          },
+          "task_family": {
+            "type": "string",
+            "description": "e.g. classification, oos_intent, tool_selection, when_to_call, grading, calibration, latency, cost"
+          },
+          "publisher": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Who runs/publishes this metric"
+          },
+          "suite": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Benchmark/suite name"
+          },
+          "suite_version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "harness": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "steward": {
+            "type": "string",
+            "description": "vendor | third_party_board | local_eval | community | ..."
+          },
+          "comparability_group": {
+            "type": "string",
+            "description": "Default group key; rows may compare only when this matches and comparable is not false"
+          },
+          "comparable": {
+            "type": "boolean"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

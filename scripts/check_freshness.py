@@ -7,6 +7,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 CATALOG = REPO / "data" / "model-catalog"
+DECISION = REPO / "data" / "decision-model-catalog"
 LOAD_BEARING = [
     "pricing/anthropic-api-2026-07.json",
     "pricing/openai-api-2026-07.json",
@@ -20,6 +21,23 @@ LOAD_BEARING = [
     "performance/arcprize-gpt-5-6-2026-07.json",
 ]
 
+def decision_files() -> list[tuple[Path, str]]:
+    """decision-model-catalog: every pricing table, plus every performance document that
+    carries at least one live-board row (third_party_board). Launch tables are n/a."""
+    out: list[tuple[Path, str]] = []
+    for path in sorted((DECISION / "pricing").glob("*.json")):
+        out.append((path, f"decision-model-catalog/pricing/{path.name}"))
+    for path in sorted((DECISION / "performance").glob("*.json")):
+        try:
+            doc = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError):
+            doc = None  # unreadable: let the checker below report it
+        rows = (doc or {}).get("scores") or []
+        if doc is None or any(isinstance(r, dict) and r.get("source_type") == "third_party_board" for r in rows):
+            out.append((path, f"decision-model-catalog/performance/{path.name}"))
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--max-age-days", type=int, default=45)
@@ -27,8 +45,8 @@ def main() -> int:
     args = ap.parse_args()
     today = date.today()
     stale = []
-    for rel in LOAD_BEARING:
-        path = CATALOG / rel
+    targets = [(CATALOG / rel, rel) for rel in LOAD_BEARING] + decision_files()
+    for path, rel in targets:
         if not path.is_file():
             print(f"missing {rel}", file=sys.stderr)
             stale.append(rel)

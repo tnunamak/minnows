@@ -1,0 +1,490 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tnunamak/minnows/data/decision-model-catalog/schemas/performance-v1.schema.json",
+  "title": "decision-model-catalog performance document v1",
+  "description": "Sparse, source-backed claims and scores for decision models. Scores are comparable only within the same metric_id + harness + publisher (comparability_group). Latency (ms) rows MUST carry measurement.{measured_by,vantage,percentile}; cost rows (usd_per_decision) MUST carry measurement.measured_by. Missing data goes in missing[], never estimated.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "schema_version",
+    "kind",
+    "provider",
+    "retrieved_at",
+    "source_urls"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]+$"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kind": {
+      "type": "string",
+      "const": "performance",
+      "description": "Document kind (unified). Older free-form kinds are invalid under v1."
+    },
+    "provider": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Publisher of the claims/scores (vendor, board, or 'local')"
+    },
+    "retrieved_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "source_urls": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 8
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "models",
+          "statement"
+        ],
+        "properties": {
+          "models": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "task_families": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "axes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "quality",
+                "cost",
+                "effort",
+                "speed",
+                "latency",
+                "tokens"
+              ]
+            }
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "implication": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]+$",
+            "description": "Primary SOURCES.json id for this claim"
+          },
+          "caveat_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]+$"
+            }
+          }
+        }
+      }
+    },
+    "scores": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "model",
+          "metric",
+          "metric_id",
+          "score",
+          "unit"
+        ],
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metric": {
+            "type": "string",
+            "minLength": 1
+          },
+          "score": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "accuracy",
+              "pass_rate",
+              "error_rate",
+              "elo",
+              "other",
+              "ms",
+              "ece",
+              "brier",
+              "usd_per_decision",
+              "ratio"
+            ]
+          },
+          "effort": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Effort/reasoning level if applicable (e.g. high, xhigh)"
+          },
+          "comparisons": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Other model id → score on the same metric (vendor table)"
+          },
+          "caveat": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]+$",
+            "description": "Primary SOURCES.json id for this score row"
+          },
+          "harness": {
+            "type": "string",
+            "description": "Eval harness (e.g. claude-code, terminus-2, codex-cli, anthropic-internal)"
+          },
+          "mode": {
+            "type": "string",
+            "description": "standard | fast | ultra | multi_agent | …"
+          },
+          "task_family": {
+            "type": "string",
+            "description": "Coarse task family for joining to policy ops"
+          },
+          "source_type": {
+            "type": "string",
+            "enum": [
+              "vendor_table",
+              "vendor_claim",
+              "third_party_board",
+              "third_party_report",
+              "community_report",
+              "digitized_chart",
+              "local_eval",
+              "other"
+            ]
+          },
+          "evidence_grade": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "description": "A local/reproduced · B independent third-party · C vendor-reported · D digitized/estimated"
+          },
+          "observed_at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "effort_verbatim": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Source's original effort label if normalized"
+          },
+          "cost": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "value",
+              "unit"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string",
+                "enum": [
+                  "usd_per_task",
+                  "usd_per_1m_tokens",
+                  "usd_per_decision",
+                  "credits_per_task",
+                  "other"
+                ]
+              },
+              "basis": {
+                "type": "string",
+                "enum": [
+                  "api_usd",
+                  "codex_credits",
+                  "other"
+                ]
+              }
+            }
+          },
+          "confidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              }
+            }
+          },
+          "metric_id": {
+            "type": "string",
+            "description": "Stable id in metrics.json when present"
+          },
+          "comparability_group": {
+            "type": "string",
+            "description": "Rows may only be compared when this key matches AND comparable is not false"
+          },
+          "snapshot_id": {
+            "type": "string",
+            "description": "Stable identity of the source board snapshot, independent of file or ingestion lane."
+          },
+          "n": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of independent benchmark tasks."
+          },
+          "ci_lo": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Lower 95% success-rate bound."
+          },
+          "ci_hi": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Upper 95% success-rate bound."
+          },
+          "pass_at_4": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Pass@4 score as stated by the source."
+          },
+          "comparable": {
+            "type": "boolean",
+            "description": "If false, never cross-rank with other rows even with same metric_id"
+          },
+          "pass_at_k": {
+            "type": "object",
+            "required": [
+              "k",
+              "value"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "k": {
+                "type": "integer",
+                "minimum": 2
+              },
+              "value": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            }
+          },
+          "effort_convention": {
+            "const": "vendor_default",
+            "description": "The board explicitly states it ran the API vendor's default effort. The recommender maps this to the catalog's API default with a caveat."
+          },
+          "caveat_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]+$"
+            },
+            "description": "Ids in caveats.json that qualify this row"
+          },
+          "measurement": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Context for latency and cost rows. A bare ms or USD number without it is not evidence.",
+            "properties": {
+              "measured_by": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Who ran the measurement (vendor, named third party, 'local')"
+              },
+              "vantage": {
+                "type": "string",
+                "enum": [
+                  "hosted_rtt",
+                  "on_platform",
+                  "on_card",
+                  "local_cpu",
+                  "local_gpu",
+                  "vendor_claim"
+                ]
+              },
+              "hardware": {
+                "type": "string"
+              },
+              "region": {
+                "type": "string"
+              },
+              "percentile": {
+                "type": "string",
+                "enum": [
+                  "p50",
+                  "p95",
+                  "p99",
+                  "mean"
+                ]
+              },
+              "input_tokens": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "questions_per_request": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "prefix_cache": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "n": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "unit": {
+                  "const": "ms"
+                }
+              },
+              "required": [
+                "unit"
+              ]
+            },
+            "then": {
+              "required": [
+                "measurement"
+              ],
+              "properties": {
+                "measurement": {
+                  "required": [
+                    "measured_by",
+                    "vantage",
+                    "percentile"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "unit": {
+                  "const": "usd_per_decision"
+                }
+              },
+              "required": [
+                "unit"
+              ]
+            },
+            "then": {
+              "required": [
+                "measurement"
+              ],
+              "properties": {
+                "measurement": {
+                  "required": [
+                    "measured_by"
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "missing": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Explicit gaps (e.g. non-digitized chart series)"
+    },
+    "source_ids": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]+$"
+      },
+      "description": "Ids from SOURCES.json that back this document"
+    },
+    "run": {
+      "type": "object",
+      "description": "Optional local-eval run receipt (not a quality fact)",
+      "additionalProperties": true
+    }
+  },
+  "anyOf": [
+    {
+      "required": [
+        "claims"
+      ],
+      "properties": {
+        "claims": {
+          "minItems": 1
+        }
+      }
+    },
+    {
+      "required": [
+        "scores"
+      ],
+      "properties": {
+        "scores": {
+          "minItems": 1
+        }
+      }
+    }
+  ]
+}

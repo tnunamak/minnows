@@ -1,0 +1,40 @@
+{
+  "$schema": "schemas/pack-v1.schema.json",
+  "name": "decision-model-catalog",
+  "schema_version": 1,
+  "tag": "data-decision-model-catalog-v0.1.0",
+  "generated_at": "2026-10-07",
+  "description": "Decision-model catalog (seed). Source-backed data on typed decision models for an agent's hot path: models, metrics, caveats, pricing, performance, capabilities. v0.1.0: structure, schemas and validation only; data files empty.",
+  "files": [
+    "CHANGELOG.md",
+    "FRESHNESS.md",
+    "README.md",
+    "SCHEMA.md",
+    "SOURCES.json",
+    "caveats.json",
+    "metrics.json",
+    "models.json",
+    "schemas/README.md",
+    "schemas/capabilities-v1.schema.json",
+    "schemas/caveats-v1.schema.json",
+    "schemas/metrics-v1.schema.json",
+    "schemas/models-v1.schema.json",
+    "schemas/pack-v1.schema.json",
+    "schemas/performance-v1.schema.json",
+    "schemas/pricing-v1.schema.json",
+    "schemas/sources-v1.schema.json"
+  ],
+  "schemas": {
+    "pricing": "schemas/pricing-v1.schema.json",
+    "performance": "schemas/performance-v1.schema.json",
+    "capabilities": "schemas/capabilities-v1.schema.json",
+    "models": "schemas/models-v1.schema.json",
+    "metrics": "schemas/metrics-v1.schema.json",
+    "caveats": "schemas/caveats-v1.schema.json",
+    "sources": "schemas/sources-v1.schema.json",
+    "pack": "schemas/pack-v1.schema.json"
+  },
+  "related": {
+    "baseline": "https://github.com/tnunamak/minnows/tree/main/data/model-catalog"
+  }
+}

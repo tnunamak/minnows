@@ -1,0 +1,8 @@
+{
+  "$schema": "schemas/sources-v1.schema.json",
+  "schema_version": 1,
+  "id": "decision-model-catalog-sources",
+  "retrieved_at": "2026-10-06",
+  "description": "Canonical provenance registry. Every pricing/performance/capabilities payload references these ids via source_ids[]; caveat evidence and usd_conversion cite them too. Seed: empty until the populate step.",
+  "sources": []
+}

@@ -12,6 +12,7 @@ Minnows ships two product kinds:
 | Pack | What it is | Latest tag | Browse |
 |------|------------|------------|--------|
 | **model-catalog** | Model pricing + source-backed quality/effort scores + effort/mode **capabilities** + L0 `models.json` | `data-model-catalog-v0.5.3` | [README](model-catalog/README.md) · [SOURCES](model-catalog/SOURCES.json) · [SCHEMA](model-catalog/SCHEMA.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) |
+| **decision-model-catalog** | Decision models (typed decisions on an agent's hot path): `models.json`, metrics, **caveats**, pricing (incl. raw units), performance with latency/cost `measurement` context, decision-interface capabilities. Baselines resolve via model-catalog | `data-decision-model-catalog-v0.1.0` | [README](decision-model-catalog/README.md) · [SOURCES](decision-model-catalog/SOURCES.json) · [SCHEMA](decision-model-catalog/SCHEMA.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-decision-model-catalog&expanded=true) |
 | **local-evals** | Fixed-harness local P(success) for policy ops | `data-local-evals-v0.1.1` | [README](local-evals/README.md) |
 | **model-choice-policy** | Task-shaped **operating points** (policy only; pins a catalog version) | `data-model-choice-policy-v0.1.6` | [README](model-choice-policy/README.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 
