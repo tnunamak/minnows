@@ -168,9 +168,10 @@ def test_script_prose_names_no_vendor_tier_or_family():
 HERO = {
     "title": "Brains per buck", "metric_id": "smartness-v9", "y_label": "Smartness", "credit": "Data from Testboard",
     "cost_basis": "api_usd", "exclude_groups_matching": "guessed",
-    "bridge": {"score_tolerance": 1.0, "cost_rel_tolerance": 0.1},
+    "bridge": {"score_tolerance": 1.0, "cost_ratio_tolerance": 2.0},
     "flags": [{"caveat_matches": "unreleased build", "mark": "†", "label": "unreleased", "note": "ran on an unreleased build"}],
-    "featured": {"newest_per_tier_providers": ["acme"], "statuses": ["ga"], "top_others": 1, "include_frontier": True},
+    "featured": {"newest_per_tier_providers": ["acme"], "statuses": ["ga"], "top_others": 1, "include_frontier": True,
+                 "min_score": 25},
     "providers": {"acme": {"label": "Acme Corp", "light": "#b4532a", "dark": "#e2875f"}},
     "other_providers": {"label": "Everyone else", "light": "#1a7380", "dark": "#4fadb8"},
     "notes": "test",
@@ -183,8 +184,8 @@ HERO_MODELS = {
 }
 
 
-def hrow(model, effort, score, cost, group="g1", observed="2030-03-01", caveat="", grade="B"):
-    r = {"model": model, "effort": effort, "score": score, "metric_id": "smartness-v9", "comparability_group": group,
+def hrow(model, effort, score, cost, group="g1", observed="2030-03-01", caveat="", grade="B", verbatim=None):
+    r = {"model": model, "effort": effort, "effort_verbatim": verbatim, "score": score, "metric_id": "smartness-v9", "comparability_group": group,
          "snapshot_id": group, "observed_at": observed, "caveat": caveat, "evidence_grade": grade, "_file": f"performance/{group}.json"}
     if cost is not None:
         r["cost"] = {"value": cost, "unit": "usd_per_task", "basis": "api_usd"}
@@ -218,9 +219,33 @@ def test_hero_joins_only_snapshot_groups_that_agree_on_a_shared_setting():
     assert all(not (p.model == "zen-a" and p.effort == "firm") for p in v["points"])
 
 
-def test_hero_group_that_disagrees_on_cost_does_not_join():
-    v = hero(ANCHOR + [hrow("boulder-1", "firm", 50, 3.0, group="g2"), hrow("zen-b", "firm", 45, 3.0, group="g2")])
+def test_hero_cost_remeasurement_joins_but_a_different_cost_basis_does_not():
+    # 1.5x the anchor's cost: the source re-measured it; joins, the newer cost wins and the footer says so
+    v = hero(ANCHOR + [hrow("boulder-1", "firm", 50, 3.0, group="g2", observed="2030-04-01"),
+                       hrow("zen-b", "firm", 45, 3.0, group="g2")])
+    assert "zen-b" in v["models"] and round(v["cost_drift"], 2) == 0.5
+    assert [p.cost for p in v["points"] if p.model == "boulder-1"] == [3.0]
+    assert any("moved by up to 50%" in n for n in rc.hero_notes(v, list(v["models"])))
+    # 2.5x: beyond the guide's factor of 2, so treated as a different cost basis; left out
+    v = hero(ANCHOR + [hrow("boulder-1", "firm", 50, 5.0, group="g2"), hrow("zen-b", "firm", 45, 3.0, group="g2")])
     assert "zen-b" in v["left_out"]
+
+
+def test_variant_label_keeps_unlabelled_modes_apart():
+    # two effort-less rows of one model: a costed reasoning mode and an uncosted non-reasoning mode
+    rows = ANCHOR + [hrow("zen-b", None, 45, 3.0, verbatim="Thinking"), hrow("zen-b", None, 30, None, verbatim="Plain")]
+    v = hero(rows)
+    assert [(p.effort, p.score) for p in v["points"] if p.model == "zen-b"] == [("Thinking", 45)]
+    assert v["unpriced"] == 1
+
+
+def test_featured_chart_drops_models_under_the_score_floor_and_names_them():
+    # orphan is the cheapest setting (on the frontier) but its best score is under the floor of 25
+    v = hero(ANCHOR + [hrow("orphan", "gentle", 12, 0.01)])
+    assert "orphan" in v["models"] and "orphan" not in v["featured"] and v["below_floor"] == ["orphan"]
+    featured = rc.render_hero_svg(v, "light", v["featured"])
+    assert "only in the all-models chart: Orphan" in featured
+    assert "only in the all-models chart" not in rc.render_hero_svg(v, "light", list(v["models"]))
 
 
 def test_hero_plots_the_latest_observation_of_each_setting():
@@ -236,7 +261,7 @@ def test_hero_names_models_and_settings_without_cost_instead_of_dropping_them():
     assert v["no_cost"] == ["pebble-1"]
     assert v["unpriced"] == 1
     svg = rc.render_hero_svg(v, "light", list(v["models"]))
-    assert "Pebble 1" in svg and "1 more effort settings" in svg
+    assert "Pebble 1" in svg and "1 more setting of plotted models has a score" in svg
 
 
 def test_pareto_frontier_keeps_only_settings_nothing_beats_on_both_axes():

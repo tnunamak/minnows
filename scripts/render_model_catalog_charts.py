@@ -742,15 +742,17 @@ def _decimals(v: float) -> int:
 
 
 def _bridges(cand: list, joined: list, tol: dict) -> bool:
-    """A group may join if it shares a setting with the joined rows and every shared setting agrees."""
+    """A group may join if it shares a setting with the joined rows and every shared setting agrees:
+    scores within the index's display rounding, costs within a ratio that allows re-measurement but
+    not a different cost basis or unit."""
     seen = defaultdict(list)
     for r in joined:
-        seen[(r["model"], r.get("effort"))].append(r)
-    shared = [(r, o) for r in cand for o in seen.get((r["model"], r.get("effort")), [])]
+        seen[(r["model"], r["_effort"])].append(r)
+    shared = [(r, o) for r in cand for o in seen.get((r["model"], r["_effort"]), [])]
     for r, o in shared:
         if abs(r["score"] - o["score"]) > tol["score_tolerance"]:
             return False
-        if r["_cost"] and o["_cost"] and abs(r["_cost"] - o["_cost"]) > tol["cost_rel_tolerance"] * min(r["_cost"], o["_cost"]):
+        if r["_cost"] and o["_cost"] and max(r["_cost"], o["_cost"]) / min(r["_cost"], o["_cost"]) > tol["cost_ratio_tolerance"]:
             return False
     return bool(shared)
 
@@ -794,7 +796,9 @@ def build_hero(pack: Pack) -> dict:
         ok = c.get("unit") == unit and c.get("basis") == hero["cost_basis"] and (c.get("value") or 0) > 0
         return float(c["value"]) if ok else None
 
-    rows = [{**r, "_group": r.get("comparability_group") or r.get("snapshot_id") or r["_file"], "_cost": cost_of(r)}
+    # _effort: the effort level, else the source's own variant label (e.g. a non-reasoning mode), else None
+    rows = [{**r, "_group": r.get("comparability_group") or r.get("snapshot_id") or r["_file"], "_cost": cost_of(r),
+             "_effort": r.get("effort") or r.get("effort_verbatim")}
             for r in pack.hero_rows if isinstance(r.get("score"), (int, float))]
     if not rows:
         raise SystemExit(f"guide.json: no score rows for hero.metric_id {hero['metric_id']!r}")
@@ -808,13 +812,13 @@ def build_hero(pack: Pack) -> dict:
     for r in usable:
         if r["_cost"] is None:
             continue
-        key = (r["model"], r.get("effort"))
+        key = (r["model"], r["_effort"])
         rank_key = (r.get("observed_at") or "", -GRADE_ORDER.get(r.get("evidence_grade"), 9), _decimals(r["score"]), r["_file"])
         if key not in best or rank_key > best[key][0]:
             best[key] = (rank_key, r)
     flags = hero.get("flags") or []
     points = sorted(
-        (Point(r["model"], r.get("effort"), float(r["score"]), r["_cost"], r.get("observed_at") or "",
+        (Point(r["model"], r["_effort"], float(r["score"]), r["_cost"], r.get("observed_at") or "",
                tuple(f["mark"] for f in flags if re.search(f["caveat_matches"], r.get("caveat") or "")))
          for _, r in best.values()),
         key=lambda p: (p.model, p.effort or ""))
@@ -823,7 +827,13 @@ def build_hero(pack: Pack) -> dict:
     plotted = {p.model for p in points}
     no_cost = sorted({r["model"] for r in usable} - plotted)
     left_out = sorted({r["model"] for r in excluded + [r for r in kept if r["_group"] in unjoined]} - plotted - set(no_cost))
-    unpriced = {(r["model"], r.get("effort")) for r in usable if r["model"] in plotted} - set(best)
+    unpriced = {(r["model"], r["_effort"]) for r in usable if r["model"] in plotted} - set(best)
+    # AA re-measures cost between snapshots; the footer states how far one setting's cost moved
+    costs = defaultdict(set)
+    for r in usable:
+        if r["_cost"]:
+            costs[(r["model"], r["_effort"])].add(r["_cost"])
+    drift = max((max(c) / min(c) - 1 for c in costs.values()), default=0.0)
     frontier = pareto(points)
 
     # featured: newest model with data per (provider, tier), best other-vendor models, frontier models
@@ -842,6 +852,9 @@ def build_hero(pack: Pack) -> dict:
     picks |= set(sorted(others, key=lambda m: (-top[m], m))[: feat["top_others"]])
     if feat["include_frontier"]:
         picks |= {p.model for p in frontier}
+    floor = feat.get("min_score")
+    below = sorted(m for m in picks if floor is not None and top[m] < floor)
+    picks -= set(below)
 
     rank = {e: i for i, e in enumerate(pack.effort_order())}
     return {
@@ -861,6 +874,9 @@ def build_hero(pack: Pack) -> dict:
         "no_cost": no_cost,
         "left_out": left_out,
         "unpriced": len(unpriced),
+        "cost_drift": drift,
+        "floor": floor,
+        "below_floor": below,
         "dates": (min(p.observed for p in points), max(p.observed for p in points)),
         "rank": rank,
     }
@@ -932,13 +948,16 @@ def wrap(text: str, width: float, size: float) -> list[str]:
     return lines + [cur] if cur else lines
 
 
-def hero_notes(view: dict) -> list[str]:
+def hero_notes(view: dict, shown: list[str]) -> list[str]:
     d0, d1 = view["dates"]
     when = f"observed {d0}" if d0 == d1 else f"observed {d0} to {d1}"
     tol = view["tolerance"]
     notes = [(f"{view['credit']}, {when}. Each point is the latest observation of that model and "
               f"effort; snapshots share the chart only where the settings they both list agree within "
               f"{tol:g} point{'s' if tol != 1 else ''}. Cost is the API cost to run one index task.")]
+    if view["cost_drift"] > 0.005:
+        notes.append(f"The source re-measures cost between snapshots: the same setting's cost moved by up to "
+                     f"{view['cost_drift']:.0%}, and each point uses the latest.")
     notes += [f"{mark} {note[:1].upper() + note[1:]}." for mark, _, note in view["flags"]]
     names = view["names"]
     if view["no_cost"]:
@@ -947,7 +966,13 @@ def hero_notes(view: dict) -> list[str]:
         notes.append("Left out, estimated or not checkable against the other snapshots: "
                      + ", ".join(names[m] for m in view["left_out"]) + ".")
     if view["unpriced"]:
-        notes.append(f"{view['unpriced']} more effort settings of plotted models have a score but no cost and are not drawn.")
+        n = view["unpriced"]
+        notes.append(f"{n} more setting{'s' if n != 1 else ''} of plotted models {'have' if n != 1 else 'has'} "
+                     "a score but no cost and {} not drawn.".format("are" if n != 1 else "is"))
+    hidden = [m for m in view["below_floor"] if m not in shown]
+    if hidden:
+        notes.append(f"Below {view['floor']:g} on the index, so only in the all-models chart: "
+                     + ", ".join(names[m] for m in hidden) + ".")
     return notes
 
 
@@ -1059,18 +1084,22 @@ def render_hero_svg(view: dict, theme: str, models: list[str], width: int = 1000
         s.parts.append(f'<path d="{path}" fill="none" stroke="{t["ink2"]}" stroke-width="1.4" '
                        f'stroke-dasharray="5 4" stroke-opacity="0.8"/>')
 
-    levels = sorted({p.effort for p in pts if p.effort is not None}, key=lambda e: rank.get(e, 0))
+    levels = sorted({p.effort for p in pts if p.effort in rank}, key=rank.get)
     lvl = {e: i for i, e in enumerate(levels)}
 
     def radius(p):
-        return (3.0 + 0.6 * lvl[p.effort] if p.effort in lvl else 3.0 + 0.3 * len(levels)) * (1.15 if card else 1)
+        # a variant outside the effort scale (e.g. non-reasoning) on a multi-setting line gets the smallest dot
+        r = 3.0 + 0.6 * lvl[p.effort] if p.effort in lvl else 3.0 if len(lines[p.model]) > 1 else 3.0 + 0.3 * len(levels)
+        return r * (1.15 if card else 1)
 
     ends = []
     for m in sorted(lines, key=lambda m: (-lines[m][-1].score, m)):
         col = vendor_of(view, m)[1][theme]
         ps = lines[m]
-        if len(ps) > 1:
-            path = " ".join(f"{'M' if k == 0 else 'L'}{X(p.cost):.1f},{Y(p.score):.1f}" for k, p in enumerate(ps))
+        # the line runs through the effort scale; a variant outside it (e.g. non-reasoning) is a lone dot
+        on_scale = [p for p in ps if p.effort in lvl] if any(p.effort in lvl for p in ps) else ps
+        if len(on_scale) > 1:
+            path = " ".join(f"{'M' if k == 0 else 'L'}{X(p.cost):.1f},{Y(p.score):.1f}" for k, p in enumerate(on_scale))
             s.parts.append(f'<path d="{path}" fill="none" stroke="{col}" stroke-width="{2 * fs:.1f}" '
                            'stroke-linejoin="round" stroke-linecap="round"/>')
         for p in ps:
@@ -1099,7 +1128,7 @@ def render_hero_svg(view: dict, theme: str, models: list[str], width: int = 1000
         s.text(pad, CARD_SIZE[1] - 18, f"{view['credit']} · observed {d0} to {d1}", 14, "muted")
         return s.render(width, CARD_SIZE[1], f"{view['title']}: {view['metric']} against API cost per task")
     y += 10
-    for note in hero_notes(view):
+    for note in hero_notes(view, models):
         for line in wrap(note, width - 2 * pad, 11.5):
             y += 17
             s.text(pad, y, line, 11.5, "muted")
@@ -1147,7 +1176,7 @@ def hero_block(view: dict) -> list[str]:
     reading = (f"**Reading the chart.** Up is smarter, left is cheaper. The frontier (dashed) holds the settings "
                f"that no other setting beats on both cost and score: {frontier_summary(view)}. The top score is "
                f"{names[best.model]}{' ' + best.effort if best.effort else ''} at {fmt_score(best.score)} "
-               f"for {usd_cost(best.cost)} per task. " + " ".join(hero_notes(view)))
+               f"for {usd_cost(best.cost)} per task. " + " ".join(hero_notes(view, view["featured"])))
     on = {(p.model, p.effort) for p in view["frontier"]}
     top = {m: max(p.score for p in pts if p.model == m) for m in view["models"]}
     rows = sorted(pts, key=lambda p: (-top[p.model], names[p.model], rank.get(p.effort, -1)))

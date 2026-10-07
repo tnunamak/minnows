@@ -142,7 +142,7 @@
     "exclude_groups_matching": "estimated",
     "bridge": {
       "score_tolerance": 1.0,
-      "cost_rel_tolerance": 0.1
+      "cost_ratio_tolerance": 2.0
     },
     "flags": [
       {
@@ -164,7 +164,8 @@
         "preview"
       ],
       "top_others": 3,
-      "include_frontier": true
+      "include_frontier": true,
+      "min_score": 25
     },
     "providers": {
       "anthropic": {
@@ -193,7 +194,7 @@
       "light": "#1a7380",
       "dark": "#4fadb8"
     },
-    "notes": "Comparability rule for the cost-vs-intelligence chart. (1) One metric_id only, which pins one index version; rows of other versions never appear. (2) Rows whose comparability_group matches exclude_groups_matching (estimated values) are left out and named in the footnote. (3) The comparability group with the most models is the anchor. Another group of the same metric joins only if it shares at least one (model, effort) setting with the groups already joined and every shared setting agrees within bridge.score_tolerance index points (whole-point display rounding) and, where both rows have a cost, within bridge.cost_rel_tolerance. A group that shares no setting cannot be checked, so it is left out and its models are named in the footnote. (4) For each (model, effort), the latest observed_at row with a cost per task of basis cost_basis is plotted; same-day ties go to the better evidence grade, then the more precise score. The chart footer states the observation date range. (5) Rows whose caveat matches a flags entry are drawn hollow and marked, not hidden. (6) Models with index rows but no cost per task are named in the footnote. The featured chart shows the newest model with data in each tier of the listed providers, the top_others best-scoring models of other providers, and every model with a setting on the Pareto frontier; the second chart shows all models. Colours are WCAG AA (4.5:1) against the GitHub light and dark page backgrounds."
+    "notes": "Comparability rule for the cost-vs-intelligence chart. (1) One metric_id only, which pins one index version; rows of other versions never appear. (2) Rows whose comparability_group matches exclude_groups_matching (estimated values) are left out and named in the footnote. (3) The comparability group with the most models is the anchor. Another group of the same metric joins only if it shares at least one setting (model plus effort, or the source's variant label when there is no effort level) with the groups already joined, every shared score agrees within bridge.score_tolerance index points (the source displays whole points), and every shared cost is within a factor of bridge.cost_ratio_tolerance. Score agreement is what shows two snapshots measure the same thing. Cost is only a guard against a different cost basis or unit, which differ by orders of magnitude: Artificial Analysis re-measures cost between snapshots (Claude Sonnet 5.5 cost per task fell 16-28% from 2026-09-28 to 2026-10-07 with unchanged scores, a ratio of up to 1.39), so a factor of 2 allows re-measurement and still rejects a basis error. A group that shares no setting cannot be checked, so it is left out and its models are named in the footnote. (4) For each setting, the latest observed_at row with a cost per task of basis cost_basis is plotted, so the newest snapshot's cost wins; same-day ties go to the better evidence grade, then the more precise score. The footer states the observation date range and the largest cost change of one setting between snapshots. (5) Rows whose caveat matches a flags entry are drawn hollow and marked, not hidden. (6) Models with index rows but no cost per task are named in the footnote. The featured chart shows the newest model with data in each tier of the listed providers, the top_others best-scoring models of other providers, and every model with a setting on the Pareto frontier, minus models whose best score is under featured.min_score (named in its footer; they stay in the all-models chart) so a very weak model does not stretch the score axis. Colours are WCAG AA (4.5:1) against the GitHub light and dark page backgrounds."
   },
   "effort_labels": {
     "medium": "med"

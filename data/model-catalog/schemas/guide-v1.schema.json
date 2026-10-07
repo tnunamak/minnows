@@ -250,16 +250,17 @@
           "type": "object",
           "required": [
             "score_tolerance",
-            "cost_rel_tolerance"
+            "cost_ratio_tolerance"
           ],
           "properties": {
             "score_tolerance": {
               "type": "number",
               "minimum": 0
             },
-            "cost_rel_tolerance": {
+            "cost_ratio_tolerance": {
               "type": "number",
-              "minimum": 0
+              "minimum": 1,
+              "description": "Largest allowed ratio between two snapshots' costs for one setting (higher / lower)"
             }
           }
         },
@@ -319,6 +320,10 @@
             },
             "include_frontier": {
               "type": "boolean"
+            },
+            "min_score": {
+              "type": "number",
+              "description": "Models whose best score is under this stay out of the featured chart (all-models chart only)"
             }
           }
         },
