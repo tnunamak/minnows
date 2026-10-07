@@ -2,7 +2,7 @@
   "$schema": "schemas/sources-v1.schema.json",
   "schema_version": 1,
   "id": "model-catalog-sources",
-  "retrieved_at": "2026-09-29",
+  "retrieved_at": "2026-10-07",
   "description": "Canonical provenance registry. Every pricing/performance/capabilities payload should reference these ids via source_ids[].",
   "sources": [
     {
@@ -2238,6 +2238,106 @@
       "retrieved_at": "2026-09-29",
       "kind": "vendor_docs",
       "notes": "First-party model page gives API ID, USD cache-miss/cache-hit/output rates, 1M context, and OpenAI/Anthropic protocol compatibility."
+    },
+    {
+      "id": "anthropic-haiku-5-5-2026-10-07",
+      "url": "https://www.anthropic.com/claude-haiku-5-5",
+      "title": "Introducing Claude Haiku 5.5",
+      "publisher": "Anthropic",
+      "published": "2026-10-07",
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_blog",
+      "notes": "Launch post (model ID claude-haiku-5-5). Holds the BenchmarkGrid headline table (columns Haiku 5.5, Haiku 4.5, GPT-6 Luna, and Sonnet 5.5 \"For reference\"), four inline accuracy-vs-cost SVG charts with exact per-point aria-labels (OSWorld 2.1 offline subset partial-credit score, GDPval-AA v2.1, Humanity’s Last Exam no tools, Terminal-Bench 4.0 with Sonnet 5.5 at $0.10 and $0.20 cache reads), a pricing table with prompt-size tiers at 100K tokens, and the Sonnet 5.5 cache-read cut to $0.10/MTok effective 2026-10-07. Footnote 2 explains the \"around 75% less to run\" claim: 90% lower list price up to 100K-token prompts, 50% lower above, 90% of Haiku 4.5 requests were up to 100K, and the updated tokenizer uses \"slightly more tokens per task\". Retrieved with curl; tables and SVG labels parsed from HTML in code."
+    },
+    {
+      "id": "anthropic-haiku-5-5-system-card-2026-10-07",
+      "url": "https://www-cdn.anthropic.com/e1080d6bf5ae2018ea3c2f414064be03232f5be5/Claude%20Haiku%205.5%20System%20Card.pdf",
+      "title": "Claude Haiku 5.5 System Card",
+      "publisher": "Anthropic",
+      "published": "2026-10-07",
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Official 144-page PDF; https://www.anthropic.com/claude-haiku-5-5-system-card (linked from the launch post) redirects here. Extracted with pdftotext -layout. Table 8.1.A (p. 111) caption: Haiku 5.5 results use adaptive thinking at max effort, default sampling, five trials, unless noted. Section 8 prose prints further exact values, including the OSWorld 2.1 offline-subset strict pass rate (37.1%) next to the 72.4% partial score, and medium-effort GDPval-AA (1277) and AA-Briefcase (1372) scores."
+    },
+    {
+      "id": "anthropic-pricing-2026-10-07",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "title": "Pricing - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Model pricing table lists two Haiku 5.5 rows: prompts up to 100,000 tokens ($0.10 input, $0.125 5m cache write, $0.20 1h cache write, $0.01 cache hit, $0.50 output) and prompts over 100,000 tokens ($0.50, $0.625, $1, $0.05, $2.50). Batch table: $0.05/$0.25 and $0.25/$1.25. Haiku 4.5 unchanged ($1/$1.25/$2/$0.10/$5). Long-context section: \"Claude Haiku 5.5 is priced by prompt length: a prompt of over 100,000 tokens pays higher prices.\" Sonnet 5.5: the prompt-caching prose and multiplier table say cache hits are 0.05x base ($0.10/MTok), but the model pricing table cell for Sonnet 5.5 still shows $0.20 in both the .md and the rendered HTML at retrieval. Tokenizer note: Claude 4.7 and later models produce approximately 30% more tokens for the same text."
+    },
+    {
+      "id": "anthropic-models-overview-2026-10-07",
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Current lineup: Fable 5.1, Opus 5.5, Sonnet 5.5, Haiku 5.5. Haiku 5.5: API ID and alias claude-haiku-5-5, adaptive thinking, API default effort medium, 1M context, 128K max output (300K on Message Batches with output-300k-2026-03-24 beta), knowledge cutoff Jun 2026, retirement not sooner than 2027-10-07, pricing \"From $0.10 / input MTok, From $0.50 / output MTok\". Haiku 4.5 moves to \"Legacy models (still available)\"."
+    },
+    {
+      "id": "anthropic-haiku-5-5-model-page-2026-10-07",
+      "url": "https://platform.claude.com/docs/en/models/haiku-5-5/overview",
+      "title": "Claude Haiku 5.5 - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Released October 7, 2026. Per-tier pricing table (input/output/5m write/1h write/cache read for prompts up to and over 100,000 tokens; Batch API 50% off). Verbatim: \"It uses the same newer tokenizer as Claude 4.7 and later models, so the same text counts as approximately 30% more tokens than on Claude Haiku 4.5.\" Non-default temperature, top_p, or top_k returns 400. Platforms: Claude API, Bedrock (anthropic.claude-haiku-5-5), Google Cloud, Microsoft Foundry, Claude Platform on AWS."
+    },
+    {
+      "id": "anthropic-haiku-5-5-migration-guide-2026-10-07",
+      "url": "https://platform.claude.com/docs/en/models/haiku-5-5/migration-guide",
+      "title": "Claude Haiku 5.5 migration guide",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Breaking changes from Haiku 4.5: thinking.type enabled with budget_tokens returns 400 (use adaptive + effort); assistant prefill returns 400; non-default sampling parameters return 400; computer use only via computer_toolset_20260801 on Claude API and Google Cloud; thinking blocks bound to the producing account; Priority Tier not supported on Haiku 5.5. \"the same input text produces approximately 30% more tokens on Claude Haiku 5.5 than on Claude Haiku 4.5. The exact increase depends on the content.\" claude-haiku-5-5 is a fixed ID with no date suffix and no separate alias."
+    },
+    {
+      "id": "anthropic-effort-guide-2026-10-07",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Haiku 5.5 supports low, medium, high, xhigh, max; medium is the default on the Claude API and in Claude Code. \"You can also send thinking: {type: disabled} at high effort or below. At xhigh or max, it returns a 400 error.\" Per-message effort (beta header mid-conversation-output-config-2026-07-01) on Claude API and Google Cloud, not with thinking disabled. Recommendation text: start with medium; low for chat, short tool tasks, and simple high-volume requests; high for knowledge work, longer agent tasks, strict instruction following; xhigh or max only where evals show a gain, compared against Sonnet 5.5."
+    },
+    {
+      "id": "anthropic-claude-code-model-config-2026-10-07",
+      "url": "https://code.claude.com/docs/en/model-config",
+      "title": "Model configuration - Claude Code Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "v2.1.293: `haiku` alias resolves to Haiku 5.5 on the Anthropic API; on Claude Platform on AWS, Amazon Bedrock, Google Cloud Agent Platform, and Microsoft Foundry it still resolves to Haiku 4.5. \"Use v2.1.293 or later with Haiku 5.5.\" Effort table: Haiku 5.5 low/medium/high/xhigh/max, default medium. Unsupported levels fall back to the highest supported level at or below the request. Thinking cannot be turned off on Haiku 5.5 in Claude Code (MAX_THINKING_TOKENS=0 and alwaysThinkingEnabled=false have no effect), unlike the API. 1M window on every plan on the Anthropic API; Haiku 5.5 costs more per token on prompts longer than 100K tokens."
+    },
+    {
+      "id": "anthropic-model-deprecations-2026-10-07",
+      "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+      "title": "Model deprecations - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Status table: claude-haiku-5-5 Active, retirement not sooner than October 7, 2027; claude-haiku-4-5-20251001 Active, no deprecation date, retirement not sooner than October 15, 2026."
+    },
+    {
+      "id": "anthropic-sonnet-5-5-model-page-2026-10-07",
+      "url": "https://platform.claude.com/docs/en/models/sonnet-5-5/overview",
+      "title": "Claude Sonnet 5.5 - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Retrieved to check the Sonnet 5.5 cache-read price after the 2026-10-07 cut. The page still lists Cache read $0.20 / MTok, which disagrees with the launch post and the pricing-page caching prose ($0.10). Recorded as a docs inconsistency, not as the effective price."
     }
   ]
 }

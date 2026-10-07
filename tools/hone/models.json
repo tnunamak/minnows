@@ -19,6 +19,19 @@
         "note": "fastest, near-frontier; certified-mechanical tier"
       }
     },
+    "haiku-5-5": {
+      "provider": "claude",
+      "id": "claude-haiku-5-5",
+      "short": "haiku-5-5",
+      "lineage": "anthropic",
+      "pricing": { "in": 0.1, "out": 0.5, "cache_read": 0.01 },
+      "pricing_note": "Rates for prompts up to 100,000 tokens. Prompts over 100,000 tokens bill the whole request at 0.5 / 2.5 / 0.05 (see model-catalog pricing long_prompt). New tokenizer: about 30% more tokens than Haiku 4.5 for the same text.",
+      "quota_pool": "claude-sub",
+      "efforts": ["low", "medium", "high", "xhigh", "max"],
+      "tier_rank": 1,
+      "status": "active",
+      "calibration": null
+    },
     "sonnet-5": {
       "provider": "claude",
       "id": "claude-sonnet-5",
@@ -41,7 +54,7 @@
       "id": "claude-sonnet-5-5",
       "short": "sonnet-5-5",
       "lineage": "anthropic",
-      "pricing": { "in": 2.0, "out": 10.0, "cache_read": 0.2 },
+      "pricing": { "in": 2.0, "out": 10.0, "cache_read": 0.1 },
       "quota_pool": "claude-sub",
       "efforts": ["low", "medium", "high", "xhigh", "max"],
       "tier_rank": 3,
