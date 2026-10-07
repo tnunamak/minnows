@@ -1,0 +1,32 @@
+{
+  "$schema": "schemas/pricing-v1.schema.json",
+  "id": "stepfun-api-2026-10",
+  "schema_version": 1,
+  "kind": "api_usd",
+  "agent": "other",
+  "retrieved_at": "2026-10-07",
+  "source_urls": [
+    "https://platform.stepfun.ai/docs/en/guides/pricing/details",
+    "https://platform.stepfun.ai/docs/en/guides/models/step-5-preview"
+  ],
+  "source_ids": [
+    "stepfun-pricing-2026-10-07",
+    "stepfun-step-5-preview-model-page-2026-10-07"
+  ],
+  "notes": "StepFun first-party API rates, USD per 1M tokens. step-5-preview: $1.00 input on a cache miss (StepFun states this includes writing new content to the cache, so cache_write_per_m is 0), $0.05 on a cache hit, $2.70 output (output includes reasoning tokens). 1M context, 64k max output; reasoning_effort low/medium/high. Same rates appear on Artificial Analysis. step-3.7-flash ($0.20/$0.04/$1.15) and step-3.5-flash ($0.10/$0.02/$0.30) are priced on the same page but are not catalog models. Preview model; StepFun's open-weights release was announced for a later date and is not verified here.",
+  "models": {
+    "step-5-preview": {
+      "fresh_input_per_m": 1.0,
+      "cache_read_per_m": 0.05,
+      "cache_write_per_m": 0,
+      "output_per_m": 2.7,
+      "confidence": "high"
+    }
+  },
+  "match": [
+    {
+      "pattern": "step-5-preview",
+      "model": "step-5-preview"
+    }
+  ]
+}

@@ -4,18 +4,22 @@
   "schema_version": 1,
   "kind": "api_usd",
   "agent": "other",
-  "retrieved_at": "2026-09-29",
+  "retrieved_at": "2026-10-07",
   "source_urls": [
     "https://mimo.mi.com/docs/pricing",
     "https://mimo.mi.com/models/en-US/mimo-v2.6-pro",
-    "https://mimo.mi.com/models/en-US/mimo-v2.6-flash"
+    "https://mimo.mi.com/models/en-US/mimo-v2.6-flash",
+    "https://mimo.mi.com/models/en-US/mimo-v2.6-pro-ultraspeed"
   ],
   "source_ids": [
     "xiaomi-mimo-v2-6-pricing-2026-09-29",
     "xiaomi-mimo-v2-6-pro-model-page-2026-09-29",
-    "xiaomi-mimo-v2-6-flash-model-page-2026-09-29"
+    "xiaomi-mimo-v2-6-flash-model-page-2026-09-29",
+    "xiaomi-mimo-v2-6-pro-model-page-2026-10-07",
+    "xiaomi-mimo-v2-6-flash-model-page-2026-10-07",
+    "xiaomi-mimo-v2-6-pro-ultraspeed-model-page-2026-10-07"
   ],
-  "notes": "Standard overseas pay-as-you-go real-time API pricing, USD per 1M tokens. Pro: fresh input $0.435, cached input $0.0036, output $0.87. Flash: fresh input $0.14, cached input $0.0028, output $0.28. Xiaomi says cache writes are limited-time free; recorded as $0 in cache_write_per_m while that offer applies. Context window is 1M tokens for both; no context-tier price is listed. Batch API rates are separately listed at 50% of real-time rates and are not represented in this standard pricing file. Token Plan subscription credits are a separate quota and not API USD rates. MiMo-V2.6-Pro-UltraSpeed, a serving mode of Pro that Xiaomi says runs up to 20x faster at the same quality, is priced at cached input $0.036, fresh input $4.35, output $8.70 per 1M tokens (launch article table, 2026-09-22); it is not a separate model row here.",
+  "notes": "Standard overseas pay-as-you-go real-time API pricing, USD per 1M tokens. Pro: fresh input $0.435, cached input $0.0036, output $0.87. Flash: fresh input $0.14, cached input $0.0028, output $0.28. Xiaomi says cache writes are limited-time free; recorded as $0 in cache_write_per_m while that offer applies. Context window is 1M tokens for both; no context-tier price is listed. Batch API rates are separately listed at 50% of real-time rates and are not represented in this standard pricing file. Token Plan subscription credits are a separate quota and not API USD rates. MiMo-V2.6-Pro-UltraSpeed, a serving mode of Pro that Xiaomi says runs up to 20x faster at the same quality, is priced at cached input $0.036, fresh input $4.35, output $8.70 per 1M tokens (launch article table, 2026-09-22); it is not a separate model row here. 2026-10-07 re-verification from the first-party model pages: mimo-v2.6-pro $0.435 miss / $0.0036 hit / $0.87 out and mimo-v2.6-flash $0.14 / $0.0028 / $0.28 unchanged (1M context, 128K output). The pricing page itself is JS-only; model pages are server-rendered. NEW: mimo-v2.6-pro-ultraspeed (API id from /v1/models and its model page; launched with the series 2026-09-22 per the launch article) at $4.35 miss / $0.036 hit / $8.70 out, 10x Pro, 'up to 20x output speed'. It is a speed mode of Pro with no separate benchmark evidence; not added as a catalog model.",
   "models": {
     "mimo-v2.6-pro": {
       "fresh_input_per_m": 0.435,

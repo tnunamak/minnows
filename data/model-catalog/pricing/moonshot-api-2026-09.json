@@ -4,19 +4,21 @@
   "schema_version": 1,
   "kind": "api_usd",
   "agent": "other",
-  "retrieved_at": "2026-09-23",
+  "retrieved_at": "2026-10-07",
   "source_urls": [
-    "https://forum.moonshot.ai/t/kimi-k3-is-here-our-most-capable-model/480"
+    "https://forum.moonshot.ai/t/kimi-k3-is-here-our-most-capable-model/480",
+    "https://platform.moonshot.ai/docs/pricing/chat"
   ],
   "source_ids": [
-    "moonshot-kimi-k3-announcement-2026-09-23"
+    "moonshot-kimi-k3-announcement-2026-09-23",
+    "moonshot-pricing-2026-10-07"
   ],
-  "notes": "USD per 1M tokens, direct Moonshot API rates as stated in its Kimi K3 announcement. Cache write is not separately priced in the announcement; no value is inferred.",
+  "notes": "USD per 1M tokens, direct Moonshot API rates as stated in its Kimi K3 announcement. Cache write is not separately priced in the announcement; no value is inferred. 2026-10-07 re-verification from the first-party pricing page (.md source): kimi-k3 input $3.00, cached input $0.30, output $15.00 unchanged. CHANGED cache_write_per_m from 0 to 3.00: the page now itemises cache writes by TTL, $3.00 per 1M for the default 5-minute tier (1-hour tier $6.00 is not modeled); the earlier row said no cache-write price was published. kimi-k2.7-code ($0.95 miss / $0.19 hit / $4.00 out) and kimi-k2.6 are priced on the same page but are not stored: kimi-k2-7-code is third_party_board_only in models.json and a kimi-k2.7-code-highspeed id ($1.90/$0.38/$8.00) would collide with a substring match.",
   "models": {
     "kimi-k3": {
       "fresh_input_per_m": 3.0,
       "cache_read_per_m": 0.3,
-      "cache_write_per_m": 0,
+      "cache_write_per_m": 3.0,
       "output_per_m": 15.0,
       "confidence": "high"
     }
