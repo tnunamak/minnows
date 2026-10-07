@@ -1,0 +1,39 @@
+{
+ "id": "liquid-ai-api-2026-10",
+ "schema_version": 1,
+ "kind": "api_usd",
+ "agent": "other",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://docs.liquid.ai/lfm/models/decision-models.md"
+ ],
+ "source_ids": [
+  "liquid-docs-decision-models",
+  "openrouter-decisions-catalog"
+ ],
+ "role": "reference",
+ "notes": "Liquid AI d1: Liquid docs publish a free tier d1:free (text-only; rate limits not read) and a paid d1 (vision) but NO paid rate in the pages read. The only paid rate found is the OpenRouter listing $0.04/M input (see the openrouter doc). Docs note: \"Each question is charged for its text and all supplied images.\" i.e. input tokens may be summed across questions, so the shared state may be billed once per question (unverified, in contrast with TypeSafe cookbook batching economics).",
+ "models": {
+  "liquid-d1": {
+   "billing_basis": "free",
+   "fresh_input_per_m": 0.0,
+   "cache_read_per_m": 0.0,
+   "cache_write_per_m": 0.0,
+   "output_per_m": 0.0,
+   "output_free": true,
+   "source_id": "liquid-docs-decision-models",
+   "confidence": "low",
+   "caveat_ids": [
+    "scope-limited-decision-models",
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "This row is the d1:free tier only (text-only). Paid d1 rate on Liquid is missing; OpenRouter lists $0.04/M. Per-question billing of state tokens is a docs reading, not verified."
+  }
+ },
+ "match": [
+  {
+   "pattern": "d1",
+   "model": "liquid-d1"
+  }
+ ]
+}

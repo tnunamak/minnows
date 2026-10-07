@@ -1,0 +1,47 @@
+{
+ "id": "arxiv-2610-00346-decision-gates-2026-10",
+ "schema_version": 1,
+ "kind": "performance",
+ "provider": "rafe",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://arxiv.org/abs/2610.00346"
+ ],
+ "notes": "Rafe, \"decision gates\": one harness sends eight decision-model checkpoints, trained classifiers and Qwen comparators the same typed requests; includes yes/no swap flips, out-of-scope acceptance at a held-out threshold and option-key-likelihood baselines. Jev numbers stored; open-checkpoint tables not stored. Qwen3.6-27B option-key likelihood scores 0.733 (typed-decisions) and 0.912 (CLINC-150), matching Jev (0.732 / 0.913): no qwen3.6-27b id exists in model-catalog, so that baseline is recorded in missing[]. Clef is not included. Colab L4 latencies for open models are not comparable with the hosted client latency.",
+ "source_ids": [
+  "arxiv-2610-00346-decision-gates"
+ ],
+ "claims": [
+  {
+   "models": [
+    "jev-1.13.0"
+   ],
+   "statement": "Rafe: \"Swapping yes and no flips 50.5 answers per hundred for Jev\"; Qwen3.6-27B read via option-key likelihood \"matches\" Jev on typed-decisions (0.733 vs 0.732) and CLINC-150 (0.912 vs 0.913); at 5 percent risk Jev accepts 0.93 of CLINC-150 decisions and 0.13 of typed-decisions (likelihood readout 0.42), and \"a held-out threshold for five percent in-scope risk still lets Jev accept 0.310 of out-of-scope requests\". An intent-trained first stage escalating to Jev matches its accuracy at 0.43 of its cost.",
+   "task_families": [
+    "abstention",
+    "typed_decisions"
+   ],
+   "axes": [
+    "quality"
+   ],
+   "implication": "Jev yes/no answers depend on label wording; abstention needs an explicit out-of-scope option AND a calibrated threshold.",
+   "source_id": "arxiv-2610-00346-decision-gates",
+   "caveat_ids": [
+    "determinism-and-option-order",
+    "small-sample-and-single-run-evidence",
+    "abstention-and-out-of-scope"
+   ]
+  }
+ ],
+ "scores": [
+  {"model":"jev-1.13.0","metric":"Rafe: typed-decisions accuracy","metric_id":"rafe-typed-decisions-accuracy","score":73.2,"unit":"accuracy","caveat":"Printed 0.732; nearest open model Kev-9B 0.712.","source_id":"arxiv-2610-00346-decision-gates","harness":"One harness, eight decision-model checkpoints from six families incl. hosted Jev, trained classifiers, and Qwen likelihood baselines; typed-decisions, CLINC-150 (in-scope and out-of-scope), yes/no swap flip tests; latency/cost per platform","task_family":"typed_decisions","source_type":"third_party_report","evidence_grade":"B","observed_at":"2026-10-01","comparability_group":"paper/rafe-typed-decisions-accuracy","caveat_ids":["determinism-and-option-order","small-sample-and-single-run-evidence"]},
+  {"model":"jev-1.13.0","metric":"Rafe: CLINC-150 accuracy","metric_id":"rafe-clef150-accuracy","score":91.3,"unit":"accuracy","caveat":"Printed 0.913; decider-2b, this-that-model-1.0, Nimble-9B and Kev-9B cluster 0.850-0.863 (decider-2b trained on the CLINC-150 train split); a trained classifier reaches 0.940 and an embedding logistic regression 0.948.","source_id":"arxiv-2610-00346-decision-gates","harness":"One harness, eight decision-model checkpoints from six families incl. hosted Jev, trained classifiers, and Qwen likelihood baselines; typed-decisions, CLINC-150 (in-scope and out-of-scope), yes/no swap flip tests; latency/cost per platform","task_family":"intent_classification","source_type":"third_party_report","evidence_grade":"B","observed_at":"2026-10-01","comparability_group":"paper/rafe-clef150-accuracy","caveat_ids":["determinism-and-option-order","small-sample-and-single-run-evidence","cheap-baselines-embeddings-and-bert-are-competitive-on-narrow-tasks"]},
+  {"model":"jev-1.13.0","metric":"Rafe: yes/no name-swap flips per 100 binary answers","metric_id":"rafe-yes-no-swap-flips-per-100","score":50.5,"unit":"other","caveat":"Interval 46.2-54.7; test-retest floor 1.3.","source_id":"arxiv-2610-00346-decision-gates","harness":"One harness, eight decision-model checkpoints from six families incl. hosted Jev, trained classifiers, and Qwen likelihood baselines; typed-decisions, CLINC-150 (in-scope and out-of-scope), yes/no swap flip tests; latency/cost per platform","task_family":"robustness","source_type":"third_party_report","evidence_grade":"B","observed_at":"2026-10-01","comparability_group":"paper/rafe-yes-no-swap-flips-per-100","n":100,"caveat_ids":["determinism-and-option-order","small-sample-and-single-run-evidence"]},
+  {"model":"jev-1.13.0","metric":"Rafe: out-of-scope requests accepted at a held-out 5% in-scope-risk threshold","metric_id":"rafe-oos-accepted-at-5pct-risk","score":0.31,"unit":"ratio","caveat":"Interval 0.142-0.502.","source_id":"arxiv-2610-00346-decision-gates","harness":"One harness, eight decision-model checkpoints from six families incl. hosted Jev, trained classifiers, and Qwen likelihood baselines; typed-decisions, CLINC-150 (in-scope and out-of-scope), yes/no swap flip tests; latency/cost per platform","task_family":"abstention","source_type":"third_party_report","evidence_grade":"B","observed_at":"2026-10-01","comparability_group":"paper/rafe-oos-accepted-at-5pct-risk","caveat_ids":["abstention-and-out-of-scope","determinism-and-option-order","small-sample-and-single-run-evidence"]},
+  {"model":"jev-1.13.0","metric":"Rafe: Jev median client latency on typed-decisions","metric_id":"rafe-hosted-median-latency-ms","score":138,"unit":"ms","caveat":"\"The hosted model answers a typed-decisions request at a median of 138 milliseconds at the client\".","source_id":"arxiv-2610-00346-decision-gates","harness":"One harness, eight decision-model checkpoints from six families incl. hosted Jev, trained classifiers, and Qwen likelihood baselines; typed-decisions, CLINC-150 (in-scope and out-of-scope), yes/no swap flip tests; latency/cost per platform","task_family":"latency","source_type":"third_party_report","evidence_grade":"B","observed_at":"2026-10-01","comparability_group":"paper/rafe-hosted-median-latency-ms","caveat_ids":["latency-independent-caller-rtt-disagrees"],"measurement":{"measured_by":"Rafe (paper author)","vantage":"hosted_rtt","percentile":"p50","region":"not stated"}},
+  {"model":"jev-1.13.0","metric":"Rafe: Jev list-price cost per decision (0.0079 USD per thousand decisions / 1,000)","metric_id":"rafe-cost-per-decision-usd","score":7.9e-06,"unit":"usd_per_decision","caveat":"Printed 0.0079 US dollars per thousand decisions at list price.","source_id":"arxiv-2610-00346-decision-gates","harness":"One harness, eight decision-model checkpoints from six families incl. hosted Jev, trained classifiers, and Qwen likelihood baselines; typed-decisions, CLINC-150 (in-scope and out-of-scope), yes/no swap flip tests; latency/cost per platform","task_family":"cost","source_type":"third_party_report","evidence_grade":"B","observed_at":"2026-10-01","comparability_group":"paper/rafe-cost-per-decision-usd","caveat_ids":["price-per-token-is-not-cost-per-decision"],"measurement":{"measured_by":"Rafe (paper author; list-price estimate)"},"cost":{"value":7.9e-06,"unit":"usd_per_decision","basis":"api_usd"}}
+ ],
+ "missing": [
+  "Qwen3.6-27B option-key-likelihood baseline (typed 0.733, CLINC-150 0.912) has no id in model-catalog; recorded here instead of adding a local baseline."
+ ]
+}

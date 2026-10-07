@@ -1,0 +1,44 @@
+{
+ "id": "openai-decisions-claims-2026-10-07",
+ "schema_version": 1,
+ "kind": "performance",
+ "provider": "openai",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://developers.openai.com/api/docs/guides/decisions.md"
+ ],
+ "notes": "OpenAI Decisions API vendor claims only (docs, public beta at retrieval, \"we expect to GA in the coming weeks\"): \"The Decisions API evaluates text, images, or both and returns typed answers about 10x faster than the Responses API.\" No absolute latency, region, payload or percentile, no benchmark and no calibration number. Press coverage showed a \"150 ms vs 1.6 s\" chart at DevDay; eesel wrote \"I couldn't find those numbers on any OpenAI page or post, so I wouldn't plan around them before the docs ship.\" and no OpenAI page that could be opened states them. Independent numbers: JevBench 0.30 s adjusted p50 and $0.0517 per 1,000 decisions (composite 62.5), OpenRouter p50 0.30 s, StreamDecisionBench untimed 36.04%, Nicia p50 168-171 ms (admission task: recall 1.00, reversed 0.96, 8 of 85 decisions changed by record order).",
+ "source_ids": [
+  "openai-decisions-guide"
+ ],
+ "claims": [
+  {
+   "models": [
+    "openai-decisions-gpt-6-luna"
+   ],
+   "statement": "\"The Decisions API evaluates text, images, or both and returns typed answers about 10x faster than the Responses API.\" Relative to the Responses API on gpt-6-luna; no absolute latency, region, payload or percentile; no accuracy or calibration number published.",
+   "axes": [
+    "latency"
+   ],
+   "implication": "Do not compare this multiple with other vendors' millisecond figures; use the independent hosted measurements.",
+   "source_id": "openai-decisions-guide",
+   "caveat_ids": [
+    "openai-decisions-status-changed",
+    "openai-decisions-api-limited-preview-now-measured-by-one-party"
+   ]
+  },
+  {
+   "models": [
+    "openai-decisions-gpt-6-luna"
+   ],
+   "statement": "OpenAI docs: \"With gpt-6-luna, input costs $0.10 per 1M tokens. You pay only for input tokens: there are no cache-read, cache-write, or output-token charges.\" \"Regional processing premiums and long-context input pricing multipliers apply.\"",
+   "axes": [
+    "cost"
+   ],
+   "source_id": "openai-decisions-guide",
+   "caveat_ids": [
+    "price-per-token-is-not-cost-per-decision"
+   ]
+  }
+ ]
+}

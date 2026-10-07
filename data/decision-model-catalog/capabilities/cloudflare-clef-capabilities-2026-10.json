@@ -1,0 +1,272 @@
+{
+ "id": "cloudflare-clef-capabilities-2026-10",
+ "schema_version": 1,
+ "kind": "capabilities",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://developers.cloudflare.com/changelog/post/2026-10-01-clef-workers-ai/",
+  "https://developers.cloudflare.com/workers-ai/models/clef/",
+  "https://huggingface.co/Cloudflare/clef",
+  "https://openrouter.ai/cloudflare/clef",
+  "https://www.sference.com/docs/models",
+  "https://www.sference.com/docs/guides/decisions",
+  "https://www.requesty.ai/blog/decision-model-benchmark-clef-sference-cloudflare-perplexity",
+  "https://docs.requesty.ai/features/decisions",
+  "https://developers.cloudflare.com/workers-ai/platform/pricing/"
+ ],
+ "source_ids": [
+  "cloudflare-changelog-clef",
+  "cloudflare-workers-ai-clef-page",
+  "cloudflare-hf-clef",
+  "openrouter-page-cloudflare-clef",
+  "sference-docs-models",
+  "sference-docs-decisions",
+  "requesty-benchmark",
+  "requesty-docs-decisions",
+  "cloudflare-workers-ai-pricing"
+ ],
+ "notes": "Clef and Clef-flash decision interface on Workers AI (env.AI.run(\"@cf/cloudflare/clef\") or REST /ai/run; the request body model field must be \"clef\" or \"clef-flash\"), with the same weights also served by sference (EU) and routed by Requesty and OpenRouter. System One-compatible: noul (P(yes)), choice (probability per option + confidence), score (probability-weighted score + probabilities). Up to 64 questions per request on Workers AI; up to 4 images (PNG/JPEG/WebP, 4 MiB and 16 MP each, 8 MiB total decoded, body max 13 MiB, base64 only); the HF card also mentions video in the open-weight code path. Architecture: frozen Qwen backbone + joint schema head with cross-field attention (so answers can depend on other questions in the request: independence is NOT guaranteed). CONTEXT CAVEAT: Cloudflare advertises a 65,536-token context window and its page says \"Long text state is truncated to fit the model's token limit\", but OpenRouter's model listing says \"Workers AI currently truncates long text state to roughly the first 2K tokens, so content beyond that is not read; images are counted separately.\" Cloudflare does not confirm that figure in the pages read; the Decision Index ran Clef from local weights with a 65,536-token harness, whereas StreamDecisionBench (hosted path unknown) scores Clef 38.96%. Treat long-state use of hosted Clef as UNVERIFIED. Confidence field is not portable: sference returns the max probability, Cloudflare returns \"something else, consistently lower\", Perplexity a third definition. Rate limit: no Clef-specific row on the Workers AI limits page; Requesty reported its account hit the daily Workers AI quota.",
+ "surfaces": [
+  {
+   "model": "clef",
+   "surface": "workers-ai",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": 255,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": true,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 65536
+   },
+   "questions_per_request": {
+    "max": 64,
+    "fan_out_supported": true,
+    "packing_supported": true
+   },
+   "output_tokens_billed": null,
+   "source_ids": [
+    "cloudflare-changelog-clef",
+    "cloudflare-workers-ai-clef-page",
+    "cloudflare-workers-ai-pricing",
+    "openrouter-page-cloudflare-clef"
+   ],
+   "caveat_ids": [
+    "workers-ai-state-truncation-2k",
+    "same-weights-different-serving-limits-and-confidence",
+    "confidence-field-non-portable",
+    "fanout-independence-holds-for-jev-only-per-vendor-evidence",
+    "latency-tail-load-and-capacity"
+   ],
+   "notes": "total_tokens 65536 is the advertised context. state_tokens is left null: the ~2K-token truncation is a third-party (OpenRouter) statement, recorded as a caveat. Choice 2-255 options, score levels 2-10 (schema docs). abstain null: no documented abstain output (CLINC150+OOS handles out-of-scope by explicit option). output_tokens_billed null: the pricing page lists no output rate (OpenRouter and Requesty list completion $0). Images up to 4 per request (Clef extension)."
+  },
+  {
+   "model": "clef-flash",
+   "surface": "workers-ai",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": 255,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": true,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 65536
+   },
+   "questions_per_request": {
+    "max": 64,
+    "fan_out_supported": true,
+    "packing_supported": true
+   },
+   "output_tokens_billed": null,
+   "source_ids": [
+    "cloudflare-changelog-clef",
+    "cloudflare-workers-ai-clef-page",
+    "cloudflare-workers-ai-pricing",
+    "openrouter-page-cloudflare-clef-flash"
+   ],
+   "caveat_ids": [
+    "workers-ai-state-truncation-2k",
+    "same-weights-different-serving-limits-and-confidence",
+    "confidence-field-non-portable",
+    "fanout-independence-holds-for-jev-only-per-vendor-evidence",
+    "abstention-and-out-of-scope"
+   ],
+   "notes": "Same schema and limits as Clef; 9B; weaker on out-of-scope (CLINC150+OOS 66.77 vs 97.43 on the Cloudflare card). The 2K-token truncation note appears on the OpenRouter listing for Clef-flash too."
+  },
+  {
+   "model": "clef",
+   "surface": "other",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": 256,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": true,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 65536
+   },
+   "questions_per_request": {
+    "max": 16,
+    "fan_out_supported": true,
+    "packing_supported": true
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "sference-docs-models",
+    "sference-docs-decisions",
+    "requesty-benchmark"
+   ],
+   "caveat_ids": [
+    "same-weights-different-serving-limits-and-confidence",
+    "confidence-field-non-portable"
+   ],
+   "notes": "SURFACE: sference (EU managed inference, POST /v1/decisions, realtime only, no batch/flex/background): \"answers up to 16 choice, score, or yes/no questions about one input in a single call, generates no text, and is billed on input tokens only\"; sference lists a 64K context (stored as 65536) and choice criteria of 1-256 labels and score of 1-256 levels (sference guide: \"Object of 1–256 labels\", \"Ordered list of 1–256 levels\"); body 1 MiB. Requesty measured 97.3% identical answers vs Cloudflare on 7,137 shared items and that sference returns the max probability as `confidence`."
+  },
+  {
+   "model": "clef",
+   "surface": "openrouter",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": null,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": true,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 65536
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": null,
+    "packing_supported": null
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "openrouter-decisions-catalog",
+    "openrouter-page-cloudflare-clef"
+   ],
+   "caveat_ids": [
+    "workers-ai-state-truncation-2k"
+   ],
+   "notes": "OpenRouter listing cloudflare/clef (provider Cloudflare): context 65,536, max completion 58,982, prompt $0.24/M, completion $0; endpoints POST /api/v1/systemone and /api/alpha/decisions; includes the 2K-token truncation note in the model description."
+  },
+  {
+   "model": "clef",
+   "surface": "other",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": null,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": true,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": null
+   },
+   "questions_per_request": {
+    "max": 64,
+    "fan_out_supported": null,
+    "packing_supported": null
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "requesty-docs-decisions",
+    "requesty-benchmark"
+   ],
+   "caveat_ids": [
+    "same-weights-different-serving-limits-and-confidence"
+   ],
+   "notes": "SURFACE: Requesty router (chat completions / responses / messages with response_format {type: questions}; docs: \"Experimental. Decision model support is new and the questions response format is not yet stable. The request and response shapes documented here may change in a future release without a deprecation period.\"; non-streaming only; system/assistant/tool messages rejected). cloudflare/clef: 64 questions; output free per its price table. Requesty latency includes the router hop."
+  },
+  {
+   "model": "clef",
+   "surface": "self-host",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": 255,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": true,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 65536
+   },
+   "questions_per_request": {
+    "max": 64,
+    "fan_out_supported": true,
+    "packing_supported": true
+   },
+   "output_tokens_billed": null,
+   "source_ids": [
+    "cloudflare-hf-clef"
+   ],
+   "caveat_ids": [
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights (Apache-2.0, HF Cloudflare/clef): BF16 safetensors only officially; needs about 54 GB VRAM in bf16 (independent report); community GGUF/MLX/NVFP4/FP8 builds cover only the language backbone in the GGUF case, so the joint decision head requires the transformers path (custom joint_schema_model.py). HF card tested on a single H200; encode_record accepts max_length (default 16,384 tokens) and max_state_tokens to bound the input (card), so the self-host default is below the advertised 65,536."
+  },
+  {
+   "model": "clef-flash",
+   "surface": "self-host",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": 255,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": true,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 65536
+   },
+   "questions_per_request": {
+    "max": 64,
+    "fan_out_supported": true,
+    "packing_supported": true
+   },
+   "output_tokens_billed": null,
+   "source_ids": [
+    "cloudflare-hf-clef-flash"
+   ],
+   "caveat_ids": [
+    "self-hosting-friction-and-hardware-reality"
+   ],
+   "notes": "Open weights (Apache-2.0, HF Cloudflare/clef-flash, 9B): an independent user ran it bf16 on one RTX 3090 (PyTorch, no batching)."
+  }
+ ],
+ "missing": [
+  "Cloudflare Workers AI rate limits for Clef: no Clef-specific row on the limits page.",
+  "Clef abstain output and calibration beyond the Brier+RLCD training claim: none documented.",
+  "Whether Workers AI truncates state to ~2K tokens: Cloudflare does not confirm in the pages read; only the OpenRouter listing says so."
+ ]
+}

@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tnunamak/minnows/data/decision-model-catalog/schemas/capabilities-v1.schema.json",
+  "title": "decision-model-catalog capabilities document v1",
+  "description": "Decision-interface surface per model: what question shapes it accepts and what it returns. Facts only. null = unknown (never guess); false = documented as unsupported.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "schema_version",
+    "kind",
+    "retrieved_at",
+    "source_urls",
+    "surfaces"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]+$"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "kind": {
+      "type": "string",
+      "const": "capabilities"
+    },
+    "retrieved_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "source_urls": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 8
+      }
+    },
+    "source_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]+$"
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "surfaces": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "model",
+          "surface"
+        ],
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1
+          },
+          "surface": {
+            "type": "string",
+            "enum": [
+              "typesafe-api",
+              "workers-ai",
+              "openai-api",
+              "openrouter",
+              "self-host",
+              "hf-inference",
+              "other"
+            ]
+          },
+          "question_types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]*$"
+            },
+            "description": "choice | score | noul | binary | multi_label | ..."
+          },
+          "max_options": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "abstain_supported": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "returns_probabilities": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "calibration_claimed": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "rationale_supported": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "context": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "state_tokens": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1
+              },
+              "total_tokens": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1
+              }
+            }
+          },
+          "questions_per_request": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "max": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1
+              },
+              "fan_out_supported": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "packing_supported": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              }
+            }
+          },
+          "output_tokens_billed": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "true if output tokens are billed on this surface"
+          },
+          "source_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]+$"
+            }
+          },
+          "caveat_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]+$"
+            }
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "missing": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

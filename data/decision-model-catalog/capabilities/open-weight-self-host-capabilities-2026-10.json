@@ -1,0 +1,307 @@
+{
+ "id": "open-weight-self-host-capabilities-2026-10",
+ "schema_version": 1,
+ "kind": "capabilities",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://huggingface.co/Mapika/decider-2b",
+  "https://huggingface.co/Mapika/decider-2b-GGUF",
+  "https://github.com/tnunamak/divan/blob/main/llm-serving/decider-2b-gguf-on-a-busy-ryzen-cpu-gives-calibrated-typesafe-shaped-decisions-in-about-0-2-s-for-short-states-and-2-5-to-3-s-at-700-tokens-in-2-4-gb-ram.md",
+  "https://huggingface.co/kirp/jpt-4b",
+  "https://huggingface.co/caiovicentino1/Eikos-27B",
+  "https://huggingface.co/michaljach/jet",
+  "https://huggingface.co/juspay/Xor-26B-A4B",
+  "https://huggingface.co/EldanRing/Winnow-12B",
+  "https://github.com/EldanRing/winnow-inference/blob/main/docs/API.md",
+  "https://huggingface.co/api/models",
+  "https://raw.githubusercontent.com/TuringCorp-net/awesome-decision-models/main/README.md"
+ ],
+ "source_ids": [
+  "hf-mapika-decider-2b",
+  "hf-mapika-decider-2b-gguf",
+  "divan-decider-2b-cpu",
+  "hf-kirp-jpt",
+  "hf-eikos-27b",
+  "hf-michaljach-jet",
+  "hf-juspay-xor-26b-a4b",
+  "hf-eldanring-winnow-12b",
+  "winnow-api-doc",
+  "hf-model-repos",
+  "awesome-decision-models"
+ ],
+ "notes": "Self-hosted open-weight decision models: facts from model cards and HF metadata (not re-verified against code unless noted). Interfaces mostly mimic the TypeSafe /v1/systemone shape (decider-ai, Kev, Winnow, Xor, Jebadiah, JPT via llm2jev, Surogate /v1/decisions). Decider-2b/4b: choice up to 255 options, state up to 32,768 tokens in config, English only, Rules written into the question (\"fill if empty, otherwise skip\") \"are not followed at this size\"; one forward per question by default (independent=True) or packed (independent=False; reordering changed up to 12% of answers). Eikos-27B: up to 160 options in one pass (A-Z then AA...). Winnow-12B: 1-256 questions per request and 2-64 alternatives per question. Jet v6.2: prompts up to 16,384 tokens, never silently truncated; author says confidence is not calibrated. JPT: CC-BY-NC-4.0 (non-commercial); one temperature fit on a held-out split; ECE 0.02-0.19 by task. Xor: up to 8 images or one video; body up to 8 MB. Other entrants (Kev, Jebadiah, Rune, JPT, Winnow...) have unknowns left null.",
+ "surfaces": [
+  {
+   "model": "decider-2b",
+   "surface": "self-host",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": 255,
+   "abstain_supported": true,
+   "returns_probabilities": true,
+   "calibration_claimed": null,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": 32768,
+    "total_tokens": null
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": true,
+    "packing_supported": true
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "hf-mapika-decider-2b",
+    "hf-mapika-decider-2b-gguf",
+    "divan-decider-2b-cpu"
+   ],
+   "caveat_ids": [
+    "local-measurement-busy-cpu",
+    "fanout-independence-holds-for-jev-only-per-vendor-evidence",
+    "calibration-unverified-and-nonportable"
+   ],
+   "notes": "abstain_supported true only via a user-defined catch-all option (\"chosen when nothing on offer fits, not when the exact fine-grained label is merely absent\"); calibration_claimed null: per-type temperatures (v11: choice 1.164, noul 1.624, score 1.124) but the card reports overconfidence on hard items (ECE 0.156 held-out; 0.175 JevBench hard tier). English only. GGUF engine has no prefix cache; llama-server readout works with n_predict 1 and n_probs 100."
+  },
+  {
+   "model": "decider-4b",
+   "surface": "self-host",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": 255,
+   "abstain_supported": true,
+   "returns_probabilities": true,
+   "calibration_claimed": null,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": 32768,
+    "total_tokens": null
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": true,
+    "packing_supported": true
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "hf-mapika-decider-2b",
+    "divan-decider-2b-cpu"
+   ],
+   "caveat_ids": [
+    "local-measurement-busy-cpu",
+    "fanout-independence-holds-for-jev-only-per-vendor-evidence"
+   ],
+   "notes": "Same package and interface as decider-2b (v2.1 on Qwen3.5-4B-Base)."
+  },
+  {
+   "model": "eikos-27b",
+   "surface": "self-host",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": 160,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": null,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": null
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": true,
+    "packing_supported": null
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "hf-eikos-27b"
+   ],
+   "caveat_ids": [
+    "decision-index-contamination-handling"
+   ],
+   "notes": "Up to 160 options in one pass; caller can abstain below a confidence threshold (no native unknown); text + images (serve v1.3, zero-shot via the base vision encoder); English and Portuguese trained. The board latency run used --max-model-len 65536 (a run setting, not stored as a model limit)."
+  },
+  {
+   "model": "winnow-12b",
+   "surface": "self-host",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": 64,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": null,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": null
+   },
+   "questions_per_request": {
+    "max": 256,
+    "fan_out_supported": true,
+    "packing_supported": true
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "winnow-api-doc",
+    "hf-eldanring-winnow-12b"
+   ],
+   "notes": "API.md: \"There must be 1-256 questions and 2-64 alternatives per question\" (en dashes in the source); up to 16 images (needs a matching --mmproj); /v1/systemone and /v1/chat/completions from one loaded model; requests processed one at a time."
+  },
+  {
+   "model": "jet-v6.2",
+   "surface": "self-host",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": 255,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": false,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 16384
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": false,
+    "packing_supported": null
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "hf-michaljach-jet"
+   ],
+   "notes": "\"Questions are processed separately.\"; runtime accepts complete prompts up to 16,384 tokens and never silently truncates; the author states confidence is not calibrated; long-context quality not established."
+  },
+  {
+   "model": "jpt-4b",
+   "surface": "self-host",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": 255,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": true,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": null
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": null,
+    "packing_supported": null
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "hf-kirp-jpt"
+   ],
+   "caveat_ids": [
+    "license-noncommercial-jpt"
+   ],
+   "notes": "CC-BY-NC-4.0 (non-commercial). Calibrated with one temperature (T=1.036 for 4B, 1.087 for 9B) on a held-out split; The card SGLang flags use --context-length 32768 (a serving flag, not stored as a model limit). Vision tower unchanged (images accepted)."
+  },
+  {
+   "model": "xor-26b-a4b",
+   "surface": "self-host",
+   "question_types": [
+    "noul",
+    "choice",
+    "score"
+   ],
+   "max_options": null,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": true,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": null
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": null,
+    "packing_supported": null
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "hf-juspay-xor-26b-a4b"
+   ],
+   "notes": "Deterministic single-token candidate readout, forward+reverse option-order evaluation and calibration; up to 8 images or one video; request body <= 8 MB (HTTP 422 beyond)."
+  },
+  {
+   "model": "surogate-rune-26b-a4b",
+   "surface": "self-host",
+   "max_options": null,
+   "abstain_supported": null,
+   "returns_probabilities": null,
+   "calibration_claimed": null,
+   "rationale_supported": null,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": null
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": null,
+    "packing_supported": null
+   },
+   "output_tokens_billed": null,
+   "source_ids": [
+    "hf-model-repos"
+   ],
+   "notes": "README unreadable (HTTP 401, repo gated auto); interface unknown beyond POST /v1/decisions with \"whole row in one request (shared state prefill)\" and a 262,144 max-model-len used in the board latency run (third-party summary)."
+  },
+  {
+   "model": "nanojev",
+   "surface": "self-host",
+   "question_types": [
+    "choice",
+    "binary",
+    "score"
+   ],
+   "max_options": 255,
+   "abstain_supported": null,
+   "returns_probabilities": null,
+   "calibration_claimed": null,
+   "rationale_supported": null,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": null
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": null,
+    "packing_supported": null
+   },
+   "output_tokens_billed": null,
+   "source_ids": [
+    "awesome-decision-models"
+   ],
+   "caveat_ids": [
+    "scope-limited-decision-models"
+   ],
+   "notes": "Research replica (Qwen3-0.6B + structured heads); choice 2-255 dynamic candidates, boolean, score 2-10 levels; scope is games (Maze, Snake, ViZDoom Basic, Predict Position), not general. Primary HF/GitHub pages not opened; facts from search summaries and the awesome list: UNVERIFIED."
+  }
+ ],
+ "missing": [
+  "Kev, Jebadiah, Rune, Xor, JPT and Winnow: calibration and context limits not recorded beyond the above."
+ ]
+}

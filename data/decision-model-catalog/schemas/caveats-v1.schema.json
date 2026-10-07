@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tnunamak/minnows/data/decision-model-catalog/schemas/caveats-v1.schema.json",
+  "title": "decision-model-catalog caveat registry v1",
+  "description": "Nuance that must travel with the numbers. Rows cite caveats by id (caveat_ids[]); consumers that surface a row must surface its caveats.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "schema_version",
+    "generated_at",
+    "caveats"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "const": "decision-model-catalog-caveats"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "caveats": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "statement",
+          "affects",
+          "strength",
+          "implication",
+          "evidence"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]+$"
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "affects": {
+            "type": "object",
+            "additionalProperties": false,
+            "minProperties": 1,
+            "properties": {
+              "models": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "metrics": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "strength": {
+            "type": "string",
+            "enum": [
+              "strong",
+              "moderate",
+              "anecdotal"
+            ],
+            "description": "strong = measured/primary-source; moderate = credible but indirect; anecdotal = single report or comment"
+          },
+          "implication": {
+            "type": "string",
+            "minLength": 1,
+            "description": "What a consumer should do differently because of this caveat"
+          },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source_id",
+                "quote"
+              ],
+              "properties": {
+                "source_id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9-]+$"
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "location": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

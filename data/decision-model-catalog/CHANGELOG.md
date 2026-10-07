@@ -1,0 +1,16 @@
+# Decision model catalog changelog
+
+## v0.1.0 — 2026-10-07
+
+- First release. Data as of 2026-10-07 UTC (research ran the evening of 2026-10-06 US Central); every `generated_at` and `retrieved_at` uses 2026-10-07.
+- Pack structure: `caveats.json` (nuance registry), `measurement` context on latency and cost rows, decision-model fields on `models.json`, decision-interface `capabilities/`, raw-unit pricing with sourced USD conversion, schemas, validator integration and docs.
+- `models.json`: all 111 Jev Decision Index 0.3 entrants plus the hosted decision APIs (Jev, Clef, Clef-flash, OpenAI Decisions, Perplexity, Liquid d1, Solar Decide, Mercury, Span-01, Tev1, Kev, meraGPT, ...): 132 models. Provider-qualified router ids are aliases so rows keep their serving provider. Different checkpoints under one name get separate ids (Kev 9B v2 `kev-9b` vs the earlier `kev-9b-raised` that Cloudflare's card table used; Perplexity v1 vs v1.1).
+- `pricing/`: nine documents (TypeSafe, Cloudflare Workers AI with neuron-to-USD conversion, OpenAI, Perplexity, OpenRouter, Requesty, sference, Liquid, self-hosted). Perplexity direct $0.02/M vs routers $0.04/M and the third-party jevaihub.com conflict are recorded, not resolved. Cache rates are a number only where the source prints one; otherwise `null` with `cache_rates_status` (`not_published` or `vendor_states_none_charged`). No cache rate is inferred from the input price.
+- `performance/`: 25 documents, one per source (Decision Index 0.3 with every per-benchmark row and latency by vantage, Cloudflare launch tables as vendor-run, OpenRouter p50 latency, JevBench v1.6.1, Requesty with ECE, morrenhale, TypeSafe Evals, StreamDecisionBench, Nicia (re-verified against the repo's raw result files), siujev, papers, our local CPU runs, ...). Rows from author-submitted Decision Index latency runs name the author as `measured_by` and the board as `published_by`.
+- `capabilities/`: six documents (question types, option and question caps, abstain, probabilities, context, billing of output). The reported Workers AI ~2K-token state truncation is a caveat against the advertised 64K context.
+- `caveats.json`: 56 caveats with verbatim evidence.
+- `metrics.json`: 285 metric ids, one per benchmark x publisher/harness; hosted-RTT and on-card latency have separate ids; official vs Jev-adapted BFCL/API-Bank/When2Call are different metrics. JevBench capability is the mean of the Intelligence and Calibration axes (not accuracy); its composite is the 25/25/25/25 harmonic mean of Intelligence, Calibration, Speed and Cost.
+- Validator: a score row's unit must equal its registered metric's `unit_default`, and the latency/cost context requirement follows the metric, not the row's own unit label.
+- `evidence/local-decider-cpu-bench/`: vendored raw JSON of our own decider-2b/4b measurements.
+- README: "At a glance (as of 2026-10-07)", decision rules the evidence does and does not support, and a worked example that shows cost per request and cost per decision (request cost divided by the questions in the request).
+- Conventions: Decision Index and Cloudflare per-benchmark scores are stored as percent; large documents omit per-row `harness` and `task_family` (see `metrics.json`).

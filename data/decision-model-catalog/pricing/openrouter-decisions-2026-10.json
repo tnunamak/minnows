@@ -1,0 +1,277 @@
+{
+ "id": "openrouter-decisions-2026-10",
+ "schema_version": 1,
+ "kind": "api_usd",
+ "agent": "other",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://openrouter.ai/api/v1/models?output_modalities=decisions"
+ ],
+ "source_ids": [
+  "openrouter-decisions-catalog"
+ ],
+ "role": "reference",
+ "notes": "OpenRouter decisions-modality listings (14 ids; 12 stored here, two aliases of Jev and the :free Span-01 Lite route share rows): per-token prompt prices converted from the listing \"pricing\" strings (USD per token x 1,000,000); completion is always $0 (output free). OpenRouter is a router: prices can differ from the model vendor price (Perplexity $0.04 vs $0.02 direct). Default /api/v1/models hides decision models; they appear with ?output_modalities=decisions. Request volume and p50 latency are in the performance docs. Cache fields: cache_read_per_m is filled only where the listing prints an input_cache_read value (OpenAI Decisions Luna $0, Liquid d1 $0.04, Solar Decide $0.05; cache_rates_status \"published\"). Every other cache field is null with status \"not_published\": the listing has no cache field for it. No cache rate is inferred from the prompt price.",
+ "models": {
+  "openai-decisions-gpt-6-luna": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.1,
+   "cache_read_per_m": 0.0,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "openrouter-decisions-catalog",
+   "caveat_ids": [
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "OpenRouter listing openai/gpt-6-luna-decisions: prompt $0.0000001 per token (= $0.1/M), completion $0, input_cache_read $0. Context 1050000. Marketplace price (router), not the model vendor price. Listing also shows web_search 0.01 (not meaningful for decisions). cache_read_per_m is the listed input_cache_read."
+  },
+  "pplx-decider-v1-27b": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.04,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "openrouter-decisions-catalog",
+   "caveat_ids": [
+    "price-per-token-is-not-cost-per-decision",
+    "perplexity-price-conflict-direct-vs-router"
+   ],
+   "notes": "OpenRouter listing perplexity/pplx-decider-v1-27b: prompt $0.00000004 per token (= $0.04/M), completion $0. Context 262144. Marketplace price (router), not the model vendor price. CONFLICT: Perplexity direct price is $0.02/M; OpenRouter lists $0.04/M."
+  },
+  "liquid-d1": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.04,
+   "cache_read_per_m": 0.04,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "openrouter-decisions-catalog",
+   "caveat_ids": [
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "OpenRouter listing liquid/d1: prompt $0.00000004 per token (= $0.04/M), completion $0, input_cache_read $0.00000004. Context 65536. Marketplace price (router), not the model vendor price. cache_read_per_m is the listed input_cache_read."
+  },
+  "clef-flash": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.09,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "openrouter-decisions-catalog",
+   "caveat_ids": [
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "OpenRouter listing cloudflare/clef-flash: prompt $0.00000009 per token (= $0.09/M), completion $0. Context 65536. Marketplace price (router), not the model vendor price."
+  },
+  "clef": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.24,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "openrouter-decisions-catalog",
+   "caveat_ids": [
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "OpenRouter listing cloudflare/clef: prompt $0.00000024 per token (= $0.24/M), completion $0. Context 65536. Marketplace price (router), not the model vendor price."
+  },
+  "tev1-4b": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.042,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "openrouter-decisions-catalog",
+   "caveat_ids": [
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "OpenRouter listing togethercomputer/tev1-4b-experimental: prompt $0.000000042 per token (= $0.042/M), completion $0. Context 32768. Marketplace price (router), not the model vendor price. Not a probability endpoint (single option letter via chat completions)."
+  },
+  "mercury-decide": {
+   "billing_basis": "free",
+   "fresh_input_per_m": 0.0,
+   "cache_read_per_m": 0.0,
+   "cache_write_per_m": 0.0,
+   "output_per_m": 0.0,
+   "output_free": true,
+   "source_id": "openrouter-decisions-catalog",
+   "caveat_ids": [
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "OpenRouter listing inception/mercury-decide:free: prompt $0 per token (= $0.0/M), completion $0. Context 32768. Marketplace price (router), not the model vendor price. Free route (daily quota applies; Requesty-style quota limits not read).",
+   "confidence": "medium"
+  },
+  "solar-decide": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.05,
+   "cache_read_per_m": 0.05,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "low",
+   "output_free": true,
+   "source_id": "openrouter-decisions-catalog",
+   "caveat_ids": [
+    "price-per-token-is-not-cost-per-decision",
+    "solar-decide-price-discount-unclear"
+   ],
+   "notes": "OpenRouter listing upstage/solar-decide: prompt $0.00000005 per token (= $0.05/M), completion $0, input_cache_read $0.00000005. Context 524288. Marketplace price (router), not the model vendor price. Endpoint shows a \"50% off\" badge: standard $0.10 vs $0.05 (discount 0.5); Upstage console banner \"Solar Mini 4 is live. 70% off through Oct 10 (UTC)\". Unclear whether $0.05 is list or discounted; promo may expire. cache_read_per_m is the listed input_cache_read."
+  },
+  "span-01": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.02,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "openrouter-decisions-catalog",
+   "caveat_ids": [
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "OpenRouter listing respan/span-01: prompt $0.00000002 per token (= $0.02/M), completion $0. Context 0. Marketplace price (router), not the model vendor price."
+  },
+  "span-01-lite": {
+   "billing_basis": "free",
+   "fresh_input_per_m": 0.0,
+   "cache_read_per_m": 0.0,
+   "cache_write_per_m": 0.0,
+   "output_per_m": 0.0,
+   "output_free": true,
+   "source_id": "openrouter-decisions-catalog",
+   "caveat_ids": [
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "OpenRouter listing respan/span-01-lite: prompt $0 per token (= $0.0/M), completion $0. Context 0. Marketplace price (router), not the model vendor price. Free route (daily quota applies; Requesty-style quota limits not read).",
+   "confidence": "medium"
+  },
+  "kev-4b": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.042,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "openrouter-decisions-catalog",
+   "caveat_ids": [
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "OpenRouter listing jaredpalmer/kev-4b: prompt $0.000000042 per token (= $0.042/M), completion $0. Context 8192. Marketplace price (router), not the model vendor price. Provider SiliconFlow (fp8), context 8,192."
+  },
+  "jev-1.13.0": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.042,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "openrouter-decisions-catalog",
+   "caveat_ids": [
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "OpenRouter listing typesafe/jev-1.13: prompt $0.000000042 per token (= $0.042/M), completion $0. Context 32000. Marketplace price (router), not the model vendor price."
+  }
+ },
+ "match": [
+  {
+   "pattern": "openai-decisions-gpt-6-luna",
+   "model": "openai-decisions-gpt-6-luna"
+  },
+  {
+   "pattern": "pplx-decider-v1-27b",
+   "model": "pplx-decider-v1-27b"
+  },
+  {
+   "pattern": "liquid-d1",
+   "model": "liquid-d1"
+  },
+  {
+   "pattern": "clef-flash",
+   "model": "clef-flash"
+  },
+  {
+   "pattern": "clef",
+   "model": "clef"
+  },
+  {
+   "pattern": "tev1-4b",
+   "model": "tev1-4b"
+  },
+  {
+   "pattern": "mercury-decide",
+   "model": "mercury-decide"
+  },
+  {
+   "pattern": "solar-decide",
+   "model": "solar-decide"
+  },
+  {
+   "pattern": "span-01",
+   "model": "span-01"
+  },
+  {
+   "pattern": "span-01-lite",
+   "model": "span-01-lite"
+  },
+  {
+   "pattern": "kev-4b",
+   "model": "kev-4b"
+  },
+  {
+   "pattern": "jev-1.13.0",
+   "model": "jev-1.13.0"
+  }
+ ]
+}

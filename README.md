@@ -69,6 +69,7 @@ like `lib/` — tools that need a pack resolve `$DATA_PACKS_HOME/<pack>` or a pi
 | pack | what it is |
 |------|------------|
 | **[model-catalog](data/model-catalog/)** | Model API/credits pricing + sparse vendor quality/effort claims |
+| **[decision-model-catalog](data/decision-model-catalog/)** | Decision models (typed hot-path decisions): source-backed scores, latency/cost context, caveats |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-catalog           # latest

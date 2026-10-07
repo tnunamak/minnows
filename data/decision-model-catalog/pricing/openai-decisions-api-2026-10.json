@@ -1,0 +1,44 @@
+{
+ "id": "openai-decisions-api-2026-10",
+ "schema_version": 1,
+ "kind": "api_usd",
+ "agent": "other",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://developers.openai.com/api/docs/guides/decisions.md",
+  "https://developers.openai.com/api/docs/models/gpt-6-luna.md"
+ ],
+ "source_ids": [
+  "openai-decisions-guide",
+  "openai-luna-model-page"
+ ],
+ "role": "reference",
+ "notes": "OpenAI Decisions API (POST /v1/decisions, gpt-6-luna) price from developers.openai.com: \"With gpt-6-luna, input costs $0.10 per 1M tokens. You pay only for input tokens: there are no cache-read, cache-write, or output-token charges.\" \"Regional processing premiums and long-context input pricing multipliers apply.\" The Luna model page prices prompts above 272K input tokens at 2x for the full request. Public beta at retrieval (\"we expect to GA in the coming weeks\"); earlier research (2026-10-01/03) found no price and a 403, now superseded. This is a different SKU from the generative gpt-6-luna priced in model-catalog. Cache fields: cache_read_per_m and cache_write_per_m are null with cache_rates_status \"vendor_states_none_charged\": the vendor sentence quoted above (\"there are no cache-read, cache-write, or output-token charges\") is recorded as a quote only and is not converted into a numeric rate.",
+ "models": {
+  "openai-decisions-gpt-6-luna": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.1,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "vendor_states_none_charged",
+    "cache_write": "vendor_states_none_charged"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "openai-decisions-guide",
+   "caveat_ids": [
+    "openai-decisions-status-changed",
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "Input only; no per-request fee listed; regional processing premiums and long-context multipliers apply (not quantified here). Nicia estimated $0.017 per 85-case pass from 170,494 input tokens at this base rate."
+  }
+ },
+ "match": [
+  {
+   "pattern": "decisions",
+   "model": "openai-decisions-gpt-6-luna"
+  }
+ ]
+}

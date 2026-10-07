@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tnunamak/minnows/data/decision-model-catalog/schemas/models-v1.schema.json",
+  "title": "decision-model-catalog L0 model registry v1",
+  "description": "Decision models (typed decisions on an agent's hot path) plus their join key. General LLM baselines live in model-catalog and are NOT duplicated here; model strings resolve against this file first, then data/model-catalog/models.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "schema_version",
+    "generated_at",
+    "models"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "const": "decision-model-catalog-models"
+    },
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "models": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "provider",
+          "family",
+          "status",
+          "aliases",
+          "weights"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "provider": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "Publisher/vendor slug (typesafe, cloudflare, openai, community, ...)"
+          },
+          "family": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ga",
+              "preview",
+              "early_access",
+              "limited_preview",
+              "community_finetune",
+              "research_release",
+              "historical",
+              "deprecated",
+              "third_party_board_only"
+            ]
+          },
+          "tier": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Optional vendor-named family tier (e.g. clef vs clef-flash). Free-form; meaningful within a provider only."
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "weights": {
+            "type": "string",
+            "enum": [
+              "open",
+              "closed"
+            ]
+          },
+          "license": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "base_model": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "description": "Base/parent model id or name for fine-tunes; null when unknown or not applicable"
+          },
+          "params_total": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": 0,
+            "description": "Total parameters as a plain number (e.g. 26e9); null = unknown"
+          },
+          "params_active": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "exclusiveMinimum": 0,
+            "description": "Active parameters per token (MoE); null = unknown or dense-same-as-total"
+          },
+          "hf_repo": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "description": "owner/name on Hugging Face"
+          },
+          "surfaces": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "typesafe-api",
+                "workers-ai",
+                "openai-api",
+                "openrouter",
+                "self-host",
+                "hf-inference",
+                "other"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "released": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+            "description": "ISO release date stated by the cited primary source."
+          },
+          "release_source_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]+$"
+          },
+          "access": {
+            "type": "string",
+            "enum": [
+              "general",
+              "restricted"
+            ]
+          },
+          "caveat_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]+$"
+            }
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

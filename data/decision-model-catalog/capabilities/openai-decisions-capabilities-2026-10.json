@@ -1,0 +1,90 @@
+{
+ "id": "openai-decisions-capabilities-2026-10",
+ "schema_version": 1,
+ "kind": "capabilities",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://developers.openai.com/api/docs/guides/decisions.md",
+  "https://developers.openai.com/api/reference/python/resources/decisions/methods/create.md",
+  "https://developers.openai.com/api/docs/models/gpt-6-luna.md",
+  "https://openrouter.ai/api/v1/models?output_modalities=decisions"
+ ],
+ "source_ids": [
+  "openai-decisions-guide",
+  "openai-decisions-reference",
+  "openai-luna-model-page",
+  "openrouter-decisions-catalog"
+ ],
+ "notes": "OpenAI Decisions API (POST https://api.openai.com/v1/decisions; SDK client.decisions.create): gpt-6-luna is the only model; public beta (GA \"in the coming weeks\"). Question types (OpenAI names): predicate (probability that a condition is true), choice (choice + probabilities + separate confidence), score (probability-weighted average of level indices + probabilities + confidence). Stored as binary / choice / score. A per-question `refusal` answer type exists (policy refusal): it is NOT an abstain output. Text and images (inline base64 data URLs only; up to 128 images per request); non-user roles and files are not supported; `safety_identifier` parameter; ZDR and HIPAA eligible; US and EEA+Switzerland residency. Context window 1,050,000 (max input 922,000 on the Luna page); OpenRouter listing max completion 945,000. Several independent questions in one `questions` array over shared input; dependent decisions need separate requests. Max questions and max choice options are not documented in the pages read (OpenRouter text, secondary, says up to 200 questions).",
+ "surfaces": [
+  {
+   "model": "openai-decisions-gpt-6-luna",
+   "surface": "openai-api",
+   "question_types": [
+    "binary",
+    "choice",
+    "score"
+   ],
+   "max_options": null,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": null,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 1050000
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": true,
+    "packing_supported": true
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "openai-decisions-guide",
+    "openai-decisions-reference",
+    "openai-luna-model-page"
+   ],
+   "caveat_ids": [
+    "openai-decisions-status-changed",
+    "determinism-and-option-order"
+   ],
+   "notes": "abstain_supported null: only a policy `refusal` answer type is documented. calibration_claimed null: OpenAI publishes no calibration number; Hard-Decisions probed the generative Luna (not this API) and found its stated 99%+ confidence right 68.7% of the time. Nicia measured order sensitivity (8 of 85 decisions changed when records were reversed)."
+  },
+  {
+   "model": "openai-decisions-gpt-6-luna",
+   "surface": "openrouter",
+   "question_types": [
+    "binary",
+    "choice",
+    "score"
+   ],
+   "max_options": null,
+   "abstain_supported": null,
+   "returns_probabilities": true,
+   "calibration_claimed": null,
+   "rationale_supported": false,
+   "context": {
+    "state_tokens": null,
+    "total_tokens": 1050000
+   },
+   "questions_per_request": {
+    "max": null,
+    "fan_out_supported": null,
+    "packing_supported": null
+   },
+   "output_tokens_billed": false,
+   "source_ids": [
+    "openrouter-decisions-catalog"
+   ],
+   "caveat_ids": [
+    "openai-decisions-status-changed"
+   ],
+   "notes": "OpenRouter openai/gpt-6-luna-decisions (created 2026-10-06): context 1,050,000; $0.10/M input; completion $0; p50 0.30 s over 3 days."
+  }
+ ],
+ "missing": [
+  "OpenAI Decisions maximum questions per request and maximum options per choice: not documented in the pages read.",
+  "OpenAI-published latency, accuracy or calibration: none (\"about 10x faster than the Responses API\" only)."
+ ]
+}

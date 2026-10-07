@@ -1,0 +1,2 @@
+{"gguf": "decider-2b-v11-Q8_0.gguf", "correct": 11, "n": 12, "median_ms": 220, "max_ms": 288, "loadavg": 15.5771484375, "rss_mb": 2642}
+{"gguf": "decider-4b-v2.1-Q4_K_M.gguf", "correct": 11, "n": 12, "median_ms": 440, "max_ms": 655, "loadavg": 15.365234375, "rss_mb": 4999}

@@ -1,0 +1,44 @@
+{
+ "id": "sference-eu-2026-10",
+ "schema_version": 1,
+ "kind": "api_usd",
+ "agent": "other",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://www.sference.com/docs/models",
+  "https://www.sference.com/docs/guides/decisions"
+ ],
+ "source_ids": [
+  "sference-docs-models",
+  "sference-docs-decisions"
+ ],
+ "role": "reference",
+ "notes": "sference (EU managed inference) price for Clef: docs table \"Cloudflare/clef | 64K | $0.24 | — |\" (Input, Output columns); text: \"Served on POST /v1/decisions (realtime only). It answers up to 16 choice, score, or yes/no questions about one input in a single call, generates no text, and is billed on input tokens only.\" Rates are \"confirmed per model at account provisioning\". EU GPUs; no batch/flex/background. Cache fields: cache_read_per_m and cache_write_per_m are null with cache_rates_status \"not_published\": the vendor documents no caching discount or surcharge, so no cache rate is recorded (none is inferred from the input price).",
+ "models": {
+  "sference/clef": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.24,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "sference-docs-models",
+   "caveat_ids": [
+    "same-weights-different-serving-limits-and-confidence",
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "<=16 questions per request; 64K context; billed on input tokens only; rate confirmed at account provisioning."
+  }
+ },
+ "match": [
+  {
+   "pattern": "clef",
+   "model": "sference/clef"
+  }
+ ]
+}

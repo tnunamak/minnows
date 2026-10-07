@@ -1,0 +1,90 @@
+{
+ "id": "requesty-router-2026-10",
+ "schema_version": 1,
+ "kind": "api_usd",
+ "agent": "other",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://www.requesty.ai/blog/decision-model-benchmark-clef-sference-cloudflare-perplexity",
+  "https://docs.requesty.ai/features/decisions"
+ ],
+ "source_ids": [
+  "requesty-benchmark",
+  "requesty-docs-decisions"
+ ],
+ "role": "reference",
+ "notes": "Requesty router prices as printed in its 2026-10-05 benchmark post: sference/clef $0.24/M input (output free, 64K), cloudflare/clef $0.24/M (output free, 64K), perplexity/pplx-decider-v1-27b $0.04/M (output free, 262K; conflicts with Perplexity direct $0.02). Requesty-billed cost on its gateway benchmark: Clef $0.131 and Perplexity decider $0.023 per 1,000 items (an item is one request answering 1-5 questions): see the Requesty performance doc. Jev price on Requesty (typesafe/jev-latest): NOT published in the pages read (missing; no row). Cache fields: cache_read_per_m and cache_write_per_m are null with cache_rates_status \"not_published\": the vendor documents no caching discount or surcharge, so no cache rate is recorded (none is inferred from the input price).",
+ "models": {
+  "sference/clef": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.24,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "requesty-benchmark",
+   "caveat_ids": [
+    "same-weights-different-serving-limits-and-confidence",
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "Router listing \"sference/clef | decision, 27B | $0.24 / M | free | 64K\"; sference caps a request at 16 questions."
+  },
+  "cloudflare/clef": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.24,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "requesty-benchmark",
+   "caveat_ids": [
+    "same-weights-different-serving-limits-and-confidence",
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "Router listing \"cloudflare/clef | decision, 27B | $0.24 / M | free | 64K\"; Cloudflare caps a request at 64 questions; Requesty's Cloudflare account hit its daily Workers AI quota mid-run."
+  },
+  "perplexity/pplx-decider-v1-27b": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.04,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "requesty-benchmark",
+   "caveat_ids": [
+    "perplexity-price-conflict-direct-vs-router",
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "Router listing \"$0.04 / M | free | 262K\"; 2x the Perplexity direct price."
+  }
+ },
+ "match": [
+  {
+   "pattern": "sference",
+   "model": "sference/clef"
+  },
+  {
+   "pattern": "cloudflare",
+   "model": "cloudflare/clef"
+  },
+  {
+   "pattern": "perplexity",
+   "model": "perplexity/pplx-decider-v1-27b"
+  }
+ ]
+}

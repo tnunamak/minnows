@@ -1,0 +1,43 @@
+{
+ "id": "devto-clef-flash-vs-jev-2026-10-01",
+ "schema_version": 1,
+ "kind": "performance",
+ "provider": "prodbymarcu",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://dev.to/prodbymarcu/i-benchmarked-cloudflares-new-open-decision-model-against-the-hosted-api-its-trying-to-replace-2ded"
+ ],
+ "notes": "A single practitioner write-up (DEV Community, 2026-10-01): 42 labeled decisions from one autonomous coding agent (10 computer-use action choices, 12 subagent supervision calls, 20 message triage routes), Clef-Flash 9B bf16 local on one RTX 3090 with PyTorch vs Jev-1.13.0 hosted API. \"This is a 42-case benchmark from one person's agent, not a paper.\"",
+ "source_ids": [
+  "devto-clef-flash-vs-jev"
+ ],
+ "claims": [
+  {
+   "models": [
+    "jev-1.13.0",
+    "clef-flash"
+   ],
+   "statement": "Per task: computer-use action choice both 10/10 (including two safety traps: abstain and reobserve); supervision both 8/12 (same two misses); triage Jev 12/20 vs Clef-Flash 10/20 (\"mostly on today-vs-queue boundary cases\"). The two models agreed on 35 of 42 predictions. \"The full Clef-27B ... wants about 54GB of VRAM in bf16. My single 3090 has 24.\" Community GGUF quants of Clef \"only cover the language backbone. The joint decision head needs the transformers code path\".",
+   "task_families": [
+    "agent_decisions"
+   ],
+   "axes": [
+    "quality"
+   ],
+   "source_id": "devto-clef-flash-vs-jev",
+   "caveat_ids": [
+    "small-sample-and-single-run-evidence",
+    "self-hosting-friction-and-hardware-reality",
+    "benchmark-vs-task-shape"
+   ]
+  }
+ ],
+ "scores": [
+  {"model":"jev-1.13.0","metric":"DEV post: overall accuracy on 42 agent decisions","metric_id":"devto-42case-overall-accuracy","score":71.4,"unit":"accuracy","source_id":"devto-clef-flash-vs-jev","harness":"Three task families: 10 computer-use action choices, 12 subagent supervision calls, 20 message triage routes; gold from what worked; Clef-Flash local bf16 RTX 3090, Jev hosted","task_family":"agent_decisions","source_type":"community_report","evidence_grade":"D","observed_at":"2026-10-01","comparability_group":"devto-42case/overall-accuracy","n":42,"caveat_ids":["small-sample-and-single-run-evidence","benchmark-vs-task-shape"]},
+  {"model":"clef-flash","metric":"DEV post: overall accuracy on 42 agent decisions","metric_id":"devto-42case-overall-accuracy","score":66.7,"unit":"accuracy","caveat":"Clef-Flash 9B bf16, local RTX 3090, PyTorch.","source_id":"devto-clef-flash-vs-jev","harness":"Three task families: 10 computer-use action choices, 12 subagent supervision calls, 20 message triage routes; gold from what worked; Clef-Flash local bf16 RTX 3090, Jev hosted","task_family":"agent_decisions","source_type":"community_report","evidence_grade":"D","observed_at":"2026-10-01","comparability_group":"devto-42case/overall-accuracy","n":42,"caveat_ids":["small-sample-and-single-run-evidence","benchmark-vs-task-shape"]},
+  {"model":"jev-1.13.0","metric":"DEV post: triage routes correct (of 20)","metric_id":"devto-42case-triage-correct","score":12,"unit":"other","source_id":"devto-clef-flash-vs-jev","harness":"See devto-42case-overall-accuracy","task_family":"agent_decisions","source_type":"community_report","evidence_grade":"D","observed_at":"2026-10-01","comparability_group":"devto-42case/triage-correct","n":20,"caveat_ids":["small-sample-and-single-run-evidence"]},
+  {"model":"clef-flash","metric":"DEV post: triage routes correct (of 20)","metric_id":"devto-42case-triage-correct","score":10,"unit":"other","source_id":"devto-clef-flash-vs-jev","harness":"See devto-42case-overall-accuracy","task_family":"agent_decisions","source_type":"community_report","evidence_grade":"D","observed_at":"2026-10-01","comparability_group":"devto-42case/triage-correct","n":20,"caveat_ids":["small-sample-and-single-run-evidence"]},
+  {"model":"jev-1.13.0","metric":"DEV post: p50 latency","metric_id":"devto-42case-p50-latency-ms","score":225,"unit":"ms","caveat":"\"Jev p50 225ms over the network.\" Client location not stated.","source_id":"devto-clef-flash-vs-jev","harness":"Jev over the network (hosted API); Clef-Flash fully local on one RTX 3090, no batching","task_family":"latency","source_type":"community_report","evidence_grade":"D","observed_at":"2026-10-01","comparability_group":"devto-42case/p50-latency","comparable":false,"caveat_ids":["latency-hosted-rtt-vs-on-card","small-sample-and-single-run-evidence"],"measurement":{"measured_by":"prodbymarcu (individual)","vantage":"hosted_rtt","percentile":"p50","region":"not stated (New York, NY author location per profile)"}},
+  {"model":"clef-flash","metric":"DEV post: p50 latency","metric_id":"devto-42case-p50-latency-ms","score":315,"unit":"ms","caveat":"\"Clef-Flash p50 315ms fully local, single 3090, no batching.\" Local on-card; not the hosted Workers AI endpoint.","source_id":"devto-clef-flash-vs-jev","harness":"Jev over the network (hosted API); Clef-Flash fully local on one RTX 3090, no batching","task_family":"latency","source_type":"community_report","evidence_grade":"D","observed_at":"2026-10-01","comparability_group":"devto-42case/p50-latency","comparable":false,"caveat_ids":["latency-hosted-rtt-vs-on-card","small-sample-and-single-run-evidence"],"measurement":{"measured_by":"prodbymarcu (individual)","vantage":"local_gpu","percentile":"p50","hardware":"NVIDIA RTX 3090, bf16, PyTorch, no batching"}}
+ ]
+}

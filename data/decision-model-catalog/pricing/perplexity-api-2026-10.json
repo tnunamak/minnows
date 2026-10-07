@@ -1,0 +1,70 @@
+{
+ "id": "perplexity-api-2026-10",
+ "schema_version": 1,
+ "kind": "api_usd",
+ "agent": "other",
+ "retrieved_at": "2026-10-07",
+ "source_urls": [
+  "https://docs.perplexity.ai/docs/decisions/quickstart.md",
+  "https://docs.perplexity.ai/docs/getting-started/pricing.md"
+ ],
+ "source_ids": [
+  "perplexity-decisions-quickstart",
+  "perplexity-pricing",
+  "openrouter-decisions-catalog",
+  "requesty-benchmark"
+ ],
+ "role": "reference",
+ "notes": "Perplexity first-party Decisions API price: \"The Decisions API costs $0.02 per million input tokens. Output tokens are free, and there is no per-request fee.\" (quickstart; the pricing page JSON also shows decisions.input 0.02). Rate limit 10 requests per second per organization on every plan. PRICE CONFLICT: OpenRouter and Requesty list the same model at $0.04 per million input tokens (2x the direct price). Unresolved whether the routers add a markup or the direct price changed; both are recorded (see the openrouter and requesty pricing docs). pplx-decider-v1.1-27b is served under the same API; the v1 and v1.1 rows are the same rate. Cache fields: cache_read_per_m and cache_write_per_m are null with cache_rates_status \"not_published\": the vendor documents no caching discount or surcharge, so no cache rate is recorded (none is inferred from the input price).",
+ "models": {
+  "pplx-decider-v1-27b": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.02,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "perplexity-decisions-quickstart",
+   "caveat_ids": [
+    "perplexity-price-conflict-direct-vs-router",
+    "price-per-token-is-not-cost-per-decision",
+    "price-free-output-is-small-but-nonzero-value"
+   ],
+   "notes": "Direct price. 10 requests/s per org. Requesty measured a billed $0.023 per 1,000 items (about $0.02) on its gateway benchmark through the router."
+  },
+  "pplx-decider-v1.1-27b": {
+   "billing_basis": "per_token",
+   "fresh_input_per_m": 0.02,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
+   "output_per_m": 0.0,
+   "confidence": "high",
+   "output_free": true,
+   "source_id": "perplexity-decisions-quickstart",
+   "caveat_ids": [
+    "perplexity-price-conflict-direct-vs-router",
+    "price-per-token-is-not-cost-per-decision"
+   ],
+   "notes": "Same Decisions API; the quickstart does not list a separate v1.1 rate."
+  }
+ },
+ "match": [
+  {
+   "pattern": "v1.1",
+   "model": "pplx-decider-v1.1-27b"
+  },
+  {
+   "pattern": "pplx",
+   "model": "pplx-decider-v1-27b"
+  }
+ ]
+}
