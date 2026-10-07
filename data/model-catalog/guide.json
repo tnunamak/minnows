@@ -133,6 +133,68 @@
     ],
     "footer": "“Cheaper” means a lower API cost per task on that benchmark, which only approximates quota use."
   },
+  "hero": {
+    "title": "Cost vs intelligence",
+    "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+    "y_label": "Intelligence Index",
+    "credit": "Data from Artificial Analysis",
+    "cost_basis": "api_usd",
+    "exclude_groups_matching": "estimated",
+    "bridge": {
+      "score_tolerance": 1.0,
+      "cost_rel_tolerance": 0.1
+    },
+    "flags": [
+      {
+        "caveat_matches": "used a pre-release deployment",
+        "mark": "†",
+        "label": "pre-release run",
+        "note": "run on a pre-release deployment; Artificial Analysis expects to rerun it"
+      }
+    ],
+    "featured": {
+      "newest_per_tier_providers": [
+        "anthropic",
+        "openai",
+        "google",
+        "xai"
+      ],
+      "statuses": [
+        "ga",
+        "preview"
+      ],
+      "top_others": 3,
+      "include_frontier": true
+    },
+    "providers": {
+      "anthropic": {
+        "label": "Anthropic",
+        "light": "#b4532a",
+        "dark": "#e2875f"
+      },
+      "openai": {
+        "label": "OpenAI",
+        "light": "#424a53",
+        "dark": "#c9d1d9"
+      },
+      "google": {
+        "label": "Google",
+        "light": "#25784a",
+        "dark": "#56b97a"
+      },
+      "xai": {
+        "label": "xAI",
+        "light": "#6b4fc0",
+        "dark": "#a58ff0"
+      }
+    },
+    "other_providers": {
+      "label": "Other vendors",
+      "light": "#1a7380",
+      "dark": "#4fadb8"
+    },
+    "notes": "Comparability rule for the cost-vs-intelligence chart. (1) One metric_id only, which pins one index version; rows of other versions never appear. (2) Rows whose comparability_group matches exclude_groups_matching (estimated values) are left out and named in the footnote. (3) The comparability group with the most models is the anchor. Another group of the same metric joins only if it shares at least one (model, effort) setting with the groups already joined and every shared setting agrees within bridge.score_tolerance index points (whole-point display rounding) and, where both rows have a cost, within bridge.cost_rel_tolerance. A group that shares no setting cannot be checked, so it is left out and its models are named in the footnote. (4) For each (model, effort), the latest observed_at row with a cost per task of basis cost_basis is plotted; same-day ties go to the better evidence grade, then the more precise score. The chart footer states the observation date range. (5) Rows whose caveat matches a flags entry are drawn hollow and marked, not hidden. (6) Models with index rows but no cost per task are named in the footnote. The featured chart shows the newest model with data in each tier of the listed providers, the top_others best-scoring models of other providers, and every model with a setting on the Pareto frontier; the second chart shows all models. Colours are WCAG AA (4.5:1) against the GitHub light and dark page backgrounds."
+  },
   "effort_labels": {
     "medium": "med"
   },

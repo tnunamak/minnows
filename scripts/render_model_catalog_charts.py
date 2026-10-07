@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
-"""Render the model-catalog README option map from the pack's own data.
+"""Render the model-catalog README charts from the pack's own data.
 
   scripts/render_model_catalog_charts.py          # write charts/*.svg and the README block
-  scripts/render_model_catalog_charts.py --check  # exit 1 if either is out of date
+  scripts/render_model_catalog_charts.py --png    # also write charts/social-card.png (needs Chrome)
+  scripts/render_model_catalog_charts.py --check  # exit 1 if any of them is out of date
 
 The script knows no provider, model, tier, effort level or benchmark. It reads:
 
-  guide.json          which quota pools and tiers to show, task-family grouping, noise floor
-  models.json         the current GA model in each tier (newest `released`)
+  guide.json          which quota pools and tiers to show, task-family grouping, noise floor,
+                      and (`hero`) the metric, comparability rule and vendor colours of the
+                      cost-vs-intelligence chart
+  models.json         the current GA model in each tier (newest `released`), display names
   capabilities/       which effort levels each model offers, and their order
   pricing/            USD list price per token (kind == api_usd)
   metrics.json        metric names and direction
   performance/        every score row that has an effort level and a USD cost per task
+
+The cost-vs-intelligence chart (`build_hero`) plots one metric against cost per task for
+every vendor. guide.json `hero.notes` states the rule that decides which rows may share it.
 
 For each pool and task family, each (model, effort) setting gets one verdict, computed
 only inside one comparability group (one benchmark, one source, one snapshot) at a time:
@@ -30,11 +36,17 @@ Stdlib only; the SVG is written by hand so layout is exact and output is determi
 from __future__ import annotations
 
 import argparse
+import hashlib
 import html
 import json
 import math
 import re
+import shutil
+import struct
+import subprocess
 import sys
+import tempfile
+import zlib
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -44,6 +56,9 @@ PACK = REPO / "data" / "model-catalog"
 README = PACK / "README.md"
 CHARTS = PACK / "charts"
 BEGIN, END = "<!-- option-map:begin -->", "<!-- option-map:end -->"
+CARD = CHARTS / "social-card.png"  # link-preview image, written only with --png
+CARD_SIZE = (1200, 630)
+CARD_KEY = b"svg-sha256"  # PNG tEXt key: hash of the SVG the PNG was made from, so --check needs no Chrome
 
 
 # ---------------------------------------------------------------- pack data
@@ -61,16 +76,20 @@ class Pack:
     rows: list
     usd_prices: dict
     surfaces: list
+    hero_rows: list = field(default_factory=list)  # every score row of guide hero.metric_id
 
     @classmethod
     def read(cls) -> "Pack":
         guide = load("guide.json")
         cost = guide["cost"]
-        rows = []
+        hero_metric = (guide.get("hero") or {}).get("metric_id")
+        rows, hero_rows = [], []
         for f in sorted((PACK / "performance").glob("*.json")):
             for r in load(f"performance/{f.name}").get("scores") or []:
                 if r.get("effort") and (r.get("cost") or {}).get("unit") == cost["score_cost_unit"]:
                     rows.append({**r, "_file": f"performance/{f.name}"})
+                if hero_metric and r.get("metric_id") == hero_metric:
+                    hero_rows.append({**r, "_file": f"performance/{f.name}"})
         prices = {}
         for f in sorted((PACK / "pricing").glob("*.json")):
             doc = load(f"pricing/{f.name}")
@@ -88,6 +107,7 @@ class Pack:
             rows=rows,
             usd_prices=prices,
             surfaces=surfaces,
+            hero_rows=hero_rows,
         )
 
     def effort_order(self) -> list[str]:
@@ -704,6 +724,505 @@ def render_curves_svg(data: dict, theme: str) -> str:
     return s.render(width, y, "Where more reasoning effort pays, per quota pool and task family")
 
 
+# ---------------------------------------------------------------- cost vs intelligence (hero)
+
+
+@dataclass(frozen=True)
+class Point:
+    model: str
+    effort: str | None
+    score: float
+    cost: float
+    observed: str
+    marks: tuple  # guide hero.flags marks whose caveat pattern matches this row
+
+
+def _decimals(v: float) -> int:
+    return 0 if float(v).is_integer() else len(repr(float(v)).split(".")[1])
+
+
+def _bridges(cand: list, joined: list, tol: dict) -> bool:
+    """A group may join if it shares a setting with the joined rows and every shared setting agrees."""
+    seen = defaultdict(list)
+    for r in joined:
+        seen[(r["model"], r.get("effort"))].append(r)
+    shared = [(r, o) for r in cand for o in seen.get((r["model"], r.get("effort")), [])]
+    for r, o in shared:
+        if abs(r["score"] - o["score"]) > tol["score_tolerance"]:
+            return False
+        if r["_cost"] and o["_cost"] and abs(r["_cost"] - o["_cost"]) > tol["cost_rel_tolerance"] * min(r["_cost"], o["_cost"]):
+            return False
+    return bool(shared)
+
+
+def join_groups(rows: list, tol: dict) -> tuple[list[str], list[str]]:
+    """(joined, left out) comparability groups. The group with the most models anchors the chart."""
+    by_group = defaultdict(list)
+    for r in rows:
+        by_group[r["_group"]].append(r)
+    if not by_group:
+        return [], []
+    anchor = max(by_group, key=lambda g: (len({r["model"] for r in by_group[g]}), len(by_group[g]), g))
+    joined, pending = [anchor], sorted(g for g in by_group if g != anchor)
+    grew = True
+    while grew:
+        grew = False
+        for g in list(pending):
+            if _bridges(by_group[g], [r for j in joined for r in by_group[j]], tol):
+                joined.append(g)
+                pending.remove(g)
+                grew = True
+    return joined, pending
+
+
+def pareto(points: list) -> list:
+    """Settings that no other setting beats on cost without losing score; cheapest first."""
+    out, best = [], -math.inf
+    for p in sorted(points, key=lambda p: (p.cost, -p.score, p.model, p.effort or "")):
+        if p.score > best:
+            out.append(p)
+            best = p.score
+    return out
+
+
+def build_hero(pack: Pack) -> dict:
+    hero = pack.guide["hero"]
+    unit = pack.guide["cost"]["score_cost_unit"]
+
+    def cost_of(r):
+        c = r.get("cost") or {}
+        ok = c.get("unit") == unit and c.get("basis") == hero["cost_basis"] and (c.get("value") or 0) > 0
+        return float(c["value"]) if ok else None
+
+    rows = [{**r, "_group": r.get("comparability_group") or r.get("snapshot_id") or r["_file"], "_cost": cost_of(r)}
+            for r in pack.hero_rows if isinstance(r.get("score"), (int, float))]
+    if not rows:
+        raise SystemExit(f"guide.json: no score rows for hero.metric_id {hero['metric_id']!r}")
+    pattern = hero.get("exclude_groups_matching")
+    excluded = [r for r in rows if pattern and re.search(pattern, r["_group"])]
+    kept = [r for r in rows if r not in excluded]
+    joined, unjoined = join_groups(kept, hero["bridge"])
+    usable = [r for r in kept if r["_group"] in joined]
+
+    best = {}
+    for r in usable:
+        if r["_cost"] is None:
+            continue
+        key = (r["model"], r.get("effort"))
+        rank_key = (r.get("observed_at") or "", -GRADE_ORDER.get(r.get("evidence_grade"), 9), _decimals(r["score"]), r["_file"])
+        if key not in best or rank_key > best[key][0]:
+            best[key] = (rank_key, r)
+    flags = hero.get("flags") or []
+    points = sorted(
+        (Point(r["model"], r.get("effort"), float(r["score"]), r["_cost"], r.get("observed_at") or "",
+               tuple(f["mark"] for f in flags if re.search(f["caveat_matches"], r.get("caveat") or "")))
+         for _, r in best.values()),
+        key=lambda p: (p.model, p.effort or ""))
+    if not points:
+        raise SystemExit(f"guide.json: no {hero['metric_id']!r} row has a {unit} cost of basis {hero['cost_basis']!r}")
+    plotted = {p.model for p in points}
+    no_cost = sorted({r["model"] for r in usable} - plotted)
+    left_out = sorted({r["model"] for r in excluded + [r for r in kept if r["_group"] in unjoined]} - plotted - set(no_cost))
+    unpriced = {(r["model"], r.get("effort")) for r in usable if r["model"] in plotted} - set(best)
+    frontier = pareto(points)
+
+    # featured: newest model with data per (provider, tier), best other-vendor models, frontier models
+    feat = hero["featured"]
+    info = {m: pack.models.get(m, {"id": m}) for m in plotted}
+    top = {m: max(p.score for p in points if p.model == m) for m in plotted}
+    newest = {}
+    for m in sorted(plotted):
+        mi = info[m]
+        if mi.get("provider") in feat["newest_per_tier_providers"] and mi.get("status") in feat["statuses"]:
+            key, cand = (mi["provider"], mi.get("tier")), (mi.get("released") or "", m)
+            newest[key] = max(newest.get(key, cand), cand)
+    picks = {m for _, m in newest.values()}
+    others = [m for m in plotted if info[m].get("provider") not in feat["newest_per_tier_providers"]
+              and info[m].get("status") in feat["statuses"]]
+    picks |= set(sorted(others, key=lambda m: (-top[m], m))[: feat["top_others"]])
+    if feat["include_frontier"]:
+        picks |= {p.model for p in frontier}
+
+    rank = {e: i for i, e in enumerate(pack.effort_order())}
+    return {
+        "title": hero["title"],
+        "metric": pack.metrics.get(hero["metric_id"], {}).get("name", hero["metric_id"]),
+        "y_label": hero["y_label"],
+        "credit": hero["credit"],
+        "tolerance": hero["bridge"]["score_tolerance"],
+        "points": points,
+        "frontier": frontier,
+        "featured": sorted(picks),
+        "models": {m: info[m] for m in sorted(plotted)},
+        "names": {m: display_name(pack.models.get(m, {"id": m})) for m in plotted | set(no_cost) | set(left_out)},
+        "providers": hero["providers"],
+        "fallback": hero["other_providers"],
+        "flags": [(f["mark"], f["label"], f["note"]) for f in flags if any(f["mark"] in p.marks for p in points)],
+        "no_cost": no_cost,
+        "left_out": left_out,
+        "unpriced": len(unpriced),
+        "dates": (min(p.observed for p in points), max(p.observed for p in points)),
+        "rank": rank,
+    }
+
+
+def vendor_of(view: dict, model: str) -> tuple[str, dict]:
+    prov = view["models"].get(model, {}).get("provider")
+    return (prov, view["providers"][prov]) if prov in view["providers"] else ("", view["fallback"])
+
+
+def place_labels(desired: list[float], gap: float, top: float, bottom: float) -> list[float]:
+    """1-D label layout: keep the order, put each label at least `gap` from the next and as close
+    as possible to its desired y (overlapping runs merge and centre on their mean), inside [top, bottom]."""
+    order = sorted(range(len(desired)), key=lambda i: (desired[i], i))
+    runs: list[list] = []  # [first y, indices]
+    for i in order:
+        runs.append([desired[i], [i]])
+        while True:
+            run = runs[-1]
+            n = len(run[1])
+            run[0] = sum(desired[j] for j in run[1]) / n - (n - 1) * gap / 2
+            run[0] = max(min(run[0], bottom - (n - 1) * gap), top)
+            if len(runs) > 1 and runs[-2][0] + len(runs[-2][1]) * gap > run[0]:
+                prev = runs.pop(-2)
+                runs[-1] = [prev[0], prev[1] + run[1]]
+                continue
+            break
+    out = [0.0] * len(desired)
+    for y0, idx in runs:
+        for k, j in enumerate(idx):
+            out[j] = y0 + k * gap
+    return out
+
+
+def log_ticks(lo: float, hi: float) -> list[float]:
+    """1-2-5 ticks for up to three decades, decades only beyond that."""
+    mults = (1,) if math.log10(hi / lo) > 3 else (1, 2, 5)
+    out = []
+    for e in range(math.floor(math.log10(lo)), math.ceil(math.log10(hi)) + 1):
+        for k in mults:
+            v = float(f"{k}e{e}")
+            if lo <= v <= hi:
+                out.append(v)
+    return out
+
+
+def usd_tick(v: float) -> str:
+    return f"${v:g}" if v >= 1 else "$" + f"{v:.4f}".rstrip("0").rstrip(".")
+
+
+def usd_cost(v: float) -> str:
+    """Two decimals from $0.10 up, two significant digits below: $5.98, $0.13, $0.068, $0.05."""
+    return f"${v:.2f}" if v >= 0.1 else f"${float(f'{v:.2g}'):f}".rstrip("0")
+
+
+def fmt_score(v: float) -> str:
+    return f"{v:.0f}" if float(v).is_integer() else f"{v:.1f}"
+
+
+def wrap(text: str, width: float, size: float) -> list[str]:
+    lines, cur = [], ""
+    for word in text.split():
+        trial = f"{cur} {word}".strip()
+        if cur and text_width(trial, size) > width:
+            lines.append(cur)
+            cur = word
+        else:
+            cur = trial
+    return lines + [cur] if cur else lines
+
+
+def hero_notes(view: dict) -> list[str]:
+    d0, d1 = view["dates"]
+    when = f"observed {d0}" if d0 == d1 else f"observed {d0} to {d1}"
+    tol = view["tolerance"]
+    notes = [(f"{view['credit']}, {when}. Each point is the latest observation of that model and "
+              f"effort; snapshots share the chart only where the settings they both list agree within "
+              f"{tol:g} point{'s' if tol != 1 else ''}. Cost is the API cost to run one index task.")]
+    notes += [f"{mark} {note[:1].upper() + note[1:]}." for mark, _, note in view["flags"]]
+    names = view["names"]
+    if view["no_cost"]:
+        notes.append("Not plotted, no cost per task: " + ", ".join(names[m] for m in view["no_cost"]) + ".")
+    if view["left_out"]:
+        notes.append("Left out, estimated or not checkable against the other snapshots: "
+                     + ", ".join(names[m] for m in view["left_out"]) + ".")
+    if view["unpriced"]:
+        notes.append(f"{view['unpriced']} more effort settings of plotted models have a score but no cost and are not drawn.")
+    return notes
+
+
+def render_hero_svg(view: dict, theme: str, models: list[str], width: int = 1000, card: bool = False) -> str:
+    """Cost per task (log x) against index score (y): one line per model through its efforts, labels at the right."""
+    t = THEMES[theme]
+    s = Svg(t)
+    rank = view["rank"]
+    shown = set(models)
+    pts = [p for p in view["points"] if p.model in shown]
+    frontier = pareto(pts)
+    on_frontier = {p.model for p in frontier}
+    names = view["names"]
+    pad = 40 if card else 32
+    fs = 1.25 if card else 1.0  # card text scale
+
+    # header
+    y = 50 * fs
+    s.text(pad, y, view["title"], 22 * fs + (6 if card else 0), weight=600)
+    y += 26 * fs
+    sub = (f"{view['metric']} against API cost per task. One line per model joins its effort levels"
+           + ("." if card else "; larger dots are higher effort."))
+    for line in wrap(sub, width - 2 * pad, 13.5 * fs):
+        s.text(pad, y, line, 13.5 * fs, "ink2")
+        y += 19 * fs
+
+    # key: vendors present, then the frontier, diamond and flag marks; flows onto a second row if needed
+    y += 14 * fs
+    size = 12.5 * fs
+    items = []  # (swatch, colour, text, bold)
+    for prov in list(view["providers"]) + [""]:
+        if any(vendor_of(view, p.model)[0] == prov for p in pts):
+            st = view["providers"][prov] if prov else view["fallback"]
+            items.append(("dot", st[theme], st["label"], True))
+    items.append(("dash", t["ink2"], "Pareto frontier", False))
+    items.append(("diamond", t["ink2"], "model on the frontier", False))
+    shown_marks = {k for p in pts for k in p.marks}
+    items += [("ring", t["ink2"], f"{mark} {label}", False) for mark, label, _ in view["flags"] if mark in shown_marks]
+    x = pad
+    for kind, col, label, bold in items:
+        w = (30 if kind == "dash" else 14) * fs + text_width(label, size, bold)
+        if x + w > width - pad:
+            x, y = pad, y + 24 * fs
+        cy = y - 4.5 * fs
+        if kind == "dot":
+            s.parts.append(f'<circle cx="{x + 5 * fs:.1f}" cy="{cy:.1f}" r="{5 * fs:.1f}" fill="{col}"/>')
+        elif kind == "dash":
+            s.parts.append(f'<line x1="{x:.1f}" y1="{cy:.1f}" x2="{x + 24 * fs:.1f}" y2="{cy:.1f}" '
+                           f'stroke="{col}" stroke-width="1.5" stroke-dasharray="5 4"/>')
+        elif kind == "diamond":
+            diamond(s, x + 4.5 * fs, cy, 4.2 * fs, col)
+        else:
+            s.parts.append(f'<circle cx="{x + 4.5 * fs:.1f}" cy="{cy:.1f}" r="{4 * fs:.1f}" fill="{t["bg"]}" '
+                           f'stroke="{col}" stroke-width="1.5"/>')
+        s.text(x + w - text_width(label, size, bold), y, label, size, col if kind == "dot" else "ink2",
+               weight=600 if bold else 400)
+        x += w + 22 * fs
+
+    # end-of-line labels decide the gutter width
+    lines = defaultdict(list)
+    for p in pts:
+        lines[p.model].append(p)
+    for m in lines:
+        lines[m].sort(key=lambda p: (rank.get(p.effort, -1), p.cost))
+    label_size = 12.5 * fs
+    label_of = {m: names[m] + (" " + "".join(sorted({k for p in ps for k in p.marks})) if any(p.marks for p in ps) else "")
+                for m, ps in lines.items()}
+    gutter = max([text_width(v, label_size, True) for v in label_of.values()] + [60]) + 38 * fs
+    gap = label_size + 3.5 * fs
+
+    # plot box
+    top = y + 44 * fs
+    left = pad + 34 * fs
+    right = width - pad - gutter
+    if card:
+        bottom = CARD_SIZE[1] - 100
+    else:
+        bottom = top + max(420, 1.5 * len(lines) * gap)
+    costs = [p.cost for p in pts] or [1.0]
+    scores = [p.score for p in pts] or [0.0]
+    x0, x1 = math.log10(min(costs)) - 0.12, math.log10(max(costs)) + 0.12
+    ticks = nice_ticks(min(scores), max(scores), 5)
+    step = ticks[1] - ticks[0] if len(ticks) > 1 else 10
+    y0, y1 = math.floor(min(scores) / step) * step, math.ceil(max(scores) / step) * step
+    if y1 - max(scores) < step * 0.15:
+        y1 += step / 2
+
+    def X(c):
+        return left + (math.log10(c) - x0) / (x1 - x0) * (right - left)
+
+    def Y(v):
+        return bottom - (v - y0) / (y1 - y0) * (bottom - top)
+
+    s.text(left - 8 * fs, top - 14 * fs, view["y_label"], 11.5 * fs, "ink2")
+    v = y0
+    while v <= y1 + 1e-9:
+        s.line(left, Y(v), right, Y(v), "grid", 1)
+        s.text(left - 8 * fs, Y(v) + 4 * fs, f"{v:g}", 11 * fs, "muted", anchor="end")
+        v += step
+    s.line(left, bottom, right, bottom, "rule", 1)
+    for c in log_ticks(10 ** x0, 10 ** x1):
+        s.line(X(c), bottom, X(c), bottom + 4, "rule", 1)
+        s.text(X(c), bottom + 18 * fs, usd_tick(c), 11 * fs, "muted", anchor="middle")
+    s.text((left + right) / 2, bottom + 38 * fs, "Cost per task (USD, log scale)", 11.5 * fs, "ink2", anchor="middle")
+
+    # frontier under the data
+    if len(frontier) > 1:
+        path = " ".join(f"{'M' if k == 0 else 'L'}{X(p.cost):.1f},{Y(p.score):.1f}" for k, p in enumerate(frontier))
+        s.parts.append(f'<path d="{path}" fill="none" stroke="{t["ink2"]}" stroke-width="1.4" '
+                       f'stroke-dasharray="5 4" stroke-opacity="0.8"/>')
+
+    levels = sorted({p.effort for p in pts if p.effort is not None}, key=lambda e: rank.get(e, 0))
+    lvl = {e: i for i, e in enumerate(levels)}
+
+    def radius(p):
+        return (3.0 + 0.6 * lvl[p.effort] if p.effort in lvl else 3.0 + 0.3 * len(levels)) * (1.15 if card else 1)
+
+    ends = []
+    for m in sorted(lines, key=lambda m: (-lines[m][-1].score, m)):
+        col = vendor_of(view, m)[1][theme]
+        ps = lines[m]
+        if len(ps) > 1:
+            path = " ".join(f"{'M' if k == 0 else 'L'}{X(p.cost):.1f},{Y(p.score):.1f}" for k, p in enumerate(ps))
+            s.parts.append(f'<path d="{path}" fill="none" stroke="{col}" stroke-width="{2 * fs:.1f}" '
+                           'stroke-linejoin="round" stroke-linecap="round"/>')
+        for p in ps:
+            if p.marks:
+                s.parts.append(f'<circle cx="{X(p.cost):.1f}" cy="{Y(p.score):.1f}" r="{radius(p):.1f}" '
+                               f'fill="{t["bg"]}" stroke="{col}" stroke-width="1.6"/>')
+            else:
+                s.parts.append(f'<circle cx="{X(p.cost):.1f}" cy="{Y(p.score):.1f}" r="{radius(p):.1f}" '
+                               f'fill="{col}" stroke="{t["bg"]}" stroke-width="1.2"/>')
+        end = max(ps, key=lambda p: X(p.cost))
+        ends.append((m, X(end.cost) + radius(end) + 3, Y(end.score), col))
+
+    gx = right + 30 * fs
+    placed = place_labels([e[2] for e in ends], gap, top, bottom)
+    for (m, ex, ey, col), ly in zip(ends, placed):
+        # leader: level with the line end across the plot, then a short bend in the gutter to the label
+        s.parts.append(f'<path d="M{ex:.1f},{ey:.1f} L{right + 4:.1f},{ey:.1f} L{gx - 6:.1f},{ly:.1f}" fill="none" '
+                       f'stroke="{col}" stroke-width="0.8" stroke-opacity="0.45" stroke-linejoin="round"/>')
+        if m in on_frontier:
+            diamond(s, gx + 3 * fs, ly, 4 * fs, t["ink2"])
+        s.text(gx + 13 * fs, ly + label_size * 0.35, label_of[m], label_size, col, weight=600)
+
+    y = bottom + 38 * fs
+    if card:
+        d0, d1 = view["dates"]
+        s.text(pad, CARD_SIZE[1] - 18, f"{view['credit']} · observed {d0} to {d1}", 14, "muted")
+        return s.render(width, CARD_SIZE[1], f"{view['title']}: {view['metric']} against API cost per task")
+    y += 10
+    for note in hero_notes(view):
+        for line in wrap(note, width - 2 * pad, 11.5):
+            y += 17
+            s.text(pad, y, line, 11.5, "muted")
+    y += 26
+    return s.render(width, y, f"{view['title']}: {view['metric']} against API cost per task, one line per model")
+
+
+def diamond(s: Svg, x: float, y: float, r: float, color: str) -> None:
+    s.parts.append(f'<path d="M{x:.1f},{y - r:.1f} L{x + r:.1f},{y:.1f} L{x:.1f},{y + r:.1f} L{x - r:.1f},{y:.1f} Z" '
+                   f'fill="{color}"/>')
+
+
+def frontier_summary(view: dict) -> str:
+    """'A low to high (42–52, $0.13–$0.72), B ...' for the settings on the frontier, cheapest first."""
+    names, out, runs = view["names"], [], []
+    for p in view["frontier"]:
+        if runs and runs[-1][0] == p.model:
+            runs[-1][1].append(p)
+        else:
+            runs.append((p.model, [p]))
+    for m, ps in runs:
+        eff = [p.effort for p in ps if p.effort]
+        what = names[m] + (f" {eff[0]}" if len(eff) == 1 else f" {eff[0]} to {eff[-1]}" if eff else "")
+        if len(ps) == 1:
+            out.append(f"{what} ({fmt_score(ps[0].score)} at {usd_cost(ps[0].cost)})")
+        else:
+            out.append(f"{what} ({fmt_score(ps[0].score)}–{fmt_score(ps[-1].score)} at "
+                       f"{usd_cost(ps[0].cost)}–{usd_cost(ps[-1].cost)})")
+    return ", ".join(out)
+
+
+def hero_block(view: dict) -> list[str]:
+    names, rank = view["names"], view["rank"]
+    pts = view["points"]
+    featured_providers = {vendor_of(view, m)[0] for m in view["featured"]}
+    vendors = [st["label"] for prov, st in [*view["providers"].items(), ("", view["fallback"])] if prov in featured_providers]
+    lo, hi = min(p.cost for p in pts), max(p.cost for p in pts)
+    alt = (f"Line chart, {view['title'].lower()}. Across: API cost per task in US dollars, log scale, "
+           f"{usd_cost(lo)} to {usd_cost(hi)}. Up: {view['metric']}. One line per model joins its effort levels, "
+           f"coloured by vendor ({', '.join(vendors)}); {len(view['featured'])} models shown. "
+           f"A dashed Pareto frontier runs through {frontier_summary(view)}. The table below lists every point.")
+    alt_all = (f"The same chart with all {len(view['models'])} models that have a cost per task. "
+               "The table below lists every point.")
+    best = max(pts, key=lambda p: (p.score, -p.cost))
+    reading = (f"**Reading the chart.** Up is smarter, left is cheaper. The frontier (dashed) holds the settings "
+               f"that no other setting beats on both cost and score: {frontier_summary(view)}. The top score is "
+               f"{names[best.model]}{' ' + best.effort if best.effort else ''} at {fmt_score(best.score)} "
+               f"for {usd_cost(best.cost)} per task. " + " ".join(hero_notes(view)))
+    on = {(p.model, p.effort) for p in view["frontier"]}
+    top = {m: max(p.score for p in pts if p.model == m) for m in view["models"]}
+    rows = sorted(pts, key=lambda p: (-top[p.model], names[p.model], rank.get(p.effort, -1)))
+    flag_note = {mark: label for mark, label, _ in view["flags"]}
+    out = [
+        "<picture>",
+        '  <source media="(prefers-color-scheme: dark)" srcset="charts/cost-vs-intelligence-dark.svg">',
+        f'  <img src="charts/cost-vs-intelligence-light.svg" alt="{html.escape(alt)}">',
+        "</picture>",
+        "",
+        reading,
+        "",
+        f"<details><summary><b>All {len(view['models'])} models</b> on the same axes</summary>",
+        "",
+        "<picture>",
+        '  <source media="(prefers-color-scheme: dark)" srcset="charts/cost-vs-intelligence-all-dark.svg">',
+        f'  <img src="charts/cost-vs-intelligence-all-light.svg" alt="{html.escape(alt_all)}">',
+        "</picture>",
+        "",
+        "</details>",
+        "",
+        f"<details><summary><b>Data behind the chart</b>: {len(pts)} settings, one row per model and effort</summary>",
+        "",
+        f"| Model | Effort | {view['y_label']} | $/task | Observed | Note |",
+        "|---|---|---|---|---|---|",
+    ]
+    for p in rows:
+        note = ["on the frontier"] if (p.model, p.effort) in on else []
+        note += [f"{k} {flag_note[k]}" for k in p.marks if k in flag_note]
+        out.append(f"| {names[p.model]} | {p.effort or '–'} | {fmt_score(p.score)} | {usd_cost(p.cost)} | "
+                   f"{p.observed} | {'; '.join(note)} |")
+    out += ["", "–: the model has no effort setting, or the source does not name one.", "", "</details>", ""]
+    return out
+
+
+# ---------------------------------------------------------------- social card PNG
+
+
+
+def png_text(png: bytes, key: bytes) -> str | None:
+    pos = 8
+    while pos < len(png):
+        n, kind = struct.unpack(">I4s", png[pos:pos + 8])
+        body = png[pos + 8:pos + 8 + n]
+        if kind == b"tEXt" and body.startswith(key + b"\0"):
+            return body[len(key) + 1:].decode("latin-1")
+        pos += 12 + n
+    return None
+
+
+def with_png_text(png: bytes, key: bytes, value: str) -> bytes:
+    """Insert a tEXt chunk before IEND (the last 12 bytes) so --check can tell which SVG made the PNG."""
+    body = key + b"\0" + value.encode("latin-1")
+    chunk = struct.pack(">I", len(body)) + b"tEXt" + body + struct.pack(">I", zlib.crc32(b"tEXt" + body))
+    return png[:-12] + chunk + png[-12:]
+
+
+def write_card(svg: str) -> str:
+    chrome = next((shutil.which(b) for b in ("google-chrome", "chromium", "chromium-browser", "chrome") if shutil.which(b)), None)
+    if not chrome:
+        return "skipped charts/social-card.png: no Chrome or Chromium on PATH"
+    w, h = CARD_SIZE
+    with tempfile.TemporaryDirectory() as tmp:
+        src, out = Path(tmp) / "card.svg", Path(tmp) / "card.png"
+        src.write_text(svg)
+        subprocess.run([chrome, "--headless=new", "--no-sandbox", "--hide-scrollbars", "--force-device-scale-factor=1",
+                        f"--window-size={w},{h}", f"--screenshot={out}", src.as_uri()],
+                       check=True, capture_output=True, timeout=120)
+        png = out.read_bytes()
+    if struct.unpack(">II", png[16:24]) != (w, h):
+        raise SystemExit(f"Chrome wrote a {struct.unpack('>II', png[16:24])} screenshot, expected {(w, h)}")
+    CARD.write_bytes(with_png_text(png, CARD_KEY, hashlib.sha256(svg.encode()).hexdigest()))
+    return str(CARD.relative_to(REPO))
+
+
 # ---------------------------------------------------------------- README block
 
 MARK = {"try": "●", "self_only": "○", "mixed": "◐", "cheaper": "✕", "lower_effort": "←", "no_data": "·",
@@ -726,13 +1245,14 @@ def cell_text(cell: Cell, names: dict, model: str, effort: str, rank: dict) -> s
     return MARK[cell.status]
 
 
-def readme_block(data: dict) -> str:
+def readme_block(data: dict, hero: dict | None = None) -> str:
     names = {t["model"]["id"]: display_name(t["model"]) for p in data["pools"] for t in p["tiers"]}
     efforts = data["efforts"]
     out = [
         BEGIN,
         "<!-- Generated by scripts/render_model_catalog_charts.py. Edit guide.json or the data, not this block. -->",
         "",
+        *(hero_block(hero) if hero else []),
         "<picture>",
         '  <source media="(prefers-color-scheme: dark)" srcset="charts/effort-curves-dark.svg">',
         '  <img src="charts/effort-curves-light.svg" alt="Effort curves for each quota pool and task family. Each line is '
@@ -785,20 +1305,31 @@ def replace_block(readme: str, block: str) -> str:
 # ---------------------------------------------------------------- driver
 
 
-def outputs() -> dict[Path, str]:
-    data = build(Pack.read())
+def outputs() -> tuple[dict[Path, str], str | None]:
+    """(text files, social-card SVG). The card SVG is not written; --png renders it to charts/social-card.png."""
+    pack = Pack.read()
+    data = build(pack)
     files = {CHARTS / f"option-map-{theme}.svg": render_svg(data, theme) for theme in THEMES}
     files.update({CHARTS / f"effort-curves-{theme}.svg": render_curves_svg(data, theme) for theme in THEMES})
-    files[README] = replace_block(README.read_text(), readme_block(data))
-    return files
+    hero = build_hero(pack) if "hero" in pack.guide else None
+    card = None
+    if hero:
+        for theme in THEMES:
+            files[CHARTS / f"cost-vs-intelligence-{theme}.svg"] = render_hero_svg(hero, theme, hero["featured"])
+            files[CHARTS / f"cost-vs-intelligence-all-{theme}.svg"] = render_hero_svg(hero, theme, list(hero["models"]))
+        card = render_hero_svg(hero, "dark", hero["featured"], width=CARD_SIZE[0], card=True)
+    files[README] = replace_block(README.read_text(), readme_block(data, hero))
+    return files, card
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--check", action="store_true", help="exit 1 if generated files are stale")
+    ap.add_argument("--check", action="store_true", help="exit 1 if generated files are stale (does not need Chrome)")
+    ap.add_argument("--png", action="store_true", help="also render charts/social-card.png with headless Chrome")
     args = ap.parse_args()
+    files, card = outputs()
     stale = []
-    for path, content in outputs().items():
+    for path, content in files.items():
         if args.check:
             if not path.exists() or path.read_text() != content:
                 stale.append(str(path.relative_to(REPO)))
@@ -806,8 +1337,15 @@ def main() -> int:
             path.parent.mkdir(exist_ok=True)
             path.write_text(content)
             print(path.relative_to(REPO))
+    if card and args.check:
+        made_from = png_text(CARD.read_bytes(), CARD_KEY) if CARD.exists() else None
+        if made_from != hashlib.sha256(card.encode()).hexdigest():
+            stale.append(f"{CARD.relative_to(REPO)} (needs --png)")
+    elif card and args.png:
+        print(write_card(card))
     if stale:
-        print("stale (run scripts/render_model_catalog_charts.py):", *stale, sep="\n  ")
+        print("Generated charts are stale. Run `python3 scripts/render_model_catalog_charts.py --png` "
+              "and commit the result:", *stale, sep="\n  ")
         return 1
     return 0
 

@@ -4,6 +4,29 @@
   "title": "model-catalog README guide inputs",
   "description": "What the README option map shows. The renderer (scripts/render_model_catalog_charts.py) reads only this file and the rest of the pack.",
   "type": "object",
+  "$defs": {
+    "vendor_style": {
+      "type": "object",
+      "required": [
+        "label",
+        "light",
+        "dark"
+      ],
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "light": {
+          "type": "string",
+          "pattern": "^#[0-9a-f]{6}$"
+        },
+        "dark": {
+          "type": "string",
+          "pattern": "^#[0-9a-f]{6}$"
+        }
+      }
+    }
+  },
   "required": [
     "id",
     "schema_version",
@@ -182,6 +205,133 @@
           "maxItems": 2
         },
         "footer": {
+          "type": "string"
+        }
+      }
+    },
+    "hero": {
+      "type": "object",
+      "description": "The cost-vs-intelligence chart at the top of the README: one metric, plotted against API cost per task, every vendor.",
+      "required": [
+        "title",
+        "metric_id",
+        "y_label",
+        "credit",
+        "cost_basis",
+        "bridge",
+        "featured",
+        "providers",
+        "other_providers",
+        "notes"
+      ],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "metric_id": {
+          "type": "string",
+          "description": "metrics.json id; pins one index version"
+        },
+        "y_label": {
+          "type": "string"
+        },
+        "credit": {
+          "type": "string"
+        },
+        "cost_basis": {
+          "type": "string",
+          "description": "performance cost.basis to plot (cost.unit comes from cost.score_cost_unit)"
+        },
+        "exclude_groups_matching": {
+          "type": "string",
+          "description": "Regular expression; comparability groups that match are left out and named in the footnote"
+        },
+        "bridge": {
+          "type": "object",
+          "required": [
+            "score_tolerance",
+            "cost_rel_tolerance"
+          ],
+          "properties": {
+            "score_tolerance": {
+              "type": "number",
+              "minimum": 0
+            },
+            "cost_rel_tolerance": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "flags": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "caveat_matches",
+              "mark",
+              "label",
+              "note"
+            ],
+            "properties": {
+              "caveat_matches": {
+                "type": "string",
+                "description": "Regular expression matched against the score row caveat"
+              },
+              "mark": {
+                "type": "string",
+                "maxLength": 2
+              },
+              "label": {
+                "type": "string",
+                "description": "Short key text next to the hollow dot"
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "featured": {
+          "type": "object",
+          "required": [
+            "newest_per_tier_providers",
+            "statuses",
+            "top_others",
+            "include_frontier"
+          ],
+          "properties": {
+            "newest_per_tier_providers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "statuses": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "top_others": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "include_frontier": {
+              "type": "boolean"
+            }
+          }
+        },
+        "providers": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/vendor_style"
+          }
+        },
+        "other_providers": {
+          "$ref": "#/$defs/vendor_style"
+        },
+        "notes": {
           "type": "string"
         }
       }
