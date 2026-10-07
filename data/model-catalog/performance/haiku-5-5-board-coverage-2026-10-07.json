@@ -1,0 +1,234 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "haiku-5-5-board-coverage-2026-10-07",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-07",
+  "source_urls": [
+    "https://artificialanalysis.ai/models/releases/claude-haiku-5-5",
+    "https://www.vals-ai.com/models/anthropic_claude-haiku-5-5",
+    "https://www.tbench.ai/leaderboard/terminal-bench/4.0",
+    "https://arcprize.org/leaderboard",
+    "https://deepswe.datacurve.ai/",
+    "https://scale.com/leaderboard/swe_bench_pro_public",
+    "https://arena.ai/leaderboard/text",
+    "https://arena.ai/leaderboard/code/webdev",
+    "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+    "https://epoch.ai/models",
+    "https://openrouter.ai/anthropic/claude-haiku-5.5",
+    "https://openrouter.ai/rankings",
+    "https://llm-stats.com/models/claude-haiku-5-5"
+  ],
+  "source_ids": [
+    "artificial-analysis-haiku-5-5-release-2026-10-07",
+    "vals-ai-haiku-5-5-model-page-2026-10-07",
+    "terminal-bench-official-haiku-5-5-2026-10-07",
+    "arcprize-leaderboard-haiku-5-5-2026-10-07",
+    "deepswe-datacurve-haiku-5-5-2026-10-07",
+    "seal-swebench-pro-haiku-5-5-2026-10-07",
+    "arena-ai-text-haiku-5-5-2026-10-07",
+    "arena-ai-webdev-haiku-5-5-2026-10-07",
+    "steel-browsecomp-haiku-5-5-2026-10-07",
+    "epoch-ai-models-haiku-5-5-2026-10-07",
+    "openrouter-haiku-5-5-2026-10-07",
+    "openrouter-rankings-haiku-5-5-2026-10-07",
+    "llm-stats-haiku-5-5-2026-10-07"
+  ],
+  "notes": "Launch-day (2026-10-07) third-party board coverage sweep for claude-haiku-5-5, same shape as sonnet-5-5-board-coverage-2026-09-28. Method: raw HTML by curl with a browser User-Agent for static pages and for the data embedded in them (Artificial Analysis and tbench.ai embed their table JSON in the page; Vals, SEAL, Steel and Epoch render rows server-side), and the Playwright browser for the client-rendered ARC Prize and DeepSWE pages. Only AA, OpenRouter and llm-stats list Haiku 5.5 on launch day; llm-stats has no scores. Every other board has no Haiku 5.5 row, which is expected on day zero. Absences are provisional: recheck on or after 2026-10-14. Unlike the Sonnet 5.5 sweep, these absences were read from table content, not from search snippets, except that SEAL, Steel and Epoch were read from static HTML and could differ from the live client view. The AA pages do not say whether the runs used a pre-release deployment (no AA article yet). livebench.ai returned a 1 KB JavaScript shell and was not checked. Same-snapshot roster rows from the boards that did not list Haiku 5.5 are in third-party-board-roster-refresh-2026-10-07.json.",
+  "claims": [
+    {
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
+      "statement": "Artificial Analysis: LISTED. The release page, five model pages (low, medium, high, xhigh, max) and the leaderboard list Claude Haiku 5.5, released 2026-10-07. Index v4.3.2 values and per-task cost are in performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json. No AA article exists yet (HTTP 404). Speed is 'N/A'. Checked 2026-10-07.",
+      "implication": "Use the dated AA file for numbers; this row records coverage only.",
+      "source_id": "artificial-analysis-haiku-5-5-release-2026-10-07"
+    },
+    {
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Vals AI: ABSENT. https://www.vals-ai.com/models/anthropic_claude-haiku-5-5 returns HTTP 404 (Page Not Found). The Vals models list (sorted by release date) starts with Mistral Large 4 (Oct 6, 2026), then Gemini 4 Argon (Sep 30), GPT-6.1 Sol and Sonnet 5.5; it has no Haiku 5.5 entry. Terminal-Bench 4.0 board 'Updated 10/6/2026' shows 20 rows in a 'latest, top & frontier' view and no Haiku row; the Vals Index page is also dated 10/6/2026 with no Haiku 5.5 text. The Terminal-Bench 2.1 board (updated 9/28/2026) and the SWE-bench board (updated 9/1/2026) carry only 'Haiku 4.5 (Thinking)'. Checked 2026-10-07 by curl of the HTML. Recheck on or after 2026-10-14 and keep the later read as a new dated snapshot. Do not read this absence as proof that the board will not run the model.",
+      "implication": "No Vals reading for Haiku 5.5 yet. The view is labelled 'latest, top & frontier', so a recently added Haiku 5.5 row would probably show.",
+      "source_id": "vals-ai-haiku-5-5-model-page-2026-10-07"
+    },
+    {
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Terminal-Bench official (tbench.ai, Terminal-Bench 4.0): ABSENT. The table JSON embedded in the page HTML has 35 rows (board record updated 2026-10-06T23:20Z) and no Haiku row of any version. The board now lists Opus 5.5 (64.85%, Claude Code, max) and Sonnet 5.5 (61.82%, max); roster rows are stored in third-party-board-roster-refresh-2026-10-07.json. Checked 2026-10-07. Recheck on or after 2026-10-14 and keep the later read as a new dated snapshot. Do not read this absence as proof that the board will not run the model.",
+      "implication": "No official TB4 reading for Haiku 5.5. The board's cheap-tier rows are GPT-6 Luna max 16.36% and GLM-5.3-Flash 35.76%.",
+      "source_id": "terminal-bench-official-haiku-5-5-2026-10-07"
+    },
+    {
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "ARC Prize leaderboard: ABSENT. Rendered with the Playwright browser (the table is client-side); 285 dated rows; newest date 2026-09-29 (GPT-6.1 Sol). Present: Haiku 4.5 and four thinking-budget variants (1K 16.8%, 8K 25.5%, 16K 37.3%, 32K 47.7% on ARC-AGI-1), Opus 5.5 (five efforts), Fable 5.1, GPT-6 Luna/Sol/Astra, GPT-6.1 Sol. Absent: Haiku 5.5 and Sonnet 5.5. Checked 2026-10-07. Recheck on or after 2026-10-14 and keep the later read as a new dated snapshot. Do not read this absence as proof that the board will not run the model.",
+      "implication": "ARC Prize has not posted Haiku 5.5. Its Haiku 4.5 ARC-AGI-1 values (14.3% base) are the baseline.",
+      "source_id": "arcprize-leaderboard-haiku-5-5-2026-10-07"
+    },
+    {
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "DeepSWE (datacurve): ABSENT. The page (rendered with Playwright) reads '113 tasks · updated September 22, 2026', 28 models, and offers 'Get notified when new models drop'. No Haiku model of any version; no Opus 5.5 or Sonnet 5.5 either. Checked 2026-10-07. Recheck on or after 2026-10-14 and keep the later read as a new dated snapshot. Do not read this absence as proof that the board will not run the model.",
+      "implication": "Board last updated 2026-09-22 and has no Claude 5.5 model.",
+      "source_id": "deepswe-datacurve-haiku-5-5-2026-10-07"
+    },
+    {
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "SEAL / Scale SWE-Bench Pro (public): ABSENT. The static page lists 25 models; top row is Muse Spark 1.1 (61.50 ±3.10) and the only Claude 4.5/4.6 rows are claude-opus-4-6 (thinking), claude-opus-4-5-20251101, claude-4-5-Sonnet, claude-4-Sonnet and claude-4-5-haiku (39.45 ±3.55). No Claude 5.x, GPT-6 or Haiku 5.5 row. Checked 2026-10-07. Recheck on or after 2026-10-14 and keep the later read as a new dated snapshot. Do not read this absence as proof that the board will not run the model.",
+      "implication": "Board has not been updated for the 5.x generation.",
+      "source_id": "seal-swebench-pro-haiku-5-5-2026-10-07"
+    },
+    {
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Arena (LMArena) Text: ABSENT. Overall text board dated Oct 2, 2026 (413 models, 8,626,731 votes) has no Haiku 5.5; Haiku 4.5 (claude-haiku-4-5-20251001) is rank 142 at 1413.8 with 143,402 votes. Sonnet 5.5 xhigh (1471.0, 3,145 votes) and Opus 5.5 high (1503.7, 4,552 votes) are listed; roster rows are in third-party-board-roster-refresh-2026-10-07.json. Checked 2026-10-07. Recheck on or after 2026-10-14 and keep the later read as a new dated snapshot. Do not read this absence as proof that the board will not run the model.",
+      "implication": "Sonnet 5.5 (released 2026-09-28) was on the Oct 2 text board with 3,145 votes, so a Haiku 5.5 row can appear within days.",
+      "source_id": "arena-ai-text-haiku-5-5-2026-10-07"
+    },
+    {
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Arena WebDev (https://arena.ai/leaderboard/code/webdev): ABSENT. Board dated Oct 7, 2026 (846,326 votes) has no Haiku 5.5; Haiku 4.5 is rank 117 at 1329.7. Checked 2026-10-07. Recheck on or after 2026-10-14 and keep the later read as a new dated snapshot. Do not read this absence as proof that the board will not run the model.",
+      "implication": "See the roster-refresh file for WebDev baselines.",
+      "source_id": "arena-ai-webdev-haiku-5-5-2026-10-07"
+    },
+    {
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Steel BrowseComp: ABSENT. 'Last updated: 2026-09-04'; no Haiku, Sonnet 5.5 or Opus 5.5 row (rows include GPT-5.6 Sol Ultra, GPT-6 Astra, Kimi K3, Claude Opus 5, Fable 5). Checked 2026-10-07. Recheck on or after 2026-10-14 and keep the later read as a new dated snapshot. Do not read this absence as proof that the board will not run the model.",
+      "implication": "Board is a vendor-reported compilation and is a month stale.",
+      "source_id": "steel-browsecomp-haiku-5-5-2026-10-07"
+    },
+    {
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Epoch AI: ABSENT. https://epoch.ai/models/claude-haiku-5-5 returns HTTP 404. The models index lists 407 results; the top ten by ECI contain no Haiku, the ECI benchmark page has no Haiku text. Opus 5.5 (ECI 167, rank 1) and Sonnet 5.5 (165, rank 4 of 257) are present. Only one slug guess was tried for the Haiku 5.5 page. Checked 2026-10-07. Recheck on or after 2026-10-14 and keep the later read as a new dated snapshot. Do not read this absence as proof that the board will not run the model.",
+      "implication": "Epoch has added Opus 5.5 and Sonnet 5.5; Haiku 5.5 is not there yet.",
+      "source_id": "epoch-ai-models-haiku-5-5-2026-10-07"
+    },
+    {
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "cost",
+        "effort",
+        "speed"
+      ],
+      "statement": "OpenRouter: LISTED. Model anthropic/claude-haiku-5.5 (canonical slug anthropic/claude-haiku-5.5-20261007, created 2026-10-07T18:31:23Z per the models API). List price $0.10 input and $0.50 output per M tokens; cache read $0.01, cache write 5m $0.125, cache write 1h $0.20; above 100,000 prompt tokens the listed price is $0.50 input / $2.50 output (cache read $0.05, write 5m $0.625, 1h $1.00). A ':batch' variant lists half of each rate. Context 1,000,000; max completion 128,000; input text, image and file; tokenizer field 'Claude' (same label as Haiku 4.5, so it does not show a new tokenizer). Reasoning: not mandatory; supported efforts max, xhigh, high, medium, low; default effort 'medium'. (Sonnet 5.5 on the same API: mandatory reasoning, default 'high'.) OpenRouter's description: 'It is the first Haiku model with adjustable effort. Thinking is adaptive and on by default, with effort as the main lever for trading off depth, latency, and cost; it can be turned off at low, medium, and high effort.' Five providers at the list price (Google Vertex, Claude Platform on AWS, Azure, Anthropic, Amazon Bedrock), plus five Vertex/Azure/Bedrock endpoints at $0.11/$0.55 that are not used in standard routing. Throughput 83 to 183 tok/s and latency 0.33 to 2.32 s across endpoints (P50, launch day). The alias ~anthropic/claude-haiku-latest now points to Haiku 5.5. Checked 2026-10-07 from the models API, the endpoints API and the model page.",
+      "implication": "OpenRouter is a price and availability listing, not a quality board: confirm the >100K price tier, the default effort and the thinking-off option against Anthropic's own docs (Lane A). The listed prices agree with the secondary press reports ($0.10/$0.50, and $0.50/$2.50 above 100K tokens).",
+      "source_id": "openrouter-haiku-5-5-2026-10-07"
+    },
+    {
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "OpenRouter rankings / token share: ABSENT. The rankings page says 'Usage data through Oct 6, 2026', one day before launch, so no Haiku 5.5 share can exist. The model page's Activity panel lists top apps by tokens on launch day: Claude Code 283M, Bamboo Helper 193M, OpenHands 114M, Venice OS Sourcing 102M, Hermes Agent 81.5M. Checked 2026-10-07. Recheck on or after 2026-10-14 and keep the later read as a new dated snapshot. Do not read this absence as proof that the board will not run the model.",
+      "implication": "Recheck the weekly share after 2026-10-14.",
+      "source_id": "openrouter-rankings-haiku-5-5-2026-10-07"
+    },
+    {
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "llm-stats: LISTED with no scores. https://llm-stats.com/models/claude-haiku-5-5 shows release Oct 7, 2026, 1M context, 128K output, $0.100 input / $0.010 cached / $0.500 output per M, knowledge cutoff June 2026, and 'Score pending' for the model and every neighbour. The page text is vendor-derived. The HTML contained a 'Quick verification' bot-gate string but also served the full page. Checked 2026-10-07. Recheck 2026-10-14.",
+      "implication": "No quality data. The 'June 2026 knowledge cutoff' and 128K output figures are llm-stats copy: verify against Anthropic.",
+      "source_id": "llm-stats-haiku-5-5-2026-10-07"
+    }
+  ],
+  "scores": [],
+  "missing": [
+    "Haiku 5.5 on Vals AI, tbench.ai, ARC Prize, DeepSWE, SEAL, Arena text and WebDev, Steel BrowseComp and Epoch: absent on 2026-10-07; recheck 2026-10-14.",
+    "LiveBench: not checked (page is a JavaScript shell).",
+    "OpenRouter token share: no data before 2026-10-07; recheck 2026-10-14.",
+    "llm-stats benchmark scores: 'Score pending'; recheck 2026-10-14."
+  ]
+}
