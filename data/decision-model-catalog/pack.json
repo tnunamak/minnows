@@ -2,9 +2,9 @@
  "$schema": "schemas/pack-v1.schema.json",
  "name": "decision-model-catalog",
  "schema_version": 1,
- "tag": "data-decision-model-catalog-v0.2.0",
+ "tag": "data-decision-model-catalog-v0.1.0",
  "generated_at": "2026-10-07",
- "description": "Decision-model catalog: source-backed, nuance-preserving data on typed decision models for an agent hot path (TypeSafe Jev, Cloudflare Clef/Clef-flash, OpenAI Decisions, Perplexity decider, open entrants). v0.2.0 (as of 2026-10-07): 131 models (all 111 Jev Decision Index 0.3 entrants + hosted APIs), 285 metrics (one per benchmark x publisher/harness; latency per vantage), 25 performance docs / 7964 score rows with measurement context, 9 pricing docs (raw units + sourced conversions), 6 capability docs, 56 caveats with verbatim evidence, 92 sources. Vendor-run and board numbers are tagged; scores compare only within a metric_id.",
+ "description": "Decision-model catalog: source-backed, nuance-preserving data on typed decision models for an agent hot path (TypeSafe Jev, Cloudflare Clef/Clef-flash, OpenAI Decisions, Perplexity decider, open entrants). v0.1.0, first release (as of 2026-10-07): 132 models (all 111 Jev Decision Index 0.3 entrants + hosted APIs), 285 metrics (one per benchmark x publisher/harness; latency per vantage), 25 performance docs / 7964 score rows with measurement context, 9 pricing docs (raw units + sourced conversions), 6 capability docs, 56 caveats with verbatim evidence, 92 sources. Vendor-run and board numbers are tagged; scores compare only within a metric_id.",
  "files": [
   "CHANGELOG.md",
   "FRESHNESS.md",

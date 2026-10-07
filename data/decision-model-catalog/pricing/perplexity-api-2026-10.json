@@ -15,13 +15,17 @@
   "requesty-benchmark"
  ],
  "role": "reference",
- "notes": "Perplexity first-party Decisions API price: \"The Decisions API costs $0.02 per million input tokens. Output tokens are free, and there is no per-request fee.\" (quickstart; the pricing page JSON also shows decisions.input 0.02). Rate limit 10 requests per second per organization on every plan. PRICE CONFLICT: OpenRouter and Requesty list the same model at $0.04 per million input tokens (2x the direct price). Unresolved whether the routers add a markup or the direct price changed; both are recorded (see the openrouter and requesty pricing docs). pplx-decider-v1.1-27b is served under the same API; the v1 and v1.1 rows are the same rate. Cache fields: cache_read_per_m and cache_write_per_m are set EQUAL to fresh_input_per_m because the vendor documents no caching discount or surcharge; they are not published rates.",
+ "notes": "Perplexity first-party Decisions API price: \"The Decisions API costs $0.02 per million input tokens. Output tokens are free, and there is no per-request fee.\" (quickstart; the pricing page JSON also shows decisions.input 0.02). Rate limit 10 requests per second per organization on every plan. PRICE CONFLICT: OpenRouter and Requesty list the same model at $0.04 per million input tokens (2x the direct price). Unresolved whether the routers add a markup or the direct price changed; both are recorded (see the openrouter and requesty pricing docs). pplx-decider-v1.1-27b is served under the same API; the v1 and v1.1 rows are the same rate. Cache fields: cache_read_per_m and cache_write_per_m are null with cache_rates_status \"not_published\": the vendor documents no caching discount or surcharge, so no cache rate is recorded (none is inferred from the input price).",
  "models": {
   "pplx-decider-v1-27b": {
    "billing_basis": "per_token",
    "fresh_input_per_m": 0.02,
-   "cache_read_per_m": 0.02,
-   "cache_write_per_m": 0.02,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
    "output_per_m": 0.0,
    "confidence": "high",
    "output_free": true,
@@ -36,8 +40,12 @@
   "pplx-decider-v1.1-27b": {
    "billing_basis": "per_token",
    "fresh_input_per_m": 0.02,
-   "cache_read_per_m": 0.02,
-   "cache_write_per_m": 0.02,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
    "output_per_m": 0.0,
    "confidence": "high",
    "output_free": true,

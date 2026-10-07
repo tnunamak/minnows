@@ -111,7 +111,7 @@
     "choice",
     "score"
    ],
-   "max_options": 255,
+   "max_options": 256,
    "abstain_supported": null,
    "returns_probabilities": true,
    "calibration_claimed": true,
@@ -135,7 +135,7 @@
     "same-weights-different-serving-limits-and-confidence",
     "confidence-field-non-portable"
    ],
-   "notes": "SURFACE: sference (EU managed inference, POST /v1/decisions, realtime only, no batch/flex/background): \"answers up to 16 choice, score, or yes/no questions about one input in a single call, generates no text, and is billed on input tokens only\"; sference lists a 64K context (stored as 65536) and choice criteria of 1-256 labels (docs summary); body 1 MiB. Requesty measured 97.3% identical answers vs Cloudflare on 7,137 shared items and that sference returns the max probability as `confidence`."
+   "notes": "SURFACE: sference (EU managed inference, POST /v1/decisions, realtime only, no batch/flex/background): \"answers up to 16 choice, score, or yes/no questions about one input in a single call, generates no text, and is billed on input tokens only\"; sference lists a 64K context (stored as 65536) and choice criteria of 1-256 labels and score of 1-256 levels (sference guide: \"Object of 1–256 labels\", \"Ordered list of 1–256 levels\"); body 1 MiB. Requesty measured 97.3% identical answers vs Cloudflare on 7,137 shared items and that sference returns the max probability as `confidence`."
   },
   {
    "model": "clef",

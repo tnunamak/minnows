@@ -900,8 +900,7 @@
     "kev-9b-v2",
     "Kev 9B v2",
     "jaredpalmer/kev-9b",
-    "Kev 9B",
-    "Kev-9B"
+    "Kev-9B v2"
    ],
    "weights": "open",
    "license": "Apache-2.0",
@@ -912,7 +911,27 @@
    "surfaces": [
     "self-host"
    ],
-   "notes": "Kev 9B v2 on the Decision Index; the Cloudflare card table used an earlier engine (kev-9b-raised). params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-20 (HF API); not a release date."
+   "notes": "Kev 9B v2 (engine kev-9b-v2) on Decision Index 0.3. NOT the checkpoint in Cloudflare's card table, which used the earlier kev-9b-raised (registered separately). params_total is the Decision Index served_params (base-model figure, not an HF safetensors count). HF repo created 2026-09-20 (HF API); not a release date."
+  },
+  {
+   "id": "kev-9b-raised",
+   "provider": "community",
+   "family": "Kev",
+   "status": "community_finetune",
+   "aliases": [
+    "kev-9b-raised",
+    "Kev 9B (Decision Index 0.2.1 / Cloudflare card table)"
+   ],
+   "weights": "open",
+   "license": "Apache-2.0",
+   "base_model": "Qwen/Qwen3.5-9B-Base",
+   "params_total": 9650000000,
+   "params_active": null,
+   "hf_repo": "jaredpalmer/kev-9b",
+   "surfaces": [
+    "self-host"
+   ],
+   "notes": "Earlier Kev 9B checkpoint (Decision Index 0.2.1 engine kev-9b-raised, 0.2.1 Full score 38.48 on the 2026-09-28 board snapshot). Cloudflare's launch card table (vendor-run, 0.2.1 suite) used this checkpoint: its Kev 9B BFCL 94.51 equals the 0.2.1 engine's 0.9451, whereas current kev-9b (v2, engine kev-9b-v2) has 0.9522 on 0.3. Kept distinct from kev-9b so joins do not merge checkpoints. Same HF repo name (jaredpalmer/kev-9b); the exact revision is not recorded in the captures. params_total is the Decision Index served_params (base-model figure, not an HF safetensors count)."
   },
   {
    "id": "jev-omni",

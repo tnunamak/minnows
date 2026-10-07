@@ -1368,26 +1368,26 @@
    "publisher": "Benchmark Heaven (board operator ran harness)",
    "suite": "JevBench",
    "suite_version": "v1.6.1 (board v1.7.12)",
-   "harness": "JevBench v1.6.1 (board v1.7.12): 1,500 decisions (1,200 sealed + 300 public); the board operator runs every row; open weights on an evaluator-owned Lium H100/RTX 6000 pod, hosted APIs measured from a board-operator server (Germany per JevBench notes; the Sage row from Helsinki); composite = capability + intelligence + calibration + speed + cost axes under Jev-class cost/latency caps",
+   "harness": "JevBench v1.6.1 (board v1.7.12): 1,500 decisions (1,200 sealed + 300 public); the board operator runs every row; open weights on an evaluator-owned Lium H100/RTX 6000 pod, hosted APIs measured from a board-operator server (Germany per JevBench notes; the Sage row from Helsinki); composite = equal-weight (25 each) harmonic mean of four axes (intelligence, calibration, speed, cost) under Jev-class cost/latency caps; capability = arithmetic mean of the intelligence and calibration axes",
    "steward": "third_party_board",
    "comparability_group": "jevbench-v1.6.1/composite",
    "comparable": true,
-   "notes": "Equal-weight harmonic mean of four axes (intelligence, calibration, speed, cost), each 0-100. Self-hosted open-weight rows are priced from a base-model reference, not vendor tariffs, which depresses the 27B open models composite; latency is adjusted. Scores are NOT comparable across JevBench v1.4/v1.5/v1.6 (Imajev-4B was #1 in v1.4.2.2 and #29 in v1.6.1). A5 U P rows are a 600-item re-run equated to the full 1,500-set scale (95% interval for OpenAI Decisions 51.6-64.6)."
+   "notes": "Equal-weight (25 each) harmonic mean of four axes (intelligence, calibration, speed, cost), each 0-100; the board's headline column is capability, not this composite. Self-hosted open-weight rows are priced from a base-model reference, not vendor tariffs, which depresses the 27B open models composite; latency is adjusted. Scores are NOT comparable across JevBench v1.4/v1.5/v1.6 (Imajev-4B was #1 in v1.4.2.2 and #29 in v1.6.1). A5 U P rows are a 600-item re-run equated to the full 1,500-set scale (95% interval for OpenAI Decisions 51.6-64.6)."
   },
   {
    "id": "jevbench-v161-capability",
-   "name": "JevBench v1.6.1 capability score",
+   "name": "JevBench v1.6.1 capability score (arithmetic mean of the Intelligence and Calibration axes, 0-100; not accuracy)",
    "direction": "higher_better",
-   "unit_default": "accuracy",
+   "unit_default": "other",
    "task_family": "capability",
    "publisher": "Benchmark Heaven (board operator ran harness)",
    "suite": "JevBench",
    "suite_version": "v1.6.1 (board v1.7.12)",
-   "harness": "JevBench v1.6.1 (board v1.7.12): 1,500 decisions (1,200 sealed + 300 public); the board operator runs every row; open weights on an evaluator-owned Lium H100/RTX 6000 pod, hosted APIs measured from a board-operator server (Germany per JevBench notes; the Sage row from Helsinki); composite = capability + intelligence + calibration + speed + cost axes under Jev-class cost/latency caps",
+   "harness": "JevBench v1.6.1 (board v1.7.12): 1,500 decisions (1,200 sealed + 300 public); the board operator runs every row; open weights on an evaluator-owned Lium H100/RTX 6000 pod, hosted APIs measured from a board-operator server (Germany per JevBench notes; the Sage row from Helsinki); composite = equal-weight (25 each) harmonic mean of four axes (intelligence, calibration, speed, cost) under Jev-class cost/latency caps; capability = arithmetic mean of the intelligence and calibration axes",
    "steward": "third_party_board",
    "comparability_group": "jevbench-v1.6.1/capability",
    "comparable": true,
-   "notes": "Quality-only score on the JevBench items (independent of cost and speed). Perplexity Decider v1.1 ranks 1 by capability (82.8) and 41 by composite (20.6) because self-hosting cost is priced from a base-model reference."
+   "notes": "Board definition (capability_policy): \"Arithmetic mean of Intelligence and Calibration; ranked models within both official caps\". It is a mean of two 0-100 axis scores, not an accuracy and not a pass rate; it excludes the speed and cost axes. Perplexity Decider v1.1 ranks 1 by capability (82.8) and 41 by composite (20.6) because self-hosting cost is priced from a base-model reference."
   },
   {
    "id": "jevbench-v161-latency-p50-raw-ms",
@@ -1398,7 +1398,7 @@
    "publisher": "Benchmark Heaven (board operator ran harness)",
    "suite": "JevBench",
    "suite_version": "v1.6.1 (board v1.7.12)",
-   "harness": "JevBench v1.6.1 (board v1.7.12): 1,500 decisions (1,200 sealed + 300 public); the board operator runs every row; open weights on an evaluator-owned Lium H100/RTX 6000 pod, hosted APIs measured from a board-operator server (Germany per JevBench notes; the Sage row from Helsinki); composite = capability + intelligence + calibration + speed + cost axes under Jev-class cost/latency caps",
+   "harness": "JevBench v1.6.1 (board v1.7.12): 1,500 decisions (1,200 sealed + 300 public); the board operator runs every row; open weights on an evaluator-owned Lium H100/RTX 6000 pod, hosted APIs measured from a board-operator server (Germany per JevBench notes; the Sage row from Helsinki); composite = equal-weight (25 each) harmonic mean of four axes (intelligence, calibration, speed, cost) under Jev-class cost/latency caps; capability = arithmetic mean of the intelligence and calibration axes",
    "steward": "third_party_board",
    "comparability_group": "jevbench-v1.6.1/latency-p50-raw-ms",
    "comparable": true,
@@ -1413,7 +1413,7 @@
    "publisher": "Benchmark Heaven (board operator ran harness)",
    "suite": "JevBench",
    "suite_version": "v1.6.1 (board v1.7.12)",
-   "harness": "JevBench v1.6.1 (board v1.7.12): 1,500 decisions (1,200 sealed + 300 public); the board operator runs every row; open weights on an evaluator-owned Lium H100/RTX 6000 pod, hosted APIs measured from a board-operator server (Germany per JevBench notes; the Sage row from Helsinki); composite = capability + intelligence + calibration + speed + cost axes under Jev-class cost/latency caps",
+   "harness": "JevBench v1.6.1 (board v1.7.12): 1,500 decisions (1,200 sealed + 300 public); the board operator runs every row; open weights on an evaluator-owned Lium H100/RTX 6000 pod, hosted APIs measured from a board-operator server (Germany per JevBench notes; the Sage row from Helsinki); composite = equal-weight (25 each) harmonic mean of four axes (intelligence, calibration, speed, cost) under Jev-class cost/latency caps; capability = arithmetic mean of the intelligence and calibration axes",
    "steward": "third_party_board",
    "comparability_group": "jevbench-v1.6.1/latency-p50-adjusted-ms",
    "comparable": true,
@@ -1428,7 +1428,7 @@
    "publisher": "Benchmark Heaven (board operator ran harness)",
    "suite": "JevBench",
    "suite_version": "v1.6.1 (board v1.7.12)",
-   "harness": "JevBench v1.6.1 (board v1.7.12): 1,500 decisions (1,200 sealed + 300 public); the board operator runs every row; open weights on an evaluator-owned Lium H100/RTX 6000 pod, hosted APIs measured from a board-operator server (Germany per JevBench notes; the Sage row from Helsinki); composite = capability + intelligence + calibration + speed + cost axes under Jev-class cost/latency caps",
+   "harness": "JevBench v1.6.1 (board v1.7.12): 1,500 decisions (1,200 sealed + 300 public); the board operator runs every row; open weights on an evaluator-owned Lium H100/RTX 6000 pod, hosted APIs measured from a board-operator server (Germany per JevBench notes; the Sage row from Helsinki); composite = equal-weight (25 each) harmonic mean of four axes (intelligence, calibration, speed, cost) under Jev-class cost/latency caps; capability = arithmetic mean of the intelligence and calibration axes",
    "steward": "third_party_board",
    "comparability_group": "jevbench-v1.6.1/usd-per-decision",
    "comparable": true,
@@ -2414,7 +2414,7 @@
    "steward": "third_party_board",
    "comparability_group": "decision-index-0.3/public-balanced-skill",
    "comparable": true,
-   "notes": "Public, chance-corrected index over the 37-benchmark panel in five equally sized-by-sqrt areas. NOT the headline. Cloudflare \"Clef is currently the leader\" is true on this column (Clef rank 3) and not on Full (Clef rank 19)."
+   "notes": "Public, chance-corrected index over the 37-benchmark panel in five equally sized-by-sqrt areas. NOT the headline. On this column Clef is rank 3 (Torchcast Decision 27B 65.10 is rank 1; Perplexity Decider v1.1 62.25 rank 2) and above Jev (rank 10), not first; on Full Clef is rank 19. Cloudflare's \"Clef is currently the leader\" (2026-10-01) dates to the 0.2.1 edition."
   },
   {
    "id": "di03-public-balanced-raw",

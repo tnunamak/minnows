@@ -11,13 +11,17 @@
   "openrouter-decisions-catalog"
  ],
  "role": "reference",
- "notes": "OpenRouter decisions-modality listings (14 ids; 12 stored here, two aliases of Jev and the :free Span-01 Lite route share rows): per-token prompt prices converted from the listing \"pricing\" strings (USD per token x 1,000,000); completion is always $0 (output free). OpenRouter is a router: prices can differ from the model vendor price (Perplexity $0.04 vs $0.02 direct). Default /api/v1/models hides decision models; they appear with ?output_modalities=decisions. Request volume and p50 latency are in the performance docs. Rows with a cache fields equal to fresh input follow the convention below. Cache fields: cache_read_per_m and cache_write_per_m are set EQUAL to fresh_input_per_m because the listing has no input_cache_read field or it equals the prompt price; they are not published rates.",
+ "notes": "OpenRouter decisions-modality listings (14 ids; 12 stored here, two aliases of Jev and the :free Span-01 Lite route share rows): per-token prompt prices converted from the listing \"pricing\" strings (USD per token x 1,000,000); completion is always $0 (output free). OpenRouter is a router: prices can differ from the model vendor price (Perplexity $0.04 vs $0.02 direct). Default /api/v1/models hides decision models; they appear with ?output_modalities=decisions. Request volume and p50 latency are in the performance docs. Cache fields: cache_read_per_m is filled only where the listing prints an input_cache_read value (OpenAI Decisions Luna $0, Liquid d1 $0.04, Solar Decide $0.05; cache_rates_status \"published\"). Every other cache field is null with status \"not_published\": the listing has no cache field for it. No cache rate is inferred from the prompt price.",
  "models": {
   "openai-decisions-gpt-6-luna": {
    "billing_basis": "per_token",
    "fresh_input_per_m": 0.1,
    "cache_read_per_m": 0.0,
-   "cache_write_per_m": 0.1,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "published",
+    "cache_write": "not_published"
+   },
    "output_per_m": 0.0,
    "confidence": "high",
    "output_free": true,
@@ -30,8 +34,12 @@
   "pplx-decider-v1-27b": {
    "billing_basis": "per_token",
    "fresh_input_per_m": 0.04,
-   "cache_read_per_m": 0.04,
-   "cache_write_per_m": 0.04,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
    "output_per_m": 0.0,
    "confidence": "high",
    "output_free": true,
@@ -46,7 +54,11 @@
    "billing_basis": "per_token",
    "fresh_input_per_m": 0.04,
    "cache_read_per_m": 0.04,
-   "cache_write_per_m": 0.04,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "published",
+    "cache_write": "not_published"
+   },
    "output_per_m": 0.0,
    "confidence": "high",
    "output_free": true,
@@ -59,8 +71,12 @@
   "clef-flash": {
    "billing_basis": "per_token",
    "fresh_input_per_m": 0.09,
-   "cache_read_per_m": 0.09,
-   "cache_write_per_m": 0.09,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
    "output_per_m": 0.0,
    "confidence": "high",
    "output_free": true,
@@ -73,8 +89,12 @@
   "clef": {
    "billing_basis": "per_token",
    "fresh_input_per_m": 0.24,
-   "cache_read_per_m": 0.24,
-   "cache_write_per_m": 0.24,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
    "output_per_m": 0.0,
    "confidence": "high",
    "output_free": true,
@@ -87,8 +107,12 @@
   "tev1-4b": {
    "billing_basis": "per_token",
    "fresh_input_per_m": 0.042,
-   "cache_read_per_m": 0.042,
-   "cache_write_per_m": 0.042,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
    "output_per_m": 0.0,
    "confidence": "high",
    "output_free": true,
@@ -116,7 +140,11 @@
    "billing_basis": "per_token",
    "fresh_input_per_m": 0.05,
    "cache_read_per_m": 0.05,
-   "cache_write_per_m": 0.05,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "published",
+    "cache_write": "not_published"
+   },
    "output_per_m": 0.0,
    "confidence": "low",
    "output_free": true,
@@ -130,8 +158,12 @@
   "span-01": {
    "billing_basis": "per_token",
    "fresh_input_per_m": 0.02,
-   "cache_read_per_m": 0.02,
-   "cache_write_per_m": 0.02,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
    "output_per_m": 0.0,
    "confidence": "high",
    "output_free": true,
@@ -158,8 +190,12 @@
   "kev-4b": {
    "billing_basis": "per_token",
    "fresh_input_per_m": 0.042,
-   "cache_read_per_m": 0.042,
-   "cache_write_per_m": 0.042,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
    "output_per_m": 0.0,
    "confidence": "high",
    "output_free": true,
@@ -172,8 +208,12 @@
   "jev-1.13.0": {
    "billing_basis": "per_token",
    "fresh_input_per_m": 0.042,
-   "cache_read_per_m": 0.042,
-   "cache_write_per_m": 0.042,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
    "output_per_m": 0.0,
    "confidence": "high",
    "output_free": true,

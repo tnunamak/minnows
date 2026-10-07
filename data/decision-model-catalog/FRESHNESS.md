@@ -8,7 +8,7 @@
 | **Capabilities** | `capabilities/*.json` | on vendor interface change | 90 days |
 | **Local measurements** | our own latency/cost runs | only when a decision needs them | n/a |
 
-Documents by tier in v0.2.0: pricing/* (load-bearing); jev-decision-index-0-3-*, openrouter-decision-models-*, jevbench-*, morrenhale-*, streamdecisionbench-*, s1mb-*, localllama-typed-decisions-card-*, hard-decisions-* (boards); cloudflare-clef-launch-*, typesafe-evals-*, perplexity-model-cards-*, typesafe-launch-claims-*, openai-decisions-claims-* (vendor launch tables and claims); requesty-*, nicia-*, siujev-*, devto-*, reddit-*, arxiv-* (one-off independent reports); local-decider-cpu-measurements-* (local). Only documents holding `third_party_board` rows are age-checked.
+Documents by tier in v0.1.0: pricing/* (load-bearing); jev-decision-index-0-3-*, openrouter-decision-models-*, jevbench-*, morrenhale-*, streamdecisionbench-*, s1mb-*, localllama-typed-decisions-card-*, hard-decisions-* (boards); cloudflare-clef-launch-*, typesafe-evals-*, perplexity-model-cards-*, typesafe-launch-claims-*, openai-decisions-claims-* (vendor launch tables and claims); requesty-*, nicia-*, siujev-*, devto-*, reddit-*, arxiv-* (one-off independent reports); local-decider-cpu-measurements-* (local). Only documents holding `third_party_board` rows are age-checked.
 
 Early-access and limited-preview pricing and interfaces change fast. Re-check them at the
 board cadence, not the launch-table cadence.

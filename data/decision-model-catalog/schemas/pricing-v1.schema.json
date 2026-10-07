@@ -72,12 +72,43 @@
             "minimum": 0
           },
           "cache_read_per_m": {
-            "type": "number",
-            "minimum": 0
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "USD per 1M tokens as published by the source; null when unpublished (see cache_rates_status). Never inferred from fresh_input_per_m."
           },
           "cache_write_per_m": {
-            "type": "number",
-            "minimum": 0
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "USD per 1M tokens as published by the source; null when unpublished (see cache_rates_status). Never inferred from fresh_input_per_m."
+          },
+          "cache_rates_status": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "cache_read": {
+                "type": "string",
+                "enum": [
+                  "published",
+                  "not_published",
+                  "vendor_states_none_charged"
+                ]
+              },
+              "cache_write": {
+                "type": "string",
+                "enum": [
+                  "published",
+                  "not_published",
+                  "vendor_states_none_charged"
+                ]
+              }
+            },
+            "description": "Per-field provenance of the cache rates. published = number printed by the source; not_published = source gives no cache rate (field null); vendor_states_none_charged = source says there is no such charge (field null; keep the quote in notes, no numeric claim)."
           },
           "output_per_m": {
             "type": "number",

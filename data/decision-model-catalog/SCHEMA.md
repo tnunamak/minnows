@@ -84,9 +84,9 @@ empty in a seed.
 
 ## Pricing (`kind`: `api_usd`)
 
-Per-token rows are tokensmash-compatible: `fresh_input_per_m`, `cache_read_per_m`,
-`cache_write_per_m`, `output_per_m` (USD per 1M tokens), all four required when
-`billing_basis` is `per_token`. Every row has `billing_basis`:
+Per-token rows use the tokensmash field names: `fresh_input_per_m`, `cache_read_per_m`,
+`cache_write_per_m`, `output_per_m` (USD per 1M tokens). All four keys are required when
+`billing_basis` is `per_token`; the two cache keys may be `null` (see "Cache fields"). Every row has `billing_basis`:
 `per_token`, `per_request`, `per_decision`, `raw_units`, `free`, `self_host`.
 
 Extra fields:
@@ -116,13 +116,14 @@ Same document shape as model-catalog (`claims[]`, `scores[]`, `missing[]`, `comp
 
 | Field | Meaning |
 |-------|---------|
-| `measured_by` | Who ran it (vendor, named third party, `local`) |
+| `measured_by` | Who ran it (vendor, named third party, `local`); never the board that merely lists a submitted run |
 | `vantage` | `hosted_rtt`, `on_platform`, `on_card`, `local_cpu`, `local_gpu`, `vendor_claim` |
 | `hardware`, `region` | As stated |
 | `percentile` | `p50`, `p95`, `p99`, `mean` |
 | `input_tokens`, `questions_per_request` | Payload size and fan-in |
 | `prefix_cache` | `true`, `false` or `null` (unknown) |
 | `n` | Sample count |
+| `published_by` | Optional. Who published the number when that differs from `measured_by` (for example a board listing an author-submitted run) |
 
 ### Latency context rule
 
@@ -142,6 +143,8 @@ cache behavior. Record per-token rates in `pricing/`. Record decision-level cost
 row with `unit: "usd_per_decision"` and a `measurement` (at least `measured_by`; add
 `input_tokens`, `questions_per_request`, `prefix_cache` when stated). Never compute a
 cost-per-decision from per-token rates in this pack without saying so in `caveat`.
+Name the unit exactly: a request carrying k questions costs `input_tokens x price`; the
+per-decision cost is that figure divided by k (README worked example shows both).
 
 ## Capabilities (`kind`: `capabilities`)
 
@@ -184,10 +187,10 @@ Nuance lives here so a consumer cannot drop it. Each caveat:
 ./scripts/validate_data_pack.py   # all packs + index
 ```
 
-## Conventions added in v0.2.0
+## Conventions
 
-- **Dates.** `retrieved_at` and `generated_at` are UTC dates. The v0.2.0 research ran the evening of 2026-10-06 US Central (2026-10-07 UTC); everything is dated 2026-10-07.
-- **Cache fields.** A `per_token` row needs all four rates. When a vendor documents no caching discount or surcharge, `cache_read_per_m` and `cache_write_per_m` are set equal to `fresh_input_per_m` and the row `notes` or the document `notes` say so. They are not published rates.
+- **Dates.** `retrieved_at` and `generated_at` are UTC dates. The research ran the evening of 2026-10-06 US Central (2026-10-07 UTC); everything is dated 2026-10-07.
+- **Cache fields.** A `per_token` row has all four keys, but a cache rate is a number only when the source prints it. Otherwise the key is `null` and `cache_rates_status.cache_read` / `.cache_write` says why: `published` (number printed by the source, for example an OpenRouter `input_cache_read`), `not_published` (the source gives no cache rate; null), or `vendor_states_none_charged` (the vendor says there is no such charge; null, with the verbatim sentence kept in `notes` and not turned into a number). A null cache rate must carry one of the last two statuses, and those statuses forbid a number. Never copy `fresh_input_per_m` into a cache field. Consumers that need a number (tokensmash-style cost math) must choose a fallback themselves and say so; this pack does not choose one.
 - **Raw units.** Workers AI is billed in neurons: the row is `billing_basis: raw_units`, `raw_units.unit: neurons`, the USD figure the vendor prints sits in `fresh_input_per_m`, and `usd_conversion` (`0.000011` USD per neuron, source cited) is stored separately.
 - **Score scale.** Per-benchmark scores from the Decision Index and Cloudflare tables are percent (the Index publishes 0-1 fractions; stored x100 and rounded to four decimals). `ece` and `brier` are stored as published (0-1). Chance-corrected "skill" is an index, not an accuracy.
 - **Metric ids.** One id per benchmark and publisher/harness/edition. Latency has one id per vantage (`...-hosted-rtt-ms` vs `...-on-card-ms`). `ci_lo`/`ci_hi` are fractions (0-1) even when `score` is percent.

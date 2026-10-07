@@ -33,7 +33,7 @@
     },
     "decision-model-catalog": {
       "latest_tag": "data-decision-model-catalog-v0.1.0",
-      "description": "Decision models (typed decisions on an agent hot path): source-backed models, scores, latency/cost context, caveats. Seed: structure only",
+      "description": "Decision models (typed decisions on an agent hot path): source-backed models, scores, pricing, capabilities, latency/cost context and caveats (first release v0.1.0, data as of 2026-10-07)",
       "readme": "https://github.com/tnunamak/minnows/blob/main/data/decision-model-catalog/README.md",
       "releases": "https://github.com/tnunamak/minnows/releases?q=data-decision-model-catalog&expanded=true",
       "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-decision-model-catalog-v0.1.0/data/decision-model-catalog/pack.json",

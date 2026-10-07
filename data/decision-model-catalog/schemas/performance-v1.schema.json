@@ -385,6 +385,11 @@
               "n": {
                 "type": "integer",
                 "minimum": 0
+              },
+              "published_by": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Party that published the number (for example a board) when it differs from measured_by."
               }
             }
           }
@@ -440,7 +445,8 @@
               }
             }
           }
-        ]
+        ],
+        "$comment": "Row-level rules here key on the row's own unit. The authoritative rule is cross-file and lives in scripts/validate_data_pack.py (check_decision_score): the row unit must equal the registered metric's unit_default, and the measurement context requirement (ms: measured_by, vantage, percentile; usd_per_decision: measured_by) derives from the METRIC's unit, so a row cannot dodge it with unit 'other'. JSON Schema cannot join metrics.json."
       }
     },
     "missing": {

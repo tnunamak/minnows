@@ -13,13 +13,17 @@
   "sference-docs-decisions"
  ],
  "role": "reference",
- "notes": "sference (EU managed inference) price for Clef: docs table \"Cloudflare/clef | 64K | $0.24 | — |\" (Input, Output columns); text: \"Served on POST /v1/decisions (realtime only). It answers up to 16 choice, score, or yes/no questions about one input in a single call, generates no text, and is billed on input tokens only.\" Rates are \"confirmed per model at account provisioning\". EU GPUs; no batch/flex/background. Cache fields: cache_read_per_m and cache_write_per_m are set EQUAL to fresh_input_per_m because the vendor documents no caching discount or surcharge; they are not published rates.",
+ "notes": "sference (EU managed inference) price for Clef: docs table \"Cloudflare/clef | 64K | $0.24 | — |\" (Input, Output columns); text: \"Served on POST /v1/decisions (realtime only). It answers up to 16 choice, score, or yes/no questions about one input in a single call, generates no text, and is billed on input tokens only.\" Rates are \"confirmed per model at account provisioning\". EU GPUs; no batch/flex/background. Cache fields: cache_read_per_m and cache_write_per_m are null with cache_rates_status \"not_published\": the vendor documents no caching discount or surcharge, so no cache rate is recorded (none is inferred from the input price).",
  "models": {
   "sference/clef": {
    "billing_basis": "per_token",
    "fresh_input_per_m": 0.24,
-   "cache_read_per_m": 0.24,
-   "cache_write_per_m": 0.24,
+   "cache_read_per_m": null,
+   "cache_write_per_m": null,
+   "cache_rates_status": {
+    "cache_read": "not_published",
+    "cache_write": "not_published"
+   },
    "output_per_m": 0.0,
    "confidence": "high",
    "output_free": true,

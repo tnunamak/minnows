@@ -159,9 +159,9 @@ def schema_errors(schema_name: str, doc: dict) -> list[str]:
     return [e.message for e in v.iter_errors(doc)]
 
 
-# --- the shipped seed -------------------------------------------------------
+# --- the shipped pack -------------------------------------------------------
 
-def test_shipped_seed_is_valid():
+def test_shipped_pack_is_valid():
     errors = vdp.Errors()
     vdp.validate_decision_model_catalog(SEED, errors)
     assert errors.items == []
@@ -400,6 +400,20 @@ def test_per_token_row_with_free_output_passes(pack):
     write(pack, "pricing/acme.json", price_doc(row))
     assert run(pack) == []
     assert schema_errors("pricing-v1.schema.json", price_doc(row)) == []
+
+
+def test_null_cache_rates_need_a_status(pack):
+    row = {"billing_basis": "per_token", "fresh_input_per_m": 0.09, "cache_read_per_m": None,
+           "cache_write_per_m": None, "output_per_m": 0, "output_free": True}
+    write(pack, "pricing/x.json", price_doc(row))
+    assert has(run(pack), "cache_read_per_m null requires cache_rates_status.cache_read")
+    row["cache_rates_status"] = {"cache_read": "not_published", "cache_write": "vendor_states_none_charged"}
+    write(pack, "pricing/x.json", price_doc(row))
+    assert run(pack) == []
+    assert schema_errors("pricing-v1.schema.json", price_doc(row)) == []
+    row["cache_read_per_m"] = 0.09  # a number next to not_published is an inferred rate
+    write(pack, "pricing/x.json", price_doc(row))
+    assert has(run(pack), "cache_read_per_m must be null when cache_rates_status.cache_read is not_published")
 
 
 def test_per_token_row_missing_a_rate_fails(pack):

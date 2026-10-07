@@ -58,6 +58,7 @@ DECISION_SURFACES = frozenset({
     "typesafe-api", "workers-ai", "openai-api", "openrouter", "self-host", "hf-inference", "other",
 })
 DECISION_WEIGHTS = frozenset({"open", "closed"})
+CACHE_STATUSES = frozenset({"published", "not_published", "vendor_states_none_charged"})
 DECISION_BILLING_BASES = frozenset({"per_token", "per_request", "per_decision", "raw_units", "free", "self_host"})
 LATENCY_VANTAGES = frozenset({
     "hosted_rtt", "on_platform", "on_card", "local_cpu", "local_gpu", "vendor_claim",
@@ -356,6 +357,7 @@ def check_decision_price_row(
         "valid_from", "valid_until", "confidence", "post_valid_until",
         "billing_basis", "output_free", "per_request_usd", "min_request_usd",
         "per_decision_usd", "raw_units", "usd_conversion", "source_id", "caveat_ids", "notes",
+        "cache_rates_status",
     }
     extra = set(rates) - allowed
     if extra:
@@ -367,7 +369,25 @@ def check_decision_price_row(
         for f in RATE_FIELDS:
             if f not in rates:
                 errors.add(rp, f"per_token row missing {f}")
+    status = rates.get("cache_rates_status")
+    if status is not None:
+        if not isinstance(status, dict) or set(status) - {"cache_read", "cache_write"}:
+            errors.add(rp, "cache_rates_status must be an object with cache_read/cache_write only")
+            status = None
+        else:
+            for sk, sv in status.items():
+                if sv not in CACHE_STATUSES:
+                    errors.add(rp, f"cache_rates_status.{sk} must be one of {sorted(CACHE_STATUSES)}")
+    for f, sk in (("cache_read_per_m", "cache_read"), ("cache_write_per_m", "cache_write")):
+        # Decision pack: a cache rate is a published number or null with a status; never inferred.
+        if f in rates and rates[f] is None:
+            if not isinstance(status, dict) or status.get(sk) not in ("not_published", "vendor_states_none_charged"):
+                errors.add(rp, f"{f} null requires cache_rates_status.{sk} not_published or vendor_states_none_charged")
+        elif f in rates and isinstance(status, dict) and status.get(sk) in ("not_published", "vendor_states_none_charged"):
+            errors.add(rp, f"{f} must be null when cache_rates_status.{sk} is {status[sk]}")
     for f in (*RATE_FIELDS, "per_request_usd", "min_request_usd", "per_decision_usd"):
+        if f in rates and rates[f] is None and f in ("cache_read_per_m", "cache_write_per_m"):
+            continue
         if f in rates and (not _is_number(rates[f]) or rates[f] < 0):
             errors.add(rp, f"{f} must be a number >= 0")
     if "output_free" in rates and not isinstance(rates["output_free"], bool):
@@ -516,6 +536,7 @@ def validate_performance(
     metric_ids: set[str] | None = None,
     profile: PackProfile = MODEL_CATALOG,
     caveat_ids: set[str] | None = None,
+    metric_units: dict[str, str] | None = None,
 ) -> None:
     data = load_json(path, errors)
     if not isinstance(data, dict):
@@ -614,17 +635,19 @@ def validate_performance(
                     check_row_source_id(s, sp, registry, errors)
                 check_caveat_ids(s, sp, caveat_ids, errors)
                 if profile.decision:
-                    check_decision_score(s, sp, metric_ids, errors)
+                    check_decision_score(s, sp, metric_units, errors)
 
     if "missing" in data and not isinstance(data["missing"], list):
         errors.add(p, "missing must be an array")
 
 
 
-def check_decision_score(s: dict, sp: str, metric_ids: set[str] | None, errors: Errors) -> None:
-    """Decision score rows must name a registered metric; latency and cost rows must say
-    who measured, from where, and at which percentile (a bare ms number is not evidence)."""
-    if not isinstance(s.get("metric_id"), str):
+def check_decision_score(s: dict, sp: str, metric_units: dict[str, str] | None, errors: Errors) -> None:
+    """Decision score rows must name a registered metric whose unit_default equals the row unit;
+    latency and cost rows (decided by the METRIC's unit, never by the row's own unit label) must
+    say who measured, from where, and at which percentile (a bare ms number is not evidence)."""
+    mid = s.get("metric_id")
+    if not isinstance(mid, str):
         errors.add(sp, "decision score rows require metric_id (registered in metrics.json)")
     unit = s.get("unit")
     meas = s.get("measurement")
@@ -634,7 +657,7 @@ def check_decision_score(s: dict, sp: str, metric_ids: set[str] | None, errors: 
             meas = None
         else:
             known = {"measured_by", "vantage", "hardware", "region", "percentile",
-                     "input_tokens", "questions_per_request", "prefix_cache", "n"}
+                     "input_tokens", "questions_per_request", "prefix_cache", "n", "published_by"}
             if set(meas) - known:
                 errors.add(sp, f"measurement has unknown fields: {sorted(set(meas) - known)}")
             if "vantage" in meas and meas["vantage"] not in LATENCY_VANTAGES:
@@ -646,11 +669,16 @@ def check_decision_score(s: dict, sp: str, metric_ids: set[str] | None, errors: 
             for k in ("input_tokens", "questions_per_request", "n"):
                 if k in meas and (not isinstance(meas[k], int) or isinstance(meas[k], bool) or meas[k] < 0):
                     errors.add(sp, f"measurement.{k} must be a non-negative integer")
-    if unit == "ms":
+    metric_unit = metric_units.get(mid) if (metric_units is not None and isinstance(mid, str)) else None
+    if metric_unit is not None and unit != metric_unit:
+        errors.add(sp, f"row unit {unit!r} must equal metric {mid!r} unit_default {metric_unit!r}")
+    # The registered metric decides what context is required; the row unit is checked above.
+    required_unit = metric_unit if metric_unit is not None else unit
+    if required_unit == "ms":
         for k in ("measured_by", "vantage", "percentile"):
             if not isinstance(meas, dict) or k not in meas:
                 errors.add(sp, f"latency row (unit ms) requires measurement.{k}")
-    if unit == "usd_per_decision":
+    if required_unit == "usd_per_decision":
         if not isinstance(meas, dict) or "measured_by" not in meas:
             errors.add(sp, "cost row (unit usd_per_decision) requires measurement.measured_by")
 
@@ -993,6 +1021,7 @@ def validate_catalog_pack(
             if not isinstance(sid, str) or sid not in source_registry:
                 errors.add(mp, "released requires release_source_id from SOURCES.json")
     metric_ids: set[str] = set()
+    metric_units: dict[str, str] = {}
     mpath = pack_dir / "metrics.json"
     if mpath.is_file():
         mdata = load_json(mpath, Errors())  # soft — full check later
@@ -1000,6 +1029,8 @@ def validate_catalog_pack(
             for m in mdata.get("metrics") or []:
                 if isinstance(m, dict) and m.get("id"):
                     metric_ids.add(str(m["id"]))
+                    if isinstance(m.get("unit_default"), str):
+                        metric_units[str(m["id"])] = m["unit_default"]
     caveat_ids: set[str] | None = None
     if profile.decision:
         caveat_ids = load_caveats(pack_dir, errors, profile, source_registry, model_registry, metric_ids)
@@ -1016,7 +1047,8 @@ def validate_catalog_pack(
         errors.add(rel(pack_dir), "missing pricing/")
     if perf_dir.is_dir():
         for path in sorted(perf_dir.glob("*.json")):
-            validate_performance(path, errors, source_registry, model_registry, metric_ids, profile, caveat_ids)
+            validate_performance(path, errors, source_registry, model_registry, metric_ids, profile, caveat_ids,
+                                 metric_units if profile.decision else None)
     cap_dir = pack_dir / "capabilities"
     if cap_dir.is_dir():
         for path in sorted(cap_dir.glob("*.json")):

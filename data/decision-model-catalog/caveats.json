@@ -325,7 +325,7 @@
     ]
    },
    "strength": "strong",
-   "implication": "Compare cost per decision at your own token profile (formula and worked example in the README), not $/M. Price ratios (Clef 5.7x, Clef-flash 2.1x Jev per input token) hold only if token counts are equal.",
+   "implication": "Compare cost per decision at your own token profile (formula and worked example in the README, which shows cost per request and cost per decision = request / questions), not $/M. Price ratios (Clef 5.7x, Clef-flash 2.1x Jev per input token) hold only if token counts are equal.",
    "evidence": [
     {
      "source_id": "typesafe-docs-models",
@@ -521,7 +521,7 @@
   },
   {
    "id": "leaderboard-edition-and-weighting-flip-rankings",
-   "statement": "Decision Index 0.3 (2026-10-06) changed the headline: Full score = 0.20 x public + 0.50 x private same-skill tests + 0.30 x private new-domain tasks. On the public part Clef is 3rd (61.71) and Jev 10th (57.96); on the Full score Clef falls to 19th (53.08; new-domains 41.88) while Jev is 3rd (60.11; new-domains 54.98) and Perplexity Decider v1.1 is 1st (62.75). 'Clef leads the Jev Decision Index' is true only for the earlier public-only edition.",
+   "statement": "Decision Index 0.3 (2026-10-06) changed the headline: Full score = 0.20 x public + 0.50 x private same-skill tests + 0.30 x private new-domain tasks. On the public part Clef is 3rd (61.71) and Jev 10th (57.96); on the Full score Clef falls to 19th (53.08; new-domains 41.88) while Jev is 3rd (60.11; new-domains 54.98) and Perplexity Decider v1.1 is 1st (62.75). Cloudflare's 'Clef leads the Jev Decision Index' (blog, 2026-10-01) dates to the earlier public-only 0.2.1 edition (Clef 61.98 in PR #54 vs a top of 57.44 on the 2026-09-28 board snapshot, which did not list Clef). On the 0.3 public score Clef is rank 3 (Torchcast Decision 27B 65.10 is rank 1, Perplexity Decider v1.1 62.25 rank 2); Clef is above Jev there (57.96, rank 10) but does not lead.",
    "affects": {
     "models": [
      "clef",
@@ -617,7 +617,7 @@
   },
   {
    "id": "vendor-run-eval-of-competitor",
-   "statement": "Every Clef-vs-Jev number in Cloudflare's launch material was produced by Cloudflare (including the Jev rows); TypeSafe's own workflow evals were re-run by Cloudflare; the Index host is a third party, but the Clef rows were submitted/run by Cloudflare at launch. Jev's creator publicly dismisses benchmark leads as 'benchmaxxed'.",
+   "statement": "Every Clef-vs-Jev number in Cloudflare's launch material was produced by Cloudflare (including the Jev rows); TypeSafe's own workflow evals were re-run by Cloudflare; the Index host is a third party and its Clef rows were not submitted by Cloudflare: the only Clef PR on apolinario/decision-index (#54, open and unmerged at capture, a 0.2.1 run scoring 61.98) was opened by an outside GitHub account (lucataco, author_association NONE) with results in their own Hugging Face dataset from a run on their own Hugging Face Job, and the board lists the Cloudflare rows with lab: false. The captures do not say whether that account is affiliated with Cloudflare or who ran the board's own Clef rows. Cloudflare's own launch tables are separate vendor-run material. Jev's creator publicly dismisses benchmark leads as 'benchmaxxed'.",
    "affects": {
     "models": [
      "clef",
@@ -628,7 +628,8 @@
      "cloudflare-blog-clef",
      "developersdigest-clef",
      "digitalapplied-open-decision-models",
-     "gigazine-clef"
+     "gigazine-clef",
+     "jev-decision-index-github"
     ],
     "metrics": [
      "cf-di021-acos",
@@ -703,6 +704,14 @@
     {
      "source_id": "developersdigest-clef",
      "quote": "Cloudflare's published run of the Jev Decision Index 0.2.1 (vendor-run, so score it like any launch deck)"
+    },
+    {
+     "source_id": "jev-decision-index-github",
+     "quote": "submissions: add Clef (Cloudflare/clef) Decision Index 0.2.1 run (61.98)"
+    },
+    {
+     "source_id": "jev-decision-index-github",
+     "quote": "Results: https://huggingface.co/datasets/lucataco/clef-decision-index-results. [...] Run. One Hugging Face Job on `rtx-pro-6000`, one runner process, rows strictly serial, 10.7 h in total."
     }
    ]
   },
@@ -970,10 +979,12 @@
   },
   {
    "id": "model-version-and-api-drift",
-   "statement": "Jev results are tied to a moving target: jev-1.13.0 vs the jev-latest / jev-preview aliases (both currently -> 1.13.0), prior versions in docs (cookbook ran jev-1.12), API output that drifted since the Index run, and non-determinism across identical calls.",
+   "statement": "Jev results are tied to a moving target: jev-1.13.0 vs the jev-latest / jev-preview aliases (both currently -> 1.13.0), prior versions in docs (cookbook ran jev-1.12), API output that drifted since the Index run, and non-determinism across identical calls. Checkpoint audit of the registry: Kev 9B in Cloudflare's card table is the earlier kev-9b-raised checkpoint (registered as its own model id, not merged with Kev 9B v2); Perplexity v1 and v1.1 are separate ids; rows stored under jev-1.13.0 come from sources that pin that id (Bonn et al., the decision-gates paper) or that called an alias (jev-latest) whose API response named jev-1.13.0, so a row from an alias-only source is dated, not proven to be the same weights; the Cloudflare table labels DiffusionGemma Jev and Laya without a checkpoint (see the DiffusionGemma Jev model note).",
    "affects": {
     "models": [
-     "jev-1.13.0"
+     "jev-1.13.0",
+     "kev-9b",
+     "kev-9b-raised"
     ],
     "sources": [
      "jev-decision-index-data",
@@ -1331,7 +1342,7 @@
   },
   {
    "id": "llm-baselines-answered-subset-and-untuned",
-   "statement": "LLM-vs-decision-model comparisons are flattered or handicapped by method: accuracy for LLMs counts only items they answered (refusals/content filters excluded), baselines are single-shot JSON prompts with no few-shot or retries (probably understated), and decision models cannot refuse.",
+   "statement": "LLM-vs-decision-model comparisons are flattered or handicapped by method: accuracy for LLMs counts only items they answered (refusals/content filters excluded), baselines are single-shot JSON prompts with no few-shot or retries (probably understated), and the decision models Requesty tested (Clef and the Perplexity decider, via the router) returned no refusals in that run. This is not a property of all decision models: OpenAI Decisions supports a per-question `refusal` answer, and 39 of 111 Decision Index entrants decline questions with more than about 26 options.",
    "affects": {
     "models": [
      "gpt-5.5",
@@ -1366,7 +1377,7 @@
     ]
    },
    "strength": "moderate",
-   "implication": "Read an LLM baseline's accuracy together with its answered fraction and prompt method. 'Decision models never refuse' is a real operational advantage for moderation.",
+   "implication": "Read an LLM baseline's accuracy together with its answered fraction and prompt method. In Requesty's run the tested decision-model deployments (Clef, Perplexity decider) produced zero refusals on toxic-chat prompts, an operational advantage for moderation there; do not generalize it to other decision models (OpenAI Decisions can return a per-question refusal).",
    "evidence": [
     {
      "source_id": "requesty-benchmark",
@@ -1795,7 +1806,7 @@
   },
   {
    "id": "decision-index-full-vs-public-field-trap",
-   "statement": "In Decision Index 0.3 index.json the field `scores.balanced_skill` is the FULL score (20% public + 50% private same-skill tests + 30% private new-domain tasks); the public-only, chance-corrected 37-benchmark score is `scores.public_skill` and equals `frozen_scores.balanced_skill` (verified here for all 112 rows). A consumer who reads `frozen_scores.balanced_skill` as \"the headline\" will quote the public score, and one who reads `balanced_skill` next to an older edition will compare unlike quantities. Jev: Full 60.11, public 57.96. Clef: Full 53.08, public 61.71. Cloudflare \"Clef is currently the leader\" is true only on the public column.",
+   "statement": "In Decision Index 0.3 index.json the field `scores.balanced_skill` is the FULL score (20% public + 50% private same-skill tests + 30% private new-domain tasks); the public-only, chance-corrected 37-benchmark score is `scores.public_skill` and equals `frozen_scores.balanced_skill` (verified here for all 112 rows). A consumer who reads `frozen_scores.balanced_skill` as \"the headline\" will quote the public score, and one who reads `balanced_skill` next to an older edition will compare unlike quantities. Jev: Full 60.11, public 57.96. Clef: Full 53.08, public 61.71. Cloudflare's \"Clef is currently the leader\" dates to the 0.2.1 edition; on the 0.3 public column Clef is rank 3 (Torchcast 65.10 is rank 1) and above Jev, and on Full it is rank 19.",
    "affects": {
     "models": [
      "clef",
@@ -2121,7 +2132,7 @@
     ]
    },
    "strength": "moderate",
-   "implication": "Use capability for quality, show the cost basis (tariff vs estimate) beside any JevBench cost, and never compare adjusted self-hosted latency with measured hosted latency as a speed ranking.",
+   "implication": "Use capability (mean of the Intelligence and Calibration axes, not accuracy) as the quality view, show the cost basis (tariff vs estimate) beside any JevBench cost, and never compare adjusted self-hosted latency with measured hosted latency as a speed ranking.",
    "evidence": [
     {
      "source_id": "jevbench-v1-6-1",
