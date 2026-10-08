@@ -7,6 +7,7 @@ from pathlib import Path
 
 from runtime_sources import digest, read_source, providers, resolve_arm, quota_context
 from decision_receipts import read_receipts, find_receipt, append_receipt, validate_id, replay_receipt, validate_escalation_source
+import outcomes
 from delegation_audit import read_db, read_export, audit, normalize_since
 
 
@@ -29,6 +30,24 @@ def add_arguments(parser):
     parser.add_argument('--relaunch-of')
     parser.add_argument('--why', choices=['oracle_failed', 'judged_insufficient', 'infra', 'config', 'unavailable'])
     parser.add_argument('--handoff-boundary')
+    parser.add_argument('--purpose', choices=outcomes.PURPOSES, help='launch fact, stored outside request')
+    parser.add_argument('--proof-class', choices=outcomes.PROOF_CLASSES, help='launch fact: how the result is checked')
+    parser.add_argument('--urgent', action='store_true', help='launch fact; absent means unknown')
+    parser.add_argument('--irreversible', action='store_true', help='launch fact; absent means unknown')
+    parser.add_argument('--outcomes', type=Path, help='outcome ledger; default outcomes.jsonl beside --receipts')
+    parser.add_argument('--close-id')
+    parser.add_argument('--followup-id')
+    parser.add_argument('--outcome', choices=outcomes.OUTCOMES)
+    parser.add_argument('--judged-by', choices=outcomes.JUDGED_BY)
+    parser.add_argument('--check', choices=outcomes.CHECKS)
+    parser.add_argument('--owner-input', choices=outcomes.OWNER_INPUT)
+    parser.add_argument('--repairs', type=int, help='repair rounds counted by the parent; absent means unknown')
+    parser.add_argument('--supersedes', metavar='CLOSE_ID')
+    parser.add_argument('--evidence', action='append', default=[], metavar='JSON')
+    parser.add_argument('--closer-thread', help='optional: thread that closes the decision; audit flags a difference from the parent thread')
+    parser.add_argument('--note', help='one line, at most 280 characters; no prompts or secrets (not filtered)')
+    parser.add_argument('--finding', choices=outcomes.FINDINGS)
+    parser.add_argument('--checked-scope', help='what the follow-up looked at; no prompts or secrets (not filtered)')
     parser.add_argument('--json', action='store_true', help='resolve/audit always emit JSON')
     parser.add_argument('--db', type=Path)
     parser.add_argument('--export', type=Path)
@@ -37,6 +56,12 @@ def add_arguments(parser):
 
 
 def execute(args, policy):
+    if args.outcomes is None:
+        args.outcomes = args.receipts.with_name('outcomes.jsonl')
+    if args.command in ('close', 'followup', 'audit'):
+        outcomes.refuse_shared_ledger(args.receipts, args.outcomes)
+    if args.command in ('close', 'followup'):
+        return outcomes.execute(args)
     if args.command == 'audit':
         if bool(args.db) == bool(args.export):
             raise ValueError('audit requires exactly one of --db or --export')
@@ -44,7 +69,7 @@ def execute(args, policy):
         rows, out_of_scope = (read_export(args.export), None) if args.export else read_db(args.db, since, args.thread)
         return audit(rows, read_receipts(args.receipts), since, args.thread,
                      time_anchor='delegate_call.startedAt' if args.db else 'export.timestamp',
-                     out_of_scope=out_of_scope)
+                     out_of_scope=out_of_scope, outcome_rows=outcomes.read_outcomes(args.outcomes))
     for source_id in (args.escalate_from, args.relaunch_of):
         if source_id is not None:
             validate_id(source_id)
@@ -73,6 +98,7 @@ def execute(args, policy):
         raise ValueError('relaunch requires --why infra, config or unavailable')
     if args.record and not all((args.decision_id, args.parent_model, args.parent_provider_instance, args.parent_thread)):
         raise ValueError('--record requires --decision-id and explicit --parent-model/--parent-provider-instance/--parent-thread')
+    facts = outcomes.launch_facts(args)
     decision_id = args.decision_id or str(uuid.uuid4())
     validate_id(decision_id)
     request = {'op': args.op, 'no_op': args.no_op, 'overrides': overrides, 'account': args.account_hint,
@@ -82,7 +108,7 @@ def execute(args, policy):
                'relaunch_of': args.relaunch_of}
     old = find_receipt(args.receipts, decision_id)
     if old:
-        return replay_receipt(old, request)
+        return replay_receipt(old, request, facts)
     relaunch = None
     if args.relaunch_of:
         if args.relaunch_of == decision_id or not find_receipt(args.receipts, args.relaunch_of):
@@ -139,6 +165,8 @@ def execute(args, policy):
                    'launch_readiness_basis': 'catalog and effort surface only; auth and quota not attested',
                    'availability': available_meta, 'quota': quota_info, 'alternatives': alternatives,
                    'reason': args.reason, 'overrides': overrides}
+    if facts:
+        return_value['launch_facts'] = facts
     if escalation:
         return_value['escalation'] = escalation
     if relaunch:

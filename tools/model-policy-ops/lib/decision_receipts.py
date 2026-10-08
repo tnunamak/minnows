@@ -3,6 +3,7 @@ import fcntl
 import json
 import os
 import re
+from contextlib import contextmanager
 from pathlib import Path
 
 
@@ -15,6 +16,18 @@ def read_receipts(path):
         return []
     except ValueError as error:
         raise ValueError('malformed receipt JSONL') from error
+
+
+def numbered_rows(lines, name):
+    """Parse JSONL into (line_number, row) pairs. Failure names the file and line."""
+    rows = []
+    for number, line in enumerate(lines, 1):
+        if line.strip():
+            try:
+                rows.append((number, json.loads(line)))
+            except ValueError as error:
+                raise ValueError(f'{name} line {number}: not valid JSON') from error
+    return rows
 
 
 def find_receipt(path, decision_id):
@@ -34,8 +47,9 @@ def caller_intent(request):
     return {k: v for k, v in request.items() if k not in ('available', 'quota') and not (k == 'relaunch_of' and v is None)}
 
 
-def replay_receipt(old, request):
-    if caller_intent(old['request']) != caller_intent(request):
+def replay_receipt(old, request, launch_facts=None):
+    # Launch facts live outside `request`, so a 4ce5a3e CLI replays new receipts with base flags.
+    if caller_intent(old['request']) != caller_intent(request) or old.get('launch_facts') != launch_facts:
         raise ValueError('decision ID already recorded with changed inputs; use a new ID')
     return old | {'replayed': True}
 
@@ -62,8 +76,12 @@ def validate_escalation_source(rows, source_id):
         raise ValueError('one linked escalation allowed across relaunch lineage; parent judgment requires a new explicit override')
 
 
-def append_receipt(path, receipt):
-    validate_id(receipt['decision_id'])
+@contextmanager
+def locked_private_rows(path, validate=None):
+    """Yield (stream, rows) for an exclusive, private, append-only JSONL file.
+
+    `validate(numbered_rows, name)` runs before the caller sees any row and may raise.
+    """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     if path.parent.stat().st_mode & 0o022:
@@ -72,10 +90,25 @@ def append_receipt(path, receipt):
     with os.fdopen(fd, 'r+', encoding='utf-8') as stream:
         fcntl.flock(stream, fcntl.LOCK_EX)
         os.fchmod(stream.fileno(), 0o600)
-        rows = [json.loads(line) for line in stream if line.strip()]
+        numbered = numbered_rows(stream, path.name)
+        if validate:
+            validate(numbered, path.name)
+        yield stream, [row for _, row in numbered]
+
+
+def append_row(stream, row):
+    stream.seek(0, os.SEEK_END)
+    stream.write(json.dumps(row, sort_keys=True, separators=(',', ':')) + '\n')
+    stream.flush()
+    os.fsync(stream.fileno())
+
+
+def append_receipt(path, receipt):
+    validate_id(receipt['decision_id'])
+    with locked_private_rows(path) as (stream, rows):
         for old in rows:
             if old['decision_id'] == receipt['decision_id']:
-                return replay_receipt(old, receipt['request'])
+                return replay_receipt(old, receipt['request'], receipt.get('launch_facts'))
         for link in ('escalation', 'relaunch'):
             if receipt.get(link):
                 source = receipt[link]['from']
@@ -85,8 +118,5 @@ def append_receipt(path, receipt):
         escalation = receipt.get('escalation')
         if escalation:
             validate_escalation_source(rows, escalation['from'])
-        stream.seek(0, os.SEEK_END)
-        stream.write(json.dumps(receipt, sort_keys=True, separators=(',', ':')) + '\n')
-        stream.flush()
-        os.fsync(stream.fileno())
+        append_row(stream, receipt)
     return receipt
