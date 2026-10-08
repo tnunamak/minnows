@@ -32,7 +32,9 @@
     "https://www.anthropic.com/claude-haiku-5-5",
     "https://platform.claude.com/docs/en/models/haiku-5-5/overview",
     "https://platform.claude.com/docs/en/models/haiku-5-5/migration-guide",
-    "https://platform.claude.com/docs/en/models/overview"
+    "https://platform.claude.com/docs/en/models/overview",
+    "https://platform.kimi.ai/docs/guide/kimi-k3",
+    "https://platform.stepfun.ai/docs/en/guides/models/step-5-preview"
   ],
   "source_ids": [
     "anthropic-claude-code-model-config-2026-07-09",
@@ -80,9 +82,15 @@
     "anthropic-haiku-5-5-model-page-2026-10-07",
     "anthropic-haiku-5-5-migration-guide-2026-10-07",
     "anthropic-effort-guide-2026-10-07",
-    "anthropic-claude-code-model-config-2026-10-07"
+    "anthropic-claude-code-model-config-2026-10-07",
+    "openai-api-model-page-gpt-6-1-sol-2026-10-07",
+    "openai-codex-models-2026-10-07",
+    "openai-codex-changelog-2026-10-07",
+    "openai-codex-debug-models-0-161-0-2026-10-07",
+    "moonshot-kimi-k3-guide-2026-10-07",
+    "stepfun-step-5-preview-model-page-2026-10-07"
   ],
-  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking. 2026-09-22: added gpt-6-sol/gpt-6-luna api surfaces from their model pages (none/low/medium(default)/high/xhigh/max — no minimal, unlike gpt-5.6's api surface). 2026-09-22 (integration correction): the gpt-6-sol/gpt-6-luna codex_cli surfaces were initially recorded empty, citing a codex-cli 0.154.0 read that reported both slugs absent (auth-scoped rollout gap). A same-day 0.156.0 re-read on the same host shows both ARE listed (visibility=list): gpt-6-sol low/medium/high/xhigh/max/ultra default medium, gpt-6-luna low/medium/high/xhigh/max default medium — filled in from that later read (see openai-codex-debug-models-0-156-0-2026-09-22). 2026-09-23: added observed agy 1.2.9 per-model efforts (3.8/3.7/3.6 Flash low/medium/high; 3.1 Pro low/high), auth-scoped; added Grok 4.7 API effort and authenticated Grok CLI listing (sole/default model). Qwen candidates carry vendor product-family tiers and explicit enable_thinking surface notes where the primary model/API/config pages document them; this is a binary thinking toggle, not an effort ladder. Local CLI verification on 2026-09-23: installed qwen 0.21.1; `qwen --help` exposes no top-level --effort/--thinking flags. The installed bundled docs expose interactive `/effort` with low|medium|high|xhigh|max via model.reasoningEffort; provider mappings determine whether tiers remain distinct or map to thinking on/off. 2026-09-29: added GPT-6.1 Sol API surface from the dedicated model page. API default is medium. Added a separate Codex CLI surface from the official Codex model guide; its documented choices include Ultra, but the guide does not specify a fixed model default and the local model catalog did not include this model at retrieval. 2026-09-29: Xiaomi MiMo-V2.6 Pro/Flash API reasoning.effort accepts none, minimal, low, medium, high, xhigh, max, and ultra; only none disables reasoning, while other labels map to enabled reasoning and do not provide custom tuning. Default is enabled. 2026-10-07: added claude-haiku-5-5 api and claude_code surfaces (Haiku 5.5 launch). It is the first Haiku model with an effort parameter (all five levels; default medium on both surfaces). The two surfaces differ on thinking: the API accepts thinking disabled at high or below, Claude Code cannot turn thinking off on Haiku 5.5.",
+  "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking. 2026-09-22: added gpt-6-sol/gpt-6-luna api surfaces from their model pages (none/low/medium(default)/high/xhigh/max — no minimal, unlike gpt-5.6's api surface). 2026-09-22 (integration correction): the gpt-6-sol/gpt-6-luna codex_cli surfaces were initially recorded empty, citing a codex-cli 0.154.0 read that reported both slugs absent (auth-scoped rollout gap). A same-day 0.156.0 re-read on the same host shows both ARE listed (visibility=list): gpt-6-sol low/medium/high/xhigh/max/ultra default medium, gpt-6-luna low/medium/high/xhigh/max default medium — filled in from that later read (see openai-codex-debug-models-0-156-0-2026-09-22). 2026-09-23: added observed agy 1.2.9 per-model efforts (3.8/3.7/3.6 Flash low/medium/high; 3.1 Pro low/high), auth-scoped; added Grok 4.7 API effort and authenticated Grok CLI listing (sole/default model). Qwen candidates carry vendor product-family tiers and explicit enable_thinking surface notes where the primary model/API/config pages document them; this is a binary thinking toggle, not an effort ladder. Local CLI verification on 2026-09-23: installed qwen 0.21.1; `qwen --help` exposes no top-level --effort/--thinking flags. The installed bundled docs expose interactive `/effort` with low|medium|high|xhigh|max via model.reasoningEffort; provider mappings determine whether tiers remain distinct or map to thinking on/off. 2026-09-29: added GPT-6.1 Sol API surface from the dedicated model page. API default is medium. Added a separate Codex CLI surface from the official Codex model guide; its documented choices include Ultra, but the guide does not specify a fixed model default and the local model catalog did not include this model at retrieval. 2026-09-29: Xiaomi MiMo-V2.6 Pro/Flash API reasoning.effort accepts none, minimal, low, medium, high, xhigh, max, and ultra; only none disables reasoning, while other labels map to enabled reasoning and do not provide custom tuning. Default is enabled. 2026-10-07: added claude-haiku-5-5 api and claude_code surfaces (Haiku 5.5 launch). It is the first Haiku model with an effort parameter (all five levels; default medium on both surfaces). The two surfaces differ on thinking: the API accepts thinking disabled at high or below, Claude Code cannot turn thinking off on Haiku 5.5. 2026-10-07: Codex CLI default effort for gpt-6.1-sol set to low from a local codex-cli 0.161.0 `codex debug models` read; Kimi K3 API default effort corrected from high to max per Moonshot's K3 guide; added the StepFun step-5-preview API surface (low/medium/high). No effort surface recorded for mistral-large-4: the model card and chat-completion docs fetched do not document a reasoning-effort parameter.",
   "surfaces": [
     {
       "provider": "alibaba",
@@ -1439,7 +1447,7 @@
         "high",
         "max"
       ],
-      "default_effort": "high",
+      "default_effort": "max",
       "unsupported_behavior": "hard_fail",
       "aliases": {},
       "modes": [
@@ -1448,8 +1456,10 @@
         }
       ],
       "source_ids": [
-        "moonshot-kimi-k3-announcement-2026-09-23"
-      ]
+        "moonshot-kimi-k3-announcement-2026-09-23",
+        "moonshot-kimi-k3-guide-2026-10-07"
+      ],
+      "notes": "CORRECTED 2026-10-07: default_effort was recorded as high; Moonshot's K3 guide states reasoning_effort supports low / high / max with default max, and the launch blog says K3 uses max effort by default (low and high modes arrived in later updates). Boards (Vals, Terminal-Bench, AA) label K3 runs max."
     },
     {
       "provider": "minimax",
@@ -1594,9 +1604,10 @@
         }
       ],
       "source_ids": [
-        "openai-api-model-page-gpt-6-1-sol-2026-09-29"
+        "openai-api-model-page-gpt-6-1-sol-2026-09-29",
+        "openai-api-model-page-gpt-6-1-sol-2026-10-07"
       ],
-      "notes": "API model page states reasoning.effort supports low, medium (default), high, xhigh, and max; none and minimal are unsupported. Fast is unavailable with EU data residency."
+      "notes": "API model page states reasoning.effort supports low, medium (default), high, xhigh, and max; none and minimal are unsupported. Fast is unavailable with EU data residency. Re-verified unchanged 2026-10-07."
     },
     {
       "provider": "openai",
@@ -1610,7 +1621,7 @@
         "max",
         "ultra"
       ],
-      "default_effort": null,
+      "default_effort": "low",
       "unsupported_behavior": "hard_fail",
       "aliases": {},
       "modes": [
@@ -1623,9 +1634,11 @@
         }
       ],
       "source_ids": [
-        "openai-codex-models-2026-09-29"
+        "openai-codex-models-2026-09-29",
+        "openai-codex-debug-models-0-161-0-2026-10-07",
+        "openai-codex-changelog-2026-10-07"
       ],
-      "notes": "Codex model documentation describes reasoning controls from Light through Ultra and says Max/Ultra depend on plan/settings; Light maps to the CLI/API low label. The docs recommend starting with the effort available by default in the client and do not state one fixed GPT-6.1 Sol CLI default. CORRECTED 2026-09-30: local codex-cli 0.156.1 `codex debug models` did not return this model; codex-cli 0.159.2 on the same host lists it, and a `codex exec -m gpt-6.1-sol` run completed with the rollout recording `gpt-6.1-sol` as the served model. The CLI default effort for this model is still not locally verified."
+      "notes": "Codex model documentation describes reasoning controls from Light through Ultra and says Max/Ultra depend on plan/settings; Light maps to the CLI/API low label. The docs recommend starting with the effort available by default in the client and do not state one fixed GPT-6.1 Sol CLI default. CORRECTED 2026-09-30: local codex-cli 0.156.1 `codex debug models` did not return this model; codex-cli 0.159.2 on the same host lists it, and a `codex exec -m gpt-6.1-sol` run completed with the rollout recording `gpt-6.1-sol` as the served model. The CLI default effort for this model is still not locally verified. UPDATED 2026-10-07: codex-cli 0.161.0 `codex debug models` on this host lists gpt-6.1-sol with default_reasoning_level=low (levels low/medium/high/xhigh/max/ultra, service tier priority = Fast, visibility=list), so the CLI default is now locally verified as low (the same read shows gpt-6.1-sol and gpt-5.6-sol as the only low defaults; astra/sol/luna default medium). The Codex changelog (0.159.1, 0.161.0) states GPT-6.1 Sol is the default model in the bundled catalog. Auth-scoped host evidence; the vendor docs still do not state a fixed default."
     },
     {
       "provider": "xiaomi",
@@ -1742,6 +1755,28 @@
         "anthropic-effort-guide-2026-10-07"
       ],
       "notes": "Claude Code default effort is medium (same as the API default, unlike Sonnet 5.5 where the API default is high). Requires Claude Code v2.1.293 or later. The `haiku` alias resolves to Haiku 5.5 only on the Anthropic API; on Claude Platform on AWS, Bedrock, Google Cloud Agent Platform and Microsoft Foundry it still resolves to Haiku 4.5, so pin claude-haiku-5-5 explicitly there. Thinking cannot be turned off on Haiku 5.5 in Claude Code (differs from the API surface). Claude Code docs say an unsupported level falls back to the highest supported level at or below it; Haiku 5.5 supports all five, so this does not arise. 1M context on every plan on the Anthropic API; prompts over 100K tokens bill at the higher Haiku 5.5 rate."
+    },
+    {
+      "provider": "other",
+      "model": "step-5-preview",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default_effort": null,
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "stepfun-step-5-preview-model-page-2026-10-07"
+      ],
+      "notes": "StepFun model page: reasoning effort supports low, medium and high (reasoning_effort on Chat Completions, output_config.effort on the Messages API); the page does not state a default. Boards label the model without an effort (Vals, AA) so no effort is assumed for score rows."
     }
   ],
   "missing": [
@@ -1761,6 +1796,8 @@
     "Anthropic: claude-opus-4-5 and claude-sonnet-4-5 are compatibility-listed in the effort guide without a full level matrix; claude-haiku-4-5 is absent from the five-level table entirely.",
     "xAI: AA reports Grok 4.6 high (Index 51) and Grok 4.5 high (Index 45) plus a separate 4.6 view at Index 61 / $0.84 per task — these are DIFFERENT AA configurations and must not be merged into one curve. No matched low/medium/high/xhigh series on one task set exists, so Grok effort value is undetermined.",
     "Z.AI/GLM: AA measures GLM 5.3 max at Index 60 and GLM 5.2 max at 53, and a GLM 5.2 non-reasoning setting at Index 35 — but these are CROSS-MODEL comparisons, not a same-version thinking-on/off experiment. The AA displayed $0.90 is its 7:2:1 token-mix effective price, NOT a replacement for Z.AI direct list pricing.",
-    "Anthropic: claude-opus-5-5 claude_code surface not recorded (no Claude Code-specific model-config doc content fetched for it this pass). Tokenizer identity vs claude-opus-5 (\"same tokenizer\") was not found in any fetched source and is NOT recorded as fact anywhere in this pack. Opus 5.5 lifecycle/retirement floor not found in fetched sources."
+    "Anthropic: claude-opus-5-5 claude_code surface not recorded (no Claude Code-specific model-config doc content fetched for it this pass). Tokenizer identity vs claude-opus-5 (\"same tokenizer\") was not found in any fetched source and is NOT recorded as fact anywhere in this pack. Opus 5.5 lifecycle/retirement floor not found in fetched sources.",
+    "Mistral Large 4 (preview): no documented reasoning-effort parameter found on the model card or chat-completion docs on 2026-10-07; Vals labels its run 'high' but Mistral's own docs do not list a control. No capability surface recorded.",
+    "Gemini 4 Argon: not on the Gemini API models, pricing or changelog pages on 2026-10-07 (trusted cyber defenders only); boards label the Vals/AA/Arena runs 'high'. No effort surface recorded until Google documents one."
   ]
 }

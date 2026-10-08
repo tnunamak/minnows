@@ -2264,6 +2264,15 @@
       "steward": "vendor_table",
       "unit_default": "pass_rate",
       "notes": "Public benchmark of 100 physician tasks in an electronic health record; share of attempts passed (five per task). First rows: Haiku 5.5 System Card, including per-effort values."
+    },
+    {
+      "id": "vals-index",
+      "name": "Vals Index",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "Vals AI composite across finance, coding, legal, tax and related agent tasks, weighted by sector (overall task on the Vals Index board). Third-party board; rows carry the board's own reasoning/compute effort field and a per-board comparability_group."
     }
   ]
 }

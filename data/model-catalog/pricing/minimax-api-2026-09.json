@@ -4,14 +4,16 @@
   "schema_version": 1,
   "kind": "api_usd",
   "agent": "other",
-  "retrieved_at": "2026-09-23",
+  "retrieved_at": "2026-10-07",
   "source_urls": [
-    "https://platform.minimax.io/subscribe/token-plan?tab=api-enterprise"
+    "https://platform.minimax.io/subscribe/token-plan?tab=api-enterprise",
+    "https://platform.minimax.io/docs/guides/pricing-paygo"
   ],
   "source_ids": [
-    "minimax-api-pricing-2026-09-23"
+    "minimax-api-pricing-2026-09-23",
+    "minimax-pricing-2026-10-07"
   ],
-  "notes": "Standard direct API rates, USD per 1M tokens; page lists a permanent 50% discount. Context ≤512K M3 rates are recorded here. 512K–1M M3 rates are double and are documented in notes, not encoded because this schema has no context-tier dimension. H3/H3 Max video generation uses per-second pricing, outside the token-rate schema. MiniMax M3 list price is $0.6/$2.4/$0.12 input/output/cache-read. The billed permanent 50%-off rates recorded here are $0.3/$1.2/$0.06.",
+  "notes": "Standard direct API rates, USD per 1M tokens; page lists a permanent 50% discount. Context ≤512K M3 rates are recorded here. 512K–1M M3 rates are double and are documented in notes, not encoded because this schema has no context-tier dimension. H3/H3 Max video generation uses per-second pricing, outside the token-rate schema. MiniMax M3 list price is $0.6/$2.4/$0.12 input/output/cache-read. The billed permanent 50%-off rates recorded here are $0.3/$1.2/$0.06. 2026-10-07 re-verification from the first-party pay-as-you-go page: M3 <=512k $0.60/$2.40/$0.12 list with permanent 50% off to $0.30/$1.20/$0.06 (stored), >512k doubled; M2.7 $0.3/$1.2/$0.06 read, $0.375 cache write (stored) - all unchanged. No MiniMax text model released after M3 (release-notes page newest entry Jul 31, 2026 is H3 video).",
   "models": {
     "minimax-m3": {
       "fresh_input_per_m": 0.3,

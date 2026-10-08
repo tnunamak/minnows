@@ -1,0 +1,257 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "frontier-gap-notes-2026-10-07",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-07",
+  "source_urls": [
+    "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/",
+    "https://platform.stepfun.ai/docs/en/guides/models/step-5-preview",
+    "https://mistral.ai/news/mistral-large-4",
+    "https://www.kimi.com/blog/kimi-k3",
+    "https://docs.z.ai/guides/overview/pricing",
+    "https://api-docs.deepseek.com/updates",
+    "https://ai.meta.com/blog/",
+    "https://artificialanalysis.ai/leaderboards/models",
+    "https://www.upstage.ai/pricing",
+    "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+    "https://mimo.mi.com/models/en-US/mimo-v2.6-pro-ultraspeed",
+    "https://developers.openai.com/api/docs/changelog",
+    "https://docs.x.ai/docs/release-notes",
+    "https://cursor.com/docs/models-and-pricing",
+    "https://huggingface.co/api/models"
+  ],
+  "source_ids": [
+    "google-gemini-4-argon-announcement-2026-09-30",
+    "stepfun-step-5-preview-model-page-2026-10-07",
+    "mistral-large-4-blog-2026-10-06",
+    "kimi-k3-blog-2026-10-07",
+    "zai-pricing-2026-10-07",
+    "deepseek-change-log-2026-10-07",
+    "meta-ai-blog-2026-10-07",
+    "artificial-analysis-leaderboard-2026-10-07",
+    "upstage-pricing-2026-10-07",
+    "alibaba-modelstudio-pricing-2026-10-07",
+    "xiaomi-mimo-v2-6-pro-ultraspeed-model-page-2026-10-07",
+    "openai-api-changelog-2026-10-07",
+    "xai-release-notes-2026-10-07",
+    "cursor-models-pricing-2026-10-07",
+    "huggingface-org-listings-2026-10-07"
+  ],
+  "notes": "Frontier-sweep gap and negative-result notes retrieved 2026-10-07, copying the shape of frontier-gap-notes-2026-09-29.json. Each claim states what the primary sources showed, what was added to the catalog and what was left out with its recheck date. No score rows: third-party numbers for models that are not (yet) catalog models are recorded as claim text only. Vendor-stated numbers (Google, Mistral) are vendor claims, not independent evidence.",
+  "claims": [
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality",
+        "cost"
+      ],
+      "statement": "GEMINI 4 ARGON - ANNOUNCED, NOT ADDED (playbook rule 9). Google's 2026-09-30 post: Argon is 'rolling out to a set of trusted cyber defenders through our Fairwind Program'; wider availability for developers, enterprises and consumers 'as soon as possible', starting with paid API customers and Google AI Ultra; Google is in the U.S. government's voluntary pre-release access process. On 2026-10-07 the Gemini API models, pricing and changelog pages carry no Argon entry and no API model id; OpenRouter does not list it. Stated introductory price $2 in / $10 out per 1M tokens (cached input 95% off), then $4 / $20 - a vendor statement, not a published rate. Output limit 1M tokens. Recheck 2026-10-14 (add to models.json and pricing only when the Gemini API pages list an id and rate).",
+      "implication": "Not a routing candidate yet; do not cite Argon prices as a catalog fact.",
+      "source_id": "google-gemini-4-argon-announcement-2026-09-30"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Argon vendor-stated results (Google post, no per-run effort or harness footnotes in the page text): DeepSWE v1.1 77.9% ('new state of the art'; the post gives no comparison numbers), AutomationBench 51.3% rank 1 (Zapier), LVBench 91.7%, CWE-bench v1 68% (tie for first); 'leading' on Vals Index, Vals Finance Agent v2 and Harvey Legal Agent Benchmark without numbers.",
+      "source_id": "google-gemini-4-argon-announcement-2026-09-30"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Argon on third-party boards 2026-10-07 (all labelled effort high; none stored as score rows because Argon is not a catalog model): Artificial Analysis Intelligence Index 52.56 at $1.99/task (priced $2/$10/$0.10); Vals Index 68.90 at $15.68/test (rank 1; Sonnet 5.5 67.04, Opus 5.5 66.97); Vals Terminal-Bench 4.0 57.58% at $17.64/test; Vals Finance Agent v2 65.40%; Arena Text 1525.2 rank 1 (4,932 votes) and Text Coding 1560.2 rank 1 (1,230 votes); Epoch own scorecard (no ECI yet): Vending-Bench 2 $13,718, APEX-Agents 88%, ProofBench 99%, CritPt 27%, SciCode 62%, Text Arena Coding 1680 (Epoch scale), FrontierSWE v2 55%. Not on ARC Prize, tbench.ai, DeepSWE, SEAL or Steel.",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07"
+    },
+    {
+      "models": [
+        "step-5-preview"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality",
+        "cost"
+      ],
+      "statement": "STEPFUN STEP 5 PREVIEW - RESOLVED EARLY (recheck was due 2026-10-13): StepFun's docs now publish model id step-5-preview, 1M context, 64k output, reasoning_effort low/medium/high, and price $1.00 / $0.05 / $2.70 per 1M. Added to models.json as status preview, with pricing/stepfun-api-2026-10.json and an API capability surface. No release date on StepFun's docs (AA and Epoch say 2026-09-18; secondary press says an announcement on 2026-09-20), so no released field. Boards: AA 43.73 at $0.72/task (no effort label), Vals TB4 31.82% at $3.11/test, Vals Index 49.35 at $2.63/test; no Arena, ARC Prize, tbench.ai, DeepSWE row. Open weights were announced for a later date and are not verified.",
+      "source_id": "stepfun-step-5-preview-model-page-2026-10-07"
+    },
+    {
+      "models": [
+        "mistral-large-4"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality",
+        "cost"
+      ],
+      "statement": "MISTRAL LARGE 4 - ADDED AS PREVIEW. Public-preview API on Mistral Studio since 2026-10-06 (v26.10, 1.05T total / 52B active, 1M context); list price $1.36 / $0.14 / $4.18 per 1M with a sale price of $0.68 / $0.07 / $2.09 and no stated end date; weights promised by the end of October 2026 (not yet verified). Vendor prose numbers (charts are images): DeepSWE v1.1 61.7%, SWE-Atlas-QnA 59.4%, Terminal-Bench 4.0 28.3%, AutomationBench 59.9%, Cybench 93%, B3 attack resistance 93.3%, Dense 200 grounding 42% (vs Astra 41%). Third party: AA 38.38 at $1.13/task; Vals TB4 22.73% at $7.90/test (effort high). Not on Arena, ARC Prize, tbench.ai or Epoch (page 404).",
+      "source_id": "mistral-large-4-blog-2026-10-06"
+    },
+    {
+      "models": [
+        "kimi-k3"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "KIMI K3: no new Moonshot release since K3 (no K3.1; newest moonshotai Hugging Face repo is K3). Pricing re-verified (see pricing note); cache write $3.00 (5-minute) now itemised. DATE CONFLICT left unresolved: models.json released 2026-07-22 (Moonshot forum post) versus 2026-07-16 on Moonshot's own blog index, AA, Epoch and ARC Prize. Default effort corrected to max in capabilities.",
+      "source_id": "kimi-k3-blog-2026-10-07"
+    },
+    {
+      "models": [
+        "glm-5.3",
+        "glm-5.3-flash"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "GLM-5.3 family: no Z.AI release after GLM-5.3-Flash (2026-08-26; models.json date corrected). First-party prices re-verified; GLM-5.3-Flash added to pricing ($0.15/$0.03/$0.50). GLM-5.3-FlashX (glm-5.3-flashx, $0.37/$0.075/$1.25, 200 tokens/s) has an API model code and price but no catalog id; OpenRouter also lists z-ai/glm-5.3-prime at $2.80/$8.80 (a faster tier; no Z.AI first-party page for it was found).",
+      "source_id": "zai-pricing-2026-10-07"
+    },
+    {
+      "models": [
+        "deepseek-v4-pro-0813",
+        "deepseek-v4-1-flash"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "DEEPSEEK: nothing new since V4.1-Flash (2026-09-10); V4-Pro-0813 service continues; pricing unchanged. Boards: AA V4 Pro 0813 max 36.00 and V4.1 Flash max 39.46; Vals TB4 14.14% and 19.70%; ARC Prize rows listed; Arena Text Coding ranks 67 / 26.",
+      "source_id": "deepseek-change-log-2026-10-07"
+    },
+    {
+      "models": [
+        "muse-spark-1-3"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "META MUSE SPARK 1.3: still status preview and third-party-board-only. Meta's blog has no post after Muse Spark 1.1 (2026-07-09) and no first-party API price page was found; boards list it (AA max 48.09 at $1.60/task and xhigh 45.07; Vals TB4 24.75% max and 10.61% xhigh; Vals Index 58.16; Arena text 1494.3 rank 9; tbench.ai 14.5% xhigh with Muse Code). OpenRouter lists meta/muse-spark-1.3 at $1.25 / $4.25.",
+      "source_id": "meta-ai-blog-2026-10-07"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "LING 3.1 FLASH (inclusionAI / Ant Group) - SEEN, NOT ADDED. AA Index 41.09 at $0.99/task and speed 211 tokens/s, released about 2026-09-30 to 10-02 per AA and OpenRouter; 560B total / 25B active; OpenRouter lists it at $0 (free trial); AA shows a $0.30 / $0.90 inclusionAI list price; no inclusionAI model page, pricing page or Hugging Face repository was found (searched inclusionai.github.io, ling.tbox.cn, the Hugging Face org listing). Secondary reports say weights are closed during the trial and that free promotions end around 2026-10-13. No first-party price, so no model row. Recheck 2026-10-14.",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "UPSTAGE SOLAR PRO 4 / SOLAR MINI 4 / SOLAR OPEN2 - SEEN, NOT ADDED. First-party Upstage pricing page: Solar Pro 4 $0.30 / $0.06 / $1.20 per 1M standard, currently 70% off ($0.09 / $0.018 / $0.36) until 2026-10-10 UTC; API live since 2026-08-06 (before this sweep's window). AA lists Solar Pro 4 at 28.15 and Solar Open2 250B at 24.74, both marked estimated (asterisk), so no score is stored; Solar Mini 4 is 70% off through Oct 10. Mid-tier and outside the frontier roster; no catalog entry added.",
+      "source_id": "upstage-pricing-2026-10-07"
+    },
+    {
+      "models": [
+        "qwen3.8-max"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "ALIBABA QWEN: no new Qwen3.8 text model after Qwen3.8-Flash-Next (HF 2026-08-24); the Model Studio page (updated 2026-10-06) lists qwen3.8-max, -0902, a new fast tier qwen3.8-max-prime ($3.301/$9.902, China Beijing table; OpenRouter $4/$12) and qwen3.8-flash. Prices re-verified, no change. AA lists Qwen3.8 Max (0902) at 45.42; qwen3.8-flash maps ambiguously to AA's Qwen3.8-Flash-Next (39.82), so that row is not stored. qwen.ai blog and research pages are JS-only (not readable by curl).",
+      "source_id": "alibaba-modelstudio-pricing-2026-10-07"
+    },
+    {
+      "models": [
+        "mimo-v2.6-pro"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "XIAOMI MIMO: pricing unchanged; mimo-v2.6-pro-ultraspeed (API id, $4.35 / $0.036 / $8.70 per 1M, up to 20x output speed) launched with the series on 2026-09-22 and is recorded as a pricing note, not a model. No MiMo release after V2.6; AA Pro 46.32 / Flash 37.88; Vals TB4 31.31% / 24.24%.",
+      "source_id": "xiaomi-mimo-v2-6-pro-ultraspeed-model-page-2026-10-07"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "OPENAI: no new GPT-6.x model after GPT-6.1 Sol (2026-09-29). On 2026-10-07 the API pricing table and models page no longer list gpt-6-sol (still a deprecation replacement target and a Codex CLI model with Codex credits 50/5/250); Codex CLI 0.159.1 / 0.161.0 make GPT-6.1 Sol the default catalog model; gpt-6-luna got the Decisions API beta (2026-10-06). Deprecations: gpt-5.3-codex, gpt-5.4-nano and gpt-5.1 retire 2027-04-01.",
+      "source_id": "openai-api-changelog-2026-10-07"
+    },
+    {
+      "models": [
+        "grok-4.7"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "XAI: no Grok release after Grok 4.7 (2026-09-21); docs (last updated 2026-10-02) show no price change. SpaceXAI's models page lists only grok-4.7; Cursor's models page lists Composer 2.5 inside a subscription pool with Grok 4.7/4.6/4.5, with no standalone API price or public API model id (Composer is not added).",
+      "source_id": "xai-release-notes-2026-10-07"
+    }
+  ],
+  "scores": [],
+  "missing": [
+    "Gemini 4 Argon: no public API id, price or availability on the Gemini API pages (trusted cyber defenders only). Recheck 2026-10-14.",
+    "Ling 3.1 Flash: no first-party model or pricing page found; free on gateways; weights closed. Recheck 2026-10-14.",
+    "Mistral Large 4: open-weights release promised 'by the end of the month' (October 2026) not yet verifiable; sale-price end date not stated; reasoning-effort control undocumented. Recheck 2026-10-31.",
+    "Step 5 Preview: first-party release date not stated on StepFun's docs; open-weights release announced for a later date (secondary press: 2026-10-15). Recheck 2026-10-16.",
+    "Kimi K3 release date: 2026-07-16 (Moonshot blog, AA, Epoch, ARC Prize) vs 2026-07-22 (forum post stored in models.json). Not changed here.",
+    "Alibaba qwen.ai blog/research pages and Meta's model pages are client-rendered or lack a pricing page; no Qwen or Meta first-party release data beyond the Model Studio and Hugging Face listings could be read by curl.",
+    "AA Index values for Argon, Ling 3.1 Flash, Qwen3.8-Flash-Next and Solar models are not stored as score rows (not catalog models, ambiguous mapping, or AA-estimated).",
+    "Aging July board snapshots (artificial-analysis-2026-07, terminal-bench-2026-07, swe-bench-2026-07, arcprize-gpt-5-6-2026-07, retrieved 2026-09-05) are not re-dated: they are historical readings of superseded index versions (AA v4.1/v4.2) and board states. Newer same-board files now exist (artificial-analysis-leaderboard-2026-10-07, vals/tbench/arc 2026-10 files). They will fail check_freshness --max-age-days 45 from 2026-10-20 unless the checker is pointed at the newer files or the July files are marked historical."
+  ]
+}
