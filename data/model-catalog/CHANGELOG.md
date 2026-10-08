@@ -2,6 +2,22 @@
 
 Newest first. The README links here; this file is the single record.
 
+## v0.5.12 — 2026-10-07
+
+- Added Claude Haiku 5.5 (`claude-haiku-5-5`, GA 2026-10-07) as the current Haiku-tier model. Claude Haiku 4.5 stays GA: Anthropic lists it as active with no deprecation date.
+- Anthropic prices Haiku 5.5 by prompt length, so pricing rows have a new optional `long_prompt` object: $0.10 / $0.50 per M tokens (input / output) up to 100K prompt tokens, and $0.50 / $2.50 above that. The new tokenizer makes the same text about 30% more tokens than on Haiku 4.5. At list price the saving is 90% below 100K tokens and 50% above; Anthropic's "around 75% less on average" cannot be reproduced from list prices because it depends on workload mix. Readers that use only the four base rate fields under-price long prompts 5x.
+- Haiku 5.5 is the first Haiku with an effort setting. The default is medium in both the API and Claude Code. Recorded as separate API and Claude Code surfaces: the API can turn thinking off at high effort or below; Claude Code cannot.
+- Added the launch table (29 scores), 59 exact effort-curve points from the launch charts, and 103 system-card values. An independent check against the live pages found no mismatches. OSWorld 2.1 is recorded as partial credit (72.4%) and strict pass rate (37.1%) on the 82-task offline subset. At max effort Haiku 5.5 costs more per task than Haiku 4.5 on three of four charts; at medium it costs less on all four.
+- Sonnet 5.5 cache read dropped from $0.20 to $0.10 per M tokens on 2026-10-07. Anthropic's pricing table cell and the Sonnet 5.5 model page still show $0.20 (recheck 2026-10-14).
+- Added Artificial Analysis rows for Haiku 5.5 at five efforts (Intelligence Index v4.3.2: 29.4 at $0.025 per task for low, up to 43.4 at $0.213 for max) with same-snapshot peers, and a coverage check of other boards. Vals AI, tbench.ai, ARC Prize, DeepSWE, SEAL, Arena, Steel, Epoch and OpenRouter token share do not list Haiku 5.5 yet (recheck 2026-10-14).
+- Added preview models `mistral-large-4` and `step-5-preview` with first-party pricing, and `glm-5.3-flash` pricing. Corrected the `glm-5.3-flash` release date to 2026-08-26, the Kimi K3 API default effort to max and its cache write to $3.00, and set the Codex CLI default effort for `gpt-6.1-sol` to low (one host only).
+- Re-verified pricing for OpenAI, Google, xAI, DeepSeek, Alibaba, Moonshot, Z.AI, MiniMax, Xiaomi and Mistral on 2026-10-07; most rows are unchanged.
+- Added board snapshots: Vals Terminal-Bench 4.0 (re-scored 2026-10-06; every value moved up), Vals Index and Finance Agent, the Artificial Analysis leaderboard, ARC Prize, tbench.ai, Arena text and coding, and Epoch scorecards. Done: the GPT-6.1 Sol board recheck. GPT-6.1 Sol is now on Vals, tbench.ai, ARC Prize, Arena and Epoch; DeepSWE, SEAL and Steel do not list it yet.
+- Gemini 4 Argon is recorded as announced for trusted cyber defenders only, with no API id or price; it is not in `models.json`.
+- Added the generated charts. A new cost-vs-intelligence chart plots Artificial Analysis Intelligence Index against cost per task, one line per model across effort levels, with a data table under it. `scripts/render_model_catalog_charts.py --check` runs in CI and fails when the charts are stale. Added 18 display `name` values to `models.json`, and `guide.json` and its schema.
+- Added metrics `osworld-2-1-strict`, `physicianbench` and `vals-index`. Hone gets a Haiku 5.5 entry with no calibration, so it cannot route yet.
+- Known issue: Humanity's Last Exam has several metric ids for the same benchmark from different sources (for example `humanitys-last-exam-no-tools-hle` and `humanity-s-last-exam-no-tools`), so scores from different publishers do not join yet.
+
 ## v0.5.11 — 2026-09-30
 
 - Corrected the GPT-6.1 Sol `codex_cli` surface note. codex-cli 0.159.2 lists `gpt-6.1-sol` in `codex debug models`, and a local `codex exec` run served it (the rollout records `gpt-6.1-sol`). The previous note came from codex-cli 0.156.1, which did not list it. The CLI default effort remains unverified.

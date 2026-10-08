@@ -1125,7 +1125,7 @@ def render_hero_svg(view: dict, theme: str, models: list[str], width: int = 1000
     y = bottom + 38 * fs
     if card:
         d0, d1 = view["dates"]
-        s.text(pad, CARD_SIZE[1] - 18, f"{view['credit']} · observed {d0} to {d1}", 14, "muted")
+        s.text(pad, CARD_SIZE[1] - 18, f"{view['credit']} · observed {d0}" + ("" if d0 == d1 else f" to {d1}"), 14, "muted")
         return s.render(width, CARD_SIZE[1], f"{view['title']}: {view['metric']} against API cost per task")
     y += 10
     for note in hero_notes(view, models):

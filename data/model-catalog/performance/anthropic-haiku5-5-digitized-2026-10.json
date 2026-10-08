@@ -25,7 +25,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "low",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 0.07,
@@ -48,7 +48,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "med",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 0.13,
@@ -71,7 +71,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "high",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 0.18,
@@ -94,7 +94,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "xhigh",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 0.28,
@@ -117,7 +117,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "max",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 0.61,
@@ -140,7 +140,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "max (chart label)",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 1.45,
@@ -163,7 +163,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "low",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 0.68,
@@ -186,7 +186,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "med",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 0.93,
@@ -209,7 +209,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "high",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 1.38,
@@ -232,7 +232,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "xhigh",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 2.22,
@@ -255,7 +255,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "max",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 5.73,
@@ -278,7 +278,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "low",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 0.04,
@@ -301,7 +301,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "med",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 0.13,
@@ -324,7 +324,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "high",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 0.14,
@@ -347,7 +347,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "xhigh",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 0.17,
@@ -370,7 +370,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "max",
-      "task_family": "computer-use",
+      "task_family": "computer_use",
       "metric_id": "osworld-2-1",
       "cost": {
         "value": 0.2,
@@ -393,7 +393,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "low",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 0.01,
@@ -416,7 +416,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "med",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 0.03,
@@ -439,7 +439,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "high",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 0.09,
@@ -462,7 +462,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "xhigh",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 0.27,
@@ -485,7 +485,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "max",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 0.87,
@@ -508,7 +508,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "max (chart label)",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 0.24,
@@ -531,7 +531,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "low",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 0.22,
@@ -554,7 +554,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "med",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 0.27,
@@ -577,7 +577,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "high",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 0.62,
@@ -600,7 +600,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "xhigh",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 1.88,
@@ -623,7 +623,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "max",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 6.78,
@@ -646,7 +646,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "low",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 0.004,
@@ -669,7 +669,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "med",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 0.02,
@@ -692,7 +692,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "high",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 0.03,
@@ -715,7 +715,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "xhigh",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 0.05,
@@ -738,7 +738,7 @@
       "evidence_grade": "C",
       "observed_at": "2026-10-07",
       "effort_verbatim": "max",
-      "task_family": "knowledge",
+      "task_family": "knowledge_work",
       "metric_id": "gdpval-aa-v2-1",
       "cost": {
         "value": 0.09,
