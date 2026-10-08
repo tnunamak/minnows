@@ -2244,6 +2244,15 @@
       "comparable": false,
       "task_family": "computer-use",
       "notes": "Anthropic Sonnet 5.5 launch/system-card OSWorld 2.1 is distinct from OSWorld 2.0 and OSWorld-Verified."
+    },
+    {
+      "id": "vals-index",
+      "name": "Vals Index",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "Vals AI composite across finance, coding, legal, tax and related agent tasks, weighted by sector (overall task on the Vals Index board). Third-party board; rows carry the board's own reasoning/compute effort field and a per-board comparability_group."
     }
   ]
 }

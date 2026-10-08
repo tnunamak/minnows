@@ -1,0 +1,1531 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "artificial-analysis-leaderboard-2026-10-07",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-07",
+  "source_urls": [
+    "https://artificialanalysis.ai/leaderboards/models"
+  ],
+  "source_ids": [
+    "artificial-analysis-leaderboard-2026-10-07"
+  ],
+  "notes": "Artificial Analysis LLM leaderboard read 2026-10-07 by direct curl: the HTML table plus the embedded Next.js payload (696 model rows) give float Intelligence Index v4.3.2 values and cost per Intelligence Index task. Same-snapshot rows for every non-estimated, non-Haiku-5.5 catalog model on the board, with the label's own effort. Claude 'Default Fallback' labels are AA's adaptive-reasoning fallback setting and are not repeated per row. AA did not state a pre-release deployment on this page; the earlier Sonnet 5.5 launch-day pre-release caveat (2026-09-28) is not repeated here. Claude Haiku 5.5 rows on the same board are recorded by the Haiku lanes. Rows are comparable:false (AA harness).",
+  "claims": [
+    {
+      "models": [
+        "gpt-6.1-sol",
+        "claude-sonnet-5-5",
+        "claude-opus-5-5",
+        "gpt-6-astra"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
+      "statement": "AA Intelligence Index v4.3.2 live board 2026-10-07 (cost per index task in parentheses): Opus 5.5 max 57.62 ($5.98), Sonnet 5.5 max 56.00 ($7.67), Opus 5.5 xhigh 55.99 ($3.46), Opus 5.5 high 53.58 ($1.82), Astra max 52.67 ($3.26), Sonnet 5.5 xhigh 51.90 ($2.75), GPT-6.1 Sol max 51.83 ($0.72), Sol xhigh 51.04 ($0.39), Sol high 50.24 ($0.32), Sol medium 47.78 ($0.21), Sonnet 5.5 high 46.75 ($1.12), Opus 5.5 medium 51.24 ($1.34). Comparison with the 55 stored same-model, same-effort AA v4.3.2 rows (2026-09-22..29): 50 agree to the stored precision; the 5 that differ are GPT-6 Luna (max 37.26 -> 38.12, medium 29.46 -> 29.93, low 20.92 -> 21.53) and Sonnet 5.5 medium (40.74 on 2026-09-29 -> 40.84), i.e. AA appears to have re-scored Luna and Sonnet 5.5 slightly; every shift is below one index point.",
+      "implication": "On AA, GPT-6.1 Sol high (50.24, $0.32) is 1.0 index point below Opus 5.5 medium (51.24, $1.34) at about a quarter of the cost per task; Sol max (51.83, $0.72) is 1.75 below Opus 5.5 high (53.58, $1.82) at about 40% of the cost.",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Gemini 4 Argon (High): Intelligence Index 52.56, cost per index task $1.99, priced $2 in / $10 out / $0.10 cached on the board (the announced introductory rate); no speed or latency figures. Argon (High) sits just below GPT-6 Astra max (52.67) and above Sonnet 5.5 xhigh (51.90) and GPT-6.1 Sol max (51.83). Not stored as a score row: Gemini 4 Argon is not a catalog model.",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07"
+    },
+    {
+      "models": [
+        "step-5-preview",
+        "mistral-large-4"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality",
+        "cost"
+      ],
+      "statement": "New open-weight-class entrants on AA: Step 5 Preview index 43.73 at $0.72 per task (board price $1.00 / $2.70, matching StepFun's list price); Mistral Large 4 Preview index 38.38 at $1.13 per task (board price $1.36 / $4.18 = the card's original price, not the sale price).",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Other new or unlisted board rows (not catalog models, not stored): Ling 3.1 Flash (InclusionAI, released 2026-10-01) 41.09 at $0.99 per task; Qwen3.8-Flash-Next 39.82; Quasar 438B (Multiverse, based on GLM-5.2) 26.74; Inkling (Thinking Machines) and Hy3 rows. AA marks some rows as estimated (asterisk); estimated rows are never stored.",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07"
+    }
+  ],
+  "scores": [
+    {
+      "model": "claude-opus-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 57.6223698102963,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 5.982012019521066,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Claude Opus 5.5 (Max, Default Fallback)' (slug claude-opus-5-5); raw payload index 57.6223698102963, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "claude-opus-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 55.9873505840139,
+      "unit": "other",
+      "effort": "xhigh",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 3.459110175822289,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Claude Opus 5.5 (Xhigh, Default Fallback)' (slug claude-opus-5-5-xhigh); raw payload index 55.9873505840139, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "claude-opus-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 53.5831959822067,
+      "unit": "other",
+      "effort": "high",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.822504718771704,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Claude Opus 5.5 (High, Default Fallback)' (slug claude-opus-5-5-high); raw payload index 53.5831959822067, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "claude-opus-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 51.2434931792768,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.3360093438976588,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Claude Opus 5.5 (Medium, Default Fallback)' (slug claude-opus-5-5-medium); raw payload index 51.2434931792768, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "claude-opus-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 42.3077781466168,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.551180473909146,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Claude Opus 5.5 (Low, Default Fallback)' (slug claude-opus-5-5-low); raw payload index 42.3077781466168, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 56.0001286580794,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 7.666776317411276,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Claude Sonnet 5.5 (Max, Default Fallback)' (slug claude-sonnet-5-5); raw payload index 56.0001286580794, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 51.8955544183089,
+      "unit": "other",
+      "effort": "xhigh",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 2.7461969619444453,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Claude Sonnet 5.5 (Xhigh, Default Fallback)' (slug claude-sonnet-5-5-xhigh); raw payload index 51.8955544183089, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 46.7533528066958,
+      "unit": "other",
+      "effort": "high",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.1224835755720677,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Claude Sonnet 5.5 (High, Default Fallback)' (slug claude-sonnet-5-5-high); raw payload index 46.7533528066958, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 40.838652287929,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.5894076802052765,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Claude Sonnet 5.5 (Medium, Default Fallback)' (slug claude-sonnet-5-5-medium); raw payload index 40.838652287929, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 35.8681594577587,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.41697045178975856,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Claude Sonnet 5.5 (Low, Default Fallback)' (slug claude-sonnet-5-5-low); raw payload index 35.8681594577587, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 53.3549259623252,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 7.629706364004841,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Claude Fable 5.1 (Max, Default Fallback)' (slug claude-fable-5-1); raw payload index 53.3549259623252, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 53.2032587538944,
+      "unit": "other",
+      "effort": "xhigh",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 5.978304247388257,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Claude Fable 5.1 (Xhigh, Default Fallback)' (slug claude-fable-5-1-xhigh); raw payload index 53.2032587538944, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 51.1515708852237,
+      "unit": "other",
+      "effort": "high",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 3.912526554325558,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Claude Fable 5.1 (High, Default Fallback)' (slug claude-fable-5-1-high); raw payload index 51.1515708852237, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 48.9206162609523,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 2.982597436096585,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Claude Fable 5.1 (Medium, Default Fallback)' (slug claude-fable-5-1-medium); raw payload index 48.9206162609523, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 46.8163422014862,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 2.371025320183763,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Claude Fable 5.1 (Low, Default Fallback)' (slug claude-fable-5-1-low); raw payload index 46.8163422014862, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 52.673669395513,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 3.2575003134834164,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-6 Astra (Max)' (slug gpt-6-astra); raw payload index 52.673669395513, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 52.3863277108782,
+      "unit": "other",
+      "effort": "xhigh",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 2.308795912269076,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-6 Astra (Xhigh)' (slug gpt-6-astra-xhigh); raw payload index 52.3863277108782, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 50.9191471636152,
+      "unit": "other",
+      "effort": "high",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.7252530861048456,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-6 Astra (High)' (slug gpt-6-astra-high); raw payload index 50.9191471636152, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 49.5704363034369,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.5406493220021167,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-6 Astra (Medium)' (slug gpt-6-astra-medium); raw payload index 49.5704363034369, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 45.7819243120341,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.8175139285656057,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-6 Astra (Low)' (slug gpt-6-astra-low); raw payload index 45.7819243120341, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 51.8332597011541,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.7241670655535033,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-6.1 Sol (Max)' (slug gpt-6-1-sol); raw payload index 51.8332597011541, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 51.0377679093761,
+      "unit": "other",
+      "effort": "xhigh",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.39286117158850653,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-6.1 Sol (Xhigh)' (slug gpt-6-1-sol-xhigh); raw payload index 51.0377679093761, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 50.2377777519769,
+      "unit": "other",
+      "effort": "high",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.31914442375664703,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-6.1 Sol (High)' (slug gpt-6-1-sol-high); raw payload index 50.2377777519769, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 47.7833271274065,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.21370088267875537,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-6.1 Sol (Medium)' (slug gpt-6-1-sol-medium); raw payload index 47.7833271274065, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 42.0835618555848,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.13075190869859377,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-6.1 Sol (Low)' (slug gpt-6-1-sol-low); raw payload index 42.0835618555848, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 38.1245186869738,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.06782295669812205,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-6 Luna (Max)' (slug gpt-6-luna); raw payload index 38.1245186869738, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 34.5587320217785,
+      "unit": "other",
+      "effort": "xhigh",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.042183547923951084,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-6 Luna (Xhigh)' (slug gpt-6-luna-xhigh); raw payload index 34.5587320217785, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 32.9282054150837,
+      "unit": "other",
+      "effort": "high",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.02903157640372802,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-6 Luna (High)' (slug gpt-6-luna-high); raw payload index 32.9282054150837, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 29.9251773515762,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.017476906067835942,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-6 Luna (Medium)' (slug gpt-6-luna-medium); raw payload index 29.9251773515762, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 21.5261980080866,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.004516607569410252,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-6 Luna (Low)' (slug gpt-6-luna-low); raw payload index 21.5261980080866, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 42.0829248239494,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.3987235612691513,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-5.6 Terra (Max)' (slug gpt-5-6-terra); raw payload index 42.0829248239494, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 37.9513370742927,
+      "unit": "other",
+      "effort": "xhigh",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.6317911346924275,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-5.6 Terra (Xhigh)' (slug gpt-5-6-terra-xhigh); raw payload index 37.9513370742927, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 34.2376558067555,
+      "unit": "other",
+      "effort": "high",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.3378727947949101,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-5.6 Terra (High)' (slug gpt-5-6-terra-high); raw payload index 34.2376558067555, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 30.0938023419377,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.18337295992969213,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-5.6 Terra (Medium)' (slug gpt-5-6-terra-medium); raw payload index 30.0938023419377, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 27.496203401716,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.1444617614290821,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GPT-5.6 Terra (Low)' (slug gpt-5-6-terra-low); raw payload index 27.496203401716, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "grok-4.7",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 46.4465506302286,
+      "unit": "other",
+      "effort": "xhigh",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 3.738325952106939,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Grok 4.7 (Xhigh)' (slug grok-4-7); raw payload index 46.4465506302286, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "grok-4.7",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 46.3321770885625,
+      "unit": "other",
+      "effort": "high",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 2.726106691786027,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Grok 4.7 (High)' (slug grok-4-7-high); raw payload index 46.3321770885625, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "grok-4.7",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 42.2166560223448,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.2479664056943975,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Grok 4.7 (Low)' (slug grok-4-7-low); raw payload index 42.2166560223448, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "muse-spark-1-3",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 48.0923107719685,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.6048932100125866,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Muse Spark 1.3 (Max)' (slug muse-spark-1-3); raw payload index 48.0923107719685, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "muse-spark-1-3",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 45.0732966922226,
+      "unit": "other",
+      "effort": "xhigh",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.3677936514692752,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Muse Spark 1.3 (Xhigh)' (slug muse-spark-1-3-xhigh); raw payload index 45.0732966922226, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "glm-5.3",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 44.777392385614,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 2.0056375150449584,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GLM-5.3 (Max)' (slug glm-5-3); raw payload index 44.777392385614, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "glm-5.3",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 34.2990078159643,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.8522174973386498,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GLM-5.3 (Low)' (slug glm-5-3-low); raw payload index 34.2990078159643, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "glm-5.3-flash",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 41.807466113455,
+      "unit": "other",
+      "effort": null,
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.2532595604307378,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'GLM 5.3 Flash' (slug glm-5-3-flash); raw payload index 41.807466113455, board table shows the rounded value. Effort is the label's own parenthesised effort; none stated in the label."
+    },
+    {
+      "model": "kimi-k3",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 43.5938229518782,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 2.0001323004425493,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Kimi K3 (Max)' (slug kimi-k3); raw payload index 43.5938229518782, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "kimi-k3",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 30.0666987529068,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.1463056165227514,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Kimi K3 (Low)' (slug kimi-k3-low); raw payload index 30.0666987529068, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 46.3242065310383,
+      "unit": "other",
+      "effort": null,
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.13322318937213493,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'MiMo-V2.6-Pro' (slug mimo-v2-6-pro); raw payload index 46.3242065310383, board table shows the rounded value. Effort is the label's own parenthesised effort; none stated in the label."
+    },
+    {
+      "model": "mimo-v2.6-flash",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 37.8843590141754,
+      "unit": "other",
+      "effort": null,
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.06231470136619077,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'MiMo-V2.6-Flash' (slug mimo-v2-6-flash); raw payload index 37.8843590141754, board table shows the rounded value. Effort is the label's own parenthesised effort; none stated in the label."
+    },
+    {
+      "model": "qwen3.8-max",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 45.4152084980521,
+      "unit": "other",
+      "effort": null,
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 5.408509428374016,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Qwen3.8 Max (0902)' (slug qwen3-8-max); raw payload index 45.4152084980521, board table shows the rounded value. Effort is the label's own parenthesised effort; none stated in the label. Board label 'Qwen3.8 Max (0902)'; the earlier undated 'Qwen3.8 Max' row (index 40.15, released 2026-08-03) is deprecated on AA."
+    },
+    {
+      "model": "qwen3.8-2.4t-a95b",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 39.8861723105325,
+      "unit": "other",
+      "effort": null,
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 2.1559170502434677,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Qwen3.8 2.4T A95B' (slug qwen3-8-2-4t-a95b); raw payload index 39.8861723105325, board table shows the rounded value. Effort is the label's own parenthesised effort; none stated in the label."
+    },
+    {
+      "model": "qwen3.8-27b",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 33.6962858057476,
+      "unit": "other",
+      "effort": "xhigh",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.0073149536565944,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Qwen3.8 27B (Xhigh)' (slug qwen3-8-27b); raw payload index 33.6962858057476, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "qwen3.8-27b",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 27.5508228231586,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.133063774030521,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Qwen3.8 27B (Medium)' (slug qwen3-8-27b-medium); raw payload index 27.5508228231586, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "qwen3.8-27b",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 26.2047978189896,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.0482225365160391,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Qwen3.8 27B (Low)' (slug qwen3-8-27b-low); raw payload index 26.2047978189896, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "deepseek-v4-1-flash",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 39.456167472527,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.26522527009606844,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'DeepSeek V4.1 Flash (Max)' (slug deepseek-v4-1-flash); raw payload index 39.456167472527, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "deepseek-v4-pro-0813",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 35.9967791278402,
+      "unit": "other",
+      "effort": "max",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.6740219040435134,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'DeepSeek V4 Pro 0813 (Max)' (slug deepseek-v4-pro); raw payload index 35.9967791278402, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label. AA slug 'deepseek-v4-pro' is titled 'DeepSeek V4 Pro 0813 (Max)'."
+    },
+    {
+      "model": "gemini-3.8-flash",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 40.9262321765904,
+      "unit": "other",
+      "effort": "high",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.2427947606950427,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Gemini 3.8 Flash (High)' (slug gemini-3-8-flash); raw payload index 40.9262321765904, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gemini-3.8-flash",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 39.7740187061926,
+      "unit": "other",
+      "effort": "medium",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.9310379374376306,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Gemini 3.8 Flash (Medium)' (slug gemini-3-8-flash-medium); raw payload index 39.7740187061926, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gemini-3.8-flash",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 33.4548106699132,
+      "unit": "other",
+      "effort": "low",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "caveat": "AA label 'Gemini 3.8 Flash (Low)' (slug gemini-3-8-flash-low); raw payload index 33.4548106699132, board table shows the rounded value. Effort is the label's own parenthesised effort; stated in the label."
+    },
+    {
+      "model": "gemini-3.1-pro-preview",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 29.7185656132261,
+      "unit": "other",
+      "effort": null,
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.2985855086120641,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Gemini 3.1 Pro Preview' (slug gemini-3-1-pro-preview); raw payload index 29.7185656132261, board table shows the rounded value. Effort is the label's own parenthesised effort; none stated in the label."
+    },
+    {
+      "model": "gemini-3.5-flash-lite",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 22.1685424839812,
+      "unit": "other",
+      "effort": null,
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.1927430131409478,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Gemini 3.5 Flash-Lite' (slug gemini-3-5-flash-lite); raw payload index 22.1685424839812, board table shows the rounded value. Effort is the label's own parenthesised effort; none stated in the label."
+    },
+    {
+      "model": "minimax-m3",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 29.2202932236316,
+      "unit": "other",
+      "effort": null,
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.5076126905781733,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'MiniMax-M3' (slug minimax-m3); raw payload index 29.2202932236316, board table shows the rounded value. Effort is the label's own parenthesised effort; none stated in the label."
+    },
+    {
+      "model": "mistral-large-4",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 38.3770408917494,
+      "unit": "other",
+      "effort": null,
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 1.1317590533008346,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Mistral Large 4 Preview' (slug mistral-large-4); raw payload index 38.3770408917494, board table shows the rounded value. Effort is the label's own parenthesised effort; none stated in the label. Board names it 'Mistral Large 4 Preview'."
+    },
+    {
+      "model": "mistral-large-3",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 9.26608812860467,
+      "unit": "other",
+      "effort": null,
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.031125992260624492,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Mistral Large 3' (slug mistral-large-3); raw payload index 9.26608812860467, board table shows the rounded value. Effort is the label's own parenthesised effort; none stated in the label."
+    },
+    {
+      "model": "mistral-medium-3-5",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 14.1889227802691,
+      "unit": "other",
+      "effort": null,
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.5020382394983653,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Mistral Medium 3.5' (slug mistral-medium-3-5); raw payload index 14.1889227802691, board table shows the rounded value. Effort is the label's own parenthesised effort; none stated in the label."
+    },
+    {
+      "model": "mistral-small-4",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 11.2675794141469,
+      "unit": "other",
+      "effort": null,
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.01504679036588765,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Mistral Small 4 (Reasoning)' (slug mistral-small-4); raw payload index 11.2675794141469, board table shows the rounded value. Effort is the label's own parenthesised effort; none stated in the label."
+    },
+    {
+      "model": "step-5-preview",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 43.7343049141614,
+      "unit": "other",
+      "effort": null,
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.7174901509283937,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Step 5 Preview' (slug step-5); raw payload index 43.7343049141614, board table shows the rounded value. Effort is the label's own parenthesised effort; none stated in the label."
+    },
+    {
+      "model": "kimi-k2-7-code",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 25.8121062401836,
+      "unit": "other",
+      "effort": null,
+      "source_id": "artificial-analysis-leaderboard-2026-10-07",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-07",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-leaderboard-2026-10-07",
+      "cost": {
+        "value": 0.541190247118529,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "AA label 'Kimi K2.7 Code' (slug kimi-k2-7-code); raw payload index 25.8121062401836, board table shows the rounded value. Effort is the label's own parenthesised effort; none stated in the label."
+    }
+  ],
+  "missing": [
+    "Per-evaluation AA breakdowns (Terminal-Bench 4.0 AA harness, HLE, GDPval-AA, etc.) for the models above were not ingested; the board payload carries them (terminalBench40, hle, scicode, critpt, gdpvalNormalized, omniscience) if a later pass needs them.",
+    "Gemini 4 Argon has no per-effort ladder on AA yet (single High row); AA listed no speed or latency for it.",
+    "AA's Claude Haiku 5.5 rows: see the Haiku lane files."
+  ]
+}

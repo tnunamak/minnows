@@ -1,0 +1,860 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "vals-ai-terminal-bench-4-2026-10-06",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-07",
+  "source_urls": [
+    "https://www.vals.ai/benchmarks/terminal-bench-4"
+  ],
+  "source_ids": [
+    "vals-ai-terminal-bench-4-2026-10-06"
+  ],
+  "notes": "Vals AI Terminal-Bench 4.0 board, metadata updated 2026-10-06, harness Mini-SWE-agent, runner external, 44 models. Read 2026-10-07 from the board view JSON the page loads (/_astro/benchmark_view_terminal_bench_4.B6k0fPhb.json); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction; cost_per_test is USD per test. Effort is taken from the payload's reasoning_effort (OpenAI/Google/xAI/DeepSeek/Meta/Mistral/Z.AI/Kimi) or compute_effort (Anthropic) field; rows with neither field have effort null (the board does not state it). Models on the board that are not catalog models are not stored: deepseek/deepseek-v4-pro, fireworks/ember-1, google/gemini-4-argon, inception/mercury-2.5, tencent/hy4-preview, thinkingmachines/inkling, thinkingmachines/inkling-small, xiaomi/mimo-v2.5-pro; gemini-4-argon appears in a claim. Rows are comparable:false and use a new comparability group; the board's absolute levels differ from earlier Vals snapshots in this pack (see claim).",
+  "claims": [
+    {
+      "models": [
+        "claude-opus-5-5",
+        "claude-sonnet-5-5",
+        "gpt-6-astra",
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality",
+        "cost"
+      ],
+      "statement": "Vals Terminal-Bench 4.0 board (updated 2026-10-06, Mini-SWE-agent, 44 models): Opus 5.5 65.15% at $13.20/test, Sonnet 5.5 64.14% at $16.51, GPT-6 Astra 59.60% at $9.58, Fable 5.1 58.08% at $17.18, GPT-6.1 Sol 55.05% at $1.72. Sonnet 5.5 is 1.0 pp behind Opus 5.5 on this board (stderr 1.01 vs 0.0 pp); GPT-6.1 Sol costs about one eighth of Opus 5.5 per test for 10 pp less.",
+      "implication": "Terminal-bench-style agent coding: Sonnet 5.5 is roughly tied with Opus 5.5 on this board; GPT-6.1 Sol is the cost leader among the top six.",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Gemini 4 Argon (not a catalog model) scores 57.576% at $17.64/test (effort high, stderr 2.314) on the same board; no row stored because the model has no public API id or price (see frontier-gap-notes-2026-10-07.json).",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06"
+    },
+    {
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "All previously stored Vals TB4 readings moved UP on this snapshot with no reason stated on the pages read (earlier reading -> 2026-10-06 reading): claude-opus-5-5 61.6% (2026-09-21) -> 65.2%; claude-sonnet-5-5 53.0% (2026-09-27) -> 64.1%; gpt-6-astra 57.1% (2026-09-21) -> 59.6%; claude-fable-5-1 49.5% (2026-09-21) -> 58.1%; claude-opus-5 45.5% (2026-09-21) -> 53.5%; gpt-6-sol 34.3% (2026-09-27) -> 44.4%; gpt-5.6-sol 27.8% (2026-09-22) -> 37.9%; grok-4.7 28.3% (2026-09-22) -> 28.8%; glm-5.3 25.3% (2026-09-23) -> 38.9%; kimi-k3 12.6% (2026-09-23) -> 17.2%; claude-sonnet-5 8.1% (2026-09-21) -> 9.6%. Treat 2026-10-06 as a new snapshot; do not average with the 2026-09-21..27 Vals rows.",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06"
+    }
+  ],
+  "scores": [
+    {
+      "model": "claude-opus-5-5",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.65152,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 13.198632,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'anthropic/claude-opus-5-5'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 0.0 pp (as published), latency 3810.852 s per test. Effort field: compute_effort=max."
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.64141,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 16.513006,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'anthropic/claude-sonnet-5-5'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.01 pp (as published), latency 4928.927 s per test. Effort field: compute_effort=max."
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.59596,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 9.584259,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'openai/gpt-6-astra'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 4.403 pp (as published), latency 2142.082 s per test. Effort field: reasoning_effort=max."
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.58081,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 17.175337,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'anthropic/claude-fable-5-1'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 3.312 pp (as published), latency 3623.762 s per test. Effort field: compute_effort=max."
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.55051,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 1.72496,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'openai/gpt-6.1-sol'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.821 pp (as published), latency 2711.667 s per test. Effort field: reasoning_effort=max."
+    },
+    {
+      "model": "claude-opus-5",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.53535,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 18.596913,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'anthropic/claude-opus-5'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.336 pp (as published), latency 3995.725 s per test. Effort field: compute_effort=max."
+    },
+    {
+      "model": "gpt-6-sol",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.44444,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 5.79322,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'openai/gpt-6-sol'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 3.535 pp (as published), latency 2096.128 s per test. Effort field: reasoning_effort=max."
+    },
+    {
+      "model": "claude-fable-5",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.41414,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 30.339756,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'anthropic/claude-fable-5'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.336 pp (as published), latency 4093.25 s per test. Effort field: compute_effort=max."
+    },
+    {
+      "model": "glm-5.3",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.38889,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 9.37436,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'zai/glm-5.3'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.821 pp (as published), latency 4952.947 s per test. Effort field: reasoning_effort=max."
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.37879,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 7.983597,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'openai/gpt-5.6-sol'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 0.0 pp (as published), latency 2026.072 s per test. Effort field: reasoning_effort=max."
+    },
+    {
+      "model": "qwen3.8-max",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.34343,
+      "unit": "accuracy",
+      "effort": null,
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 10.633329,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'alibaba/qwen3.8-max'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 3.945 pp (as published), latency 8900.152 s per test. Effort field: not stated in the payload."
+    },
+    {
+      "model": "step-5-preview",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.31818,
+      "unit": "accuracy",
+      "effort": null,
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 3.113224,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'stepfun/step-5-preview'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 2.624 pp (as published), latency 7066.968 s per test. Effort field: not stated in the payload."
+    },
+    {
+      "model": "mimo-v2.6-pro",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.31313,
+      "unit": "accuracy",
+      "effort": null,
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 0.497505,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'xiaomi/mimo-v2.6-pro'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 3.072 pp (as published), latency 9720.048 s per test. Effort field: not stated in the payload."
+    },
+    {
+      "model": "grok-4.7",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.28788,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 18.091599,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'grok/grok-4.7'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 2.314 pp (as published), latency 3020.945 s per test. Effort field: reasoning_effort=xhigh."
+    },
+    {
+      "model": "muse-spark-1-3",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.24747,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 6.654565,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'meta/muse_spark_1_3_max'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 0.505 pp (as published), latency 3176.371 s per test. Effort field: reasoning_effort=max. Vals lists this separately from 'meta/muse_spark_1_3' (xhigh)."
+    },
+    {
+      "model": "mimo-v2.6-flash",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.24242,
+      "unit": "accuracy",
+      "effort": null,
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 0.216275,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'xiaomi/mimo-v2.6-flash'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.515 pp (as published), latency 8712.24 s per test. Effort field: not stated in the payload."
+    },
+    {
+      "model": "claude-opus-4-8",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.23232,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 17.140717,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'anthropic/claude-opus-4-8'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.336 pp (as published), latency 4283.164 s per test. Effort field: compute_effort=max."
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.22727,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 5.602118,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'openai/gpt-5.6-terra'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 2.314 pp (as published), latency 1888.568 s per test. Effort field: reasoning_effort=max."
+    },
+    {
+      "model": "mistral-large-4",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.22727,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 7.897179,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'mistralai/mistral-large-4'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 0.875 pp (as published), latency 5070.406 s per test. Effort field: reasoning_effort=high."
+    },
+    {
+      "model": "deepseek-v4-1-flash",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.19697,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 0.499473,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'deepseek/deepseek-v4.1-flash'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.75 pp (as published), latency 2902.323 s per test. Effort field: reasoning_effort=high."
+    },
+    {
+      "model": "gemini-3.8-flash",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.19192,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 8.774327,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'google/gemini-3.8-flash'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 2.525 pp (as published), latency 6464.939 s per test. Effort field: reasoning_effort=high."
+    },
+    {
+      "model": "deepseek-v4-flash-0731",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.18687,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 0.766472,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'deepseek/deepseek-v4-flash-0731'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 3.535 pp (as published), latency 6368.24 s per test. Effort field: reasoning_effort=high."
+    },
+    {
+      "model": "grok-4.6",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.17172,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 5.071115,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'grok/grok-4.6'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.336 pp (as published), latency 1766.709 s per test. Effort field: reasoning_effort=high."
+    },
+    {
+      "model": "kimi-k3",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.17172,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 12.020926,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'kimi/kimi-k3'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 0.505 pp (as published), latency 11339.786 s per test. Effort field: reasoning_effort=max."
+    },
+    {
+      "model": "deepseek-v4-pro-0813",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.14141,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 3.31413,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'deepseek/deepseek-v4-pro-0813'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 2.02 pp (as published), latency 5538.07 s per test. Effort field: reasoning_effort=max."
+    },
+    {
+      "model": "gpt-6-luna",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.13636,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 0.354726,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'openai/gpt-6-luna'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.515 pp (as published), latency 1965.568 s per test. Effort field: reasoning_effort=max."
+    },
+    {
+      "model": "gemini-3.7-flash",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.12121,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 9.022683,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'google/gemini-3.7-flash'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 3.03 pp (as published), latency 5031.11 s per test. Effort field: reasoning_effort=high."
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.11616,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 0.731646,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'openai/gpt-5.6-luna'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.01 pp (as published), latency 2155.227 s per test. Effort field: reasoning_effort=max."
+    },
+    {
+      "model": "muse-spark-1-3",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.10606,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 7.036467,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'meta/muse_spark_1_3'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.75 pp (as published), latency 7112.43 s per test. Effort field: reasoning_effort=xhigh."
+    },
+    {
+      "model": "claude-sonnet-5",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.09596,
+      "unit": "accuracy",
+      "effort": "max",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 26.325556,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'anthropic/claude-sonnet-5'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.01 pp (as published), latency 6299.956 s per test. Effort field: compute_effort=max."
+    },
+    {
+      "model": "grok-4.5",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.08586,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 5.79204,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'grok/grok-4.5'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.336 pp (as published), latency 2030.582 s per test. Effort field: reasoning_effort=high."
+    },
+    {
+      "model": "gemini-3.5-flash",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.06061,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 5.981757,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'google/gemini-3.5-flash'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.515 pp (as published), latency 4286.824 s per test. Effort field: reasoning_effort=high."
+    },
+    {
+      "model": "muse-spark-1-2",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.06061,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 4.135537,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'meta/muse_spark_1_2'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.515 pp (as published), latency 4705.164 s per test. Effort field: reasoning_effort=xhigh."
+    },
+    {
+      "model": "gemini-3.1-pro-preview",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.02525,
+      "unit": "accuracy",
+      "effort": "high",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 4.111957,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'google/gemini-3.1-pro-preview'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 0.505 pp (as published), latency 1124.176 s per test. Effort field: reasoning_effort=high."
+    },
+    {
+      "model": "gpt-5.4-mini",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.02525,
+      "unit": "accuracy",
+      "effort": "xhigh",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 1.433702,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'openai/gpt-5.4-mini-2026-03-17'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.01 pp (as published), latency 1780.682 s per test. Effort field: reasoning_effort=xhigh."
+    },
+    {
+      "model": "minimax-m3",
+      "metric": "Terminal-Bench 4.0 (Vals AI)",
+      "score": 0.0101,
+      "unit": "accuracy",
+      "effort": null,
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-07",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "vals-ai-terminal-bench-4-2026-10-06",
+      "comparable": false,
+      "snapshot_id": "vals-ai-terminal-bench-4-2026-10-06",
+      "cost": {
+        "value": 7.229497,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      },
+      "caveat": "vals.ai key 'minimax/MiniMax-M3'. Board updated 2026-10-06, harness Mini-SWE-agent. stderr 1.01 pp (as published), latency 4582.924 s per test. Effort field: not stated in the payload."
+    }
+  ],
+  "missing": [
+    "Vals publishes no confidence interval beyond a stderr field on this board; no 95% bounds are derived here.",
+    "No Claude Haiku 5.5 row on the board at read time (Haiku 5.5 is covered by the Haiku lanes).",
+    "Vals TB4 per-category tasks (software, science, ml, operations, hardware, security, media) exist in the page but were not ingested."
+  ]
+}
