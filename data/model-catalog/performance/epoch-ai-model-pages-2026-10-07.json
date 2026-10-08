@@ -34,7 +34,7 @@
     "epoch-ai-model-page-step-5-preview-2026-10-07",
     "epoch-ai-model-page-mistral-large-4-2026-10-07"
   ],
-  "notes": "Epoch AI per-model pages re-read 2026-10-07 by direct curl; the scorecard table of each page is parsed and only that model's own column is stored (the same page also shows 3 comparison models). Pages now render server-side, so the 2026-09-22 note that they needed a headless browser no longer applies. Newly available: Claude Opus 5.5 (404 on 2026-09-22), GPT-6 Sol and GPT-6 Luna (404 then), Sonnet 5.5 and GPT-6.1 Sol. Metrics without a catalog metric id (Furniture Assembly, WeirdML v3, Vending-Bench, ProofBench, CritPt, SciCode (Epoch), APEX-Agents, Blueprint-Bench, FrontierSWE v2, Text Arena Coding on Epoch's own scale) are not stored. Epoch revised Astra's ECI from 167 (2026-09-22) to 166.",
+  "notes": "Epoch AI per-model pages re-read 2026-10-07 by direct curl; the scorecard table of each page is parsed and only that model's own column is stored (the same page also shows 3 comparison models). Pages now render server-side, so the 2026-09-22 note that they needed a headless browser no longer applies. Newly available: Claude Opus 5.5 (404 on 2026-09-22), GPT-6 Sol and GPT-6 Luna (404 then), Sonnet 5.5 and GPT-6.1 Sol. Metrics without a catalog metric id (Furniture Assembly, WeirdML v3, Vending-Bench, ProofBench, CritPt, SciCode (Epoch), APEX-Agents, Blueprint-Bench, FrontierSWE v2, Text Arena Coding on Epoch's own scale) are not stored. Epoch revised Astra's ECI from 167 (2026-09-22) to 166. DE-DUPLICATED against performance/third-party-board-roster-refresh-2026-10-07.json: 6 ECI rows with identical values are stored only there (gpt-6.1-sol, claude-opus-5-5, claude-sonnet-5-5, gpt-6-sol, gpt-6-astra, claude-fable-5-1). This file keeps the per-model benchmark scorecards and the ECI rows for models Lane B did not list.",
   "claims": [
     {
       "models": [
@@ -80,22 +80,6 @@
     }
   ],
   "scores": [
-    {
-      "model": "gpt-6.1-sol",
-      "metric": "Epoch Capabilities Index (ECI)",
-      "score": 166.0,
-      "unit": "other",
-      "source_id": "epoch-ai-model-page-gpt-6-1-sol-2026-10-07",
-      "source_type": "third_party_board",
-      "evidence_grade": "B",
-      "observed_at": "2026-10-07",
-      "task_family": "reasoning",
-      "metric_id": "epoch-capabilities-index",
-      "comparability_group": "epoch-ai-model-page-gpt-6-1-sol-2026-10-07-2026-10-07-epoch-capabilities-index",
-      "comparable": false,
-      "snapshot_id": "epoch-ai-model-page-gpt-6-1-sol-2026-10-07-2026-10-07",
-      "caveat": "Epoch per-model page, own column. Displayed '166'. Rank 3 of 257 tracked models."
-    },
     {
       "model": "gpt-6.1-sol",
       "metric": "Chess Puzzles (Epoch AI)",
@@ -223,22 +207,6 @@
       "comparable": false,
       "snapshot_id": "epoch-ai-model-page-gpt-6-1-sol-2026-10-07-2026-10-07",
       "caveat": "Epoch per-model page, own column. Displayed '74%'."
-    },
-    {
-      "model": "claude-opus-5-5",
-      "metric": "Epoch Capabilities Index (ECI)",
-      "score": 167.0,
-      "unit": "other",
-      "source_id": "epoch-ai-model-page-claude-opus-5-5-2026-10-07",
-      "source_type": "third_party_board",
-      "evidence_grade": "B",
-      "observed_at": "2026-10-07",
-      "task_family": "reasoning",
-      "metric_id": "epoch-capabilities-index",
-      "comparability_group": "epoch-ai-model-page-claude-opus-5-5-2026-10-07-2026-10-07-epoch-capabilities-index",
-      "comparable": false,
-      "snapshot_id": "epoch-ai-model-page-claude-opus-5-5-2026-10-07-2026-10-07",
-      "caveat": "Epoch per-model page, own column. Displayed '167'. Rank 1 of 257 tracked models."
     },
     {
       "model": "claude-opus-5-5",
@@ -370,22 +338,6 @@
     },
     {
       "model": "claude-sonnet-5-5",
-      "metric": "Epoch Capabilities Index (ECI)",
-      "score": 165.0,
-      "unit": "other",
-      "source_id": "epoch-ai-model-page-claude-sonnet-5-5-2026-10-07",
-      "source_type": "third_party_board",
-      "evidence_grade": "B",
-      "observed_at": "2026-10-07",
-      "task_family": "reasoning",
-      "metric_id": "epoch-capabilities-index",
-      "comparability_group": "epoch-ai-model-page-claude-sonnet-5-5-2026-10-07-2026-10-07-epoch-capabilities-index",
-      "comparable": false,
-      "snapshot_id": "epoch-ai-model-page-claude-sonnet-5-5-2026-10-07-2026-10-07",
-      "caveat": "Epoch per-model page, own column. Displayed '165'. Rank 4 of 257 tracked models."
-    },
-    {
-      "model": "claude-sonnet-5-5",
       "metric": "Mystery Game Puzzles (Epoch AI)",
       "score": 0.65,
       "unit": "accuracy",
@@ -479,22 +431,6 @@
       "comparable": false,
       "snapshot_id": "epoch-ai-model-page-claude-sonnet-5-5-2026-10-07-2026-10-07",
       "caveat": "Epoch per-model page, own column. Displayed '47%'."
-    },
-    {
-      "model": "gpt-6-sol",
-      "metric": "Epoch Capabilities Index (ECI)",
-      "score": 163.0,
-      "unit": "other",
-      "source_id": "epoch-ai-model-page-gpt-6-sol-2026-10-07",
-      "source_type": "third_party_board",
-      "evidence_grade": "B",
-      "observed_at": "2026-10-07",
-      "task_family": "reasoning",
-      "metric_id": "epoch-capabilities-index",
-      "comparability_group": "epoch-ai-model-page-gpt-6-sol-2026-10-07-2026-10-07-epoch-capabilities-index",
-      "comparable": false,
-      "snapshot_id": "epoch-ai-model-page-gpt-6-sol-2026-10-07-2026-10-07",
-      "caveat": "Epoch per-model page, own column. Displayed '163'. Rank 7 of 257 tracked models."
     },
     {
       "model": "gpt-6-sol",
@@ -770,22 +706,6 @@
     },
     {
       "model": "gpt-6-astra",
-      "metric": "Epoch Capabilities Index (ECI)",
-      "score": 166.0,
-      "unit": "other",
-      "source_id": "epoch-ai-model-page-gpt-6-astra-2026-10-07",
-      "source_type": "third_party_board",
-      "evidence_grade": "B",
-      "observed_at": "2026-10-07",
-      "task_family": "reasoning",
-      "metric_id": "epoch-capabilities-index",
-      "comparability_group": "epoch-ai-model-page-gpt-6-astra-2026-10-07-2026-10-07-epoch-capabilities-index",
-      "comparable": false,
-      "snapshot_id": "epoch-ai-model-page-gpt-6-astra-2026-10-07-2026-10-07",
-      "caveat": "Epoch per-model page, own column. Displayed '166'. Rank 2 of 257 tracked models."
-    },
-    {
-      "model": "gpt-6-astra",
       "metric": "Chess Puzzles (Epoch AI)",
       "score": 0.72,
       "unit": "accuracy",
@@ -895,22 +815,6 @@
       "comparable": false,
       "snapshot_id": "epoch-ai-model-page-gpt-6-astra-2026-10-07-2026-10-07",
       "caveat": "Epoch per-model page, own column. Displayed '76%'."
-    },
-    {
-      "model": "claude-fable-5-1",
-      "metric": "Epoch Capabilities Index (ECI)",
-      "score": 165.0,
-      "unit": "other",
-      "source_id": "epoch-ai-model-page-claude-fable-5-1-2026-10-07",
-      "source_type": "third_party_board",
-      "evidence_grade": "B",
-      "observed_at": "2026-10-07",
-      "task_family": "reasoning",
-      "metric_id": "epoch-capabilities-index",
-      "comparability_group": "epoch-ai-model-page-claude-fable-5-1-2026-10-07-2026-10-07-epoch-capabilities-index",
-      "comparable": false,
-      "snapshot_id": "epoch-ai-model-page-claude-fable-5-1-2026-10-07-2026-10-07",
-      "caveat": "Epoch per-model page, own column. Displayed '165'. Rank 5 of 257 tracked models."
     },
     {
       "model": "claude-fable-5-1",

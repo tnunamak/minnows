@@ -11,7 +11,7 @@
   "source_ids": [
     "tbench-official-leaderboard-2026-10-07"
   ],
-  "notes": "Official Terminal-Bench 4.0 leaderboard (tbench.ai), headless-Chrome DOM dump 2026-10-07; 23-row table parsed (rank, model with effort in parentheses, agent, resolution rate +/- 95% interval, release date, total tokens, total cost). The board runs each model in its own vendor harness (Claude Code, Codex, Grok Build, mini-SWE-agent, Muse Code), so rows are comparable:false against the Vals/AA readings and between harnesses. Tokens and cost are TOTAL for the full run (unit other), not per task. The seven models stored from the 2026-09-22 read of this board (GPT-6 Astra 58.2%, Fable 5.1 57.9%, GPT-5.6 Sol 37.3% / Terra 21.5% / Luna 17.3%, Grok 4.6 20.3%, Sonnet 5 12.4%) show identical rates now, so this board did not re-score; only the Vals TB4 board moved.",
+  "notes": "Official Terminal-Bench 4.0 leaderboard (tbench.ai), headless-Chrome DOM dump 2026-10-07; 23-row table parsed (rank, model with effort in parentheses, agent, resolution rate +/- 95% interval, release date, total tokens, total cost). The board runs each model in its own vendor harness (Claude Code, Codex, Grok Build, mini-SWE-agent, Muse Code), so rows are comparable:false against the Vals/AA readings and between harnesses. Tokens and cost are TOTAL for the full run (unit other), not per task. The seven models stored from the 2026-09-22 read of this board (GPT-6 Astra 58.2%, Fable 5.1 57.9%, GPT-5.6 Sol 37.3% / Terra 21.5% / Luna 17.3%, Grok 4.6 20.3%, Sonnet 5 12.4%) show identical rates now, so this board did not re-score; only the Vals TB4 board moved. DE-DUPLICATED against performance/third-party-board-roster-refresh-2026-10-07.json (Lane B read the same board, 35 rows, with pass@k and n): 7 rows stored there are omitted here (claude-opus-5-5/max, claude-sonnet-5-5/max, gpt-6-astra/max, gpt-6.1-sol/max, claude-fable-5-1/max, gpt-6-sol/max, gpt-6-luna/max); the values agree to the displayed precision. This file adds the other rows of the 23-row view.",
   "claims": [
     {
       "models": [
@@ -32,136 +32,6 @@
     }
   ],
   "scores": [
-    {
-      "model": "claude-opus-5-5",
-      "metric": "Terminal-Bench 4.0",
-      "score": 0.648,
-      "unit": "accuracy",
-      "effort": "max",
-      "harness": "claude-code",
-      "source_id": "tbench-official-leaderboard-2026-10-07",
-      "source_type": "third_party_board",
-      "evidence_grade": "B",
-      "observed_at": "2026-10-07",
-      "task_family": "coding",
-      "metric_id": "terminal-bench-4-0",
-      "comparability_group": "terminal-bench-4-0-tbench-ai-official-2026-10-07",
-      "comparable": false,
-      "snapshot_id": "tbench-ai-official-2026-10-07",
-      "cost": {
-        "value": 4700.0,
-        "unit": "other",
-        "basis": "api_usd"
-      },
-      "caveat": "Rank 1. Table row 'Opus 5.5 (max)' / agent 'Claude Code' / '64.8% ± 3.1%' / released Sep 22, 2026 / total run tokens 8.0B / total run cost $4.7k. Cost and tokens are for the full benchmark run, not per task.",
-      "effort_verbatim": "max",
-      "ci_lo": 0.617,
-      "ci_hi": 0.679
-    },
-    {
-      "model": "claude-sonnet-5-5",
-      "metric": "Terminal-Bench 4.0",
-      "score": 0.618,
-      "unit": "accuracy",
-      "effort": "max",
-      "harness": "claude-code",
-      "source_id": "tbench-official-leaderboard-2026-10-07",
-      "source_type": "third_party_board",
-      "evidence_grade": "B",
-      "observed_at": "2026-10-07",
-      "task_family": "coding",
-      "metric_id": "terminal-bench-4-0",
-      "comparability_group": "terminal-bench-4-0-tbench-ai-official-2026-10-07",
-      "comparable": false,
-      "snapshot_id": "tbench-ai-official-2026-10-07",
-      "cost": {
-        "value": 7300.0,
-        "unit": "other",
-        "basis": "api_usd"
-      },
-      "caveat": "Rank 2. Table row 'Sonnet 5.5 (max)' / agent 'Claude Code' / '61.8% ± 2.9%' / released Sep 28, 2026 / total run tokens 19.4B / total run cost $7.3k. Cost and tokens are for the full benchmark run, not per task.",
-      "effort_verbatim": "max",
-      "ci_lo": 0.589,
-      "ci_hi": 0.647
-    },
-    {
-      "model": "gpt-6-astra",
-      "metric": "Terminal-Bench 4.0",
-      "score": 0.582,
-      "unit": "accuracy",
-      "effort": "max",
-      "harness": "codex",
-      "source_id": "tbench-official-leaderboard-2026-10-07",
-      "source_type": "third_party_board",
-      "evidence_grade": "B",
-      "observed_at": "2026-10-07",
-      "task_family": "coding",
-      "metric_id": "terminal-bench-4-0",
-      "comparability_group": "terminal-bench-4-0-tbench-ai-official-2026-10-07",
-      "comparable": false,
-      "snapshot_id": "tbench-ai-official-2026-10-07",
-      "cost": {
-        "value": 3300.0,
-        "unit": "other",
-        "basis": "api_usd"
-      },
-      "caveat": "Rank 3. Table row 'GPT-6 Astra (max)' / agent 'Codex' / '58.2% ± 2.8%' / released Sep 3, 2026 / total run tokens 1.5B / total run cost $3.3k. Cost and tokens are for the full benchmark run, not per task.",
-      "effort_verbatim": "max",
-      "ci_lo": 0.554,
-      "ci_hi": 0.61
-    },
-    {
-      "model": "gpt-6.1-sol",
-      "metric": "Terminal-Bench 4.0",
-      "score": 0.582,
-      "unit": "accuracy",
-      "effort": "max",
-      "harness": "codex",
-      "source_id": "tbench-official-leaderboard-2026-10-07",
-      "source_type": "third_party_board",
-      "evidence_grade": "B",
-      "observed_at": "2026-10-07",
-      "task_family": "coding",
-      "metric_id": "terminal-bench-4-0",
-      "comparability_group": "terminal-bench-4-0-tbench-ai-official-2026-10-07",
-      "comparable": false,
-      "snapshot_id": "tbench-ai-official-2026-10-07",
-      "cost": {
-        "value": 600.0,
-        "unit": "other",
-        "basis": "api_usd"
-      },
-      "caveat": "Rank 3. Table row 'GPT-6.1 Sol (max)' / agent 'Codex' / '58.2% ± 3.1%' / released Sep 29, 2026 / total run tokens 1.5B / total run cost $0.6k. Cost and tokens are for the full benchmark run, not per task.",
-      "effort_verbatim": "max",
-      "ci_lo": 0.551,
-      "ci_hi": 0.613
-    },
-    {
-      "model": "claude-fable-5-1",
-      "metric": "Terminal-Bench 4.0",
-      "score": 0.579,
-      "unit": "accuracy",
-      "effort": "max",
-      "harness": "claude-code",
-      "source_id": "tbench-official-leaderboard-2026-10-07",
-      "source_type": "third_party_board",
-      "evidence_grade": "B",
-      "observed_at": "2026-10-07",
-      "task_family": "coding",
-      "metric_id": "terminal-bench-4-0",
-      "comparability_group": "terminal-bench-4-0-tbench-ai-official-2026-10-07",
-      "comparable": false,
-      "snapshot_id": "tbench-ai-official-2026-10-07",
-      "cost": {
-        "value": 6200.0,
-        "unit": "other",
-        "basis": "api_usd"
-      },
-      "caveat": "Rank 5. Table row 'Fable 5.1 (max)' / agent 'Claude Code' / '57.9% ± 3.8%' / released Sep 1, 2026 / total run tokens 2.7B / total run cost $6.2k. Cost and tokens are for the full benchmark run, not per task.",
-      "effort_verbatim": "max",
-      "ci_lo": 0.541,
-      "ci_hi": 0.617
-    },
     {
       "model": "claude-opus-5",
       "metric": "Terminal-Bench 4.0",
@@ -187,32 +57,6 @@
       "effort_verbatim": "xhigh",
       "ci_lo": 0.507,
       "ci_hi": 0.571
-    },
-    {
-      "model": "gpt-6-sol",
-      "metric": "Terminal-Bench 4.0",
-      "score": 0.494,
-      "unit": "accuracy",
-      "effort": "max",
-      "harness": "codex",
-      "source_id": "tbench-official-leaderboard-2026-10-07",
-      "source_type": "third_party_board",
-      "evidence_grade": "B",
-      "observed_at": "2026-10-07",
-      "task_family": "coding",
-      "metric_id": "terminal-bench-4-0",
-      "comparability_group": "terminal-bench-4-0-tbench-ai-official-2026-10-07",
-      "comparable": false,
-      "snapshot_id": "tbench-ai-official-2026-10-07",
-      "cost": {
-        "value": 1500.0,
-        "unit": "other",
-        "basis": "api_usd"
-      },
-      "caveat": "Rank 7. Table row 'GPT-6 Sol (max)' / agent 'Codex' / '49.4% ± 3.2%' / released Sep 22, 2026 / total run tokens 5.0B / total run cost $1.5k. Cost and tokens are for the full benchmark run, not per task.",
-      "effort_verbatim": "max",
-      "ci_lo": 0.462,
-      "ci_hi": 0.526
     },
     {
       "model": "claude-fable-5",
@@ -499,32 +343,6 @@
       "effort_verbatim": "max",
       "ci_lo": 0.145,
       "ci_hi": 0.201
-    },
-    {
-      "model": "gpt-6-luna",
-      "metric": "Terminal-Bench 4.0",
-      "score": 0.164,
-      "unit": "accuracy",
-      "effort": "max",
-      "harness": "codex",
-      "source_id": "tbench-official-leaderboard-2026-10-07",
-      "source_type": "third_party_board",
-      "evidence_grade": "B",
-      "observed_at": "2026-10-07",
-      "task_family": "coding",
-      "metric_id": "terminal-bench-4-0",
-      "comparability_group": "terminal-bench-4-0-tbench-ai-official-2026-10-07",
-      "comparable": false,
-      "snapshot_id": "tbench-ai-official-2026-10-07",
-      "cost": {
-        "value": 100.0,
-        "unit": "other",
-        "basis": "api_usd"
-      },
-      "caveat": "Rank 19. Table row 'GPT-6 Luna (max)' / agent 'Codex' / '16.4% ± 2.7%' / released Sep 22, 2026 / total run tokens 3.9B / total run cost $0.1k. Cost and tokens are for the full benchmark run, not per task.",
-      "effort_verbatim": "max",
-      "ci_lo": 0.137,
-      "ci_hi": 0.191
     },
     {
       "model": "muse-spark-1-3",
