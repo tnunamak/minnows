@@ -1,0 +1,12 @@
+[Unit]
+Description=Rebuild the unfinished-business ledger
+After=network-online.target
+
+[Service]
+Type=oneshot
+# Steps are cached and incremental, so a run only pays for new sessions and items.
+# Set UNFINISHED_HOME here to use a data folder other than ~/Documents/unfinished.
+Environment=EXTRACT_WORKERS=4 ADJ_WORKERS=3 RESOLVE_WORKERS=2
+ExecStart=%h/.local/bin/unfinished run
+Nice=10
+TimeoutStartSec=3h

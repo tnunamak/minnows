@@ -1,0 +1,227 @@
+#!/usr/bin/env python3
+"""
+unfinished — a ledger of unfinished business mined from your agent work.
+
+Reads past agent sessions (through the `convo` ledger), T3 Code threads, open
+PRs, waspflow lanes and note files; finds decisions, plans, promises and
+requests that were never finished; checks the top ones against current state
+(git, GitHub, later sessions); and writes a ledger you can read and close.
+
+Everything personal lives in one data folder, $UNFINISHED_HOME (default
+~/Documents/unfinished): the ledger, evidence pages, your decisions, and
+state/ (working database, caches, logs). Optional config.json there sets the
+sources and models; see `unfinished paths` and README.md beside this script.
+
+Usage:
+    unfinished run [--since YYYY-MM-DD] [--check N]   rebuild the ledger (incremental, cached)
+    unfinished render                                  re-render LEDGER.md from current state
+    unfinished list [project]                          open items, highest first
+    unfinished show <id>                               one item and its evidence page
+    unfinished done <id> [note]                        mark finished
+    unfinished drop <id> [note]                        not worth doing (kept as a tombstone)
+    unfinished snooze <id> <N>d                        hide for N days
+    unfinished load-resolved <file.jsonl>...           import hand or agent check results
+    unfinished paths                                   show the data folder and config in use
+    unfinished self-test                               offline checks (no network, no data folder)
+
+Needs: python3 (stdlib only), `convo`, and for some steps `claude`, `gh`,
+`t3code`, and a TypeSafe API key (Jev) via $TYPESAFE_API_KEY or config.
+"""
+import datetime as dt
+import fcntl
+import json
+import os
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+LIB = HERE / "lib"
+
+ADJUDICATE_SELECTION = (
+    "select p.item_id from prerank p join items i using(item_id) where p.bundle is null and "
+    "((i.source_type='session' and p.score>=3.5) or i.source_type in ('review','miss','inbox') or "
+    "(i.source_type='pr' and p.score>=2) or (i.source_type='worktree' and p.score>=1.5)) order by p.score desc")
+
+
+def _cfg():
+    sys.path.insert(0, str(LIB))
+    import uf_config
+    return uf_config
+
+
+def _step(label, script, *args, env=None):
+    print(f"{dt.datetime.now():%H:%M:%S} {label}", file=sys.stderr, flush=True)
+    subprocess.run([sys.executable, str(LIB / script), *args], check=True, env=env or os.environ)
+
+
+def cmd_run(args):
+    uf = _cfg()
+    uf.ensure_dirs()
+    since = uf.since_default()
+    check_n = "24"
+    it = iter(args)
+    for a in it:
+        if a == "--since":
+            since = next(it)
+        elif a == "--check":
+            check_n = next(it)
+        else:
+            sys.exit(f"unfinished run: unknown argument {a}")
+    lock = open(uf.STATE / ".run.lock", "w")
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        print("unfinished run: another run is in progress", file=sys.stderr)
+        return 0
+    print(f"{dt.datetime.now():%H:%M:%S} convo sync", file=sys.stderr, flush=True)
+    subprocess.run(["convo", "sync"], check=True, stdout=subprocess.DEVNULL)
+    _step("segment sessions", "extract_sessions.py", since)
+    _step("ingest T3", "ingest_t3.py", since)
+    _step("ingest structured sources", "ingest_structured.py")
+    _step("decision-model pass", "jev_pass1.py",
+          "(kind in ('user','tail','t3tail') or (kind='reply' and (next_ts is null or "
+          "(julianday(next_ts)-julianday(ts))*24>=6)))")
+    _step("select candidates", "select_cands.py")
+    _step("extract items", "extract_items.py")
+    _step("materialize", "materialize.py")
+    _step("same-session pick-up", "resolve_insession.py")
+    _step("PR state and evidence", "resolve_evidence.py")
+    _step("pre-rank", "prerank.py")
+    _step("adjudicate", "adjudicate.py", ADJUDICATE_SELECTION)
+    _step("dedup", "dedup.py")
+    _step("render (before checks)", "render.py")
+    _step("check top items", "resolve_agentic.py", check_n)
+    _step("cluster checked items", "cluster_top.py")
+    _step("render", "render.py")
+    print(f"done: {uf.DATA / 'LEDGER.md'}", file=sys.stderr)
+    return 0
+
+
+def _items(uf):
+    p = uf.DATA / "ledger.jsonl"
+    return [json.loads(line) for line in open(p)] if p.exists() else []
+
+
+def _find(uf, iid):
+    xs = [i for i in _items(uf) if i["id"] == iid or i["id"].endswith(iid)]
+    if len(xs) != 1:
+        sys.exit(f"unfinished: {len(xs)} items match {iid!r}")
+    return xs[0]
+
+
+def _decide(uf, iid, decision, extra):
+    it = _find(uf, iid)
+    now = dt.datetime.now().astimezone()
+    e = {"id": it["id"], "decision": decision, "at": now.isoformat(), "via": "cli"}
+    if decision == "snooze":
+        days = int((extra[0] if extra else "7d").rstrip("d"))
+        e["until"] = (now + dt.timedelta(days=days)).isoformat()
+    else:
+        e["note"] = " ".join(extra)
+    with open(uf.DATA / "decisions.jsonl", "a") as f:
+        f.write(json.dumps(e) + "\n")
+    print(f"{decision}: {it['id']} — {it.get('next_action') or it.get('title')}")
+
+
+def cmd_list(args):
+    uf = _cfg()
+    for i in _items(uf):
+        if i.get("verdict") == "open" and not i.get("owner_decision") and (not args or i["project"] == args[0]):
+            print(f"P{i.get('priority')} {i['id']:<20} {i['project']:<18} {i.get('next_action')}")
+    return 0
+
+
+def cmd_show(args):
+    uf = _cfg()
+    it = _find(uf, args[0])
+    print(json.dumps(it, indent=2, ensure_ascii=False))
+    print(uf.EVIDENCE / (it.get("slug", "") + ".md"))
+    return 0
+
+
+def cmd_paths(_args):
+    uf = _cfg()
+    cfg_file = uf.DATA / "config.json"
+    print(f"data folder:  {uf.DATA}")
+    print(f"state:        {uf.STATE}")
+    print(f"config:       {cfg_file} ({'present' if cfg_file.exists() else 'absent, defaults in use'})")
+    print(f"convo ledger: {uf.CONVO_LEDGER}")
+    return 0
+
+
+def cmd_self_test(_args):
+    """Offline checks of the pieces that guard privacy and owner decisions."""
+    with tempfile.TemporaryDirectory() as tmp:
+        os.environ["UNFINISHED_HOME"] = tmp
+        uf = _cfg()
+        uf.ensure_dirs()
+        import jev
+        import materialize
+        import render
+
+        failures = []
+
+        def check(name, ok):
+            print(f"  {'ok  ' if ok else 'FAIL'} {name}")
+            if not ok:
+                failures.append(name)
+
+        fake = "abcdefghijklmnop" + "1234"  # built at runtime so secret scanners don't flag the fixture
+        red = jev.redact("token=" + fake + " ghp_" + "a" * 36 + " https://u:pw123456@h.x "
+                         "?code=abcdefghijk123&ok=1 sha 1f49eb83a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5")
+        check("redact masks tokens, URL passwords and query secrets",
+              fake not in red and "ghp_" not in red and "pw123456" not in red
+              and "abcdefghijk123" not in red)
+        check("redact keeps 40-hex git SHAs", "1f49eb83a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5" in red)
+        src = "We still need to rotate the staging database password before Friday's release."
+        check("quote check accepts a near-verbatim quote",
+              materialize.quote_ok("still need to rotate the staging database password before release", src))
+        check("quote check rejects an invented quote",
+              not materialize.quote_ok("migrate billing service to the new queue cluster", src))
+        check("since_default is a date 30 days back",
+              uf.since_default() == (dt.date.today() - dt.timedelta(days=30)).isoformat())
+        # tick import: only from the generation that was last rendered
+        Path(tmp, ".generation").write_text("gen1")
+        Path(tmp, "LEDGER.md").write_text("<!-- generation: gen1 -->\n### 1. [x] Do a thing\n`s:abc123` · p\n"
+                                          "- [x] **Other** — why `pr:o/r#1`\n- [ ] **Open** `s:keep`\n")
+        n = render.import_ticks()
+        ids = [json.loads(line)["id"] for line in open(Path(tmp, "decisions.jsonl"))]
+        check("ticked boxes import as decisions", n == 2 and set(ids) == {"s:abc123", "pr:o/r#1"})
+        Path(tmp, ".generation").write_text("gen2")
+        check("ticks from a stale generation are ignored", render.import_ticks() == 0)
+    print("self-test:", "FAILED " + ", ".join(failures) if failures else "passed")
+    return 1 if failures else 0
+
+
+def main(argv):
+    if not argv or argv[0] in ("-h", "--help", "help"):
+        print(__doc__)
+        return 0
+    cmd, args = argv[0], argv[1:]
+    if cmd == "run":
+        return cmd_run(args)
+    if cmd == "render":
+        _cfg().ensure_dirs()
+        _step("render", "render.py")
+        return 0
+    if cmd == "list":
+        return cmd_list(args)
+    if cmd == "show" and args:
+        return cmd_show(args)
+    if cmd in ("done", "drop", "snooze") and args:
+        _decide(_cfg(), args[0], cmd, args[1:])
+        return 0
+    if cmd == "load-resolved" and args:
+        _step("load resolutions", "load_resolved.py", *args)
+        return 0
+    if cmd == "paths":
+        return cmd_paths(args)
+    if cmd == "self-test":
+        return cmd_self_test(args)
+    sys.exit(f"unfinished: unknown command {cmd!r}; see `unfinished --help`")
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

@@ -37,6 +37,7 @@ jobs:
         run: |
           bash -n sync.sh install.sh scripts/*.sh
           python3 -m py_compile lib/*.py tools/convo/convo tools/uncompact/uncompact scripts/*.py
+          python3 -m py_compile tools/unfinished/unfinished tools/unfinished/lib/*.py
 
       - name: Offline CLI integrity suites
         run: |
@@ -46,6 +47,7 @@ jobs:
           node tools/hone/lib/test-agenda.mjs
           node tools/hone/lib/test-collectors.mjs
           node tools/hone/lib/test-report-run.mjs
+          python3 tools/unfinished/unfinished self-test
 
       - name: Generated skills are current
         run: |
