@@ -1,7 +1,7 @@
 {
   "id": "model-choice-policy",
   "schema_version": 1,
-  "policy_version": "0.1.18",
+  "policy_version": "0.1.19",
   "generated_at": "2026-10-07",
   "catalog_ref": "data-model-catalog-v0.5.12",
   "doctrine": [
@@ -18,8 +18,8 @@
       "constraint_family": "dollar-tight",
       "expands_to": {
         "provider": "claude",
-        "model": "claude-sonnet-5-5",
-        "effort": "low",
+        "model": "claude-haiku-5-5",
+        "effort": "medium",
         "mode": "standard"
       },
       "frontier_assumption": {
@@ -31,7 +31,9 @@
       },
       "evidence_refs": [
         "catalog://pricing/anthropic-api-2026-07",
-        "catalog://performance/anthropic-effort-quality-2026-07"
+        "catalog://performance/artificial-analysis-claude-haiku-5-5-2026-10-07",
+        "catalog://performance/anthropic-haiku5-5-digitized-2026-10",
+        "catalog://performance/anthropic-haiku-5-5-launch-2026-10"
       ],
       "use_when": [
         "Status reports, recovery notes, short summaries",
@@ -46,8 +48,11 @@
       ],
       "deescalate_to": [],
       "known_gaps": [
-        "No local success-rate series for recover task family",
-        "Moved to Sonnet 5.5 on 2026-09-29 by the tier rule (newest model in the cheapest tier). AA Intelligence Index v4.3.2 has Sonnet 5.5 at low at 36 for $0.41/task, but AA ran a pre-release deployment and no independent board compares Sonnet 5.5 with Opus 5.5 on bounded edits or reading tasks. Recheck when AA reruns."
+        "Moved claude-sonnet-5-5/low -> claude-haiku-5-5/medium on 2026-10-07 by rule 1 (cheapest tier whose evidence clears the bar). Same-snapshot AA rows (2026-10-07, grade B): Haiku 5.5 medium beats Sonnet 5.5 low on GDPval-AA (1277 vs 1179) and AA Briefcase (1372 vs 1272), is level on GDP.pdf (15.2% vs 16.0%), and costs $0.047 per task against $0.345.",
+        "Haiku 5.5 medium loses on closed-book recall: HLE without tools 33.8% vs 36.2%, AA-Omniscience 4.5 vs 19.4. Reports summarize context the lane is given, so recall does not decide this op. Escalate to implement.standard when the report needs facts that are not in that context.",
+        "Low effort does not clear the bar: Haiku 5.5 low trails Sonnet 5.5 low on GDPval-AA (1125 vs 1179) and Briefcase (1112 vs 1272), and saves only $0.02 per task over medium.",
+        "AA cost figures omit Haiku 5.5's 5x rate above 100k prompt tokens. At that rate ($0.50/$2.50 per MTok) it still costs a quarter of Sonnet 5.5 ($2/$10).",
+        "No local success-rate series for the recover task family. AA does not say whether its Haiku 5.5 runs used a pre-release deployment."
       ],
       "override_policy": "explicit_flags_win"
     },
@@ -65,17 +70,14 @@
         "cost_basis": "low",
         "quota_basis": "low",
         "expected_strength": "good_breadth_for_parallel_scouts",
-        "evidence_confidence": "low",
-        "frontier_status": "unknown_locally",
-        "basis": "best_guess_pending_local_eval"
+        "evidence_confidence": "medium",
+        "frontier_status": "likely_efficient",
+        "basis": "independent_board_same_snapshot"
       },
       "evidence_refs": [
-        "catalog://performance/artificial-analysis-full-roster-2026-09-22",
-        "catalog://performance/terminal-bench-4-vals-opus-5-5-2026-09",
-        "catalog://performance/vals-ai-full-roster-2026-09-22",
-        "catalog://performance/anthropic-opus5-5-digitized-2026-09",
-        "catalog://pricing/anthropic-api-2026-07",
+        "catalog://performance/artificial-analysis-claude-haiku-5-5-2026-10-07",
         "catalog://performance/artificial-analysis-gpt-6-1-sol-2026-09-29",
+        "catalog://performance/vals-ai-index-finance-agent-2026-10-06",
         "catalog://performance/openai-gpt-6-1-sol-launch-2026-09",
         "catalog://pricing/openai-api-2026-07"
       ],
@@ -91,13 +93,60 @@
         "review.audit"
       ],
       "deescalate_to": [
+        "fanout.dollar-tight",
         "recover.report"
       ],
       "known_gaps": [
-        "Sonnet 5 at max effort (its best) scores below Opus 5.5 at medium on every independent board and costs more per task: AA Intelligence Index v4.3.2 38.2 at $5.09/task vs 51.2 at $1.34; vals.ai Terminal-Bench 4 8.1% at $21.37 vs 61.6% at $13.47 (both at max); AA Terminal-Bench 4 14.1% at $19.69.",
-        "Independent boards test at max effort only; the medium-effort choice rests on Anthropic's own effort curves (grade C), where Opus 5.5 medium beats GPT-6 Astra medium on Terminal-Bench 4.0 (57.6% at $2.94 vs 53.9% at $6.15).",
-        "Derived with scripts/recommend_ops.py against op-requirements.json (DRAFT); rerun on each catalog release.",
-        "Moved claude-opus-5-5/medium -> codex/gpt-6.1-sol/medium on 2026-09-30 (best guess, owner-approved direction). Reasons: AA Intelligence Index v4.3.2 same-day rows have GPT-6.1 Sol medium 47.8 at $0.21/task vs Opus 5.5 medium 51.2 (Opus cost not in that snapshot; $1.34/task in the earlier roster), and Anthropic's own curve puts Opus medium at $2.94/task vs Sonnet 5.5 medium $0.83 on Terminal-Bench 4.0, more than the $2 silent-failure cost. No bounded-navigation eval exists; local fanout eval pending. Fall back to Opus medium via explicit flags if scouts return wrong locations."
+        "Re-checked 2026-10-07 against same-snapshot AA rows (grade B): GPT-6.1 Sol medium scores 62.6% on AutomationBench at $0.196 per task, against Opus 5.5 medium 61.2% at $0.638 and Sonnet 5.5 medium 54.9% at $0.262. Opus leads on GDPval-AA (1586 vs 1433) at about three times the cost.",
+        "No bounded code-navigation benchmark exists; AA's agentic evals are the closest proxy. Fall back to Opus 5.5 medium by explicit flags if scouts return wrong locations.",
+        "Moved claude-opus-5-5/medium -> codex/gpt-6.1-sol/medium on 2026-09-30 (v0.1.16)."
+      ],
+      "override_policy": "explicit_flags_win"
+    },
+    {
+      "id": "fanout.dollar-tight",
+      "task_family": "fanout",
+      "constraint_family": "dollar-tight",
+      "expands_to": {
+        "provider": "codex",
+        "model": "gpt-6-luna",
+        "effort": "medium",
+        "mode": "standard"
+      },
+      "frontier_assumption": {
+        "cost_basis": "low",
+        "quota_basis": "low",
+        "expected_strength": "cheap_breadth_with_verified_results",
+        "evidence_confidence": "medium",
+        "frontier_status": "likely_efficient_when_results_are_verified",
+        "basis": "independent_board_same_snapshot"
+      },
+      "evidence_refs": [
+        "catalog://performance/artificial-analysis-claude-haiku-5-5-2026-10-07",
+        "catalog://performance/vals-ai-index-finance-agent-2026-10-06",
+        "catalog://performance/openai-gpt-6-sol-luna-launch-curves-2026-09",
+        "catalog://pricing/openai-api-2026-07",
+        "catalog://pricing/codex-credits-2026-07"
+      ],
+      "use_when": [
+        "Many parallel scouts where per-lane cost dominates",
+        "Exploration that should spend the Codex pool, not the Claude pool",
+        "The orchestrator verifies every location or claim a scout returns"
+      ],
+      "avoid_when": [
+        "Scout output feeds a decision without verification",
+        "Terminal-heavy or multi-step environment work (use fanout.explore)"
+      ],
+      "escalate_to": [
+        "fanout.explore"
+      ],
+      "deescalate_to": [],
+      "known_gaps": [
+        "Added 2026-10-07 by rule 1. GPT-6 Luna is the newest GA model in Codex's cheapest tier: $0.10/$0.50 per MTok and 2.5/12.5 Codex credits, against $2/$10 and 50/250 for GPT-6.1 Sol.",
+        "Same-snapshot AA rows (2026-10-07, grade B), Luna medium against GPT-6.1 Sol medium: AutomationBench 40.5% vs 62.6% and GDPval-AA 1262 vs 1433, at $0.0175 vs $0.214 per task. Vals Finance Agent v2 (agentic research, both at max): 49.9% at $0.124 vs 52.0% at $1.62.",
+        "Medium, not high: on OpenAI's Agents' Last Exam curve (vendor, grade C) Luna medium scores 46.8% and high 43.6%.",
+        "OpenAI reports that Luna at max hides a broken search tool in 28.7% of cases (GPT-6 Sol: 4.9%). That is why verified results are a use_when condition.",
+        "Haiku 5.5 medium has the same list price and beats Luna on GDPval-AA (1277) and Briefcase (1372 vs 1099) but loses on AutomationBench (28.6%). Use it by explicit flags when the Claude pool is the cheaper one."
       ],
       "override_policy": "explicit_flags_win"
     },
@@ -107,8 +156,8 @@
       "constraint_family": "dollar-tight",
       "expands_to": {
         "provider": "claude",
-        "model": "claude-sonnet-5-5",
-        "effort": "low",
+        "model": "claude-haiku-5-5",
+        "effort": "medium",
         "mode": "standard"
       },
       "frontier_assumption": {
@@ -119,21 +168,28 @@
         "frontier_status": "likely_efficient"
       },
       "evidence_refs": [
-        "catalog://pricing/anthropic-api-2026-07"
+        "catalog://pricing/anthropic-api-2026-07",
+        "catalog://performance/artificial-analysis-claude-haiku-5-5-2026-10-07",
+        "catalog://performance/anthropic-haiku5-5-digitized-2026-10",
+        "catalog://performance/anthropic-haiku-5-5-launch-2026-10"
       ],
       "use_when": [
         "Readme / docs / API reference lookup",
         "Citation-style answers"
       ],
       "avoid_when": [
-        "Deep multi-file design synthesis (use advisor.deep)"
+        "Deep multi-file design synthesis (use advisor.deep)",
+        "Questions the docs do not answer (closed-book recall is Haiku 5.5's weak point)"
       ],
       "escalate_to": [
         "advisor.deep"
       ],
       "deescalate_to": [],
       "known_gaps": [
-        "Moved to Sonnet 5.5 on 2026-09-29 by the tier rule (newest model in the cheapest tier). AA Intelligence Index v4.3.2 has Sonnet 5.5 at low at 36 for $0.41/task, but AA ran a pre-release deployment and no independent board compares Sonnet 5.5 with Opus 5.5 on bounded edits or reading tasks. Recheck when AA reruns."
+        "Moved claude-sonnet-5-5/low -> claude-haiku-5-5/medium on 2026-10-07 by rule 1 (cheapest tier whose evidence clears the bar). Same-snapshot AA rows (2026-10-07, grade B): Haiku 5.5 medium beats Sonnet 5.5 low on GDPval-AA (1277 vs 1179) and AA Briefcase (1372 vs 1272), is level on GDP.pdf (15.2% vs 16.0%), and costs $0.047 per task against $0.345.",
+        "Haiku 5.5 medium loses on closed-book recall: HLE without tools 33.8% vs 36.2%, AA-Omniscience 4.5 vs 19.4. This op reads the docs, so recall does not decide it, and AA-LCR (long-context reading) has Haiku 5.5 medium at 77.3%. The lane must say when the docs do not answer the question; escalate to advisor.deep then, or when citations fail verification.",
+        "Low effort does not clear the bar: Haiku 5.5 low trails Sonnet 5.5 low on GDPval-AA (1125 vs 1179) and Briefcase (1112 vs 1272), and saves only $0.02 per task over medium.",
+        "AA cost figures omit Haiku 5.5's 5x rate above 100k prompt tokens. At that rate ($0.50/$2.50 per MTok) it still costs a quarter of Sonnet 5.5 ($2/$10)."
       ],
       "override_policy": "explicit_flags_win"
     },
@@ -160,7 +216,9 @@
         "catalog://performance/terminal-bench-4-vals-opus-5-5-2026-09",
         "catalog://performance/vals-ai-full-roster-2026-09-22",
         "catalog://performance/anthropic-opus5-5-digitized-2026-09",
-        "catalog://pricing/anthropic-api-2026-07"
+        "catalog://pricing/anthropic-api-2026-07",
+        "catalog://performance/artificial-analysis-claude-haiku-5-5-2026-10-07",
+        "catalog://performance/vals-ai-terminal-bench-4-2026-10-06"
       ],
       "use_when": [
         "Normal implementation with tests or review path",
@@ -179,8 +237,8 @@
         "recover.report"
       ],
       "known_gaps": [
-        "Sonnet 5 at max effort (its best) scores below Opus 5.5 at medium on every independent board and costs more per task: AA Intelligence Index v4.3.2 38.2 at $5.09/task vs 51.2 at $1.34; vals.ai Terminal-Bench 4 8.1% at $21.37 vs 61.6% at $13.47 (both at max); AA Terminal-Bench 4 14.1% at $19.69.",
-        "Independent boards test at max effort only; the medium-effort choice rests on Anthropic's own effort curves (grade C), where Opus 5.5 medium beats GPT-6 Astra medium on Terminal-Bench 4.0 (57.6% at $2.94 vs 53.9% at $6.15).",
+        "Re-checked 2026-10-07: Opus 5.5 leads GPT-6.1 Sol on the independent coding boards: Vals Terminal-Bench 4.0 65.2% vs 55.1%, AA Terminal-Bench 4.0 at medium 52.5% vs 48.0%, AA SciCode at medium 59.3% vs 53.2%. Sonnet 5.5 medium (AA Terminal-Bench 4.0 29.8%) and Haiku 5.5 medium (15.2%) do not clear the bar. Moving this op to Codex would also break review.audit's different-vendor rule.",
+        "Independent boards mostly test at max effort; the medium-effort choice rests on Anthropic's own effort curves (grade C), where Opus 5.5 medium beats GPT-6 Astra medium on Terminal-Bench 4.0 (57.6% at $2.94 vs 53.9% at $6.15).",
         "Derived with scripts/recommend_ops.py against op-requirements.json (DRAFT); rerun on each catalog release."
       ],
       "override_policy": "explicit_flags_win"
@@ -205,7 +263,9 @@
       "evidence_refs": [
         "catalog://performance/anthropic-effort-quality-2026-07",
         "catalog://performance/anthropic-sonnet5-5-digitized-2026-09",
-        "catalog://performance/artificial-analysis-claude-sonnet-5-5-2026-09-28"
+        "catalog://performance/artificial-analysis-claude-sonnet-5-5-2026-09-28",
+        "catalog://performance/artificial-analysis-claude-haiku-5-5-2026-10-07",
+        "catalog://performance/anthropic-haiku-5-5-launch-2026-10"
       ],
       "use_when": [
         "Subscription quota is scarce",
@@ -221,7 +281,57 @@
         "recover.report"
       ],
       "known_gaps": [
-        "Moved to Sonnet 5.5 on 2026-09-29 by the tier rule (newest model in the cheapest tier). AA Intelligence Index v4.3.2 has Sonnet 5.5 at low at 36 for $0.41/task, but AA ran a pre-release deployment and no independent board compares Sonnet 5.5 with Opus 5.5 on bounded edits or reading tasks. Recheck when AA reruns."
+        "Re-checked 2026-10-07: Haiku 5.5 does not clear this bar at the allowed efforts. AA Terminal-Bench 4.0 (same snapshot): Haiku 5.5 medium 15.2% vs Sonnet 5.5 medium 29.8%. Anthropic's launch table: 39.2% vs 70.6%. Haiku 5.5 reaches Sonnet's medium score only at xhigh (29.3%), which needs an override reason.",
+        "Medium, not low: Sonnet 5.5 low scores 20.7% on AA Terminal-Bench 4.0 and 20.0% on Anthropic's curve, against 29.8% and 28.8% at medium.",
+        "For Codex-pool patches that a test suite decides, use implement.oracle-bounded."
+      ],
+      "override_policy": "explicit_flags_win"
+    },
+    {
+      "id": "implement.oracle-bounded",
+      "task_family": "implementation",
+      "constraint_family": "quota-tight",
+      "expands_to": {
+        "provider": "codex",
+        "model": "gpt-6-luna",
+        "effort": "high",
+        "mode": "standard"
+      },
+      "frontier_assumption": {
+        "cost_basis": "low",
+        "quota_basis": "low",
+        "expected_strength": "bounded_patches_gated_by_a_deterministic_oracle",
+        "evidence_confidence": "low",
+        "frontier_status": "likely_efficient_under_oracle_gate",
+        "basis": "vendor_curve_plus_expected_cost_under_oracle"
+      },
+      "evidence_refs": [
+        "catalog://performance/openai-gpt-6-sol-luna-launch-curves-2026-09",
+        "catalog://performance/artificial-analysis-claude-haiku-5-5-2026-10-07",
+        "catalog://performance/vals-ai-terminal-bench-4-2026-10-06",
+        "catalog://performance/third-party-board-roster-refresh-2026-10-07",
+        "catalog://pricing/openai-api-2026-07",
+        "catalog://pricing/codex-credits-2026-07"
+      ],
+      "use_when": [
+        "Small, well-specified patches that a deterministic oracle accepts or rejects (tests, type check, build)",
+        "Codex quota or dollars are tight and many such tasks run"
+      ],
+      "avoid_when": [
+        "No automatic oracle, so a reviewer would have to judge the result",
+        "Long multi-step terminal or environment tasks",
+        "Security-sensitive changes"
+      ],
+      "escalate_to": [
+        "implement.standard"
+      ],
+      "deescalate_to": [],
+      "known_gaps": [
+        "Added 2026-10-07 by rule 1. GPT-6 Luna is the newest GA model in Codex's cheapest tier: $0.10/$0.50 per MTok and 2.5/12.5 Codex credits, against $2/$10 and 50/250 for GPT-6.1 Sol.",
+        "The bar: the oracle catches failures (detection 0.95 in op-requirements.json), so a Luna attempt that fails costs its own price plus the $0.50 attempt overhead before escalation to implement.standard. With a $2 expected cost for the stronger arm, Luna-first is cheaper when Luna passes more than about one task in three. OpenAI's DeepSWE v1.1 curve (vendor, grade C) has Luna high at 59.3% for $0.084 per task, against GPT-6 Sol medium at 56.6% for $0.38.",
+        "High, not medium: on DeepSWE v1.1, Luna rises from 44.5% to 59.3% for $0.03 more per task, which lowers expected cost under the oracle gate.",
+        "Independent boards show where Luna fails: Terminal-Bench 4.0 at max is 13.6% on Vals and 16.4% on tbench.ai, against 55.1% and 58.2% for GPT-6.1 Sol, and AA has Luna high at 4.6%. Long terminal tasks are therefore in avoid_when.",
+        "No independent board measures Luna on bounded repository patches. A local eval with hidden tests would measure the pass rate against the one-in-three threshold."
       ],
       "override_policy": "explicit_flags_win"
     },
@@ -247,7 +357,9 @@
         "catalog://performance/artificial-analysis-intelligence-index-opus-5-5-2026-09",
         "catalog://performance/terminal-bench-4-vals-opus-5-5-2026-09",
         "catalog://performance/anthropic-opus-5-5-system-card-2026-09",
-        "catalog://pricing/anthropic-api-2026-07"
+        "catalog://pricing/anthropic-api-2026-07",
+        "catalog://performance/artificial-analysis-claude-haiku-5-5-2026-10-07",
+        "catalog://performance/vals-ai-terminal-bench-4-2026-10-06"
       ],
       "use_when": [
         "Hard implementation where rework is costly",
@@ -264,6 +376,7 @@
         "implement.standard"
       ],
       "known_gaps": [
+        "Re-checked 2026-10-07: at high effort Opus 5.5 still leads the AA Intelligence Index (53.6, against GPT-6 Astra 50.9 and GPT-6.1 Sol 50.2), and it leads Vals Terminal-Bench 4.0 (65.2%).",
         "Vendor harnesses not cross-vendor comparable; independent support is vals.ai Terminal-Bench 4.0 (grade C: Opus 5.5 61.6% vs GPT-6 Astra 57.1%) and AA Intelligence Index v4.3.2 (grade B: 57.6 vs 52.7 at max)",
         "Moves load from the Codex pool to the Claude pool; check clawmeter headroom before bulk use",
         "Effort 'high' chosen from vendor curves: Terminal-Bench 4.0 high 64.2% at $3.88/task vs xhigh 66.4% at $7.35/task"
@@ -284,17 +397,18 @@
         "cost_basis": "medium",
         "quota_basis": "medium",
         "expected_strength": "independent_audit_style_review",
-        "evidence_confidence": "low",
+        "evidence_confidence": "medium",
         "frontier_status": "unknown_locally",
-        "basis": "best_guess_pending_local_eval"
+        "basis": "ties_gpt_6_astra_on_independent_boards_at_high"
       },
       "evidence_refs": [
-        "catalog://performance/terminal-bench-4-astra-audit-2026-09",
-        "catalog://pricing/codex-credits-2026-07",
-        "catalog://performance/local-evals-2026-07",
+        "catalog://performance/artificial-analysis-claude-haiku-5-5-2026-10-07",
+        "catalog://performance/arcprize-leaderboard-2026-10-07",
+        "catalog://performance/third-party-board-roster-refresh-2026-10-07",
+        "catalog://performance/vals-ai-terminal-bench-4-2026-10-06",
         "catalog://performance/artificial-analysis-gpt-6-1-sol-2026-09-29",
-        "catalog://performance/openai-gpt-6-1-sol-launch-2026-09",
-        "catalog://pricing/openai-api-2026-07"
+        "catalog://pricing/openai-api-2026-07",
+        "catalog://pricing/codex-credits-2026-07"
       ],
       "use_when": [
         "Independent review of another agent's work",
@@ -309,11 +423,10 @@
         "implement.standard"
       ],
       "known_gaps": [
-        "Local harness smoke only (answer-contaminated single seed) — not grade-A quality evidence (Sol+Fable P0.2)",
-        "Prefer different provider than implementer when possible — still operator choice",
-        "Model swapped gpt-5.6-sol → gpt-6-astra and effort xhigh → high on owner-policy basis (never xhigh/max by default); the cited terminal-bench-4-astra-audit-2026-09 evidence is graded C (secondary/indirect board read, comparable=false) — evidence_confidence held at medium, not raised, on the model swap alone",
-        "Rule conflict (2026-09-22): 'checker at least as strong as maker' and 'different model family' cannot both hold while Opus 5.5 is the strongest maker. GPT-6 Astra high beats Opus 5.5 medium on Terminal-Bench 4.0 and loses on FrontierCode (vendor charts). Kept on the strongest different-family model.",
-        "Moved codex/gpt-6-astra/high -> codex/gpt-6.1-sol/high on 2026-09-30 (best guess, owner-approved direction: Astra at $10/$50 per MTok is not worth its price for routine audits; GPT-6.1 Sol is $2/$10 and OpenAI describes it as near-Astra). No independent audit-recall evidence exists for either model; AA Intelligence Index v4.3.2 has GPT-6.1 Sol high at 50.2 for $0.32/task. Astra stays available by explicit flag for security-sensitive or disputed reviews. A seeded-defect local eval is the deciding evidence and is pending."
+        "Re-checked 2026-10-07: at high effort, the op's setting, GPT-6.1 Sol ties GPT-6 Astra on the independent boards that report high: AA Intelligence Index 50.2 vs 50.9 ($0.32 vs $1.73 per task) and ARC-AGI-2 91.7% vs 92.1% ($0.135 vs $0.668 per task). At max, Astra leads by 1 to 4 points on AA's per-eval rows and the Vals Index (63.1% vs 61.2%), and the two tie on tbench.ai Terminal-Bench 4.0 (58.2%). Vals Terminal-Bench 4.0, which does not state effort, has Astra at 59.6% and GPT-6.1 Sol at 55.1%. Under the pack's cost model ($100 per missed defect, no detection), the 0.4-point ARC-AGI-2 gap at high is worth $0.40 per task, which is less than Astra's $0.53 extra cost per task. GPT-6.1 Sol high is therefore the strongest evidenced different-vendor arm for its cost. Astra stays available by explicit flag.",
+        "Different vendor from the Claude makers (implement.standard, implement.accuracy-first). Opus 5.5 scores higher on coding boards but would check its own vendor's work.",
+        "No independent benchmark measures audit recall; a seeded-defect local eval would decide between the tied models.",
+        "GPT-6 Luna is not a candidate: it scores 13.6% to 16.4% on independent Terminal-Bench 4.0 runs."
       ],
       "override_policy": "explicit_flags_win"
     },
@@ -339,7 +452,9 @@
         "catalog://performance/artificial-analysis-intelligence-index-opus-5-5-2026-09",
         "catalog://performance/terminal-bench-4-vals-opus-5-5-2026-09",
         "catalog://performance/anthropic-opus-5-5-system-card-2026-09",
-        "catalog://pricing/anthropic-api-2026-07"
+        "catalog://pricing/anthropic-api-2026-07",
+        "catalog://performance/artificial-analysis-claude-haiku-5-5-2026-10-07",
+        "catalog://performance/arcprize-leaderboard-2026-10-07"
       ],
       "use_when": [
         "Design / architecture advice",
@@ -355,6 +470,7 @@
         "docs.lookup"
       ],
       "known_gaps": [
+        "Re-checked 2026-10-07: at high effort Opus 5.5 leads the AA Intelligence Index (53.6, against 50.9 for GPT-6 Astra and 50.2 for GPT-6.1 Sol) and ARC-AGI-2 (93.3%, against 92.1% and 91.7%).",
         "No benchmark measures design/synthesis advice directly; choice rests on Opus 5.5 dominating Sonnet 5, Opus 5 and Fable 5.1 on AA Intelligence Index v4.3.2 (grade B) and agentic-coding curves (vendor, grade C)",
         "Claude-family advisor reviewing Claude-family implementers is not a cross-model check; escalate to review.audit for independence"
       ],
@@ -383,7 +499,9 @@
         "catalog://performance/openai-gpt-6-1-sol-launch-2026-09",
         "catalog://performance/artificial-analysis-gpt-6-1-sol-2026-09-29",
         "catalog://performance/openai-gpt-6-sol-luna-launch-curves-2026-09",
-        "catalog://pricing/openai-api-2026-07"
+        "catalog://pricing/openai-api-2026-07",
+        "catalog://performance/artificial-analysis-claude-haiku-5-5-2026-10-07",
+        "catalog://performance/anthropic-haiku5-5-digitized-2026-10"
       ],
       "use_when": [
         "UI / browser / OSWorld-style computer use",
@@ -399,10 +517,9 @@
         "implement.standard"
       ],
       "known_gaps": [
-        "Local computer-use success rate unmeasured",
-        "Model swapped gpt-5.6-sol → gpt-6-astra on owner-policy/GA basis (mechanical work defaults to medium effort); no new local computer-use evidence, so evidence_confidence held at medium",
-        "Unsettled (2026-09-22): no OSWorld chart puts Claude and GPT-6 on the same harness.",
-        "Moved codex/gpt-6-astra/medium -> codex/gpt-6.1-sol/medium on 2026-09-30 (best guess, owner-approved direction). On OpenAI's OSWorld 2.0 chart, GPT-6 Sol medium is 54.0% at $1.32 vs Astra medium 69.25% at $5.10, and OpenAI states GPT-6.1 Sol at max is 7 points above GPT-6 Sol and within 2.1 points of Astra at about one-seventh the cost (vendor claims). No medium-effort GPT-6.1 Sol OSWorld cells and no shared harness with Claude models; computer-use eval pending."
+        "Re-checked 2026-10-07: on AA AutomationBench (same snapshot, grade B) GPT-6.1 Sol medium scores 62.6% at $0.196 per task, against Opus 5.5 medium 61.2% ($0.638), Sonnet 5.5 medium 54.9% ($0.262), GPT-6 Luna medium 40.5% and Haiku 5.5 medium 28.6%.",
+        "OSWorld still has no harness shared across vendors: Anthropic reports OSWorld 2.1 (Haiku 5.5 medium 53.3%, Sonnet 5.5 medium 66.0%) and OpenAI reports OSWorld 2.0 (GPT-6 Sol medium 54.0%). AutomationBench is workflow automation, not GUI control, so confidence stays low until a local computer-use eval runs.",
+        "Moved codex/gpt-6-astra/medium -> codex/gpt-6.1-sol/medium on 2026-09-30 (v0.1.16)."
       ],
       "override_policy": "explicit_flags_win"
     },
@@ -443,6 +560,7 @@
         "recover.report"
       ],
       "known_gaps": [
+        "Re-checked 2026-10-07: grok-4.7 is still the newest GA xAI model in catalog v0.5.12. AA lists it only at xhigh (Intelligence Index 46.5 at $3.74 per task).",
         "No repo-repair quality curve — deliberately not invented",
         "grok-4.7 chosen by rule 1, not by benchmark ranking: it is the only model the authenticated grok CLI offers (grok-4.6 and grok-4.5 left the list on 2026-09-23), and the newest GA model in xAI's flagship tier. Effort medium is rule 1's default; the vendor default is high.",
         "Signed off by an independent Claude Opus 5.5 review (rounds 1 and 2, 2026-09-23)."

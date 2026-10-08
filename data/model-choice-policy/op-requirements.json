@@ -3,7 +3,7 @@
   "id": "model-choice-op-requirements",
   "schema_version": 1,
   "status": "DRAFT",
-  "generated_at": "2026-09-23",
+  "generated_at": "2026-10-07",
   "catalog_ref": "data-model-catalog-v0.5.12",
   "notes": [
     "Task families select metrics from metrics.json. Costs and detection rates below are policy assumptions, not measured calibration.",
@@ -73,6 +73,21 @@
       "silent_failure_cost_usd": 2
     },
     {
+      "op": "fanout.dollar-tight",
+      "status": "DRAFT",
+      "allowed_providers": [
+        "codex"
+      ],
+      "allowed_efforts": [
+        "low",
+        "medium"
+      ],
+      "constraints": [],
+      "cost_basis": "usd_per_task",
+      "rationale": "Codex-lane scouts at the lowest cost; the orchestrator verifies results and escalates misses to fanout.explore.",
+      "silent_failure_cost_usd": 2
+    },
+    {
       "op": "docs.lookup",
       "status": "DRAFT",
       "allowed_efforts": [
@@ -107,6 +122,23 @@
       "cost_basis": "usd_per_task",
       "rationale": "Verified coding tasks; detected failures are retried. USD per task is a quota proxy.",
       "silent_failure_cost_usd": 5
+    },
+    {
+      "op": "implement.oracle-bounded",
+      "status": "DRAFT",
+      "allowed_providers": [
+        "codex"
+      ],
+      "allowed_efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "constraints": [],
+      "cost_basis": "usd_per_task",
+      "rationale": "Bounded coding tasks that a deterministic oracle accepts or rejects; detected failures escalate to implement.standard. USD per task is a quota proxy.",
+      "silent_failure_cost_usd": 5,
+      "failure_detection_probability": 0.95
     },
     {
       "op": "implement.accuracy-first",
@@ -190,6 +222,10 @@
       "agentic",
       "research/browsing"
     ],
+    "fanout.dollar-tight": [
+      "agentic",
+      "research/browsing"
+    ],
     "docs.lookup": [
       "knowledge/factuality"
     ],
@@ -197,6 +233,9 @@
       "coding"
     ],
     "implement.quota-tight": [
+      "coding"
+    ],
+    "implement.oracle-bounded": [
       "coding"
     ],
     "implement.accuracy-first": [

@@ -10,7 +10,7 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.1.18](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.1.18) — published by CI on push to main |
+| **This version** | [data-model-choice-policy-v0.1.19](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.1.19) — published by CI on push to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
@@ -60,15 +60,17 @@ uv run --with pytest --with jsonschema pytest tests/test_recommend_ops.py
 read a separately installed pack. Keep expansion explicit in the caller; do
 not silently route by model name.
 
-## Operating points (10)
+## Operating points (12)
 
 | Op | Provider / model / effort |
 |----|---------------------------|
-| `recover.report` | claude / sonnet-5-5 / low |
+| `recover.report` | claude / haiku-5-5 / medium |
 | `fanout.explore` | codex / gpt-6.1-sol / medium |
-| `docs.lookup` | claude / sonnet-5-5 / low |
+| `fanout.dollar-tight` | codex / gpt-6-luna / medium |
+| `docs.lookup` | claude / haiku-5-5 / medium |
 | `implement.standard` | claude / opus-5-5 / medium |
 | `implement.quota-tight` | claude / sonnet-5-5 / medium |
+| `implement.oracle-bounded` | codex / gpt-6-luna / high |
 | `implement.accuracy-first` | claude / opus-5-5 / high |
 | `review.audit` | codex / gpt-6.1-sol / high |
 | `advisor.deep` | claude / opus-5-5 / high |
@@ -76,6 +78,20 @@ not silently route by model name.
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.1.19 — 2026-10-07
+
+Evidence for every change below is the same-snapshot Artificial Analysis read of 2026-10-07 (`performance/artificial-analysis-claude-haiku-5-5-2026-10-07`, grade B), unless another file is named. `scripts/recommend_ops.py` returns INSUFFICIENT_EVIDENCE for 11 of 12 ops, as it does for 9 of 10 on v0.1.18, so these changes rest on rule 1 (the cheapest tier whose evidence clears the bar, then the newest GA model in that tier) and on the boards.
+
+- Move `recover.report` and `docs.lookup` from claude-sonnet-5-5/low to **claude-haiku-5-5/medium**. Haiku 5.5 medium beats Sonnet 5.5 low on GDPval-AA (1277 vs 1179) and AA Briefcase (1372 vs 1272), is level on GDP.pdf (15.2% vs 16.0%), and costs $0.047 per task against $0.345. It loses on closed-book recall (HLE without tools 33.8% vs 36.2%; AA-Omniscience 4.5 vs 19.4). Both ops work from supplied context or docs, so recall does not decide them; each op names its escalation trigger. Low effort does not clear the bar (GDPval-AA 1125, Briefcase 1112).
+- Add **`fanout.dollar-tight`**: codex/gpt-6-luna/medium. GPT-6 Luna is the newest GA model in Codex's cheapest tier ($0.10/$0.50 per MTok, a twentieth of GPT-6.1 Sol). Against GPT-6.1 Sol medium: AutomationBench 40.5% vs 62.6% and GDPval-AA 1262 vs 1433 at $0.0175 vs $0.214 per task; Vals Finance Agent v2 49.9% vs 52.0% at $0.124 vs $1.62 (`vals-ai-index-finance-agent-2026-10-06`). Scout results must be verified: OpenAI reports that Luna hides a broken search tool in 28.7% of cases (`openai-gpt-6-sol-luna-launch-curves-2026-09`).
+- Add **`implement.oracle-bounded`**: codex/gpt-6-luna/high, for small patches that a deterministic oracle accepts or rejects. When the oracle catches failures, Luna-first costs less than the stronger arm if Luna passes more than about one task in three. OpenAI's DeepSWE v1.1 curve (grade C) has Luna high at 59.3% for $0.084 per task, against GPT-6 Sol medium at 56.6% for $0.38. Independent Terminal-Bench 4.0 has Luna at 13.6% (Vals) and 16.4% (tbench.ai), so long terminal tasks are out of scope (`vals-ai-terminal-bench-4-2026-10-06`, `third-party-board-roster-refresh-2026-10-07`).
+- Keep `review.audit` on **codex/gpt-6.1-sol/high**, now at evidence confidence medium. At high effort it ties GPT-6 Astra on the boards that report high (AA Intelligence Index 50.2 vs 50.9; ARC-AGI-2 91.7% vs 92.1%, `arcprize-leaderboard-2026-10-07`) at a fifth of the cost. Astra leads by 1 to 4 points only at max.
+- Keep `fanout.explore` on codex/gpt-6.1-sol/medium, now at evidence confidence medium: AutomationBench 62.6% at $0.196 per task, against Opus 5.5 medium 61.2% at $0.638.
+- Keep `implement.quota-tight` on claude-sonnet-5-5/medium. Haiku 5.5 does not clear it: AA Terminal-Bench 4.0 at medium 15.2% vs 29.8%.
+- Keep `implement.standard`, `implement.accuracy-first` and `advisor.deep` on Opus 5.5. Opus leads GPT-6.1 Sol on Vals Terminal-Bench 4.0 (65.2% vs 55.1%) and at high on the AA Intelligence Index (53.6 vs 50.2).
+- Keep `ui.computer-use` on codex/gpt-6.1-sol/medium (AutomationBench as above) and `grok.explore-only` on grok-4.7/medium (still the newest GA Grok model).
+- Catalog pin: **v0.5.12**.
 
 ### v0.1.18 — 2026-10-07
 
