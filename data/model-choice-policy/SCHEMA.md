@@ -77,9 +77,10 @@ $100 for `review.audit` and $50 for `advisor.deep`.
 | `implement.accuracy-first` | $50 | An undetected defect is especially costly in accuracy-first work. |
 | `implement.standard` | $10 | A missed coding defect needs later repair. |
 | `implement.quota-tight` | $5 | Small, quota-constrained patches have a lower assumed loss. |
+| `implement.oracle-bounded` | $5 | Same loss as quota-tight patches. Its detection probability is 0.95, because a deterministic oracle decides success. |
 | `review.audit` | $100 | A missed problem can pass silently through the checker. |
 | `advisor.deep` | $50 | Wrong advice can steer later work. |
-| `recover.report`, `fanout.explore`, `docs.lookup`, `ui.computer-use`, `grok.explore-only` | $2 each | Lower assumed loss for a missed factual, exploration, lookup, or UI task. |
+| `recover.report`, `fanout.explore`, `fanout.dollar-tight`, `docs.lookup`, `ui.computer-use`, `grok.explore-only` | $2 each | Lower assumed loss for a missed factual, exploration, lookup, or UI task. |
 
 ### Candidate and evidence rules
 

@@ -14,12 +14,48 @@ LOAD_BEARING = [
     "pricing/codex-credits-2026-07.json",
     "pricing/xai-api-2026-07.json",
     "capabilities/effort-surfaces-2026-07.json",
-    # boards (FRESHNESS.md monthly tier)
-    "performance/artificial-analysis-2026-07.json",
-    "performance/terminal-bench-2026-07.json",
-    "performance/swe-bench-2026-07.json",
-    "performance/arcprize-gpt-5-6-2026-07.json",
 ]
+# Boards (FRESHNESS.md monthly tier), matched by source URL. A board is fresh when its
+# NEWEST snapshot is: a dated performance file that cites one of its sources, including a
+# re-read that found no new rows. Superseded snapshots keep their old retrieved_at forever
+# (rules: never rewrite an old dated snapshot), so they are not checked one by one.
+BOARDS = {
+    "Artificial Analysis": ("artificialanalysis.ai",),
+    "Terminal-Bench": ("tbench.ai",),
+    "SEAL SWE-Bench Pro": ("scale.com/leaderboard/swe_bench_pro",),
+    "ARC Prize": ("arcprize.org",),
+}
+
+
+def cited_source_ids(doc: dict) -> set[str]:
+    ids = set(doc.get("source_ids") or [])
+    for key in ("scores", "claims"):
+        ids.update(r["source_id"] for r in doc.get(key) or [] if isinstance(r, dict) and r.get("source_id"))
+    return ids
+
+
+def board_snapshots() -> list[tuple[Path, str]]:
+    """Newest catalog performance file per tracked board; a missing board is reported."""
+    sources = json.loads((CATALOG / "SOURCES.json").read_text())["sources"]
+    url_of = {s["id"]: s.get("url", "") for s in sources}
+    newest: dict[str, tuple[str, Path]] = {}
+    for path in sorted((CATALOG / "performance").glob("*.json")):
+        doc = json.loads(path.read_text())
+        urls = [url_of.get(i, "") for i in cited_source_ids(doc)]
+        for board, needles in BOARDS.items():
+            if any(n in u for u in urls for n in needles):
+                ra = doc.get("retrieved_at") or ""
+                if board not in newest or ra > newest[board][0]:
+                    newest[board] = (ra, path)
+    out = []
+    for board in BOARDS:
+        if board in newest:
+            path = newest[board][1]
+            out.append((path, f"performance/{path.name} (newest {board} snapshot)"))
+        else:
+            out.append((CATALOG / "performance" / f"<no {board} snapshot>", f"board {board}: no snapshot"))
+    return out
+
 
 def decision_files() -> list[tuple[Path, str]]:
     """decision-model-catalog: every pricing table, plus every performance document that
@@ -45,7 +81,7 @@ def main() -> int:
     args = ap.parse_args()
     today = date.today()
     stale = []
-    targets = [(CATALOG / rel, rel) for rel in LOAD_BEARING] + decision_files()
+    targets = [(CATALOG / rel, rel) for rel in LOAD_BEARING] + board_snapshots() + decision_files()
     for path, rel in targets:
         if not path.is_file():
             print(f"missing {rel}", file=sys.stderr)

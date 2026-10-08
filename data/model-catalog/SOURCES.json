@@ -2238,6 +2238,1446 @@
       "retrieved_at": "2026-09-29",
       "kind": "vendor_docs",
       "notes": "First-party model page gives API ID, USD cache-miss/cache-hit/output rates, 1M context, and OpenAI/Anthropic protocol compatibility."
+    },
+    {
+      "id": "openai-api-pricing-2026-10-07",
+      "url": "https://developers.openai.com/api/docs/pricing",
+      "title": "Pricing | OpenAI API",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07 by direct curl. Flagship Standard table lists gpt-6-astra, gpt-6.1-sol and gpt-6-luna only; gpt-6-sol and the GPT-5.6 Terra/Luna rows are no longer shown there. Cyber table still lists gpt-5.6-sol."
+    },
+    {
+      "id": "openai-api-models-2026-10-07",
+      "url": "https://developers.openai.com/api/docs/models",
+      "title": "Models | OpenAI API",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07. Choose-a-model section names GPT-6 Astra (flagship), GPT-6.1 Sol and GPT-6 Luna; lists reasoning efforts and context windows."
+    },
+    {
+      "id": "openai-api-changelog-2026-10-07",
+      "url": "https://developers.openai.com/api/docs/changelog",
+      "title": "Changelog | OpenAI API",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07. Entries after 2026-09-29: Oct 5 HIPAA flow; Oct 6 Decisions API beta with gpt-6-luna and simplified usage tiers; Oct 7 chat-latest snapshot update. No new GPT-6.x model id and no price change after the 2026-09-29 GPT-6.1 Sol release."
+    },
+    {
+      "id": "openai-api-deprecations-2026-10-07",
+      "url": "https://developers.openai.com/api/docs/deprecations",
+      "title": "Deprecations | OpenAI API",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07. gpt-5.3-codex, gpt-5.4-nano and gpt-5.1 are listed with an April 1, 2027 shutdown (recommended replacements gpt-6-sol, gpt-6-luna, gpt-6-sol). gpt-5-2025-08-07 family shuts down Dec 11, 2026. gpt-6-sol appears as a replacement target, not as deprecated."
+    },
+    {
+      "id": "openai-codex-pricing-2026-10-07",
+      "url": "https://developers.openai.com/codex/pricing",
+      "title": "Pricing | Codex",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07 by direct curl (the page served full HTML this time). Credit-rate table per 1M tokens (input / cached input / output): GPT-6 Astra 250/25/1250; GPT-6.1 Sol 50/2.5/250; GPT-6 Sol 50/5/250; GPT-6 Luna 2.5/0.25/12.5; GPT-5.6 Sol 100/10/500; GPT-5.6 Terra 50/5/300; GPT-5.6 Luna 5/0.5/30; GPT-5.5 125/12.5/750. GPT-5.4 and GPT-5.4 mini are no longer listed. Fast mode 2x (purchased credits) / 2.5x (included usage); Astra Ultrafast 6x / 8x."
+    },
+    {
+      "id": "openai-codex-models-2026-10-07",
+      "url": "https://developers.openai.com/codex/models",
+      "title": "Models | Codex",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07 (redirects to learn.chatgpt.com/docs/models). Recommends GPT-6.1 Sol for complex coding, Luna for repeatable tasks, Astra for the hardest work; GPT-6.1 Sol effort range Light to Ultra; Standard and Fast at launch, Ultrafast coming later."
+    },
+    {
+      "id": "openai-codex-changelog-2026-10-07",
+      "url": "https://developers.openai.com/codex/changelog",
+      "title": "ChatGPT & Codex changelog",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07. Codex CLI 0.159.1 (2026-09-29) added GPT-6.1 Sol as the default model in the bundled catalog; 0.161.0 (2026-10-07) repeats that GPT-6.1 Sol is the default model in the bundled and Amazon Bedrock catalogs."
+    },
+    {
+      "id": "openai-codex-debug-models-0-161-0-2026-10-07",
+      "url": "https://github.com/tnunamak/minnows/tree/main/data/model-catalog",
+      "title": "codex debug models (live, auth-scoped host output, codex-cli 0.161.0)",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "other",
+      "notes": "Not a public URL (url field reuses the repo per the openai-codex-debug-models-2026-09-05 precedent). Local `codex debug models` output on this host, codex-cli 0.161.0, 2026-10-07: gpt-6.1-sol default_reasoning_level=low, levels low/medium/high/xhigh/max/ultra, visibility=list, supported_in_api=true, service tier priority (Fast). Same read: gpt-6-astra, gpt-6-sol, gpt-6-luna default medium; gpt-5.6-sol default low (unchanged from the 2026-09-05 read). Auth-scoped host evidence, not a universal vendor claim."
+    },
+    {
+      "id": "google-gemini-pricing-2026-10-07",
+      "url": "https://ai.google.dev/gemini-api/docs/pricing",
+      "title": "Gemini Developer API pricing",
+      "publisher": "Google",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07 by direct curl, tables parsed. No Gemini 4 Argon row. Unchanged vs stored rows: 3.8/3.7/3.6 Flash $0.75 in / $3.75 out / $0.075 cache through 2026-12-31 then $1.50/$7.50/$0.15; 3.5 Flash $1.50/$9.00/$0.15; 3.5 Flash-Lite $0.30/$2.50/$0.03; 3.1 Flash-Lite $0.25/$1.50/$0.025; 3 Flash Preview $0.50/$3.00/$0.05; 3.1 Pro Preview $2.00/$12.00/$0.20 (<=200k); 2.5 Pro $1.25/$10.00/$0.125; 2.5 Flash $0.30/$2.50/$0.03; 2.5 Flash-Lite $0.10/$0.40/$0.01."
+    },
+    {
+      "id": "google-gemini-changelog-2026-10-07",
+      "url": "https://ai.google.dev/gemini-api/docs/changelog",
+      "title": "Gemini API release notes",
+      "publisher": "Google",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07. Latest entries: Oct 6 Nano Banana 2.1 GA; Sep 22 3.8 Flash TTS; Sep 18 Gemini 2.5 access limited to existing users (not deprecated); Sep 17 Antigravity Agent 09-2026; Sep 15 3.8 Live. No Gemini 4 Argon entry and no new text-model price."
+    },
+    {
+      "id": "google-gemini-4-argon-announcement-2026-09-30",
+      "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/",
+      "title": "Gemini 4 Argon: our next era of frontier intelligence",
+      "publisher": "Google",
+      "published": "2026-09-30",
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_blog",
+      "notes": "Announcement 2026-09-30 (publication date from press coverage; page text itself has no date line). Rolling out to trusted cyber defenders through the Fairwind Program; broad developer/enterprise/consumer release \"as soon as possible\", starting with paid API customers and Google AI Ultra. Introductory price $2 in / $10 out per 1M tokens (cached input 95% off), then $4 / $20. 1M output tokens. Vendor claims: DeepSWE v1.1 77.9%, Vals Index leading, AutomationBench 51.3% rank 1, LVBench 91.7%, CWE-bench v1 68% (tie for first)."
+    },
+    {
+      "id": "xai-models-page-2026-10-07",
+      "url": "https://docs.x.ai/docs/models",
+      "title": "Grok Models & Pricing",
+      "publisher": "xAI (SpaceXAI)",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07. Lists grok-4.7 only: 500k context, $2.00 in / $6.00 out per 1M, configurable reasoning, knowledge cutoff May 2026. Page footer: last updated September 21, 2026."
+    },
+    {
+      "id": "xai-release-notes-2026-10-07",
+      "url": "https://docs.x.ai/docs/release-notes",
+      "title": "Release Notes",
+      "publisher": "xAI (SpaceXAI)",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07 (page footer: last updated October 2, 2026). Entries after Grok 4.7 (Sep 21): Sep 25 safety_identifier field; Oct 2 grok-voice-transcribe-1.0 end of life. No new Grok text model, no price change."
+    },
+    {
+      "id": "xai-grok-4-7-model-page-2026-10-07",
+      "url": "https://docs.x.ai/developers/models/grok-4.7",
+      "title": "Grok 4.7 model page",
+      "publisher": "xAI (SpaceXAI)",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07: input $2.00, cached $0.50, output $6.00 per 1M below the 200k prompt tier; higher-context tier documented on the page."
+    },
+    {
+      "id": "deepseek-pricing-2026-10-07",
+      "url": "https://api-docs.deepseek.com/quick_start/pricing",
+      "title": "Models & Pricing | DeepSeek API Docs",
+      "publisher": "DeepSeek",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07. deepseek-flash (V4.1-Flash) peak $0.30 miss / $0.006 hit / $1.20 out; deepseek-v4-pro (V4-Pro-0813) peak $1.32 / $0.044 / $3.96; off-peak half. Unchanged from the stored 2026-09-23 rows."
+    },
+    {
+      "id": "deepseek-change-log-2026-10-07",
+      "url": "https://api-docs.deepseek.com/updates",
+      "title": "Change Log | DeepSeek API Docs",
+      "publisher": "DeepSeek",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07. Newest entry is 2026-09-10 (V4.1-Flash release and price cut; V4 Pro service continued past 2026-09-14). No later release."
+    },
+    {
+      "id": "alibaba-modelstudio-pricing-2026-10-07",
+      "url": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "title": "Model Studio model pricing",
+      "publisher": "Alibaba Cloud",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07 (page: last updated Oct 06, 2026), tables parsed per region. International (Singapore): qwen3.8-max and -0902 $2/$6 flat to 1M; qwen3.7-max $2.5/$7.5; qwen3.8-flash $0.15/$0.47. Global/Hong Kong/Frankfurt/US/Beijing rows: qwen3.8-max $1.65/$4.951. New in the China (Beijing) table: qwen3.8-max-prime (\"Fast mode (Prime)\") $3.301/$9.902."
+    },
+    {
+      "id": "moonshot-pricing-2026-10-07",
+      "url": "https://platform.moonshot.ai/docs/pricing/chat",
+      "title": "Model Inference Pricing Explanation",
+      "publisher": "Moonshot AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Read 2026-10-07 via the .md source of the Mintlify page (the HTML tables are JS-rendered). kimi-k3: cache write 5min $3.00, cache write 1h $6.00, cached input $0.30, input $3.00, output $15.00, 1,048,576 context. K2 series: kimi-k2.7-code $0.95 miss / $0.19 hit / $4.00 out (262,144); kimi-k2.7-code-highspeed $1.90/$0.38/$8.00; kimi-k2.6 $0.95/$0.16/$4.00."
+    },
+    {
+      "id": "zai-pricing-2026-10-07",
+      "url": "https://docs.z.ai/guides/overview/pricing",
+      "title": "Pricing - Z.AI developer document",
+      "publisher": "Z.AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Read 2026-10-07, table parsed. Per 1M tokens (input / cached input / output): GLM-5.3-Flash $0.15/$0.03/$0.50; GLM-5.3-FlashX $0.37/$0.075/$1.25; GLM-5.3 $1.4/$0.26/$4.4; GLM-5.2 $1.4/$0.26/$4.4; GLM-5.1 $1.4/$0.26/$4.4. Cached-input storage limited-time free."
+    },
+    {
+      "id": "zai-release-notes-2026-10-07",
+      "url": "https://docs.z.ai/release-notes/new-released",
+      "title": "New Released - Z.AI developer document",
+      "publisher": "Z.AI",
+      "published": "2026-08-26",
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Read 2026-10-07. Dates GLM-5.3-Flash 2026-08-26, GLM-5.3 2026-08-18, GLM-5.2 2026-06-16, GLM-5.1 2026-04-07. No release after 2026-08-26."
+    },
+    {
+      "id": "zai-glm-5-3-flash-docs-2026-10-07",
+      "url": "https://docs.z.ai/guides/llm/glm-5.3-flash",
+      "title": "GLM-5.3-Flash/FlashX",
+      "publisher": "Z.AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Read 2026-10-07. Model codes glm-5.3-flash and glm-5.3-flashx (200 tokens/s); 1M context, 128K max output; thinking cannot be disabled; recommended reasoning_effort max."
+    },
+    {
+      "id": "minimax-pricing-2026-10-07",
+      "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
+      "title": "MiniMax Pay as You Go Pricing",
+      "publisher": "MiniMax",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Read 2026-10-07, table parsed. M3 <=512k: list $0.60/$2.40/$0.12 cache read, permanent 50% off to $0.30/$1.20/$0.06; >512k doubles. M2.7 $0.3/$1.2, cache read $0.06, cache write $0.375. Priority tier is 1.5x. Release-notes page lists nothing after Jul 31, 2026 (H3 video)."
+    },
+    {
+      "id": "xiaomi-mimo-v2-6-pro-model-page-2026-10-07",
+      "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-pro",
+      "title": "MiMo-V2.6-Pro",
+      "publisher": "Xiaomi MiMo",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07: USD cache-hit $0.0036, cache-miss $0.435, output $0.87 per 1M; 1M context; unchanged from 2026-09-29."
+    },
+    {
+      "id": "xiaomi-mimo-v2-6-flash-model-page-2026-10-07",
+      "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-flash",
+      "title": "MiMo-V2.6-Flash",
+      "publisher": "Xiaomi MiMo",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07: USD cache-hit $0.0028, cache-miss $0.14, output $0.28 per 1M; unchanged from 2026-09-29."
+    },
+    {
+      "id": "xiaomi-mimo-v2-6-pro-ultraspeed-model-page-2026-10-07",
+      "url": "https://mimo.mi.com/models/en-US/mimo-v2.6-pro-ultraspeed",
+      "title": "MiMo-V2.6-Pro-UltraSpeed",
+      "publisher": "Xiaomi MiMo",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "First read 2026-10-07: API id mimo-v2.6-pro-ultraspeed, up to 20x the output speed of V2.6-Pro; USD cache-hit $0.036, cache-miss $4.35, output $8.70 per 1M (10x Pro); 1M context, 128K output. Launched with the series on 2026-09-22 per the launch article; speed mode of Pro, not a separate catalog model."
+    },
+    {
+      "id": "stepfun-step-5-preview-model-page-2026-10-07",
+      "url": "https://platform.stepfun.ai/docs/en/guides/models/step-5-preview",
+      "title": "Step 5 Preview",
+      "publisher": "StepFun",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Read 2026-10-07. Model ID step-5-preview; 1M context, 64k max output; text/image/video input, text output; reasoning_effort low/medium/high; tool calling, JSON schema, prompt caching. Replaces the placeholder model ID seen in the 2026-09-29 read. Page carries no release date."
+    },
+    {
+      "id": "stepfun-pricing-2026-10-07",
+      "url": "https://platform.stepfun.ai/docs/en/guides/pricing/details",
+      "title": "Pricing and Rate Limits",
+      "publisher": "StepFun",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Read 2026-10-07 (the /docs/en/pricing/details URL serves the same page). step-5-preview $1.00 input (cache miss, includes cache write) / $0.05 cache hit / $2.70 output per 1M tokens; step-3.7-flash $0.20/$0.04/$1.15; step-3.5-flash $0.10/$0.02/$0.30."
+    },
+    {
+      "id": "mistral-large-4-blog-2026-10-06",
+      "url": "https://mistral.ai/news/mistral-large-4",
+      "title": "Introducing Mistral Large 4",
+      "publisher": "Mistral AI",
+      "published": "2026-10-06",
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_blog",
+      "notes": "Public preview of Mistral Large 4 (1T total / 52B active, natively multimodal) via the Mistral Studio preview API; open weights promised by end of October 2026. Benchmark charts are images; prose gives DeepSWE v1.1 61.7%, SWE-Atlas-QnA 59.4%, Terminal-Bench 4.0 28.3%, Coding Agent Index 49.8%, AutomationBench 59.9%, Cybench 93%, Dense 200 42%, B3 93.3%, Surge AI blind coding eval 3.74/5."
+    },
+    {
+      "id": "mistral-large-4-model-card-2026-10-07",
+      "url": "https://docs.mistral.ai/models/model-cards/mistral-large-4-0",
+      "title": "Mistral Large 4 model card",
+      "publisher": "Mistral AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Read 2026-10-07. Status Public Preview, v26.10, dated October 6, 2026; 1M context; price shown as original $1.36 in / $0.14 cached / $4.18 out per 1M with a sale price of $0.68 / $0.07 / $2.09 (no end date shown). API id chip reads mistral-large-4 (+1 alias); OpenRouter lists mistralai/mistral-large-4-0."
+    },
+    {
+      "id": "mistral-model-cards-2026-10-07",
+      "url": "https://docs.mistral.ai/models/overview",
+      "title": "Mistral models overview and model cards",
+      "publisher": "Mistral AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Read 2026-10-07. Large 3 (mistral-large-2512) $0.5/$1.5; Medium 3.5 (mistral-medium-3-5) $1.5/$7.5; Small 4 (mistral-small-2603) $0.15; unchanged from the stored rows. Models overview features Large 4, OCR 4.1, GLM 5.3 (third party), Small 4."
+    },
+    {
+      "id": "meta-ai-blog-2026-10-07",
+      "url": "https://ai.meta.com/blog/",
+      "title": "AI at Meta blog",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_blog",
+      "notes": "Read 2026-10-07. Newest model post is Muse Spark 1.1 (2026-07-09); no post for Muse Spark 1.2 or 1.3 and no Meta first-party API pricing page found. Muse Spark 1.3 remains preview and third-party-board-only."
+    },
+    {
+      "id": "cursor-models-pricing-2026-10-07",
+      "url": "https://cursor.com/docs/models-and-pricing",
+      "title": "Cursor models and pricing",
+      "publisher": "Cursor",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Read 2026-10-07. Lists Composer 2.5 inside the Cursor Models pool (subscription usage), with Grok 4.7/4.6/4.5; no standalone API price or public API model id."
+    },
+    {
+      "id": "openrouter-models-api-2026-10-07",
+      "url": "https://openrouter.ai/api/v1/models",
+      "title": "OpenRouter Models API",
+      "publisher": "OpenRouter",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "other",
+      "notes": "Direct API payload 2026-10-07 (467 models). Router-listed rates, not vendor prices. Lists openai/gpt-6.1-sol, mistralai/mistral-large-4-0 ($0.68/$2.09), xiaomi/mimo-v2.6-pro-ultraspeed, z-ai/glm-5.3-prime, qwen/qwen3.8-max-prime, anthropic/claude-haiku-5.5. No Gemini 4 Argon, no step-5-preview, ling-3.1-flash listed at $0."
+    },
+    {
+      "id": "artificial-analysis-leaderboard-2026-10-07",
+      "url": "https://artificialanalysis.ai/leaderboards/models",
+      "title": "Artificial Analysis LLM Leaderboard",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Direct curl 2026-10-07; table plus the embedded Next.js payload (696 model rows, float Intelligence Index and cost per task). Index version v4.3.2. Lists Gemini 4 Argon (High) 52.56, Step 5 Preview 43.73, Mistral Large 4 Preview 38.38, Ling 3.1 Flash 41.09 and Claude Haiku 5.5 rows."
+    },
+    {
+      "id": "vals-ai-terminal-bench-4-2026-10-06",
+      "url": "https://www.vals.ai/benchmarks/terminal-bench-4",
+      "title": "Vals AI Terminal-Bench 4.0 benchmark",
+      "publisher": "Vals AI",
+      "published": "2026-10-06",
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Board metadata updated 2026-10-06, harness Mini-SWE-agent, 44 models. Read 2026-10-07 from the board view JSON (/_astro/benchmark_view_terminal_bench_4.B6k0fPhb.json) with per-model reasoning_effort / compute_effort fields. Several scores differ from the 2026-09-22/09-28 snapshots in this pack."
+    },
+    {
+      "id": "vals-ai-index-2026-10-06",
+      "url": "https://www.vals.ai/benchmarks/vals_index",
+      "title": "Vals Index",
+      "publisher": "Vals AI",
+      "published": "2026-10-06",
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Board metadata updated 2026-10-06, 44 models; overall plus sub-benchmark tasks. Read 2026-10-07 from /_astro/benchmark_view_vals_index.Bo1d06lE.json."
+    },
+    {
+      "id": "vals-ai-finance-agent-v2-2026-10-06",
+      "url": "https://www.vals.ai/benchmarks/fabv2",
+      "title": "Vals Finance Agent v2",
+      "publisher": "Vals AI",
+      "published": "2026-10-06",
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Board metadata updated 2026-10-06, 75 models. Read 2026-10-07 from /_astro/benchmark_view_finance_agent_v2.DT5bb1G_.json."
+    },
+    {
+      "id": "arcprize-leaderboard-2026-10-07",
+      "url": "https://arcprize.org/leaderboard",
+      "title": "ARC Prize Leaderboard",
+      "publisher": "ARC Prize",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Headless-Chrome DOM dump 2026-10-07 (the page is client-rendered); 282-row table parsed. Lists GPT-6.1 Sol at five efforts for ARC-AGI-1/2/3 (Standard and Provider Adapter harnesses), release date 2026-09-29. No Sonnet 5.5, Gemini 4 Argon, Step 5 or Mistral Large 4 row."
+    },
+    {
+      "id": "tbench-official-leaderboard-2026-10-07",
+      "url": "https://www.tbench.ai/leaderboard/terminal-bench/4.0",
+      "title": "Terminal-Bench 4.0 official leaderboard",
+      "publisher": "Terminal-Bench",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Headless-Chrome DOM dump 2026-10-07; 23-row table parsed (rank, model with effort, agent, resolution rate with 95% interval, release date, total tokens, total cost). Total cost and tokens are for the whole run, not per task."
+    },
+    {
+      "id": "arena-text-leaderboard-2026-10-07",
+      "url": "https://arena.ai/leaderboard/text",
+      "title": "Arena Text leaderboard",
+      "publisher": "Arena",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Direct curl 2026-10-07; embedded RSC rows (rank, rating, 95% bounds, votes) parsed. 413 model rows. Lists gemini-4-argon-high rank 1."
+    },
+    {
+      "id": "arena-text-coding-leaderboard-2026-10-07",
+      "url": "https://arena.ai/leaderboard/text/coding",
+      "title": "Arena Text Coding leaderboard",
+      "publisher": "Arena",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Direct curl 2026-10-07; embedded RSC rows parsed. 408 model rows. Lists gemini-4-argon-high rank 1, gpt-6.1-sol-max rank 8 (609 votes)."
+    },
+    {
+      "id": "epoch-ai-model-page-gpt-6-1-sol-2026-10-07",
+      "url": "https://epoch.ai/models/gpt-6-1-sol",
+      "title": "GPT-6.1 Sol | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Per-model page read 2026-10-07 by direct curl; scorecard table parsed from the HTML (own column only)."
+    },
+    {
+      "id": "epoch-ai-model-page-claude-opus-5-5-2026-10-07",
+      "url": "https://epoch.ai/models/claude-opus-5-5",
+      "title": "Claude Opus 5.5 | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Per-model page read 2026-10-07 by direct curl; scorecard table parsed from the HTML (own column only)."
+    },
+    {
+      "id": "epoch-ai-model-page-claude-sonnet-5-5-2026-10-07",
+      "url": "https://epoch.ai/models/claude-sonnet-5-5",
+      "title": "Claude Sonnet 5.5 | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Per-model page read 2026-10-07 by direct curl; scorecard table parsed from the HTML (own column only)."
+    },
+    {
+      "id": "epoch-ai-model-page-gpt-6-sol-2026-10-07",
+      "url": "https://epoch.ai/models/gpt-6-sol",
+      "title": "GPT-6 Sol | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Per-model page read 2026-10-07 by direct curl; scorecard table parsed from the HTML (own column only)."
+    },
+    {
+      "id": "epoch-ai-model-page-gpt-6-luna-2026-10-07",
+      "url": "https://epoch.ai/models/gpt-6-luna",
+      "title": "GPT-6 Luna | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Per-model page read 2026-10-07 by direct curl; scorecard table parsed from the HTML (own column only)."
+    },
+    {
+      "id": "epoch-ai-model-page-gpt-6-astra-2026-10-07",
+      "url": "https://epoch.ai/models/gpt-6-astra",
+      "title": "GPT-6 Astra | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Per-model page read 2026-10-07 by direct curl; scorecard table parsed from the HTML (own column only)."
+    },
+    {
+      "id": "epoch-ai-model-page-claude-fable-5-1-2026-10-07",
+      "url": "https://epoch.ai/models/claude-fable-5-1",
+      "title": "Claude Fable 5.1 | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Per-model page read 2026-10-07 by direct curl; scorecard table parsed from the HTML (own column only)."
+    },
+    {
+      "id": "epoch-ai-model-page-grok-4-7-2026-10-07",
+      "url": "https://epoch.ai/models/grok-4-7",
+      "title": "Grok 4.7 | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Per-model page read 2026-10-07 by direct curl; scorecard table parsed from the HTML (own column only)."
+    },
+    {
+      "id": "epoch-ai-model-page-kimi-k3-2026-10-07",
+      "url": "https://epoch.ai/models/kimi-k3",
+      "title": "Kimi K3 | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Per-model page read 2026-10-07 by direct curl; scorecard table parsed from the HTML (own column only)."
+    },
+    {
+      "id": "epoch-ai-model-page-glm-5-3-2026-10-07",
+      "url": "https://epoch.ai/models/glm-5-3",
+      "title": "GLM-5.3 | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Per-model page read 2026-10-07 by direct curl; scorecard table parsed from the HTML (own column only)."
+    },
+    {
+      "id": "epoch-ai-model-page-step-5-preview-2026-10-07",
+      "url": "https://epoch.ai/models/step-5-preview",
+      "title": "Step 5 Preview | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Per-model page read 2026-10-07 by direct curl; scorecard table parsed from the HTML (own column only). No ECI shown; scorecard lists ProofBench, CritPt, SciCode, Text Arena (Coding)."
+    },
+    {
+      "id": "epoch-ai-model-page-gemini-4-argon-2026-10-07",
+      "url": "https://epoch.ai/models/gemini-4-argon",
+      "title": "Gemini 4 Argon | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Per-model page read 2026-10-07 by direct curl; scorecard table parsed from the HTML (own column only). ECI is not shown for this model yet; the scorecard lists Vending-Bench 2, APEX-Agents, ProofBench, Blueprint-Bench 2, CritPt, SciCode, Text Arena (Coding), FrontierSWE (v2)."
+    },
+    {
+      "id": "epoch-ai-model-page-mistral-large-4-2026-10-07",
+      "url": "https://epoch.ai/models/mistral-large-4",
+      "title": "Mistral Large 4 | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "HTTP 404 on 2026-10-07 (slug guess; no Mistral Large 4 page found)."
+    },
+    {
+      "id": "deepswe-datacurve-board-2026-10-07",
+      "url": "https://deepswe.datacurve.ai/",
+      "title": "DeepSWE Leaderboard",
+      "publisher": "DataCurve",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Re-read 2026-10-07. Embedded data generated_at 2026-09-22T06:27:15Z, 113 tasks - identical to the board stored on 2026-09-23. No GPT-6.1 Sol, Sonnet 5.5, Gemini 4 Argon, Step 5 or Mistral Large 4 row. The /artifacts/v1/leaderboard-live.json endpoint is still frozen at 2026-06-20."
+    },
+    {
+      "id": "seal-swebench-pro-2026-10-07",
+      "url": "https://scale.com/leaderboard/swe_bench_pro_public",
+      "title": "SEAL SWE-Bench Pro (Public)",
+      "publisher": "Scale AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Re-read 2026-10-07 by direct curl; no GPT-6.1 Sol, Gemini 4 Argon, Step 5 or Mistral Large 4 label in the HTML."
+    },
+    {
+      "id": "steel-browsecomp-2026-10-07",
+      "url": "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+      "title": "BrowseComp leaderboard (Steel)",
+      "publisher": "Steel",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Re-read 2026-10-07 by direct curl; no GPT-6.1 Sol, Gemini 4 Argon, Step 5 or Mistral Large 4 label in the HTML."
+    },
+    {
+      "id": "moonshot-kimi-k3-guide-2026-10-07",
+      "url": "https://platform.kimi.ai/docs/guide/kimi-k3",
+      "title": "Kimi K3 guide",
+      "publisher": "Moonshot AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Read 2026-10-07. States K3 configures reasoning effort with the top-level reasoning_effort field: \"low\" / \"high\" / \"max\", default \"max\". The launch blog likewise says K3 uses max effort by default at launch."
+    },
+    {
+      "id": "openai-api-model-page-gpt-6-1-sol-2026-10-07",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+      "title": "GPT-6.1 Sol Model | OpenAI API",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-10-07: reasoning.effort supports low, medium (default), high, xhigh and max; none and minimal unsupported; 1,050,000 context, 128,000 max output, knowledge cutoff Apr 30, 2026; Fast mode is 2x Standard and unavailable with EU data residency."
+    },
+    {
+      "id": "anthropic-haiku-5-5-2026-10-07",
+      "url": "https://www.anthropic.com/claude-haiku-5-5",
+      "title": "Introducing Claude Haiku 5.5",
+      "publisher": "Anthropic",
+      "published": "2026-10-07",
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_blog",
+      "notes": "Launch post (model ID claude-haiku-5-5). Holds the BenchmarkGrid headline table (columns Haiku 5.5, Haiku 4.5, GPT-6 Luna, and Sonnet 5.5 \"For reference\"), four inline accuracy-vs-cost SVG charts with exact per-point aria-labels (OSWorld 2.1 offline subset partial-credit score, GDPval-AA v2.1, Humanity’s Last Exam no tools, Terminal-Bench 4.0 with Sonnet 5.5 at $0.10 and $0.20 cache reads), a pricing table with prompt-size tiers at 100K tokens, and the Sonnet 5.5 cache-read cut to $0.10/MTok effective 2026-10-07. Footnote 2 explains the \"around 75% less to run\" claim: 90% lower list price up to 100K-token prompts, 50% lower above, 90% of Haiku 4.5 requests were up to 100K, and the updated tokenizer uses \"slightly more tokens per task\". Retrieved with curl; tables and SVG labels parsed from HTML in code."
+    },
+    {
+      "id": "anthropic-haiku-5-5-system-card-2026-10-07",
+      "url": "https://www-cdn.anthropic.com/e1080d6bf5ae2018ea3c2f414064be03232f5be5/Claude%20Haiku%205.5%20System%20Card.pdf",
+      "title": "Claude Haiku 5.5 System Card",
+      "publisher": "Anthropic",
+      "published": "2026-10-07",
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Official 144-page PDF; https://www.anthropic.com/claude-haiku-5-5-system-card (linked from the launch post) redirects here. Extracted with pdftotext -layout. Table 8.1.A (p. 111) caption: Haiku 5.5 results use adaptive thinking at max effort, default sampling, five trials, unless noted. Section 8 prose prints further exact values, including the OSWorld 2.1 offline-subset strict pass rate (37.1%) next to the 72.4% partial score, and medium-effort GDPval-AA (1277) and AA-Briefcase (1372) scores."
+    },
+    {
+      "id": "anthropic-pricing-2026-10-07",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "title": "Pricing - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Model pricing table lists two Haiku 5.5 rows: prompts up to 100,000 tokens ($0.10 input, $0.125 5m cache write, $0.20 1h cache write, $0.01 cache hit, $0.50 output) and prompts over 100,000 tokens ($0.50, $0.625, $1, $0.05, $2.50). Batch table: $0.05/$0.25 and $0.25/$1.25. Haiku 4.5 unchanged ($1/$1.25/$2/$0.10/$5). Long-context section: \"Claude Haiku 5.5 is priced by prompt length: a prompt of over 100,000 tokens pays higher prices.\" Sonnet 5.5: the prompt-caching prose and multiplier table say cache hits are 0.05x base ($0.10/MTok), but the model pricing table cell for Sonnet 5.5 still shows $0.20 in both the .md and the rendered HTML at retrieval. Tokenizer note: Claude 4.7 and later models produce approximately 30% more tokens for the same text."
+    },
+    {
+      "id": "anthropic-models-overview-2026-10-07",
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Current lineup: Fable 5.1, Opus 5.5, Sonnet 5.5, Haiku 5.5. Haiku 5.5: API ID and alias claude-haiku-5-5, adaptive thinking, API default effort medium, 1M context, 128K max output (300K on Message Batches with output-300k-2026-03-24 beta), knowledge cutoff Jun 2026, retirement not sooner than 2027-10-07, pricing \"From $0.10 / input MTok, From $0.50 / output MTok\". Haiku 4.5 moves to \"Legacy models (still available)\"."
+    },
+    {
+      "id": "anthropic-haiku-5-5-model-page-2026-10-07",
+      "url": "https://platform.claude.com/docs/en/models/haiku-5-5/overview",
+      "title": "Claude Haiku 5.5 - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Released October 7, 2026. Per-tier pricing table (input/output/5m write/1h write/cache read for prompts up to and over 100,000 tokens; Batch API 50% off). Verbatim: \"It uses the same newer tokenizer as Claude 4.7 and later models, so the same text counts as approximately 30% more tokens than on Claude Haiku 4.5.\" Non-default temperature, top_p, or top_k returns 400. Platforms: Claude API, Bedrock (anthropic.claude-haiku-5-5), Google Cloud, Microsoft Foundry, Claude Platform on AWS."
+    },
+    {
+      "id": "anthropic-haiku-5-5-migration-guide-2026-10-07",
+      "url": "https://platform.claude.com/docs/en/models/haiku-5-5/migration-guide",
+      "title": "Claude Haiku 5.5 migration guide",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Breaking changes from Haiku 4.5: thinking.type enabled with budget_tokens returns 400 (use adaptive + effort); assistant prefill returns 400; non-default sampling parameters return 400; computer use only via computer_toolset_20260801 on Claude API and Google Cloud; thinking blocks bound to the producing account; Priority Tier not supported on Haiku 5.5. \"the same input text produces approximately 30% more tokens on Claude Haiku 5.5 than on Claude Haiku 4.5. The exact increase depends on the content.\" claude-haiku-5-5 is a fixed ID with no date suffix and no separate alias."
+    },
+    {
+      "id": "anthropic-effort-guide-2026-10-07",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Haiku 5.5 supports low, medium, high, xhigh, max; medium is the default on the Claude API and in Claude Code. \"You can also send thinking: {type: disabled} at high effort or below. At xhigh or max, it returns a 400 error.\" Per-message effort (beta header mid-conversation-output-config-2026-07-01) on Claude API and Google Cloud, not with thinking disabled. Recommendation text: start with medium; low for chat, short tool tasks, and simple high-volume requests; high for knowledge work, longer agent tasks, strict instruction following; xhigh or max only where evals show a gain, compared against Sonnet 5.5."
+    },
+    {
+      "id": "anthropic-claude-code-model-config-2026-10-07",
+      "url": "https://code.claude.com/docs/en/model-config",
+      "title": "Model configuration - Claude Code Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "v2.1.293: `haiku` alias resolves to Haiku 5.5 on the Anthropic API; on Claude Platform on AWS, Amazon Bedrock, Google Cloud Agent Platform, and Microsoft Foundry it still resolves to Haiku 4.5. \"Use v2.1.293 or later with Haiku 5.5.\" Effort table: Haiku 5.5 low/medium/high/xhigh/max, default medium. Unsupported levels fall back to the highest supported level at or below the request. Thinking cannot be turned off on Haiku 5.5 in Claude Code (MAX_THINKING_TOKENS=0 and alwaysThinkingEnabled=false have no effect), unlike the API. 1M window on every plan on the Anthropic API; Haiku 5.5 costs more per token on prompts longer than 100K tokens."
+    },
+    {
+      "id": "anthropic-model-deprecations-2026-10-07",
+      "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+      "title": "Model deprecations - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Status table: claude-haiku-5-5 Active, retirement not sooner than October 7, 2027; claude-haiku-4-5-20251001 Active, no deprecation date, retirement not sooner than October 15, 2026."
+    },
+    {
+      "id": "anthropic-sonnet-5-5-model-page-2026-10-07",
+      "url": "https://platform.claude.com/docs/en/models/sonnet-5-5/overview",
+      "title": "Claude Sonnet 5.5 - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Retrieved to check the Sonnet 5.5 cache-read price after the 2026-10-07 cut. The page still lists Cache read $0.20 / MTok, which disagrees with the launch post and the pricing-page caching prose ($0.10). Recorded as a docs inconsistency, not as the effective price."
+    },
+    {
+      "id": "artificial-analysis-claude-haiku-5-5-low-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-haiku-5-5-low",
+      "title": "Claude Haiku 5.5 (Low, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-haiku-5-5-medium-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-haiku-5-5-medium",
+      "title": "Claude Haiku 5.5 (Medium, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-haiku-5-5-high-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-haiku-5-5-high",
+      "title": "Claude Haiku 5.5 (High, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-haiku-5-5-xhigh-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-haiku-5-5-xhigh",
+      "title": "Claude Haiku 5.5 (Xhigh, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-haiku-5-5-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-haiku-5-5",
+      "title": "Claude Haiku 5.5 (Max, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-4-5-haiku-reasoning-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-4-5-haiku-reasoning",
+      "title": "Claude 4.5 Haiku (Reasoning) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-sonnet-5-5-low-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-sonnet-5-5-low",
+      "title": "Claude Sonnet 5.5 (Low, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-sonnet-5-5-medium-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-sonnet-5-5-medium",
+      "title": "Claude Sonnet 5.5 (Medium, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-sonnet-5-5-high-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-sonnet-5-5-high",
+      "title": "Claude Sonnet 5.5 (High, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-sonnet-5-5-xhigh-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-sonnet-5-5-xhigh",
+      "title": "Claude Sonnet 5.5 (Xhigh, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-sonnet-5-5-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-sonnet-5-5",
+      "title": "Claude Sonnet 5.5 (Max, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-opus-5-5-low-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-opus-5-5-low",
+      "title": "Claude Opus 5.5 (Low, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-opus-5-5-medium-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-opus-5-5-medium",
+      "title": "Claude Opus 5.5 (Medium, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-opus-5-5-high-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-opus-5-5-high",
+      "title": "Claude Opus 5.5 (High, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-opus-5-5-xhigh-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-opus-5-5-xhigh",
+      "title": "Claude Opus 5.5 (Xhigh, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-opus-5-5-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-opus-5-5",
+      "title": "Claude Opus 5.5 (Max, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-fable-5-1-low-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-fable-5-1-low",
+      "title": "Claude Fable 5.1 (Low, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-fable-5-1-medium-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-fable-5-1-medium",
+      "title": "Claude Fable 5.1 (Medium, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-fable-5-1-high-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-fable-5-1-high",
+      "title": "Claude Fable 5.1 (High, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-fable-5-1-xhigh-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-fable-5-1-xhigh",
+      "title": "Claude Fable 5.1 (Xhigh, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-claude-fable-5-1-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/claude-fable-5-1",
+      "title": "Claude Fable 5.1 (Max, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-luna-low-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-luna-low",
+      "title": "GPT-6 Luna (Low) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-luna-medium-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-luna-medium",
+      "title": "GPT-6 Luna (Medium) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-luna-high-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-luna-high",
+      "title": "GPT-6 Luna (High) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-luna-xhigh-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-luna-xhigh",
+      "title": "GPT-6 Luna (Xhigh) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-luna-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-luna",
+      "title": "GPT-6 Luna (Max) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-luna-non-reasoning-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-luna-non-reasoning",
+      "title": "GPT-6 Luna (Non-reasoning) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-sol-low-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-sol-low",
+      "title": "GPT-6 Sol (Low) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-sol-medium-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-sol-medium",
+      "title": "GPT-6 Sol (Medium) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-sol-high-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-sol-high",
+      "title": "GPT-6 Sol (High) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-sol-xhigh-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-sol-xhigh",
+      "title": "GPT-6 Sol (Xhigh) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-sol-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-sol",
+      "title": "GPT-6 Sol (Max) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-sol-non-reasoning-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-sol-non-reasoning",
+      "title": "GPT-6 Sol (Non-reasoning) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-astra-low-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-astra-low",
+      "title": "GPT-6 Astra (Low) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-astra-medium-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-astra-medium",
+      "title": "GPT-6 Astra (Medium) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-astra-high-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-astra-high",
+      "title": "GPT-6 Astra (High) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-astra-xhigh-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-astra-xhigh",
+      "title": "GPT-6 Astra (Xhigh) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-astra-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-astra",
+      "title": "GPT-6 Astra (Max) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-1-sol-low-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-1-sol-low",
+      "title": "GPT-6.1 Sol (Low) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-1-sol-medium-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-1-sol-medium",
+      "title": "GPT-6.1 Sol (Medium) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-1-sol-high-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-1-sol-high",
+      "title": "GPT-6.1 Sol (High) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-1-sol-xhigh-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-1-sol-xhigh",
+      "title": "GPT-6.1 Sol (Xhigh) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-1-sol-model-page-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/gpt-6-1-sol",
+      "title": "GPT-6.1 Sol (Max) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-07 by curl with a browser User-Agent."
+    },
+    {
+      "id": "artificial-analysis-leaderboards-models-2026-10-07",
+      "url": "https://artificialanalysis.ai/leaderboards/models",
+      "title": "Artificial Analysis LLM Leaderboard (embedded model table)",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Embedded table of 696 models with index, TB4, price and speed fields. Used for variants without a model-page object (Haiku 4.5 non-reasoning)."
+    },
+    {
+      "id": "artificial-analysis-haiku-5-5-release-2026-10-07",
+      "url": "https://artificialanalysis.ai/models/releases/claude-haiku-5-5",
+      "title": "Claude Haiku 5.5 Models - Intelligence, Performance & Price Comparison",
+      "publisher": "Artificial Analysis",
+      "published": "2026-10-07",
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Release page lists five Haiku 5.5 effort variants (Default Fallback) with Intelligence Index and per-task cost; speed N/A. Retrieved 2026-10-07 by curl."
+    },
+    {
+      "id": "vals-ai-haiku-5-5-model-page-2026-10-07",
+      "url": "https://www.vals-ai.com/models/anthropic_claude-haiku-5-5",
+      "title": "Vals AI model page for Claude Haiku 5.5 (404)",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "HTTP 404 on 2026-10-07. Also checked: /models list (latest Mistral Large 4, Oct 6), /benchmarks/terminal-bench-4 (updated 10/6/2026), /benchmarks/vals_index, /benchmarks/terminal-bench-2-1, /benchmarks/swebench."
+    },
+    {
+      "id": "terminal-bench-official-haiku-5-5-2026-10-07",
+      "url": "https://www.tbench.ai/leaderboard/terminal-bench/4.0",
+      "title": "Terminal-Bench 4.0 leaderboard (tbench.ai)",
+      "publisher": "Terminal-Bench (Stanford / Laude Institute)",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Table JSON embedded in the page HTML: 35 rows, board record updated 2026-10-06. No Haiku row."
+    },
+    {
+      "id": "arcprize-leaderboard-haiku-5-5-2026-10-07",
+      "url": "https://arcprize.org/leaderboard",
+      "title": "ARC Prize - Leaderboard",
+      "publisher": "ARC Prize Foundation",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Rendered with the Playwright browser on 2026-10-07; 285 dated rows, newest 2026-09-29. No Haiku 5.5 row; Haiku 4.5 present."
+    },
+    {
+      "id": "deepswe-datacurve-haiku-5-5-2026-10-07",
+      "url": "https://deepswe.datacurve.ai/",
+      "title": "DeepSWE leaderboard",
+      "publisher": "Datacurve",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Rendered with the Playwright browser on 2026-10-07; page says updated September 22, 2026; 28 models. No Haiku row."
+    },
+    {
+      "id": "seal-swebench-pro-haiku-5-5-2026-10-07",
+      "url": "https://scale.com/leaderboard/swe_bench_pro_public",
+      "title": "SWE-Bench Pro Leaderboard (Scale SEAL)",
+      "publisher": "Scale AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Static HTML read 2026-10-07; 25 models; no Claude 5.x row."
+    },
+    {
+      "id": "arena-ai-text-haiku-5-5-2026-10-07",
+      "url": "https://arena.ai/leaderboard/text",
+      "title": "Text Arena: LLM Rankings & AI Model Benchmarks",
+      "publisher": "Arena",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Overall text board dated Oct 2, 2026; 413 models; rows parsed from embedded page data. No Haiku 5.5."
+    },
+    {
+      "id": "arena-ai-webdev-haiku-5-5-2026-10-07",
+      "url": "https://arena.ai/leaderboard/code/webdev",
+      "title": "Arena WebDev leaderboard",
+      "publisher": "Arena",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "WebDev board dated Oct 7, 2026; 141 rows parsed from embedded page data. No Haiku 5.5."
+    },
+    {
+      "id": "steel-browsecomp-haiku-5-5-2026-10-07",
+      "url": "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+      "title": "BrowseComp Leaderboard 2026 | Steel.dev",
+      "publisher": "Steel",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Last updated 2026-09-04; static HTML read 2026-10-07. No Haiku, Sonnet 5.5 or Opus 5.5 row."
+    },
+    {
+      "id": "epoch-ai-models-haiku-5-5-2026-10-07",
+      "url": "https://epoch.ai/models",
+      "title": "Models | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Static HTML read 2026-10-07: 407 results, ECI-sorted top ten shown; /models/claude-haiku-5-5 is HTTP 404; /models/claude-sonnet-5-5 page also read."
+    },
+    {
+      "id": "openrouter-haiku-5-5-2026-10-07",
+      "url": "https://openrouter.ai/anthropic/claude-haiku-5.5",
+      "title": "Claude Haiku 5.5 - API Pricing & Providers | OpenRouter",
+      "publisher": "OpenRouter",
+      "published": "2026-10-07",
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Model page plus https://openrouter.ai/api/v1/models and .../models/anthropic/claude-haiku-5.5-20261007/endpoints read 2026-10-07. Price, context, effort support, provider list and throughput; not a quality board."
+    },
+    {
+      "id": "openrouter-rankings-haiku-5-5-2026-10-07",
+      "url": "https://openrouter.ai/rankings",
+      "title": "LLM Rankings | OpenRouter",
+      "publisher": "OpenRouter",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Rankings page says usage data through Oct 6, 2026, before the Haiku 5.5 launch."
+    },
+    {
+      "id": "llm-stats-haiku-5-5-2026-10-07",
+      "url": "https://llm-stats.com/models/claude-haiku-5-5",
+      "title": "Claude Haiku 5.5 Benchmarks, Pricing & Context Window",
+      "publisher": "LLM Stats",
+      "published": "2026-10-07",
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Listing with price and context; every score shows Score pending on 2026-10-07."
+    },
+    {
+      "id": "vals-ai-terminal-bench-4-haiku-5-5-2026-10-07",
+      "url": "https://www.vals-ai.com/benchmarks/terminal-bench-4",
+      "title": "Terminal-Bench 4.0 Leaderboard and Methodology | Vals AI",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Board updated 10/6/2026; 20 rows in a latest, top and frontier view; Mini-SWE-agent harness. No Haiku 5.5 row."
+    },
+    {
+      "id": "anthropic-sonnet-4-5-2025-09-29",
+      "url": "https://www.anthropic.com/news/claude-sonnet-4-5",
+      "title": "Introducing Claude Sonnet 4.5",
+      "publisher": "Anthropic",
+      "published": "2025-09-29",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Launch post dateline \"Sep 29, 2025\"; model id claude-sonnet-4-5."
+    },
+    {
+      "id": "anthropic-haiku-4-5-2025-10-15",
+      "url": "https://www.anthropic.com/news/claude-haiku-4-5",
+      "title": "Introducing Claude Haiku 4.5",
+      "publisher": "Anthropic",
+      "published": "2025-10-15",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Launch post dateline \"Oct 15, 2025\"; model id claude-haiku-4-5, $1/$5 per million input/output tokens."
+    },
+    {
+      "id": "anthropic-opus-4-5-2025-11-24",
+      "url": "https://www.anthropic.com/news/claude-opus-4-5",
+      "title": "Introducing Claude Opus 4.5",
+      "publisher": "Anthropic",
+      "published": "2025-11-24",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Launch post dateline \"Nov 24, 2025\"; API model id claude-opus-4-5-20251101, $5/$25 per million tokens."
+    },
+    {
+      "id": "anthropic-opus-4-6-2026-02-05",
+      "url": "https://www.anthropic.com/news/claude-opus-4-6",
+      "title": "Introducing Claude Opus 4.6",
+      "publisher": "Anthropic",
+      "published": "2026-02-05",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Launch post dateline \"Feb 5, 2026\"; model id claude-opus-4-6."
+    },
+    {
+      "id": "anthropic-sonnet-4-6-2026-02-17",
+      "url": "https://www.anthropic.com/news/claude-sonnet-4-6",
+      "title": "Introducing Sonnet 4.6",
+      "publisher": "Anthropic",
+      "published": "2026-02-17",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Launch post dateline \"Feb 17, 2026\"; model id claude-sonnet-4-6; rolled out as new default model."
+    },
+    {
+      "id": "anthropic-opus-4-7-2026-04-16",
+      "url": "https://www.anthropic.com/news/claude-opus-4-7",
+      "title": "Introducing Claude Opus 4.7",
+      "publisher": "Anthropic",
+      "published": "2026-04-16",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Launch post dateline \"Apr 16, 2026\"; model id claude-opus-4-7; introduces xhigh effort level."
+    },
+    {
+      "id": "openai-gpt-5-3-codex-2026-02-05",
+      "url": "https://openai.com/index/introducing-gpt-5-3-codex/",
+      "title": "Introducing GPT-5.3-Codex",
+      "publisher": "OpenAI",
+      "published": "2026-02-05",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Page dateline \"February 5, 2026\" (confirmed via Wayback Machine capture of openai.com/index/introducing-gpt-5-3-codex/, since live fetch returned HTTP 403); model id gpt-5.3-codex."
+    },
+    {
+      "id": "openai-gpt-5-4-2026-03-05",
+      "url": "https://openai.com/index/introducing-gpt-5-4/",
+      "title": "Introducing GPT-5.4",
+      "publisher": "OpenAI",
+      "published": "2026-03-05",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Page dateline \"March 5, 2026\" (confirmed via Wayback Machine capture, since live fetch returned HTTP 403). Covers both gpt-5.4 (\"GPT-5.4 Thinking\") and gpt-5.4-pro, released the same day: \"We're also releasing GPT-5.4 Pro in ChatGPT and the API, for people who want maximum performance on complex tasks.\""
+    },
+    {
+      "id": "openai-gpt-5-4-mini-nano-2026-03-17",
+      "url": "https://openai.com/index/introducing-gpt-5-4-mini-and-nano/",
+      "title": "Introducing GPT-5.4 mini and nano",
+      "publisher": "OpenAI",
+      "published": "2026-03-17",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "Page dateline \"March 17, 2026\" (confirmed via Wayback Machine capture, since live fetch returned HTTP 403). Covers both gpt-5.4-mini and gpt-5.4-nano, released the same day: \"GPT-5.4 mini is available today in the API, Codex...\""
+    },
+    {
+      "id": "openai-api-model-page-gpt-5-6-terra-2026-09-25",
+      "url": "https://developers.openai.com/api/docs/models/gpt-5.6-terra",
+      "title": "GPT-5.6 Terra model page",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_docs",
+      "notes": "Tier one-liner: \"GPT-5.6 model that balances intelligence and cost\". Used for the Terra summary in guide.json."
+    },
+    {
+      "id": "openai-api-model-page-gpt-6-astra-2026-09-25",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6-astra",
+      "title": "GPT-6 Astra model page",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_docs",
+      "notes": "Tier one-liner: \"Our most capable model, built for the hardest end-to-end work\". Used for the Astra summary in guide.json."
+    },
+    {
+      "id": "anthropic-infrastructure-noise-2026-02-05",
+      "url": "https://www.anthropic.com/engineering/infrastructure-noise",
+      "title": "Quantifying infrastructure noise in agentic coding evals",
+      "publisher": "Anthropic",
+      "published": "2026-02-05",
+      "retrieved_at": "2026-09-25",
+      "kind": "vendor_blog",
+      "notes": "\"leaderboard differences below 3 percentage points deserve skepticism until the eval configuration is documented and matched\". Basis for the 3-point tie rule in guide.json."
+    },
+    {
+      "id": "upstage-pricing-2026-10-07",
+      "url": "https://www.upstage.ai/pricing",
+      "title": "Upstage API pricing",
+      "publisher": "Upstage",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Read 2026-10-07 by direct curl. The page script (v1.2, 2026-08-06) lists Solar Pro 4 standard price $0.30 input / $0.06 cached / $1.20 output per 1M tokens, free 2026-08-06 to 08-10, 90% off to 2026-09-10, 70% off ($0.09 / $0.018 / $0.36) to 2026-10-10 UTC, standard from 2026-10-11. Banner: Solar Mini 4 live, 70% off through Oct 10. Closed weights."
+    },
+    {
+      "id": "huggingface-org-listings-2026-10-07",
+      "url": "https://huggingface.co/api/models?sort=createdAt&direction=-1",
+      "title": "Hugging Face model listings (Qwen, moonshotai, inclusionAI, upstage)",
+      "publisher": "Hugging Face",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "other",
+      "notes": "Newest-first model listings for the Qwen, moonshotai, inclusionAI and upstage organisations read 2026-10-07. Qwen: newest text LLM Qwen3.8-Flash-Next (2026-08-24); nothing newer than Qwen-Image-2.1 (2026-09-20). moonshotai: newest Kimi-K3 (2026-06-13 repo date), no K3.1. inclusionAI: no Ling-3.1-Flash repository (weights closed during the trial). upstage: Solar-Open2-250B (2026-07-22), solar-pro4-tokenizer (2026-09-21)."
+    },
+    {
+      "id": "kimi-k3-blog-2026-10-07",
+      "url": "https://www.kimi.com/blog/kimi-k3",
+      "title": "Kimi K3",
+      "publisher": "Moonshot AI",
+      "published": "2026-07-16",
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_blog",
+      "notes": "Read 2026-10-07. Research/blog index dates Kimi K3 2026-07-16; the post says K3 is available on Kimi.ai, Kimi Code and the Kimi API at launch with max thinking effort by default (low/high modes later). Conflicts with the 2026-07-22 forum-post date stored in models.json."
+    },
+    {
+      "id": "steel-browsecomp-board-date-2026-10-07",
+      "url": "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+      "title": "BrowseComp leaderboard (Steel) freshness read",
+      "publisher": "Steel",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Page footer says Last updated 2026-09-04; lists Kimi K3 (90.4% full context) and OpenAI rows; no GPT-6.1 Sol, Sonnet 5.5, Gemini 4 Argon, Step 5 or Mistral Large 4. The board has not updated since before those models."
+    },
+    {
+      "id": "vals-ai-swebench-tb21-boards-2026-10-07",
+      "url": "https://www.vals.ai/benchmarks/swebench",
+      "title": "Vals SWE-bench and Terminal-Bench 2.1 boards",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Board view JSON read 2026-10-07: SWE-bench updated 2026-09-01 (88 models), Terminal-Bench 2.1 (Terminus 2) updated 2026-09-28 (76 models). Neither lists GPT-6.1 Sol, Gemini 4 Argon, Step 5 or Mistral Large 4; TB2.1 lists Sonnet 5.5 (83.15%)."
     }
   ]
 }

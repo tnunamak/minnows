@@ -23,3 +23,9 @@ jobs:
         run: python3 scripts/validate_data_pack.py --require-jsonschema
       - name: Freshness (load-bearing)
         run: python3 scripts/check_freshness.py --max-age-days 45 --fail
+      - name: Generated model-catalog charts are up to date
+        run: |
+          python3 scripts/render_model_catalog_charts.py --check || {
+            echo "::error title=Stale model-catalog charts::data/model-catalog charts or README block do not match the pack data. Run 'python3 scripts/render_model_catalog_charts.py --png' locally (the PNG needs Chrome) and commit the result."
+            exit 1
+          }

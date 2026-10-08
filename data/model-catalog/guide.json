@@ -1,0 +1,223 @@
+{
+  "$schema": "schemas/guide-v1.schema.json",
+  "id": "model-catalog-guide",
+  "schema_version": 1,
+  "description": "Inputs for the README option map (scripts/render_model_catalog_charts.py). The renderer knows no provider, model, tier, effort level or benchmark; everything it shows is chosen here or derived from the rest of the pack.",
+  "pools": [
+    {
+      "id": "claude",
+      "label": "Claude",
+      "providers": [
+        "anthropic"
+      ],
+      "surfaces": [
+        "claude_code",
+        "api"
+      ],
+      "color_slot": 2,
+      "tiers": [
+        {
+          "tier": "haiku",
+          "label": "Haiku",
+          "summary": "Fastest; near-frontier intelligence",
+          "source_id": "anthropic-models-overview-2026-09-22"
+        },
+        {
+          "tier": "sonnet",
+          "label": "Sonnet",
+          "summary": "Best mix of speed and intelligence",
+          "source_id": "anthropic-models-overview-2026-09-22"
+        },
+        {
+          "tier": "opus",
+          "label": "Opus",
+          "summary": "Long agentic coding and knowledge work",
+          "source_id": "anthropic-models-overview-2026-09-22"
+        },
+        {
+          "tier": "fable",
+          "label": "Fable",
+          "summary": "Demanding reasoning, long-horizon agents",
+          "source_id": "anthropic-models-overview-2026-09-22"
+        }
+      ]
+    },
+    {
+      "id": "codex",
+      "label": "Codex",
+      "providers": [
+        "openai"
+      ],
+      "surfaces": [
+        "codex_cli",
+        "api"
+      ],
+      "color_slot": 1,
+      "tiers": [
+        {
+          "tier": "luna",
+          "label": "Luna",
+          "summary": "Focused, high-volume tasks",
+          "source_id": "openai-api-model-page-gpt-6-luna-2026-09-22"
+        },
+        {
+          "tier": "terra",
+          "label": "Terra",
+          "summary": "Balances intelligence and cost",
+          "source_id": "openai-api-model-page-gpt-5-6-terra-2026-09-25"
+        },
+        {
+          "tier": "sol",
+          "label": "Sol",
+          "summary": "Complex coding and agentic workflows",
+          "source_id": "openai-api-model-page-gpt-6-sol-2026-09-22"
+        },
+        {
+          "tier": "astra",
+          "label": "Astra",
+          "summary": "Most capable; hardest end-to-end work",
+          "source_id": "openai-api-model-page-gpt-6-astra-2026-09-25"
+        }
+      ]
+    }
+  ],
+  "task_families": [
+    {
+      "id": "coding",
+      "label": "Coding",
+      "includes": [
+        "coding"
+      ]
+    },
+    {
+      "id": "knowledge",
+      "label": "Knowledge work",
+      "includes": [
+        "knowledge_work",
+        "agentic_professional_work"
+      ]
+    },
+    {
+      "id": "agentic",
+      "label": "Agent workflows",
+      "includes": [
+        "agentic",
+        "agentic_business_workflows",
+        "computer_use"
+      ]
+    }
+  ],
+  "noise_floor": {
+    "label": "Scores less than 3 points (21 Elo) apart count as a tie, and the cheaper setting wins.",
+    "notes": "Two settings whose scores differ by less than this count as tied, and the cheaper one wins. 0.03 is Anthropic's 3-point skepticism bar for agentic coding leaderboards. For Elo, 21 points is the gap at which the higher-rated answer wins 53% of head-to-heads, the same 3 points of win rate.",
+    "source_ids": [
+      "anthropic-infrastructure-noise-2026-02-05"
+    ],
+    "by_unit": {
+      "accuracy": 0.03,
+      "pass_rate": 0.03,
+      "elo": 21
+    },
+    "by_metric": {
+      "wandr": 0.03,
+      "osworld-2-0-partial": 0.03
+    }
+  },
+  "tier_notes": "Tiers are listed cheapest first, in the order each vendor states. Summaries shorten the vendor's own one-line description on the cited page.",
+  "cost": {
+    "score_cost_unit": "usd_per_task",
+    "price_kind": "api_usd",
+    "price_header": [
+      "$ per M tokens",
+      "in / out"
+    ],
+    "footer": "“Cheaper” means a lower API cost per task on that benchmark, which only approximates quota use."
+  },
+  "hero": {
+    "title": "Cost vs intelligence",
+    "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+    "y_label": "Intelligence Index",
+    "credit": "Data from Artificial Analysis",
+    "cost_basis": "api_usd",
+    "exclude_groups_matching": "estimated",
+    "bridge": {
+      "score_tolerance": 1.0,
+      "cost_ratio_tolerance": 2.0
+    },
+    "flags": [
+      {
+        "caveat_matches": "used a pre-release deployment",
+        "mark": "†",
+        "label": "pre-release run",
+        "note": "run on a pre-release deployment; Artificial Analysis expects to rerun it"
+      }
+    ],
+    "featured": {
+      "newest_per_tier_providers": [
+        "anthropic",
+        "openai",
+        "google",
+        "xai"
+      ],
+      "statuses": [
+        "ga",
+        "preview"
+      ],
+      "top_others": 3,
+      "include_frontier": true,
+      "min_score": 25
+    },
+    "providers": {
+      "anthropic": {
+        "label": "Anthropic",
+        "light": "#b4532a",
+        "dark": "#e2875f"
+      },
+      "openai": {
+        "label": "OpenAI",
+        "light": "#424a53",
+        "dark": "#c9d1d9"
+      },
+      "google": {
+        "label": "Google",
+        "light": "#25784a",
+        "dark": "#56b97a"
+      },
+      "xai": {
+        "label": "xAI",
+        "light": "#6b4fc0",
+        "dark": "#a58ff0"
+      }
+    },
+    "other_providers": {
+      "label": "Other vendors",
+      "light": "#1a7380",
+      "dark": "#4fadb8"
+    },
+    "notes": "Comparability rule for the cost-vs-intelligence chart. (1) One metric_id only, which pins one index version; rows of other versions never appear. (2) Rows whose comparability_group matches exclude_groups_matching (estimated values) are left out and named in the footnote. (3) The comparability group with the most models is the anchor. Another group of the same metric joins only if it shares at least one setting (model plus effort, or the source's variant label when there is no effort level) with the groups already joined, every shared score agrees within bridge.score_tolerance index points (the source displays whole points), and every shared cost is within a factor of bridge.cost_ratio_tolerance. Score agreement is what shows two snapshots measure the same thing. Cost is only a guard against a different cost basis or unit, which differ by orders of magnitude: Artificial Analysis re-measures cost between snapshots (Claude Sonnet 5.5 cost per task fell 16-28% from 2026-09-28 to 2026-10-07 with unchanged scores, a ratio of up to 1.39), so a factor of 2 allows re-measurement and still rejects a basis error. A group that shares no setting cannot be checked, so it is left out and its models are named in the footnote. (4) For each setting, the latest observed_at row with a cost per task of basis cost_basis is plotted, so the newest snapshot's cost wins; same-day ties go to the better evidence grade, then the more precise score. The footer states the observation date range and the largest cost change of one setting between snapshots. (5) Rows whose caveat matches a flags entry are drawn hollow and marked, not hidden. (6) Models with index rows but no cost per task are named in the footnote. The featured chart shows the newest model with data in each tier of the listed providers, the top_others best-scoring models of other providers, and every model with a setting on the Pareto frontier, minus models whose best score is under featured.min_score (named in its footer; they stay in the all-models chart) so a very weak model does not stretch the score axis. Colours are WCAG AA (4.5:1) against the GitHub light and dark page backgrounds."
+  },
+  "effort_labels": {
+    "medium": "med"
+  },
+  "score_display": {
+    "by_unit": {
+      "accuracy": {
+        "percent": true
+      },
+      "pass_rate": {
+        "percent": true
+      },
+      "elo": {
+        "percent": false
+      }
+    },
+    "by_metric": {
+      "wandr": {
+        "percent": true
+      },
+      "osworld-2-0-partial": {
+        "percent": true
+      }
+    }
+  }
+}
