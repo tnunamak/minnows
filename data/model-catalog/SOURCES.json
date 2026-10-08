@@ -3628,6 +3628,56 @@
       "retrieved_at": "2026-09-25",
       "kind": "vendor_blog",
       "notes": "\"leaderboard differences below 3 percentage points deserve skepticism until the eval configuration is documented and matched\". Basis for the 3-point tie rule in guide.json."
+    },
+    {
+      "id": "upstage-pricing-2026-10-07",
+      "url": "https://www.upstage.ai/pricing",
+      "title": "Upstage API pricing",
+      "publisher": "Upstage",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_docs",
+      "notes": "Read 2026-10-07 by direct curl. The page script (v1.2, 2026-08-06) lists Solar Pro 4 standard price $0.30 input / $0.06 cached / $1.20 output per 1M tokens, free 2026-08-06 to 08-10, 90% off to 2026-09-10, 70% off ($0.09 / $0.018 / $0.36) to 2026-10-10 UTC, standard from 2026-10-11. Banner: Solar Mini 4 live, 70% off through Oct 10. Closed weights."
+    },
+    {
+      "id": "huggingface-org-listings-2026-10-07",
+      "url": "https://huggingface.co/api/models?sort=createdAt&direction=-1",
+      "title": "Hugging Face model listings (Qwen, moonshotai, inclusionAI, upstage)",
+      "publisher": "Hugging Face",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "other",
+      "notes": "Newest-first model listings for the Qwen, moonshotai, inclusionAI and upstage organisations read 2026-10-07. Qwen: newest text LLM Qwen3.8-Flash-Next (2026-08-24); nothing newer than Qwen-Image-2.1 (2026-09-20). moonshotai: newest Kimi-K3 (2026-06-13 repo date), no K3.1. inclusionAI: no Ling-3.1-Flash repository (weights closed during the trial). upstage: Solar-Open2-250B (2026-07-22), solar-pro4-tokenizer (2026-09-21)."
+    },
+    {
+      "id": "kimi-k3-blog-2026-10-07",
+      "url": "https://www.kimi.com/blog/kimi-k3",
+      "title": "Kimi K3",
+      "publisher": "Moonshot AI",
+      "published": "2026-07-16",
+      "retrieved_at": "2026-10-07",
+      "kind": "vendor_blog",
+      "notes": "Read 2026-10-07. Research/blog index dates Kimi K3 2026-07-16; the post says K3 is available on Kimi.ai, Kimi Code and the Kimi API at launch with max thinking effort by default (low/high modes later). Conflicts with the 2026-07-22 forum-post date stored in models.json."
+    },
+    {
+      "id": "steel-browsecomp-board-date-2026-10-07",
+      "url": "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+      "title": "BrowseComp leaderboard (Steel) freshness read",
+      "publisher": "Steel",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Page footer says Last updated 2026-09-04; lists Kimi K3 (90.4% full context) and OpenAI rows; no GPT-6.1 Sol, Sonnet 5.5, Gemini 4 Argon, Step 5 or Mistral Large 4. The board has not updated since before those models."
+    },
+    {
+      "id": "vals-ai-swebench-tb21-boards-2026-10-07",
+      "url": "https://www.vals.ai/benchmarks/swebench",
+      "title": "Vals SWE-bench and Terminal-Bench 2.1 boards",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-07",
+      "kind": "third_party_eval",
+      "notes": "Board view JSON read 2026-10-07: SWE-bench updated 2026-09-01 (88 models), Terminal-Bench 2.1 (Terminus 2) updated 2026-09-28 (76 models). Neither lists GPT-6.1 Sol, Gemini 4 Argon, Step 5 or Mistral Large 4; TB2.1 lists Sonnet 5.5 (83.15%)."
     }
   ]
 }

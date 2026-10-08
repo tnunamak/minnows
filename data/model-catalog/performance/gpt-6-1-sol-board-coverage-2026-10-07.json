@@ -1,0 +1,200 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "gpt-6-1-sol-board-coverage-2026-10-07",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-07",
+  "source_urls": [
+    "https://artificialanalysis.ai/leaderboards/models",
+    "https://www.vals.ai/benchmarks/terminal-bench-4",
+    "https://www.tbench.ai/leaderboard/terminal-bench/4.0",
+    "https://arcprize.org/leaderboard",
+    "https://deepswe.datacurve.ai/",
+    "https://scale.com/leaderboard/swe_bench_pro_public",
+    "https://arena.ai/leaderboard/text",
+    "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+    "https://epoch.ai/models/gpt-6-1-sol",
+    "https://openrouter.ai/api/v1/models"
+  ],
+  "source_ids": [
+    "artificial-analysis-leaderboard-2026-10-07",
+    "vals-ai-terminal-bench-4-2026-10-06",
+    "vals-ai-index-2026-10-06",
+    "vals-ai-swebench-tb21-boards-2026-10-07",
+    "tbench-official-leaderboard-2026-10-07",
+    "arcprize-leaderboard-2026-10-07",
+    "deepswe-datacurve-board-2026-10-07",
+    "seal-swebench-pro-2026-10-07",
+    "arena-text-leaderboard-2026-10-07",
+    "arena-text-coding-leaderboard-2026-10-07",
+    "steel-browsecomp-board-date-2026-10-07",
+    "epoch-ai-model-page-gpt-6-1-sol-2026-10-07",
+    "openrouter-models-api-2026-10-07"
+  ],
+  "notes": "Recheck of the 2026-09-29 board-coverage file (recheck date 2026-10-06, run 2026-10-07). Seven of the ten boards that were provisional absences on 2026-09-29 now list GPT-6.1 Sol (Vals incl. Terminal-Bench 4.0 and Vals Index, tbench.ai, ARC Prize, Arena aggregate, Epoch); DeepSWE, SEAL / SWE-bench Pro and Steel BrowseComp remain absent, and the last two boards were last updated before the model shipped. Score rows are in the board files named in each claim. Absences remain provisional.",
+  "claims": [
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Artificial Analysis: LISTED, unchanged. Five effort rows (max 51.83 at $0.72/task, xhigh 51.04, high 50.24, medium 47.78, low 42.08) match the 2026-09-29 file; see artificial-analysis-gpt-6-1-sol-2026-09-29.json and artificial-analysis-leaderboard-2026-10-07.json. Checked 2026-10-07.",
+      "implication": "Recheck remaining absences on or after 2026-10-14.",
+      "source_id": "artificial-analysis-leaderboard-2026-10-07"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Vals AI: NOW LISTED (was a 404 model page on 2026-09-29). Terminal-Bench 4.0 55.05% (stderr 1.82 pp) at $1.72/test, reasoning effort max (Opus 5.5 65.15% at $13.20, Astra 59.60% at $9.58); Vals Index 61.15 at $3.24/test; Finance Agent v2 listed. The model page URL https://www.vals.ai/models/openai_gpt-6-1-sol still returns 404, but the board payloads carry the model as openai/gpt-6.1-sol. Not on Vals SWE-bench (updated 2026-09-01) or Terminal-Bench 2.1 (updated 2026-09-28). Checked 2026-10-07.",
+      "implication": "Recheck remaining absences on or after 2026-10-14.",
+      "source_id": "vals-ai-terminal-bench-4-2026-10-06"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Official Terminal-Bench 4.0 (tbench.ai): NOW LISTED. GPT-6.1 Sol (max), agent Codex, 58.2% +/-3.1, total run cost about $0.6k and 1.5B tokens, tied for rank 3 with GPT-6 Astra (58.2% +/-2.8, $3.3k); release date column Sep 29, 2026. Checked 2026-10-07.",
+      "implication": "Recheck remaining absences on or after 2026-10-14.",
+      "source_id": "tbench-official-leaderboard-2026-10-07"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "ARC Prize: NOW LISTED at five efforts with Standard and Provider Adapter harness results (ARC-AGI-2 max 94.2% at $0.254/task; ARC-AGI-3 Standard max 52.7%). See arcprize-leaderboard-2026-10-07.json. Checked 2026-10-07.",
+      "implication": "Recheck remaining absences on or after 2026-10-14.",
+      "source_id": "arcprize-leaderboard-2026-10-07"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "DeepSWE / DataCurve: STILL ABSENT. Embedded board generated_at 2026-09-22 (113 tasks) is the same board stored on 2026-09-23; it predates GPT-6.1 Sol. The /artifacts/v1/leaderboard-live.json endpoint is frozen at 2026-06-20. Checked 2026-10-07.",
+      "implication": "Recheck remaining absences on or after 2026-10-14.",
+      "source_id": "deepswe-datacurve-board-2026-10-07"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "SEAL / SWE-bench Pro: STILL ABSENT; the page lists only GPT-5.4/Opus 4.6-era models, so the board looks stale rather than specifically missing GPT-6.1 Sol. Checked 2026-10-07.",
+      "implication": "Recheck remaining absences on or after 2026-10-14.",
+      "source_id": "seal-swebench-pro-2026-10-07"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Arena: NOW LISTED as an aggregate row, not only live battles. gpt-6.1-sol-max text rating 1483.2, rank 21, 3,071 votes (interval 1472.6-1493.8). Checked 2026-10-07.",
+      "implication": "Recheck remaining absences on or after 2026-10-14.",
+      "source_id": "arena-text-leaderboard-2026-10-07"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Arena Text Coding: gpt-6.1-sol-max 1542.2, rank 8, 609 votes (interval 1518.1-1566.2), just below GPT-6 Astra max 1543.2 (2,135 votes). Checked 2026-10-07.",
+      "implication": "Recheck remaining absences on or after 2026-10-14.",
+      "source_id": "arena-text-coding-leaderboard-2026-10-07"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "BrowseComp / Steel: STILL ABSENT; the board's own footer says last updated 2026-09-04, before GPT-6.1 Sol shipped. Checked 2026-10-07.",
+      "implication": "Recheck remaining absences on or after 2026-10-14.",
+      "source_id": "steel-browsecomp-board-date-2026-10-07"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Epoch AI: NOW LISTED. ECI 166, rank 3 of 257, page dated September 29, 2026; own-run scorecard in epoch-ai-model-pages-2026-10-07.json. Checked 2026-10-07.",
+      "implication": "Recheck remaining absences on or after 2026-10-14.",
+      "source_id": "epoch-ai-model-page-gpt-6-1-sol-2026-10-07"
+    },
+    {
+      "models": [
+        "gpt-6.1-sol"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "OpenRouter: LISTED (openai/gpt-6.1-sol and gpt-6.1-sol-pro at $2 / $10, cache read $0.10, cache write $2.50, 1.05M context). Router price, not a quality row. Checked 2026-10-07.",
+      "implication": "Availability only.",
+      "source_id": "openrouter-models-api-2026-10-07"
+    }
+  ],
+  "scores": [],
+  "missing": [
+    "DeepSWE (DataCurve): no GPT-6.1 Sol row; board generated 2026-09-22. Recheck 2026-10-14.",
+    "SEAL / SWE-bench Pro: no row; board appears stale. Recheck 2026-10-14.",
+    "Steel BrowseComp: no row; board last updated 2026-09-04. Recheck 2026-10-14.",
+    "Vals model page https://www.vals.ai/models/openai_gpt-6-1-sol returns 404 (rows exist on the benchmark boards); no per-model page values recorded.",
+    "Vals SWE-bench and Terminal-Bench 2.1 boards do not list GPT-6.1 Sol (updated 2026-09-01 and 2026-09-28)."
+  ]
+}
