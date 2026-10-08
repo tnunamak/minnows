@@ -1,6 +1,6 @@
 # minnows
 
-Agent tools and versioned data packs. See [README.md](README.md) for layout.
+Agent tools and versioned data packs. See [README.md](README.md) for an overview and [CONTRIBUTING.md](CONTRIBUTING.md) for layout.
 
 ## Playbooks
 

@@ -1,20 +1,18 @@
 # Data packs
 
 Versioned **JSON (and friends)** for tools and agents — not CLIs, not skills.
-
-Minnows ships two product kinds:
-
-1. **Tool minnows** — CLI ± optional skill (`tools/`, `skills/`)
-2. **Data packs** — `data/<name>/` with a `pack.json`
+Each pack lives in `data/<name>/` with a `pack.json`. For an overview of the whole repo, see the [root README](../README.md).
 
 ## Packs
 
-| Pack | What it is | Latest tag | Browse |
-|------|------------|------------|--------|
-| **model-catalog** | Model pricing + source-backed quality/effort scores + effort/mode **capabilities** + L0 `models.json` | `data-model-catalog-v0.5.3` | [README](model-catalog/README.md) · [SOURCES](model-catalog/SOURCES.json) · [SCHEMA](model-catalog/SCHEMA.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) |
-| **decision-model-catalog** | Decision models (typed decisions on an agent's hot path): `models.json`, metrics, **caveats**, pricing (incl. raw units), performance with latency/cost `measurement` context, decision-interface capabilities. Baselines resolve via model-catalog | `data-decision-model-catalog-v0.1.0` | [README](decision-model-catalog/README.md) · [SOURCES](decision-model-catalog/SOURCES.json) · [SCHEMA](decision-model-catalog/SCHEMA.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-decision-model-catalog&expanded=true) |
-| **local-evals** | Fixed-harness local P(success) for policy ops | `data-local-evals-v0.1.1` | [README](local-evals/README.md) |
-| **model-choice-policy** | Task-shaped **operating points** (policy only; pins a catalog version) | `data-model-choice-policy-v0.1.6` | [README](model-choice-policy/README.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
+| Pack | What it is | Browse |
+|------|------------|--------|
+| **model-catalog** | Model pricing, source-backed quality and effort scores, effort/mode **capabilities**, L0 `models.json`, and the generated charts | [README](model-catalog/README.md) · [SOURCES](model-catalog/SOURCES.json) · [SCHEMA](model-catalog/SCHEMA.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) |
+| **decision-model-catalog** | Decision models (typed decisions on an agent's hot path): models, metrics, **caveats**, pricing (incl. raw units), performance with latency/cost context, decision-interface capabilities. Baselines resolve via model-catalog | [README](decision-model-catalog/README.md) · [SOURCES](decision-model-catalog/SOURCES.json) · [SCHEMA](decision-model-catalog/SCHEMA.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-decision-model-catalog&expanded=true) |
+| **model-choice-policy** | Task-shaped **operating points** (policy only; pins a catalog version) | [README](model-choice-policy/README.md) · [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
+| **local-evals** | Fixed-harness local P(success) for policy ops (smoke only) | [README](local-evals/README.md) |
+
+Versions are not repeated here, so this table cannot go stale. Each pack's `pack.json` holds its tag, and [index.json](index.json) lists the latest tag per pack.
 
 Machine-readable index (always on `main`): **[index.json](index.json)** — lists each pack’s `latest_tag` and ready-made URLs.
 
@@ -62,7 +60,7 @@ Validate: `./scripts/validate_data_pack.py` (all packs + index).
   - `data-<pack>-vX.Y.Z.tar.gz` (directory named `<pack>/`)
   - `pack.json` (copy)
   - `SHA256SUMS`
-- After cutting a release: update pack README “this version” links, `data/index.json`, and this table.
+- After cutting a release: update the pack README “this version” links and `data/index.json`.
 
 Helper: `./scripts/release-data-pack.sh model-catalog 0.1.0` (tarball + optional `gh release create`).
 
