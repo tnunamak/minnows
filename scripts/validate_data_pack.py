@@ -482,10 +482,19 @@ def validate_pricing(
                     errors.add(rp, f"{f} must be a number")
                 elif rates[f] < 0:
                     errors.add(rp, f"{f} must be >= 0")
-            allowed = set(RATE_FIELDS) | {"valid_from", "valid_until", "confidence", "post_valid_until"}
+            allowed = set(RATE_FIELDS) | {"valid_from", "valid_until", "confidence", "post_valid_until", "long_prompt"}
             extra = set(rates) - allowed
             if extra:
                 errors.add(rp, f"unknown fields: {sorted(extra)}")
+            long_prompt = rates.get("long_prompt")
+            if long_prompt is not None:
+                threshold = long_prompt.get("above_prompt_tokens") if isinstance(long_prompt, dict) else None
+                if not isinstance(long_prompt, dict) or set(long_prompt) != set(RATE_FIELDS) | {"above_prompt_tokens"}:
+                    errors.add(rp, "long_prompt must contain above_prompt_tokens and exactly the four token rates")
+                elif not isinstance(threshold, int) or isinstance(threshold, bool) or threshold < 1:
+                    errors.add(rp, "long_prompt.above_prompt_tokens must be a positive integer")
+                elif any(not _is_number(long_prompt[f]) or long_prompt[f] < 0 for f in RATE_FIELDS):
+                    errors.add(rp, "long_prompt rates must be nonnegative numbers")
         for vk in ("valid_from", "valid_until"):
             if vk in rates and not DATE_RE.match(str(rates[vk])):
                 errors.add(rp, f"{vk} must be YYYY-MM-DD")

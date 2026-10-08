@@ -4,7 +4,7 @@
   "schema_version": 1,
   "kind": "api_usd",
   "agent": "claude-code",
-  "retrieved_at": "2026-09-28",
+  "retrieved_at": "2026-10-07",
   "source_urls": [
     "https://platform.claude.com/docs/en/about-claude/pricing",
     "https://platform.claude.com/docs/en/about-claude/models/overview",
@@ -12,7 +12,10 @@
     "https://www.anthropic.com/news/claude-opus-5",
     "https://www.anthropic.com/news/claude-opus-5-5",
     "https://www.anthropic.com/claude-sonnet-5-5",
-    "https://platform.claude.com/docs/en/models/overview"
+    "https://platform.claude.com/docs/en/models/overview",
+    "https://www.anthropic.com/claude-haiku-5-5",
+    "https://platform.claude.com/docs/en/models/haiku-5-5/overview",
+    "https://platform.claude.com/docs/en/models/sonnet-5-5/overview"
   ],
   "source_ids": [
     "anthropic-models-overview-2026-07-09",
@@ -25,9 +28,14 @@
     "anthropic-sonnet-5-2026-06-30",
     "anthropic-sonnet-5-5-2026-09-28",
     "anthropic-pricing-2026-09-28",
-    "anthropic-models-overview-2026-09-28"
+    "anthropic-models-overview-2026-09-28",
+    "anthropic-haiku-5-5-2026-10-07",
+    "anthropic-pricing-2026-10-07",
+    "anthropic-haiku-5-5-model-page-2026-10-07",
+    "anthropic-haiku-5-5-system-card-2026-10-07",
+    "anthropic-sonnet-5-5-model-page-2026-10-07"
   ],
-  "notes": "USD per 1M tokens from Anthropic Pricing docs. cache_write_per_m = 5-minute cache write (1.25× base input). 1h cache write is 2× (not stored as separate field). cache_read = 0.1× base UNLESS a model has its own override multiplier (fable-5-1/mythos-5-1 use 0.025x; opus-5-5 uses 0.05x). Sonnet 5 intro through 2026-08-31 as claude-sonnet-5-intro. Fast mode Opus 4.8 and Opus 5 are a mode not a separate model id ($10/$50, ~2× price/~2.5× speed) — see claims in capabilities. model.claude-sonnet-5-intro.valid_until=2026-08-31 (machine field). Opus 5 pricing matches Opus 4.8 ($5/$25); 1M ctx, 128k max output (300k via batch beta). 2026-09-05 refresh: claude-sonnet-5 CHANGED 3/0.3/3.75/15 -> 2/0.2/2.5/10. Vendor note verbatim: \"The $2/$10 per million input/output token pricing for Claude Sonnet 5, announced at launch as introductory pricing through August 31, 2026, is now the standard price. The previously scheduled increase to $3/$15 per million input/output tokens on September 1, 2026 will not occur.\" The claude-sonnet-5-intro promo row is therefore DELETED rather than expired — it did not lapse, it became the standard rate, so retaining it as historical would misrepresent what happened. NEW (2026-09-05): claude-fable-5-1 and claude-mythos-5-1 (10/50) whose cache reads are 0.025x base ($0.25), not the usual 0.1x. NEW (2026-09-22, Opus 5.5 launch): claude-opus-5-5 added at $4 fresh input / $20 output / $5 cache write (1.25x) / $0.20 cache read (0.05x base — Opus 5.5's own override, distinct from the 0.025x used by Fable 5.1/Mythos 5.1); 1M context, 128K max output (same as Opus 5); default effort medium (Opus 5 default is high); thinking cannot be disabled at ANY effort level for Opus 5.5 (Opus 5 only blocks disabling at xhigh/max) — see capabilities. Fast mode for Opus 5.5 is $8/$40, Claude API (first-party) only, same mode-not-model-id convention as Opus 5/4.8. claude-opus-5 is NOT marked historical: it remains served and its own row is unchanged. Re-verified UNCHANGED at this refresh: opus-5, opus-4-8/4-7/4-6, fable-5, mythos-5, fable-5-1, mythos-5-1, sonnet-5, sonnet-4-6/4-5, haiku-4-5. Sonnet 5.5 added 2026-09-28 from current Anthropic Pricing docs and launch pricing table: $2 input / $10 output, $2.50 5-minute cache write, $0.20 cache read per MTok. Patterns sonnet-5-5 and sonnet 5.5 precede Sonnet 5 patterns because matching is first-substring wins. One-hour cache write is $4/MTok but the schema stores only the existing 5-minute cache-write field.",
+  "notes": "USD per 1M tokens from Anthropic Pricing docs. cache_write_per_m = 5-minute cache write (1.25× base input). 1h cache write is 2× (not stored as separate field). cache_read = 0.1× base UNLESS a model has its own override multiplier (fable-5-1/mythos-5-1 use 0.025x; opus-5-5 uses 0.05x). Sonnet 5 intro through 2026-08-31 as claude-sonnet-5-intro. Fast mode Opus 4.8 and Opus 5 are a mode not a separate model id ($10/$50, ~2× price/~2.5× speed) — see claims in capabilities. model.claude-sonnet-5-intro.valid_until=2026-08-31 (machine field). Opus 5 pricing matches Opus 4.8 ($5/$25); 1M ctx, 128k max output (300k via batch beta). 2026-09-05 refresh: claude-sonnet-5 CHANGED 3/0.3/3.75/15 -> 2/0.2/2.5/10. Vendor note verbatim: \"The $2/$10 per million input/output token pricing for Claude Sonnet 5, announced at launch as introductory pricing through August 31, 2026, is now the standard price. The previously scheduled increase to $3/$15 per million input/output tokens on September 1, 2026 will not occur.\" The claude-sonnet-5-intro promo row is therefore DELETED rather than expired — it did not lapse, it became the standard rate, so retaining it as historical would misrepresent what happened. NEW (2026-09-05): claude-fable-5-1 and claude-mythos-5-1 (10/50) whose cache reads are 0.025x base ($0.25), not the usual 0.1x. NEW (2026-09-22, Opus 5.5 launch): claude-opus-5-5 added at $4 fresh input / $20 output / $5 cache write (1.25x) / $0.20 cache read (0.05x base — Opus 5.5's own override, distinct from the 0.025x used by Fable 5.1/Mythos 5.1); 1M context, 128K max output (same as Opus 5); default effort medium (Opus 5 default is high); thinking cannot be disabled at ANY effort level for Opus 5.5 (Opus 5 only blocks disabling at xhigh/max) — see capabilities. Fast mode for Opus 5.5 is $8/$40, Claude API (first-party) only, same mode-not-model-id convention as Opus 5/4.8. claude-opus-5 is NOT marked historical: it remains served and its own row is unchanged. Re-verified UNCHANGED at this refresh: opus-5, opus-4-8/4-7/4-6, fable-5, mythos-5, fable-5-1, mythos-5-1, sonnet-5, sonnet-4-6/4-5, haiku-4-5. Sonnet 5.5 added 2026-09-28 from current Anthropic Pricing docs and launch pricing table: $2 input / $10 output, $2.50 5-minute cache write, $0.20 cache read per MTok. Patterns sonnet-5-5 and sonnet 5.5 precede Sonnet 5 patterns because matching is first-substring wins. One-hour cache write is $4/MTok but the schema stores only the existing 5-minute cache-write field. 2026-10-07 (Haiku 5.5 launch): claude-haiku-5-5 added. Anthropic prices it by prompt length, so its row uses the new optional `long_prompt` object (see SCHEMA.md): the four base fields apply when the prompt is up to 100,000 tokens ($0.10 input / $0.125 5-minute cache write / $0.01 cache read / $0.50 output); when the prompt is over 100,000 tokens the whole request bills at the long_prompt rates ($0.50 / $0.625 / $0.05 / $2.50). Consumers that read only the four base fields will under-price long prompts by 5x. Not stored: 1-hour cache write ($0.20 / $1), Batch API ($0.05/$0.25 and $0.25/$1.25, i.e. 50% off). The retrieved docs do not say whether cached prompt tokens count toward the 100,000-token threshold; the system card says Haiku 5.5 is charged per request at the rate for that request's prompt length. Tokenizer: Haiku 5.5 uses the Claude 4.7+ tokenizer, which Anthropic says produces approximately 30% more tokens than Haiku 4.5 for the same text, so per-token rates overstate the per-text saving; the launch post's footnote says the tokenizer uses \"slightly more tokens per task\". Haiku 4.5 re-verified UNCHANGED ($1 / $1.25 / $0.10 / $5). CHANGED 2026-10-07: claude-sonnet-5-5 cache_read 0.2 -> 0.1. The launch post says \"starting today ... Cache reads now cost 50% less: $0.10 per million tokens rather than $0.20\", and the pricing page's caching prose and multiplier table say 0.05x base ($0.10) for Sonnet 5.5. At retrieval the pricing page's model table cell and the Sonnet 5.5 model page still show $0.20; this is a docs inconsistency, recheck 2026-10-14. Patterns haiku-5-5 and haiku 5.5 precede haiku-4-5; no generic haiku family_default pattern exists.",
   "models": {
     "claude-opus-5": {
       "fresh_input_per_m": 5,
@@ -109,9 +117,22 @@
     },
     "claude-sonnet-5-5": {
       "fresh_input_per_m": 2,
-      "cache_read_per_m": 0.2,
+      "cache_read_per_m": 0.1,
       "cache_write_per_m": 2.5,
       "output_per_m": 10
+    },
+    "claude-haiku-5-5": {
+      "fresh_input_per_m": 0.1,
+      "cache_read_per_m": 0.01,
+      "cache_write_per_m": 0.125,
+      "output_per_m": 0.5,
+      "long_prompt": {
+        "above_prompt_tokens": 100000,
+        "fresh_input_per_m": 0.5,
+        "cache_read_per_m": 0.05,
+        "cache_write_per_m": 0.625,
+        "output_per_m": 2.5
+      }
     }
   },
   "match": [
@@ -184,6 +205,14 @@
     {
       "pattern": "sonnet-4-5",
       "model": "claude-sonnet-4-5"
+    },
+    {
+      "pattern": "haiku-5-5",
+      "model": "claude-haiku-5-5"
+    },
+    {
+      "pattern": "haiku 5.5",
+      "model": "claude-haiku-5-5"
     },
     {
       "pattern": "haiku-4-5",

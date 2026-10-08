@@ -2243,7 +2243,27 @@
       "unit_default": "accuracy",
       "comparable": false,
       "task_family": "computer-use",
-      "notes": "Anthropic Sonnet 5.5 launch/system-card OSWorld 2.1 is distinct from OSWorld 2.0 and OSWorld-Verified."
+      "notes": "Anthropic Sonnet 5.5 launch/system-card OSWorld 2.1 is distinct from OSWorld 2.0 and OSWorld-Verified. From the Haiku 5.5 launch (2026-10-07) Anthropic reports the official offline subset (82 of 108 tasks, no VM internet); those rows carry an \"offline-subset\" comparability_group and are not comparable with the earlier full-set Sonnet 5.5 readings (Sonnet 5.5: 80.1% full-set launch vs 83.9% offline subset)."
+    },
+    {
+      "id": "osworld-2-1-strict",
+      "name": "OSWorld 2.1 (strict pass rate)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "pass_rate",
+      "comparable": false,
+      "task_family": "computer-use",
+      "notes": "Fraction of tasks with every checkpoint satisfied (Pass@1, five attempts per task), as defined in Anthropic system cards. Companion to osworld-2-1 (partial score). First rows: Haiku 5.5 System Card, official offline subset (82 tasks)."
+    },
+    {
+      "id": "physicianbench",
+      "name": "PhysicianBench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "pass_rate",
+      "notes": "Public benchmark of 100 physician tasks in an electronic health record; share of attempts passed (five per task). First rows: Haiku 5.5 System Card, including per-effort values."
     },
     {
       "id": "vals-index",

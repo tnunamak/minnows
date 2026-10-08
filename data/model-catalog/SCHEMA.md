@@ -118,6 +118,13 @@ scores as ground truth without checking `kind` (vendor vs third_party).
 - Rates are **per 1M tokens** (USD or Codex credits).
 - `match` is **ordered**; first substring hit wins; every `model` must exist in `models`.
 - `agent` is the session family used when resolving (`claude-code` | `codex` | `grok` | `google` | `other`).
+- Optional `long_prompt` on a model row records a prompt-length price tier:
+  `{ "above_prompt_tokens": 100000, "fresh_input_per_m": …, "cache_read_per_m": …, "cache_write_per_m": …, "output_per_m": … }`.
+  The four base fields apply when the request's prompt is at most `above_prompt_tokens`. When the
+  prompt is longer, the whole request (input, cache, and output) bills at the `long_prompt` rates.
+  First used for `claude-haiku-5-5` (2026-10-07). Consumers that read only the base fields
+  under-price long prompts. Older tables (Google, OpenAI, MiniMax) still keep their long-context
+  rates in `notes`; they were not migrated.
 
 ## Metric task families and success units
 

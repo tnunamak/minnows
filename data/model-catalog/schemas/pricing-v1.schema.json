@@ -135,6 +135,40 @@
                 "minimum": 0
               }
             }
+          },
+          "long_prompt": {
+            "type": "object",
+            "description": "Optional prompt-length tier. Base rate fields apply when the request's prompt is at most above_prompt_tokens; when the prompt is longer, the whole request (input, cache, output) bills at these rates. Example: claude-haiku-5-5 (100,000 tokens).",
+            "additionalProperties": false,
+            "required": [
+              "above_prompt_tokens",
+              "fresh_input_per_m",
+              "cache_read_per_m",
+              "cache_write_per_m",
+              "output_per_m"
+            ],
+            "properties": {
+              "above_prompt_tokens": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "fresh_input_per_m": {
+                "type": "number",
+                "minimum": 0
+              },
+              "cache_read_per_m": {
+                "type": "number",
+                "minimum": 0
+              },
+              "cache_write_per_m": {
+                "type": "number",
+                "minimum": 0
+              },
+              "output_per_m": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
           }
         }
       }
