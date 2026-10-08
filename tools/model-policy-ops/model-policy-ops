@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -11,6 +12,14 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 PACK = REPO / "data" / "model-choice-policy"
 OPERATING_POINTS = PACK / "operating-points.json"
+
+
+def select_policy(explicit_path):
+    if explicit_path is not None:
+        return explicit_path
+    if os.environ.get("DATA_PACKS_HOME"):
+        return Path(os.environ["DATA_PACKS_HOME"]) / "model-choice-policy/operating-points.json"
+    return OPERATING_POINTS
 
 
 def load_policy(path: Path) -> dict:
@@ -82,10 +91,27 @@ def print_show(policy: dict, op_id: str) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--policy", type=Path, default=OPERATING_POINTS)
-    parser.add_argument("command", nargs="?", choices=("check", "list", "show"))
+    parser.add_argument("--policy", type=Path, default=None)
+    parser.add_argument("command", nargs="?", choices=("check", "list", "show", "resolve", "audit"))
     parser.add_argument("op", nargs="?")
+    sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+    from policy_decisions import add_arguments, execute
+    add_arguments(parser)
     args = parser.parse_args()
+    args.policy = select_policy(args.policy)
+    if args.command in ("resolve", "audit"):
+        try:
+            policy = load_policy(args.policy) if args.command == "resolve" else {}
+            if args.command == 'resolve' and not isinstance(policy, dict):
+                raise ValueError('policy must be a JSON object')
+            errors = check_policy(policy) if args.command == 'resolve' else []
+            if errors:
+                raise ValueError("; ".join(errors))
+            print(json.dumps(execute(args, policy), indent=2, sort_keys=True))
+            return 0
+        except (ValueError, OSError, KeyError, TypeError) as error:
+            print(f"FAIL {error}", file=sys.stderr)
+            return 1
 
     policy = load_policy(args.policy)
     errors = check_policy(policy)
