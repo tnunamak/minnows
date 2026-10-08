@@ -10,7 +10,7 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.1.17](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.1.17) — published by CI on push to main |
+| **This version** | [data-model-choice-policy-v0.1.18](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.1.18) — published by CI on push to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
@@ -76,6 +76,12 @@ not silently route by model name.
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.1.18 — 2026-10-07
+
+- **No routing change.** Every operating point expands exactly as in v0.1.17.
+- Repins to catalog v0.5.12, which adds Claude Haiku 5.5 (a candidate for the cheap-tier ops, not yet routed), new board snapshots, and a pricing re-verification.
+- Catalog pin: **v0.5.12**.
 
 ### v0.1.17 — 2026-09-30
 
