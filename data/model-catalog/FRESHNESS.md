@@ -10,9 +10,16 @@
 ## CI hook
 
 ```bash
-# Fail if any load-bearing retrieved_at is older than 45 days (when enforced):
+# Fail if any load-bearing retrieved_at is older than 45 days (CI passes --fail):
 ./scripts/check_freshness.py --max-age-days 45
 ```
+
+Pricing and capability files are checked by name. Boards are checked by their **newest
+snapshot**: the most recent `performance/` file that cites a source on that board's URL
+(`BOARDS` in the script). A re-read that found no new rows still counts when its file
+cites the board's source (for example, a board-coverage file). Superseded snapshots keep
+their original `retrieved_at` and are not checked one by one, because old dated snapshots
+are never rewritten. To clear a stale board, add a new dated snapshot or coverage note.
 
 Promo rates must carry `valid_until` (e.g. Sonnet 5 intro → 2026-08-31). Expired
 rows fail `validate_data_pack.py` — **unless** the row's model id resolves (via
