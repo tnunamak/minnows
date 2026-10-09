@@ -1,7 +1,7 @@
 # model-policy-ops
 
 Read the selected model-choice-policy pack, make an explicit delegation decision,
-and audit its use. This CLI never dispatches work or changes running threads.
+record how it ended, and audit its use. This CLI never dispatches work or changes running threads.
 `check`, `list`, and `show` keep their existing output contracts.
 
 ## Procedure
@@ -12,8 +12,10 @@ and audit its use. This CLI never dispatches work or changes running threads.
 3. Record the decision with caller-supplied parent metadata and a unique decision
    ID. Pass the returned `target` unchanged and `decision_id` as
    `delegate_task.clientRequestId`. Supply the task separately to T3.
-4. Run `audit` for the parent thread or a time range. Inspect unmatched calls,
-   mismatches, missing effort, and unknown native evidence.
+4. When you integrate or discard the result, run `close` (see Outcomes). Later
+   rework goes in `followup`.
+5. Run `audit` for the parent thread or a time range. Inspect unmatched calls,
+   mismatches, missing effort, missing closes, and unknown native evidence.
 
 From a clone, use `tools/model-policy-ops/model-policy-ops`. Installation supplies
 `model-policy-ops` on PATH. Every policy command reads
@@ -214,3 +216,221 @@ Lifecycle completion is not success; configuration is not served-model evidence.
 requested-versus-observed remain unknown pending independent native-prefix
 inspection. Native harness delegations and direct work are outside this audit's
 coverage. T3 export evidence is caller-supplied; the tool cannot attest its origin.
+
+## Launch facts
+
+`resolve` accepts four optional facts about the task: `--purpose
+execution|review|research|exploration`, `--proof-class oracle|judged|none`,
+`--urgent` and `--irreversible`. Absent means unknown, never false. They are stored
+in a top-level `launch_facts` object (with its own `schema_version`) and never in
+`request`, so `request` keeps the 4ce5a3e shape and an older CLI can still replay a
+new receipt with the base flags. A replay checks `request` and `launch_facts`
+separately; a difference in either is rejected. A legacy receipt has no
+`launch_facts`: replay without fact flags works, and adding facts is rejected. Facts
+cannot be added later. Use a new decision ID.
+
+## Outcomes
+
+`close` and `followup` write to `outcomes.jsonl`, beside the receipts file (override
+with `--outcomes FILE`). A separate file keeps `decisions.jsonl` readable by older
+CLIs, which never read it. The file follows the receipt rules: mode 0600, locked
+append, fsync, no symlinks, and a refused group- or world-writable parent directory.
+`--receipts` and `--outcomes` must be different files. `close`, `followup` and
+`audit` compare real paths and device/inode, so a symlink or hardlink to the receipts
+file is refused before any read or write.
+
+Every read of the outcomes file (`close`, `followup`, `audit`) validates the whole
+file and fails closed. `FAIL outcomes.jsonl line N: reason` names the first bad line:
+not JSON, unknown `kind`, wrong `schema_version`, a missing key, a value outside its
+enum, a bad ID, a reused ID, or broken lineage (a second first close for a decision;
+`supersedes` or a follow-up `close_id` that is not an earlier close of the same
+decision; superseding a close twice). The tool never skips, repairs or drops a row. New outcome fields must be optional
+on read, or use a new schema version with a reader for existing versions.
+
+To recover from a rejected ledger, stop its writers and preserve a private copy
+of the original file. Repair the named line in a separate copy and validate that
+copy with `audit --outcomes REPAIRED_FILE`. Replace the active file only after the
+audit succeeds, preserving mode 0600, and keep the original as evidence. Do not
+edit the active ledger while writers are running.
+
+The unit is **one delegated decision and its attempts**. This is not the cost or
+quality of a whole procedure or top-level task. A maker and a checker are two
+decisions, and nothing here links them.
+
+```bash
+model-policy-ops close DECISION_ID --close-id CLOSE_ID \
+  --outcome accepted --judged-by parent --check oracle \
+  --evidence '{"type":"commit","repo":"/abs/repo","sha":"<40-hex>"}' \
+  --evidence '{"type":"check","label":"unit","exit_code":0,"log":"/abs/log.txt","sha256":"<64-hex>"}' \
+  --repairs 0 --owner-input unknown --note 'merged after tests' \
+  --closer-thread CLOSING_THREAD
+
+# Correct it later. The old record stays. Only the current close can be superseded.
+model-policy-ops close DECISION_ID --close-id CLOSE_ID_2 --supersedes CLOSE_ID \
+  --reason 'regression found' --outcome rejected --judged-by owner --check none
+
+model-policy-ops followup DECISION_ID --followup-id FOLLOWUP_ID \
+  --finding no_rework_found --checked-scope 'git log -- touched paths, 14 days'
+```
+
+- `--close-id` and `--followup-id` are required. Repeating an ID with identical
+  inputs returns the stored record (`replayed: true`) and does not verify again, so
+  the first observation stays. A changed repeat is rejected.
+- A decision has one first close. A change needs `--supersedes CURRENT_CLOSE_ID` and
+  `--reason`. A second correction of the same close is rejected under the lock.
+- `--closer-thread` (optional, close only) records which thread closed the decision.
+  `audit` compares it with the receipt's parent thread and reports
+  `closer_thread_differs_from_parent` (`true`, `false`, or `null` when not given). That
+  is a flag for review. The tool does not decide who may close a decision, and the
+  value is a caller claim.
+- `--outcome`: `accepted`, `accepted_after_repair`, `rejected`, `abandoned_by_choice`,
+  `superseded`, `unknown`. The outcome `superseded` means the delegated result was
+  not used because other work replaced it. It has no link to `--supersedes`, which
+  corrects an earlier *close record*. `--judged-by parent|independent|owner` and `--check
+  oracle|independent_judged|maker_judged|none` are **caller claims**, stored as such.
+  Use `unknown` rather than guess. `--repairs` absent means unknown, not zero.
+  `--owner-input` defaults to `unknown`; `none_observed` means the parent looked.
+- `--check oracle` needs a `check` reference. A check with a nonzero exit cannot back
+  an accepted outcome. A check reference only says what the parent reports about a
+  run; the tool never reruns it.
+- `followup` needs a current close. Findings: `no_rework_found`, `fix_commit`,
+  `revert`, `reopened`, `defect_reported`. The last four need evidence.
+  `--checked-scope` is required. **No follow-up means not checked.**
+  `no_rework_found` holds only within its stated scope and time.
+
+### Evidence references
+
+`--evidence` (repeatable, up to 8) takes one JSON object. JSON avoids a delimiter
+grammar that breaks on `#` or `@` in paths, and unknown keys are rejected.
+
+| type | keys | verified_state |
+|---|---|---|
+| `commit` | `repo` (absolute), `sha` (40 hex) | `exists` or `unverified_missing` (`git cat-file`, no shell) |
+| `file` | `path` (absolute), `sha256` | `hash_matches`, `mismatch`, `missing`, `unreadable`, `too_large` |
+| `check` | `label`, `exit_code` 0-255, `log` (absolute), `sha256` | `log_hash_matches`, `mismatch`, `missing`, `unreadable`, `too_large` |
+| `pr` | `repo` (`owner/name`), `number` | `claim_only` (never fetched) |
+
+Verification checks existence or a file hash. It never shows that a check ran, or
+that the work is good. A file is read without blocking and only if it is a regular
+file (a FIFO, directory or device is `unreadable`); reading stops at 256 MiB
+(`too_large`). Commit checks ignore `GIT_*` environment variables. A failed
+verification is stored and shown, and it does not count in
+`accepted_with_hash_matched_check_log`: true only for an accepted close whose
+`oracle` check logs all hash-match. The `exit_code` is the caller's claim; the summary
+lists it as `exit_codes_claimed`. Malformed references are rejected.
+
+`--note`, `--reason` and `--checked-scope` hold one line of up to 280 characters.
+The caller supplies them and **the tool does not filter them for secrets**. Do not
+put prompts, results or credentials in them. Records hold enums, counts, hashes, references and these short caller-supplied notes.
+
+### Audit additions
+
+`audit` adds keys; existing keys keep their meaning. `audit` reads `--outcomes` (or
+the file beside `--receipts`). A missing file means every decision is unclosed.
+
+- `outcomes`: `descriptive_only`, `causal_claims: none`, a confounding statement,
+  `denominators` (call attempts and distinct decisions), `close_coverage` (decisions
+  and calls), the outcome distribution over **distinct decisions** with unclosed
+  counted explicitly, `judged_by`, `check`, `owner_input`, superseded closes,
+  follow-up coverage, strata by launch `purpose`, `proof_class` and `op`
+  (`unknown` when absent), and child-usage coverage. Repeated calls on one
+  decision do not inflate any distribution.
+- Per delegation: `decision_outcome` (state, current close, chain), `followups`,
+  `launch_facts`, `observed_child_usage`, `parent_overhead_usage: unknown`, and
+  `quota` (the launch snapshot from the receipt, labeled `unattributed_account_state`).
+- `observed_child_usage` (database mode only) joins `child_run_id` to
+  `run_attempts.run_id`, then to `provider_turns` by `run_attempt_id` or
+  `provider_turn_id`. It lists every attempt and turn separately and projects
+  only `turnTokenUsage` status, scope, `hasSubagents` and five token counts. It
+  never sums; scopes can overlap. `partial` keeps its reported counts, labeled
+  partial. `unavailable` or missing status gives null counts. `hasSubagents` other
+  than `false` means nested usage is unknown. Absent tables give
+  `unknown_table_absent`, a changed schema gives `unavailable`, and neither stops the
+  audit. This is T3-reported main-agent turn usage. It is not quota, not dollars, and
+  not procedure cost.
+
+Closes are caller claims and can lean optimistic, especially when the parent
+judges its own delegation. The audit reports close coverage and does not assume compliance. See
+[routing-guidance.md](routing-guidance.md) for how to use these records.
+
+## Offline journey and JSON shapes
+
+You can run the whole flow with two hand-written files and no T3 or network.
+
+<!-- example:catalog -->
+```json
+{"data": {"providers": [{"instanceId": "codex-main", "driver": "codex",
+  "models": [{"slug": "gpt-6-luna",
+              "options": [{"id": "reasoningEffort",
+                           "values": [{"id": "medium"}, {"id": "high"}]}]}]}]}}
+```
+
+Catalog rules (`--available FILE`): `providers[].instanceId` is the account;
+`driver` is `codex`, `claudeAgent` or `grok`; `models[].slug` must equal the pack
+model exactly. The effort option is an object `{"id": ..., "values": [...]}` in
+`options`, and `id` must be `effort`, `reasoningEffort` or `thinking`. **Each value
+is an object `{"id": "medium"}`, not a bare string.** A bare-string list gives
+`schema_mismatch`; an option id such as `reasoning_effort`, or a missing option, gives
+`unknown_effort_surface`; a value that is not listed gives `unsupported_effort`. All
+three leave `target` null. The model here is the one that the
+`fanout.dollar-tight` op names; run `show OP` for the model and effort that another
+op needs.
+
+<!-- example:export -->
+```json
+{"schema_version": 1, "delegations": [
+  {"call_id": "call-1", "thread_id": "PARENT_THREAD", "timestamp": "2026-10-08T12:00:00Z",
+   "input": {"clientRequestId": "DECISION_ID",
+             "target": {"providerInstanceId": "codex-main", "model": "gpt-6-luna",
+                        "options": {"reasoningEffort": "medium"}}},
+   "output": {"childRunId": "child-1"}}]}
+```
+
+```bash
+model-policy-ops resolve fanout.dollar-tight --available catalog.json \
+  --purpose execution --proof-class oracle --record --decision-id DECISION_ID \
+  --parent-model PARENT_MODEL --parent-provider-instance PARENT_INSTANCE \
+  --parent-thread PARENT_THREAD --receipts state/decisions.jsonl
+model-policy-ops close DECISION_ID --receipts state/decisions.jsonl --close-id CLOSE_ID \
+  --outcome accepted --judged-by parent --check none
+model-policy-ops audit --export export.json --receipts state/decisions.jsonl --thread PARENT_THREAD
+```
+
+`resolve` prints one JSON object. Read `target` (pass it to `delegate_task` unchanged)
+and `decision_id`. `close` and `followup` print the stored record (`replayed: true`
+on an exact repeat). `audit` prints JSON by default; `--json` is accepted.
+
+### Audit JSON reference
+
+Top-level keys: `schema_version`, `scope`, `coverage`, `counts`, `effort_explicitness`,
+`reason_coverage`, `request_match`, `overrides`, `override_reasons`, `escalations`,
+`relaunches`, `repeated_decision_ids_multiple_children`, `unmatched_delegations`,
+`unmatched_receipts`, `out_of_scope_delegations`, `limits`, `delegations`, `outcomes`.
+
+- `counts`: `call_attempts`, `unique_child_runs`, `distinct_receipt_decisions`.
+- `outcomes` (descriptive only, over distinct decisions):
+  - `unit`, `descriptive_only`, `causal_claims`, `confounding`, `closes_are_claims`:
+    fixed statements.
+  - `denominators`: `call_attempts`, `distinct_decisions`, `calls_without_receipt`.
+  - `close_coverage`: `decisions_closed`, `decisions`, `rate`, `calls_on_closed_decisions`,
+    `call_attempts`.
+  - `outcome_distribution`: `{"closed": {OUTCOME: count}, "unclosed_or_unreadable": n}`.
+  - `judged_by`, `check`, `owner_input`: `{VALUE: count}` over closed decisions.
+  - `accepted_with_hash_matched_check_log`: count of accepted decisions whose check logs hash-match.
+  - `closer_thread`: `differs_from_parent`, `not_recorded`, `meaning`.
+  - `superseded_closes`, `broken_chains`, `outcome_rows_for_unknown_decisions`.
+  - `followup_coverage`: `closed_decisions_with_followup`, `closed_decisions`, `meaning`.
+  - `strata`: `purpose`, `proof_class`, `op`, each `{VALUE: {"decisions": n, "closed": {...},
+    "unclosed_or_unreadable": n}}`; `unknown` when the fact was not given.
+  - `child_usage_coverage`: `unique_child_runs`, `by_state`, `label`.
+- `delegations[]`, one per call: the receipt-match fields (`call_id`, `decision_id`,
+  `matched_receipt`, `request_match`, `parent_match`, `receipt_before_call`,
+  `options_state`, and others), plus
+  - `decision_outcome`: `{"state": "unclosed"|"closed"|"broken_chain"|"no_receipt",
+    "current": {...}, "chain": [CLOSE_ID, ...]}`. `current` is null unless `closed`, and
+    holds `close_id`, `outcome`, `judged_by`, `check`, `repairs`, `owner_input`,
+    `recorded_at`, `evidence_summary`, `supersedes`, `closer_thread` and
+    `closer_thread_differs_from_parent`. Read the close
+    result here. The older per-call key `outcome` is always `unknown`.
+  - `followups`: `{"state": "observed"|"not_checked", "items": [...]}`.
+  - `launch_facts`, `observed_child_usage`, `parent_overhead_usage`, `quota`.
