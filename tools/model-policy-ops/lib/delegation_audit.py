@@ -5,7 +5,7 @@ import sqlite3
 from pathlib import Path
 from datetime import datetime, timezone
 
-from outcomes import chain_heads, split_rows
+from outcomes import chain_heads, commit_verification_summary, recorded_commit_states, split_rows
 import observations as observation_store
 
 PREFIX = 'orchestration_v2_projection_'
@@ -259,7 +259,7 @@ def close_view(close, parent_thread):
             'closer_thread')
     closer = close['closer_thread']
     # A flag for review, not a statement about who may close. None means no closer was recorded.
-    return {k: close[k] for k in keys} | {'closer_thread_differs_from_parent': None if closer is None else closer != parent_thread}
+    return {k: close[k] for k in keys} | {'commit_verification': recorded_commit_states(close)} | {'closer_thread_differs_from_parent': None if closer is None else closer != parent_thread}
 
 
 def outcome_fields(receipt, closes, heads, followups, row):
@@ -276,7 +276,7 @@ def outcome_fields(receipt, closes, heads, followups, row):
     state = 'unclosed' if not chain else 'closed' if len(current) == 1 else 'broken_chain'
     items = [{'followup_id': f['followup_id'], 'close_id': f['close_id'], 'finding': f['finding'], 'checked_scope': f['checked_scope'],
               'observed_at': f['observed_at'], 'lag_seconds_since_close': f['lag_seconds_since_close'],
-              'evidence_states': [e['verified_state'] for e in f['evidence']]}
+              'evidence_states': [e['verified_state'] for e in f['evidence']], 'commit_verification': recorded_commit_states(f)}
              for f in followups if f['decision_id'] == decision_id]
     return fields | {
         'decision_outcome': {'state': state, 'current': close_view(current[0], receipt['parent']['thread_id']) if state == 'closed' else None, 'chain': chain},
@@ -339,6 +339,7 @@ def outcome_summary(reports, by_id, matched_ids, closes, heads, followups):
         'check': tally(current[d]['check'] for d in closed),
         'owner_input': tally(current[d]['owner_input'] for d in closed),
         'accepted_with_hash_matched_check_log': sum(current[d]['evidence_summary']['accepted_with_hash_matched_check_log'] for d in closed),
+        'commit_evidence_verification': commit_verification_summary(heads[d][0] for d in closed),
         'closer_thread': {'differs_from_parent': sum(current[d]['closer_thread_differs_from_parent'] is True for d in closed),
                           'not_recorded': sum(current[d]['closer_thread_differs_from_parent'] is None for d in closed),
                           'meaning': 'a review flag; the tool does not decide who may close a decision'},

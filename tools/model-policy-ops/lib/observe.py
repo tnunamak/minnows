@@ -17,7 +17,7 @@ import destinations as destination_store
 import observations as store
 from decision_receipts import read_receipts
 from delegation_audit import PREFIX, T3_STATUSES, bounded, effort, normalize_since, read_db, safe_id, safe_ordinal, stamp
-from outcomes import commit_state, git_argv, git_env, read_outcomes, split_rows
+from outcomes import commit_state, commit_verification_summary, git_argv, git_env, read_outcomes, split_rows
 from route_inputs import CANCELLATIONS, classify_failure
 
 RECEIPT_ID = re.compile(r'[a-z]{1,12}[_-][0-9a-f-]{1,40}')  # the bridge's report_<uuid>
@@ -555,4 +555,8 @@ def execute(args):
         collected['git'] = collect_git(outcome_rows, scope.get('git', set()), args.git_window_days, started)
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         collected['git'] = result('error', short(error))
-    return store.append_run(args.observations, str(uuid.uuid4()), started.isoformat(), datetime.now(timezone.utc).isoformat(), collected)
+    run = store.append_run(args.observations, str(uuid.uuid4()), started.isoformat(), datetime.now(timezone.utc).isoformat(), collected)
+    # Printed, never stored: what each evidenced commit's close recorded, beside the live re-check above. Old rows are not_recorded.
+    closes, _ = split_rows(outcome_rows)
+    evidenced = [c for c in closes if c['decision_id'] in scope.get('git', set())]
+    return run | {'recorded_commit_verification': commit_verification_summary(evidenced)}

@@ -7,7 +7,7 @@ from datetime import timedelta
 
 import directives as directive_store
 import observations as observation_store
-from outcomes import chain_heads, split_rows
+from outcomes import chain_heads, commit_verification_summary, split_rows
 from route_inputs import freshness, read_failures
 from routing import ARM_KEYS, expand_candidates
 
@@ -184,6 +184,7 @@ def report(*, receipts, outcome_rows, policy, records, available_providers, mode
                                 'arms': quality_signals(receipts, outcome_rows)},
             'availability': {'state': failures['state'], 'reason': failures['reason'], 'lookback_minutes': failures['lookback_minutes'],
                              'unjoined': failures['unjoined'], 'by_instance': failures['instances']},
+            'commit_evidence_verification': commit_verification_summary(rows[0] for d, rows in chain_heads(closes).items() if len(rows) == 1),
             'coverage': {'decisions': len(receipts), 'routed_decisions': routed, 'resolved_decisions': len(receipts) - routed,
                          'decisions_with_a_close': sum(r['decision_id'] in heads for r in receipts),
                          'overrides': sum(bool(r.get('overrides')) for r in receipts),

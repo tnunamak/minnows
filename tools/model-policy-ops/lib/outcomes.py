@@ -36,6 +36,10 @@ EVIDENCE_KEYS = {
 }
 SCOPE = 'one delegated decision; not whole-procedure or top-level task performance'
 VERIFICATION_SCOPE = 'existence or file hash only; never the truth of a check or of success'
+# Optional top-level row key, parallel to `evidence`: null, or {state, recorded_at} for commit evidence. Older CLIs ignore it.
+# It is not an evidence-entry key: an older CLI compares entries on replay and would call the row a changed input.
+COMMIT_CHECKS = ('exists', 'missing', 'timeout', 'error')
+VERIFICATION_KEY = 'evidence_verification'
 
 
 def now():
@@ -183,10 +187,18 @@ def commit_exists(repo, sha):
 
 
 def verify_evidence(ref):
-    """Return ref plus verified_state. No shell, no network, no claim about what the evidence proves."""
+    """Return (entry, verification). The entry is ref plus the legacy verified_state; verification is the exact commit_state or None.
+
+    No shell, no network, no claim about what the evidence proves. A commit that git could not check keeps the legacy
+    `unverified_missing`, but its verification state says `timeout` or `error`, not `missing`.
+    """
     kind = ref['type']
+    stamp = now()
+    verification = None
     if kind == 'commit':
-        state = 'exists' if commit_exists(ref['repo'], ref['sha']) else 'unverified_missing'
+        observed = commit_state(ref['repo'], ref['sha'])
+        state = 'exists' if observed == 'exists' else 'unverified_missing'
+        verification = {'state': observed, 'recorded_at': stamp}
     elif kind == 'file':
         state = file_hash_state(ref['path'], ref['sha256'])
     elif kind == 'check':
@@ -195,7 +207,46 @@ def verify_evidence(ref):
             state = 'log_hash_matches'
     else:
         state = 'claim_only'
-    return ref | {'verified_state': state, 'verified_at': now(), 'verification_scope': VERIFICATION_SCOPE}
+    return ref | {'verified_state': state, 'verified_at': stamp, 'verification_scope': VERIFICATION_SCOPE}, verification
+
+
+def verify_all(refs):
+    """Row fields for a list of references: `evidence`, plus the optional parallel verification list when a commit is present."""
+    pairs = [verify_evidence(r) for r in refs]
+    fields = {'evidence': [entry for entry, _ in pairs]}
+    if any(v for _, v in pairs):
+        fields[VERIFICATION_KEY] = [v for _, v in pairs]
+    return fields
+
+
+COMMIT_VERIFICATION_STATES = ('exists', 'missing', 'operational_failure', 'not_recorded')
+
+
+def recorded_commit_states(row):
+    """One state per commit evidence entry of a row: exists, missing, operational_failure or not_recorded.
+
+    A row written before this field has none, and that stays `not_recorded`: nothing was observed then, so it is neither missing nor failed.
+    """
+    recorded = row.get(VERIFICATION_KEY)
+    states = []
+    for index, entry in enumerate(row['evidence']):
+        if entry['type'] != 'commit':
+            continue
+        item = recorded[index] if isinstance(recorded, list) and index < len(recorded) else None
+        state = item.get('state') if isinstance(item, dict) else None
+        states.append('not_recorded' if state not in COMMIT_CHECKS else
+                      'operational_failure' if state in ('timeout', 'error') else state)
+    return states
+
+
+def commit_verification_summary(rows):
+    """Counts of recorded commit-evidence verification over `rows`, with the denominator (commit evidence entries)."""
+    counts = dict.fromkeys(COMMIT_VERIFICATION_STATES, 0)
+    for row in rows:
+        for state in recorded_commit_states(row):
+            counts[state] += 1
+    return {'denominator': sum(counts.values()), **counts,
+            'meaning': 'the commit check at close time; not_recorded is a row written before it was kept, neither missing nor failed'}
 
 
 def check_consistency(outcome, check, repairs, refs):
@@ -248,6 +299,26 @@ ROW_ENUMS = {'close': (('outcome', OUTCOMES), ('judged_by', JUDGED_BY), ('check'
              'followup': (('finding', FINDINGS),)}
 
 
+def check_verification(row):
+    """The optional commit verification list must match `evidence` one to one: an object for commit evidence, null otherwise."""
+    if VERIFICATION_KEY not in row:
+        return
+    recorded = row[VERIFICATION_KEY]
+    if not isinstance(recorded, list) or len(recorded) != len(row['evidence']):
+        raise ValueError(f'{VERIFICATION_KEY} must be a list with one item per evidence entry')
+    for entry, item in zip(row['evidence'], recorded):
+        if entry['type'] != 'commit':
+            if item is not None:
+                raise ValueError(f'{VERIFICATION_KEY} must be null for {entry["type"]} evidence')
+            continue
+        if not isinstance(item, dict) or set(item) != {'state', 'recorded_at'} or item['state'] not in COMMIT_CHECKS:
+            raise ValueError(f'{VERIFICATION_KEY} for commit evidence must be {{state, recorded_at}} with state {", ".join(COMMIT_CHECKS)}')
+        try:
+            datetime.fromisoformat(item['recorded_at'])
+        except (TypeError, ValueError):
+            raise ValueError(f'{VERIFICATION_KEY} recorded_at must be an ISO timestamp') from None
+
+
 def check_row(row):
     """Raise ValueError with a reason when one outcome row is not what this CLI writes."""
     if not isinstance(row, dict):
@@ -274,6 +345,7 @@ def check_row(row):
             isinstance(e, dict) and e.get('type') in EVIDENCE_KEYS and isinstance(e.get('verified_state'), str)
             for e in row['evidence']):
         raise ValueError('evidence must be a list of verified evidence objects')
+    check_verification(row)
     stamp = 'recorded_at' if kind == 'close' else 'observed_at'
     try:
         datetime.fromisoformat(row[stamp])
@@ -400,7 +472,7 @@ def write_close(args, receipt):
         elif heads:
             raise ValueError('decision already closed; correct it with --supersedes CURRENT_CLOSE_ID and --reason')
         record = {'schema_version': 1, 'kind': 'close', 'close_id': close_id, **intent,
-                  'evidence': [verify_evidence(r) for r in refs], 'recorded_at': now(), 'cli_version': CLI_VERSION,
+                  **verify_all(refs), 'recorded_at': now(), 'cli_version': CLI_VERSION,
                   'policy_sha256': receipt.get('policy_sha256'), 'scope': SCOPE, 'assertion': 'caller_claim'}
         record['evidence_summary'] = evidence_summary(record['evidence'], check, outcome)
         append_row(stream, record)
@@ -437,7 +509,7 @@ def write_followup(args, receipt):
         observed_at = now()
         lag = (datetime.fromisoformat(observed_at) - datetime.fromisoformat(heads[0]['recorded_at'])).total_seconds()
         record = {'schema_version': 1, 'kind': 'followup', 'followup_id': followup_id, **intent,
-                  'evidence': [verify_evidence(r) for r in refs], 'close_id': heads[0]['close_id'],
+                  **verify_all(refs), 'close_id': heads[0]['close_id'],
                   'observed_at': observed_at, 'lag_seconds_since_close': lag, 'cli_version': CLI_VERSION,
                   'policy_sha256': receipt.get('policy_sha256'), 'scope': SCOPE,
                   'semantics': 'sampled observation; absence of a followup means not checked, never no rework'}
