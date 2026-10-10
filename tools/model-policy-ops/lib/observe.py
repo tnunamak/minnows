@@ -15,7 +15,7 @@ from pathlib import Path
 import destinations as destination_store
 import observations as store
 from decision_receipts import read_receipts
-from delegation_audit import PREFIX, T3_STATUSES, bounded, effort, normalize_since, read_db, stamp
+from delegation_audit import PREFIX, T3_STATUSES, bounded, effort, normalize_since, read_db, safe_id, safe_ordinal, stamp
 from outcomes import commit_state, git_argv, git_env, read_outcomes, split_rows
 from route_inputs import CANCELLATIONS, classify_failure
 
@@ -126,6 +126,25 @@ def timestamps(**named):
 
 # ---- T3 ---------------------------------------------------------------------------------------------------------------
 
+def checked_id(raw, name, unknown):
+    """The id when it fits the T3 id grammar. Otherwise None, and `unknown[name]` says why: the source text is never retained."""
+    value = safe_id(raw)
+    if value is None:
+        unknown[name] = 'invalid_id'
+    return value
+
+
+def checked_ordinal(raw, name, unknown):
+    value = safe_ordinal(raw)
+    if value is None:
+        unknown[name] = 'invalid_ordinal'
+    return value
+
+
+def ids_of(**named):
+    return {name: value for name, value in named.items() if value is not None}
+
+
 def table_columns(db, name):
     return {row[1] for row in db.execute(f'PRAGMA table_info({PREFIX}{name})')}
 
@@ -151,18 +170,22 @@ def run_details(db, run_id):
 
 
 def usage_observations(source, run_id, decision_id, usage):
-    """One row per reported turn, labelled as reported. Never a sum: scopes can overlap."""
+    """One row per reported turn, labelled as reported. Never a sum: scopes can overlap. Ids arrive validated or None."""
     turns = [(a['attempt_id'], a['attempt_ordinal'], t) for a in usage['attempts'] for t in a['turns']]
     if not turns:
         return [store.make_observation(source, run_id, decision_id, 't3_usage_unavailable',
                                        {'state': usage['state'], 'reason': usage['reason']}, source_ids={'run_id': run_id})]
-    return [store.make_observation(
-        source, run_id, decision_id, 't3_turn_usage',
-        {'attempt_id': attempt, 'attempt_ordinal': ordinal, 'label': usage['label'], 'sums': usage['sums']} | turn,
-        source_ids={'run_id': run_id, 'provider_turn_id': turn['provider_turn_id']},
-        unknown={'timestamps': 'not_projected_by_the_usage_reader'} | (
-            {} if turn['usage_status'] in ('complete', 'partial') else {'tokens': f'usage_status_{turn["usage_status"]}'}))
-        for attempt, ordinal, turn in turns]
+    found = []
+    for attempt, ordinal, turn in turns:
+        unknown = {'timestamps': 'not_projected_by_the_usage_reader'} | (
+            {} if turn['usage_status'] in ('complete', 'partial') else {'tokens': f'usage_status_{turn["usage_status"]}'})
+        unknown |= {name: 'invalid_id' for name, value in (('attempt_id', attempt), ('provider_turn_id', turn['provider_turn_id'])) if value is None}
+        unknown |= {name: 'invalid_ordinal' for name, value in (('attempt_ordinal', ordinal), ('ordinal', turn['ordinal'])) if value is None}
+        found.append(store.make_observation(
+            source, run_id, decision_id, 't3_turn_usage',
+            {'attempt_id': attempt, 'attempt_ordinal': ordinal, 'label': usage['label'], 'sums': usage['sums']} | turn,
+            source_ids=ids_of(run_id=run_id, provider_turn_id=turn['provider_turn_id']), unknown=unknown))
+    return found
 
 
 def collect_t3(db_path, scope_ids, targets=None):
@@ -184,18 +207,21 @@ def collect_t3(db_path, scope_ids, targets=None):
     try:
         db.execute('PRAGMA query_only=ON')
         db.execute('BEGIN')
-        for call in calls:
+        for position, call in enumerate(calls):
             decision = call['decision_id']
             stamps, unknown = timestamps(started_at=call['timestamp'])
             call_status, why = status_of(call['status'])
+            call_id = checked_id(call['call_id'], 'call_id', unknown)
+            thread_id = checked_id(call['thread_id'], 'thread_id', unknown)
+            child = checked_id(call['child_run_id'], 'child_run_id', unknown) if call['child_run_id'] is not None else None
             found.append(store.make_observation(
-                't3', call['call_id'], decision, 't3_delegate_call',
-                {'call_status': call_status, 'child_run_id': call['child_run_id']},
-                source_ids={'call_id': call['call_id'], 'thread_id': call['thread_id']}, source_timestamps=stamps,
-                unknown=unknown | ({} if call['child_run_id'] else {'child_run_id': 'call_started_no_child_run'})
+                't3', call_id or f'invalid-call:{decision}:{position}', decision, 't3_delegate_call',
+                {'call_status': call_status, 'child_run_id': child},
+                source_ids=ids_of(call_id=call_id, thread_id=thread_id), source_timestamps=stamps,
+                unknown=unknown | ({} if child or 'child_run_id' in unknown else {'child_run_id': 'call_started_no_child_run'})
                 | ({'call_status': why} if why else {})))
-            if call['child_run_id'] and call['child_run_id'] not in runs:
-                runs[call['child_run_id']] = (decision, call)
+            if child and child not in runs:
+                runs[child] = (decision, call)
         for run_id, (decision, call) in runs.items():
             row, attempts, failures = run_details(db, run_id)
             ids = {'run_id': run_id}
@@ -221,18 +247,22 @@ def collect_t3(db_path, scope_ids, targets=None):
                 | ({'provider_instance': instance_why} if instance_why else {}) | ({'model': model_why} if model_why else {})))
             for attempt_id, ordinal, attempt_status in attempts:
                 attempt_status, why = status_of(attempt_status)
+                unknown = {'timestamps': 'attempt_rows_carry_none'} | ({'status': why} if why else {})
+                attempt_id = checked_id(attempt_id, 'attempt_id', unknown)
+                ordinal = checked_ordinal(ordinal, 'attempt_ordinal', unknown)
                 found.append(store.make_observation(
                     't3', run_id, decision, 't3_attempt_status',
                     {'attempt_id': attempt_id, 'attempt_ordinal': ordinal, 'status': attempt_status},
-                    source_ids=ids | {'attempt_id': attempt_id}, unknown={'timestamps': 'attempt_rows_carry_none'} | ({'status': why} if why else {})))
+                    source_ids=ids | ids_of(attempt_id=attempt_id), unknown=unknown))
             for item_id, updated_at, item_started, native_class, message in failures:
                 if str(native_class).lower() in CANCELLATIONS:
                     continue
                 stamps, unknown = timestamps(at=item_started or updated_at)
+                item_id = checked_id(item_id, 'turn_item_id', unknown)
                 found.append(store.make_observation(
                     't3', run_id, decision, 't3_terminal_failure',
                     {'turn_item_id': item_id, 'failure_class': classify_failure(message)},
-                    source_ids=ids | {'turn_item_id': item_id}, source_timestamps=stamps, unknown=unknown))
+                    source_ids=ids | ids_of(turn_item_id=item_id), source_timestamps=stamps, unknown=unknown))
             found += usage_observations('t3', run_id, decision, call['observed_child_usage'])
         db.commit()
     except sqlite3.Error as error:

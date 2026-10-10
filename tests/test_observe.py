@@ -147,6 +147,81 @@ def test_t3_retained_fields_never_carry_source_text(setup, tmp_path, secret):
     assert secret not in json.dumps(audit['delegations'][0]['observed_child_usage'])  # the audit reader enforces the same enums
 
 
+BAD_ID = 'password=secret123 "hunter2" x'  # spaces, '=' and quotes: not a T3 id
+
+
+def break_ids(db, bad):
+    """Free text in every retained T3 id and ordinal. Joins stay consistent, so only the grammar can stop it."""
+    c = sqlite3.connect(db)
+    c.execute(f'update {PREFIX}run_attempts set attempt_id=?, attempt_ordinal=?', (bad + ' attempt', bad + ' ordinal'))
+    c.execute(f'update {PREFIX}provider_turns set run_attempt_id=?, provider_turn_id=?, ordinal=?', (bad + ' attempt', bad + ' turn', bad + ' tordinal'))
+    c.execute(f"update {PREFIX}turn_items set turn_item_id=?, thread_id=? where turn_item_id='call'", (bad + ' call', bad + ' thread'))
+    c.commit()
+    c.close()
+
+
+@pytest.mark.parametrize('bad', [BAD_ID, "tok'en;drop", 'a' * 2000], ids=['spaces-equals-quotes', 'quote', 'too-long'])
+def test_t3_ids_and_ordinals_that_break_the_grammar_become_unknown_never_copied(setup, tmp_path, bad):
+    db = t3_world(setup, tmp_path, failure=f'{SECRET} rate limit reached')
+    break_ids(db, bad)
+    c = sqlite3.connect(db)
+    c.execute(f"update {PREFIX}turn_items set turn_item_id=? where turn_item_id like '%terminal-failure%'", (bad + ' terminal-failure',))
+    c.commit()
+    c.close()
+    row = ok(setup, '--db', db)
+    assert row['sources']['t3']['state'] == 'ok'
+    text = paths(setup)[1].read_text()
+    for planted in (bad, 'password', 'hunter2', "tok'en"):
+        assert planted not in text
+    by_type = {}
+    for r in facts(setup, 't3'):
+        by_type.setdefault(r['fact_type'], []).append(r)
+    call = by_type['t3_delegate_call'][0]  # the row is kept: a bad id is an unknown field, not a dropped fact
+    assert call['fact']['child_run_id'] == 'child' and call['unknown']['call_id'] == call['unknown']['thread_id'] == 'invalid_id'
+    assert 'call_id' not in call['source_ids'] and 'thread_id' not in call['source_ids']
+    attempt = by_type['t3_attempt_status'][0]
+    assert attempt['fact']['attempt_id'] is None and attempt['fact']['attempt_ordinal'] is None
+    assert attempt['unknown']['attempt_id'] == 'invalid_id' and attempt['unknown']['attempt_ordinal'] == 'invalid_ordinal'
+    usage = by_type['t3_turn_usage'][0]
+    assert usage['fact']['provider_turn_id'] is None and usage['fact']['ordinal'] is None and usage['fact']['attempt_id'] is None
+    assert {'attempt_id', 'attempt_ordinal', 'provider_turn_id', 'ordinal'} <= set(usage['unknown'])
+    failure = by_type['t3_terminal_failure'][0]
+    assert failure['fact']['turn_item_id'] is None and failure['unknown']['turn_item_id'] == 'invalid_id'
+    _, audit = run('audit', '--db', db, '--receipts', setup[3])
+    assert bad not in json.dumps(audit['delegations'][0]['observed_child_usage'])
+
+
+@pytest.mark.parametrize('bad', [BAD_ID, "tok'en;drop"], ids=['spaces-equals-quotes', 'quote'])
+def test_a_child_run_id_that_breaks_the_grammar_is_an_unknown_reference_not_a_run(setup, tmp_path, bad):
+    db = t3_world(setup, tmp_path)
+    c = sqlite3.connect(db)
+    c.execute(f"update {PREFIX}turn_items set payload_json=json_set(payload_json,'$.output.structuredContent.childRunId',?) where turn_item_id='call'", (bad,))
+    c.commit()
+    c.close()
+    row = ok(setup, '--db', db)
+    assert row['sources']['t3']['state'] == 'ok'
+    text = paths(setup)[1].read_text()
+    assert bad not in text and 'password' not in text and 'hunter2' not in text
+    assert {r['fact_type'] for r in facts(setup, 't3')} == {'t3_delegate_call'}
+    call = facts(setup, 't3')[0]
+    assert call['fact']['child_run_id'] is None and call['unknown']['child_run_id'] == 'invalid_id'
+    assert call['source_ids'].get('run_id') is None
+
+
+def test_a_valid_t3_id_with_the_live_shape_is_kept(setup, tmp_path):
+    db = t3_world(setup, tmp_path)
+    live = 'run:thread:mcp%3A0b6bfe5e-aaaa-4bbb-8ccc-123456789abc:ordinal:88'
+    c = sqlite3.connect(db)
+    c.execute(f"update {PREFIX}runs set run_id=? where run_id='child'", (live,))
+    c.execute(f"update {PREFIX}run_attempts set run_id=?", (live,))
+    c.execute(f"update {PREFIX}turn_items set payload_json=json_set(payload_json,'$.output.structuredContent.childRunId',?) where turn_item_id='call'", (live,))
+    c.commit()
+    c.close()
+    ok(setup, '--db', db)
+    assert {r['fact']['status'] for r in facts(setup, 't3', 't3_run_status')} == {'completed'}
+    assert facts(setup, 't3', 't3_run_status')[0]['source_ids']['run_id'] == live
+
+
 def test_t3_options_keep_only_documented_ids_with_known_values_and_count_the_rest(setup, tmp_path):
     db = t3_world(setup, tmp_path)
     c = sqlite3.connect(db)

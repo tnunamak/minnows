@@ -1,5 +1,6 @@
 """Read-only T3 projection audit. Requested configuration never proves served output."""
 import json
+import re
 import sqlite3
 from pathlib import Path
 from datetime import datetime, timezone
@@ -8,6 +9,18 @@ from outcomes import chain_heads, split_rows
 import observations as observation_store
 
 PREFIX = 'orchestration_v2_projection_'
+# T3 ids are a kind prefix (run:, run-attempt:, turn-item:, provider-turn:, thread:, mcp:, import:) over percent-encoded segments, or a bare
+# uuid. Every live id (about 170,000) uses only these characters and is at most 700 long; free text has spaces, '=' or quotes.
+T3_ID = re.compile(r'[A-Za-z0-9%:._-]{1,1024}')
+
+
+def safe_id(value):
+    """The id when it fits the T3 id grammar, else None. Source text outside the grammar is never retained."""
+    return value if isinstance(value, str) and T3_ID.fullmatch(value) else None
+
+
+def safe_ordinal(value):
+    return value if type(value) is int and value >= 0 else None
 
 
 def stamp(value):
@@ -68,11 +81,12 @@ def read_child_usage(db, child_run_id):
       FROM {PREFIX}run_attempts a LEFT JOIN {PREFIX}provider_turns t
         ON t.run_attempt_id=a.attempt_id OR (a.provider_turn_id IS NOT NULL AND t.provider_turn_id=a.provider_turn_id)
       WHERE a.run_id=? ORDER BY a.attempt_ordinal,a.attempt_id,t.ordinal,t.provider_turn_id"""
-    attempts = {}
+    attempts, seen = {}, {}
     for row in db.execute(sql, (child_run_id,)):
-        attempt = attempts.setdefault(row[0], {'attempt_id': row[0], 'attempt_ordinal': row[1], 'turns': []})
-        if row[2] is None or any(t['provider_turn_id'] == row[2] for t in attempt['turns']):
+        attempt = attempts.setdefault(row[0], {'attempt_id': safe_id(row[0]), 'attempt_ordinal': safe_ordinal(row[1]), 'turns': []})
+        if row[2] is None or row[2] in seen.setdefault(row[0], set()):
             continue
+        seen[row[0]].add(row[2])
         status = row[5]
         scope, scope_dropped = bounded(row[6], USAGE_SCOPES)
         turn_status, turn_status_dropped = bounded(row[4], T3_STATUSES)
@@ -80,7 +94,7 @@ def read_child_usage(db, child_run_id):
         reported = {name: count(row[8 + i]) for i, (name, _) in enumerate(USAGE_FIELDS)}
         keep = status in ('complete', 'partial')
         attempt['turns'].append({
-            'provider_turn_id': row[2], 'ordinal': row[3], 'turn_status': turn_status, 'turn_status_dropped': turn_status_dropped,
+            'provider_turn_id': safe_id(row[2]), 'ordinal': safe_ordinal(row[3]), 'turn_status': turn_status, 'turn_status_dropped': turn_status_dropped,
             'usage_status': status if status in ('complete', 'partial', 'unavailable') else 'unknown',
             'usage_scope': scope, 'usage_scope_dropped': scope_dropped,
             'has_subagents': subagents,
