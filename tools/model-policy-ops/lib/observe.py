@@ -5,6 +5,7 @@ A source that fails is recorded as `unavailable` or `error` in the source_run ro
 """
 import json
 import os
+import stat
 import re
 import sqlite3
 import subprocess
@@ -391,15 +392,34 @@ def git(repo, *args):
     return stdout.decode('utf-8', 'replace')
 
 
+def path_kind(path):
+    """'dir', 'file', 'other' or 'absent' for one path, without following a final symlink. Only real absence is 'absent':
+    a permission or I/O error is a GitFailure ('filesystem_unreadable'), never a healthy skip."""
+    try:
+        mode = os.lstat(path).st_mode
+    except (FileNotFoundError, NotADirectoryError):
+        return 'absent'
+    except OSError:
+        raise GitFailure('filesystem_unreadable') from None
+    if stat.S_ISLNK(mode):
+        try:
+            mode = os.stat(path).st_mode
+        except (FileNotFoundError, NotADirectoryError):
+            return 'absent'
+        except OSError:
+            raise GitFailure('filesystem_unreadable') from None
+    return 'dir' if stat.S_ISDIR(mode) else 'file' if stat.S_ISREG(mode) else 'other'
+
+
 def is_repo_root(repo):
     """The path is a repository itself, not a directory inside another one: no other repo is ever scanned.
 
     A directory with neither `.git` nor the files of a bare repository is not a root, whatever git would discover above it. For a
     candidate root, git must confirm it; any failure to answer (dubious ownership, unreadable config, a non-zero exit) is a GitFailure.
     """
-    if os.path.lexists(os.path.join(repo, '.git')):
+    if path_kind(os.path.join(repo, '.git')) != 'absent':
         return os.path.realpath(git(repo, 'rev-parse', '--show-toplevel').strip()) == os.path.realpath(repo)
-    if os.path.isfile(os.path.join(repo, 'HEAD')) and os.path.isdir(os.path.join(repo, 'objects')):
+    if path_kind(os.path.join(repo, 'HEAD')) == 'file' and path_kind(os.path.join(repo, 'objects')) == 'dir':
         return git(repo, 'rev-parse', '--git-dir').strip() == '.'  # a bare repository
     return False
 
@@ -431,7 +451,7 @@ def reverting_commits(repo, sha, start, end):
 def scan_commit(close, ref, window_days, now):
     """Candidate follow-up signals for one evidenced commit of one close. Raises Ineligible (skip) or GitFailure (operational)."""
     repo, sha = ref['repo'], ref['sha']
-    if not (os.path.isabs(repo) and SHA1.fullmatch(sha) and os.path.isdir(repo)):
+    if not (os.path.isabs(repo) and SHA1.fullmatch(sha) and path_kind(repo) == 'dir'):
         raise Ineligible('repo_missing')
     if not is_repo_root(repo):
         raise Ineligible('not_a_repository_root')

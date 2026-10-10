@@ -964,3 +964,30 @@ def test_the_previous_cli_still_works_on_a_state_dir_with_observations(setup, tm
     assert 'observations' not in audit and audit['counts']['call_attempts'] == 1
     assert any(r['close_id'] == 'oc1' for r in map(json.loads, paths(setup)[0].read_text().splitlines()))
     assert stat.S_IMODE(paths(setup)[1].stat().st_mode) == 0o600
+
+
+@pytest.mark.parametrize('target', ['repo', '.git', 'HEAD'])
+def test_a_permission_error_on_the_repository_probe_is_operational_not_a_healthy_skip(setup, repo_world, monkeypatch, target):
+    """EACCES while probing the repo, its .git or a bare HEAD is filesystem_unreadable, never repo_missing or not_a_repository_root."""
+    observe_module = lib_module('observe')
+    repo_path = repo_world['repo']
+    if target == 'HEAD':
+        repo_path = repo_world['repo'].parent / 'probe-bare.git'
+        subprocess.run(['git', 'clone', '-q', '--bare', str(repo_world['repo']), str(repo_path)], check=True, capture_output=True)
+    repo = str(repo_path)
+    real_lstat = os.lstat
+    blocked = repo if target == 'repo' else os.path.join(repo, target)
+
+    def lstat(path, *args, **kwargs):
+        if os.fspath(path) == blocked:
+            raise PermissionError(13, 'Permission denied', os.fspath(path))
+        return real_lstat(path, *args, **kwargs)
+
+    monkeypatch.setattr(observe_module.os, 'lstat', lstat)
+    source = collect_one(repo_path, repo_world['sha'])
+    assert source['state'] == 'error' and source['failed'] == {'filesystem_unreadable': 1} and source['skipped'] == {}
+
+
+def test_a_genuinely_absent_repository_is_still_a_skip(setup, repo_world):
+    source = collect_one(repo_world['repo'] / 'does-not-exist', repo_world['sha'])
+    assert source['state'] == 'ok' and source['skipped'] == {'repo_missing': 1} and source['failed'] == {}
