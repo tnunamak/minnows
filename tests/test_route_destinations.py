@@ -542,6 +542,29 @@ def test_vendor_must_be_a_non_empty_string(world, tmp_path):
 
 # ---- round 2 repairs -------------------------------------------------------------------------------------------------
 
+@pytest.mark.parametrize('claude_first', [True, False])
+@pytest.mark.parametrize('probe_body', ['echo \'{"available": false, "reason": "busy"}\'', 'echo not json'])
+def test_mixed_independence_decline_and_unavailable_probe_falls_back_with_both_reasons(world, tmp_path, claude_first, probe_body):
+    same = entry(capacity(tmp_path, 'same'), name='same') | {'vendor': 'claude'}
+    other = entry(script(tmp_path, 'other.sh', probe_body), name='other') | {'vendor': 'codex'}
+    cfg = config(tmp_path, *((same, other) if claude_first else (other, same)))
+    out = route(world, cfg, '--purpose', 'review', '--inputs', 'github', *MAKER)
+    fallback = dest(out)['fallback']
+    assert 'destination_offer' not in out and out['target'] is not None and not ran(tmp_path, 'same')
+    assert fallback['destination'] == ('same' if claude_first else 'other') and fallback['source'] == 'capacity'
+    assert fallback['reasons'] == ['independence', 'unavailable']
+    assert fallback['by_destination'] == {'same': ['independence'], 'other': ['unavailable']}
+    assert fallback['probe_reason'] in ('busy', 'capacity_probe_error: invalid_json')
+    assert {c['name']: c['state'] for c in dest(out)['considered']} == {'same': 'declined_by_independence', 'other': 'unavailable'}
+
+
+def test_every_probe_unavailable_keeps_the_unavailable_only_fallback(world, tmp_path):
+    cfg = config(tmp_path, entry(capacity(tmp_path, 'a', False, 'one'), name='first') | {'vendor': 'codex'},
+                 entry(script(tmp_path, 'b.sh', 'echo not json'), name='second') | {'vendor': 'codex'})
+    fallback = dest(route(world, cfg, '--purpose', 'review', '--inputs', 'github', *MAKER))['fallback']
+    assert fallback == {'destination': 'first', 'reasons': ['unavailable'], 'source': 'capacity', 'probe_reason': 'one'}
+
+
 def alive(pid):
     try:
         os.kill(pid, 0)

@@ -189,6 +189,7 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
     if simulate:
         return block | {'considered': declined('not_probed_in_simulation')}, None
     considered = [{'name': e['name'], 'state': 'declined_by_independence'} for e in listed if same_vendor(e, independence)]
+    declined_names = [row['name'] for row in considered]
     listed = [e for e in listed if not same_vendor(e, independence)]
     if not listed:
         return block | {'considered': considered,
@@ -202,9 +203,13 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
                      'vendor': entry.get('vendor')}
             return block | {'chosen': entry['name'], 'considered': considered}, offer
         considered.append({'name': entry['name'], 'state': 'unavailable', 'capacity': capacity})
-    return block | {'considered': considered,
-                    'fallback': {'destination': first, 'reasons': ['unavailable'], 'source': 'capacity',
-                                 'probe_reason': considered[0]['capacity'].get('reason')}}, None
+    probed = [row for row in considered if row['state'] == 'unavailable']
+    fallback = {'destination': first, 'reasons': ['unavailable'], 'source': 'capacity', 'probe_reason': probed[0]['capacity'].get('reason')}
+    if declined_names:
+        # Some destinations were declined and the rest were unavailable: both reasons hold, each tied to its destination.
+        fallback |= {'reasons': ['independence', 'unavailable'],
+                     'by_destination': {row['name']: ['independence'] if row['name'] in declined_names else ['unavailable'] for row in considered}}
+    return block | {'considered': considered, 'fallback': fallback}, None
 
 
 INPUTS_UNKNOWN = {'code': 'destination_inputs_unknown', 'applies_to': 'destination',
