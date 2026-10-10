@@ -1,6 +1,6 @@
-# `route` delivery contract (v1, revision 7)
+# `route` delivery contract (v1, revision 8)
 
-Status: revision 7, 2026-10-10. Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
+Status: revision 8, 2026-10-10. Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
 child runs of a maker, the directive cap on write and on read, and final-pair judgment after an
 override (see the changelog). Revision 4 applies the independent checker's
 findings (report r1): maker provenance from the T3 child run, a model line key for
@@ -412,6 +412,7 @@ protect quality, not quota.
 
 ## Changelog
 
+- Revision 8 (2026-10-10): destinations review fixes. The offer is built before the single `target` clear; the probe reads a bounded stream and fails closed on overflow (`output_too_large`) and its total time is the timeout plus 1 s; a destination may carry `vendor`, compared with the maker vendor at level `vendor` (`declined_by_independence`, fallback `independence`; `destination_independence_unknown` when unknown); with a destination chosen, model-pair reasons are `informational` with `applies_to: "model_fallback"` and `judgment_required` follows destination-level reasons only.
 - Revision 7 (2026-10-10): destinations. An ordered, optional `destinations.json` names external workers with purposes, a capacity command and a submit template. After the model ranking, a listed purpose goes to the first destination with capacity, unless launch facts (`--inputs local`, `--urgent`, `--sensitive`) or `--skip-destination REASON --reason` decline it. A chosen destination nulls every `target` and returns `destination_offer`; `decision_id` is the request ID. `test-design` joins the purposes. Audit adds `destination_routes` and `spend_first`; destination receipts are not unmatched anomalies. See README, Destinations.
 - Revision 6 (2026-10-10): `--now` is a read-only simulation. `route --now --record` fails before any write; `route --now` nulls every `target` key in its output and returns `launch_ready: false`, `simulated_target` and `simulation`, so a synthetic clock cannot revive an expired `authorize` or `allow-metered` directive inside a dispatchable receipt. Commands that write state (`resolve`, `close`, `followup`, `audit`, `directive add|end`) refuse `--now`.
 - Revision 5 (2026-10-10): checker report r2 fixes. R1: every T3 child run of the maker decision is read (`multiple_child_runs`). R2: `directive add` refuses `--now`; readers reject rows beyond the cap or recorded after the evaluation time (`directives_rejected`, state `rejected`). R3: an override with a null target raises `final_target_null`. R4: reasons carry `applies_to`; the final pair gets the same judgment rules; `judgment_required` follows the final pair. R5: `freshness.unchecked` and state `partial`. Also `independence.required_source`.
