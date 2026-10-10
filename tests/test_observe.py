@@ -181,6 +181,38 @@ def test_repeat_run_appends_no_facts_and_a_state_change_appends_new_rows(setup, 
     assert statuses == ['running', 'completed']  # the old row stays; append-only
 
 
+def test_a_source_timestamp_that_becomes_known_or_changes_is_a_new_fact_and_a_quiet_run_appends_none(setup, tmp_path):
+    db = t3_world(setup, tmp_path)  # completed, with no completion time recorded
+    first = ok(setup, '--db', db)
+    assert facts(setup, 't3', 't3_run_status')[0]['unknown']['completed_at'] == 'not_recorded'
+    assert new_total(ok(setup, '--db', db)) == 0  # collection time is not part of a fact
+    c = sqlite3.connect(db)
+    c.execute(f"update {PREFIX}runs set payload_json=json_set(payload_json,'$.completedAt','2026-10-08T00:05:00Z') where run_id='child'")
+    c.commit()
+    c.close()
+    third = ok(setup, '--db', db)
+    assert third['sources']['t3']['new_observations'] == 1 and new_total(first) > 1
+    statuses = facts(setup, 't3', 't3_run_status')
+    assert [s['source_timestamps'].get('completed_at') for s in statuses] == [None, '2026-10-08T00:05:00+00:00']
+    assert 'completed_at' not in statuses[1]['unknown'] and statuses[0]['fact'] == statuses[1]['fact']
+    assert new_total(ok(setup, '--db', db)) == 0
+
+
+def test_a_destination_timestamp_correction_is_a_new_fact(setup, tmp_path):
+    absent = RECORD | {'created_at': None} | {'events': [RECORD['events'][0] | {'at': None}]}
+    cfg, command = dest_world(setup, tmp_path, reply({'d1': absent}))
+    ok(setup, '--destinations', cfg)
+    before = facts(setup, 'destination:worker')
+    assert new_total(ok(setup, '--destinations', cfg)) == 0
+    command.write_text('#!/bin/sh\n' + reply({'d1': RECORD | {'events': [RECORD['events'][0]]}}) + '\n')
+    row = ok(setup, '--destinations', cfg)
+    assert row['sources']['destination:worker']['new_observations'] == 2  # the assignment and the event, now with their times
+    after = facts(setup, 'destination:worker')
+    assert len(after) == len(before) + 2 and sum(r['fact_type'] == 'destination_event' for r in after) == 2
+    command.write_text('#!/bin/sh\n' + reply({'d1': RECORD | {'events': [RECORD['events'][0] | {'at': '2026-10-10T13:02:00+00:00'}]}}) + '\n')
+    assert ok(setup, '--destinations', cfg)['sources']['destination:worker']['new_observations'] == 1  # a corrected event time
+
+
 def test_a_source_failure_is_not_zero_events(setup, tmp_path):
     record(setup, 'one')
     missing = ok(setup)

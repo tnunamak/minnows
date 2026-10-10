@@ -1,7 +1,7 @@
 """Observation ledger: facts that other systems recorded about decisions.
 
 An observation never creates, changes or implies a close, an outcome label or a quality verdict.
-Rows are append-only. `observation_id` is the sha256 of (source, subject, fact), so a repeat run appends nothing.
+Rows are append-only. `observation_id` is the sha256 of (source, subject, fact, source timestamps, unknown), so a repeat run appends nothing.
 """
 import fcntl
 import hashlib
@@ -31,18 +31,20 @@ SOURCE_RUN_KEYS = {'schema_version', 'kind', 'run_id', 'started_at', 'finished_a
 SOURCE_ENTRY_KEYS = {'state', 'reason', 'subjects_checked', 'new_observations'}
 
 
-def observation_id(source, subject_id, fact):
-    canonical = json.dumps([source, subject_id, fact], sort_keys=True, separators=(',', ':'), ensure_ascii=True)
+def observation_id(source, subject_id, fact, source_timestamps, unknown):
+    """Identity is the fact AND the source's own timestamps (with their unknown states). Collection time is not part of it."""
+    canonical = json.dumps([source, subject_id, fact, source_timestamps, unknown], sort_keys=True, separators=(',', ':'), ensure_ascii=True)
     return hashlib.sha256(canonical.encode()).hexdigest()
 
 
 def make_observation(source, subject_id, decision_id, fact_type, fact, *, source_ids=None, source_timestamps=None,
                      unknown=None, scope=None):
-    """One candidate row. `fact` is the identity: whatever is in it, a change to it is a new observation."""
+    """One candidate row. `fact`, `source_timestamps` and `unknown` are the identity: a change to any is a new observation."""
     fact = {'type': fact_type} | fact
-    return {'schema_version': SCHEMA, 'kind': 'observation', 'observation_id': observation_id(source, subject_id, fact),
+    source_timestamps, unknown = source_timestamps or {}, unknown or {}
+    return {'schema_version': SCHEMA, 'kind': 'observation', 'observation_id': observation_id(source, subject_id, fact, source_timestamps, unknown),
             'source': source, 'subject_id': subject_id, 'decision_id': decision_id, 'fact_type': fact_type, 'fact': fact,
-            'source_ids': source_ids or {}, 'source_timestamps': source_timestamps or {}, 'unknown': unknown or {},
+            'source_ids': source_ids or {}, 'source_timestamps': source_timestamps, 'unknown': unknown,
             'scope': scope}
 
 
@@ -75,8 +77,8 @@ def check_row(row):
         raise ValueError('source must be t3, git or destination:NAME')
     if not isinstance(row['fact'], dict) or row['fact'].get('type') != row['fact_type']:
         raise ValueError('fact must be an object whose type is fact_type')
-    if row['observation_id'] != observation_id(row['source'], row['subject_id'], row['fact']):
-        raise ValueError('observation_id does not match source, subject_id and fact')
+    if row['observation_id'] != observation_id(row['source'], row['subject_id'], row['fact'], row['source_timestamps'], row['unknown']):
+        raise ValueError('observation_id does not match source, subject_id, fact, source_timestamps and unknown')
     if row['decision_id'] is not None:
         validate_id(row['decision_id'])
 
