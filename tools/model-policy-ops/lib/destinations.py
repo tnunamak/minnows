@@ -1,8 +1,10 @@
 """Destinations: external workers that `route` offers before it picks a model. A destination is an adapter, not a chooser."""
 import json
 import os
+import selectors
 import signal
 import subprocess
+import time
 from pathlib import Path
 
 from outcomes import PURPOSES
@@ -10,6 +12,8 @@ from runtime_sources import digest
 
 SKIP_REASONS = ('local-inputs', 'synchronous', 'credential', 'unavailable', 'other')
 MAX_PROBE_BYTES = 64 * 1024
+CHUNK = 8192
+KILL_GRACE = 1.0
 MAX_TIMEOUT = 60
 
 
@@ -58,29 +62,68 @@ def probe_error(kind):
     return {'available': False, 'reason': f'capacity_probe_error: {kind}'}
 
 
-def probe(entry):
-    """Run the capacity command: no shell, stdin closed, timeout enforced. Every failure maps to available false."""
-    try:
-        process = subprocess.Popen(entry['capacity_command'], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                                   stderr=subprocess.DEVNULL, start_new_session=True)
-    except FileNotFoundError:
-        return probe_error('missing_binary')
-    except OSError:
-        return probe_error('os_error')
-    try:
-        stdout, _ = process.communicate(timeout=entry['timeout_seconds'])
-    except subprocess.TimeoutExpired:
-        # The whole session is killed, so a grandchild cannot keep the pipe open.
+def stop(process):
+    """Kill the probe's session, close the read pipe and reap with a bounded wait. A detached descendant may live on; it cannot block us."""
+    if process.poll() is None:
         try:
             os.killpg(process.pid, signal.SIGKILL)
         except OSError:
             process.kill()
-        process.communicate()
-        return probe_error('timeout')
+    process.stdout.close()
+    try:
+        process.wait(timeout=KILL_GRACE)
+    except subprocess.TimeoutExpired:
+        pass
+
+
+def read_limited(process, deadline):
+    """(bytes, None), or (None, 'timeout' | 'output_too_large'). Streams in chunks, so memory stays below the limit plus one chunk."""
+    chunks, size = [], 0
+    with selectors.DefaultSelector() as selector:
+        selector.register(process.stdout, selectors.EVENT_READ)
+        while True:
+            left = deadline - time.monotonic()
+            if left <= 0:
+                return None, 'timeout'
+            if not selector.select(left):
+                continue
+            chunk = os.read(process.stdout.fileno(), CHUNK)
+            if not chunk:
+                return b''.join(chunks), None
+            size += len(chunk)
+            if size > MAX_PROBE_BYTES:
+                return None, 'output_too_large'
+            chunks.append(chunk)
+
+
+def probe(entry):
+    """Run the capacity command: no shell, stdin closed, output and time bounded. Every failure maps to available false.
+
+    The total time is the timeout plus `KILL_GRACE`. Output past `MAX_PROBE_BYTES` fails closed; a truncated prefix is never parsed.
+    """
+    try:
+        process = subprocess.Popen(entry['capacity_command'], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                   stderr=subprocess.DEVNULL, start_new_session=True, bufsize=0)
+    except FileNotFoundError:
+        return probe_error('missing_binary')
+    except OSError:
+        return probe_error('os_error')
+    deadline = time.monotonic() + entry['timeout_seconds']
+    try:
+        stdout, failure = read_limited(process, deadline)
+        if failure is None:
+            try:
+                process.wait(timeout=max(deadline - time.monotonic(), 0))
+            except subprocess.TimeoutExpired:
+                failure = 'timeout'
+    finally:
+        stop(process)
+    if failure:
+        return probe_error(failure)
     if process.returncode != 0:
         return probe_error('nonzero_exit')
     try:
-        value = json.loads(stdout[:MAX_PROBE_BYTES].decode('utf-8'))
+        value = json.loads(stdout.decode('utf-8'))
     except ValueError:
         return probe_error('invalid_json')
     if not isinstance(value, dict) or type(value.get('available')) is not bool:
