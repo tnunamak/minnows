@@ -86,13 +86,13 @@ def check_routing(routing) -> list[str]:
     if not isinstance(routing, dict):
         return ["routing must be an object"]
     errors: list[str] = []
-    unknown = sorted(set(routing) - {"pace_windows", "failure_lookback_minutes", "failure_demote_count", "review_task_families", "independence_default", "directive_max_days", "lineage_key"})
+    unknown = sorted(set(routing) - {"pace_windows", "failure_lookback_minutes", "failure_demote_count", "review_task_families", "independence_default", "directive_max_days", "lineage_key", "observation_max_age_hours", "observation_window_days"})
     if unknown:
         errors.append(f"routing: unknown keys {', '.join(unknown)}")
     for key in ("pace_windows", "review_task_families"):
         if key in routing and not (isinstance(routing[key], list) and all(isinstance(v, str) and v for v in routing[key])):
             errors.append(f"routing.{key} must be a list of strings")
-    for key in ("failure_lookback_minutes", "failure_demote_count", "directive_max_days"):
+    for key in ("failure_lookback_minutes", "failure_demote_count", "directive_max_days", "observation_max_age_hours", "observation_window_days"):
         if key in routing and not (type(routing[key]) is int and routing[key] > 0):
             errors.append(f"routing.{key} must be a positive integer")
     if "independence_default" in routing and routing["independence_default"] not in INDEPENDENCE_LEVELS:

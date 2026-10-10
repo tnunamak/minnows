@@ -14,6 +14,7 @@ import route_inputs
 import routing
 import destinations
 import observations as observation_store
+import observation_notes
 import observe
 from delegation_audit import read_db, read_export, audit, normalize_since
 
@@ -341,6 +342,15 @@ def execute(args, policy):
         routing_block['destination'], offer = destinations.decide(
             dest_entries, purpose=args.purpose, facts=facts, skip=skip, reason=args.reason, request_id=decision_id, simulate=simulation,
             independence=independence)
+    if routing_block:
+        # Descriptive only: added once the destination is decided, so no ranking, target or judgment can depend on it.
+        rows, state, _ = observation_store.read_observations(args.observations)
+        found = observation_notes.notes(
+            rows, state, read_receipts(args.receipts), at=at, params=policy.get('routing', {}), purpose=args.purpose,
+            destination=(routing_block.get('destination') or {}).get('chosen') if offer else None,
+            has_observe_command=any('observe_command' in e for e in dest_entries))
+        if found:
+            routing_block['calibration_notes'] = routing_block['calibration_notes'] | {'observations': found}
     if offer:
         # The model pair is only a fallback now: its reasons stay visible and no longer need judgment.
         for reason in routing_block['judgment_reasons']:

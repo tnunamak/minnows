@@ -788,6 +788,8 @@
     ],
     "independence_default": "vendor",
     "directive_max_days": 14,
+    "observation_max_age_hours": 3,
+    "observation_window_days": 14,
     "lineage_key": {
       "claude": "family",
       "codex": "tier",
