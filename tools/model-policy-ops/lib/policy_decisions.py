@@ -12,6 +12,7 @@ import calibrate
 import directives as directive_store
 import route_inputs
 import routing
+import destinations
 from delegation_audit import read_db, read_export, audit, normalize_since
 
 
@@ -38,6 +39,11 @@ def add_arguments(parser):
     parser.add_argument('--proof-class', choices=outcomes.PROOF_CLASSES, help='launch fact: how the result is checked')
     parser.add_argument('--urgent', action='store_true', help='launch fact; absent means unknown')
     parser.add_argument('--irreversible', action='store_true', help='launch fact; absent means unknown')
+    parser.add_argument('--inputs', choices=outcomes.INPUTS, help='launch fact: where the task inputs are; absent means unknown')
+    parser.add_argument('--sensitive', action='store_true', help='launch fact: the task touches credential or signing code; absent means unknown')
+    parser.add_argument('--skip-destination', action='append', default=[], choices=destinations.SKIP_REASONS, metavar='REASON',
+                        help='route: decline the destination (local-inputs|synchronous|credential|unavailable|other); repeatable; requires --reason')
+    parser.add_argument('--destinations', type=Path, default=destinations.default_destinations_path(), help='destinations file; default ~/.config/model-policy/destinations.json')
     parser.add_argument('--outcomes', type=Path, help='outcome ledger; default outcomes.jsonl beside --receipts')
     parser.add_argument('--close-id')
     parser.add_argument('--followup-id')
@@ -207,6 +213,12 @@ def execute(args, policy):
         raise ValueError('relaunch requires --why infra, config or unavailable')
     if args.record and not all((args.decision_id, args.parent_model, args.parent_provider_instance, args.parent_thread)):
         raise ValueError('--record requires --decision-id and explicit --parent-model/--parent-provider-instance/--parent-thread')
+    skip = list(dict.fromkeys(args.skip_destination))
+    if skip and not route:
+        raise ValueError('--skip-destination applies to route only')
+    if skip and not (args.reason and args.reason.strip()):
+        raise ValueError('--skip-destination requires --reason')
+    dest_entries, dest_meta = destinations.read_destinations(args.destinations) if route else ([], {'state': 'missing', 'sha256': None})
     facts = outcomes.launch_facts(args)
     decision_id = args.decision_id or str(uuid.uuid4())
     validate_id(decision_id)
@@ -217,6 +229,9 @@ def execute(args, policy):
                'relaunch_of': args.relaunch_of}
     if route:
         request |= {'route': True, 'maker': args.maker, 'maker_model': args.maker_model, 'independence': args.independence}
+        # Added only when a destinations file or a skip exists, so a route without them keeps its old request shape.
+        if dest_meta['state'] == 'loaded' or skip:
+            request |= {'skip_destination': skip, 'destinations_sha256': dest_meta['sha256']}
     old = None if simulation else find_receipt(args.receipts, decision_id)
     if old:
         return replay_receipt(old, request, facts)
@@ -305,6 +320,20 @@ def execute(args, policy):
         return_value['escalation'] = escalation
     if relaunch:
         return_value['relaunch'] = relaunch
+    offer = None
+    if routing_block and dest_meta['state'] == 'loaded':
+        routing_block['destination'], offer = destinations.decide(
+            dest_entries, purpose=args.purpose, facts=facts, skip=skip, reason=args.reason, request_id=decision_id, simulate=simulation)
+    if offer:
+        return_value = clear_targets(return_value)
+        return_value['destination'] = offer['name']
+        return_value['launch_ready'] = False
+        return_value['launch_readiness_basis'] = 'destination chosen; no model target to dispatch'
+        return_value['destination_offer'] = offer
+        if (facts or {}).get('inputs') is None:
+            reasons = return_value['routing']['judgment_reasons']
+            reasons.append(destinations.INPUTS_UNKNOWN)
+            return_value['routing']['judgment_required'] = True
     if simulation:
         simulated = return_value['target']
         return_value = clear_targets(return_value)

@@ -327,6 +327,40 @@ def outcome_summary(reports, by_id, matched_ids, closes, heads, followups):
     }
 
 
+def destination_block(receipt):
+    return (receipt.get('routing') or {}).get('destination') or {}
+
+
+def destination_chosen(receipt):
+    return destination_block(receipt).get('chosen') or 'model'
+
+
+def destination_summary(receipts):
+    """Descriptive counts over route receipts. A destination receipt has no model dispatch, so it is not an unmatched anomaly."""
+    routes = {}
+    eligible = offered = 0
+    fallback = {'facts': {}, 'parent': {}, 'capacity': {}}
+    for receipt in receipts:
+        block = destination_block(receipt)
+        name = destination_chosen(receipt)
+        if name != 'model':
+            entry = routes.setdefault(name, {'decisions': 0, 'ids': []})
+            entry['decisions'] += 1
+            entry['ids'].append(receipt['decision_id'])
+        if not block.get('considered'):
+            continue  # no destination listed this purpose when the receipt was recorded
+        eligible += 1
+        offered += name != 'model'
+        found = block.get('fallback')
+        if found:
+            counts = fallback.setdefault(found['source'], {})
+            for reason in found['reasons']:
+                counts[reason] = counts.get(reason, 0) + 1
+    return dict(sorted(routes.items())), {
+        'eligible': eligible, 'offered': offered, 'fallback': {k: dict(sorted(v.items())) for k, v in fallback.items()},
+        'meaning': 'descriptive; offered = destination chosen; not proof the work was submitted or used'}
+
+
 def audit(rows, receipts, since=None, thread=None, time_anchor='export.timestamp', out_of_scope=None, outcome_rows=()):
     start = stamp(since) if since else None
     rows = [r for r in rows if (not thread or r['thread_id'] == thread) and (not start or stamp(r['timestamp']) >= start)]
@@ -371,6 +405,7 @@ def audit(rows, receipts, since=None, thread=None, time_anchor='export.timestamp
             'escalation': receipt.get('escalation') if receipt else None,
             'relaunch': receipt.get('relaunch') if receipt else None,
             **outcome_fields(receipt, closes, heads, followups, row)})
+    destination_routes, spend_first = destination_summary(scoped_receipts)
     total = len(reports)
     distinct_reports = {r['decision_id']: r for r in reports if r['matched_receipt']}.values()
     def rate(count):
@@ -401,7 +436,9 @@ def audit(rows, receipts, since=None, thread=None, time_anchor='export.timestamp
                 'provider_native': {'count': None, 'state': 'unknown_not_observed'},
                 'top_level_threads': {'count': None, 'state': 'unknown_not_observed'}},
             'unmatched_delegations': [r['call_id'] for r in reports if not r['matched_receipt']],
-            'unmatched_receipts': [r['decision_id'] for r in scoped_receipts if r['decision_id'] not in matched_ids],
+            'unmatched_receipts': [r['decision_id'] for r in scoped_receipts
+                                   if r['decision_id'] not in matched_ids and destination_chosen(r) == 'model'],
+            'destination_routes': destination_routes, 'spend_first': spend_first,
             'delegations': reports, 'limits': ['Coverage measures app-owned receipt coverage, not universal delegation compliance',
                 'Out-of-scope counts measure observed T3 projection records only; no universal native capture or decision-ID join',
                 'Absent projection tables and export out-of-scope counts are unknown; not zero',
