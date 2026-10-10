@@ -20,7 +20,8 @@ JUDGED_BY = ('parent', 'independent', 'owner')
 CHECKS = ('oracle', 'independent_judged', 'maker_judged', 'none')
 OWNER_INPUT = ('none_observed', 'desired', 'correction', 'rescue', 'unknown')
 FINDINGS = ('no_rework_found', 'fix_commit', 'revert', 'reopened', 'defect_reported')
-PURPOSES = ('execution', 'review', 'research', 'exploration')
+PURPOSES = ('execution', 'review', 'research', 'exploration', 'test-design')
+INPUTS = ('github', 'local')
 PROOF_CLASSES = ('oracle', 'judged', 'none')
 MAX_NOTE = 280
 MAX_EVIDENCE = 8
@@ -61,7 +62,8 @@ def launch_facts(args):
     """Optional launch facts stored beside, never inside, `request`. None when none were given."""
     facts = {k: v for k, v in (('purpose', args.purpose), ('proof_class', args.proof_class),
                                ('urgent', True if args.urgent else None),
-                               ('irreversible', True if args.irreversible else None)) if v is not None}
+                               ('irreversible', True if args.irreversible else None),
+                               ('inputs', args.inputs), ('sensitive', True if args.sensitive else None)) if v is not None}
     return {'schema_version': 1, **facts} if facts else None
 
 

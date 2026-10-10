@@ -106,7 +106,7 @@ class World:
         the arguments because the real `route --now` is a simulation); `directive add` keeps the real clock."""
         self.write()
         args = list(map(str, args))
-        env = dict(os.environ)
+        env = dict(os.environ, XDG_CONFIG_HOME=str(self.tmp / 'xdg'))  # no real destinations.json leaks in
         if not raw and not args[:2] == ['directive', 'add']:
             clock = NOW
             if args[0] == 'route' and '--now' in args:
@@ -946,6 +946,7 @@ def test_legacy_commands_are_byte_identical_to_the_baseline(world, tmp_path):
     audit_old['delegations'][0].pop('receipt_before_call', None)
     audit_new['delegations'][0].pop('receipt_before_call', None)
     coverage = audit_new.pop('route_coverage')
+    assert audit_new.pop('destination_routes') == {} and audit_new.pop('spend_first')['eligible'] == 0, 'destination keys are empty without destinations'
     assert coverage['resolve'] == 1 and coverage['route'] == 0, 'audit adds route_coverage and nothing else'
     for report in (audit_old, audit_new):
         report['delegations'][0]['decision_outcome']['current'].pop('recorded_at')

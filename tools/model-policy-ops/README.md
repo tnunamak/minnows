@@ -396,11 +396,109 @@ ops there is no default.
 `auth_config_events`, `independence_requested_only`, `independence_caller_claim`,
 `independence_maker_unknown`, `independence_line_unknown`, `final_metered_without_directive`,
 `final_avoided`, `final_quota_exhausted`, `final_not_runnable`, `final_requires_not_met`,
-`final_independence_bypassed`, `final_target_null`, `review_without_maker`, `directive_conflict`, and
+`final_independence_bypassed`, `final_target_null`, `review_without_maker`, `directive_conflict`, `destination_inputs_unknown`,
+`destination_independence_unknown`, and
 `newer_ga_model_not_in_pack` (informational: a newer GA model on the same
 model line is in the live catalog and not in the pack; an informational reason is listed
 but does not set `judgment_required`). With any reason, `route` still
 returns its best target unless it is `null`. The parent decides.
+
+### Destinations
+
+A destination is an external worker, such as a prepaid worker that resets each day, that
+can take some purposes instead of a model. `route` asks it first and chooses it when it
+is eligible and has capacity. The destination is an adapter. `route` stays the only chooser.
+
+Config: `~/.config/model-policy/destinations.json`, or `--destinations FILE`. A missing
+file means no destinations, and `route` behaves as before. A malformed file is an error.
+
+```json
+{"schema_version": 1, "destinations": [{
+  "name": "worker", "purposes": ["review", "research", "test-design"],
+  "capacity_command": ["/abs/path/capacity", "--capacity"], "timeout_seconds": 5,
+  "vendor": "codex", "how_to": "/abs/path/or/url", "submit": {"request_id": "<request_id>", "kind": "<purpose>"}}]}
+```
+
+`vendor` is optional. It names the destination's model vendor, in the same spelling as the
+maker vendor in `routing.independence.maker.vendor` (the T3 driver kind, for example `claude`
+or `codex`). For a review op, or with `--independence`, it is compared with the maker vendor:
+see Independence below.
+
+The list is ordered. `purposes` come from the launch-fact purposes. `submit` is a free-form
+object; `route` replaces the literal tokens `<request_id>` and `<purpose>` in every string.
+The capacity command prints one JSON object, `{"available": bool, "reason": str, ...}`;
+extra fields are kept. It runs without a shell, with stdin closed and the timeout enforced.
+The output is read in a stream and is limited to 64 KiB; on overflow the probe is killed and
+the result is `output_too_large` (a truncated prefix is never parsed). The probe session is
+killed whenever the probe ends, also when the leader has already exited, so an ordinary
+background child does not outlive `route`. The read pipe is closed, so the total time is the
+timeout plus a one-second grace, even if a detached (`setsid`) child keeps the pipe open; such
+a child can live on.
+A timeout, a non-zero exit, output that is not JSON (or has no boolean `available`) and a
+missing binary all mean `available: false`, with reason `capacity_probe_error: KIND`
+(`timeout`, `output_too_large`, `nonzero_exit`, `invalid_json`, `invalid_shape`, `missing_binary`, `os_error`).
+
+Rule, after `route` ranks the models as usual, for a purpose that a destination lists
+(`--purpose` is required for this):
+
+1. **Facts.** `--inputs local` gives `local-inputs`, `--urgent` gives `synchronous` and
+   `--sensitive` gives `credential`. Any of them means model, with
+   `routing.destination.fallback` = `{destination, reasons, source: "facts"}`.
+2. **Parent skip.** `--skip-destination local-inputs|synchronous|credential|unavailable|other`
+   (repeatable) means model, with source `parent` and the `--reason` text. Any use needs
+   `--reason`; `other` is the catch-all. `route` only.
+3. **Capacity.** The probe runs for each listed destination in order. When all are
+   unavailable: model, reasons `["unavailable"]`, source `capacity` and `probe_reason`.
+   This needs no parent reason.
+4. **Chosen.** The first destination with capacity wins. See the offer below.
+
+Independence. A purpose that needs independence is a review op (`review_task_families`) or any
+op with `--independence`. If the destination `vendor` equals the maker vendor and the required
+level is `vendor`, the destination is not eligible and is not probed: `considered` state
+`declined_by_independence`, and when none is left, `fallback` = `{destination, reasons:
+["independence"], source: "facts"}`, then `route` picks a model as usual. When some are
+declined and the rest are unavailable, `fallback` = `{destination, reasons: ["independence",
+"unavailable"], source: "capacity", probe_reason, by_destination}`, where `by_destination` maps
+each name to its reason. A maker with several runs is checked against every known run vendor; one
+run with an unknown vendor still adds the judgment reason. If the destination has
+no `vendor`, the maker vendor is unknown for any maker run, or the required level is finer than `vendor` (family
+or model, which a destination cannot show), the destination can still be chosen, and the judgment
+reason `destination_independence_unknown` is added.
+
+With `--now` (simulation) no probe runs. The destination state is `not_probed_in_simulation`
+and the output is today's simulation. A purpose that no destination lists is unchanged,
+except that `routing.destination` is `{chosen: "model", considered: []}` when a
+destinations file exists. `--override` does not suppress the destination; add
+`--skip-destination` as well to dispatch the override.
+
+When a destination is chosen, the output is a valid receipt with `target: null`,
+`launch_ready: false`, every nested `target` key null, a top-level `destination: NAME`
+and `destination_offer`: `{name, request_id, purpose, how_to, submit, capacity}`.
+`request_id` is the `decision_id`, so the worker's reports join to the receipt. When
+`--inputs` is unknown, the judgment reason `destination_inputs_unknown` is added: the
+destination needs one pushed GitHub input; if inputs are local, re-run with
+`--inputs local`. Every nested `target` key is cleared after the offer, the capacity JSON and
+the `submit` object are in place, so no field from the config or the probe can bring one back.
+
+Judgment when a destination is chosen. The model-pair reasons (pace, unvalidated candidate,
+quota, auth_config, model independence, model freshness) stay in `judgment_reasons`, tagged
+`applies_to: "model_fallback"` and `informational: true`. `judgment_required` then comes only
+from destination-level reasons (`applies_to: "destination"`): `destination_inputs_unknown`,
+`review_without_maker`, `destination_independence_unknown`. When the model is dispatched,
+judgment is unchanged. `--record`, replay, `close` and `followup` work as for any receipt.
+
+`request` gains `skip_destination` and `destinations_sha256` when a destinations file
+exists or a skip is given, so a changed skip or config on the same `--decision-id` is
+rejected. The probe result is a runtime input like quota: stored in
+`routing.destination.considered[].capacity`, not part of identity.
+
+Audit adds `destination_routes` and `spend_first` (see the audit reference). The counts
+are descriptive: "offered" is not proof that the work was submitted or used.
+
+Limits: the probe says the worker has capacity now, not that it will accept or finish the
+task. A destination receipt has no model target, so an older CLI that reads it still
+audits, closes and follows it up, but replaying it with the base flags fails because
+`request` has the new keys.
 
 ### Calibrate
 
@@ -514,9 +612,10 @@ coverage. T3 export evidence is caller-supplied; the tool cannot attest its orig
 
 ## Launch facts
 
-`resolve` accepts four optional facts about the task: `--purpose
-execution|review|research|exploration`, `--proof-class oracle|judged|none`,
-`--urgent` and `--irreversible`. Absent means unknown, never false. They are stored
+`resolve` accepts these optional facts about the task: `--purpose
+execution|review|research|exploration|test-design`, `--proof-class oracle|judged|none`,
+`--urgent`, `--irreversible`, `--inputs github|local` (where the task inputs are) and
+`--sensitive` (the task touches credential or signing code). Absent means unknown, never false. They are stored
 in a top-level `launch_facts` object (with its own `schema_version`) and never in
 `request`, so `request` keeps the 4ce5a3e shape and an older CLI can still replay a
 new receipt with the base flags. A replay checks `request` and `launch_facts`
@@ -700,11 +799,15 @@ on an exact repeat). `audit` prints JSON by default; `--json` is accepted.
 Top-level keys: `schema_version`, `scope`, `coverage`, `counts`, `effort_explicitness`,
 `reason_coverage`, `request_match`, `route_coverage`, `overrides`, `override_reasons`, `escalations`,
 `relaunches`, `repeated_decision_ids_multiple_children`, `unmatched_delegations`,
-`unmatched_receipts`, `out_of_scope_delegations`, `limits`, `delegations`, `outcomes`.
+`unmatched_receipts`, `destination_routes`, `spend_first`, `out_of_scope_delegations`, `limits`, `delegations`, `outcomes`.
 
 - `counts`: `call_attempts`, `unique_child_runs`, `distinct_receipt_decisions`.
 - `route_coverage`: `route`, `resolve`, `no_receipt` (call attempts by receipt origin), `denominator`,
   `rate` (route calls over all calls) and `meaning`.
+- `destination_routes`: `{DESTINATION: {"decisions": n, "ids": [DECISION_ID, ...]}}` for route receipts whose
+  chosen destination is not `model`. Those receipts never appear in `unmatched_receipts`.
+- `spend_first`: `eligible` (route receipts whose purpose a destination listed at record time), `offered`
+  (destination chosen), `fallback` (`facts`, `parent`, `capacity`, each `{REASON: count}`) and `meaning`.
 - `outcomes` (descriptive only, over distinct decisions):
   - `unit`, `descriptive_only`, `causal_claims`, `confounding`, `closes_are_claims`:
     fixed statements.

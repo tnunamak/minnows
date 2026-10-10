@@ -116,6 +116,16 @@ def maker_targets(maker):
     return [(maker['vendor']['value'], maker['requested']['model'])]
 
 
+def maker_vendor_coverage(maker):
+    """(known vendors, complete). Complete is false when any maker run has an unknown vendor, or when there is no maker."""
+    if not maker:
+        return [], False
+    if maker.get('runs'):
+        return sorted({r['provider'] for r in maker['runs'] if r['provider']}), all(r['provider'] for r in maker['runs'])
+    vendors = sorted({v for v, _ in maker_targets(maker)})
+    return vendors, bool(vendors)
+
+
 def independence_check(level, maker, arm, line_of):
     """(ok, requested_only, why_not). A different vendor is fixed by the T3 driver kind.
 
