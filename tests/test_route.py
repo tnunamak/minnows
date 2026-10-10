@@ -1459,3 +1459,116 @@ def test_b_independence_names_where_the_required_level_came_from(world):
     del world.policy['routing']['independence_default']
     out = world.route('review.audit', '--maker-model', 'codex:gpt-6.1-sol')
     assert out['routing']['independence']['required'] == 'vendor' and out['routing']['independence']['required_source'] == 'mechanism_default'
+
+
+# --- revision 6: --now is a read-only simulation --------------------------------------------------------------------
+
+RECORD = ['--record', '--parent-model', 'pm', '--parent-provider-instance', 'pp', '--parent-thread', 'pt', '--decision-id', 'sim']
+
+
+def simulate(world, *extra, at='2026-10-10T00:30:00Z'):
+    result, out = world.cli('route', 'implement.quota-tight', *world.args(), '--now', at, *extra, raw=True)
+    return result, out
+
+
+def test_r6_record_with_now_fails_before_any_write_and_leaves_the_receipts_byte_identical(world):
+    world.route('implement.quota-tight', record='first')
+    before = world.receipts.read_bytes()
+    result, out = simulate(world, *RECORD)
+    assert result.returncode == 1 and out is None
+    assert 'simulation' in result.stderr and 'cannot be recorded' in result.stderr
+    assert world.receipts.read_bytes() == before
+
+
+def test_r6_record_with_now_creates_no_receipts_file_when_none_exists(world):
+    assert not world.receipts.exists() and not world.receipts.parent.exists()
+    result, _ = simulate(world, *RECORD)
+    assert result.returncode == 1 and 'cannot be recorded' in result.stderr
+    assert not world.receipts.exists() and not world.receipts.parent.exists()
+
+
+def test_r6_a_synthetic_clock_cannot_put_a_directive_into_a_dispatchable_receipt(world):
+    world.add_directive('soon', 'avoid', 'provider=codex', until='2026-10-10T00:40:00Z')
+    result, _ = simulate(world, *RECORD)
+    assert result.returncode == 1
+    assert not world.receipts.exists()
+    assert world.route('implement.quota-tight', record='real')['routing']['directives_applied'] == ['soon'], 'a pinned real clock still records'
+
+
+def test_r6_simulation_output_has_no_dispatchable_target(world):
+    world.add_directive('soon', 'avoid', 'provider=codex', until='2026-10-10T00:40:00Z')
+    real = world.route('implement.quota-tight')
+    assert real['target'] and real['launch_ready'] is True and 'simulation' not in real and 'simulated_target' not in real
+    result, out = simulate(world)
+    assert result.returncode == 0, result.stderr
+    assert out['target'] is None and out['launch_ready'] is False
+    assert out['simulated_target'] == real['target']
+    assert out['routing']['directives_applied'] == ['soon']
+    sim = out['simulation']
+    assert set(sim) == {'now', 'real_clock_at_evaluation', 'note'}
+    assert sim['now'].startswith('2026-10-10T00:30:00') and sim['note'] == 'simulation only; not a dispatch decision'
+    assert datetime.fromisoformat(sim['real_clock_at_evaluation']).tzinfo is not None
+    assert not world.receipts.exists()
+
+
+def test_r6_simulation_does_not_replay_a_stored_receipt(world):
+    world.route('implement.quota-tight', record='sim')
+    result, out = simulate(world, '--decision-id', 'sim')
+    assert result.returncode == 0 and out['target'] is None and out['launch_ready'] is False and 'simulation' in out
+
+
+@pytest.mark.parametrize('argv', [
+    ['resolve', 'implement.quota-tight'],
+    ['audit', '--export', 'x.json'],
+    ['close', '--close-id', 'c', '--decision-id', 'd'],
+    ['followup', '--followup-id', 'f', '--decision-id', 'd'],
+    ['directive', 'add', '--id', 'n', '--effect', 'avoid', '--match', 'provider=codex', '--until', '2026-10-11T00:00:00Z', '--reason', 'r', '--source', 'owner'],
+    ['directive', 'end', 'n', '--reason', 'r'],
+])
+def test_r6_commands_that_write_state_refuse_now(world, argv):
+    world.write()
+    result, _ = world.cli(*argv, '--receipts', world.receipts, '--policy', world.tmp / 'policy.json', '--now', NOW, raw=True)
+    assert result.returncode == 1 and '--now is not allowed' in result.stderr, result.stderr
+    assert not world.receipts.exists() and not world.receipts.with_name('directives.jsonl').exists()
+
+
+def test_r6_read_only_commands_still_accept_now(world):
+    world.add_directive('d1', 'prefer', 'account=claude-work')
+    listing, out = world.cli('directive', 'list', '--receipts', world.receipts, '--now', '2026-10-10T01:00:00Z', raw=True)
+    assert listing.returncode == 0 and out['now'].startswith('2026-10-10T01:00:00')
+    result, out = world.cli('calibrate', *world.args(), '--now', NOW, raw=True)
+    assert result.returncode == 0 and out['applies_changes'] is False, result.stderr
+
+
+# --- concurrent directive writers ------------------------------------------------------------------------------------
+
+def test_concurrent_directive_add_end_and_route_reads_never_tear_or_lose_a_row(world):
+    """12 `directive add`, 4 `directive end` and 8 `route` readers start at one barrier against one directives file."""
+    directives = world.receipts.with_name('directives.jsonl')
+    adds = [f'add{n}' for n in range(12)]
+    seeded = [f'seed{n}' for n in range(4)]
+    for name in seeded:
+        world.add_directive(name, 'prefer', 'account=claude-work')
+    world.write()
+    barrier = world.tmp / 'go'
+    env = dict(os.environ, START_AFTER=str(barrier))
+    clock = [sys.executable, str(REPO / 'tests/pinned_clock_cli.py')]
+    known = ['--policy', world.tmp / 'policy.json', '--available', world.tmp / 'catalog.json', '--accounts', world.tmp / 'accounts.json']
+    jobs = [('add', clock + ['directive', *add_args(name, 'provider=codex'), '--receipts', world.receipts, *known], dict(env)) for name in adds]
+    jobs += [('end', clock + ['directive', 'end', name, '--reason', 'done', '--receipts', world.receipts, *known], dict(env, PINNED_NOW=NOW)) for name in seeded]
+    jobs += [('route', clock + ['route', 'implement.quota-tight', *map(str, world.args()), '--decision-id', f'read{n}'], dict(env, PINNED_NOW=NOW)) for n in range(8)]
+    procs = [(kind, subprocess.Popen(map(str, argv), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=job_env)) for kind, argv, job_env in jobs]
+    assert len({p.pid for _, p in procs}) == len(jobs) == 24
+    barrier.write_text('go')
+    results = [(kind, p.communicate(), p.returncode) for kind, p in procs]
+    for kind, (out, err), code in results:
+        assert code == 0, (kind, err)
+        assert json.loads(out), kind
+    rows = [json.loads(line) for line in directives.read_text().splitlines()]
+    added = [r['id'] for r in rows if r['kind'] == 'add']
+    assert sorted(added) == sorted(seeded + adds), 'every add is present exactly once'
+    ended = [r['id'] for r in rows if r['kind'] == 'end']
+    assert sorted(ended) == sorted(seeded), 'every end refers to an existing add, once'
+    assert stat.S_IMODE(directives.stat().st_mode) == 0o600
+    listing = json.loads(world.cli('directive', 'list', '--receipts', world.receipts)[0].stdout)
+    assert len(listing['directives']) == len(seeded + adds)
