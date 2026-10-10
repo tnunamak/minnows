@@ -1,6 +1,7 @@
 """Destinations: external workers that `route` offers before it picks a model. A destination is an adapter, not a chooser."""
 import json
 import os
+import re
 import selectors
 import signal
 import subprocess
@@ -10,8 +11,12 @@ from pathlib import Path
 from outcomes import PURPOSES
 from runtime_sources import digest
 
+# The one name contract: config, receipts and the observation ledger all use it.
+NAME = re.compile(r'[a-z0-9][a-z0-9_-]{0,31}')
+NAME_TEXT = '^[a-z0-9][a-z0-9_-]{0,31}$'
 SKIP_REASONS = ('local-inputs', 'synchronous', 'credential', 'unavailable', 'other')
 MAX_PROBE_BYTES = 64 * 1024
+MAX_STDIN_BYTES = 32 * 1024
 CHUNK = 8192
 KILL_GRACE = 1.0
 MAX_TIMEOUT = 60
@@ -38,16 +43,15 @@ def read_destinations(path):
         if not isinstance(entry, dict):
             raise ValueError(f'{where} must be an object')
         name = entry.get('name')
-        if not isinstance(name, str) or not name.strip() or name == 'model' or name in seen:
-            raise ValueError(f'{where}.name must be a unique non-empty string other than "model"')
+        if not isinstance(name, str) or not NAME.fullmatch(name) or name == 'model' or name in seen:
+            raise ValueError(f'{where}.name must be a unique name matching {NAME_TEXT} other than "model"')
         seen.add(name)
         purposes = entry.get('purposes')
         if not isinstance(purposes, list) or not purposes or any(p not in PURPOSES for p in purposes):
             raise ValueError(f'{where}.purposes must be a non-empty list drawn from {", ".join(PURPOSES)}')
-        command = entry.get('capacity_command')
-        if (not isinstance(command, list) or not command or not all(isinstance(c, str) and c for c in command)
-                or not os.path.isabs(command[0])):
-            raise ValueError(f'{where}.capacity_command must be a list of strings that starts with an absolute path')
+        command_argv(entry | {'capacity_command': entry.get('capacity_command')}, 'capacity_command', where)
+        if 'observe_command' in entry:
+            command_argv(entry, 'observe_command', where)
         timeout = entry.get('timeout_seconds')
         if type(timeout) not in (int, float) or not 0 < timeout <= MAX_TIMEOUT:
             raise ValueError(f'{where}.timeout_seconds must be a number in (0, {MAX_TIMEOUT}]')
@@ -57,7 +61,15 @@ def read_destinations(path):
             raise ValueError(f'{where}.vendor must be a non-empty string when present')
         if not isinstance(entry.get('submit'), dict):
             raise ValueError(f'{where}.submit must be an object')
-    return rows, {'state': 'loaded', 'sha256': digest(rows)}
+    # observe_command belongs to `observe`; adding it must not change the identity that a route request records.
+    return rows, {'state': 'loaded', 'sha256': digest([{k: v for k, v in e.items() if k != 'observe_command'} for e in rows])}
+
+
+def command_argv(entry, key, where):
+    command = entry[key]
+    if (not isinstance(command, list) or not command or not all(isinstance(c, str) and c for c in command)
+            or not os.path.isabs(command[0])):
+        raise ValueError(f'{where}.{key} must be a list of strings that starts with an absolute path')
 
 
 def probe_error(kind):
@@ -80,7 +92,7 @@ def stop(process):
         pass
 
 
-def read_limited(process, deadline):
+def read_limited(process, deadline, limit=MAX_PROBE_BYTES):
     """(bytes, None), or (None, 'timeout' | 'output_too_large'). Streams in chunks, so memory stays below the limit plus one chunk."""
     chunks, size = [], 0
     with selectors.DefaultSelector() as selector:
@@ -95,26 +107,37 @@ def read_limited(process, deadline):
             if not chunk:
                 return b''.join(chunks), None
             size += len(chunk)
-            if size > MAX_PROBE_BYTES:
+            if size > limit:
                 return None, 'output_too_large'
             chunks.append(chunk)
 
 
-def probe(entry):
-    """Run the capacity command: no shell, stdin closed, output and time bounded. Every failure maps to available false.
+def run_bounded(argv, timeout, stdin_bytes=None, limit=MAX_PROBE_BYTES, env=None):
+    """Run a command: no shell, output and time bounded. Returns (stdout, returncode, failure).
 
-    The total time is the timeout plus `KILL_GRACE`. Output past `MAX_PROBE_BYTES` fails closed; a truncated prefix is never parsed.
+    `failure` is one of missing_binary, os_error, timeout, output_too_large, or None; a non-zero exit is not a failure
+    here, the caller reads `returncode`. Stdin is closed, or carries `stdin_bytes` (small: written once before reading).
+    The total time is the timeout plus `KILL_GRACE`. Output past `limit` fails closed; a truncated prefix is never returned.
     """
+    if stdin_bytes is not None and len(stdin_bytes) > MAX_STDIN_BYTES:
+        raise ValueError('stdin too large for one write')
     try:
-        process = subprocess.Popen(entry['capacity_command'], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                                   stderr=subprocess.DEVNULL, start_new_session=True, bufsize=0)
+        process = subprocess.Popen(argv, stdin=subprocess.DEVNULL if stdin_bytes is None else subprocess.PIPE,
+                                   stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, start_new_session=True, bufsize=0, env=env)
     except FileNotFoundError:
-        return probe_error('missing_binary')
+        return None, None, 'missing_binary'
     except OSError:
-        return probe_error('os_error')
-    deadline = time.monotonic() + entry['timeout_seconds']
+        return None, None, 'os_error'
+    deadline = time.monotonic() + timeout
     try:
-        stdout, failure = read_limited(process, deadline)
+        if stdin_bytes is not None:
+            try:
+                process.stdin.write(stdin_bytes)
+            except OSError:
+                pass  # the command exited without reading; its exit status and output say what happened
+            finally:
+                process.stdin.close()
+        stdout, failure = read_limited(process, deadline, limit)
         if failure is None:
             try:
                 process.wait(timeout=max(deadline - time.monotonic(), 0))
@@ -122,9 +145,18 @@ def probe(entry):
                 failure = 'timeout'
     finally:
         stop(process)
+    return stdout, process.returncode, failure
+
+
+def probe(entry):
+    """Run the capacity command. Every failure maps to available false.
+
+    The total time is the timeout plus `KILL_GRACE`. Output past `MAX_PROBE_BYTES` fails closed; a truncated prefix is never parsed.
+    """
+    stdout, returncode, failure = run_bounded(entry['capacity_command'], entry['timeout_seconds'])
     if failure:
         return probe_error(failure)
-    if process.returncode != 0:
+    if returncode != 0:
         return probe_error('nonzero_exit')
     try:
         value = json.loads(stdout.decode('utf-8'))

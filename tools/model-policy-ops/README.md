@@ -506,7 +506,7 @@ audits, closes and follows it up, but replaying it with the base flags fails bec
 model-policy-ops calibrate --available auto --db ~/.t3/userdata/statev2.sqlite --since 2026-10-08T00:00:00Z
 ```
 
-`calibrate` reads receipts, outcomes, directives, the live catalog and the
+`calibrate` reads receipts, outcomes, observations, directives, the live catalog and the
 model-catalog pack. It prints proposals, and it writes nothing. It prints:
 
 - `override_clusters`: the same op with the same final provider, model, effort,
@@ -609,6 +609,120 @@ Lifecycle completion is not success; configuration is not served-model evidence.
 requested-versus-observed remain unknown pending independent native-prefix
 inspection. Native harness delegations and direct work are outside this audit's
 coverage. T3 export evidence is caller-supplied; the tool cannot attest its origin.
+
+## Observe
+
+`observe` records **facts** that other systems already hold about recorded decisions. It
+needs no action from the parent. `close` stays the only judged record: an observation
+never creates, changes or implies a close, an outcome label or a quality verdict, and
+`audit` keeps `outcome_distribution` and every other existing key as before.
+
+```bash
+model-policy-ops observe --db ~/.t3/userdata/statev2.sqlite \
+  [--since RFC3339] [--receipts FILE] [--outcomes FILE] [--observations FILE] \
+  [--destinations FILE] [--git-window-days N]
+```
+
+It appends new fact rows to `observations.jsonl`, beside the receipts (`--observations`
+overrides it), then ONE `source_run` row, and prints that row. The file follows the
+private-ledger rules: mode 0600, exclusive lock, fsync, no symlink, a refused group- or
+world-writable parent, and it must be a different file from the receipts and the
+outcomes. Older CLIs never read it. Each read of a source is read-only. `--now` is refused.
+`--since` limits the decisions in scope by `recorded_at`.
+
+**Facts only.** Every observation has a source ID (T3 run ID, dot request ID or git sha),
+the source timestamps, and `unknown` for fields that the source did not give, each with a
+reason. Nothing is guessed. No transcript, prompt, report body or free text is copied. Every
+retained string is a member of a fixed per-field set (listed under Sources) or a validated
+ID or timestamp. A destination string outside its set is stored as `redacted`; a T3 status,
+usage scope or turn status outside its set is stored as `other` with a dropped flag.
+A T3 id outside the id grammar (`[A-Za-z0-9%:._-]`, up to 1024 characters) or an ordinal that is not a non-negative integer is stored as null with `unknown.<field>` set to `invalid_id` or `invalid_ordinal`; the row is kept.
+These labels are fixed text in the output:
+
+- completed ≠ accepted
+- consumed ≠ correct
+- tokens ≠ subscription cost
+
+`observation_id` is the sha256 of (source, subject ID, fact, source timestamps, unknown). Collection
+time is not part of it. A run appends only new IDs, so a repeat run with unchanged sources
+appends 0 fact rows, and a changed state (a T3 run that goes from `running` to `completed`,
+a completion time that was unknown and becomes known, a new destination lifecycle event)
+appends new rows. The
+old rows stay. The `source_run` row is `{run_id, started_at, finished_at, sources}`; each source
+is `{state: ok|partial|unavailable|error, reason, subjects_checked, new_observations}` (git also has
+`skipped` and `failed`). A source failure is recorded and exits 0, so it differs from zero events. Only a
+bad ledger, bad arguments or a bad destinations file exit non-zero.
+
+Sources:
+
+- `t3` (`--db`): for receipts joined to `delegate_task` calls by `clientRequestId` and
+  `childRunId`: the call, the child run status and timestamps, the **requested** provider
+  instance, model and options/effort (with `served_model: unattested`), attempt statuses,
+  terminal failures classed with `classify_failure` (the message is not copied), and
+  per-turn token usage as T3 reports it. Usage is never summed; scopes can overlap.
+  Requested config is a projection, not a copy. Option ids are `effort`, `reasoningEffort`,
+  `thinking`, `fastMode`, `serviceTier` and `contextWindow`; a value is a bool or one of
+  `minimal none low medium high xhigh max default priority flex 200k 1m`. Anything else is
+  counted in `options_dropped`. The provider instance and the model must be known
+  identifiers (driver-named instances and the model IDs of the catalog) or the ones the
+  decision's receipt named; else they are `other` with `unknown` set. Statuses (`pending queued
+  running completed failed cancelled interrupted`) and the usage scope (`main_agent`) are enums;
+  an unknown value becomes `other` (`usage_scope_dropped`, `turn_status_dropped`).
+- `destination:NAME`: for receipts whose chosen destination is NAME. The destination entry
+  may add `"observe_command": ["/abs/path/observe"]` (an absolute argv). `observe` runs it
+  with `--stdin`, sends the request IDs one per line (25 at a time), and reads
+  `{"requests": {ID: {...}}}`, or `{"error": ...}` with exit 1. It uses the same bounded runner
+  as the capacity probe (no shell, time limit, output limit). Per request it records the assignment
+  status, the report outcomes and the lifecycle events (type, time, actor kind, reason).
+  `{"found": false}` is a fact. The key is ignored by `route` and does not change the
+  recorded `destinations_sha256`. A destination name must match `^[a-z0-9][a-z0-9_-]{0,31}$`
+  (`model` is reserved); the config reader rejects any other name, and `observe` checks every
+  row and the `source_run` against the same rule before it appends anything.
+
+  **Adapter contract.** The command's output is untrusted. `observe` enforces the sets
+  below itself, so an adapter that sends more is not trusted more, and an adapter should
+  still send only these fields: `found` (bool); `status`, `task_kind`, `source`, `created_at`,
+  `cancelled_at`, `cancelled_reason`; `reports[]` with `outcome`, `created_at`, `receipt_id`;
+  `events[]` with `event_id` (integer), `type`, `at`, `actor_kind`, `reason`. Times are ISO
+  8601 with a zone, else they are recorded as unknown. A string outside its set is stored as
+  `redacted`; free text (report bodies, notes, check names) must not be sent.
+  - `status`: `queued claimed finished cancelled`; `task_kind`: `audit audit-review dot-fix review unknown`;
+    `source`: `drainer dot-fix agent unknown`; `actor_kind`: `owner dot system operator dot-fix`;
+    `cancelled_reason`: `expired`; report `outcome`: `completed blocked failed cancelled abandoned`.
+  - event `type`: `queued claimed working waiting blocked completed consumed accepted integrated
+    abandoned cancelled delivery_sent delivery_uncertain reconciled check_started check_passed
+    check_failed check_skipped`.
+  - event `reason`: `new reclaim resume takeover wait get rejected expired` or `outcome=` plus a
+    report outcome. Delivery kinds, check IDs and notes are not in the set; send nothing or they become `redacted`.
+  - `receipt_id` has the shape `report_<hex and dashes>`; else it is dropped.
+- `git`: only for closes whose evidence holds a `commit` reference in an absolute repo path
+  that is a git repository root and holds the sha. No other repo is read. For each such close
+  the window runs from the evidenced commit time to `min(now, close time +
+  --git-window-days)` (default 14). In that window it records `same_file_later_commit`
+  {sha, committed_at, overlapping_file_count} for commits that are not ancestors of the
+  evidenced commit and touch a file it touched, and `explicit_revert_reference` {evidenced sha,
+  reverting sha} when a later message says `This reverts commit <sha>` (git matches it; the
+  message is never read). Every git row records the scope (repo, sha, file count) and window.
+  **These are candidate follow-up signals, not fixes, rework or outcomes.** Every git call runs
+  read-only: `GIT_*` cleared, `--no-optional-locks`, `GIT_NO_LAZY_FETCH=1` (git 2.44 or newer), so a
+  partial clone never fetches objects into the repository (`close` verifies a commit the same way).
+  Evidence that observe may not read is counted in `skipped` (`repo_missing`,
+  `not_a_repository_root`, `sha_missing`: an explicit `missing` line from `git cat-file --batch-check`, never a failed command). An operational failure, including a repository-root probe or
+  `cat-file` that fails (dubious ownership, unreadable config), is counted in `failed`
+  (`git_timeout`, `git_output_too_large`, `git_failed`, `git_missing_local_object` for a missing
+  object in a partial clone, `git_bad_output`). Any failure makes the source `partial` (some
+  subjects were read) or `error` (none were), with the counts and reasons in the `source_run`
+  and in the `latest_source_runs` of `audit`. A failed subject appends no facts.
+
+`audit` and `calibrate` add an `observations` section: `state` (`observed`, `absent` or
+`unreadable`), per-source `coverage` (decisions with at least one observation over decisions
+in scope, as two numbers), the `latest_source_runs` states, `fact_type_counts` and the
+`labels`. `calibrate` also lists, under `candidates_for_parent_followup_review`, the decisions
+with an `explicit_revert_reference`; it gives no verdict.
+
+Scheduling: the owner's existing scheduler runs `observe` hourly (for example a systemd user
+timer or cron entry). Disable it by stopping that schedule. Roll back by deleting
+`observations.jsonl`: nothing else reads it, and `audit` then shows `absent`.
 
 ## Launch facts
 
@@ -799,9 +913,11 @@ on an exact repeat). `audit` prints JSON by default; `--json` is accepted.
 Top-level keys: `schema_version`, `scope`, `coverage`, `counts`, `effort_explicitness`,
 `reason_coverage`, `request_match`, `route_coverage`, `overrides`, `override_reasons`, `escalations`,
 `relaunches`, `repeated_decision_ids_multiple_children`, `unmatched_delegations`,
-`unmatched_receipts`, `destination_routes`, `spend_first`, `out_of_scope_delegations`, `limits`, `delegations`, `outcomes`.
+`unmatched_receipts`, `destination_routes`, `spend_first`, `out_of_scope_delegations`, `limits`, `delegations`, `outcomes`, `observations`.
 
 - `counts`: `call_attempts`, `unique_child_runs`, `distinct_receipt_decisions`.
+- `observations`: `state`, `reason`, `labels`, `file`, `coverage` (`{SOURCE: {decisions_with_observation, decisions_in_scope}}`),
+  `coverage_meaning`, `latest_source_runs`, `fact_type_counts`, `source_runs`. See Observe.
 - `route_coverage`: `route`, `resolve`, `no_receipt` (call attempts by receipt origin), `denominator`,
   `rate` (route calls over all calls) and `meaning`.
 - `destination_routes`: `{DESTINATION: {"decisions": n, "ids": [DECISION_ID, ...]}}` for route receipts whose

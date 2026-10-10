@@ -1,12 +1,26 @@
 """Read-only T3 projection audit. Requested configuration never proves served output."""
 import json
+import re
 import sqlite3
 from pathlib import Path
 from datetime import datetime, timezone
 
 from outcomes import chain_heads, split_rows
+import observations as observation_store
 
 PREFIX = 'orchestration_v2_projection_'
+# T3 ids are a kind prefix (run:, run-attempt:, turn-item:, provider-turn:, thread:, mcp:, import:) over percent-encoded segments, or a bare
+# uuid. Every live id (about 170,000) uses only these characters and is at most 700 long; free text has spaces, '=' or quotes.
+T3_ID = re.compile(r'[A-Za-z0-9%:._-]{1,1024}')
+
+
+def safe_id(value):
+    """The id when it fits the T3 id grammar, else None. Source text outside the grammar is never retained."""
+    return value if isinstance(value, str) and T3_ID.fullmatch(value) else None
+
+
+def safe_ordinal(value):
+    return value if type(value) is int and value >= 0 else None
 
 
 def stamp(value):
@@ -28,6 +42,10 @@ USAGE_COLUMNS = {
     'attempts': {'attempt_id', 'run_id', 'attempt_ordinal', 'provider_turn_id'},
     'turns': {'provider_turn_id', 'run_attempt_id', 'ordinal', 'status', 'payload_json'},
 }
+# Enums for the T3 fields that are copied out. Values are the ones present in a live T3 database (runs, attempts, provider turns);
+# any other value becomes 'other' with a dropped flag, so source text never rides through a status or scope field.
+T3_STATUSES = ('pending', 'queued', 'running', 'completed', 'failed', 'cancelled', 'interrupted')
+USAGE_SCOPES = ('main_agent',)
 USAGE_FIELDS = (('input_tokens', 'inputTokens'), ('cached_input_tokens', 'cachedInputTokens'),
                 ('cache_creation_tokens', 'cacheCreationTokens'), ('output_tokens', 'outputTokens'),
                 ('reasoning_tokens', 'reasoningTokens'))
@@ -35,6 +53,13 @@ USAGE_FIELDS = (('input_tokens', 'inputTokens'), ('cached_input_tokens', 'cached
 
 def usage_unknown(state, reason=None):
     return {'label': USAGE_LABEL, 'state': state, 'reason': reason, 'attempts': [], 'sums': 'never computed; scopes can overlap'}
+
+
+def bounded(value, allowed):
+    """(value, dropped). None stays None; a value outside the enum becomes 'other' and is flagged."""
+    if value is None:
+        return None, False
+    return (value, False) if isinstance(value, str) and value in allowed else ('other', True)
 
 
 def count(value):
@@ -56,19 +81,22 @@ def read_child_usage(db, child_run_id):
       FROM {PREFIX}run_attempts a LEFT JOIN {PREFIX}provider_turns t
         ON t.run_attempt_id=a.attempt_id OR (a.provider_turn_id IS NOT NULL AND t.provider_turn_id=a.provider_turn_id)
       WHERE a.run_id=? ORDER BY a.attempt_ordinal,a.attempt_id,t.ordinal,t.provider_turn_id"""
-    attempts = {}
+    attempts, seen = {}, {}
     for row in db.execute(sql, (child_run_id,)):
-        attempt = attempts.setdefault(row[0], {'attempt_id': row[0], 'attempt_ordinal': row[1], 'turns': []})
-        if row[2] is None or any(t['provider_turn_id'] == row[2] for t in attempt['turns']):
+        attempt = attempts.setdefault(row[0], {'attempt_id': safe_id(row[0]), 'attempt_ordinal': safe_ordinal(row[1]), 'turns': []})
+        if row[2] is None or row[2] in seen.setdefault(row[0], set()):
             continue
-        status, scope = row[5], row[6]
+        seen[row[0]].add(row[2])
+        status = row[5]
+        scope, scope_dropped = bounded(row[6], USAGE_SCOPES)
+        turn_status, turn_status_dropped = bounded(row[4], T3_STATUSES)
         subagents = {0: False, 1: True}.get(row[7])  # SQLite JSON booleans arrive as 0/1
         reported = {name: count(row[8 + i]) for i, (name, _) in enumerate(USAGE_FIELDS)}
         keep = status in ('complete', 'partial')
         attempt['turns'].append({
-            'provider_turn_id': row[2], 'ordinal': row[3], 'turn_status': row[4],
+            'provider_turn_id': safe_id(row[2]), 'ordinal': safe_ordinal(row[3]), 'turn_status': turn_status, 'turn_status_dropped': turn_status_dropped,
             'usage_status': status if status in ('complete', 'partial', 'unavailable') else 'unknown',
-            'usage_scope': scope if isinstance(scope, str) else None,
+            'usage_scope': scope, 'usage_scope_dropped': scope_dropped,
             'has_subagents': subagents,
             # hasSubagents false is the only evidence that no nested usage exists.
             'nested_usage': 'none_reported' if subagents is False else 'unknown',
@@ -361,7 +389,7 @@ def destination_summary(receipts):
         'meaning': 'descriptive; offered = destination chosen; not proof the work was submitted or used'}
 
 
-def audit(rows, receipts, since=None, thread=None, time_anchor='export.timestamp', out_of_scope=None, outcome_rows=()):
+def audit(rows, receipts, since=None, thread=None, time_anchor='export.timestamp', out_of_scope=None, outcome_rows=(), observations=((), 'not_read', None)):
     start = stamp(since) if since else None
     rows = [r for r in rows if (not thread or r['thread_id'] == thread) and (not start or stamp(r['timestamp']) >= start)]
     scoped_receipts = [r for r in receipts if (not thread or r['parent']['thread_id'] == thread) and (not start or stamp(r['recorded_at']) >= start)]
@@ -439,6 +467,7 @@ def audit(rows, receipts, since=None, thread=None, time_anchor='export.timestamp
             'unmatched_receipts': [r['decision_id'] for r in scoped_receipts
                                    if r['decision_id'] not in matched_ids and destination_chosen(r) == 'model'],
             'destination_routes': destination_routes, 'spend_first': spend_first,
+            'observations': observation_store.section(observations[1], observations[2], observations[0], scoped_receipts, outcome_rows),
             'delegations': reports, 'limits': ['Coverage measures app-owned receipt coverage, not universal delegation compliance',
                 'Out-of-scope counts measure observed T3 projection records only; no universal native capture or decision-ID join',
                 'Absent projection tables and export out-of-scope counts are unknown; not zero',

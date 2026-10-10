@@ -136,19 +136,57 @@ def file_hash_state(path, expected):
     return 'hash_matches' if digest.hexdigest() == expected else 'mismatch'
 
 
+def git_env():
+    """The environment for a read-only git call. GIT_DIR and GIT_WORK_TREE would override -C and check the wrong repository.
+
+    GIT_NO_LAZY_FETCH stops a partial clone from fetching a missing object from its promisor remote: a read must never write.
+    """
+    return {k: v for k, v in os.environ.items() if not k.startswith('GIT_')} | {'GIT_NO_LAZY_FETCH': '1'}
+
+
+def git_argv(repo, *args):
+    return ['git', '--no-optional-locks', '-C', repo, *args]
+
+
+COMMIT_TIMEOUT = 10
+OBJECT_ID = re.compile(r'[0-9a-f]{40}')
+
+
+def commit_state(repo, sha):
+    """'exists', 'missing', 'timeout' or 'error'. `sha` is validated hex, so it cannot be read as an option.
+
+    `cat-file --batch-check` answers on stdout and exits 0 whether or not the object exists. Only its explicit `<name> missing` line means
+    absence; a non-zero exit, a signal or any other output is an operational failure, never a missing commit.
+    """
+    query = sha + '^{commit}'
+    try:
+        done = subprocess.run(git_argv(repo, 'cat-file', '--batch-check'), input=(query + '\n').encode(), capture_output=True,
+                              timeout=COMMIT_TIMEOUT, env=git_env())
+    except subprocess.TimeoutExpired:
+        return 'timeout'
+    except OSError:
+        return 'error'
+    lines = done.stdout.decode('utf-8', 'replace').splitlines()
+    if done.returncode != 0 or len(lines) != 1:
+        return 'error'
+    fields = lines[0].split(' ')
+    if fields == [query, 'missing']:
+        return 'missing'
+    if len(fields) == 3 and OBJECT_ID.fullmatch(fields[0]) and fields[1] == 'commit' and fields[2].isdigit():
+        return 'exists'
+    return 'error'
+
+
+def commit_exists(repo, sha):
+    """True when `sha` names a commit in the local object store of `repo`. Never fetches."""
+    return commit_state(repo, sha) == 'exists'
+
+
 def verify_evidence(ref):
     """Return ref plus verified_state. No shell, no network, no claim about what the evidence proves."""
     kind = ref['type']
     if kind == 'commit':
-        # sha is validated hex, so it cannot be read as an option.
-        try:
-            # GIT_DIR and GIT_WORK_TREE would override -C and check the wrong repository.
-            env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
-            found = subprocess.run(['git', '-C', ref['repo'], 'cat-file', '-e', ref['sha'] + '^{commit}'],
-                                   capture_output=True, timeout=10, env=env).returncode == 0
-        except (OSError, subprocess.TimeoutExpired):
-            found = False
-        state = 'exists' if found else 'unverified_missing'
+        state = 'exists' if commit_exists(ref['repo'], ref['sha']) else 'unverified_missing'
     elif kind == 'file':
         state = file_hash_state(ref['path'], ref['sha256'])
     elif kind == 'check':
@@ -298,8 +336,8 @@ def read_outcomes(path):
     return [row for _, row in numbered]
 
 
-def refuse_shared_ledger(receipts, other, flag='--outcomes'):
-    """The receipts ledger and another ledger (`flag` names it in the error) must be different files, however they are named."""
+def refuse_shared_ledger(receipts, other, flag='--outcomes', first='--receipts'):
+    """Two ledgers (`first` and `flag` name them in the error) must be different files, however they are named."""
     receipts, other = os.fspath(receipts), os.fspath(other)
     same = os.path.realpath(receipts) == os.path.realpath(other)
     if not same:
@@ -309,8 +347,8 @@ def refuse_shared_ledger(receipts, other, flag='--outcomes'):
         except OSError:
             pass  # one of them does not exist yet, so they cannot be one file
     if same:
-        rows = 'outcome rows' if flag == '--outcomes' else 'directive rows'
-        raise ValueError(f'--receipts and {flag} name the same file; {rows} must never enter decisions.jsonl')
+        rows = {'--outcomes': 'outcome rows', '--observations': 'observation rows'}.get(flag, 'directive rows')
+        raise ValueError(f'{first} and {flag} name the same file; {rows} must never enter {"decisions.jsonl" if first == "--receipts" else "another ledger"}')
 
 
 def split_rows(rows):

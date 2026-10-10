@@ -6,6 +6,7 @@ closes are parent claims, and parent overhead is unknown.
 from datetime import timedelta
 
 import directives as directive_store
+import observations as observation_store
 from outcomes import chain_heads, split_rows
 from route_inputs import freshness, read_failures
 from routing import ARM_KEYS, expand_candidates
@@ -158,7 +159,8 @@ def directive_coverage(records, receipts, at, max_days):
             'receipts_that_applied_a_directive': sum(bool((r.get('routing') or {}).get('directives_applied')) for r in receipts)}
 
 
-def report(*, receipts, outcome_rows, policy, records, available_providers, model_catalog, db, since, at, params):
+def report(*, receipts, outcome_rows, policy, records, available_providers, model_catalog, db, since, at, params,
+           observations=((), 'not_read', None)):
     """Everything `calibrate` prints. Reads only; the caller has already loaded the inputs."""
     closes, _ = split_rows(list(outcome_rows))
     heads = chain_heads(closes)
@@ -168,7 +170,12 @@ def report(*, receipts, outcome_rows, policy, records, available_providers, mode
         minutes = (at - since).total_seconds() / 60
     failures = read_failures(db, at, minutes)
     routed = sum(bool(r['request'].get('route')) for r in receipts)
-    return {'schema_version': 1, 'applies_changes': False, 'scope': {'since': since.isoformat() if since else None, 'now': at.isoformat()},
+    rows, state, reason = observations
+    observed = observation_store.section(state, reason, rows, receipts, outcome_rows)
+    observed['candidates_for_parent_followup_review'] = {
+        'decision_ids': observation_store.revert_candidates(rows, {r['decision_id'] for r in receipts}),
+        'meaning': 'a later commit names the evidenced commit in an explicit revert reference; a candidate for parent review, no verdict'}
+    return {'schema_version': 1, 'applies_changes': False, 'observations': observed, 'scope': {'since': since.isoformat() if since else None, 'now': at.isoformat()},
             'override_clusters': override_clusters(receipts, policy),
             'stale_pack': fresh,
             'quality_signals': {'label': 'descriptive_only', 'confounding': CONFOUNDING, 'outcome_scope': OUTCOME_SCOPE,

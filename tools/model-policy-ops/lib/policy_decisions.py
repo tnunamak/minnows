@@ -13,6 +13,8 @@ import directives as directive_store
 import route_inputs
 import routing
 import destinations
+import observations as observation_store
+import observe
 from delegation_audit import read_db, read_export, audit, normalize_since
 
 
@@ -45,6 +47,8 @@ def add_arguments(parser):
                         help='route: decline the destination (local-inputs|synchronous|credential|unavailable|other); repeatable; requires --reason')
     parser.add_argument('--destinations', type=Path, default=destinations.default_destinations_path(), help='destinations file; default ~/.config/model-policy/destinations.json')
     parser.add_argument('--outcomes', type=Path, help='outcome ledger; default outcomes.jsonl beside --receipts')
+    parser.add_argument('--observations', type=Path, help='observation ledger; default observations.jsonl beside --receipts')
+    parser.add_argument('--git-window-days', type=int, help='observe: days after a close that git signals are searched; default 14')
     parser.add_argument('--close-id')
     parser.add_argument('--followup-id')
     parser.add_argument('--outcome', choices=outcomes.OUTCOMES)
@@ -137,6 +141,7 @@ def run_calibrate(args, policy, at):
     available, available_meta = read_source(args.available, ['t3code', '--json', 'models', 'list'])
     model_catalog = route_inputs.read_model_catalog(args.model_catalog or route_inputs.default_model_catalog_path())
     return calibrate.report(receipts=receipts, outcome_rows=outcomes.read_outcomes(args.outcomes), policy=policy,
+                            observations=observation_store.read_observations(args.observations),
                             records=directive_store.read_directives(args.directives), available_providers=providers(available),
                             model_catalog=model_catalog, db=args.db, since=since, at=at, params=policy.get('routing', {}))
 
@@ -165,10 +170,17 @@ def execute(args, policy):
         return directive_store.execute(args, at, directive_known(args, policy) if args.op == 'add' else None, max_days)
     if args.outcomes is None:
         args.outcomes = args.receipts.with_name('outcomes.jsonl')
+    if args.observations is None:
+        args.observations = args.receipts.with_name('observations.jsonl')
+    if args.command in ('audit', 'calibrate', 'observe'):
+        outcomes.refuse_shared_ledger(args.receipts, args.observations, '--observations')
+        outcomes.refuse_shared_ledger(args.outcomes, args.observations, '--observations', first='--outcomes')
     if args.command == 'calibrate':
         return run_calibrate(args, policy, at)
-    if args.command in ('close', 'followup', 'audit'):
+    if args.command in ('close', 'followup', 'audit', 'observe'):
         outcomes.refuse_shared_ledger(args.receipts, args.outcomes)
+    if args.command == 'observe':
+        return observe.execute(args)
     if args.command in ('close', 'followup'):
         return outcomes.execute(args)
     if args.command == 'audit':
@@ -178,7 +190,8 @@ def execute(args, policy):
         rows, out_of_scope = (read_export(args.export), None) if args.export else read_db(args.db, since, args.thread)
         return audit(rows, read_receipts(args.receipts), since, args.thread,
                      time_anchor='delegate_call.startedAt' if args.db else 'export.timestamp',
-                     out_of_scope=out_of_scope, outcome_rows=outcomes.read_outcomes(args.outcomes))
+                     out_of_scope=out_of_scope, outcome_rows=outcomes.read_outcomes(args.outcomes),
+                     observations=observation_store.read_observations(args.observations))
     for source_id in (args.escalate_from, args.relaunch_of):
         if source_id is not None:
             validate_id(source_id)
