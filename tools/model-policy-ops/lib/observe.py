@@ -15,13 +15,33 @@ from pathlib import Path
 import destinations as destination_store
 import observations as store
 from decision_receipts import read_receipts
-from delegation_audit import PREFIX, effort, normalize_since, read_db, stamp
+from delegation_audit import PREFIX, T3_STATUSES, bounded, effort, normalize_since, read_db, stamp
 from outcomes import commit_state, git_argv, git_env, read_outcomes, split_rows
 from route_inputs import CANCELLATIONS, classify_failure
 
-TOKEN = re.compile(r'[a-z0-9_.:=-]{1,48}')
-OPAQUE_ID = re.compile(r'[A-Za-z0-9][A-Za-z0-9._:%@/+=-]{0,255}')
+RECEIPT_ID = re.compile(r'[a-z]{1,12}[_-][0-9a-f-]{1,40}')  # the bridge's report_<uuid>
 SHA1 = re.compile(r'[0-9a-f]{40}')
+# Requested-config allowlist. Option ids and string values come from a live T3 database (effort, reasoningEffort, thinking, fastMode,
+# serviceTier, contextWindow); `minimal`, `none`, `flex` and `1m` are documented vendor values not yet seen there.
+OPTION_IDS = ('effort', 'reasoningEffort', 'thinking', 'fastMode', 'serviceTier', 'contextWindow')
+OPTION_VALUE = re.compile(r'[a-z0-9][a-z0-9-]{0,19}')
+OPTION_VALUES = frozenset({'minimal', 'none', 'low', 'medium', 'high', 'xhigh', 'max', 'default', 'priority', 'flex', '200k', '1m'})
+KNOWN_INSTANCES = frozenset({'claudeAgent', 'codex', 'pi', 'claude-api'})  # driver-named instances; account names come from the receipt
+KNOWN_MODELS = frozenset({'claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5', 'claude-opus-4-8', 'claude-haiku-4-5', 'claude-opus-5',
+                          'gpt-5.6-terra', 'gpt-6-astra', 'gpt-6.1-sol', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.6-luna', 'default'})
+# Destination vocabulary: the dot-bridge lifecycle (src/lifecycle.mjs, src/store.mjs, src/objectives.mjs, src/server.mjs `finish`) and the values in its
+# live database. A destination adapter is untrusted: anything outside these sets is stored as 'redacted'.
+EVENT_TYPES = frozenset({'queued', 'claimed', 'working', 'waiting', 'blocked', 'completed', 'consumed', 'accepted', 'integrated', 'abandoned',
+                         'cancelled', 'delivery_sent', 'delivery_uncertain', 'reconciled', 'check_started', 'check_passed', 'check_failed',
+                         'check_skipped'})
+REPORT_OUTCOMES = ('completed', 'blocked', 'failed', 'cancelled', 'abandoned')
+EVENT_REASONS = frozenset({'new', 'reclaim', 'resume', 'takeover', 'wait', 'get', 'rejected', 'expired'}
+                          | {f'outcome={outcome}' for outcome in REPORT_OUTCOMES})
+ASSIGNMENT_STATUSES = frozenset({'queued', 'claimed', 'finished', 'cancelled'})
+TASK_KINDS = frozenset({'audit', 'audit-review', 'dot-fix', 'review', 'unknown'})
+TASK_SOURCES = frozenset({'drainer', 'dot-fix', 'agent', 'unknown'})
+ACTOR_KINDS = frozenset({'owner', 'dot', 'system', 'operator', 'dot-fix'})
+CANCEL_REASONS = frozenset({'expired'})
 BATCH = 25
 OBSERVE_TIMEOUT_CAP = 60
 OBSERVE_OUTPUT_LIMIT = 4 * 1024 * 1024
@@ -41,11 +61,45 @@ def short(error):
     return f'{type(error).__name__}: {str(error)[:120]}'
 
 
-def token(value):
-    """A short lowercase enumerated-looking string (no spaces), or 'redacted'. The command that supplies it still owns redaction."""
+def enum(value, allowed, fallback='redacted'):
+    """The value when it is one of `allowed`, None when absent, else `fallback`. Source text is never copied."""
     if value is None:
         return None
-    return value if isinstance(value, str) and TOKEN.fullmatch(value) else 'redacted'
+    return value if isinstance(value, str) and value in allowed else fallback
+
+
+def project_options(options):
+    """({option id: bool or known string}, dropped). Only documented ids with a bool or an allowlisted word survive; the rest is counted."""
+    if options is None:
+        return {}, 0
+    if isinstance(options, dict):
+        pairs = list(options.items())
+    elif isinstance(options, list):
+        pairs = [(o.get('id'), o['value']) if isinstance(o, dict) and 'value' in o else (None, None) for o in options]
+    else:
+        return {}, 1
+    kept, dropped = {}, 0
+    for name, value in pairs:
+        keep = (isinstance(name, str) and name in OPTION_IDS and name not in kept
+                and (type(value) is bool or (isinstance(value, str) and OPTION_VALUE.fullmatch(value) and value in OPTION_VALUES)))
+        if keep:
+            kept[name] = value
+        else:
+            dropped += 1
+    return kept, dropped
+
+
+def known(value, static, extra=()):
+    """(value or 'other', unknown reason or None) for an identifier that must be a known one, or one the receipt itself named."""
+    if value is None:
+        return None, None
+    return (value, None) if isinstance(value, str) and (value in static or value in extra) else ('other', 'value_not_in_allowlist')
+
+
+def status_of(value):
+    """(T3 status or 'other', unknown reason or None)."""
+    value, dropped = bounded(value, T3_STATUSES)
+    return value, 'value_not_in_allowlist' if dropped else None
 
 
 def timestamp(value):
@@ -111,7 +165,7 @@ def usage_observations(source, run_id, decision_id, usage):
         for attempt, ordinal, turn in turns]
 
 
-def collect_t3(db_path, scope_ids):
+def collect_t3(db_path, scope_ids, targets=None):
     if not db_path:
         return result('unavailable', 'no_db_supplied')
     if not Path(db_path).exists():
@@ -121,6 +175,7 @@ def collect_t3(db_path, scope_ids):
     except ValueError as error:
         return result('error', short(error))
     calls = [c for c in calls if c['decision_id'] in scope_ids]
+    targets = targets or {}
     found, runs = [], {}
     try:
         db = sqlite3.connect(Path(db_path).resolve().as_uri() + '?mode=ro', uri=True)
@@ -132,11 +187,13 @@ def collect_t3(db_path, scope_ids):
         for call in calls:
             decision = call['decision_id']
             stamps, unknown = timestamps(started_at=call['timestamp'])
+            call_status, why = status_of(call['status'])
             found.append(store.make_observation(
                 't3', call['call_id'], decision, 't3_delegate_call',
-                {'call_status': token(call['status']), 'child_run_id': call['child_run_id']},
+                {'call_status': call_status, 'child_run_id': call['child_run_id']},
                 source_ids={'call_id': call['call_id'], 'thread_id': call['thread_id']}, source_timestamps=stamps,
-                unknown=unknown | ({} if call['child_run_id'] else {'child_run_id': 'call_started_no_child_run'})))
+                unknown=unknown | ({} if call['child_run_id'] else {'child_run_id': 'call_started_no_child_run'})
+                | ({'call_status': why} if why else {})))
             if call['child_run_id'] and call['child_run_id'] not in runs:
                 runs[call['child_run_id']] = (decision, call)
         for run_id, (decision, call) in runs.items():
@@ -148,20 +205,26 @@ def collect_t3(db_path, scope_ids):
                 continue
             status, requested_at, completed_at, started_at, payload_completed = row
             stamps, unknown = timestamps(requested_at=requested_at, started_at=started_at, completed_at=completed_at or payload_completed)
-            found.append(store.make_observation('t3', run_id, decision, 't3_run_status', {'status': token(status)},
-                                                source_ids=ids, source_timestamps=stamps, unknown=unknown))
-            options = call['child_requested_options']
+            status, why = status_of(status)
+            found.append(store.make_observation('t3', run_id, decision, 't3_run_status', {'status': status},
+                                                source_ids=ids, source_timestamps=stamps, unknown=unknown | ({'status': why} if why else {})))
+            options, options_dropped = project_options(call['child_requested_options'])
+            named = targets.get(decision) or {}
+            instance, instance_why = known(call['child_provider'], KNOWN_INSTANCES, (named.get('providerInstanceId'),))
+            model, model_why = known(call['child_requested_model'], KNOWN_MODELS, (named.get('model'),))
             found.append(store.make_observation(
                 't3', run_id, decision, 't3_requested_config',
-                {'requested': {'provider_instance': call['child_provider'], 'model': call['child_requested_model'],
-                               'options': options, 'effort': effort({'options': options})},
+                {'requested': {'provider_instance': instance, 'model': model, 'options': options, 'options_dropped': options_dropped,
+                               'effort': effort({'options': options})},
                  'served_model': 'unattested'}, source_ids=ids, source_timestamps={k: v for k, v in stamps.items() if k == 'requested_at'},
-                unknown={} if call['child_provider'] else {'requested': 'child_run_has_no_provider_instance'}))
+                unknown=({} if call['child_provider'] else {'requested': 'child_run_has_no_provider_instance'})
+                | ({'provider_instance': instance_why} if instance_why else {}) | ({'model': model_why} if model_why else {})))
             for attempt_id, ordinal, attempt_status in attempts:
+                attempt_status, why = status_of(attempt_status)
                 found.append(store.make_observation(
                     't3', run_id, decision, 't3_attempt_status',
-                    {'attempt_id': attempt_id, 'attempt_ordinal': ordinal, 'status': token(attempt_status)},
-                    source_ids=ids | {'attempt_id': attempt_id}, unknown={'timestamps': 'attempt_rows_carry_none'}))
+                    {'attempt_id': attempt_id, 'attempt_ordinal': ordinal, 'status': attempt_status},
+                    source_ids=ids | {'attempt_id': attempt_id}, unknown={'timestamps': 'attempt_rows_carry_none'} | ({'status': why} if why else {})))
             for item_id, updated_at, item_started, native_class, message in failures:
                 if str(native_class).lower() in CANCELLATIONS:
                     continue
@@ -182,7 +245,7 @@ def collect_t3(db_path, scope_ids):
 # ---- destinations -----------------------------------------------------------------------------------------------------
 
 def destination_observations(source, request_id, record):
-    """Facts for one request from a destination's observe command. Free text never passes `token`."""
+    """Facts for one request from a destination's observe command (untrusted). Every string is an enum member or 'redacted'."""
     if not isinstance(record, dict) or type(record.get('found')) is not bool:
         raise ValueError('request record needs a boolean found')
     ids = {'request_id': request_id}
@@ -192,25 +255,25 @@ def destination_observations(source, request_id, record):
     unknown = {k: v for k, v in unknown.items() if not (k == 'cancelled_at' and record.get('cancelled_at') is None)}
     found = [store.make_observation(
         source, request_id, request_id, 'destination_assignment',
-        {'found': True, 'status': token(record.get('status')), 'task_kind': token(record.get('task_kind')),
-         'source': token(record.get('source')), 'cancelled_reason': token(record.get('cancelled_reason'))},
+        {'found': True, 'status': enum(record.get('status'), ASSIGNMENT_STATUSES), 'task_kind': enum(record.get('task_kind'), TASK_KINDS),
+         'source': enum(record.get('source'), TASK_SOURCES), 'cancelled_reason': enum(record.get('cancelled_reason'), CANCEL_REASONS)},
         source_ids=ids, source_timestamps=stamps, unknown=unknown)]
     for report in record.get('reports') or []:
         stamps, unknown = timestamps(created_at=report.get('created_at'))
         receipt = report.get('receipt_id')
+        receipt = receipt if isinstance(receipt, str) and RECEIPT_ID.fullmatch(receipt) else None
         found.append(store.make_observation(
             source, request_id, request_id, 'destination_report',
-            {'outcome': token(report.get('outcome')), 'receipt_id': receipt if isinstance(receipt, str) and OPAQUE_ID.fullmatch(receipt) else None},
-            source_ids=ids | {'receipt_id': receipt if isinstance(receipt, str) and OPAQUE_ID.fullmatch(receipt) else None},
-            source_timestamps=stamps, unknown=unknown))
+            {'outcome': enum(report.get('outcome'), REPORT_OUTCOMES), 'receipt_id': receipt},
+            source_ids=ids | {'receipt_id': receipt}, source_timestamps=stamps, unknown=unknown))
     for event in record.get('events') or []:
         stamps, unknown = timestamps(at=event.get('at'))
         event_id = event.get('event_id')
-        event_id = event_id if isinstance(event_id, (int, str)) and OPAQUE_ID.fullmatch(str(event_id)) else None
+        event_id = event_id if type(event_id) is int and event_id >= 0 else None
         found.append(store.make_observation(
             source, request_id, request_id, 'destination_event',
-            {'event_id': event_id, 'event_type': token(event.get('type')), 'actor_kind': token(event.get('actor_kind')),
-             'reason': token(event.get('reason'))}, source_ids=ids | {'event_id': event_id}, source_timestamps=stamps, unknown=unknown))
+            {'event_id': event_id, 'event_type': enum(event.get('type'), EVENT_TYPES), 'actor_kind': enum(event.get('actor_kind'), ACTOR_KINDS),
+             'reason': enum(event.get('reason'), EVENT_REASONS)}, source_ids=ids | {'event_id': event_id}, source_timestamps=stamps, unknown=unknown))
     return found
 
 
@@ -434,7 +497,7 @@ def execute(args):
     scope = store.decision_sources(receipts, outcome_rows)
     collected = {}
     try:
-        collected['t3'] = collect_t3(args.db, scope.get('t3', set()))
+        collected['t3'] = collect_t3(args.db, scope.get('t3', set()), {r['decision_id']: r.get('target') for r in receipts})
     except (OSError, ValueError, sqlite3.Error) as error:
         collected['t3'] = result('error', short(error))
     for source, ids in sorted(scope.items()):

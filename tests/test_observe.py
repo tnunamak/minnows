@@ -65,6 +65,7 @@ def t3_world(setup, tmp_path, status='completed', failure=None):
     db = make_db(tmp_path, receipt, [('a1', COMPLETE)])
     c = sqlite3.connect(db)
     c.execute(f"update {PREFIX}runs set status=?", (status,))
+    c.execute(f"update {PREFIX}runs set payload_json=json_set(payload_json,'$.modelSelection.model',?)", (receipt['target']['model'],))
     if failure:
         payload = {'startedAt': '2026-10-08T00:00:30Z', 'failure': {'class': 'error', 'message': failure}}
         c.execute(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
@@ -78,6 +79,7 @@ def t3_world(setup, tmp_path, status='completed', failure=None):
 
 def test_t3_facts_carry_ids_timestamps_requested_config_and_labels(setup, tmp_path):
     db = t3_world(setup, tmp_path, failure=f'{SECRET} rate limit reached')
+    receipt = json.loads(setup[3].read_text().splitlines()[0])
     before = db.read_bytes()
     row = ok(setup, '--db', db)
     assert db.read_bytes() == before
@@ -91,8 +93,8 @@ def test_t3_facts_carry_ids_timestamps_requested_config_and_labels(setup, tmp_pa
         assert r['decision_id'] == 'one' and r['source_ids'] and r['observation_id'] and r['run_id'] == row['run_id']
     assert set(by_type) == {'t3_delegate_call', 't3_run_status', 't3_requested_config', 't3_attempt_status', 't3_terminal_failure', 't3_turn_usage'}
     config_row = by_type['t3_requested_config'][0]
-    assert config_row['fact']['requested'] == {'provider_instance': 'claude-one', 'model': 'm', 'effort': 'medium',
-                                               'options': {'effort': 'medium'}}
+    assert config_row['fact']['requested'] == {'provider_instance': 'claude-one', 'model': receipt['target']['model'], 'effort': 'medium',
+                                               'options': {'effort': 'medium'}, 'options_dropped': 0}
     assert config_row['fact']['served_model'] == 'unattested'
     assert by_type['t3_run_status'][0]['fact']['status'] == 'completed'
     assert by_type['t3_run_status'][0]['source_timestamps']['requested_at'] == '2026-10-08T00:00:00+00:00'
@@ -104,6 +106,61 @@ def test_t3_facts_carry_ids_timestamps_requested_config_and_labels(setup, tmp_pa
     text = paths(setup)[1].read_text()
     for planted in (SECRET, 'SECRET PROMPT', '"SECRET":"prompt"', 'tokenUsage'):
         assert planted not in text
+
+
+PRIVATE = ['SECRET-PLANTED-TEXT', 'password=secret123', 'hunter2']
+
+
+def plant(db, secret):
+    """Secret text in every retained T3 field: options, scope, every status, model and instance."""
+    c = sqlite3.connect(db)
+    options = [{'id': 'effort', 'value': 'high'}, {'id': 'prompt', 'value': secret}, {'id': 'thinking', 'value': secret},
+               {'id': 'fastMode', 'value': False}, {'id': 'contextWindow', 'value': {'x': secret}}, {'id': secret, 'value': 'low'}]
+    payload = json.dumps({'modelSelection': {'model': secret, 'options': options}})
+    c.execute(f"update {PREFIX}runs set payload_json=?, provider_instance_id=?, status=? where run_id='child'", (payload, secret, secret))
+    c.execute(f'update {PREFIX}run_attempts set status=?', (secret,))
+    c.execute(f'update {PREFIX}provider_turns set status=?', (secret,))
+    c.execute(f"update {PREFIX}provider_turns set payload_json=json_set(payload_json,'$.turnTokenUsage.usageScope',?)", (secret,))
+    c.execute(f"update {PREFIX}turn_items set status=? where turn_item_id='call'", (secret,))
+    c.commit()
+    c.close()
+
+
+@pytest.mark.parametrize('secret', PRIVATE)
+def test_t3_retained_fields_never_carry_source_text(setup, tmp_path, secret):
+    db = t3_world(setup, tmp_path)
+    plant(db, secret)
+    row = ok(setup, '--db', db)
+    assert row['sources']['t3']['state'] == 'ok'
+    assert secret not in paths(setup)[1].read_text()
+    by_type = {r['fact_type']: r for r in facts(setup, 't3')}
+    requested = by_type['t3_requested_config']
+    assert requested['fact']['requested'] == {'provider_instance': 'other', 'model': 'other', 'options': {'effort': 'high', 'fastMode': False},
+                                              'options_dropped': 4, 'effort': 'high'}
+    assert requested['unknown']['provider_instance'] == requested['unknown']['model'] == 'value_not_in_allowlist'
+    usage = by_type['t3_turn_usage']['fact']
+    assert usage['usage_scope'] == 'other' and usage['usage_scope_dropped'] is True
+    assert usage['turn_status'] == 'other' and usage['turn_status_dropped'] is True
+    assert by_type['t3_run_status']['fact']['status'] == 'other' and by_type['t3_attempt_status']['fact']['status'] == 'other'
+    assert by_type['t3_delegate_call']['fact']['call_status'] == 'other'
+    _, audit = run('audit', '--db', db, '--receipts', setup[3])
+    assert secret not in json.dumps(audit['delegations'][0]['observed_child_usage'])  # the audit reader enforces the same enums
+
+
+def test_t3_options_keep_only_documented_ids_with_known_values_and_count_the_rest(setup, tmp_path):
+    db = t3_world(setup, tmp_path)
+    c = sqlite3.connect(db)
+    options = [{'id': 'effort', 'value': 'xhigh'}, {'id': 'fastMode', 'value': True}, {'id': 'serviceTier', 'value': 'priority'},
+               {'id': 'contextWindow', 'value': '200k'}, {'id': 'thinking', 'value': False}, {'id': 'effort', 'value': 'low'},
+               {'id': 'serviceTier', 'value': 'Priority Tier!'}, {'id': 'reasoningEffort', 'value': 'ultra'}, {'id': 'temperature', 'value': 'low'},
+               {'id': 'effort', 'value': 7}, 'not an object', {'id': 'thinking'}]
+    c.execute(f"update {PREFIX}runs set payload_json=json_set(payload_json,'$.modelSelection.options',json(?)) where run_id='child'", (json.dumps(options),))
+    c.commit()
+    c.close()
+    ok(setup, '--db', db)
+    requested = facts(setup, 't3', 't3_requested_config')[0]['fact']['requested']
+    assert requested['options'] == {'effort': 'xhigh', 'fastMode': True, 'serviceTier': 'priority', 'contextWindow': '200k', 'thinking': False}
+    assert requested['options_dropped'] == 7  # a repeated id, a bad value, an unknown id, a non-object, a missing value
 
 
 def test_repeat_run_appends_no_facts_and_a_state_change_appends_new_rows(setup, tmp_path):
@@ -155,9 +212,9 @@ def test_zero_matching_events_is_a_healthy_source(setup, tmp_path):
 
 # ---- destinations -----------------------------------------------------------------------------------------------------
 
-RECORD = {'found': True, 'status': 'completed', 'task_kind': 'review', 'source': 'agent', 'created_at': '2026-10-10T13:00:00+00:00',
+RECORD = {'found': True, 'status': 'finished', 'task_kind': 'review', 'source': 'agent', 'created_at': '2026-10-10T13:00:00+00:00',
           'cancelled_at': None, 'cancelled_reason': None,
-          'reports': [{'outcome': 'done', 'created_at': '2026-10-10T13:30:00+00:00', 'receipt_id': 'rcpt-1', 'body': SECRET}],
+          'reports': [{'outcome': 'completed', 'created_at': '2026-10-10T13:30:00+00:00', 'receipt_id': 'rcpt-1', 'body': SECRET}],
           'events': [{'event_id': 7, 'type': 'queued', 'at': '2026-10-10T13:01:00+00:00', 'actor_kind': 'owner', 'reason': 'new'},
                      {'event_id': 8, 'type': 'consumed', 'at': '2026-10-10T13:40:00+00:00', 'actor_kind': 'agent',
                       'reason': f'{SECRET} free text'}]}
@@ -185,15 +242,56 @@ def test_destination_facts_status_reports_events_and_no_free_text(setup, tmp_pat
     row = ok(setup, '--destinations', cfg)
     assert row['sources']['destination:worker'] == {'state': 'ok', 'reason': None, 'subjects_checked': 1, 'new_observations': 4}
     found = {r['fact_type']: r for r in facts(setup, 'destination:worker')}
-    assert found['destination_assignment']['fact'] == {'type': 'destination_assignment', 'found': True, 'status': 'completed',
+    assert found['destination_assignment']['fact'] == {'type': 'destination_assignment', 'found': True, 'status': 'finished',
                                                        'task_kind': 'review', 'source': 'agent', 'cancelled_reason': None}
     assert found['destination_assignment']['source_timestamps']['created_at'] == '2026-10-10T13:00:00+00:00'
-    assert found['destination_report']['fact']['outcome'] == 'done' and found['destination_report']['source_ids']['receipt_id'] == 'rcpt-1'
+    assert found['destination_report']['fact']['outcome'] == 'completed' and found['destination_report']['source_ids']['receipt_id'] == 'rcpt-1'
     events = facts(setup, 'destination:worker', 'destination_event')
     assert [e['fact']['reason'] for e in events] == ['new', 'redacted']
     assert events[0]['fact']['actor_kind'] == 'owner' and events[0]['source_ids']['request_id'] == 'd1'
     assert SECRET not in paths(setup)[1].read_text()
     assert new_total(ok(setup, '--destinations', cfg)) == 0
+
+
+@pytest.mark.parametrize('secret', PRIVATE)
+def test_destination_strings_are_enum_members_or_redacted_never_copied(setup, tmp_path, secret):
+    record = {'found': True, 'status': secret, 'task_kind': secret, 'source': secret, 'created_at': '2026-10-10T13:00:00+00:00',
+              'cancelled_at': '2026-10-10T13:05:00+00:00', 'cancelled_reason': secret,
+              'reports': [{'outcome': secret, 'created_at': '2026-10-10T13:30:00+00:00', 'receipt_id': secret}],
+              'events': [{'event_id': secret, 'type': secret, 'at': '2026-10-10T13:01:00+00:00', 'actor_kind': secret, 'reason': secret},
+                         {'event_id': 3, 'type': 'queued', 'at': '2026-10-10T13:02:00+00:00', 'actor_kind': 'owner', 'reason': 'outcome=done'},
+                         {'event_id': 4, 'type': 'completed', 'at': '2026-10-10T13:03:00+00:00', 'actor_kind': 'dot', 'reason': 'outcome=completed;late'}]}
+    cfg, _ = dest_world(setup, tmp_path, reply({'d1': record}))
+    ok(setup, '--destinations', cfg)
+    assert secret not in paths(setup)[1].read_text()
+    found = {r['fact_type']: r for r in facts(setup, 'destination:worker')}
+    assert found['destination_assignment']['fact'] == {'type': 'destination_assignment', 'found': True, 'status': 'redacted', 'task_kind': 'redacted',
+                                                       'source': 'redacted', 'cancelled_reason': 'redacted'}
+    assert found['destination_report']['fact']['outcome'] == 'redacted' and found['destination_report']['fact']['receipt_id'] is None
+    events = facts(setup, 'destination:worker', 'destination_event')
+    assert [(e['fact']['event_type'], e['fact']['actor_kind'], e['fact']['reason'], e['fact']['event_id']) for e in events] == [
+        ('redacted', 'redacted', 'redacted', None), ('queued', 'owner', 'redacted', 3), ('completed', 'dot', 'redacted', 4)]
+
+
+def test_destination_enum_members_pass_through(setup, tmp_path):
+    types = ['queued', 'claimed', 'working', 'waiting', 'blocked', 'completed', 'consumed', 'accepted', 'integrated', 'abandoned', 'cancelled',
+             'delivery_sent', 'delivery_uncertain', 'reconciled', 'check_started', 'check_passed', 'check_failed', 'check_skipped']
+    reasons = ['new', 'reclaim', 'resume', 'takeover', 'wait', 'get', 'rejected', 'expired'] + [f'outcome={o}' for o in (
+        'completed', 'blocked', 'failed', 'cancelled', 'abandoned')]
+    events = [{'event_id': i, 'type': t, 'at': '2026-10-10T13:00:00+00:00', 'actor_kind': a, 'reason': r}
+              for i, (t, a, r) in enumerate(zip(types * 2, ['owner', 'dot', 'system', 'operator', 'dot-fix'] * 8, reasons * 3), 1)]
+    record = {'found': True, 'status': 'finished', 'task_kind': 'audit-review', 'source': 'drainer', 'created_at': '2026-10-10T13:00:00+00:00',
+              'cancelled_at': None, 'cancelled_reason': 'expired', 'reports': [{'outcome': 'failed', 'created_at': '2026-10-10T13:30:00+00:00',
+              'receipt_id': 'report_00245e9e-3587-4ec8-9165-6cb45568d66d'}], 'events': events}
+    cfg, _ = dest_world(setup, tmp_path, reply({'d1': record}))
+    ok(setup, '--destinations', cfg)
+    seen = facts(setup, 'destination:worker', 'destination_event')
+    assert {e['fact']['event_type'] for e in seen} == set(types) and {e['fact']['reason'] for e in seen} == set(reasons)
+    assert {e['fact']['actor_kind'] for e in seen} == {'owner', 'dot', 'system', 'operator', 'dot-fix'}
+    assert all('redacted' not in json.dumps(e['fact']) for e in seen)
+    assert facts(setup, 'destination:worker', 'destination_assignment')[0]['fact']['cancelled_reason'] == 'expired'
+    report = facts(setup, 'destination:worker', 'destination_report')[0]
+    assert report['fact']['outcome'] == 'failed' and report['source_ids']['receipt_id'].startswith('report_')
 
 
 def test_destination_found_false_is_a_fact_and_a_new_event_is_a_new_row(setup, tmp_path):

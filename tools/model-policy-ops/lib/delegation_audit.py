@@ -29,6 +29,10 @@ USAGE_COLUMNS = {
     'attempts': {'attempt_id', 'run_id', 'attempt_ordinal', 'provider_turn_id'},
     'turns': {'provider_turn_id', 'run_attempt_id', 'ordinal', 'status', 'payload_json'},
 }
+# Enums for the T3 fields that are copied out. Values are the ones present in a live T3 database (runs, attempts, provider turns);
+# any other value becomes 'other' with a dropped flag, so source text never rides through a status or scope field.
+T3_STATUSES = ('pending', 'queued', 'running', 'completed', 'failed', 'cancelled', 'interrupted')
+USAGE_SCOPES = ('main_agent',)
 USAGE_FIELDS = (('input_tokens', 'inputTokens'), ('cached_input_tokens', 'cachedInputTokens'),
                 ('cache_creation_tokens', 'cacheCreationTokens'), ('output_tokens', 'outputTokens'),
                 ('reasoning_tokens', 'reasoningTokens'))
@@ -36,6 +40,13 @@ USAGE_FIELDS = (('input_tokens', 'inputTokens'), ('cached_input_tokens', 'cached
 
 def usage_unknown(state, reason=None):
     return {'label': USAGE_LABEL, 'state': state, 'reason': reason, 'attempts': [], 'sums': 'never computed; scopes can overlap'}
+
+
+def bounded(value, allowed):
+    """(value, dropped). None stays None; a value outside the enum becomes 'other' and is flagged."""
+    if value is None:
+        return None, False
+    return (value, False) if isinstance(value, str) and value in allowed else ('other', True)
 
 
 def count(value):
@@ -62,14 +73,16 @@ def read_child_usage(db, child_run_id):
         attempt = attempts.setdefault(row[0], {'attempt_id': row[0], 'attempt_ordinal': row[1], 'turns': []})
         if row[2] is None or any(t['provider_turn_id'] == row[2] for t in attempt['turns']):
             continue
-        status, scope = row[5], row[6]
+        status = row[5]
+        scope, scope_dropped = bounded(row[6], USAGE_SCOPES)
+        turn_status, turn_status_dropped = bounded(row[4], T3_STATUSES)
         subagents = {0: False, 1: True}.get(row[7])  # SQLite JSON booleans arrive as 0/1
         reported = {name: count(row[8 + i]) for i, (name, _) in enumerate(USAGE_FIELDS)}
         keep = status in ('complete', 'partial')
         attempt['turns'].append({
-            'provider_turn_id': row[2], 'ordinal': row[3], 'turn_status': row[4],
+            'provider_turn_id': row[2], 'ordinal': row[3], 'turn_status': turn_status, 'turn_status_dropped': turn_status_dropped,
             'usage_status': status if status in ('complete', 'partial', 'unavailable') else 'unknown',
-            'usage_scope': scope if isinstance(scope, str) else None,
+            'usage_scope': scope, 'usage_scope_dropped': scope_dropped,
             'has_subagents': subagents,
             # hasSubagents false is the only evidence that no nested usage exists.
             'nested_usage': 'none_reported' if subagents is False else 'unknown',
