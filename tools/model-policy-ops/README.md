@@ -636,6 +636,7 @@ reason. Nothing is guessed. No transcript, prompt, report body or free text is c
 retained string is a member of a fixed per-field set (listed under Sources) or a validated
 ID or timestamp. A destination string outside its set is stored as `redacted`; a T3 status,
 usage scope or turn status outside its set is stored as `other` with a dropped flag.
+A T3 id outside the id grammar (`[A-Za-z0-9%:._-]`, up to 1024 characters) or an ordinal that is not a non-negative integer is stored as null with `unknown.<field>` set to `invalid_id` or `invalid_ordinal`; the row is kept.
 These labels are fixed text in the output:
 
 - completed ≠ accepted
@@ -706,7 +707,8 @@ Sources:
   read-only: `GIT_*` cleared, `--no-optional-locks`, `GIT_NO_LAZY_FETCH=1` (git 2.44 or newer), so a
   partial clone never fetches objects into the repository (`close` verifies a commit the same way).
   Evidence that observe may not read is counted in `skipped` (`repo_missing`,
-  `not_a_repository_root`, `sha_missing`). An operational failure is counted in `failed`
+  `not_a_repository_root`, `sha_missing`: an explicit `missing` line from `git cat-file --batch-check`, never a failed command). An operational failure, including a repository-root probe or
+  `cat-file` that fails (dubious ownership, unreadable config), is counted in `failed`
   (`git_timeout`, `git_output_too_large`, `git_failed`, `git_missing_local_object` for a missing
   object in a partial clone, `git_bad_output`). Any failure makes the source `partial` (some
   subjects were read) or `error` (none were), with the counts and reasons in the `source_run`
