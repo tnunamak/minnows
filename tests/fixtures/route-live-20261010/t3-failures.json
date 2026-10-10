@@ -1,0 +1,334 @@
+{
+ "captured": "2026-10-10",
+ "events": [
+  {
+   "class": "transport_error",
+   "instance": "claude-work",
+   "message": "Claude API unknown.",
+   "startedAt": "2026-10-09T02:10:23.241Z",
+   "status": "completed"
+  },
+  {
+   "class": "transport_error",
+   "instance": null,
+   "message": "stream disconnected before completion: Connection refused (os error 111)",
+   "startedAt": "2026-10-09T02:33:12.431Z",
+   "status": "completed"
+  },
+  {
+   "class": "transport_error",
+   "instance": "claude-alt",
+   "message": "Claude API unknown.",
+   "startedAt": "2026-10-09T03:26:58.038Z",
+   "status": "completed"
+  },
+  {
+   "class": "provider_error",
+   "instance": "claude-work",
+   "message": "Insufficient context allowance for the provider handoff. Compact the target conversation or use a larger-context model; the current request has not been truncated.",
+   "startedAt": "2026-10-09T14:49:03.879Z",
+   "status": "failed"
+  },
+  {
+   "class": "provider_error",
+   "instance": "claude-work",
+   "message": "Insufficient context allowance for the provider handoff. Compact the target conversation or use a larger-context model; the current request has not been truncated.",
+   "startedAt": "2026-10-09T14:51:06.176Z",
+   "status": "failed"
+  },
+  {
+   "class": "provider_error",
+   "instance": "claude-work",
+   "message": "Insufficient context allowance for the provider handoff. Compact the target conversation or use a larger-context model; the current request has not been truncated.",
+   "startedAt": "2026-10-09T14:59:00.737Z",
+   "status": "failed"
+  },
+  {
+   "class": "provider_error",
+   "instance": "claude-work",
+   "message": "Insufficient context allowance for the provider handoff. Compact the target conversation or use a larger-context model; the current request has not been truncated.",
+   "startedAt": "2026-10-09T15:04:55.576Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T17:44:09.727Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T17:44:16.259Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T17:44:19.658Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T17:45:09.248Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T17:45:10.622Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T17:45:24.778Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T17:45:26.361Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T17:45:39.745Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T17:46:30.567Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T17:47:04.066Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T17:50:49.040Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T18:06:09.516Z",
+   "status": "failed"
+  },
+  {
+   "class": "provider_error",
+   "instance": "claude-work",
+   "message": "Insufficient context allowance for the provider handoff. Compact the target conversation or use a larger-context model; the current request has not been truncated.",
+   "startedAt": "2026-10-09T18:06:45.690Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T18:13:03.663Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T18:20:55.639Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T18:30:00.985Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T18:32:06.227Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T18:50:55.289Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T18:51:45.572Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T19:00:40.016Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T19:17:07.291Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T21:50:27.382Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T21:51:17.438Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T21:59:24.286Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T22:17:14.160Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T22:21:18.035Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T22:35:14.890Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T22:37:02.705Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T22:45:29.127Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T22:51:25.545Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T22:56:25.283Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T23:02:15.162Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T23:21:25.871Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T23:47:17.900Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-09T23:51:31.787Z",
+   "status": "failed"
+  },
+  {
+   "class": "usage_limit",
+   "instance": "claude-alt",
+   "message": "Claude API rate limit reached. Try again later.",
+   "startedAt": "2026-10-10T00:17:58.942Z",
+   "status": "failed"
+  },
+  {
+   "class": "unknown",
+   "instance": "claude-alt",
+   "message": "The provider event stream closed unexpectedly. Retry the turn; if it keeps failing, check the provider and server logs.",
+   "startedAt": "2026-10-10T00:21:17.656Z",
+   "status": "failed"
+  },
+  {
+   "class": "unknown",
+   "instance": "claude-alt",
+   "message": "The provider event stream closed unexpectedly. Retry the turn; if it keeps failing, check the provider and server logs.",
+   "startedAt": "2026-10-10T00:21:18.453Z",
+   "status": "failed"
+  },
+  {
+   "class": "unknown",
+   "instance": "claude-alt",
+   "message": "The provider event stream closed unexpectedly. Retry the turn; if it keeps failing, check the provider and server logs.",
+   "startedAt": "2026-10-10T00:21:19.517Z",
+   "status": "failed"
+  },
+  {
+   "class": "transport_error",
+   "instance": "claude-work",
+   "message": "Claude API unknown.",
+   "startedAt": "2026-10-10T00:22:33.773Z",
+   "status": "completed"
+  }
+ ]
+}

@@ -296,18 +296,19 @@ def read_outcomes(path):
     return [row for _, row in numbered]
 
 
-def refuse_shared_ledger(receipts, outcomes_path):
-    """The receipts and outcomes ledgers must be different files, however they are named."""
-    receipts, outcomes_path = os.fspath(receipts), os.fspath(outcomes_path)
-    same = os.path.realpath(receipts) == os.path.realpath(outcomes_path)
+def refuse_shared_ledger(receipts, other, flag='--outcomes'):
+    """The receipts ledger and another ledger (`flag` names it in the error) must be different files, however they are named."""
+    receipts, other = os.fspath(receipts), os.fspath(other)
+    same = os.path.realpath(receipts) == os.path.realpath(other)
     if not same:
         try:
-            a, b = os.stat(receipts), os.stat(outcomes_path)
+            a, b = os.stat(receipts), os.stat(other)
             same = (a.st_dev, a.st_ino) == (b.st_dev, b.st_ino)
         except OSError:
             pass  # one of them does not exist yet, so they cannot be one file
     if same:
-        raise ValueError('--receipts and --outcomes name the same file; outcome rows must never enter decisions.jsonl')
+        rows = 'outcome rows' if flag == '--outcomes' else 'directive rows'
+        raise ValueError(f'--receipts and {flag} name the same file; {rows} must never enter decisions.jsonl')
 
 
 def split_rows(rows):

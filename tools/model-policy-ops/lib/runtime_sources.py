@@ -60,14 +60,22 @@ def providers(value):
     return rows
 
 
+def driver_family(provider):
+    """The vendor family of a live-catalog provider row: its T3 driver kind, with `claudeAgent` as `claude`."""
+    driver = provider.get('driverKind', provider.get('driver'))
+    return 'claude' if driver == 'claudeAgent' else driver
+
+
+def provider_instance(provider):
+    return provider.get('providerInstanceId', provider.get('instanceId'))
+
+
 def resolve_arm(arm, available, metadata, account=None):
     candidates = []
     for provider in providers(available):
-        driver = provider.get('driverKind', provider.get('driver'))
-        family = 'claude' if driver == 'claudeAgent' else driver
-        if family != arm['provider']:
+        if driver_family(provider) != arm['provider']:
             continue
-        instance = provider.get('providerInstanceId', provider.get('instanceId'))
+        instance = provider_instance(provider)
         if not isinstance(instance, str):
             continue
         candidates.append(instance)
@@ -109,7 +117,7 @@ def resolve_arm(arm, available, metadata, account=None):
     return result
 
 
-def quota_context(value, metadata, arm, provider_id=None, source_id=None):
+def quota_context(value, metadata, arm, provider_id=None, source_id=None, now=None):
     """Keep real clawmeter identities. Account-to-source mapping is caller supplied."""
     result = {'source': metadata, 'provider_id': provider_id, 'source_id': source_id,
               'state': 'unknown', 'windows': [], 'accounts': []}
@@ -173,9 +181,32 @@ def quota_context(value, metadata, arm, provider_id=None, source_id=None):
         utilization = window.get('utilization')
         expired = False
         try:
-            expired = datetime.fromisoformat(window['resets_at'].replace('Z', '+00:00')) <= datetime.now(timezone.utc)
+            expired = datetime.fromisoformat(window['resets_at'].replace('Z', '+00:00')) <= (now or datetime.now(timezone.utc))
         except (KeyError, ValueError, TypeError, AttributeError):
             pass
         state = 'stale' if expired and relevant else 'exhausted' if relevant and isinstance(utilization, (int, float)) and utilization >= 100 else 'reported' if relevant else 'informational'
         result['windows'].append({k: window.get(k) for k in ('name', 'display_name', 'utilization', 'resets_at', 'currency', 'used', 'limit')} | {'relevant': bool(relevant), 'state': state})
     return result
+
+
+def quota_forecast(value, provider_id, source_id=None):
+    """clawmeter `forecast.windows.<name>.projected_pct` for one provider, or one of its sources.
+
+    Returns {window name: projected percent}, or None when the shape is absent or not as expected.
+    A provider with sources must be read through a source; the provider-level forecast is not used then.
+    """
+    rows = value.get('providers')
+    row = rows.get(provider_id) if isinstance(rows, dict) else None
+    if not isinstance(row, dict):
+        return None
+    sources = row.get('sources') or []
+    if sources:
+        row = next((s for s in sources if isinstance(s, dict) and isinstance(s.get('source'), dict) and s['source'].get('id') == source_id), None)
+        if row is None:
+            return None
+    forecast = row.get('forecast')
+    windows = forecast.get('windows') if isinstance(forecast, dict) else None
+    if not isinstance(windows, dict):
+        return None
+    return {name: w['projected_pct'] for name, w in windows.items()
+            if isinstance(w, dict) and isinstance(w.get('projected_pct'), (int, float)) and not isinstance(w['projected_pct'], bool)}
