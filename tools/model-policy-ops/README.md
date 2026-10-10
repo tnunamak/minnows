@@ -632,20 +632,24 @@ outcomes. Older CLIs never read it. Each read of a source is read-only. `--now` 
 
 **Facts only.** Every observation has a source ID (T3 run ID, dot request ID or git sha),
 the source timestamps, and `unknown` for fields that the source did not give, each with a
-reason. Nothing is guessed. No transcript, prompt, report body or free text is copied:
-strings from a destination pass a filter (short, lowercase, no spaces, else `redacted`).
+reason. Nothing is guessed. No transcript, prompt, report body or free text is copied. Every
+retained string is a member of a fixed per-field set (listed under Sources) or a validated
+ID or timestamp. A destination string outside its set is stored as `redacted`; a T3 status,
+usage scope or turn status outside its set is stored as `other` with a dropped flag.
 These labels are fixed text in the output:
 
 - completed ≠ accepted
 - consumed ≠ correct
 - tokens ≠ subscription cost
 
-`observation_id` is the sha256 of (source, subject ID, fact). A run appends only new IDs, so
-a repeat run with unchanged sources appends 0 fact rows, and a changed state (a T3 run that
-goes from `running` to `completed`, a new destination lifecycle event) appends new rows. The
+`observation_id` is the sha256 of (source, subject ID, fact, source timestamps, unknown). Collection
+time is not part of it. A run appends only new IDs, so a repeat run with unchanged sources
+appends 0 fact rows, and a changed state (a T3 run that goes from `running` to `completed`,
+a completion time that was unknown and becomes known, a new destination lifecycle event)
+appends new rows. The
 old rows stay. The `source_run` row is `{run_id, started_at, finished_at, sources}`; each source
-is `{state: ok|unavailable|error, reason, subjects_checked, new_observations}` (git also has
-`skipped`). A source failure is recorded and exits 0, so it differs from zero events. Only a
+is `{state: ok|partial|unavailable|error, reason, subjects_checked, new_observations}` (git also has
+`skipped` and `failed`). A source failure is recorded and exits 0, so it differs from zero events. Only a
 bad ledger, bad arguments or a bad destinations file exit non-zero.
 
 Sources:
@@ -655,14 +659,41 @@ Sources:
   instance, model and options/effort (with `served_model: unattested`), attempt statuses,
   terminal failures classed with `classify_failure` (the message is not copied), and
   per-turn token usage as T3 reports it. Usage is never summed; scopes can overlap.
+  Requested config is a projection, not a copy. Option ids are `effort`, `reasoningEffort`,
+  `thinking`, `fastMode`, `serviceTier` and `contextWindow`; a value is a bool or one of
+  `minimal none low medium high xhigh max default priority flex 200k 1m`. Anything else is
+  counted in `options_dropped`. The provider instance and the model must be known
+  identifiers (driver-named instances and the model IDs of the catalog) or the ones the
+  decision's receipt named; else they are `other` with `unknown` set. Statuses (`pending queued
+  running completed failed cancelled interrupted`) and the usage scope (`main_agent`) are enums;
+  an unknown value becomes `other` (`usage_scope_dropped`, `turn_status_dropped`).
 - `destination:NAME`: for receipts whose chosen destination is NAME. The destination entry
   may add `"observe_command": ["/abs/path/observe"]` (an absolute argv). `observe` runs it
   with `--stdin`, sends the request IDs one per line (25 at a time), and reads
   `{"requests": {ID: {...}}}`, or `{"error": ...}` with exit 1. It uses the same bounded runner
   as the capacity probe (no shell, time limit, output limit). Per request it records the assignment
-  status, the report outcomes and the lifecycle events (type, time, actor kind, reason token).
+  status, the report outcomes and the lifecycle events (type, time, actor kind, reason).
   `{"found": false}` is a fact. The key is ignored by `route` and does not change the
-  recorded `destinations_sha256`.
+  recorded `destinations_sha256`. A destination name must match `^[a-z0-9][a-z0-9_-]{0,31}$`
+  (`model` is reserved); the config reader rejects any other name, and `observe` checks every
+  row and the `source_run` against the same rule before it appends anything.
+
+  **Adapter contract.** The command's output is untrusted. `observe` enforces the sets
+  below itself, so an adapter that sends more is not trusted more, and an adapter should
+  still send only these fields: `found` (bool); `status`, `task_kind`, `source`, `created_at`,
+  `cancelled_at`, `cancelled_reason`; `reports[]` with `outcome`, `created_at`, `receipt_id`;
+  `events[]` with `event_id` (integer), `type`, `at`, `actor_kind`, `reason`. Times are ISO
+  8601 with a zone, else they are recorded as unknown. A string outside its set is stored as
+  `redacted`; free text (report bodies, notes, check names) must not be sent.
+  - `status`: `queued claimed finished cancelled`; `task_kind`: `audit audit-review dot-fix review unknown`;
+    `source`: `drainer dot-fix agent unknown`; `actor_kind`: `owner dot system operator dot-fix`;
+    `cancelled_reason`: `expired`; report `outcome`: `completed blocked failed cancelled abandoned`.
+  - event `type`: `queued claimed working waiting blocked completed consumed accepted integrated
+    abandoned cancelled delivery_sent delivery_uncertain reconciled check_started check_passed
+    check_failed check_skipped`.
+  - event `reason`: `new reclaim resume takeover wait get rejected expired` or `outcome=` plus a
+    report outcome. Delivery kinds, check IDs and notes are not in the set; send nothing or they become `redacted`.
+  - `receipt_id` has the shape `report_<hex and dashes>`; else it is dropped.
 - `git`: only for closes whose evidence holds a `commit` reference in an absolute repo path
   that is a git repository root and holds the sha. No other repo is read. For each such close
   the window runs from the evidenced commit time to `min(now, close time +
@@ -671,8 +702,15 @@ Sources:
   evidenced commit and touch a file it touched, and `explicit_revert_reference` {evidenced sha,
   reverting sha} when a later message says `This reverts commit <sha>` (git matches it; the
   message is never read). Every git row records the scope (repo, sha, file count) and window.
-  **These are candidate follow-up signals, not fixes, rework or outcomes.** Git runs read-only
-  with `GIT_*` cleared and no fetch. A missing repo or sha is counted in `skipped`.
+  **These are candidate follow-up signals, not fixes, rework or outcomes.** Every git call runs
+  read-only: `GIT_*` cleared, `--no-optional-locks`, `GIT_NO_LAZY_FETCH=1` (git 2.44 or newer), so a
+  partial clone never fetches objects into the repository (`close` verifies a commit the same way).
+  Evidence that observe may not read is counted in `skipped` (`repo_missing`,
+  `not_a_repository_root`, `sha_missing`). An operational failure is counted in `failed`
+  (`git_timeout`, `git_output_too_large`, `git_failed`, `git_missing_local_object` for a missing
+  object in a partial clone, `git_bad_output`). Any failure makes the source `partial` (some
+  subjects were read) or `error` (none were), with the counts and reasons in the `source_run`
+  and in the `latest_source_runs` of `audit`. A failed subject appends no facts.
 
 `audit` and `calibrate` add an `observations` section: `state` (`observed`, `absent` or
 `unreadable`), per-source `coverage` (decisions with at least one observation over decisions
