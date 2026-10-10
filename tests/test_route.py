@@ -106,7 +106,7 @@ class World:
         the arguments because the real `route --now` is a simulation); `directive add` keeps the real clock."""
         self.write()
         args = list(map(str, args))
-        env = dict(os.environ)
+        env = dict(os.environ, XDG_CONFIG_HOME=str(self.tmp / 'xdg'))  # no real destinations.json leaks in
         if not raw and not args[:2] == ['directive', 'add']:
             clock = NOW
             if args[0] == 'route' and '--now' in args:
