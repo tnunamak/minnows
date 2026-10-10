@@ -252,6 +252,41 @@ def test_observe_command_must_be_an_absolute_argv_and_does_not_change_route_iden
     assert plain == extra
 
 
+@pytest.mark.parametrize('name', ['my worker', 'Worker', 'a:b', '-lead', '', 'x' * 33, 'model', 'w\nx'])
+def test_a_destination_name_outside_the_shared_contract_is_rejected_when_the_config_is_read(setup, tmp_path, name):
+    decision_row(setup, 'd1', 'worker')
+    cap = script(tmp_path, 'cap.sh', 'echo \'{"available": true}\'')
+    cfg = config(tmp_path, entry(cap, name=name) | {'observe_command': [str(cap)]})
+    result, _ = observe(setup, '--destinations', cfg)
+    assert result.returncode == 1 and 'name must be a unique name matching ^[a-z0-9][a-z0-9_-]{0,31}$' in result.stderr
+    assert not paths(setup)[1].exists()
+
+
+def test_a_pending_row_that_the_ledger_would_reject_is_refused_before_any_append(setup, tmp_path):
+    db = t3_world(setup, tmp_path)
+    decision_row(setup, 'poison', 'my worker')  # an old receipt that names a destination outside the contract
+    result, _ = observe(setup, '--db', db)
+    assert result.returncode == 1 and 'my worker' in result.stderr
+    assert not paths(setup)[1].exists()  # the valid T3 facts of the same run were not appended either
+    ok_run = ok(setup, '--db', db, '--since', '2999-01-01T00:00:00Z')  # the poisoned receipt is out of scope: the ledger stays readable
+    assert ok_run['kind'] == 'source_run' and run('audit', '--db', db, '--receipts', setup[3])[1]['observations']['state'] == 'observed'
+
+
+def test_append_run_validates_every_pending_row_and_the_source_run_before_writing(tmp_path):
+    sys.path.insert(0, str(REPO / 'tools/model-policy-ops/lib'))
+    import observations
+    ledger = tmp_path / 'observations.jsonl'
+    good = observations.make_observation('git', 's1', 'one', 'git_scan', {'a': 1})
+    bad_fact = observations.make_observation('git', 's2', 'one', 'git_scan', {'a': 1}) | {'fact_type': 'other_type'}
+    for collected in ({'git': {'state': 'ok', 'reason': None, 'subjects_checked': 2, 'observations': [good, bad_fact]}},
+                      {'git': {'state': 'ok', 'reason': None, 'subjects_checked': 1, 'observations': [good]},
+                       'destination:my worker': {'state': 'ok', 'reason': None, 'subjects_checked': 0, 'observations': []}},
+                      {'git': {'state': 'fine', 'reason': None, 'subjects_checked': 1, 'observations': [good]}}):
+        with pytest.raises(ValueError):
+            observations.append_run(ledger, 'r1', '2026-10-10T00:00:00+00:00', '2026-10-10T00:00:01+00:00', collected)
+        assert not ledger.exists() or ledger.read_text() == ''
+
+
 # ---- git --------------------------------------------------------------------------------------------------------------
 
 def git(repo, *args, when=None):

@@ -10,12 +10,13 @@ import os
 import re
 from datetime import datetime
 
+import destinations as destination_store
 from decision_receipts import append_row, locked_private_rows, numbered_rows, validate_id
 from outcomes import split_rows
 
 SCHEMA = 1
 SOURCE_STATES = ('ok', 'unavailable', 'error')
-SOURCE = re.compile(r't3|git|destination:[^\s:][^\s]{0,63}')
+SOURCE = re.compile(rf't3|git|destination:{destination_store.NAME.pattern}')
 LABELS = {
     'completed': 'completed ≠ accepted',
     'consumed': 'consumed ≠ correct',
@@ -64,10 +65,11 @@ def check_row(row):
             raise ValueError(f'{name} must be an ISO timestamp') from None
     if kind == 'source_run':
         sources = row['sources']
-        if not isinstance(sources, dict) or not all(
-                SOURCE.fullmatch(name) and isinstance(entry, dict) and SOURCE_ENTRY_KEYS <= set(entry)
-                and entry['state'] in SOURCE_STATES for name, entry in sources.items()):
-            raise ValueError('sources must map each source to a state in ok, unavailable or error')
+        bad = [name for name, entry in sources.items() if not (
+            isinstance(name, str) and SOURCE.fullmatch(name) and isinstance(entry, dict) and SOURCE_ENTRY_KEYS <= set(entry)
+            and entry['state'] in SOURCE_STATES)] if isinstance(sources, dict) else ['(not an object)']
+        if bad:
+            raise ValueError(f'sources must map each source (t3, git or destination:NAME) to a state in ok, unavailable or error; rejected {bad[:3]}')
         return
     if not isinstance(row['source'], str) or not SOURCE.fullmatch(row['source']):
         raise ValueError('source must be t3, git or destination:NAME')
@@ -108,28 +110,39 @@ def read_observations(path):
     return [row for _, row in numbered], 'observed', None
 
 
+def source_run(run_id, started_at, finished_at, collected, new_counts):
+    sources = {source: {k: v for k, v in result.items() if k != 'observations'} | {'new_observations': new_counts.get(source, 0)}
+               for source, result in sorted(collected.items())}
+    return {'schema_version': SCHEMA, 'kind': 'source_run', 'run_id': run_id, 'started_at': started_at,
+            'finished_at': finished_at, 'sources': sources, 'labels': LABELS}
+
+
 def append_run(path, run_id, started_at, finished_at, collected):
     """Append the new observations of every source, then ONE source_run row, under the exclusive lock.
 
     `collected` maps a source to {state, reason, subjects_checked, observations, ...extra}. Returns the source_run row.
     Dedupe happens here, under the lock, so concurrent runs append each fact once.
     """
+    # Every row that could be written is checked before the file is opened, so a bad name or row appends nothing.
+    candidates = [o | {'observed_at': finished_at, 'run_id': run_id} for r in collected.values() for o in r['observations']]
+    for row in candidates + [source_run(run_id, started_at, finished_at, collected, {})]:
+        check_row(row)
     with locked_private_rows(path, validate_observation_rows) as (stream, rows):
         known = {r['observation_id'] for r in rows if r['kind'] == 'observation'}
         if any(r['kind'] == 'source_run' and r['run_id'] == run_id for r in rows):
             raise ValueError(f'run id {run_id!r} already recorded')
-        sources = {}
+        fresh_by_source = {}
         for source, result in sorted(collected.items()):
             fresh = []
             for observation in result['observations']:
                 if observation['observation_id'] not in known:
                     known.add(observation['observation_id'])
-                    fresh.append(observation)
+                    fresh.append(observation | {'observed_at': finished_at, 'run_id': run_id})
+            fresh_by_source[source] = fresh
+        record = source_run(run_id, started_at, finished_at, collected, {s: len(f) for s, f in fresh_by_source.items()})
+        for fresh in fresh_by_source.values():
             for observation in fresh:
-                append_row(stream, observation | {'observed_at': finished_at, 'run_id': run_id})
-            sources[source] = {k: v for k, v in result.items() if k != 'observations'} | {'new_observations': len(fresh)}
-        record = {'schema_version': SCHEMA, 'kind': 'source_run', 'run_id': run_id, 'started_at': started_at,
-                  'finished_at': finished_at, 'sources': sources, 'labels': LABELS}
+                append_row(stream, observation)
         append_row(stream, record)
     return record
 

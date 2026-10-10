@@ -1,6 +1,7 @@
 """Destinations: external workers that `route` offers before it picks a model. A destination is an adapter, not a chooser."""
 import json
 import os
+import re
 import selectors
 import signal
 import subprocess
@@ -10,6 +11,9 @@ from pathlib import Path
 from outcomes import PURPOSES
 from runtime_sources import digest
 
+# The one name contract: config, receipts and the observation ledger all use it.
+NAME = re.compile(r'[a-z0-9][a-z0-9_-]{0,31}')
+NAME_TEXT = '^[a-z0-9][a-z0-9_-]{0,31}$'
 SKIP_REASONS = ('local-inputs', 'synchronous', 'credential', 'unavailable', 'other')
 MAX_PROBE_BYTES = 64 * 1024
 MAX_STDIN_BYTES = 32 * 1024
@@ -39,8 +43,8 @@ def read_destinations(path):
         if not isinstance(entry, dict):
             raise ValueError(f'{where} must be an object')
         name = entry.get('name')
-        if not isinstance(name, str) or not name.strip() or name == 'model' or name in seen:
-            raise ValueError(f'{where}.name must be a unique non-empty string other than "model"')
+        if not isinstance(name, str) or not NAME.fullmatch(name) or name == 'model' or name in seen:
+            raise ValueError(f'{where}.name must be a unique name matching {NAME_TEXT} other than "model"')
         seen.add(name)
         purposes = entry.get('purposes')
         if not isinstance(purposes, list) or not purposes or any(p not in PURPOSES for p in purposes):
