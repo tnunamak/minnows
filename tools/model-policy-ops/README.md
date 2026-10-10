@@ -188,9 +188,14 @@ model-policy-ops route review.audit \
 `route` takes an op ID only. It refuses `--no-op`, `--escalate-from`,
 `--handoff-boundary`, `--account-hint` and `--quota-provider/--quota-source`. The
 account map names the quota source, and `--override account=...` changes the account.
-`--relaunch-of` works as in `resolve`. `--now RFC3339` fixes the clock for directive
-expiry, the failure lookback and quota expiry (for tests and replays). `directive add` refuses
-`--now`: it always records the real clock.
+`--relaunch-of` works as in `resolve`. `--now RFC3339` evaluates directive expiry, the
+failure lookback and quota staleness at that time, as a dry simulation. A route with
+`--now` cannot be dispatched: `--record` with `--now` fails before any write, and the
+output has every `target` key null (including `routing.chosen` and `routing.final`), `launch_ready: false`, the routed target in `simulated_target`,
+and `simulation` (`now`, `real_clock_at_evaluation`, `note`). A stored receipt is never
+replayed in a simulation. `--now` is read-only: `directive list` and `calibrate` accept
+it; every other command (`resolve`, `close`, `followup`, `audit`, `directive add|end`)
+refuses it, because they write state with the real clock.
 
 ### Output
 
@@ -311,7 +316,7 @@ maps nothing, so every instance is excluded for unknown billing.
 and `directive list`. The match keys are `provider`, `model`, `account` and `op`,
 and every key must match. The `--until`, `--reason` and `--source` options are
 required, and no directive is permanent: `--until` cannot be later than the pack
-`directive_max_days` (14), and `add` records the real clock (`--now` is refused). A
+`directive_max_days` (14), and `add` and `end` record the real clock (`--now` is refused). A
 reader ignores a row that lasts longer than the cap or was recorded after the evaluation
 time; `route` lists it in `directives_rejected` and `directive list` shows state
 `rejected`. Standing rules go in the pack. `add` rejects a
@@ -331,6 +336,8 @@ receipts and outcomes. Expired directives are ignored, and `directive list` show
 - `authorize` lets you select an `unvalidated` candidate without a new judgment. It
   does not change the basis. The output keeps `basis: unvalidated`, and adds
   `selection_basis: authorized_exception` with the directive ID, source and expiry.
+  Directives match provider, model, account and op, not effort, so an `authorize`
+  for a model covers every effort of that model.
 - When `avoid` and `prefer` or `authorize` match the same pair, `avoid` wins and
   `routing.conflicts` lists it. `judgment_required` is then true.
 

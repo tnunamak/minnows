@@ -140,8 +140,8 @@ no preferences. The **policy** is the pack data. Each op has an optional
 
    The match keys are `provider`, `model`, `account` and `op`. `--until` (RFC 3339),
    `--reason` and `--source owner|lead` are required. `--until` cannot be later than
-   `directive_max_days`. `directive add` records the real clock and refuses `--now`, so
-   a directive cannot be dated into the past or future. A reader ignores a live row, reports it in
+   `directive_max_days`. `directive add` and `directive end` record the real clock and refuse `--now`, so
+   a directive cannot be dated into the past or future. `route --now T` is a simulation: it cannot be recorded, every `target` key in its output is null (nested ones included), and it has `launch_ready: false`, `simulated_target` and `simulation`, and it never replays a stored receipt. A reader ignores a live row, reports it in
    `directives_rejected` (ID and reason), and `directive list` shows it as state `rejected`, when
    `until - recorded_at` exceeds `directive_max_days` or `recorded_at` is later than the
    evaluation time. `directive add` rejects a `provider`, `model` or `op` that the
@@ -234,7 +234,8 @@ routed pair. The receipt records `final.billing`, `final.filters_bypassed` and
 `final_quota_exhausted`, `final_independence_bypassed`. The pair rules below (basis,
 `requires`, pace, `auth_config`, independence provenance, `review_without_maker`, newer GA
 model) apply to the final pair too. A final pair that the pack does not name is
-`unvalidated`; a pair matches a pack candidate by provider and model, not effort.
+`unvalidated`; a pair matches a pack candidate by exact provider, model and effort, so
+an effort-only override is `unvalidated`.
 A final pair with no target raises `final_target_null`.
 
 **Rank** is lexicographic, and every key is printed:
@@ -411,5 +412,6 @@ protect quality, not quota.
 
 ## Changelog
 
+- Revision 6 (2026-10-10): `--now` is a read-only simulation. `route --now --record` fails before any write; `route --now` nulls every `target` key in its output and returns `launch_ready: false`, `simulated_target` and `simulation`, so a synthetic clock cannot revive an expired `authorize` or `allow-metered` directive inside a dispatchable receipt. Commands that write state (`resolve`, `close`, `followup`, `audit`, `directive add|end`) refuse `--now`.
 - Revision 5 (2026-10-10): checker report r2 fixes. R1: every T3 child run of the maker decision is read (`multiple_child_runs`). R2: `directive add` refuses `--now`; readers reject rows beyond the cap or recorded after the evaluation time (`directives_rejected`, state `rejected`). R3: an override with a null target raises `final_target_null`. R4: reasons carry `applies_to`; the final pair gets the same judgment rules; `judgment_required` follows the final pair. R5: `freshness.unchecked` and state `partial`. Also `independence.required_source`.
 - Revision 4 (2026-10-10): checker report r1 fixes (maker provenance from the run, `lineage_key`, override filters, directive validation and lifetime cap, alternates-only `candidates`, AC6 key); revision 3 was the scope review decision on evidence classification.

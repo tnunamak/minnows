@@ -64,7 +64,7 @@ def add_arguments(parser):
     parser.add_argument('--accounts', type=Path, default=route_inputs.default_accounts_path(), help='account map; default ~/.config/model-policy/accounts.json')
     parser.add_argument('--directives', type=Path, help='directives file; default directives.jsonl beside --receipts')
     parser.add_argument('--model-catalog', type=Path, help='model-catalog pack models.json; default from the clone or DATA_PACKS_HOME')
-    parser.add_argument('--now', help='RFC 3339 time for directive expiry and the failure lookback; default the clock; not allowed for directive add')
+    parser.add_argument('--now', help='RFC 3339 time for directive expiry, the failure lookback and quota staleness. Read-only: route --now is a simulation (no dispatchable target, cannot --record), directive list and calibrate accept it, every other command refuses it')
     parser.add_argument('--id', help='directive add: the directive ID')
     parser.add_argument('--effect', choices=directive_store.EFFECTS)
     parser.add_argument('--match', action='append', default=[], metavar='KEY=VALUE', help='directive add: provider, model, account or op')
@@ -135,10 +135,24 @@ def run_calibrate(args, policy, at):
                             model_catalog=model_catalog, db=args.db, since=since, at=at, params=policy.get('routing', {}))
 
 
+def clear_targets(value):
+    """Null every `target` key inside a simulation result, so no nested copy is dispatchable."""
+    if isinstance(value, dict):
+        return {k: None if k == 'target' else clear_targets(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [clear_targets(v) for v in value]
+    return value
+
+
 def execute(args, policy):
+    if args.now is not None and not args.now.strip():
+        raise ValueError('--now must not be empty')
     if args.directives is None:
         args.directives = args.receipts.with_name('directives.jsonl')
     at = directive_store.parse_time(args.now, '--now') if args.now else directive_store.now()
+    if args.now and not (args.command in ('route', 'calibrate') or (args.command == 'directive' and args.op == 'list')):
+        name = args.command + (f' {args.op}' if args.command == 'directive' else '')
+        raise ValueError(f'--now is not allowed for {name}: it is a read-only simulation clock and {name} writes state with the real clock')
     if args.command == 'directive':
         outcomes.refuse_shared_ledger(args.receipts, args.directives, '--directives')
         max_days = policy.get('routing', {}).get('directive_max_days')
@@ -164,6 +178,9 @@ def execute(args, policy):
             validate_id(source_id)
     ops = {o['id']: o for o in policy['operating_points']}
     route = args.command == 'route'
+    simulation = route and bool(args.now)
+    if simulation and args.record:
+        raise ValueError('route --now is a simulation and cannot be recorded: a synthetic clock could revive an expired directive inside a dispatchable receipt (drop --now or drop --record)')
     if route and (args.no_op or args.escalate_from or args.handoff_boundary or args.account_hint or args.quota_provider or args.quota_source):
         raise ValueError('route takes an op ID only: no --no-op, --escalate-from, --handoff-boundary, --account-hint or --quota-provider/--quota-source (the account map names the quota source; use --override account=...)')
     if args.no_op == bool(args.op):
@@ -200,7 +217,7 @@ def execute(args, policy):
                'relaunch_of': args.relaunch_of}
     if route:
         request |= {'route': True, 'maker': args.maker, 'maker_model': args.maker_model, 'independence': args.independence}
-    old = find_receipt(args.receipts, decision_id)
+    old = None if simulation else find_receipt(args.receipts, decision_id)
     if old:
         return replay_receipt(old, request, facts)
     relaunch = None
@@ -288,6 +305,14 @@ def execute(args, policy):
         return_value['escalation'] = escalation
     if relaunch:
         return_value['relaunch'] = relaunch
+    if simulation:
+        simulated = return_value['target']
+        return_value = clear_targets(return_value)
+        return_value['simulated_target'] = simulated
+        return_value['launch_ready'] = False
+        return_value['launch_readiness_basis'] = 'simulation only; no dispatchable target'
+        return_value['simulation'] = {'now': at.isoformat(), 'real_clock_at_evaluation': datetime.now(timezone.utc).isoformat(),
+                                      'note': 'simulation only; not a dispatch decision'}
     if args.record:
         return append_receipt(args.receipts, return_value)
     return return_value

@@ -94,16 +94,27 @@ class World:
 
     def args(self):
         found = ['--policy', self.tmp / 'policy.json', '--available', self.tmp / 'catalog.json', '--quota', self.tmp / 'quota.json',
-                 '--accounts', self.tmp / 'accounts.json', '--receipts', self.receipts, '--now', NOW]
+                 '--accounts', self.tmp / 'accounts.json', '--receipts', self.receipts]
         if self.with_db:
             found += ['--db', self.tmp / 't3.sqlite']
         if self.model_catalog:
             found += ['--model-catalog', self.model_catalog]
         return found
 
-    def cli(self, *args):
+    def cli(self, *args, raw=False):
+        """Run the CLI. Unless `raw`, the evaluation clock is pinned to NOW (or to a route's `--now X`, which is lifted out of
+        the arguments because the real `route --now` is a simulation); `directive add` keeps the real clock."""
         self.write()
-        result = subprocess.run([str(TOOL), *map(str, args)], capture_output=True, text=True)
+        args = list(map(str, args))
+        env = dict(os.environ)
+        if not raw and not args[:2] == ['directive', 'add']:
+            clock = NOW
+            if args[0] == 'route' and '--now' in args:
+                at = args.index('--now')
+                clock = args[at + 1]
+                del args[at:at + 2]
+            env['PINNED_NOW'] = clock
+        result = subprocess.run([sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), *args], capture_output=True, text=True, env=env)
         return result, json.loads(result.stdout) if result.stdout.startswith('{') else None
 
     def route(self, op, *extra, record=None):
@@ -115,7 +126,7 @@ class World:
         return out
 
     def directive(self, *args):
-        result, out = self.cli('directive', *args, '--receipts', self.receipts, '--now', NOW)
+        result, out = self.cli('directive', *args, '--receipts', self.receipts)
         assert result.returncode == 0, result.stderr
         return out
 
@@ -701,8 +712,8 @@ def test_route_is_deterministic_apart_from_timestamps(world):
     runs = [stable(world.route('review.audit', '--maker-model', 'claude:claude-sonnet-5-5')) for _ in range(3)]
     assert json.dumps(runs[0], sort_keys=True) == json.dumps(runs[1], sort_keys=True) == json.dumps(runs[2], sort_keys=True)
     world.write()
-    first = subprocess.run([str(TOOL), 'route', 'implement.quota-tight', *map(str, world.args()), '--decision-id', 'same'], capture_output=True, text=True).stdout
-    second = subprocess.run([str(TOOL), 'route', 'implement.quota-tight', *map(str, world.args()), '--decision-id', 'same'], capture_output=True, text=True).stdout
+    first = world.cli('route', 'implement.quota-tight', *world.args(), '--decision-id', 'same')[0].stdout
+    second = world.cli('route', 'implement.quota-tight', *world.args(), '--decision-id', 'same')[0].stdout
     strip = lambda text: {k: v for k, v in json.loads(text).items() if k != 'recorded_at'}
     assert strip(first) == strip(second)
 
@@ -1106,8 +1117,7 @@ def add_args(name, *match, until=None):
 
 
 def directive_cli(world, *args):
-    now = [] if args[0] == 'add' else ['--now', NOW]
-    return world.cli('directive', *args, '--receipts', world.receipts, *now, '--policy', world.tmp / 'policy.json',
+    return world.cli('directive', *args, '--receipts', world.receipts, '--policy', world.tmp / 'policy.json',
                      '--available', world.tmp / 'catalog.json', '--accounts', world.tmp / 'accounts.json')
 
 
@@ -1449,3 +1459,198 @@ def test_b_independence_names_where_the_required_level_came_from(world):
     del world.policy['routing']['independence_default']
     out = world.route('review.audit', '--maker-model', 'codex:gpt-6.1-sol')
     assert out['routing']['independence']['required'] == 'vendor' and out['routing']['independence']['required_source'] == 'mechanism_default'
+
+
+# --- revision 6: --now is a read-only simulation --------------------------------------------------------------------
+
+RECORD = ['--record', '--parent-model', 'pm', '--parent-provider-instance', 'pp', '--parent-thread', 'pt', '--decision-id', 'sim']
+
+
+def simulate(world, *extra, at='2026-10-10T00:30:00Z'):
+    result, out = world.cli('route', 'implement.quota-tight', *world.args(), '--now', at, *extra, raw=True)
+    return result, out
+
+
+def test_r6_record_with_now_fails_before_any_write_and_leaves_the_receipts_byte_identical(world):
+    world.route('implement.quota-tight', record='first')
+    before = world.receipts.read_bytes()
+    result, out = simulate(world, *RECORD)
+    assert result.returncode == 1 and out is None
+    assert 'simulation' in result.stderr and 'cannot be recorded' in result.stderr
+    assert world.receipts.read_bytes() == before
+
+
+def test_r6_record_with_now_creates_no_receipts_file_when_none_exists(world):
+    assert not world.receipts.exists() and not world.receipts.parent.exists()
+    result, _ = simulate(world, *RECORD)
+    assert result.returncode == 1 and 'cannot be recorded' in result.stderr
+    assert not world.receipts.exists() and not world.receipts.parent.exists()
+
+
+def test_r6_a_synthetic_clock_cannot_put_a_directive_into_a_dispatchable_receipt(world):
+    world.add_directive('soon', 'avoid', 'provider=codex', until='2026-10-10T00:40:00Z')
+    result, _ = simulate(world, *RECORD)
+    assert result.returncode == 1
+    assert not world.receipts.exists()
+    assert world.route('implement.quota-tight', record='real')['routing']['directives_applied'] == ['soon'], 'a pinned real clock still records'
+
+
+def test_r6_simulation_output_has_no_dispatchable_target(world):
+    world.add_directive('soon', 'avoid', 'provider=codex', until='2026-10-10T00:40:00Z')
+    real = world.route('implement.quota-tight')
+    assert real['target'] and real['launch_ready'] is True and 'simulation' not in real and 'simulated_target' not in real
+    result, out = simulate(world)
+    assert result.returncode == 0, result.stderr
+    assert out['target'] is None and out['launch_ready'] is False and out['selection']['target'] is None
+    assert out['simulated_target'] == real['target']
+    assert out['routing']['directives_applied'] == ['soon']
+    sim = out['simulation']
+    assert set(sim) == {'now', 'real_clock_at_evaluation', 'note'}
+    assert sim['now'].startswith('2026-10-10T00:30:00') and sim['note'] == 'simulation only; not a dispatch decision'
+    assert datetime.fromisoformat(sim['real_clock_at_evaluation']).tzinfo is not None
+    assert not world.receipts.exists()
+
+
+def test_r6_simulation_does_not_replay_a_stored_receipt(world):
+    world.route('implement.quota-tight', record='sim')
+    result, out = simulate(world, '--decision-id', 'sim')
+    assert result.returncode == 0 and out['target'] is None and out['launch_ready'] is False and 'simulation' in out
+
+
+@pytest.mark.parametrize('argv', [
+    ['resolve', 'implement.quota-tight'],
+    ['audit', '--export', 'x.json'],
+    ['close', '--close-id', 'c', '--decision-id', 'd'],
+    ['followup', '--followup-id', 'f', '--decision-id', 'd'],
+    ['directive', 'add', '--id', 'n', '--effect', 'avoid', '--match', 'provider=codex', '--until', '2026-10-11T00:00:00Z', '--reason', 'r', '--source', 'owner'],
+    ['directive', 'end', 'n', '--reason', 'r'],
+])
+def test_r6_commands_that_write_state_refuse_now(world, argv):
+    world.write()
+    result, _ = world.cli(*argv, '--receipts', world.receipts, '--policy', world.tmp / 'policy.json', '--now', NOW, raw=True)
+    assert result.returncode == 1 and '--now is not allowed' in result.stderr, result.stderr
+    assert not world.receipts.exists() and not world.receipts.with_name('directives.jsonl').exists()
+
+
+def test_r6_read_only_commands_still_accept_now(world):
+    world.add_directive('d1', 'prefer', 'account=claude-work')
+    listing, out = world.cli('directive', 'list', '--receipts', world.receipts, '--now', '2026-10-10T01:00:00Z', raw=True)
+    assert listing.returncode == 0 and out['now'].startswith('2026-10-10T01:00:00')
+    result, out = world.cli('calibrate', *world.args(), '--now', NOW, raw=True)
+    assert result.returncode == 0 and out['applies_changes'] is False, result.stderr
+
+
+# --- concurrent directive writers ------------------------------------------------------------------------------------
+
+def test_concurrent_directive_add_end_and_route_reads_never_tear_or_lose_a_row(world):
+    """12 `directive add`, 4 `directive end` and 8 `route` readers start at one barrier against one directives file."""
+    directives = world.receipts.with_name('directives.jsonl')
+    adds = [f'add{n}' for n in range(12)]
+    seeded = [f'seed{n}' for n in range(4)]
+    for name in seeded:
+        world.add_directive(name, 'prefer', 'account=claude-work')
+    world.write()
+    barrier = world.tmp / 'go'
+    env = dict(os.environ, START_AFTER=str(barrier))
+    clock = [sys.executable, str(REPO / 'tests/pinned_clock_cli.py')]
+    known = ['--policy', world.tmp / 'policy.json', '--available', world.tmp / 'catalog.json', '--accounts', world.tmp / 'accounts.json']
+    jobs = [('add', clock + ['directive', *add_args(name, 'provider=codex'), '--receipts', world.receipts, *known], dict(env)) for name in adds]
+    jobs += [('end', clock + ['directive', 'end', name, '--reason', 'done', '--receipts', world.receipts, *known], dict(env, PINNED_NOW=NOW)) for name in seeded]
+    jobs += [('route', clock + ['route', 'implement.quota-tight', *map(str, world.args()), '--decision-id', f'read{n}'], dict(env, PINNED_NOW=NOW)) for n in range(8)]
+    procs = [(kind, subprocess.Popen(map(str, argv), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=job_env)) for kind, argv, job_env in jobs]
+    assert len({p.pid for _, p in procs}) == len(jobs) == 24
+    barrier.write_text('go')
+    results = [(kind, p.communicate(), p.returncode) for kind, p in procs]
+    for kind, (out, err), code in results:
+        assert code == 0, (kind, err)
+        assert json.loads(out), kind
+    rows = [json.loads(line) for line in directives.read_text().splitlines()]
+    added = [r['id'] for r in rows if r['kind'] == 'add']
+    assert sorted(added) == sorted(seeded + adds), 'every add is present exactly once'
+    ended = [r['id'] for r in rows if r['kind'] == 'end']
+    assert sorted(ended) == sorted(seeded), 'every end refers to an existing add, once'
+    assert stat.S_IMODE(directives.stat().st_mode) == 0o600
+    listing = json.loads(world.cli('directive', 'list', '--receipts', world.receipts)[0].stdout)
+    assert len(listing['directives']) == len(seeded + adds)
+
+
+def test_an_override_to_an_alternate_at_another_effort_is_unvalidated_but_at_its_exact_effort_keeps_the_prior(world):
+    base = ['--override', 'provider=codex', '--override', 'model=gpt-6.1-sol', '--override', 'account=codex', '--reason', 'x']
+    exact = world.route('implement.quota-tight', '--override', 'effort=medium', *base)
+    assert 'unvalidated_candidate' not in codes(exact), 'the alternate at its pack effort keeps task_benchmark_prior'
+    other = world.route('implement.quota-tight', '--override', 'effort=high', *base)
+    assert tagged(other, 'unvalidated_candidate') == ['final'] and other['routing']['judgment_required'] is True
+
+
+def test_an_account_only_override_of_a_routed_alternate_keeps_its_basis_and_an_effort_change_drops_it(world):
+    kept = world.route('fanout.dollar-tight', '--override', 'account=claude-work', '--reason', 'x')
+    assert chosen(kept)['basis'] == 'task_benchmark_prior' and 'unvalidated_candidate' not in codes(kept)
+    moved = world.route('fanout.dollar-tight', '--override', 'effort=high', '--reason', 'x')
+    assert tagged(moved, 'unvalidated_candidate') == ['final'] and moved['routing']['judgment_required'] is True
+
+
+def test_an_override_with_no_effort_keeps_the_routed_effort_and_basis(world):
+    out = world.route('implement.quota-tight', '--override', 'account=claude-work', '--reason', 'x')
+    assert out['routing']['final']['arm']['effort'] == 'medium' and 'unvalidated_candidate' not in codes(out)
+
+
+def test_a_model_level_authorize_covers_every_effort_of_that_model(world):
+    """Documented design: directives match provider, model, account and op, not effort."""
+    world.add_directive('sonnet-ok', 'authorize', 'op=implement.quota-tight', 'model=claude-sonnet-5-5')
+    out = world.route('implement.quota-tight', '--override', 'effort=low', '--override', 'account=claude-work', '--reason', 'x')
+    assert 'unvalidated_candidate' not in codes(out)
+    assert out['routing']['final']['arm']['effort'] == 'low'
+
+
+def non_null_targets(value, path=''):
+    """Every `target` key with a value, anywhere in the output, except the labelled `simulated_target`."""
+    found = []
+    if isinstance(value, dict):
+        for key, item in value.items():
+            where = f'{path}.{key}'
+            if key == 'target' and item is not None:
+                found.append(where)
+            found += non_null_targets(item, where)
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            found += non_null_targets(item, f'{path}[{index}]')
+    return found
+
+
+@pytest.mark.parametrize('extra', [(), ('--override', 'effort=low', '--reason', 'x'), ('--decision-id', 'stored')])
+def test_a_simulation_has_no_dispatchable_target_anywhere_in_its_output(world, extra):
+    world.add_directive('soon', 'authorize', 'op=implement.quota-tight', 'model=claude-sonnet-5-5', until='2026-10-10T00:40:00Z')
+    if 'stored' in extra:
+        world.route('implement.quota-tight', record='stored')
+    real = world.route('implement.quota-tight')
+    assert non_null_targets(real), 'a real route carries targets, so the walk can see them'
+    result, out = simulate(world, *extra)
+    assert result.returncode == 0, result.stderr
+    assert non_null_targets(out) == [] and out['simulated_target'] is not None
+
+
+def test_an_empty_now_is_rejected(world):
+    result, out = world.cli('route', 'implement.quota-tight', *world.args(), '--now', '', raw=True)
+    assert result.returncode == 1 and out is None and '--now must not be empty' in result.stderr
+
+
+def test_directive_add_waits_for_a_held_exclusive_lock(world):
+    """Deterministic lock check: while this test holds LOCK_EX, a `directive add` process must not write."""
+    import fcntl
+    import time
+    world.add_directive('seed', 'prefer', 'account=claude-work')
+    world.write()
+    directives = world.receipts.with_name('directives.jsonl')
+    known = ['--policy', world.tmp / 'policy.json', '--available', world.tmp / 'catalog.json', '--accounts', world.tmp / 'accounts.json']
+    argv = [sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), 'directive', *add_args('held', 'provider=codex'), '--receipts', world.receipts, *known]
+    with open(directives, 'r+') as stream:
+        fcntl.flock(stream, fcntl.LOCK_EX)
+        before = directives.read_bytes()
+        proc = subprocess.Popen(list(map(str, argv)), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        time.sleep(1.0)
+        assert proc.poll() is None, 'the writer must block while the lock is held'
+        assert directives.read_bytes() == before
+        fcntl.flock(stream, fcntl.LOCK_UN)
+    out, err = proc.communicate(timeout=30)
+    assert proc.returncode == 0, err
+    assert [json.loads(line)['id'] for line in directives.read_text().splitlines()] == ['seed', 'held']
