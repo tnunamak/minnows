@@ -66,11 +66,13 @@ def probe_error(kind):
 
 def stop(process):
     """Kill the probe's session, close the read pipe and reap with a bounded wait. A detached descendant may live on; it cannot block us."""
-    if process.poll() is None:
-        try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except OSError:
-            process.kill()
+    # The group outlives an exited leader when a child holds the pipe, so kill it whatever the leader's state.
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    except OSError:
+        process.kill()
     process.stdout.close()
     try:
         process.wait(timeout=KILL_GRACE)

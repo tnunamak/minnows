@@ -538,3 +538,27 @@ def test_independence_flag_applies_to_a_non_review_op(world, tmp_path):
 
 def test_vendor_must_be_a_non_empty_string(world, tmp_path):
     assert 'vendor' in failing(world, config(tmp_path, entry(tmp_path / 'cap') | {'vendor': ''}), '--purpose', 'review')
+
+
+# ---- round 2 repairs -------------------------------------------------------------------------------------------------
+
+def alive(pid):
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    return True
+
+
+def test_background_child_of_an_exited_probe_leader_is_killed(world, tmp_path):
+    pidfile = tmp_path / 'child.pid'
+    body = f"sleep 30 &\necho $! > '{pidfile}'\nexit 0"
+    out, seconds = probe_fallback(world, tmp_path, body, timeout=1)
+    assert dest(out)['fallback']['probe_reason'] == 'capacity_probe_error: timeout' and seconds < 8
+    pid = int(pidfile.read_text())
+    deadline = time.monotonic() + 3
+    while alive(pid) and time.monotonic() < deadline:
+        time.sleep(0.05)
+    assert not alive(pid), 'the same-group child must not outlive route'
+
+
