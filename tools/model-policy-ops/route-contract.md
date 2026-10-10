@@ -234,7 +234,8 @@ routed pair. The receipt records `final.billing`, `final.filters_bypassed` and
 `final_quota_exhausted`, `final_independence_bypassed`. The pair rules below (basis,
 `requires`, pace, `auth_config`, independence provenance, `review_without_maker`, newer GA
 model) apply to the final pair too. A final pair that the pack does not name is
-`unvalidated`; a pair matches a pack candidate by provider and model, not effort.
+`unvalidated`; a pair matches a pack candidate by exact provider, model and effort, so
+an effort-only override is `unvalidated`.
 A final pair with no target raises `final_target_null`.
 
 **Rank** is lexicographic, and every key is printed:

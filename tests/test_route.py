@@ -1501,7 +1501,7 @@ def test_r6_simulation_output_has_no_dispatchable_target(world):
     assert real['target'] and real['launch_ready'] is True and 'simulation' not in real and 'simulated_target' not in real
     result, out = simulate(world)
     assert result.returncode == 0, result.stderr
-    assert out['target'] is None and out['launch_ready'] is False
+    assert out['target'] is None and out['launch_ready'] is False and out['selection']['target'] is None
     assert out['simulated_target'] == real['target']
     assert out['routing']['directives_applied'] == ['soon']
     sim = out['simulation']
@@ -1572,3 +1572,31 @@ def test_concurrent_directive_add_end_and_route_reads_never_tear_or_lose_a_row(w
     assert stat.S_IMODE(directives.stat().st_mode) == 0o600
     listing = json.loads(world.cli('directive', 'list', '--receipts', world.receipts)[0].stdout)
     assert len(listing['directives']) == len(seeded + adds)
+
+
+def test_an_override_to_an_alternate_at_another_effort_is_unvalidated_but_at_its_exact_effort_keeps_the_prior(world):
+    base = ['--override', 'provider=codex', '--override', 'model=gpt-6.1-sol', '--override', 'account=codex', '--reason', 'x']
+    exact = world.route('implement.quota-tight', '--override', 'effort=medium', *base)
+    assert 'unvalidated_candidate' not in codes(exact), 'the alternate at its pack effort keeps task_benchmark_prior'
+    other = world.route('implement.quota-tight', '--override', 'effort=high', *base)
+    assert tagged(other, 'unvalidated_candidate') == ['final'] and other['routing']['judgment_required'] is True
+
+
+def test_an_account_only_override_of_a_routed_alternate_keeps_its_basis_and_an_effort_change_drops_it(world):
+    kept = world.route('fanout.dollar-tight', '--override', 'account=claude-work', '--reason', 'x')
+    assert chosen(kept)['basis'] == 'task_benchmark_prior' and 'unvalidated_candidate' not in codes(kept)
+    moved = world.route('fanout.dollar-tight', '--override', 'effort=high', '--reason', 'x')
+    assert tagged(moved, 'unvalidated_candidate') == ['final'] and moved['routing']['judgment_required'] is True
+
+
+def test_an_override_with_no_effort_keeps_the_routed_effort_and_basis(world):
+    out = world.route('implement.quota-tight', '--override', 'account=claude-work', '--reason', 'x')
+    assert out['routing']['final']['arm']['effort'] == 'medium' and 'unvalidated_candidate' not in codes(out)
+
+
+def test_a_model_level_authorize_covers_every_effort_of_that_model(world):
+    """Documented design: directives match provider, model, account and op, not effort."""
+    world.add_directive('sonnet-ok', 'authorize', 'op=implement.quota-tight', 'model=claude-sonnet-5-5')
+    out = world.route('implement.quota-tight', '--override', 'effort=low', '--override', 'account=claude-work', '--reason', 'x')
+    assert 'unvalidated_candidate' not in codes(out)
+    assert out['routing']['final']['arm']['effort'] == 'low'

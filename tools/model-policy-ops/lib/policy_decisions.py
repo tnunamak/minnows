@@ -297,6 +297,7 @@ def execute(args, policy):
     if simulation:
         return_value['simulated_target'] = return_value['target']
         return_value['target'] = None
+        return_value['selection'] = dict(return_value['selection'], target=None)
         return_value['launch_ready'] = False
         return_value['launch_readiness_basis'] = 'simulation only; no dispatchable target'
         return_value['simulation'] = {'now': at.isoformat(), 'real_clock_at_evaluation': datetime.now(timezone.utc).isoformat(),

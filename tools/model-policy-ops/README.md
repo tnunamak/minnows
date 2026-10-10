@@ -336,6 +336,8 @@ receipts and outcomes. Expired directives are ignored, and `directive list` show
 - `authorize` lets you select an `unvalidated` candidate without a new judgment. It
   does not change the basis. The output keeps `basis: unvalidated`, and adds
   `selection_basis: authorized_exception` with the directive ID, source and expiry.
+  Directives match provider, model, account and op, not effort, so an `authorize`
+  for a model covers every effort of that model.
 - When `avoid` and `prefer` or `authorize` match the same pair, `avoid` wins and
   `routing.conflicts` lists it. `judgment_required` is then true.
 
