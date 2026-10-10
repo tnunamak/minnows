@@ -135,7 +135,18 @@ def run_calibrate(args, policy, at):
                             model_catalog=model_catalog, db=args.db, since=since, at=at, params=policy.get('routing', {}))
 
 
+def clear_targets(value):
+    """Null every `target` key inside a simulation result, so no nested copy is dispatchable."""
+    if isinstance(value, dict):
+        return {k: None if k == 'target' else clear_targets(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [clear_targets(v) for v in value]
+    return value
+
+
 def execute(args, policy):
+    if args.now is not None and not args.now.strip():
+        raise ValueError('--now must not be empty')
     if args.directives is None:
         args.directives = args.receipts.with_name('directives.jsonl')
     at = directive_store.parse_time(args.now, '--now') if args.now else directive_store.now()
@@ -295,9 +306,9 @@ def execute(args, policy):
     if relaunch:
         return_value['relaunch'] = relaunch
     if simulation:
-        return_value['simulated_target'] = return_value['target']
-        return_value['target'] = None
-        return_value['selection'] = dict(return_value['selection'], target=None)
+        simulated = return_value['target']
+        return_value = clear_targets(return_value)
+        return_value['simulated_target'] = simulated
         return_value['launch_ready'] = False
         return_value['launch_readiness_basis'] = 'simulation only; no dispatchable target'
         return_value['simulation'] = {'now': at.isoformat(), 'real_clock_at_evaluation': datetime.now(timezone.utc).isoformat(),

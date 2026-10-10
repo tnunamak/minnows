@@ -1600,3 +1600,57 @@ def test_a_model_level_authorize_covers_every_effort_of_that_model(world):
     out = world.route('implement.quota-tight', '--override', 'effort=low', '--override', 'account=claude-work', '--reason', 'x')
     assert 'unvalidated_candidate' not in codes(out)
     assert out['routing']['final']['arm']['effort'] == 'low'
+
+
+def non_null_targets(value, path=''):
+    """Every `target` key with a value, anywhere in the output, except the labelled `simulated_target`."""
+    found = []
+    if isinstance(value, dict):
+        for key, item in value.items():
+            where = f'{path}.{key}'
+            if key == 'target' and item is not None:
+                found.append(where)
+            found += non_null_targets(item, where)
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            found += non_null_targets(item, f'{path}[{index}]')
+    return found
+
+
+@pytest.mark.parametrize('extra', [(), ('--override', 'effort=low', '--reason', 'x'), ('--decision-id', 'stored')])
+def test_a_simulation_has_no_dispatchable_target_anywhere_in_its_output(world, extra):
+    world.add_directive('soon', 'authorize', 'op=implement.quota-tight', 'model=claude-sonnet-5-5', until='2026-10-10T00:40:00Z')
+    if 'stored' in extra:
+        world.route('implement.quota-tight', record='stored')
+    real = world.route('implement.quota-tight')
+    assert non_null_targets(real), 'a real route carries targets, so the walk can see them'
+    result, out = simulate(world, *extra)
+    assert result.returncode == 0, result.stderr
+    assert non_null_targets(out) == [] and out['simulated_target'] is not None
+
+
+def test_an_empty_now_is_rejected(world):
+    result, out = world.cli('route', 'implement.quota-tight', *world.args(), '--now', '', raw=True)
+    assert result.returncode == 1 and out is None and '--now must not be empty' in result.stderr
+
+
+def test_directive_add_waits_for_a_held_exclusive_lock(world):
+    """Deterministic lock check: while this test holds LOCK_EX, a `directive add` process must not write."""
+    import fcntl
+    import time
+    world.add_directive('seed', 'prefer', 'account=claude-work')
+    world.write()
+    directives = world.receipts.with_name('directives.jsonl')
+    known = ['--policy', world.tmp / 'policy.json', '--available', world.tmp / 'catalog.json', '--accounts', world.tmp / 'accounts.json']
+    argv = [sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), 'directive', *add_args('held', 'provider=codex'), '--receipts', world.receipts, *known]
+    with open(directives, 'r+') as stream:
+        fcntl.flock(stream, fcntl.LOCK_EX)
+        before = directives.read_bytes()
+        proc = subprocess.Popen(list(map(str, argv)), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        time.sleep(1.0)
+        assert proc.poll() is None, 'the writer must block while the lock is held'
+        assert directives.read_bytes() == before
+        fcntl.flock(stream, fcntl.LOCK_UN)
+    out, err = proc.communicate(timeout=30)
+    assert proc.returncode == 0, err
+    assert [json.loads(line)['id'] for line in directives.read_text().splitlines()] == ['seed', 'held']

@@ -191,7 +191,7 @@ account map names the quota source, and `--override account=...` changes the acc
 `--relaunch-of` works as in `resolve`. `--now RFC3339` evaluates directive expiry, the
 failure lookback and quota staleness at that time, as a dry simulation. A route with
 `--now` cannot be dispatched: `--record` with `--now` fails before any write, and the
-output has `target: null`, `launch_ready: false`, the routed target in `simulated_target`,
+output has every `target` key null (including `routing.chosen` and `routing.final`), `launch_ready: false`, the routed target in `simulated_target`,
 and `simulation` (`now`, `real_clock_at_evaluation`, `note`). A stored receipt is never
 replayed in a simulation. `--now` is read-only: `directive list` and `calibrate` accept
 it; every other command (`resolve`, `close`, `followup`, `audit`, `directive add|end`)
