@@ -1,7 +1,7 @@
 {
   "id": "model-choice-policy",
   "schema_version": 1,
-  "policy_version": "0.1.19",
+  "policy_version": "0.2.0",
   "generated_at": "2026-10-07",
   "catalog_ref": "data-model-catalog-v0.5.12",
   "doctrine": [
@@ -54,7 +54,22 @@
         "AA cost figures omit Haiku 5.5's 5x rate above 100k prompt tokens. At that rate ($0.50/$2.50 per MTok) it still costs a quarter of Sonnet 5.5 ($2/$10).",
         "No local success-rate series for the recover task family. AA does not say whether its Haiku 5.5 runs used a pre-release deployment."
       ],
-      "override_policy": "explicit_flags_win"
+      "override_policy": "explicit_flags_win",
+      "candidates": [
+        {
+          "provider": "claude",
+          "model": "claude-sonnet-5-5",
+          "effort": "medium",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/artificial-analysis-claude-sonnet-5-5-2026-09-28",
+            "catalog://performance/artificial-analysis-claude-haiku-5-5-2026-10-07"
+          ],
+          "known_gaps": [
+            "TB4 does not measure docs or recovery work (task transfer)"
+          ]
+        }
+      ]
     },
     {
       "id": "fanout.explore",
@@ -101,7 +116,34 @@
         "No bounded code-navigation benchmark exists; AA's agentic evals are the closest proxy. Fall back to Opus 5.5 medium by explicit flags if scouts return wrong locations.",
         "Moved claude-opus-5-5/medium -> codex/gpt-6.1-sol/medium on 2026-09-30 (v0.1.16)."
       ],
-      "override_policy": "explicit_flags_win"
+      "override_policy": "explicit_flags_win",
+      "candidates": [
+        {
+          "provider": "claude",
+          "model": "claude-opus-5-5",
+          "effort": "medium",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/anthropic-opus5-5-digitized-2026-09",
+            "catalog://performance/artificial-analysis-gpt-6-1-sol-2026-09-29"
+          ],
+          "known_gaps": [
+            "Mixed boards: AutomationBench 61.2 vs 62.6, GDPval-AA higher"
+          ]
+        },
+        {
+          "provider": "claude",
+          "model": "claude-sonnet-5-5",
+          "effort": "medium",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/anthropic-sonnet5-5-digitized-2026-09"
+          ],
+          "known_gaps": [
+            "Weaker: AutomationBench 54.9 vs 62.6"
+          ]
+        }
+      ]
     },
     {
       "id": "fanout.dollar-tight",
@@ -148,7 +190,30 @@
         "OpenAI reports that Luna at max hides a broken search tool in 28.7% of cases (GPT-6 Sol: 4.9%). That is why verified results are a use_when condition.",
         "Haiku 5.5 medium has the same list price and beats Luna on GDPval-AA (1277) and Briefcase (1372 vs 1099) but loses on AutomationBench (28.6%). Use it by explicit flags when the Claude pool is the cheaper one."
       ],
-      "override_policy": "explicit_flags_win"
+      "override_policy": "explicit_flags_win",
+      "candidates": [
+        {
+          "provider": "claude",
+          "model": "claude-sonnet-5-5",
+          "effort": "medium",
+          "basis": "task_benchmark_prior",
+          "evidence_refs": [
+            "catalog://performance/artificial-analysis-claude-sonnet-5-5-2026-09-28",
+            "catalog://performance/openai-gpt-6-sol-luna-launch-curves-2026-09"
+          ],
+          "known_gaps": [
+            "The board harness is not T3, Claude Code or Codex",
+            "Costs more than the primary"
+          ],
+          "prior": {
+            "board": "AutomationBench",
+            "board_cited_for_op": true,
+            "effort_matched": true,
+            "harness_matched": false,
+            "note": "54.9 vs 40.5 at medium (pack gap text, 2026-10-07)"
+          }
+        }
+      ]
     },
     {
       "id": "docs.lookup",
@@ -191,7 +256,22 @@
         "Low effort does not clear the bar: Haiku 5.5 low trails Sonnet 5.5 low on GDPval-AA (1125 vs 1179) and Briefcase (1112 vs 1272), and saves only $0.02 per task over medium.",
         "AA cost figures omit Haiku 5.5's 5x rate above 100k prompt tokens. At that rate ($0.50/$2.50 per MTok) it still costs a quarter of Sonnet 5.5 ($2/$10)."
       ],
-      "override_policy": "explicit_flags_win"
+      "override_policy": "explicit_flags_win",
+      "candidates": [
+        {
+          "provider": "claude",
+          "model": "claude-sonnet-5-5",
+          "effort": "medium",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/artificial-analysis-claude-sonnet-5-5-2026-09-28",
+            "catalog://performance/artificial-analysis-claude-haiku-5-5-2026-10-07"
+          ],
+          "known_gaps": [
+            "TB4 does not measure docs or recovery work (task transfer)"
+          ]
+        }
+      ]
     },
     {
       "id": "implement.standard",
@@ -241,7 +321,22 @@
         "Independent boards mostly test at max effort; the medium-effort choice rests on Anthropic's own effort curves (grade C), where Opus 5.5 medium beats GPT-6 Astra medium on Terminal-Bench 4.0 (57.6% at $2.94 vs 53.9% at $6.15).",
         "Derived with scripts/recommend_ops.py against op-requirements.json (DRAFT); rerun on each catalog release."
       ],
-      "override_policy": "explicit_flags_win"
+      "override_policy": "explicit_flags_win",
+      "candidates": [
+        {
+          "provider": "codex",
+          "model": "gpt-6.1-sol",
+          "effort": "medium",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/vals-ai-terminal-bench-4-2026-10-06",
+            "catalog://performance/artificial-analysis-gpt-6-1-sol-2026-09-29"
+          ],
+          "known_gaps": [
+            "Weaker: Vals TB4 55.1 vs 65.2"
+          ]
+        }
+      ]
     },
     {
       "id": "implement.quota-tight",
@@ -285,7 +380,30 @@
         "Medium, not low: Sonnet 5.5 low scores 20.7% on AA Terminal-Bench 4.0 and 20.0% on Anthropic's curve, against 29.8% and 28.8% at medium.",
         "For Codex-pool patches that a test suite decides, use implement.oracle-bounded."
       ],
-      "override_policy": "explicit_flags_win"
+      "override_policy": "explicit_flags_win",
+      "candidates": [
+        {
+          "provider": "codex",
+          "model": "gpt-6.1-sol",
+          "effort": "medium",
+          "basis": "task_benchmark_prior",
+          "evidence_refs": [
+            "catalog://performance/artificial-analysis-gpt-6-1-sol-2026-09-29",
+            "catalog://performance/artificial-analysis-claude-sonnet-5-5-2026-09-28"
+          ],
+          "known_gaps": [
+            "The board harness is not T3, Claude Code or Codex",
+            "Costs more quota than the primary"
+          ],
+          "prior": {
+            "board": "AA Terminal-Bench 4.0",
+            "board_cited_for_op": true,
+            "effort_matched": true,
+            "harness_matched": false,
+            "note": "48.0 vs 29.8 at medium (pack gap text, 2026-10-07)"
+          }
+        }
+      ]
     },
     {
       "id": "implement.oracle-bounded",
@@ -333,7 +451,24 @@
         "Independent boards show where Luna fails: Terminal-Bench 4.0 at max is 13.6% on Vals and 16.4% on tbench.ai, against 55.1% and 58.2% for GPT-6.1 Sol, and AA has Luna high at 4.6%. Long terminal tasks are therefore in avoid_when.",
         "No independent board measures Luna on bounded repository patches. A local eval with hidden tests would measure the pass rate against the one-in-three threshold."
       ],
-      "override_policy": "explicit_flags_win"
+      "override_policy": "explicit_flags_win",
+      "candidates": [
+        {
+          "provider": "claude",
+          "model": "claude-sonnet-5-5",
+          "effort": "medium",
+          "basis": "unvalidated",
+          "evidence_refs": [],
+          "known_gaps": [
+            "No board at matched efforts"
+          ],
+          "requires": {
+            "proof_class": [
+              "oracle"
+            ]
+          }
+        }
+      ]
     },
     {
       "id": "implement.accuracy-first",
@@ -381,7 +516,22 @@
         "Moves load from the Codex pool to the Claude pool; check clawmeter headroom before bulk use",
         "Effort 'high' chosen from vendor curves: Terminal-Bench 4.0 high 64.2% at $3.88/task vs xhigh 66.4% at $7.35/task"
       ],
-      "override_policy": "explicit_flags_win"
+      "override_policy": "explicit_flags_win",
+      "candidates": [
+        {
+          "provider": "codex",
+          "model": "gpt-6.1-sol",
+          "effort": "high",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/artificial-analysis-gpt-6-1-sol-2026-09-29",
+            "catalog://performance/artificial-analysis-intelligence-index-opus-5-5-2026-09"
+          ],
+          "known_gaps": [
+            "Weaker on the aggregate index (50.2 vs 53.6)"
+          ]
+        }
+      ]
     },
     {
       "id": "review.audit",
@@ -428,7 +578,33 @@
         "No independent benchmark measures audit recall; a seeded-defect local eval would decide between the tied models.",
         "GPT-6 Luna is not a candidate: it scores 13.6% to 16.4% on independent Terminal-Bench 4.0 runs."
       ],
-      "override_policy": "explicit_flags_win"
+      "override_policy": "explicit_flags_win",
+      "candidates": [
+        {
+          "provider": "claude",
+          "model": "claude-opus-5-5",
+          "effort": "high",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/artificial-analysis-intelligence-index-opus-5-5-2026-09",
+            "catalog://performance/arcprize-leaderboard-2026-10-07"
+          ],
+          "known_gaps": [
+            "Only aggregate support (AA Intelligence Index 53.6 vs 50.2, ARC-AGI-2)",
+            "No audit-quality board"
+          ]
+        },
+        {
+          "provider": "claude",
+          "model": "claude-sonnet-5-5",
+          "effort": "high",
+          "basis": "unvalidated",
+          "evidence_refs": [],
+          "known_gaps": [
+            "No comparable evidence"
+          ]
+        }
+      ]
     },
     {
       "id": "advisor.deep",
@@ -474,7 +650,22 @@
         "No benchmark measures design/synthesis advice directly; choice rests on Opus 5.5 dominating Sonnet 5, Opus 5 and Fable 5.1 on AA Intelligence Index v4.3.2 (grade B) and agentic-coding curves (vendor, grade C)",
         "Claude-family advisor reviewing Claude-family implementers is not a cross-model check; escalate to review.audit for independence"
       ],
-      "override_policy": "explicit_flags_win"
+      "override_policy": "explicit_flags_win",
+      "candidates": [
+        {
+          "provider": "codex",
+          "model": "gpt-6.1-sol",
+          "effort": "high",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/artificial-analysis-gpt-6-1-sol-2026-09-29",
+            "catalog://performance/artificial-analysis-intelligence-index-opus-5-5-2026-09"
+          ],
+          "known_gaps": [
+            "Weaker on the aggregate index (50.2 vs 53.6)"
+          ]
+        }
+      ]
     },
     {
       "id": "ui.computer-use",
@@ -521,7 +712,22 @@
         "OSWorld still has no harness shared across vendors: Anthropic reports OSWorld 2.1 (Haiku 5.5 medium 53.3%, Sonnet 5.5 medium 66.0%) and OpenAI reports OSWorld 2.0 (GPT-6 Sol medium 54.0%). AutomationBench is workflow automation, not GUI control, so confidence stays low until a local computer-use eval runs.",
         "Moved codex/gpt-6-astra/medium -> codex/gpt-6.1-sol/medium on 2026-09-30 (v0.1.16)."
       ],
-      "override_policy": "explicit_flags_win"
+      "override_policy": "explicit_flags_win",
+      "candidates": [
+        {
+          "provider": "claude",
+          "model": "claude-opus-5-5",
+          "effort": "medium",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/openai-gpt-6-1-sol-launch-2026-09",
+            "catalog://performance/anthropic-opus5-5-digitized-2026-09"
+          ],
+          "known_gaps": [
+            "Mixed and borderline: AutomationBench 61.2 vs 62.6"
+          ]
+        }
+      ]
     },
     {
       "id": "grok.explore-only",
@@ -569,5 +775,23 @@
       "notes": "Visible exploration point; not a recommended default."
     }
   ],
-  "preferred_over": []
+  "preferred_over": [],
+  "routing": {
+    "pace_windows": [
+      "7d",
+      "7d All"
+    ],
+    "failure_lookback_minutes": 60,
+    "failure_demote_count": 3,
+    "review_task_families": [
+      "review"
+    ],
+    "independence_default": "vendor",
+    "directive_max_days": 14,
+    "lineage_key": {
+      "claude": "family",
+      "codex": "tier",
+      "grok": "family"
+    }
+  }
 }

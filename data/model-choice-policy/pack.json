@@ -2,7 +2,7 @@
   "$schema": "../schemas/pack-v1.schema.json",
   "name": "model-choice-policy",
   "schema_version": 1,
-  "tag": "data-model-choice-policy-v0.1.19",
+  "tag": "data-model-choice-policy-v0.2.0",
   "generated_at": "2026-10-07",
   "description": "Task-shaped operating points. Pins catalog v0.5.12. Opus 5.5 runs implement.standard (medium) and implement.accuracy-first and advisor.deep (high); GPT-6.1 Sol runs fanout.explore and ui.computer-use (medium) and review.audit (high); Haiku 5.5 runs recover.report and docs.lookup (medium); Sonnet 5.5 runs implement.quota-tight (medium); GPT-6 Luna runs fanout.dollar-tight (medium) and implement.oracle-bounded (high); grok.explore-only on grok-4.7 (medium). No op runs GPT-6 Astra. op-requirements.json (DRAFT) feeds scripts/recommend_ops.py.",
   "files": [
