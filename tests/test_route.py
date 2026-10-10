@@ -94,16 +94,27 @@ class World:
 
     def args(self):
         found = ['--policy', self.tmp / 'policy.json', '--available', self.tmp / 'catalog.json', '--quota', self.tmp / 'quota.json',
-                 '--accounts', self.tmp / 'accounts.json', '--receipts', self.receipts, '--now', NOW]
+                 '--accounts', self.tmp / 'accounts.json', '--receipts', self.receipts]
         if self.with_db:
             found += ['--db', self.tmp / 't3.sqlite']
         if self.model_catalog:
             found += ['--model-catalog', self.model_catalog]
         return found
 
-    def cli(self, *args):
+    def cli(self, *args, raw=False):
+        """Run the CLI. Unless `raw`, the evaluation clock is pinned to NOW (or to a route's `--now X`, which is lifted out of
+        the arguments because the real `route --now` is a simulation); `directive add` keeps the real clock."""
         self.write()
-        result = subprocess.run([str(TOOL), *map(str, args)], capture_output=True, text=True)
+        args = list(map(str, args))
+        env = dict(os.environ)
+        if not raw and not args[:2] == ['directive', 'add']:
+            clock = NOW
+            if args[0] == 'route' and '--now' in args:
+                at = args.index('--now')
+                clock = args[at + 1]
+                del args[at:at + 2]
+            env['PINNED_NOW'] = clock
+        result = subprocess.run([sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), *args], capture_output=True, text=True, env=env)
         return result, json.loads(result.stdout) if result.stdout.startswith('{') else None
 
     def route(self, op, *extra, record=None):
@@ -115,7 +126,7 @@ class World:
         return out
 
     def directive(self, *args):
-        result, out = self.cli('directive', *args, '--receipts', self.receipts, '--now', NOW)
+        result, out = self.cli('directive', *args, '--receipts', self.receipts)
         assert result.returncode == 0, result.stderr
         return out
 
@@ -701,8 +712,8 @@ def test_route_is_deterministic_apart_from_timestamps(world):
     runs = [stable(world.route('review.audit', '--maker-model', 'claude:claude-sonnet-5-5')) for _ in range(3)]
     assert json.dumps(runs[0], sort_keys=True) == json.dumps(runs[1], sort_keys=True) == json.dumps(runs[2], sort_keys=True)
     world.write()
-    first = subprocess.run([str(TOOL), 'route', 'implement.quota-tight', *map(str, world.args()), '--decision-id', 'same'], capture_output=True, text=True).stdout
-    second = subprocess.run([str(TOOL), 'route', 'implement.quota-tight', *map(str, world.args()), '--decision-id', 'same'], capture_output=True, text=True).stdout
+    first = world.cli('route', 'implement.quota-tight', *world.args(), '--decision-id', 'same')[0].stdout
+    second = world.cli('route', 'implement.quota-tight', *world.args(), '--decision-id', 'same')[0].stdout
     strip = lambda text: {k: v for k, v in json.loads(text).items() if k != 'recorded_at'}
     assert strip(first) == strip(second)
 
@@ -1106,8 +1117,7 @@ def add_args(name, *match, until=None):
 
 
 def directive_cli(world, *args):
-    now = [] if args[0] == 'add' else ['--now', NOW]
-    return world.cli('directive', *args, '--receipts', world.receipts, *now, '--policy', world.tmp / 'policy.json',
+    return world.cli('directive', *args, '--receipts', world.receipts, '--policy', world.tmp / 'policy.json',
                      '--available', world.tmp / 'catalog.json', '--accounts', world.tmp / 'accounts.json')
 
 
