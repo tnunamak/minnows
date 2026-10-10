@@ -706,13 +706,13 @@ def rows_of(path):
     return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
 
 
-def stub_git(tmp_path, monkeypatch, behavior):
-    """A `git` ahead on PATH that misbehaves for `log` in repositories whose path contains `bad`, and is the real git otherwise."""
+def stub_git(tmp_path, monkeypatch, behavior, command='log'):
+    """A `git` ahead on PATH that misbehaves for `command` in repositories whose path contains `bad`, and is the real git otherwise."""
     import shutil
     real = shutil.which('git')
     stub = tmp_path / 'stub-bin'
     stub.mkdir(exist_ok=True)
-    script(stub, 'git', f'case "$*" in *bad*) case "$*" in *" log "*) {behavior};; esac;; esac\nexec {real} "$@"')
+    script(stub, 'git', f'case "$*" in *bad*) case "$*" in *" {command} "*) {behavior};; esac;; esac\nexec {real} "$@"')
     monkeypatch.setenv('PATH', f'{stub}:{os.environ["PATH"]}')
 
 
@@ -744,6 +744,71 @@ def test_an_operational_git_failure_is_an_error_or_partial_never_healthy(setup, 
         {'one'}, 14, NOW)
     assert both['state'] == 'partial' and both['failed'] == {reason: 1} and both['subjects_checked'] == 2
     assert both['observations'] and all(o['subject_id'].startswith('cg:') for o in both['observations'])  # no half facts from the failed subject
+
+
+def collect_one(repo, sha):
+    return lib_module('observe').collect_git(
+        [{'kind': 'close', 'close_id': 'cr', 'decision_id': 'one', 'recorded_at': days(10).isoformat(),
+          'evidence': [{'type': 'commit', 'repo': str(repo), 'sha': sha}]}], {'one'}, 14, NOW)
+
+
+def test_cat_file_failing_operationally_is_not_a_missing_commit(setup, repo_world, tmp_path, monkeypatch):
+    stub_git(tmp_path, monkeypatch, 'echo "error: object file is corrupt" >&2; exit 3', command='cat-file')
+    source = collect_one(bad_clone(repo_world, tmp_path), repo_world['sha'])
+    assert source['state'] == 'error' and source['failed'] == {'git_failed': 1} and source['skipped'] == {}
+    assert source['observations'] == []
+
+
+@pytest.mark.parametrize('behavior,reason,patch', [
+    ('exec sleep 30', 'git_timeout', {'COMMIT_TIMEOUT': 1}),
+    ('printf "garbage\\n"', 'git_failed', {}),  # exit 0 but not a cat-file answer
+    ('kill -9 $$', 'git_failed', {}),  # terminated by a signal
+])
+def test_cat_file_timeouts_signals_and_malformed_output_are_operational(setup, repo_world, tmp_path, monkeypatch, behavior, reason, patch):
+    for name, value in patch.items():
+        monkeypatch.setattr(lib_module('outcomes'), name, value)
+    stub_git(tmp_path, monkeypatch, behavior, command='cat-file')
+    bad = bad_clone(repo_world, tmp_path)
+    assert lib_module('outcomes').commit_state(str(bad), repo_world['sha']) in ('timeout', 'error')
+    source = collect_one(bad, repo_world['sha'])
+    assert source['state'] == 'error' and source['failed'] == {reason: 1} and source['skipped'] == {}
+
+
+def test_cat_file_reports_confirmed_absence_only_from_an_explicit_missing_line(repo_world):
+    outcomes = lib_module('outcomes')
+    repo = str(repo_world['repo'])
+    assert outcomes.commit_state(repo, repo_world['sha']) == 'exists'
+    assert outcomes.commit_state(repo, '1' * 40) == 'missing'
+    assert outcomes.commit_state(str(repo_world['repo'] / 'no-such-dir'), repo_world['sha']) == 'error'
+
+
+@pytest.mark.parametrize('error', ['exit 3', 'echo "fatal: detected dubious ownership in repository at x" >&2; exit 128',
+                                   'echo "fatal: bad config line 1 in file .git/config" >&2; exit 128'])
+def test_a_root_probe_failing_in_a_worktree_repository_is_operational_not_a_non_root(setup, repo_world, tmp_path, monkeypatch, error):
+    stub_git(tmp_path, monkeypatch, error, command='rev-parse')
+    source = collect_one(bad_clone(repo_world, tmp_path), repo_world['sha'])
+    assert source['state'] == 'error' and source['failed'] == {'git_failed': 1} and source['skipped'] == {}
+
+
+@pytest.mark.parametrize('error', ['exit 3', 'echo "fatal: detected dubious ownership in repository at x" >&2; exit 128'])
+def test_a_root_probe_failing_in_a_bare_repository_is_operational_and_a_healthy_bare_one_is_scanned(setup, repo_world, tmp_path, monkeypatch, error):
+    bare = tmp_path / 'bad-bare.git'
+    subprocess.run(['git', 'clone', '-q', '--bare', str(repo_world['repo']), str(bare)], check=True, capture_output=True)
+    healthy = collect_one(bare, repo_world['sha'])
+    assert healthy['state'] == 'ok' and healthy['skipped'] == {} and healthy['observations']
+    stub_git(tmp_path, monkeypatch, error, command='rev-parse')
+    source = collect_one(bare, repo_world['sha'])
+    assert source['state'] == 'error' and source['failed'] == {'git_failed': 1} and source['skipped'] == {}
+
+
+def test_a_genuine_non_repository_or_non_root_is_a_skip_not_a_failure(setup, repo_world, tmp_path):
+    plain = tmp_path / 'plain'
+    plain.mkdir()
+    nested = repo_world['repo'] / 'deep'
+    nested.mkdir()
+    for path in (plain, nested):
+        source = collect_one(path, repo_world['sha'])
+        assert source['state'] == 'ok' and source['skipped'] == {'not_a_repository_root': 1} and source['failed'] == {}
 
 
 def test_operational_failures_reach_the_source_run_and_audit(setup, repo_world, tmp_path, monkeypatch):

@@ -371,9 +371,6 @@ class GitFailure(Exception):
     """git could not answer (timeout, output limit, non-zero exit, a missing local object): counted in `failed`, never healthy."""
 
 
-STOPS = ('git_timeout', 'git_output_too_large', 'git_os_error')
-
-
 def failure_reason(repo):
     """A non-zero exit in a partial clone usually means a missing object that only the promisor remote has; observe never fetches it."""
     stdout, code, failure = destination_store.run_bounded(git_argv(repo, 'config', '--get-regexp', r'^remote\..*\.promisor$'), GIT_TIMEOUT,
@@ -395,19 +392,16 @@ def git(repo, *args):
 
 
 def is_repo_root(repo):
-    """The path is a repository itself, not a directory inside another one: no other repo is ever scanned."""
-    try:
-        top = git(repo, 'rev-parse', '--show-toplevel').strip()
-        return os.path.realpath(top) == os.path.realpath(repo)
-    except GitFailure as error:
-        if str(error) in STOPS:
-            raise
-        try:
-            return git(repo, 'rev-parse', '--git-dir').strip() == '.'  # a bare repository
-        except GitFailure as inner:
-            if str(inner) in STOPS:
-                raise
-            return False
+    """The path is a repository itself, not a directory inside another one: no other repo is ever scanned.
+
+    A directory with neither `.git` nor the files of a bare repository is not a root, whatever git would discover above it. For a
+    candidate root, git must confirm it; any failure to answer (dubious ownership, unreadable config, a non-zero exit) is a GitFailure.
+    """
+    if os.path.lexists(os.path.join(repo, '.git')):
+        return os.path.realpath(git(repo, 'rev-parse', '--show-toplevel').strip()) == os.path.realpath(repo)
+    if os.path.isfile(os.path.join(repo, 'HEAD')) and os.path.isdir(os.path.join(repo, 'objects')):
+        return git(repo, 'rev-parse', '--git-dir').strip() == '.'  # a bare repository
+    return False
 
 
 def touched_files(repo, sha):

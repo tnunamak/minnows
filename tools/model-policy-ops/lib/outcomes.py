@@ -148,15 +148,33 @@ def git_argv(repo, *args):
     return ['git', '--no-optional-locks', '-C', repo, *args]
 
 
+COMMIT_TIMEOUT = 10
+OBJECT_ID = re.compile(r'[0-9a-f]{40}')
+
+
 def commit_state(repo, sha):
-    """'exists', 'missing' (git says no such commit locally), 'timeout' or 'error'. `sha` is validated hex, so it cannot be read as an option."""
+    """'exists', 'missing', 'timeout' or 'error'. `sha` is validated hex, so it cannot be read as an option.
+
+    `cat-file --batch-check` answers on stdout and exits 0 whether or not the object exists. Only its explicit `<name> missing` line means
+    absence; a non-zero exit, a signal or any other output is an operational failure, never a missing commit.
+    """
+    query = sha + '^{commit}'
     try:
-        code = subprocess.run(git_argv(repo, 'cat-file', '-e', sha + '^{commit}'), capture_output=True, timeout=10, env=git_env()).returncode
+        done = subprocess.run(git_argv(repo, 'cat-file', '--batch-check'), input=(query + '\n').encode(), capture_output=True,
+                              timeout=COMMIT_TIMEOUT, env=git_env())
     except subprocess.TimeoutExpired:
         return 'timeout'
     except OSError:
         return 'error'
-    return 'exists' if code == 0 else 'missing'
+    lines = done.stdout.decode('utf-8', 'replace').splitlines()
+    if done.returncode != 0 or len(lines) != 1:
+        return 'error'
+    fields = lines[0].split(' ')
+    if fields == [query, 'missing']:
+        return 'missing'
+    if len(fields) == 3 and OBJECT_ID.fullmatch(fields[0]) and fields[1] == 'commit' and fields[2].isdigit():
+        return 'exists'
+    return 'error'
 
 
 def commit_exists(repo, sha):
