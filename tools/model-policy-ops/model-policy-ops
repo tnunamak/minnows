@@ -169,7 +169,7 @@ def print_show(policy: dict, op_id: str) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--policy", type=Path, default=None)
-    parser.add_argument("command", nargs="?", choices=("check", "list", "show", "resolve", "route", "audit", "close", "followup", "directive", "calibrate"))
+    parser.add_argument("command", nargs="?", choices=("check", "list", "show", "resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe"))
     parser.add_argument("op", nargs="?")
     sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
     from policy_decisions import add_arguments, execute
@@ -178,7 +178,7 @@ def main() -> int:
     args.policy = select_policy(args.policy)
     if args.target and args.command != "directive":
         parser.error(f"unrecognized arguments: {args.target}")
-    if args.command in ("resolve", "route", "audit", "close", "followup", "directive", "calibrate"):
+    if args.command in ("resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe"):
         try:
             needs_policy = args.command in ("resolve", "route", "calibrate") or (args.command == "directive" and args.op in ("add", "list"))
             policy = load_policy(args.policy) if needs_policy else {}

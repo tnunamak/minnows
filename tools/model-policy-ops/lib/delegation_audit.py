@@ -5,6 +5,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 from outcomes import chain_heads, split_rows
+import observations as observation_store
 
 PREFIX = 'orchestration_v2_projection_'
 
@@ -361,7 +362,7 @@ def destination_summary(receipts):
         'meaning': 'descriptive; offered = destination chosen; not proof the work was submitted or used'}
 
 
-def audit(rows, receipts, since=None, thread=None, time_anchor='export.timestamp', out_of_scope=None, outcome_rows=()):
+def audit(rows, receipts, since=None, thread=None, time_anchor='export.timestamp', out_of_scope=None, outcome_rows=(), observations=((), 'not_read', None)):
     start = stamp(since) if since else None
     rows = [r for r in rows if (not thread or r['thread_id'] == thread) and (not start or stamp(r['timestamp']) >= start)]
     scoped_receipts = [r for r in receipts if (not thread or r['parent']['thread_id'] == thread) and (not start or stamp(r['recorded_at']) >= start)]
@@ -439,6 +440,7 @@ def audit(rows, receipts, since=None, thread=None, time_anchor='export.timestamp
             'unmatched_receipts': [r['decision_id'] for r in scoped_receipts
                                    if r['decision_id'] not in matched_ids and destination_chosen(r) == 'model'],
             'destination_routes': destination_routes, 'spend_first': spend_first,
+            'observations': observation_store.section(observations[1], observations[2], observations[0], scoped_receipts, outcome_rows),
             'delegations': reports, 'limits': ['Coverage measures app-owned receipt coverage, not universal delegation compliance',
                 'Out-of-scope counts measure observed T3 projection records only; no universal native capture or decision-ID join',
                 'Absent projection tables and export out-of-scope counts are unknown; not zero',

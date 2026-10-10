@@ -947,7 +947,8 @@ def test_legacy_commands_are_byte_identical_to_the_baseline(world, tmp_path):
     audit_new['delegations'][0].pop('receipt_before_call', None)
     coverage = audit_new.pop('route_coverage')
     assert audit_new.pop('destination_routes') == {} and audit_new.pop('spend_first')['eligible'] == 0, 'destination keys are empty without destinations'
-    assert coverage['resolve'] == 1 and coverage['route'] == 0, 'audit adds route_coverage and nothing else'
+    assert audit_new.pop('observations')['state'] == 'absent', 'an absent observations file adds an empty section'
+    assert coverage['resolve'] == 1 and coverage['route'] == 0, 'audit adds route_coverage and observations, nothing else'
     for report in (audit_old, audit_new):
         report['delegations'][0]['decision_outcome']['current'].pop('recorded_at')
     assert audit_old == audit_new

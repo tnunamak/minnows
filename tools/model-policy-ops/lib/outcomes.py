@@ -136,19 +136,25 @@ def file_hash_state(path, expected):
     return 'hash_matches' if digest.hexdigest() == expected else 'mismatch'
 
 
+def git_env():
+    """The environment for a read-only git call. GIT_DIR and GIT_WORK_TREE would override -C and check the wrong repository."""
+    return {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
+
+
+def commit_exists(repo, sha):
+    """True when `sha` (validated hex, so it cannot be read as an option) names a commit in `repo`."""
+    try:
+        return subprocess.run(['git', '-C', repo, 'cat-file', '-e', sha + '^{commit}'],
+                              capture_output=True, timeout=10, env=git_env()).returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
 def verify_evidence(ref):
     """Return ref plus verified_state. No shell, no network, no claim about what the evidence proves."""
     kind = ref['type']
     if kind == 'commit':
-        # sha is validated hex, so it cannot be read as an option.
-        try:
-            # GIT_DIR and GIT_WORK_TREE would override -C and check the wrong repository.
-            env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
-            found = subprocess.run(['git', '-C', ref['repo'], 'cat-file', '-e', ref['sha'] + '^{commit}'],
-                                   capture_output=True, timeout=10, env=env).returncode == 0
-        except (OSError, subprocess.TimeoutExpired):
-            found = False
-        state = 'exists' if found else 'unverified_missing'
+        state = 'exists' if commit_exists(ref['repo'], ref['sha']) else 'unverified_missing'
     elif kind == 'file':
         state = file_hash_state(ref['path'], ref['sha256'])
     elif kind == 'check':
@@ -298,8 +304,8 @@ def read_outcomes(path):
     return [row for _, row in numbered]
 
 
-def refuse_shared_ledger(receipts, other, flag='--outcomes'):
-    """The receipts ledger and another ledger (`flag` names it in the error) must be different files, however they are named."""
+def refuse_shared_ledger(receipts, other, flag='--outcomes', first='--receipts'):
+    """Two ledgers (`first` and `flag` name them in the error) must be different files, however they are named."""
     receipts, other = os.fspath(receipts), os.fspath(other)
     same = os.path.realpath(receipts) == os.path.realpath(other)
     if not same:
@@ -309,8 +315,8 @@ def refuse_shared_ledger(receipts, other, flag='--outcomes'):
         except OSError:
             pass  # one of them does not exist yet, so they cannot be one file
     if same:
-        rows = 'outcome rows' if flag == '--outcomes' else 'directive rows'
-        raise ValueError(f'--receipts and {flag} name the same file; {rows} must never enter decisions.jsonl')
+        rows = {'--outcomes': 'outcome rows', '--observations': 'observation rows'}.get(flag, 'directive rows')
+        raise ValueError(f'{first} and {flag} name the same file; {rows} must never enter {"decisions.jsonl" if first == "--receipts" else "another ledger"}')
 
 
 def split_rows(rows):

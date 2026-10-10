@@ -1,6 +1,6 @@
-# `route` delivery contract (v1, revision 9)
+# `route` delivery contract (v1, revision 10)
 
-Status: revision 9, 2026-10-10. Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
+Status: revision 10, 2026-10-10. Revision 10 adds `observe` (see the changelog). Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
 child runs of a maker, the directive cap on write and on read, and final-pair judgment after an
 override (see the changelog). Revision 4 applies the independent checker's
 findings (report r1): maker provenance from the T3 child run, a model line key for
@@ -412,6 +412,7 @@ protect quality, not quota.
 
 ## Changelog
 
+- Revision 10 (2026-10-10): `observe`. Automatic, factual observations of recorded decisions go to `observations.jsonl` beside the receipts, from the T3 database, a destination `observe_command` and git (candidate signals only). Facts carry source IDs and timestamps, `requested` config with `served_model: unattested`, and fixed labels. IDs are content hashes, so a repeat run appends nothing; each run appends one `source_run` row, so a failed source differs from zero events. `audit` and `calibrate` add an `observations` section; no existing key changes and no close, outcome or verdict is created. See README, Observe.
 - Revision 9 (2026-10-10): destinations round-2 fixes. Mixed independence declines and unavailable probes fall back with `reasons: ["independence", "unavailable"]` and `by_destination` (no crash); the probe kills its process group even after the leader exits; a maker run with an unknown vendor always adds `destination_independence_unknown` while known runs still exclude the destination.
 - Revision 8 (2026-10-10): destinations review fixes. The offer is built before the single `target` clear; the probe reads a bounded stream and fails closed on overflow (`output_too_large`) and its total time is the timeout plus 1 s; a destination may carry `vendor`, compared with the maker vendor at level `vendor` (`declined_by_independence`, fallback `independence`; `destination_independence_unknown` when unknown); with a destination chosen, model-pair reasons are `informational` with `applies_to: "model_fallback"` and `judgment_required` follows destination-level reasons only.
 - Revision 7 (2026-10-10): destinations. An ordered, optional `destinations.json` names external workers with purposes, a capacity command and a submit template. After the model ranking, a listed purpose goes to the first destination with capacity, unless launch facts (`--inputs local`, `--urgent`, `--sensitive`) or `--skip-destination REASON --reason` decline it. A chosen destination nulls every `target` and returns `destination_offer`; `decision_id` is the request ID. `test-design` joins the purposes. Audit adds `destination_routes` and `spend_first`; destination receipts are not unmatched anomalies. See README, Destinations.
