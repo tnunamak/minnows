@@ -1,0 +1,1318 @@
+{
+ "data": {
+  "providers": [
+   {
+    "driver": "codex",
+    "enabled": true,
+    "instanceId": "codex",
+    "models": [
+     {
+      "options": [
+       {
+        "id": "reasoningEffort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": true,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": false,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultra",
+          "isDefault": false,
+          "label": "Ultra"
+         }
+        ]
+       }
+      ],
+      "slug": "gpt-6.1-sol"
+     },
+     {
+      "options": [
+       {
+        "id": "reasoningEffort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": true,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": false,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultra",
+          "isDefault": false,
+          "label": "Ultra"
+         }
+        ]
+       }
+      ],
+      "slug": "gpt-6-astra"
+     },
+     {
+      "options": [
+       {
+        "id": "reasoningEffort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": true,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": false,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultra",
+          "isDefault": false,
+          "label": "Ultra"
+         }
+        ]
+       }
+      ],
+      "slug": "gpt-6-sol"
+     },
+     {
+      "options": [
+       {
+        "id": "reasoningEffort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": true,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": false,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         }
+        ]
+       }
+      ],
+      "slug": "gpt-6-luna"
+     }
+    ],
+    "status": "ready"
+   },
+   {
+    "driver": "claudeAgent",
+    "enabled": true,
+    "instanceId": "claudeAgent",
+    "models": [
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": true,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": false,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultracode",
+          "isDefault": false,
+          "label": "Ultracode"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-opus-5-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": true,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-sonnet-5-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": true,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultracode",
+          "isDefault": false,
+          "label": "Ultracode"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-opus-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": true,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-sonnet-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": true,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": false,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-haiku-5-5"
+     }
+    ],
+    "status": "ready"
+   },
+   {
+    "driver": "claudeAgent",
+    "enabled": true,
+    "instanceId": "claude-api",
+    "models": [
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": true,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": false,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultracode",
+          "isDefault": false,
+          "label": "Ultracode"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-opus-5-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": true,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-sonnet-5-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": true,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultracode",
+          "isDefault": false,
+          "label": "Ultracode"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-opus-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": true,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-sonnet-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": true,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": false,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-haiku-5-5"
+     }
+    ],
+    "status": "ready"
+   },
+   {
+    "driver": "claudeAgent",
+    "enabled": true,
+    "instanceId": "claude-api-alt",
+    "models": [
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": true,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": false,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultracode",
+          "isDefault": false,
+          "label": "Ultracode"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-opus-5-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": true,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-sonnet-5-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": true,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultracode",
+          "isDefault": false,
+          "label": "Ultracode"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-opus-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": true,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-sonnet-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": true,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": false,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-haiku-5-5"
+     }
+    ],
+    "status": "ready"
+   },
+   {
+    "driver": "claudeAgent",
+    "enabled": true,
+    "instanceId": "claude-alt",
+    "models": [
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": true,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": false,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultracode",
+          "isDefault": false,
+          "label": "Ultracode"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-opus-5-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": true,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-sonnet-5-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": true,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultracode",
+          "isDefault": false,
+          "label": "Ultracode"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-opus-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": true,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-sonnet-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": true,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": false,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-haiku-5-5"
+     }
+    ],
+    "status": "ready"
+   },
+   {
+    "driver": "claudeAgent",
+    "enabled": true,
+    "instanceId": "claude-work",
+    "models": [
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": true,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": false,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultracode",
+          "isDefault": false,
+          "label": "Ultracode"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-opus-5-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": true,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-sonnet-5-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": true,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultracode",
+          "isDefault": false,
+          "label": "Ultracode"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-opus-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": false,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": true,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-sonnet-5"
+     },
+     {
+      "options": [
+       {
+        "id": "effort",
+        "label": "Reasoning",
+        "type": "select",
+        "values": [
+         {
+          "id": "low",
+          "isDefault": false,
+          "label": "Low"
+         },
+         {
+          "id": "medium",
+          "isDefault": true,
+          "label": "Medium"
+         },
+         {
+          "id": "high",
+          "isDefault": false,
+          "label": "High"
+         },
+         {
+          "id": "xhigh",
+          "isDefault": false,
+          "label": "Extra High"
+         },
+         {
+          "id": "max",
+          "isDefault": false,
+          "label": "Max"
+         },
+         {
+          "id": "ultrathink",
+          "isDefault": false,
+          "label": "Ultrathink"
+         }
+        ]
+       }
+      ],
+      "slug": "claude-haiku-5-5"
+     }
+    ],
+    "status": "ready"
+   }
+  ]
+ },
+ "ok": true
+}

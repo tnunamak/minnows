@@ -1,0 +1,228 @@
+{
+ "routing": {
+  "pace_windows": [
+   "7d",
+   "7d All"
+  ],
+  "failure_lookback_minutes": 60,
+  "failure_demote_count": 3,
+  "review_task_families": [
+   "review"
+  ],
+  "independence_default": "vendor",
+  "directive_max_days": 14,
+  "lineage_key": {
+   "claude": "family",
+   "codex": "tier",
+   "grok": "family"
+  }
+ },
+ "candidates": {
+  "implement.quota-tight": [
+   {
+    "provider": "codex",
+    "model": "gpt-6.1-sol",
+    "effort": "medium",
+    "basis": "task_benchmark_prior",
+    "evidence_refs": [
+     "catalog://performance/artificial-analysis-gpt-6-1-sol-2026-09-29",
+     "catalog://performance/artificial-analysis-claude-sonnet-5-5-2026-09-28"
+    ],
+    "known_gaps": [
+     "The board harness is not T3, Claude Code or Codex",
+     "Costs more quota than the primary"
+    ],
+    "prior": {
+     "board": "AA Terminal-Bench 4.0",
+     "board_cited_for_op": true,
+     "effort_matched": true,
+     "harness_matched": false,
+     "note": "48.0 vs 29.8 at medium (pack gap text, 2026-10-07)"
+    }
+   }
+  ],
+  "fanout.dollar-tight": [
+   {
+    "provider": "claude",
+    "model": "claude-sonnet-5-5",
+    "effort": "medium",
+    "basis": "task_benchmark_prior",
+    "evidence_refs": [
+     "catalog://performance/artificial-analysis-claude-sonnet-5-5-2026-09-28",
+     "catalog://performance/openai-gpt-6-sol-luna-launch-curves-2026-09"
+    ],
+    "known_gaps": [
+     "The board harness is not T3, Claude Code or Codex",
+     "Costs more than the primary"
+    ],
+    "prior": {
+     "board": "AutomationBench",
+     "board_cited_for_op": true,
+     "effort_matched": true,
+     "harness_matched": false,
+     "note": "54.9 vs 40.5 at medium (pack gap text, 2026-10-07)"
+    }
+   }
+  ],
+  "review.audit": [
+   {
+    "provider": "claude",
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "basis": "unvalidated",
+    "evidence_refs": [
+     "catalog://performance/artificial-analysis-intelligence-index-opus-5-5-2026-09",
+     "catalog://performance/arcprize-leaderboard-2026-10-07"
+    ],
+    "known_gaps": [
+     "Only aggregate support (AA Intelligence Index 53.6 vs 50.2, ARC-AGI-2)",
+     "No audit-quality board"
+    ]
+   },
+   {
+    "provider": "claude",
+    "model": "claude-sonnet-5-5",
+    "effort": "high",
+    "basis": "unvalidated",
+    "evidence_refs": [],
+    "known_gaps": [
+     "No comparable evidence"
+    ]
+   }
+  ],
+  "implement.standard": [
+   {
+    "provider": "codex",
+    "model": "gpt-6.1-sol",
+    "effort": "medium",
+    "basis": "unvalidated",
+    "evidence_refs": [
+     "catalog://performance/vals-ai-terminal-bench-4-2026-10-06",
+     "catalog://performance/artificial-analysis-gpt-6-1-sol-2026-09-29"
+    ],
+    "known_gaps": [
+     "Weaker: Vals TB4 55.1 vs 65.2"
+    ]
+   }
+  ],
+  "implement.oracle-bounded": [
+   {
+    "provider": "claude",
+    "model": "claude-sonnet-5-5",
+    "effort": "medium",
+    "basis": "unvalidated",
+    "evidence_refs": [],
+    "known_gaps": [
+     "No board at matched efforts"
+    ],
+    "requires": {
+     "proof_class": [
+      "oracle"
+     ]
+    }
+   }
+  ],
+  "fanout.explore": [
+   {
+    "provider": "claude",
+    "model": "claude-opus-5-5",
+    "effort": "medium",
+    "basis": "unvalidated",
+    "evidence_refs": [
+     "catalog://performance/anthropic-opus5-5-digitized-2026-09",
+     "catalog://performance/artificial-analysis-gpt-6-1-sol-2026-09-29"
+    ],
+    "known_gaps": [
+     "Mixed boards: AutomationBench 61.2 vs 62.6, GDPval-AA higher"
+    ]
+   },
+   {
+    "provider": "claude",
+    "model": "claude-sonnet-5-5",
+    "effort": "medium",
+    "basis": "unvalidated",
+    "evidence_refs": [
+     "catalog://performance/anthropic-sonnet5-5-digitized-2026-09"
+    ],
+    "known_gaps": [
+     "Weaker: AutomationBench 54.9 vs 62.6"
+    ]
+   }
+  ],
+  "recover.report": [
+   {
+    "provider": "claude",
+    "model": "claude-sonnet-5-5",
+    "effort": "medium",
+    "basis": "unvalidated",
+    "evidence_refs": [
+     "catalog://performance/artificial-analysis-claude-sonnet-5-5-2026-09-28",
+     "catalog://performance/artificial-analysis-claude-haiku-5-5-2026-10-07"
+    ],
+    "known_gaps": [
+     "TB4 does not measure docs or recovery work (task transfer)"
+    ]
+   }
+  ],
+  "docs.lookup": [
+   {
+    "provider": "claude",
+    "model": "claude-sonnet-5-5",
+    "effort": "medium",
+    "basis": "unvalidated",
+    "evidence_refs": [
+     "catalog://performance/artificial-analysis-claude-sonnet-5-5-2026-09-28",
+     "catalog://performance/artificial-analysis-claude-haiku-5-5-2026-10-07"
+    ],
+    "known_gaps": [
+     "TB4 does not measure docs or recovery work (task transfer)"
+    ]
+   }
+  ],
+  "advisor.deep": [
+   {
+    "provider": "codex",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "basis": "unvalidated",
+    "evidence_refs": [
+     "catalog://performance/artificial-analysis-gpt-6-1-sol-2026-09-29",
+     "catalog://performance/artificial-analysis-intelligence-index-opus-5-5-2026-09"
+    ],
+    "known_gaps": [
+     "Weaker on the aggregate index (50.2 vs 53.6)"
+    ]
+   }
+  ],
+  "implement.accuracy-first": [
+   {
+    "provider": "codex",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "basis": "unvalidated",
+    "evidence_refs": [
+     "catalog://performance/artificial-analysis-gpt-6-1-sol-2026-09-29",
+     "catalog://performance/artificial-analysis-intelligence-index-opus-5-5-2026-09"
+    ],
+    "known_gaps": [
+     "Weaker on the aggregate index (50.2 vs 53.6)"
+    ]
+   }
+  ],
+  "ui.computer-use": [
+   {
+    "provider": "claude",
+    "model": "claude-opus-5-5",
+    "effort": "medium",
+    "basis": "unvalidated",
+    "evidence_refs": [
+     "catalog://performance/openai-gpt-6-1-sol-launch-2026-09",
+     "catalog://performance/anthropic-opus5-5-digitized-2026-09"
+    ],
+    "known_gaps": [
+     "Mixed and borderline: AutomationBench 61.2 vs 62.6"
+    ]
+   }
+  ]
+ }
+}

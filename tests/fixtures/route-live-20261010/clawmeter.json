@@ -1,0 +1,246 @@
+{
+ "cache": {
+  "fetched_at": "2026-10-09T19:26:33.90522571-05:00",
+  "hit": true
+ },
+ "fetched_at": "2026-10-09T19:26:33.90522571-05:00",
+ "providers": {
+  "claude": {
+   "forecast": {
+    "windows": {
+     "5h": {
+      "indicator": "25%",
+      "projected_pct": 24.56
+     },
+     "7d All": {
+      "indicator": "37%",
+      "projected_pct": 37.43
+     },
+     "7d Fable": {
+      "indicator": "0%",
+      "projected_pct": 0
+     },
+     "bonus": {
+      "indicator": "0%",
+      "projected_pct": 0
+     }
+    }
+   },
+   "sources": [
+    {
+     "forecast": {
+      "windows": {
+       "5h": {
+        "indicator": "25%",
+        "projected_pct": 24.56
+       },
+       "7d All": {
+        "indicator": "37%",
+        "projected_pct": 37.43
+       },
+       "7d Fable": {
+        "indicator": "0%",
+        "projected_pct": 0
+       },
+       "bonus": {
+        "indicator": "0%",
+        "projected_pct": 0
+       }
+      }
+     },
+     "source": {
+      "id": "default",
+      "label": "Default"
+     },
+     "usage": {
+      "fetched_at": "2026-10-09T19:26:36.167121611-05:00",
+      "provider": "claude",
+      "source_id": "default",
+      "windows": [
+       {
+        "display_name": "5 hours",
+        "name": "5h",
+        "resets_at": "2026-10-10T04:50:00.117563Z",
+        "utilization": 3
+       },
+       {
+        "display_name": "7 days (all models)",
+        "name": "7d All",
+        "resets_at": "2026-10-16T02:00:00.117587Z",
+        "utilization": 5
+       },
+       {
+        "display_name": "Bonus",
+        "name": "bonus",
+        "resets_at": "2026-11-05T07:59:00Z",
+        "utilization": 0
+       },
+       {
+        "display_name": "7 days (Fable)",
+        "name": "7d Fable",
+        "resets_at": "2026-10-16T02:00:00Z",
+        "utilization": 0
+       }
+      ]
+     }
+    },
+    {
+     "forecast": {
+      "windows": {
+       "5h": {
+        "indicator": "226%",
+        "projected_pct": 225.92
+       },
+       "7d All": {
+        "indicator": "104%",
+        "projected_pct": 104.06
+       },
+       "7d Fable": {
+        "indicator": "0%",
+        "projected_pct": 0
+       }
+      }
+     },
+     "source": {
+      "id": "alt",
+      "label": "Alt"
+     },
+     "usage": {
+      "fetched_at": "2026-10-09T19:26:36.084200974-05:00",
+      "provider": "claude",
+      "source_id": "alt",
+      "windows": [
+       {
+        "display_name": "5 hours",
+        "name": "5h",
+        "resets_at": "2026-10-10T05:20:00.040223Z",
+        "utilization": 5
+       },
+       {
+        "display_name": "7 days (all models)",
+        "name": "7d All",
+        "resets_at": "2026-10-10T07:00:00.04025Z",
+        "utilization": 100
+       },
+       {
+        "display_name": "7 days (Fable)",
+        "name": "7d Fable",
+        "resets_at": "2026-10-10T07:00:00Z",
+        "utilization": 0
+       }
+      ]
+     }
+    },
+    {
+     "forecast": {
+      "windows": {
+       "5h": {
+        "indicator": "226%",
+        "projected_pct": 225.92
+       },
+       "7d All": {
+        "indicator": "58%",
+        "projected_pct": 57.52
+       },
+       "7d Fable": {
+        "indicator": "0%",
+        "projected_pct": 0
+       }
+      }
+     },
+     "source": {
+      "id": "work",
+      "label": "Work"
+     },
+     "usage": {
+      "fetched_at": "2026-10-09T19:26:36.167289784-05:00",
+      "provider": "claude",
+      "source_id": "work",
+      "windows": [
+       {
+        "display_name": "5 hours",
+        "name": "5h",
+        "resets_at": "2026-10-10T05:20:00.043276Z",
+        "utilization": 5
+       },
+       {
+        "display_name": "7 days (all models)",
+        "name": "7d All",
+        "resets_at": "2026-10-16T04:00:00.043305Z",
+        "utilization": 7
+       },
+       {
+        "display_name": "7 days (Fable)",
+        "name": "7d Fable",
+        "resets_at": "2026-10-16T04:00:00Z",
+        "utilization": 0
+       },
+       {
+        "currency": "USD",
+        "display_name": "Extra usage",
+        "limit": 2000,
+        "name": "extra",
+        "resets_at": "0001-01-01T00:00:00Z",
+        "used": 2004,
+        "utilization": 100.2
+       }
+      ]
+     }
+    }
+   ],
+   "usage": {
+    "fetched_at": "2026-10-09T19:26:36.167121611-05:00",
+    "provider": "claude",
+    "windows": [
+     {
+      "display_name": "5 hours",
+      "name": "5h",
+      "resets_at": "2026-10-10T04:50:00.117563Z",
+      "utilization": 3
+     },
+     {
+      "display_name": "7 days (all models)",
+      "name": "7d All",
+      "resets_at": "2026-10-16T02:00:00.117587Z",
+      "utilization": 5
+     },
+     {
+      "display_name": "Bonus",
+      "name": "bonus",
+      "resets_at": "2026-11-05T07:59:00Z",
+      "utilization": 0
+     },
+     {
+      "display_name": "7 days (Fable)",
+      "name": "7d Fable",
+      "resets_at": "2026-10-16T02:00:00Z",
+      "utilization": 0
+     }
+    ]
+   }
+  },
+  "openai": {
+   "forecast": {
+    "windows": {
+     "7d": {
+      "indicator": "134%",
+      "projected_pct": 134.44
+     }
+    }
+   },
+   "usage": {
+    "fetched_at": "2026-10-09T19:26:36.185712527-05:00",
+    "provider": "openai",
+    "windows": [
+     {
+      "display_name": "7 days",
+      "name": "7d",
+      "resets_at": "2026-10-13T22:42:47-05:00",
+      "utilization": 55
+     }
+    ]
+   }
+  }
+ },
+ "schema_version": 1
+}

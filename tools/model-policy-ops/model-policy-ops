@@ -29,6 +29,81 @@ def load_policy(path: Path) -> dict:
         raise SystemExit(f"missing policy file: {path}") from None
 
 
+BASES = ("primary", "task_benchmark_prior", "unvalidated")
+PRIOR_KEYS = ("board", "board_cited_for_op", "effort_matched", "harness_matched", "note")
+PROOF_CLASSES = ("oracle", "judged", "none")
+INDEPENDENCE_LEVELS = ("vendor", "family", "model")
+LINEAGE_FIELDS = ("family", "tier")
+
+
+def check_candidates(op: dict, where: str) -> list[str]:
+    """Validate the optional `candidates` list: the alternates to `expands_to`, which is always the primary.
+
+    An absent list is valid and means no alternates. Nothing here compares a candidate with `expands_to`.
+    """
+    if "candidates" not in op:
+        return []
+    rows = op["candidates"]
+    if not isinstance(rows, list) or not rows:
+        return [f"{where}: candidates must be a non-empty list"]
+    errors: list[str] = []
+    for j, row in enumerate(rows):
+        at = f"{where}.candidates[{j}]"
+        if not isinstance(row, dict):
+            errors.append(f"{at}: must be an object")
+            continue
+        for key in ("provider", "model", "effort"):
+            if not isinstance(row.get(key), str) or not row[key]:
+                errors.append(f"{at}: missing {key}")
+        if row.get("basis") not in BASES[1:]:
+            errors.append(f"{at}: basis must be task_benchmark_prior or unvalidated")
+        for key in ("evidence_refs", "known_gaps"):
+            if key in row and not (isinstance(row[key], list) and all(isinstance(v, str) for v in row[key])):
+                errors.append(f"{at}: {key} must be a list of strings")
+        prior = row.get("prior")
+        if row.get("basis") == "task_benchmark_prior":
+            if not isinstance(prior, dict) or set(prior) != set(PRIOR_KEYS):
+                errors.append(f"{at}: task_benchmark_prior needs prior with exactly {', '.join(PRIOR_KEYS)}")
+            elif not (isinstance(prior["board"], str) and prior["board"] and isinstance(prior["note"], str)
+                      and prior["board_cited_for_op"] is True and prior["effort_matched"] is True
+                      and isinstance(prior["harness_matched"], bool)):
+                errors.append(f"{at}: prior needs a board, board_cited_for_op true, effort_matched true and a boolean harness_matched")
+        elif prior is not None:
+            errors.append(f"{at}: prior is only for basis task_benchmark_prior")
+        requires = row.get("requires")
+        if requires is not None:
+            if not isinstance(requires, dict) or set(requires) != {"proof_class"}:
+                errors.append(f"{at}: requires takes only proof_class")
+            elif not (isinstance(requires["proof_class"], list) and requires["proof_class"] and set(requires["proof_class"]) <= set(PROOF_CLASSES)):
+                errors.append(f"{at}: requires.proof_class must be a non-empty list of {', '.join(PROOF_CLASSES)}")
+    return errors
+
+
+def check_routing(routing) -> list[str]:
+    """Validate the optional pack `routing` object. Each field is optional; a present field must be well formed."""
+    if routing is None:
+        return []
+    if not isinstance(routing, dict):
+        return ["routing must be an object"]
+    errors: list[str] = []
+    unknown = sorted(set(routing) - {"pace_windows", "failure_lookback_minutes", "failure_demote_count", "review_task_families", "independence_default", "directive_max_days", "lineage_key"})
+    if unknown:
+        errors.append(f"routing: unknown keys {', '.join(unknown)}")
+    for key in ("pace_windows", "review_task_families"):
+        if key in routing and not (isinstance(routing[key], list) and all(isinstance(v, str) and v for v in routing[key])):
+            errors.append(f"routing.{key} must be a list of strings")
+    for key in ("failure_lookback_minutes", "failure_demote_count", "directive_max_days"):
+        if key in routing and not (type(routing[key]) is int and routing[key] > 0):
+            errors.append(f"routing.{key} must be a positive integer")
+    if "independence_default" in routing and routing["independence_default"] not in INDEPENDENCE_LEVELS:
+        errors.append(f"routing.independence_default must be one of {', '.join(INDEPENDENCE_LEVELS)}")
+    lineage = routing.get("lineage_key")
+    if "lineage_key" in routing and not (isinstance(lineage, dict) and lineage and all(
+            isinstance(k, str) and k and v in LINEAGE_FIELDS for k, v in lineage.items())):
+        errors.append(f"routing.lineage_key must map each provider to one of {', '.join(LINEAGE_FIELDS)}")
+    return errors
+
+
 def check_policy(policy: dict) -> list[str]:
     errors: list[str] = []
     seen: set[str] = set()
@@ -48,6 +123,8 @@ def check_policy(policy: dict) -> list[str]:
         for key in ("provider", "model", "effort"):
             if not expands_to.get(key):
                 errors.append(f"{where}: missing expands_to.{key}")
+        errors.extend(check_candidates(op, where))
+    errors.extend(check_routing(policy.get("routing")))
     if not policy.get("catalog_ref"):
         errors.append("missing catalog_ref")
     if not policy.get("policy_version"):
@@ -92,19 +169,22 @@ def print_show(policy: dict, op_id: str) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--policy", type=Path, default=None)
-    parser.add_argument("command", nargs="?", choices=("check", "list", "show", "resolve", "audit", "close", "followup"))
+    parser.add_argument("command", nargs="?", choices=("check", "list", "show", "resolve", "route", "audit", "close", "followup", "directive", "calibrate"))
     parser.add_argument("op", nargs="?")
     sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
     from policy_decisions import add_arguments, execute
     add_arguments(parser)
     args = parser.parse_args()
     args.policy = select_policy(args.policy)
-    if args.command in ("resolve", "audit", "close", "followup"):
+    if args.target and args.command != "directive":
+        parser.error(f"unrecognized arguments: {args.target}")
+    if args.command in ("resolve", "route", "audit", "close", "followup", "directive", "calibrate"):
         try:
-            policy = load_policy(args.policy) if args.command == "resolve" else {}
-            if args.command == 'resolve' and not isinstance(policy, dict):
+            needs_policy = args.command in ("resolve", "route", "calibrate") or (args.command == "directive" and args.op in ("add", "list"))
+            policy = load_policy(args.policy) if needs_policy else {}
+            if needs_policy and not isinstance(policy, dict):
                 raise ValueError('policy must be a JSON object')
-            errors = check_policy(policy) if args.command == 'resolve' else []
+            errors = check_policy(policy) if needs_policy else []
             if errors:
                 raise ValueError("; ".join(errors))
             print(json.dumps(execute(args, policy), indent=2, sort_keys=True))

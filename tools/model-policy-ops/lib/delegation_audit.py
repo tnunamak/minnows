@@ -376,6 +376,10 @@ def audit(rows, receipts, since=None, thread=None, time_anchor='export.timestamp
     def rate(count):
         return {'count': count, 'denominator': total, 'rate': count / total if total else None}
     summary = outcome_summary(reports, by_id, matched_ids, closes, heads, followups)
+    sources = [('route' if by_id[r['decision_id']]['request'].get('route') else 'resolve') if r['matched_receipt'] else 'no_receipt' for r in reports]
+    route_coverage = {'route': sources.count('route'), 'resolve': sources.count('resolve'), 'no_receipt': sources.count('no_receipt'),
+                      'denominator': total, 'rate': sources.count('route') / total if total else None,
+                      'meaning': 'app-owned delegate calls by the origin of their receipt; a call with no receipt did not use route or resolve'}
     return {'schema_version': 1, 'outcomes': summary, 'scope': {'since': since, 'thread': thread, 'time_anchor': time_anchor,
                 'delegation_kind': 'T3 app-owned delegate_task', 'receipt_time_anchor': 'receipt.recorded_at'},
             'coverage': rate(sum(r['matched_receipt'] for r in reports)) | {'metric': 'app_owned_receipt_coverage'},
@@ -388,6 +392,7 @@ def audit(rows, receipts, since=None, thread=None, time_anchor='export.timestamp
             'repeated_decision_ids_multiple_children': [
                 {'decision_id': decision_id, 'child_run_ids': sorted(children)}
                 for decision_id, children in sorted(children_by_id.items()) if len(children) > 1],
+            'route_coverage': route_coverage,
             'overrides': sum(r['override'] for r in distinct_reports),
             'override_reasons': sum(r['override_reason_present'] for r in distinct_reports),
             'escalations': sum(bool(r['escalation']) for r in distinct_reports),

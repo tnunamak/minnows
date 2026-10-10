@@ -1,6 +1,7 @@
 # model-policy-ops
 
-Read the selected model-choice-policy pack, make an explicit delegation decision,
+Read the selected model-choice-policy pack, make an explicit delegation decision
+(with `resolve`, or with `route` to apply quota, availability and directives),
 record how it ended, and audit its use. This CLI never dispatches work or changes running threads.
 `check`, `list`, and `show` keep their existing output contracts.
 
@@ -14,7 +15,10 @@ record how it ended, and audit its use. This CLI never dispatches work or change
    `delegate_task.clientRequestId`. Supply the task separately to T3.
 4. When you integrate or discard the result, run `close` (see Outcomes). Later
    rework goes in `followup`.
-5. Run `audit` for the parent thread or a time range. Inspect unmatched calls,
+5. To let the tool pick the account and handle quota, availability, checker
+   independence and owner directives, use `route` instead of `resolve` in step 2
+   (see Route). `route` makes the same kind of receipt.
+6. Run `audit` for the parent thread or a time range. Inspect unmatched calls,
    mismatches, missing effort, missing closes, and unknown native evidence.
 
 From a clone, use `tools/model-policy-ops/model-policy-ops`. Installation supplies
@@ -150,6 +154,290 @@ and a nonblank `--reason`. The source receipt must exist and cannot be the new I
 This records lineage without promotion or a quality escalation claim. Choose the
 op and any reasoned overrides explicitly. Relaunch cannot be combined with
 `--escalate-from` or `--handoff-boundary`. Original receipts stay unchanged.
+
+## Route
+
+`route` makes the decisions that a parent repeats by hand: which account serves the
+model, which vendor substitutes when an arm is blocked, which model may check a
+maker's work, and which owner instruction applies now. It reads local data, ranks
+the candidate pairs with fixed rules, and explains each step. It does not dispatch
+work and it does not learn from outcomes. The full spec is
+[route-contract.md](route-contract.md).
+
+### Procedure
+
+1. Run `route` in place of `resolve`. Pass the same recording flags.
+2. Read `routing.judgment_required` and `routing.judgment_reasons`. When it is
+   `false`, pass `target` unchanged to `delegate_task`, with `decision_id` as
+   `clientRequestId`. When it is `true`, you decide. Accept the target, or use
+   `--override ... --reason`. A recorded override keeps the routed choice and the
+   final choice.
+3. For a checker, name the maker: `--maker MAKER_DECISION_ID`, or
+   `--maker-model PROVIDER:MODEL` for direct or native work.
+4. Close the decision as before.
+
+```bash
+model-policy-ops route review.audit \
+  --available auto --quota auto --db ~/.t3/userdata/statev2.sqlite \
+  --maker MAKER_DECISION_ID --proof-class judged \
+  --decision-id task-unique-id --record \
+  --parent-model PARENT_MODEL --parent-provider-instance PARENT_INSTANCE \
+  --parent-thread PARENT_THREAD
+```
+
+`route` takes an op ID only. It refuses `--no-op`, `--escalate-from`,
+`--handoff-boundary`, `--account-hint` and `--quota-provider/--quota-source`. The
+account map names the quota source, and `--override account=...` changes the account.
+`--relaunch-of` works as in `resolve`. `--now RFC3339` fixes the clock for directive
+expiry, the failure lookback and quota expiry (for tests and replays). `directive add` refuses
+`--now`: it always records the real clock.
+
+### Output
+
+`route` prints one JSON object. It is a valid `resolve` receipt (`target`,
+`selection`, `launch_ready`, and the other fields), plus these additions:
+
+- `request.route` (`true`), `request.maker`, `request.maker_model` and
+  `request.independence`.
+- `routing`:
+  - `router_version`, `params` (the pack `routing` object) and `params_sha256`;
+  - `independence`: `required` level, `required_source` (`flag`, `pack` or
+    `mechanism_default`) and `maker` (`provenance`, `vendor` `{value, basis}`,
+    `requested`, `served_model: unattested`). A maker whose decision ID started several
+    child runs of different instance or model has provenance `unknown`, issue
+    `multiple_child_runs` and a `runs` list, and the checker differs from all of them;
+  - `directives_applied`, `directives_unmatched` (active directives that matched
+    no pair, often a typo), `directives_rejected` (ID and reason of a live row that
+    lasts longer than `directive_max_days` or was recorded after the evaluation time;
+    it is ignored) and `conflicts`;
+  - `rank_keys`, and `trace`: one row per candidate and account, with the filter
+    that removed it (`removed_by` and `detail`), or its `rank` keys. Each row
+    shows `quota` (`pace`, `pace_reason`, `exhausted`, `projected_pct` and a `ref`)
+    and `availability`. The full quota view (state, `fetched_at`, `cache`, windows
+    with `resets_at`, `remaining_pct` and `projected_pct`, the binding window) is
+    once per account in `routing.quota`, under that `ref`;
+  - `chosen` (or `null`): `arm`, `instance`, `target`, `basis`, `selection_basis`,
+    `evidence`, `prior`, `known_gaps`, `authorized_by`, `pace`, `quota_binding`;
+  - `judgment_required` and `judgment_reasons` (`code`, `detail`, `applies_to`
+    `routed` or `final`, and `informational` for the stale-pack note). After an
+    override, `judgment_required` follows the final pair; the routed reasons stay listed;
+  - `routed` and `final`: the router's choice, and the choice after overrides.
+    `final` runs the final pair through the same filters and records `billing`,
+    `filters_bypassed` (each filter that the pair would fail), `pace` and
+    `quota_ref`. An override stays allowed. A bypass of the billing, `avoid` or
+    exhaustion filter adds the judgment reason `final_metered_without_directive`,
+    `final_avoided` or `final_quota_exhausted`. A bypass of the runnable, `requires` or
+    independence filter adds `final_not_runnable`, `final_requires_not_met` or
+    `final_independence_bypassed`. The final pair also gets the routed-pair rules (basis,
+    pace, `auth_config`, independence provenance). A final pair with no target adds
+    `final_target_null`;
+  - `evidence` (label `descriptive_only`), `calibration_notes` and `inputs`.
+
+The same inputs give the same output, apart from `recorded_at` (and a random
+decision ID when you give none). A replay with the same `--decision-id` returns the
+stored receipt and does not route again.
+
+### Candidates and evidence basis
+
+The pack holds the policy. `lib/routing.py` holds no model names. Each op can have
+`candidates`: the alternate exact arms, in order. The primary is always the op's
+`expands_to` (`basis: primary`) and is not repeated. Without `candidates`, there are
+no alternates. `resolve`, `list` and `show` ignore `candidates`.
+
+| `basis` | Meaning | Selection |
+|---|---|---|
+| `primary` | The op's own arm | `selection_basis: primary` |
+| `task_benchmark_prior` | A prior: a board that the pack cites for this task family, the same effort, a clear margin. Not proof of fitness. The board harness is not T3, Claude Code or Codex | Automatic, `selection_basis: evidence_prior`, `evidence: prior` |
+| `unvalidated` | Weaker arms, no comparable evidence, aggregate-only support, mixed boards, or another task family | Needs judgment, unless an `authorize` directive covers it |
+
+A `task_benchmark_prior` candidate needs a `prior` object (`board`,
+`board_cited_for_op`, `effort_matched`, `harness_matched`, `note`). `evidence_refs`,
+`known_gaps` and `requires` (`{"proof_class": [...]}`, with `--proof-class` as the
+fact) are optional. When a required fact is unknown, the candidate needs judgment.
+When it is known and not listed, the candidate is removed. `check` validates all of
+this. The pack `routing` object holds `pace_windows`, `failure_lookback_minutes`,
+`failure_demote_count`, `review_task_families`, `independence_default`,
+`directive_max_days` and `lineage_key`. `lineage_key` maps a provider to the
+model-catalog field that names a model line (`{"claude": "family", "codex": "tier",
+"grok": "family"}`). Absent fields turn the matching feature off: no pace, no
+demotion, no directive lifetime cap, no model line. A review op with no
+`independence_default` requires `vendor`.
+
+### Filters and rank
+
+Each candidate is paired with every live catalog account for its provider. Filters
+run in this order, and the first one that fails removes the pair:
+
+1. Not runnable (the `resolve` rules), or `requires` known and not met.
+2. Billing is not `subscription` (metered, missing or unmapped), unless an
+   `allow-metered` directive matches.
+3. An `avoid` directive matches.
+4. A relevant quota window has utilization of 100 or more.
+5. The independence requirement fails against the maker.
+
+The survivors are ordered by these keys, and the trace prints each one:
+eligibility (`primary`, `task_benchmark_prior` and authorized candidates first), a
+`prefer` directive, pace (`on_track`, `unknown`, `at_risk`), availability
+(`healthy`, `unknown`, `demoted`), pack candidate order, lower `projected_pct`,
+instance ID. The `projected_pct` key is a load-balancing heuristic. It is not a
+measure of subscription value. There are no weights.
+
+Pace is `on_track` when every pace window that the account reports has a clawmeter
+`forecast` below 100. It is `at_risk` at 100 or more. It is `unknown` for an
+unmapped account, a source that is not a plain snapshot, a missing forecast, an
+expired window, or no pace window. Unknown is never headroom. The 5-hour window
+only excludes an account when it is exhausted.
+
+### Account map
+
+`~/.config/model-policy/accounts.json` (or `$XDG_CONFIG_HOME/model-policy/`, or
+`--accounts FILE`). It is local machine configuration, not pack data. A missing file
+maps nothing, so every instance is excluded for unknown billing.
+
+```json
+{"schema_version": 1, "accounts": {
+  "claude-work":  {"quota_provider": "claude", "quota_source": "work", "billing": "subscription"},
+  "codex":       {"quota_provider": "openai", "quota_source": null,  "billing": "subscription"},
+  "claude-api":  {"quota_provider": null,     "quota_source": null,  "billing": "metered"}}}
+```
+
+`quota_provider` and `quota_source` must equal the IDs in `clawmeter --json`. Use
+`null` for a provider that has no `sources` array.
+
+### Directives
+
+`directive add --id ID --effect avoid|prefer|authorize|allow-metered --match KEY=VALUE ...
+--until RFC3339 --reason TEXT --source owner|lead`, then `directive end ID --reason TEXT`
+and `directive list`. The match keys are `provider`, `model`, `account` and `op`,
+and every key must match. The `--until`, `--reason` and `--source` options are
+required, and no directive is permanent: `--until` cannot be later than the pack
+`directive_max_days` (14), and `add` records the real clock (`--now` is refused). A
+reader ignores a row that lasts longer than the cap or was recorded after the evaluation
+time; `route` lists it in `directives_rejected` and `directive list` shows state
+`rejected`. Standing rules go in the pack. `add` rejects a
+`provider`, `model` or `op` that the pack, the live catalog and the model catalog
+do not declare. An `account` that the live catalog and the account map do not
+declare gives a `warnings` entry. A directives file that group or world can write is
+refused on every read and write.
+Directives are in `directives.jsonl` beside `--receipts` (or `--directives FILE`).
+The file follows the receipt rules: mode 0600, locked append, fsync, no symlinks,
+and a refused group- or world-writable parent. It is a different file from the
+receipts and outcomes. Expired directives are ignored, and `directive list` shows
+`active`, `expired`, `ended` and `rejected`.
+
+- `avoid` is a hard exclusion.
+- `prefer` is a rank key only. It never lifts a pair over a filter or over
+  eligibility.
+- `authorize` lets you select an `unvalidated` candidate without a new judgment. It
+  does not change the basis. The output keeps `basis: unvalidated`, and adds
+  `selection_basis: authorized_exception` with the directive ID, source and expiry.
+- When `avoid` and `prefer` or `authorize` match the same pair, `avoid` wins and
+  `routing.conflicts` lists it. `judgment_required` is then true.
+
+### Availability
+
+With `--db`, `route` reads T3 terminal-failure turn items read-only (query-only, one
+transaction): items whose ID contains `terminal-failure` and whose status is
+`failed`, from the last `failure_lookback_minutes`. They join to the instance
+through the run. Classes, from the message text: `rate_limit` ("rate limit
+reached"), `transport` ("Connection error", "stream closed", "stream disconnected",
+"Connection refused"), `auth_config` ("could not authenticate", "No conversation
+found", "Insufficient context allowance", "still running background agents"),
+`content_policy` ("flagged for possible"), and `unknown`. Only `rate_limit` and
+`transport` count toward `failure_demote_count` and demote the instance.
+`auth_config` events on the chosen instance make `judgment_required` true. The
+other classes are only reported. A recovered item, a cancellation and an
+interruption are not failures. A missing database, table or column gives
+availability `unknown`, which ranks below `healthy`. It never means healthy. A
+failure event that does not join to an instance could belong to any of them, so
+any such event makes availability `unknown` for all instances (`unjoined` has the count).
+
+### Independence and maker provenance
+
+For ops whose `task_family` is in `review_task_families`, the required level is
+`--independence vendor|family|model`, or the pack `independence_default`. For other
+ops there is no default.
+
+- `vendor`: the checker's provider differs from the maker's. The T3 driver kind
+  fixes the vendor, so this holds from provenance `t3_run_config` or
+  `receipt_only` without judgment.
+- `family` and `model`: within one vendor they rest on the requested model only
+  (`independence_requested_only` makes `judgment_required` true). The family is the
+  model line: the vendor and the model-catalog field that the pack `lineage_key`
+  names for that provider (`family` for Claude, `tier` for Codex). A different
+  version of the same line is not independent (`gpt-5.6-sol` and `gpt-6.1-sol`). A
+  provider with no mapping, or a model that the model catalog lacks, has no line:
+  the pair is removed (`line_unknown`) and `independence_line_unknown` is raised.
+  The model catalog is `--model-catalog FILE`.
+- Provenance: `t3_run_config` (the maker's T3 child run has the same instance and
+  model as the receipt target; needs `--db`), `receipt_only`, `caller_claim`
+  (`--maker-model`; it needs judgment) and `unknown`. When the run is found, the
+  vendor is the driver kind of the run's instance and the model is the run's, never
+  the receipt's. An effort difference is in `effort_mismatch` and does not change
+  provenance. A run that differs in instance or model gives `unknown`; the checker
+  is still filtered against the run, and `independence_maker_unknown` is raised. The
+  vendor basis is `t3_driver_kind`, `receipt_arm` (the receipt's instance is not in
+  the live catalog) or `caller_claim`. `--maker-model` takes a provider that the
+  pack or the live catalog names.
+- T3 records the requested model, not the served model. The output always says
+  `served_model: unattested`.
+- A review op with no maker needs judgment (`review_without_maker`).
+
+### Judgment reasons
+
+`no_eligible_pair`, `unvalidated_candidate`, `requires_unknown`, `pace_not_on_track`,
+`auth_config_events`, `independence_requested_only`, `independence_caller_claim`,
+`independence_maker_unknown`, `independence_line_unknown`, `final_metered_without_directive`,
+`final_avoided`, `final_quota_exhausted`, `final_not_runnable`, `final_requires_not_met`,
+`final_independence_bypassed`, `final_target_null`, `review_without_maker`, `directive_conflict`, and
+`newer_ga_model_not_in_pack` (informational: a newer GA model on the same
+model line is in the live catalog and not in the pack; an informational reason is listed
+but does not set `judgment_required`). With any reason, `route` still
+returns its best target unless it is `null`. The parent decides.
+
+### Calibrate
+
+```bash
+model-policy-ops calibrate --available auto --db ~/.t3/userdata/statev2.sqlite --since 2026-10-08T00:00:00Z
+```
+
+`calibrate` reads receipts, outcomes, directives, the live catalog and the
+model-catalog pack. It prints proposals, and it writes nothing. It prints:
+
+- `override_clusters`: the same op with the same final provider, model, effort,
+  account and overridden fields, in at least two receipts, with the reasons (free
+  text, counted and never classified) and a proposal (a `prefer` or
+  `authorize` directive, or a pack candidate). A directive expires. A pack change
+  stands and needs a reviewed pack release.
+- `stale_pack`: pack models missing from the live catalog, and newer GA models. `unchecked`
+  lists pack models whose line or release date is unknown, and the state is then `partial`.
+- `quality_signals`: per op and exact arm, closes by outcome, check type and launch
+  `purpose` (`unknown` when absent), and `rejections`. Only the outcome `rejected`
+  is a rejection; `abandoned_by_choice` and `superseded` are never counted as
+  rejections or arm failures. The block carries a fixed `outcome_scope`: a close
+  describes the delegated result only, and for `purpose=review` it describes the
+  review, not the reviewed work. The `evidence` block of each `route` has the same
+  split. Oracle and independent checks are separate from maker or parent claims. The
+  output says that the numbers are descriptive and confounded.
+- `availability` and `coverage` (routed receipts, closes, overrides, directives).
+
+Each `route` output embeds the `calibration_notes` for its op. Outcomes never
+change the ranking.
+
+### Limits
+
+- The ranking never learns from outcomes. Arms are not assigned at random, closes
+  are mostly parent claims, and parent overhead is unknown.
+- A `task_benchmark_prior` is a prior from a benchmark. It is not local validation.
+- Quota and failure data are only as fresh as the last `clawmeter` and T3 reads.
+  Authentication is not attested.
+- The T3 read depends on the observed `orchestration_v2_projection_*` schema. A
+  schema change gives `unknown`, not an error.
+- `route` does not price metered API use. It excludes it unless an
+  `allow-metered` directive matches.
+- `audit` reports `route_coverage`: the delegate calls whose receipt came from
+  `route`, from `resolve`, or from no receipt. Use by other threads is measured
+  there, not assumed.
 
 ## Audit
 
@@ -403,11 +691,13 @@ on an exact repeat). `audit` prints JSON by default; `--json` is accepted.
 ### Audit JSON reference
 
 Top-level keys: `schema_version`, `scope`, `coverage`, `counts`, `effort_explicitness`,
-`reason_coverage`, `request_match`, `overrides`, `override_reasons`, `escalations`,
+`reason_coverage`, `request_match`, `route_coverage`, `overrides`, `override_reasons`, `escalations`,
 `relaunches`, `repeated_decision_ids_multiple_children`, `unmatched_delegations`,
 `unmatched_receipts`, `out_of_scope_delegations`, `limits`, `delegations`, `outcomes`.
 
 - `counts`: `call_attempts`, `unique_child_runs`, `distinct_receipt_decisions`.
+- `route_coverage`: `route`, `resolve`, `no_receipt` (call attempts by receipt origin), `denominator`,
+  `rate` (route calls over all calls) and `meaning`.
 - `outcomes` (descriptive only, over distinct decisions):
   - `unit`, `descriptive_only`, `causal_claims`, `confounding`, `closes_are_claims`:
     fixed statements.
