@@ -322,18 +322,30 @@ def execute(args, policy):
         return_value['relaunch'] = relaunch
     offer = None
     if routing_block and dest_meta['state'] == 'loaded':
+        required = routing_block['independence']
+        independence = {'level': required['required'], 'maker_vendors': sorted({v for v, _ in routing.maker_targets(required['maker'])}) if required['maker'] else []} \
+            if required['required'] else None
         routing_block['destination'], offer = destinations.decide(
-            dest_entries, purpose=args.purpose, facts=facts, skip=skip, reason=args.reason, request_id=decision_id, simulate=simulation)
+            dest_entries, purpose=args.purpose, facts=facts, skip=skip, reason=args.reason, request_id=decision_id, simulate=simulation,
+            independence=independence)
     if offer:
-        return_value = clear_targets(return_value)
+        # The model pair is only a fallback now: its reasons stay visible and no longer need judgment.
+        for reason in routing_block['judgment_reasons']:
+            if reason['code'] != 'review_without_maker':
+                reason |= {'applies_to': 'model_fallback', 'informational': True}
+            else:
+                reason['applies_to'] = 'destination'
+        if (facts or {}).get('inputs') is None:
+            routing_block['judgment_reasons'].append(destinations.INPUTS_UNKNOWN)
+        if destinations.independence_unknown(offer, independence):
+            routing_block['judgment_reasons'].append(destinations.INDEPENDENCE_UNKNOWN)
+        routing_block['judgment_required'] = routing.judgment_needed(routing_block['judgment_reasons'])
         return_value['destination'] = offer['name']
         return_value['launch_ready'] = False
         return_value['launch_readiness_basis'] = 'destination chosen; no model target to dispatch'
         return_value['destination_offer'] = offer
-        if (facts or {}).get('inputs') is None:
-            reasons = return_value['routing']['judgment_reasons']
-            reasons.append(destinations.INPUTS_UNKNOWN)
-            return_value['routing']['judgment_required'] = True
+        # Assembled in full first, then cleared once: no offer, capacity or submit field can bring a model target back.
+        return_value = clear_targets(return_value)
     if simulation:
         simulated = return_value['target']
         return_value = clear_targets(return_value)

@@ -3,6 +3,7 @@
 Capacity commands are tiny shell scripts in a temp dir, so each probe outcome is real. The pinned route inputs come from test_route.
 """
 import json
+import os
 import subprocess
 import sys
 import time
@@ -10,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from test_route import REPO, run_tool, stable, world  # noqa: F401  (world is a fixture)
+from test_route import NOW, REPO, run_tool, stable, world  # noqa: F401  (world is a fixture)
 
 BASELINE = '5fdc94d'
 OP = 'review.audit'
@@ -412,3 +413,128 @@ def test_old_cli_reads_audits_closes_and_follows_up_a_ledger_with_test_design(on
     # The new CLI reads what the old CLI appended.
     report = audit(one, tmp_path)
     assert report['outcomes']['outcome_rows_for_unknown_decisions'] == 0 and report['destination_routes']['worker']['ids'] == ['dest']
+
+
+# ---- review round 1 --------------------------------------------------------------------------------------------------
+
+def nonnull_targets(value):
+    return [path for path, item in targets(value) if item is not None]
+
+
+def test_offer_never_reintroduces_a_target_from_submit_or_capacity(world, tmp_path):
+    loud = {'providerInstanceId': 'i', 'model': 'm', 'options': {'target': {'model': 'deep'}}}
+    cap = script(tmp_path, 'loud.sh', f"echo '{json.dumps({'available': True, 'reason': 'ok', 'target': loud, 'nested': [{'target': loud}]})}'")
+    item = entry(cap) | {'submit': SUBMIT | {'target': loud, 'assignment': {'target': loud}}}
+    out = route(world, config(tmp_path, item), '--purpose', 'review', '--inputs', 'github', record='loud')
+    assert out['destination'] == 'worker' and len(targets(out['destination_offer'])) >= 4
+    assert nonnull_targets(out) == []
+    stored = json.loads(world.receipts.read_text().splitlines()[0])
+    assert nonnull_targets(stored) == [] and stored['destination_offer']['capacity']['reason'] == 'ok'
+
+
+def probe_fallback(world, tmp_path, body, timeout=5):
+    cfg = config(tmp_path, entry(script(tmp_path, 'p.sh', body), timeout=timeout))
+    start = time.monotonic()
+    out = route(world, cfg, '--purpose', 'review', '--inputs', 'github')
+    return out, time.monotonic() - start
+
+
+def test_oversize_output_fails_closed_and_is_never_parsed_as_a_prefix(world, tmp_path):
+    body = "printf '{\"available\":true}'; head -c 70000 /dev/zero | tr '\\0' ' '; echo garbage"
+    out, _ = probe_fallback(world, tmp_path, body)
+    assert 'destination_offer' not in out and out['target'] is not None
+    assert dest(out)['fallback']['probe_reason'] == 'capacity_probe_error: output_too_large'
+
+
+def test_endless_output_is_cut_off_without_unbounded_memory(world, tmp_path):
+    out, seconds = probe_fallback(world, tmp_path, 'exec yes', timeout=5)
+    assert dest(out)['fallback']['probe_reason'] == 'capacity_probe_error: output_too_large' and seconds < 5
+
+
+def test_detached_descendant_holding_stdout_cannot_outlast_the_deadline(world, tmp_path):
+    out, seconds = probe_fallback(world, tmp_path, 'setsid sleep 20 &\nsleep 20', timeout=0.5)
+    assert dest(out)['fallback']['probe_reason'] == 'capacity_probe_error: timeout'
+    assert seconds < 8, seconds
+
+
+def test_probe_stdin_is_closed_not_inherited(world, tmp_path):
+    cap = script(tmp_path, 'in.sh', 'if read line; then echo \'{"available": false, "reason": "read"}\'; else echo \'{"available": true, "reason": "eof"}\'; fi')
+    cfg = config(tmp_path, entry(cap))
+    world.write()
+    result = subprocess.run([sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), 'route', OP, *map(str, world.args()), '--destinations', str(cfg),
+                             '--decision-id', 'stdin', '--purpose', 'review', '--inputs', 'github'], input='data\n', capture_output=True, text=True,
+                            env=dict(os.environ, PINNED_NOW=NOW))
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)['destination_offer']['capacity']['reason'] == 'eof'
+
+
+# ---- judgment and independence ---------------------------------------------------------------------------------------
+
+MAKER = ('--maker-model', 'claude:claude-sonnet-5-5')
+
+
+def vendor_world(world, tmp_path, vendor):
+    item = entry(capacity(tmp_path, 'cap'))
+    return config(tmp_path, item | ({'vendor': vendor} if vendor else {}))
+
+
+def reason_map(out):
+    return {r['code']: r for r in out['routing']['judgment_reasons']}
+
+
+def test_model_pair_reasons_stay_visible_but_do_not_need_judgment_once_a_destination_is_chosen(world, tmp_path):
+    cfg = vendor_world(world, tmp_path, 'codex')
+    model = world.route(OP, '--purpose', 'review', '--inputs', 'github', *MAKER)
+    assert model['routing']['judgment_required'] is True and {'pace_not_on_track', 'independence_caller_claim'} <= set(reason_map(model))
+    out = route(world, cfg, '--purpose', 'review', '--inputs', 'github', *MAKER)
+    reasons = reason_map(out)
+    assert out['destination'] == 'worker' and {'pace_not_on_track', 'independence_caller_claim'} <= set(reasons)
+    for code in ('pace_not_on_track', 'independence_caller_claim'):
+        assert reasons[code]['applies_to'] == 'model_fallback' and reasons[code]['informational'] is True
+    assert out['routing']['judgment_required'] is False
+
+
+def test_destination_level_reasons_still_need_judgment(one):
+    out = route(one, one.cfg, '--purpose', 'review')
+    reasons = reason_map(out)
+    assert reasons['destination_inputs_unknown']['applies_to'] == 'destination' and 'informational' not in reasons['destination_inputs_unknown']
+    assert reasons['review_without_maker']['applies_to'] == 'destination' and out['routing']['judgment_required'] is True
+
+
+def test_a_dispatched_model_keeps_todays_judgment(world, tmp_path):
+    cfg = vendor_world(world, tmp_path, 'codex')
+    out = route(world, cfg, '--purpose', 'review', '--inputs', 'local', *MAKER)
+    assert 'destination' not in out
+    assert out['routing']['judgment_required'] is True
+    assert all(r['applies_to'] == 'routed' and 'informational' not in r for r in out['routing']['judgment_reasons'])
+
+
+def test_same_vendor_destination_is_ineligible_for_a_review(world, tmp_path):
+    out = route(world, vendor_world(world, tmp_path, 'claude'), '--purpose', 'review', '--inputs', 'github', *MAKER)
+    assert 'destination_offer' not in out and out['target'] is not None and not ran(tmp_path, 'cap')
+    assert dest(out)['chosen'] == 'model'
+    assert dest(out)['fallback'] == {'destination': 'worker', 'reasons': ['independence'], 'source': 'facts'}
+    assert dest(out)['considered'] == [{'name': 'worker', 'state': 'declined_by_independence'}]
+
+
+def test_different_vendor_destination_is_chosen_with_no_independence_reason(world, tmp_path):
+    out = route(world, vendor_world(world, tmp_path, 'codex'), '--purpose', 'review', '--inputs', 'github', *MAKER)
+    assert out['destination'] == 'worker' and 'destination_independence_unknown' not in reason_map(out)
+
+
+def test_missing_vendor_or_unknown_maker_vendor_is_chosen_but_needs_judgment(world, tmp_path):
+    out = route(world, vendor_world(world, tmp_path, None), '--purpose', 'review', '--inputs', 'github', *MAKER)
+    reason = reason_map(out)['destination_independence_unknown']
+    assert out['destination'] == 'worker' and reason['applies_to'] == 'destination' and out['routing']['judgment_required'] is True
+    out = route(world, vendor_world(world, tmp_path, 'claude'), '--purpose', 'review', '--inputs', 'github')
+    assert out['destination'] == 'worker' and 'destination_independence_unknown' in reason_map(out)
+
+
+def test_independence_flag_applies_to_a_non_review_op(world, tmp_path):
+    cfg = vendor_world(world, tmp_path, 'claude')
+    out = route(world, cfg, '--purpose', 'research', '--inputs', 'github', *MAKER, '--independence', 'vendor', op='implement.standard')
+    assert dest(out).get('fallback', {}).get('reasons') == ['independence']
+
+
+def test_vendor_must_be_a_non_empty_string(world, tmp_path):
+    assert 'vendor' in failing(world, config(tmp_path, entry(tmp_path / 'cap') | {'vendor': ''}), '--purpose', 'review')

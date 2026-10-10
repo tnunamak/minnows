@@ -53,6 +53,8 @@ def read_destinations(path):
             raise ValueError(f'{where}.timeout_seconds must be a number in (0, {MAX_TIMEOUT}]')
         if not isinstance(entry.get('how_to'), str) or not entry['how_to']:
             raise ValueError(f'{where}.how_to must be a non-empty string')
+        if 'vendor' in entry and (not isinstance(entry['vendor'], str) or not entry['vendor'].strip()):
+            raise ValueError(f'{where}.vendor must be a non-empty string when present')
         if not isinstance(entry.get('submit'), dict):
             raise ValueError(f'{where}.submit must be an object')
     return rows, {'state': 'loaded', 'sha256': digest(rows)}
@@ -151,8 +153,21 @@ def fact_reasons(facts):
                                            ('credential', facts.get('sensitive') is True)) if applies]
 
 
-def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, run_probe=probe):
-    """Return (`routing.destination` block, offer or None). Facts first, then the parent's skip, then capacity."""
+def same_vendor(entry, independence):
+    """True when the destination provably shares the maker's vendor and the required level is `vendor`."""
+    return bool(independence) and independence['level'] == 'vendor' and entry.get('vendor') in independence['maker_vendors']
+
+
+def independence_unknown(entry, independence):
+    """True when a required independence cannot be checked: no destination vendor, no known maker vendor, or a level finer than vendor."""
+    return bool(independence) and (not entry.get('vendor') or not independence['maker_vendors'] or independence['level'] != 'vendor')
+
+
+def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, independence=None, run_probe=probe):
+    """Return (`routing.destination` block, offer or None). Facts first, then the parent's skip, then independence, then capacity.
+
+    `independence` is None when none is required, else {level, maker_vendors}.
+    """
     listed = [e for e in entries if purpose in e['purposes']]
     block = {'chosen': 'model', 'considered': []}
     if not listed:
@@ -171,13 +186,18 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, run_p
                         'fallback': {'destination': first, 'reasons': list(skip), 'source': 'parent', 'reason': reason}}, None
     if simulate:
         return block | {'considered': declined('not_probed_in_simulation')}, None
-    considered = []
+    considered = [{'name': e['name'], 'state': 'declined_by_independence'} for e in listed if same_vendor(e, independence)]
+    listed = [e for e in listed if not same_vendor(e, independence)]
+    if not listed:
+        return block | {'considered': considered,
+                        'fallback': {'destination': first, 'reasons': ['independence'], 'source': 'facts'}}, None
     for entry in listed:
         capacity = run_probe(entry)
         if capacity['available']:
             considered.append({'name': entry['name'], 'state': 'chosen', 'capacity': capacity})
             offer = {'name': entry['name'], 'request_id': request_id, 'purpose': purpose, 'how_to': entry['how_to'],
-                     'submit': substitute(entry['submit'], {'<request_id>': request_id, '<purpose>': purpose}), 'capacity': capacity}
+                     'submit': substitute(entry['submit'], {'<request_id>': request_id, '<purpose>': purpose}), 'capacity': capacity,
+                     'vendor': entry.get('vendor')}
             return block | {'chosen': entry['name'], 'considered': considered}, offer
         considered.append({'name': entry['name'], 'state': 'unavailable', 'capacity': capacity})
     return block | {'considered': considered,
@@ -185,5 +205,7 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, run_p
                                  'probe_reason': considered[0]['capacity'].get('reason')}}, None
 
 
-INPUTS_UNKNOWN = {'code': 'destination_inputs_unknown', 'applies_to': 'routed',
+INPUTS_UNKNOWN = {'code': 'destination_inputs_unknown', 'applies_to': 'destination',
                   'detail': 'the destination needs one pushed GitHub input; if inputs are local, re-run with --inputs local'}
+INDEPENDENCE_UNKNOWN = {'code': 'destination_independence_unknown', 'applies_to': 'destination',
+                        'detail': 'the destination vendor or the maker vendor is unknown, or the level is finer than vendor; independence cannot be checked'}
