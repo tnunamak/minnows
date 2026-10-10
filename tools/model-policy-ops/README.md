@@ -262,7 +262,8 @@ fact) are optional. When a required fact is unknown, the candidate needs judgmen
 When it is known and not listed, the candidate is removed. `check` validates all of
 this. The pack `routing` object holds `pace_windows`, `failure_lookback_minutes`,
 `failure_demote_count`, `review_task_families`, `independence_default`,
-`directive_max_days` and `lineage_key`. `lineage_key` maps a provider to the
+`directive_max_days`, `observation_max_age_hours` (default 3), `observation_window_days`
+(default 14) and `lineage_key`. `lineage_key` maps a provider to the
 model-catalog field that names a model line (`{"claude": "family", "codex": "tier",
 "grok": "family"}`). Absent fields turn the matching feature off: no pace, no
 demotion, no directive lifetime cap, no model line. A review op with no
@@ -528,6 +529,28 @@ model-catalog pack. It prints proposals, and it writes nothing. It prints:
 
 Each `route` output embeds the `calibration_notes` for its op. Outcomes never
 change the ranking.
+
+`route` also reads `observations.jsonl` (see Observe) and adds
+`calibration_notes.observations`, a list, only when a note applies. With no note the
+key is absent. The notes are descriptive: they never reorder candidates, change
+`judgment_required` or enter `request`; they are in the stored routing block. Live T3
+failure events still demote instances through `availability`; these notes do not repeat that.
+
+- Evidence missing or stale: `{kind, last_run_at, age_hours, sources}`. `kind` is
+  `observations_missing` (the file is absent and a destination has an `observe_command`, or it
+  is unreadable or holds no `source_run`), `observations_stale` (the latest `source_run` is older
+  than `observation_max_age_hours`) or `observation_source_not_ok` (a source in that run is not
+  `ok`). A destination that reports `unavailable` with `no_observe_command` is a valid setup and
+  is not listed. No file and no `observe_command` gives no note.
+- `destination_blocked_share`, only when a destination is chosen. It counts decisions
+  whose receipt chose this destination, whose launch purpose equals the route's `--purpose` and
+  whose `recorded_at` is within `observation_window_days`. Each `decision_id` counts once, by its
+  latest observed report outcome (latest report time, then ledger order); a relaunch is its own
+  decision. It appears when at least 3 decisions have a result and at least one is `blocked`:
+  `{kind, destination, task_kind, window_days, decisions_with_result, blocked, completed,
+  accepted_by_owner, labels}`. `accepted_by_owner` counts those decisions with an `accepted`
+  event. completed = worker filed a report; accepted = owner disposition; neither is correctness.
+  The note has no model or effort breakdown, because a destination has neither.
 
 ### Limits
 
