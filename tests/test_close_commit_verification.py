@@ -34,10 +34,22 @@ def stub_git(tmp_path, monkeypatch, body):
 
 @pytest.fixture(scope='module')
 def old_tool(tmp_path_factory):
-    """The CLI as of the baseline commit, extracted from git history. Skipped only when history lacks the commit (shallow clone)."""
-    probe = subprocess.run(['git', '-C', REPO, 'cat-file', '-e', f'{BASELINE}^{{commit}}'], capture_output=True)
-    if probe.returncode != 0:
+    """The CLI as of the baseline commit, extracted from git history.
+
+    Skipped ONLY when git answers that the commit is absent (a shallow clone), and never when MODEL_POLICY_REQUIRE_BASELINE=1.
+    Any other probe result (git failing, an unsafe repository, malformed output) fails the test: a broken probe must not
+    silently drop the old-reader checks.
+    """
+    probe = subprocess.run(['git', '-C', REPO, 'cat-file', '--batch-check'], input=f'{BASELINE}^{{commit}}\n',
+                           capture_output=True, text=True, timeout=30)
+    answer = probe.stdout.strip()
+    if probe.returncode == 0 and answer == f'{BASELINE}^{{commit}} missing':
+        if os.environ.get('MODEL_POLICY_REQUIRE_BASELINE') == '1':
+            pytest.fail(f'{BASELINE} is not in this clone and MODEL_POLICY_REQUIRE_BASELINE=1')
         pytest.skip(f'{BASELINE} is not in this clone; fetch full history to run the old-reader checks')
+    fields = answer.split()
+    if probe.returncode != 0 or len(fields) != 3 or fields[1] != 'commit':
+        pytest.fail(f'cannot probe {BASELINE}: exit {probe.returncode}, output {answer!r}, stderr {probe.stderr.strip()!r}')
     tree = tmp_path_factory.mktemp('baseline')
     archive = subprocess.run(['git', '-C', REPO, 'archive', BASELINE, 'tools/model-policy-ops'], capture_output=True, check=True).stdout
     with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
@@ -211,6 +223,32 @@ def test_older_cli_reads_ledgers_with_the_new_field(setup, tmp_path, monkeypatch
     # The current CLI still reads what the old one appended.
     result, _ = audit_export(setup, tmp_path)
     assert result.returncode == 0, result.stderr
+
+
+def test_older_cli_supersedes_a_new_close_and_replays_a_new_followup(setup, tmp_path, git_repo, old_tool):
+    """The two old-reader paths the first compatibility test does not cover: the baseline CLI appending a superseding close
+    on top of a new-format close, and replaying a followup that the current CLI wrote with commit evidence."""
+    record(setup)
+    repo, head = git_repo
+    evidence = ['--evidence', commit_ref(repo, head)]
+    result, first = close(setup, 'one', 'c1', *evidence)
+    assert result.returncode == 0 and KEY in first, result.stderr
+    result, old_close = run_with(old_tool, 'close', 'one', '--receipts', setup[3], '--close-id', 'c2', '--supersedes', 'c1',
+                                 '--reason', 'old cli correction', '--outcome', 'rejected', '--judged-by', 'parent', '--check', 'none',
+                                 *evidence)
+    assert result.returncode == 0, result.stderr
+    assert old_close['supersedes'] == 'c1' and KEY not in old_close, 'the old CLI writes a legacy row'
+    followup_args = ['followup', 'one', '--receipts', setup[3], '--followup-id', 'f1', '--finding', 'fix_commit',
+                     '--checked-scope', 'x', *evidence]
+    result, new_followup = run(*followup_args)
+    assert result.returncode == 0 and KEY in new_followup, result.stderr
+    result, replay = run_with(old_tool, *followup_args)
+    assert result.returncode == 0, result.stderr
+    assert replay['replayed'] is True and replay[KEY] == new_followup[KEY]
+    result, audit = audit_export(setup, tmp_path)
+    assert result.returncode == 0, result.stderr
+    counts = audit['outcomes']['commit_evidence_verification']
+    assert counts['not_recorded'] >= 1, 'the old-CLI superseding close is the current close and has no record'
 
 
 def test_baseline_cli_cannot_tell_failure_from_absence(setup, tmp_path, monkeypatch, git_repo, old_tool):
