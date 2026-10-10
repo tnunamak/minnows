@@ -21,6 +21,8 @@ def evidence_note(rows, state, at, max_age_hours, has_observe_command):
     # A source with no observe_command is a valid setup; observe records it as unavailable.
     sources = {name: entry['state'] for name, entry in sorted(latest['sources'].items())
                if not (entry['state'] == 'unavailable' and entry['reason'] == 'no_observe_command')}
+    if not sources:
+        return None   # nothing left to observe: an excluded-only run is a valid setup, never stale
     age = (at - datetime.fromisoformat(latest['finished_at'])).total_seconds() / 3600
     base = {'last_run_at': latest['finished_at'], 'age_hours': round(age, 2), 'sources': sources}
     if age > max_age_hours:

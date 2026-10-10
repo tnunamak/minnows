@@ -117,6 +117,17 @@ def test_a_destination_without_an_observe_command_is_not_a_defect(one):
     assert 'observations' not in route(one)['routing']['calibration_notes']
 
 
+def test_an_old_run_with_only_excluded_sources_is_not_stale(one):
+    run_row(one, finished='2026-10-09T18:00:00+00:00', states={'destination:worker': 'unavailable'},
+            reasons={'destination:worker': 'no_observe_command'})
+    assert 'observations' not in route(one)['routing']['calibration_notes']
+
+
+def test_the_latest_run_is_chosen_by_finish_time_not_ledger_order(one):
+    run_row(one)                                                                      # fresh and healthy, written first
+    run_row(one, finished='2026-10-09T18:00:00+00:00', states={'t3': 'error'})          # older and failing, written last
+    assert 'observations' not in route(one)['routing']['calibration_notes']
+
 def test_only_the_latest_run_counts(one):
     run_row(one, finished='2026-10-09T23:00:00+00:00', states={'t3': 'error'})
     run_row(one)
