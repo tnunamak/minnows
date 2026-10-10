@@ -714,6 +714,10 @@ Sources:
   subjects were read) or `error` (none were), with the counts and reasons in the `source_run`
   and in the `latest_source_runs` of `audit`. A failed subject appends no facts.
 
+`calibrate` adds the same `commit_evidence_verification` counts over current closes, and
+`observe` prints (does not store) `recorded_commit_verification` for the closes it scans. These
+are the close-time answers, beside the live re-check `observe` makes now.
+
 `audit` and `calibrate` add an `observations` section: `state` (`observed`, `absent` or
 `unreadable`), per-source `coverage` (decisions with at least one observation over decisions
 in scope, as two numbers), the `latest_source_runs` states, `fact_type_counts` and the
@@ -813,7 +817,7 @@ grammar that breaks on `#` or `@` in paths, and unknown keys are rejected.
 
 | type | keys | verified_state |
 |---|---|---|
-| `commit` | `repo` (absolute), `sha` (40 hex) | `exists` or `unverified_missing` (`git cat-file`, no shell) |
+| `commit` | `repo` (absolute), `sha` (40 hex) | `exists` or `unverified_missing` (`git cat-file`, no shell); the row also records `evidence_verification` |
 | `file` | `path` (absolute), `sha256` | `hash_matches`, `mismatch`, `missing`, `unreadable`, `too_large` |
 | `check` | `label`, `exit_code` 0-255, `log` (absolute), `sha256` | `log_hash_matches`, `mismatch`, `missing`, `unreadable`, `too_large` |
 | `pr` | `repo` (`owner/name`), `number` | `claim_only` (never fetched) |
@@ -826,6 +830,18 @@ verification is stored and shown, and it does not count in
 `accepted_with_hash_matched_check_log`: true only for an accepted close whose
 `oracle` check logs all hash-match. The `exit_code` is the caller's claim; the summary
 lists it as `exit_codes_claimed`. Malformed references are rejected.
+
+**Commit verification.** `unverified_missing` is the legacy value and also covers a git
+failure. A row with commit evidence therefore also carries an optional top-level
+`evidence_verification`: a list with one item per evidence entry, `null` for a non-commit
+entry and `{"state": "exists"|"missing"|"timeout"|"error", "recorded_at": ISO}` for a
+commit. Only an explicit `missing` answer from git is `missing`; a timeout, signal,
+non-zero exit or unreadable repository is `timeout` or `error`, and `verified_state` stays
+`unverified_missing` for those. The key sits beside `evidence`, not inside an entry,
+because older CLIs ignore an unknown top-level key but treat a changed evidence entry as
+changed replay input. A row written before this field has no `evidence_verification`;
+every reader reports its commit evidence as `not_recorded`. It is never reclassified as
+missing or failed, because nothing was observed at the time. Rows are not re-verified.
 
 `--note`, `--reason` and `--checked-scope` hold one line of up to 280 characters.
 The caller supplies them and **the tool does not filter them for secrets**. Do not
@@ -933,6 +949,9 @@ Top-level keys: `schema_version`, `scope`, `coverage`, `counts`, `effort_explici
   - `outcome_distribution`: `{"closed": {OUTCOME: count}, "unclosed_or_unreadable": n}`.
   - `judged_by`, `check`, `owner_input`: `{VALUE: count}` over closed decisions.
   - `accepted_with_hash_matched_check_log`: count of accepted decisions whose check logs hash-match.
+  - `commit_evidence_verification`: over the current close of each closed decision,
+    `denominator` (commit evidence entries), `exists`, `missing`, `operational_failure`
+    (`timeout` or `error`), `not_recorded` (rows without `evidence_verification`) and `meaning`.
   - `closer_thread`: `differs_from_parent`, `not_recorded`, `meaning`.
   - `superseded_closes`, `broken_chains`, `outcome_rows_for_unknown_decisions`.
   - `followup_coverage`: `closed_decisions_with_followup`, `closed_decisions`, `meaning`.
@@ -945,8 +964,10 @@ Top-level keys: `schema_version`, `scope`, `coverage`, `counts`, `effort_explici
   - `decision_outcome`: `{"state": "unclosed"|"closed"|"broken_chain"|"no_receipt",
     "current": {...}, "chain": [CLOSE_ID, ...]}`. `current` is null unless `closed`, and
     holds `close_id`, `outcome`, `judged_by`, `check`, `repairs`, `owner_input`,
-    `recorded_at`, `evidence_summary`, `supersedes`, `closer_thread` and
-    `closer_thread_differs_from_parent`. Read the close
+    `recorded_at`, `evidence_summary`, `supersedes`, `commit_verification` (one of
+    `exists`, `missing`, `operational_failure`, `not_recorded` per commit evidence entry),
+    `closer_thread` and `closer_thread_differs_from_parent`. Read the close
     result here. The older per-call key `outcome` is always `unknown`.
-  - `followups`: `{"state": "observed"|"not_checked", "items": [...]}`.
+  - `followups`: `{"state": "observed"|"not_checked", "items": [...]}`; each item also has
+    `commit_verification`, as for a close.
   - `launch_facts`, `observed_child_usage`, `parent_overhead_usage`, `quota`.
