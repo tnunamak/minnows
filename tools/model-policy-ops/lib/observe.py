@@ -393,7 +393,7 @@ def git(repo, *args):
 
 
 def path_kind(path):
-    """'dir', 'file', 'other' or 'absent' for one path, without following a final symlink. Only real absence is 'absent':
+    """'dir', 'file', 'other' or 'absent' for one path; a final symlink is followed explicitly (dangling = 'absent'). Only real absence is 'absent':
     a permission or I/O error is a GitFailure ('filesystem_unreadable'), never a healthy skip."""
     try:
         mode = os.lstat(path).st_mode
