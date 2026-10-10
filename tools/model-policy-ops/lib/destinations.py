@@ -161,14 +161,14 @@ def same_vendor(entry, independence):
 
 
 def independence_unknown(entry, independence):
-    """True when a required independence cannot be checked: no destination vendor, no known maker vendor, or a level finer than vendor."""
-    return bool(independence) and (not entry.get('vendor') or not independence['maker_vendors'] or independence['level'] != 'vendor')
+    """True when a required independence cannot be checked: no destination vendor, a maker vendor that is unknown for any run, or a level finer than vendor."""
+    return bool(independence) and (not entry.get('vendor') or not independence['maker_complete'] or independence['level'] != 'vendor')
 
 
 def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, independence=None, run_probe=probe):
     """Return (`routing.destination` block, offer or None). Facts first, then the parent's skip, then independence, then capacity.
 
-    `independence` is None when none is required, else {level, maker_vendors}.
+    `independence` is None when none is required, else {level, maker_vendors, maker_complete}; `maker_complete` is false when any maker run has an unknown vendor.
     """
     listed = [e for e in entries if purpose in e['purposes']]
     block = {'chosen': 'model', 'considered': []}

@@ -430,8 +430,10 @@ The capacity command prints one JSON object, `{"available": bool, "reason": str,
 extra fields are kept. It runs without a shell, with stdin closed and the timeout enforced.
 The output is read in a stream and is limited to 64 KiB; on overflow the probe is killed and
 the result is `output_too_large` (a truncated prefix is never parsed). The probe session is
-killed at the deadline and the read pipe is closed, so the total time is the timeout plus a
-one-second grace, even if a detached child keeps the pipe open.
+killed whenever the probe ends, also when the leader has already exited, so an ordinary
+background child does not outlive `route`. The read pipe is closed, so the total time is the
+timeout plus a one-second grace, even if a detached (`setsid`) child keeps the pipe open; such
+a child can live on.
 A timeout, a non-zero exit, output that is not JSON (or has no boolean `available`) and a
 missing binary all mean `available: false`, with reason `capacity_probe_error: KIND`
 (`timeout`, `output_too_large`, `nonzero_exit`, `invalid_json`, `invalid_shape`, `missing_binary`, `os_error`).
@@ -454,8 +456,12 @@ Independence. A purpose that needs independence is a review op (`review_task_fam
 op with `--independence`. If the destination `vendor` equals the maker vendor and the required
 level is `vendor`, the destination is not eligible and is not probed: `considered` state
 `declined_by_independence`, and when none is left, `fallback` = `{destination, reasons:
-["independence"], source: "facts"}`, then `route` picks a model as usual. If the destination has
-no `vendor`, the maker vendor is unknown, or the required level is finer than `vendor` (family
+["independence"], source: "facts"}`, then `route` picks a model as usual. When some are
+declined and the rest are unavailable, `fallback` = `{destination, reasons: ["independence",
+"unavailable"], source: "capacity", probe_reason, by_destination}`, where `by_destination` maps
+each name to its reason. A maker with several runs is checked against every known run vendor; one
+run with an unknown vendor still adds the judgment reason. If the destination has
+no `vendor`, the maker vendor is unknown for any maker run, or the required level is finer than `vendor` (family
 or model, which a destination cannot show), the destination can still be chosen, and the judgment
 reason `destination_independence_unknown` is added.
 

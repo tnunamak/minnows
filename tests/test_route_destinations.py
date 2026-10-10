@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from test_route import NOW, REPO, run_tool, stable, world  # noqa: F401  (world is a fixture)
+from test_route import NOW, REPO, run_tool, stable, two_runs, world  # noqa: F401  (world is a fixture)
 
 BASELINE = '5fdc94d'
 OP = 'review.audit'
@@ -585,3 +585,32 @@ def test_background_child_of_an_exited_probe_leader_is_killed(world, tmp_path):
     assert not alive(pid), 'the same-group child must not outlive route'
 
 
+def test_partly_unknown_maker_still_needs_the_destination_judgment(world, tmp_path):
+    two_runs(world, ('claudeAgent', 'claude-sonnet-5-5', {'effort': 'medium'}), ('mystery', 'x-model', {}))
+    cfg = vendor_world(world, tmp_path, 'codex')
+    out = route(world, cfg, '--purpose', 'review', '--inputs', 'github', '--maker', 'mk')
+    assert out['destination'] == 'worker'
+    assert reason_map(out)['destination_independence_unknown']['applies_to'] == 'destination'
+    assert out['routing']['judgment_required'] is True
+    out = route(world, vendor_world(world, tmp_path, 'claude'), '--purpose', 'review', '--inputs', 'github', '--maker', 'mk')
+    assert dest(out)['fallback']['reasons'] == ['independence'], 'a known run of the same vendor still excludes the destination'
+
+
+def test_all_known_maker_runs_keep_the_destination_without_a_judgment_reason(world, tmp_path):
+    two_runs(world, ('claudeAgent', 'claude-sonnet-5-5', {'effort': 'medium'}), ('codex', 'gpt-6.1-sol', {'reasoningEffort': 'medium'}))
+    out = route(world, vendor_world(world, tmp_path, 'other-vendor'), '--purpose', 'review', '--inputs', 'github', '--maker', 'mk')
+    assert out['destination'] == 'worker' and 'destination_independence_unknown' not in reason_map(out)
+    out = route(world, vendor_world(world, tmp_path, 'codex'), '--purpose', 'review', '--inputs', 'github', '--maker', 'mk')
+    assert dest(out)['fallback']['reasons'] == ['independence']
+
+
+def test_all_unknown_maker_runs_need_the_destination_judgment(world, tmp_path):
+    two_runs(world, ('mystery', 'x-model', {}), ('other-mystery', 'y-model', {}))
+    out = route(world, vendor_world(world, tmp_path, 'codex'), '--purpose', 'review', '--inputs', 'github', '--maker', 'mk')
+    assert out['destination'] == 'worker' and 'destination_independence_unknown' in reason_map(out)
+    assert out['routing']['judgment_required'] is True
+
+
+def test_independence_level_source_is_reported(world):
+    assert world.route(OP)['routing']['independence']['required_source'] == 'pack'
+    assert world.route(OP, '--independence', 'model')['routing']['independence']['required_source'] == 'flag'

@@ -323,8 +323,8 @@ def execute(args, policy):
     offer = None
     if routing_block and dest_meta['state'] == 'loaded':
         required = routing_block['independence']
-        independence = {'level': required['required'], 'maker_vendors': sorted({v for v, _ in routing.maker_targets(required['maker'])}) if required['maker'] else []} \
-            if required['required'] else None
+        vendors, complete = routing.maker_vendor_coverage(required['maker'])
+        independence = {'level': required['required'], 'maker_vendors': vendors, 'maker_complete': complete} if required['required'] else None
         routing_block['destination'], offer = destinations.decide(
             dest_entries, purpose=args.purpose, facts=facts, skip=skip, reason=args.reason, request_id=decision_id, simulate=simulation,
             independence=independence)
