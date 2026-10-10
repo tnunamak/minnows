@@ -15,7 +15,7 @@ from decision_receipts import append_row, locked_private_rows, numbered_rows, va
 from outcomes import split_rows
 
 SCHEMA = 1
-SOURCE_STATES = ('ok', 'unavailable', 'error')
+SOURCE_STATES = ('ok', 'partial', 'unavailable', 'error')
 SOURCE = re.compile(rf't3|git|destination:{destination_store.NAME.pattern}')
 LABELS = {
     'completed': 'completed ≠ accepted',
@@ -69,7 +69,7 @@ def check_row(row):
             isinstance(name, str) and SOURCE.fullmatch(name) and isinstance(entry, dict) and SOURCE_ENTRY_KEYS <= set(entry)
             and entry['state'] in SOURCE_STATES)] if isinstance(sources, dict) else ['(not an object)']
         if bad:
-            raise ValueError(f'sources must map each source (t3, git or destination:NAME) to a state in ok, unavailable or error; rejected {bad[:3]}')
+            raise ValueError(f'sources must map each source (t3, git or destination:NAME) to a state in ok, partial, unavailable or error; rejected {bad[:3]}')
         return
     if not isinstance(row['source'], str) or not SOURCE.fullmatch(row['source']):
         raise ValueError('source must be t3, git or destination:NAME')
@@ -190,7 +190,7 @@ def section(state, reason, rows, receipts, outcome_rows):
         if row['kind'] == 'source_run':
             for source, entry in row['sources'].items():
                 latest[source] = {'run_id': row['run_id'], 'finished_at': row['finished_at'], 'state': entry['state'],
-                                  'reason': entry['reason']}
+                                  'reason': entry['reason']} | {k: entry[k] for k in ('skipped', 'failed') if k in entry}
     ids = set().union(*scope.values()) if scope else set()
     return base | {'coverage': coverage,
                    'coverage_meaning': 'per source: decisions with at least one observation / decisions in scope for the source',

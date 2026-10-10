@@ -16,7 +16,7 @@ import destinations as destination_store
 import observations as store
 from decision_receipts import read_receipts
 from delegation_audit import PREFIX, effort, normalize_since, read_db, stamp
-from outcomes import commit_exists, git_env, read_outcomes, split_rows
+from outcomes import commit_state, git_argv, git_env, read_outcomes, split_rows
 from route_inputs import CANCELLATIONS, classify_failure
 
 TOKEN = re.compile(r'[a-z0-9_.:=-]{1,48}')
@@ -270,16 +270,34 @@ class GitUnavailable(Exception):
     pass
 
 
-def git(repo, *args):
-    """Read-only git with GIT_* cleared, bounded time and output. Returns stdout text; raises ValueError on any failure."""
-    stdout, code, failure = destination_store.run_bounded(['git', '--no-optional-locks', '-C', repo, *args], GIT_TIMEOUT,
+class Ineligible(Exception):
+    """The evidence is not something observe may read (no repo, not a root, no such commit): counted in `skipped`."""
+
+
+class GitFailure(Exception):
+    """git could not answer (timeout, output limit, non-zero exit, a missing local object): counted in `failed`, never healthy."""
+
+
+STOPS = ('git_timeout', 'git_output_too_large', 'git_os_error')
+
+
+def failure_reason(repo):
+    """A non-zero exit in a partial clone usually means a missing object that only the promisor remote has; observe never fetches it."""
+    stdout, code, failure = destination_store.run_bounded(git_argv(repo, 'config', '--get-regexp', r'^remote\..*\.promisor$'), GIT_TIMEOUT,
                                                           limit=GIT_OUTPUT_LIMIT, env=git_env())
+    promisor = not failure and code == 0 and any(line.split()[-1:] == [b'true'] for line in stdout.splitlines())
+    return 'git_missing_local_object' if promisor else 'git_failed'
+
+
+def git(repo, *args):
+    """Read-only git with GIT_* cleared, no optional locks, no lazy fetch, bounded time and output. Returns stdout text; raises GitFailure."""
+    stdout, code, failure = destination_store.run_bounded(git_argv(repo, *args), GIT_TIMEOUT, limit=GIT_OUTPUT_LIMIT, env=git_env())
     if failure == 'missing_binary':
         raise GitUnavailable('git_not_found')
     if failure:
-        raise ValueError(f'git_{failure}')
+        raise GitFailure(f'git_{failure}')
     if code != 0:
-        raise ValueError('git_failed')
+        raise GitFailure(failure_reason(repo))
     return stdout.decode('utf-8', 'replace')
 
 
@@ -288,10 +306,14 @@ def is_repo_root(repo):
     try:
         top = git(repo, 'rev-parse', '--show-toplevel').strip()
         return os.path.realpath(top) == os.path.realpath(repo)
-    except ValueError:
+    except GitFailure as error:
+        if str(error) in STOPS:
+            raise
         try:
             return git(repo, 'rev-parse', '--git-dir').strip() == '.'  # a bare repository
-        except ValueError:
+        except GitFailure as inner:
+            if str(inner) in STOPS:
+                raise
             return False
 
 
@@ -320,15 +342,21 @@ def reverting_commits(repo, sha, start, end):
 
 
 def scan_commit(close, ref, window_days, now):
-    """Candidate follow-up signals for one evidenced commit of one close. Raises ValueError with a skip reason."""
+    """Candidate follow-up signals for one evidenced commit of one close. Raises Ineligible (skip) or GitFailure (operational)."""
     repo, sha = ref['repo'], ref['sha']
     if not (os.path.isabs(repo) and SHA1.fullmatch(sha) and os.path.isdir(repo)):
-        raise ValueError('repo_missing')
+        raise Ineligible('repo_missing')
     if not is_repo_root(repo):
-        raise ValueError('not_a_repository_root')
-    if not commit_exists(repo, sha):
-        raise ValueError('sha_missing')
-    committed = stamp(git(repo, 'log', '-1', '--format=%cI', sha).strip())
+        raise Ineligible('not_a_repository_root')
+    state = commit_state(repo, sha)
+    if state != 'exists':
+        if state == 'missing':
+            raise Ineligible('sha_missing')
+        raise GitFailure('git_timeout' if state == 'timeout' else 'git_failed')
+    try:
+        committed = stamp(git(repo, 'log', '-1', '--format=%cI', sha).strip())
+    except ValueError:
+        raise GitFailure('git_bad_output') from None
     closed = stamp(close['recorded_at'])
     end = min(now, closed + timedelta(days=window_days))
     files, truncated = touched_files(repo, sha)
@@ -363,7 +391,7 @@ def scan_commit(close, ref, window_days, now):
 
 def collect_git(outcome_rows, scope_ids, window_days, now):
     closes, _ = split_rows(list(outcome_rows))
-    found, checked, skipped = [], 0, {}
+    found, checked, skipped, failed = [], 0, {}, {}
     seen = set()
     for close in closes:
         if close['decision_id'] not in scope_ids:
@@ -377,9 +405,16 @@ def collect_git(outcome_rows, scope_ids, window_days, now):
                 found += scan_commit(close, ref, window_days, now)
             except GitUnavailable as error:
                 return result('unavailable', str(error))
-            except ValueError as error:
+            except Ineligible as error:
                 skipped[str(error)] = skipped.get(str(error), 0) + 1
-    return result('ok', None, checked, found, skipped=dict(sorted(skipped.items())))
+            except (GitFailure, ValueError) as error:
+                reason = str(error) if isinstance(error, GitFailure) else 'git_bad_output'
+                failed[reason] = failed.get(reason, 0) + 1
+    extra = {'skipped': dict(sorted(skipped.items())), 'failed': dict(sorted(failed.items()))}
+    if not failed:
+        return result('ok', None, checked, found, **extra)
+    reason = 'operational_failure: ' + ', '.join(f'{name}={count}' for name, count in extra['failed'].items())
+    return result('partial' if checked - sum(failed.values()) - sum(skipped.values()) else 'error', reason, checked, found, **extra)
 
 
 # ---- run --------------------------------------------------------------------------------------------------------------

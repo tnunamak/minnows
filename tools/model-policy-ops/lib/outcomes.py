@@ -137,17 +137,31 @@ def file_hash_state(path, expected):
 
 
 def git_env():
-    """The environment for a read-only git call. GIT_DIR and GIT_WORK_TREE would override -C and check the wrong repository."""
-    return {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
+    """The environment for a read-only git call. GIT_DIR and GIT_WORK_TREE would override -C and check the wrong repository.
+
+    GIT_NO_LAZY_FETCH stops a partial clone from fetching a missing object from its promisor remote: a read must never write.
+    """
+    return {k: v for k, v in os.environ.items() if not k.startswith('GIT_')} | {'GIT_NO_LAZY_FETCH': '1'}
+
+
+def git_argv(repo, *args):
+    return ['git', '--no-optional-locks', '-C', repo, *args]
+
+
+def commit_state(repo, sha):
+    """'exists', 'missing' (git says no such commit locally), 'timeout' or 'error'. `sha` is validated hex, so it cannot be read as an option."""
+    try:
+        code = subprocess.run(git_argv(repo, 'cat-file', '-e', sha + '^{commit}'), capture_output=True, timeout=10, env=git_env()).returncode
+    except subprocess.TimeoutExpired:
+        return 'timeout'
+    except OSError:
+        return 'error'
+    return 'exists' if code == 0 else 'missing'
 
 
 def commit_exists(repo, sha):
-    """True when `sha` (validated hex, so it cannot be read as an option) names a commit in `repo`."""
-    try:
-        return subprocess.run(['git', '-C', repo, 'cat-file', '-e', sha + '^{commit}'],
-                              capture_output=True, timeout=10, env=git_env()).returncode == 0
-    except (OSError, subprocess.TimeoutExpired):
-        return False
+    """True when `sha` names a commit in the local object store of `repo`. Never fetches."""
+    return commit_state(repo, sha) == 'exists'
 
 
 def verify_evidence(ref):

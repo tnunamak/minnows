@@ -425,6 +425,141 @@ def test_git_is_read_only_ignores_inherited_git_env_and_reads_no_other_repo(setu
     assert not (repo / '.git/FETCH_HEAD').exists()
 
 
+# ---- git: no lazy fetch, and operational failures are not health -----------------------------------------------------
+
+LIB = REPO / 'tools/model-policy-ops/lib'
+
+
+def lib_module(name):
+    if str(LIB) not in sys.path:
+        sys.path.insert(0, str(LIB))
+    return __import__(name)
+
+
+def git_supports_no_lazy_fetch():
+    version = subprocess.run(['git', '--version'], capture_output=True, text=True).stdout.split()[2].split('.')
+    return (int(version[0]), int(version[1])) >= (2, 44)
+
+
+def snapshot(repo):
+    """Every byte of the object store (loose objects and packs) plus the object count: any fetch changes it."""
+    root = repo / '.git/objects'
+    files = {str(p.relative_to(root)): p.read_bytes() for p in sorted(root.rglob('*')) if p.is_file()}
+    return files, git(repo, 'count-objects', '-v')
+
+
+@pytest.fixture
+def promisor_world(setup, tmp_path):
+    """A partial clone (no trees) of a local repository that has every object: the promisor remote can serve what is missing."""
+    if not git_supports_no_lazy_fetch():
+        pytest.skip('git older than 2.44 has no GIT_NO_LAZY_FETCH')
+    origin = tmp_path / 'origin'
+    origin.mkdir()
+    git(origin, 'init', '-q', '-b', 'main')
+    git(origin, 'config', 'uploadpack.allowFilter', 'true')
+    git(origin, 'config', 'uploadpack.allowAnySHA1InWant', 'true')
+    first = commit(origin, ['a.txt', 'dir/b.txt'], 'first', days(12))
+    subprocess.run(['git', 'clone', '-q', '--no-checkout', '--filter=tree:0', f'file://{origin}', str(tmp_path / 'partial')],
+                   check=True, capture_output=True, env={k: v for k, v in os.environ.items() if not k.startswith('GIT_')})
+    partial = tmp_path / 'partial'
+    later = commit(origin, ['a.txt'], 'only in origin', days(11))  # the partial clone has never seen this commit
+    record(setup, 'one')
+    return {'origin': origin, 'partial': partial, 'present': first, 'absent': later}
+
+
+def close_on(setup, repo, sha, close_id='c1', decision='one'):
+    result, _ = close(setup, decision, close_id, '--evidence', json.dumps({'type': 'commit', 'repo': str(repo), 'sha': sha}))
+    assert result.returncode == 0, result.stderr
+    set_close_time(setup, days(10))
+
+
+def test_git_never_lazy_fetches_a_missing_tree_from_a_promisor_remote(setup, promisor_world):
+    partial = promisor_world['partial']
+    close_on(setup, partial, promisor_world['present'])
+    before = snapshot(partial)
+    row = ok(setup)
+    assert snapshot(partial) == before  # no object or pack was fetched into the source repository
+    git_source = row['sources']['git']
+    assert facts(setup, 'git') == []  # the subject reads as unavailable
+    assert git_source['state'] == 'error' and git_source['failed'] == {'git_missing_local_object': 1} and git_source['subjects_checked'] == 1
+
+
+def test_git_never_lazy_fetches_a_missing_commit_and_close_does_not_either(setup, promisor_world):
+    partial = promisor_world['partial']
+    before = snapshot(partial)
+    close_on(setup, partial, promisor_world['absent'])  # close verifies the commit through commit_exists
+    assert snapshot(partial) == before
+    closes = [r for r in rows_of(paths(setup)[0]) if r['kind'] == 'close']
+    assert [e['verified_state'] for e in closes[0]['evidence']] == ['unverified_missing']
+    row = ok(setup)
+    assert snapshot(partial) == before
+    assert row['sources']['git']['state'] == 'ok' and row['sources']['git']['skipped'] == {'sha_missing': 1}
+    assert facts(setup, 'git') == []
+
+
+def rows_of(path):
+    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+
+
+def stub_git(tmp_path, monkeypatch, behavior):
+    """A `git` ahead on PATH that misbehaves for `log` in repositories whose path contains `bad`, and is the real git otherwise."""
+    import shutil
+    real = shutil.which('git')
+    stub = tmp_path / 'stub-bin'
+    stub.mkdir(exist_ok=True)
+    script(stub, 'git', f'case "$*" in *bad*) case "$*" in *" log "*) {behavior};; esac;; esac\nexec {real} "$@"')
+    monkeypatch.setenv('PATH', f'{stub}:{os.environ["PATH"]}')
+
+
+def bad_clone(repo_world, tmp_path):
+    bad = tmp_path / 'bad-repo'
+    subprocess.run(['git', 'clone', '-q', str(repo_world['repo']), str(bad)], check=True, capture_output=True)
+    return bad
+
+
+@pytest.mark.parametrize('behavior,reason,patch', [
+    ('exit 3', 'git_failed', {}),
+    ('exec sleep 30', 'git_timeout', {'GIT_TIMEOUT': 1}),
+    ('printf "%05000d" 0', 'git_output_too_large', {'GIT_OUTPUT_LIMIT': 2000}),
+])
+def test_an_operational_git_failure_is_an_error_or_partial_never_healthy(setup, repo_world, tmp_path, monkeypatch, behavior, reason, patch):
+    observe_module = lib_module('observe')
+    for name, value in patch.items():
+        monkeypatch.setattr(observe_module, name, value)
+    stub_git(tmp_path, monkeypatch, behavior)
+    bad = bad_clone(repo_world, tmp_path)
+    only_bad = observe_module.collect_git(
+        [{'kind': 'close', 'close_id': 'cb', 'decision_id': 'one', 'recorded_at': days(10).isoformat(), 'evidence': [{'type': 'commit', 'repo': str(bad), 'sha': repo_world['sha']}]}],
+        {'one'}, 14, NOW)
+    assert only_bad['state'] == 'error' and only_bad['failed'] == {reason: 1} and only_bad['skipped'] == {}
+    assert only_bad['observations'] == [] and reason in only_bad['reason']
+    both = observe_module.collect_git(
+        [{'kind': 'close', 'close_id': 'cg', 'decision_id': 'one', 'recorded_at': days(10).isoformat(), 'evidence': [{'type': 'commit', 'repo': str(repo_world['repo']), 'sha': repo_world['sha']}]},
+         {'kind': 'close', 'close_id': 'cb', 'decision_id': 'one', 'recorded_at': days(10).isoformat(), 'evidence': [{'type': 'commit', 'repo': str(bad), 'sha': repo_world['sha']}]}],
+        {'one'}, 14, NOW)
+    assert both['state'] == 'partial' and both['failed'] == {reason: 1} and both['subjects_checked'] == 2
+    assert both['observations'] and all(o['subject_id'].startswith('cg:') for o in both['observations'])  # no half facts from the failed subject
+
+
+def test_operational_failures_reach_the_source_run_and_audit(setup, repo_world, tmp_path, monkeypatch):
+    stub_git(tmp_path, monkeypatch, 'exit 3')
+    bad = bad_clone(repo_world, tmp_path)
+    record(setup, 'two')
+    close_on(setup, bad, repo_world['sha'], close_id='c2', decision='two')
+    set_close_time(setup, days(10))
+    row = ok(setup)
+    git_source = row['sources']['git']
+    assert git_source['state'] == 'partial' and git_source['failed'] == {'git_failed': 1} and 'git_failed' in git_source['reason']
+    assert {r['decision_id'] for r in facts(setup, 'git')} == {'one'}
+    _, available, quota, receipts = setup
+    export = tmp_path / 'export.json'
+    export.write_text(json.dumps({'schema_version': 1, 'delegations': []}))
+    result, audit = run('audit', '--export', export, '--receipts', receipts)
+    assert result.returncode == 0, result.stderr
+    latest = audit['observations']['latest_source_runs']['git']
+    assert latest['state'] == 'partial' and latest['failed'] == {'git_failed': 1} and latest['skipped'] == {}
+
+
 def test_scope_filters_decisions_by_since(setup, repo_world):
     row = ok(setup, '--since', (NOW + timedelta(days=1)).isoformat())
     assert row['sources']['git']['subjects_checked'] == 0 and facts(setup) == []
