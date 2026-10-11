@@ -108,22 +108,20 @@ def run_oracle(oracle: dict, cwd: Path, protected: dict[str, str] | None) -> tup
             return False, f"missing {oracle['path']}"
         got = p.read_text(encoding="utf-8", errors="replace").strip()
         exp = str(oracle["equals"]).strip()
-        first = got.splitlines()[0].strip() if got else ""
-        ok = got == exp or first == exp
-        return ok, f"got={got!r} expected={exp!r}"
+        return got == exp, f"got={got!r} expected={exp!r}"
     return False, f"unknown oracle type {t}"
 
 
 def run_agent_task(
     *,
-    op: str,
+    expansion: dict,
     cwd: Path,
     prompt: str,
     report: str | None,
     timeout: int,
     dry_run: bool,
 ) -> dict:
-    expansion = op_expansion(op)["expands_to"]
+    expansion = expansion["expands_to"]
     provider = expansion.get("provider")
     model = expansion.get("model")
     effort = expansion.get("effort")
@@ -316,7 +314,7 @@ def run_one(task_path: Path, *, dry_run: bool) -> int:
 
     print(f"== {task['id']} op={task['op']} run_id={run_id}", flush=True)
     meta = run_agent_task(
-        op=task["op"],
+        expansion=expansion,
         cwd=work,
         prompt=task["prompt"],
         report=report,

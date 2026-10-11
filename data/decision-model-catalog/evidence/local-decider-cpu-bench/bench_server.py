@@ -14,10 +14,16 @@ def post(path, body):
     return json.loads(r.read())
 try:
     for _ in range(120):
+        if srv.poll() is not None:
+            raise RuntimeError("benchmark server exited before readiness")
         try:
             if json.loads(urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=2).read()).get("status") == "ok": break
         except Exception: pass
         time.sleep(1)
+    else:
+        raise RuntimeError("benchmark server never became ready")
+    if srv.poll() is not None:
+        raise RuntimeError("benchmark server exited during readiness")
     from decider.infer import Decider
     from decider.systemone import assemble
     from decider import temperature as TT
@@ -58,4 +64,9 @@ try:
     out["loadavg_end"] = os.getloadavg()[0]
     open(outp, "w").write(json.dumps(out, indent=1)); print(json.dumps(out))
 finally:
-    srv.terminate(); srv.wait(10)
+    srv.terminate()
+    try:
+        srv.wait(10)
+    except subprocess.TimeoutExpired:
+        srv.kill()
+        srv.wait()

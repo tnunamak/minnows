@@ -95,7 +95,7 @@ Liquid's docs would bill it k times), per-request minimums, regional premiums an
 | Clef (Workers AI) | $0.24 | $0.000552 | $0.000184 | $184.00 |
 
 The per-decision column assumes the 3 questions are billed as one request. Sent as 3 separate requests that each repeat the
-2,000-token state, each decision bills about 2,100 tokens (state + one question), roughly 2.1x the per-decision figure above
+2,000-token state, each decision bills about 2,100 tokens (state + one question), roughly 2.74x the per-decision figure above
 (Jev: 2,100 x $0.042 / 1M = $0.0000882).
 
 Measured costs are separate rows (`unit: usd_per_decision`) and differ because real items are shorter: Requesty billed $0.131 per 1,000
@@ -106,7 +106,7 @@ items for Clef and $0.023 for the Perplexity decider; Bonn et al. paid $9.15 for
 | | |
 |---|---|
 | **Latest release** | [data-decision-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-decision-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | [data-decision-model-catalog-v0.1.0](https://github.com/tnunamak/minnows/releases/tag/data-decision-model-catalog-v0.1.0) — published by CI after this is merged to main |
+| **This version** | [data-decision-model-catalog-v0.1.1](https://github.com/tnunamak/minnows/releases/tag/data-decision-model-catalog-v0.1.1) — published by CI after this is merged to main |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -116,14 +116,14 @@ items for Clef and $0.023 for the Perplexity decider; Bonn et al. paid $9.15 for
 ### Full pack
 
 ```bash
-TAG=data-decision-model-catalog-v0.1.0
+TAG=data-decision-model-catalog-v0.1.1
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
 
 # or
 ./scripts/fetch-data-pack.sh decision-model-catalog
-./scripts/fetch-data-pack.sh decision-model-catalog v0.1.0
+./scripts/fetch-data-pack.sh decision-model-catalog v0.1.1
 ```
 
 ### Local

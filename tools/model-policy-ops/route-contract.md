@@ -1,6 +1,6 @@
-# `route` delivery contract (v1, revision 16)
+# `route` delivery contract (v1, revision 17)
 
-Status: revision 16, 2026-10-11. Revision 16 adds quota-aware substitution to `route` (see the changelog). Revision 15 adds observation notes to `route` (see the changelog). Revision 13 applies the observe round-3 review (see the changelog). Revision 12 applies the observe round-2 review (see the changelog). Revision 11 applies the observe review (see the changelog). Revision 10 adds `observe` (see the changelog). Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
+Status: revision 18, 2026-10-11. Revision 18 fixes independence without a maker, defers quota-state commits until acceptance and requires timezone-aware observation timestamps. Revision 17 moves quota-substitution thresholds out of the shipped pack into a per-user overlay (see the changelog). Revision 16 adds quota-aware substitution to `route` (see the changelog). Revision 15 adds observation notes to `route` (see the changelog). Revision 13 applies the observe round-3 review (see the changelog). Revision 12 applies the observe round-2 review (see the changelog). Revision 11 applies the observe review (see the changelog). Revision 10 adds `observe` (see the changelog). Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
 child runs of a maker, the directive cap on write and on read, and final-pair judgment after an
 override (see the changelog). Revision 4 applies the independent checker's
 findings (report r1): maker provenance from the T3 child run, a model line key for
@@ -232,7 +232,7 @@ routed pair. The receipt records `final.billing`, `final.filters_bypassed` and
 `final.pace`. Each bypassed filter raises a `final_*` reason: `final_not_runnable`,
 `final_requires_not_met`, `final_metered_without_directive`, `final_avoided`,
 `final_quota_exhausted`, `final_independence_bypassed`. The pair rules below (basis,
-`requires`, pace, `auth_config`, independence provenance, `review_without_maker`, newer GA
+`requires`, pace, `auth_config`, independence provenance, missing maker, newer GA
 model) apply to the final pair too. A final pair that the pack does not name is
 `unvalidated`; a pair matches a pack candidate by exact provider, model and effort, so
 an effort-only override is `unvalidated`.
@@ -251,21 +251,37 @@ A final pair with no target raises `final_target_null`. A final pair on a quota-
    Unknown sorts last.
 7. Instance ID.
 
-**Quota substitution** (revision 16) runs after the rank, and only when the pack
-`routing` object has `quota_substitution: {activate_projected_pct, release_projected_pct}`
+**Quota substitution** (revision 16) runs after the rank, and only when the effective
+`routing` object (the pack, with the per-user overlay of revision 17 merged in; the pack
+does not ship it) has `quota_substitution: {activate_projected_pct, release_projected_pct}`
 with `0 < release < activate <= 200`. An account is constrained when its binding
 pace-window projection is at or above `activate_projected_pct`; it stays constrained
 until the projection is below `release_projected_pct`, and between the two the previous
-state holds (memory in `quota-substitution.json` beside the receipts, written only by a
-real-clock evaluation). Unknown quota is neither constrained nor a target. When the best
-pair sits on a constrained account, the first surviving pair of the op's pack candidates
+state holds (memory in `quota-substitution.json` beside the receipts, committed only after
+a real-clock route passes validation and, when recording, successfully appends its receipt).
+Unknown quota is neither constrained nor a target. When the best pair sits on a constrained account, the first surviving pair of the op's pack candidates
 on an account that is not constrained and has a known projection below the activation
 threshold replaces it: candidate order, then the account's `substitution_rank`, then
 lower projection, then instance ID. The substitute keeps its `basis`; `selection_basis`
 is `quota_substitution_exception`, and `unvalidated_candidate` does not apply to it (an
-owner-authorized exception by the pack policy). With no such pair, `route` keeps the
+exception authorized by the pack or the user policy that enables it). With no such pair, `route` keeps the
 best pair and raises `quota_substitution_unavailable`. An override to a constrained
 account raises `final_account_quota_constrained`. The record is `routing.quota_substitution`.
+
+The quota sidecar lock is held from evaluation through acceptance. Any nested receipt
+lock is acquired after that lock; no path acquires them in reverse order. Before an
+append, the decision ID is rechecked under the receipts lock. A replay does not commit
+its losing evaluation, and a validation or receipt-write error leaves the quota-state
+JSON unchanged. The state file and its sidecar lock must differ from every other ledger, including
+through a symlink or hard link. Acquiring the lock may create the directory and sidecar
+lock file.
+Unrecorded routes commit at the end and report `state_written` and any `state_write_error`.
+Recorded receipts are immutable snapshots before the commit: `state_written` is false
+and `state_commit: "after_receipt"` identifies the commit order, not its success or whether
+a write was needed. The commit runs only after the receipt append is flushed, fsynced
+and closed, while the quota lock remains held. State-write failures remain advisory; the receipt
+stays accepted, the state may be stale, and a replay does not repair it. The quota-state
+file holds the current persisted state.
 
 Key 6 is a declared **load-balancing heuristic**, not a measure of subscription
 value. The clawmeter projection already includes current use and the time to
@@ -287,7 +303,8 @@ all are `routed`. With an override, the list keeps the routed reasons for the re
   is `unknown` (whatever the reason), or a family line is `unknown`.
 - The final pair after an override fails a filter (see above), has no target, or
   meets any rule in this list for the pair.
-- A review op has no maker.
+- A review op or an op with `--independence` has no maker. The reason is
+  `review_without_maker` for review ops and `independence_without_maker` otherwise.
 - Directives conflict for the chosen pair.
 - A newer GA model on the same line as the chosen model is in the live catalog
   but not in the pack. This reason is informational: it is listed with
@@ -430,6 +447,7 @@ protect quality, not quota.
 
 - Revision 12 (2026-10-10): `observe` round-2 fixes. Every retained T3 id (call, thread, child run, attempt, turn item, provider turn) must fit the T3 id grammar (`[A-Za-z0-9%:._-]`, 1-1024 characters) and every ordinal must be a non-negative integer; a value that does not becomes null in the fact with `unknown.<field>` set to `invalid_id` or `invalid_ordinal`, and the row is kept. A child run id that fails is an unknown reference: no run facts follow it. `audit` applies the same grammar to the usage it reports. `close` evidence and `observe` check a commit with `git cat-file --batch-check`: only an explicit `missing` line is absence (`sha_missing`); a non-zero exit, signal, timeout or malformed output is `git_failed` or `git_timeout`. `close` still records `exists` or `unverified_missing`. A repository root is a directory with `.git` or the files of a bare repository, which git then confirms; a directory without them is `not_a_repository_root`, and a failed confirmation (dubious ownership, unreadable config, any non-zero exit) is `git_failed`, so the git source is `partial` or `error`, never healthy. No `route`, `resolve`, `close` or `audit` key changes.
 - Revision 13 (2026-10-10): `observe` round-3 fix. The repository and root probes use explicit `lstat`/`stat`; only real absence (`ENOENT`, `ENOTDIR`) is ineligible (`repo_missing`, `not_a_repository_root`). A permission or I/O error is `filesystem_unreadable` in `failed`, so the git source is `partial` or `error`, never healthy.
+- Revision 17 (2026-10-11): per-user policy overlay. Personal preferences do not belong in the shipped pack, so the pack no longer carries `routing.quota_substitution` (an owner-specific threshold pair) and substitution is off by default. Other commands are unchanged. `route` and `check` gain `--user-policy FILE` (default `~/.config/model-policy/user-policy.json`, `$XDG_CONFIG_HOME` honored) and `--no-user-policy`. The file is `{"schema_version": 1, "routing": {...}}`, and `routing` may hold only `quota_substitution`, `observation_max_age_hours` and `observation_window_days`; each key replaces the pack value whole. A missing file means no overlay. A symlink is followed; the resolved target must be a regular file owned by the current user and not group- or world-writable. An unknown key, a bad value, a dangling link, a non-regular file or loose permissions fail closed (`route` exits 1 with `FAIL ...`); the pack validator checks the merged values. Every `route` output and receipt gains `routing.user_policy`: `{path, resolved_path, sha256, keys}` when an overlay applied, `null` otherwise, and receipts gain `effective_policy_sha256` (pack plus overlay); `policy_sha256` keeps meaning the pack hash. `routing.quota_substitution.authorized_by` is now `"user policy overlay <path>"` or `"pack routing.quota_substitution"` (was `"pack routing.quota_substitution (owner directive)"`). None of this is in `request`; a replay returns the stored receipt unchanged. Receipts at revision 16 lack the new keys and stay valid.
 - Revision 15 (2026-10-10): `route` observation notes. `routing.calibration_notes.observations` is a list that exists only when a note applies: an evidence note (`observations_missing`, `observations_stale`, `observation_source_not_ok`) from the latest `source_run`, and `destination_blocked_share` for a chosen destination (at least 3 decisions with a result, at least 1 blocked; one count per `decision_id` by its latest report outcome; same purpose; `observation_window_days`). The pack `routing` object gains optional positive-integer `observation_max_age_hours` (3) and `observation_window_days` (14). The notes are added after the destination decision and are descriptive: ranking, `target`, `judgment_required` and `request` are byte-identical with and without them. No existing key changes.
 - Revision 14 (2026-10-10): `close` and `followup` keep the git answer for commit evidence. A row with commit evidence gains an optional top-level `evidence_verification`, a list parallel to `evidence`: `null` for other evidence and `{state, recorded_at}` with `state` one of `exists`, `missing`, `timeout`, `error` for a commit. `verified_state` keeps its two commit values, `exists` and `unverified_missing`, so a git failure still reads `unverified_missing` there; the new field alone tells it from absence. The key is top-level because a CLI at revision 13 ignores unknown top-level keys but rejects a replay whose stored evidence entries carry an extra key. `schema_version` stays 1 and revision 13 CLIs read, replay and audit new rows. A row without the key reads as `not_recorded` in every reader and is never reclassified. `audit` adds `outcomes.commit_evidence_verification` (`denominator`, `exists`, `missing`, `operational_failure`, `not_recorded`), a `commit_verification` list on each close view and followup item; `calibrate` adds the same counts; `observe` prints `recorded_commit_verification` and stores nothing new. No existing key changes meaning.
 - Revision 11 (2026-10-10): `observe` review fixes. Retained T3 and destination strings are members of fixed per-field sets (options keep six ids with known values and count the rest in `options_dropped`; usage scope and statuses become `other`; destination strings become `redacted`), replacing the character filter. Every git call sets `GIT_NO_LAZY_FETCH=1` and `--no-optional-locks`, including the `commit_exists` check of `close`. Source timestamps and their unknown state join the observation ID; collection time stays out. Operational git failures set the git source to `partial` or `error` with `failed` counts (ineligible evidence stays in `skipped`); `partial` joins the source states. One destination name contract (`^[a-z0-9][a-z0-9_-]{0,31}$`) is enforced when the config is read, and every pending row and the `source_run` are validated before any append. No `route`, `resolve`, `close` or `audit` key other than `observations.latest_source_runs` (additive `skipped`, `failed`) changes. Observations written by revision 10 do not verify under the new ID; the revision 10 build is not on main.
@@ -441,3 +459,4 @@ protect quality, not quota.
 - Revision 5 (2026-10-10): checker report r2 fixes. R1: every T3 child run of the maker decision is read (`multiple_child_runs`). R2: `directive add` refuses `--now`; readers reject rows beyond the cap or recorded after the evaluation time (`directives_rejected`, state `rejected`). R3: an override with a null target raises `final_target_null`. R4: reasons carry `applies_to`; the final pair gets the same judgment rules; `judgment_required` follows the final pair. R5: `freshness.unchecked` and state `partial`. Also `independence.required_source`.
 - Revision 4 (2026-10-10): checker report r1 fixes (maker provenance from the run, `lineage_key`, override filters, directive validation and lifetime cap, alternates-only `candidates`, AC6 key); revision 3 was the scope review decision on evidence classification.
 - Revision 16 (2026-10-11): quota-aware substitution. The pack `routing` object gains optional `quota_substitution` (`activate_projected_pct`, `release_projected_pct`; `0 < release < activate <= 200`); without it nothing below happens and no key changes. The accounts file gains optional `substitution_rank` (non-negative integer). `route` gains `--quota-state FILE` (default `quota-substitution.json` beside `--receipts`, private-ledger rules, a sidecar `.lock` for the exclusive lock, never the same file as another ledger). When the best pair sits on a constrained account, a pack-candidate pair on an unconstrained account with a known projection below the activation threshold replaces it (`chosen.selection_basis: quota_substitution_exception`, basis unchanged, no `unvalidated_candidate`); otherwise the judgment reason `quota_substitution_unavailable` is added. An override to a constrained account adds `final_account_quota_constrained`. `routing.quota_substitution` records the constrained accounts, thresholds, state-file status and the substitution. It is outside `request`, a replay returns the stored receipt without reading the state, and `route --now` never writes the state. Destinations, filters and the other judgment rules are unchanged.
+- Revision 18 (2026-10-11): interaction fixes. Explicit independence without a maker adds the non-informational `independence_without_maker`; review ops keep `review_without_maker`. Both remain destination-level reasons when a destination is chosen. Quota substitution evaluates in memory and commits only after all validation and a successful receipt append; the locked decision-ID recheck discards replay evaluations. Lock order is quota sidecar then receipts. Recorded quota blocks use `state_commit: "after_receipt"` with pre-commit `state_written: false`; unrecorded routes report the completed write. Observation writers and readers require timezone-aware collection and source timestamps; an invalid ledger produces `observations_missing` in route notes.

@@ -40,6 +40,7 @@ fi
 RESOLVED=0
 for ref in "${REFS[@]}"; do
   echo "-- $ref"
+  REF_RESOLVED=0
   if [[ "$ref" == catalog://* ]]; then
     rest="${ref#catalog://}"
     # try performance/pricing/capabilities
@@ -75,6 +76,7 @@ for ref in "${REFS[@]}"; do
         echo "  url: $url"
         [[ -n "$url" && "$url" != "null" ]] || { echo "  UNRESOLVED source" >&2; exit 1; }
         RESOLVED=$((RESOLVED + 1))
+        REF_RESOLVED=$((REF_RESOLVED + 1))
       done <<<"$sids"
     else
       # row-level source_id sample
@@ -85,7 +87,12 @@ for ref in "${REFS[@]}"; do
         echo "  url: $url"
         [[ -n "$url" && "$url" != "null" ]] || { echo "  UNRESOLVED source" >&2; exit 1; }
         RESOLVED=$((RESOLVED + 1))
+        REF_RESOLVED=$((REF_RESOLVED + 1))
       fi
+    fi
+    if [[ "$REF_RESOLVED" -eq 0 ]]; then
+      echo "  no source provenance resolved for catalog reference: $ref" >&2
+      exit 1
     fi
   elif [[ "$ref" == source://* ]]; then
     sid="${ref#source://}"
@@ -94,6 +101,7 @@ for ref in "${REFS[@]}"; do
     echo "  url: $url"
     [[ -n "$url" && "$url" != "null" ]] || { echo "  UNRESOLVED source" >&2; exit 1; }
     RESOLVED=$((RESOLVED + 1))
+    REF_RESOLVED=$((REF_RESOLVED + 1))
   else
     echo "  bad scheme" >&2
     exit 1

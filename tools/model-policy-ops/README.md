@@ -225,7 +225,9 @@ refuses it, because they write state with the real clock.
     `evidence`, `prior`, `known_gaps`, `authorized_by`, `pace`, `quota_binding`;
     when quota substitution replaced the best pair, `selection_basis` is
     `quota_substitution_exception` (see Quota substitution);
-  - `quota_substitution`, only when the pack enables it: the constrained accounts, the
+  - `user_policy`: `{path, resolved_path, sha256, keys}` when a per-user overlay applied, else `null`
+    (see User policy overlay);
+  - `quota_substitution`, only when the pack or the user policy enables it: the constrained accounts, the
     thresholds, and the substitution if one happened (see Quota substitution);
   - `judgment_required` and `judgment_reasons` (`code`, `detail`, `applies_to`
     `routed` or `final`, and `informational` for the stale-pack note). After an
@@ -268,7 +270,7 @@ When it is known and not listed, the candidate is removed. `check` validates all
 this. The pack `routing` object holds `pace_windows`, `failure_lookback_minutes`,
 `failure_demote_count`, `review_task_families`, `independence_default`,
 `directive_max_days`, `observation_max_age_hours` (default 3), `observation_window_days`
-(default 14), `quota_substitution` (see Quota substitution) and `lineage_key`. `lineage_key` maps a provider to the
+(default 14), `quota_substitution` (see Quota substitution; the shipped pack leaves it out) and `lineage_key`. `lineage_key` maps a provider to the
 model-catalog field that names a model line (`{"claude": "family", "codex": "tier",
 "grok": "family"}`). Absent fields turn the matching feature off: no pace, no
 demotion, no directive lifetime cap, no model line. A review op with no
@@ -304,11 +306,16 @@ only excludes an account when it is exhausted.
 
 Pace class ranks after eligibility, so a primary Codex arm that is projected over 100%
 still beats an `unvalidated` Claude alternate. Quota substitution moves the choice off
-an account that is about to run out. It is off unless the pack `routing` object has
+an account that is about to run out. It is **off by default**: the shipped pack sets no
+thresholds, because they are a personal preference. A user enables it in the user policy
+overlay (see User policy overlay) with
 
 ```json
-"quota_substitution": {"activate_projected_pct": 95, "release_projected_pct": 90}
+"quota_substitution": {"activate_projected_pct": 97, "release_projected_pct": 85}
 ```
+
+The numbers above are an example, not a recommendation. A pack that sets the same key
+also enables it, and the overlay value replaces the pack value.
 
 `check` requires `0 < release_projected_pct < activate_projected_pct <= 200`.
 
@@ -333,6 +340,15 @@ write, a directory that others can write) is never rewritten: `route` decides wi
 memory (constrained if and only if the value is at or above `activate_projected_pct`)
 and records `state: unreadable` with `state_issue`.
 
+The state is committed only after the route is accepted: after every validation passes and, for
+`--record`, only when this call appended its receipt (never for a replay). A rejected route writes
+no state. A recorded receipt is a snapshot taken before that commit, so it carries
+`state_commit: "after_receipt"` and `state_written: false`; `state_written: false` there does not
+mean that no write happened. If the post-receipt write fails, `route` prints a warning on stderr
+and the stored receipt is unchanged. The quota lock is held from evaluation through any
+destination capacity probe and the receipt append, so a slow capacity command delays other
+routes that share the receipts directory, up to its timeout.
+
 **Ranking effect.** Every hard filter runs first and is unchanged. Then, when the best
 pair sits on a constrained account, `route` looks among the surviving pairs of the op's
 pack candidates (the primary and the alternates, so the pack's model tier and effort
@@ -342,8 +358,8 @@ stay) for pairs on an account that is not constrained and has a known projection
 projection, then the instance ID. The first pair is chosen.
 
 The substitute keeps its evidence `basis`: `unvalidated` stays `unvalidated`.
-`selection_basis` is `quota_substitution_exception`. The pack enables the feature as
-an owner directive, so a substitution to an `unvalidated` arm does not raise
+`selection_basis` is `quota_substitution_exception`. The pack or the user policy that
+enables the feature authorizes it, so a substitution to an `unvalidated` arm does not raise
 `unvalidated_candidate`, the same way an `authorize` directive does not. Every other
 judgment reason (independence, `requires`, `auth_config` and the rest) still applies.
 When no such pair exists, the normal choice stays and the judgment reason
@@ -362,10 +378,37 @@ override to a constrained account adds `final_account_quota_constrained`.
   projection), `state` (`loaded`, `missing` or `unreadable`), `state_written` and, when
   they apply, `state_issue` and `state_write_error`;
 - when substituted: `from` and `to` (`instance`, `model`, `effort`, `projected_pct`),
-  a fixed `reason` and `authorized_by: "pack routing.quota_substitution (owner directive)"`.
+  a fixed `reason` and `authorized_by`: `"user policy overlay <path>"` when the overlay
+  set `quota_substitution`, else `"pack routing.quota_substitution"`.
 
 The block is part of the receipt's routing record. It is not part of the request
 identity, and the state path is not either.
+
+### User policy overlay
+
+A user tunes a few `routing` parameters without editing the pack. `~/.config/model-policy/user-policy.json`
+(`$XDG_CONFIG_HOME` honored; `--user-policy FILE` names another file; `--no-user-policy` skips it) holds
+
+```json
+{"schema_version": 1, "routing": {"quota_substitution": {"activate_projected_pct": 97, "release_projected_pct": 85}}}
+```
+
+(example values). `routing` may set only `quota_substitution`, `observation_max_age_hours` and
+`observation_window_days`. Candidates, `basis`, independence, `lineage_key` and every other
+evidence policy stay in the pack. Each key replaces the pack value whole (no deep merge). A
+missing file at the default path means no overlay; a file named with `--user-policy` that does
+not exist is an error, so a typo cannot silently turn the overlay off.
+
+`route` and `check` read it. An unknown key, a bad value (the pack validator checks the merged
+`routing`), a dangling symlink, a file that is not regular, a file owned by another user, or a
+file that group or world can write is an error: `route` exits 1 with `FAIL ...` and `check`
+fails. A symlink is followed (for config deployed from a dotfiles repo), and the checks apply to
+the target. `check --user-policy FILE` validates a file before you deploy it.
+
+Every `route` output and receipt records `routing.user_policy`: `{path, resolved_path, sha256,
+keys}` when an overlay applied, else `null`. Receipts also hold `policy_sha256` (the pack, as
+before) and `effective_policy_sha256` (the pack with the overlay). None of this is in `request`,
+so a replay returns the stored receipt.
 
 ### Account map
 
@@ -466,7 +509,8 @@ ops there is no default.
   pack or the live catalog names.
 - T3 records the requested model, not the served model. The output always says
   `served_model: unattested`.
-- A review op with no maker needs judgment (`review_without_maker`).
+- A review op with no maker needs judgment (`review_without_maker`). An explicit `--independence`
+  with no maker also needs judgment (`independence_without_maker`).
 
 ### Judgment reasons
 
@@ -475,7 +519,7 @@ ops there is no default.
 `independence_maker_unknown`, `independence_line_unknown`, `final_metered_without_directive`,
 `final_avoided`, `final_quota_exhausted`, `final_not_runnable`, `final_requires_not_met`,
 `final_independence_bypassed`, `final_target_null`, `final_account_quota_constrained`,
-`quota_substitution_unavailable`, `review_without_maker`, `directive_conflict`, `destination_inputs_unknown`,
+`quota_substitution_unavailable`, `review_without_maker`, `independence_without_maker`, `directive_conflict`, `destination_inputs_unknown`,
 `destination_independence_unknown`, and
 `newer_ga_model_not_in_pack` (informational: a newer GA model on the same
 model line is in the live catalog and not in the pack; an informational reason is listed
@@ -563,7 +607,7 @@ Judgment when a destination is chosen. The model-pair reasons (pace, unvalidated
 quota, auth_config, model independence, model freshness) stay in `judgment_reasons`, tagged
 `applies_to: "model_fallback"` and `informational: true`. `judgment_required` then comes only
 from destination-level reasons (`applies_to: "destination"`): `destination_inputs_unknown`,
-`review_without_maker`, `destination_independence_unknown`. When the model is dispatched,
+`review_without_maker`, `independence_without_maker`, `destination_independence_unknown`. When the model is dispatched,
 judgment is unchanged. `--record`, replay, `close` and `followup` work as for any receipt.
 
 `request` gains `skip_destination` and `destinations_sha256` when a destinations file

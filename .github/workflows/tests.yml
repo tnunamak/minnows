@@ -1,0 +1,30 @@
+# Runs the Python regression suite in tests/. data-packs.yml is path-filtered and
+# release.yml only validates data, so without this job no change runs tests/.
+name: tests
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Some tests read older commits (git archive, baseline checks).
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: pip install pytest "jsonschema>=4.0"
+      - name: Run tests/
+        env:
+          # Fail rather than skip the baseline checks if history is missing.
+          MODEL_POLICY_REQUIRE_BASELINE: "1"
+        run: python3 -m pytest tests -q -p no:cacheprovider

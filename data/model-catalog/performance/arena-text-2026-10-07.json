@@ -13,7 +13,7 @@
     "arena-text-leaderboard-2026-10-07",
     "arena-text-coding-leaderboard-2026-10-07"
   ],
-  "notes": "Arena (formerly LMArena) Text and Text-Coding leaderboards read 2026-10-07 by direct curl; rating, 95% bounds, rank and votes parsed from the embedded RSC rows (413 and 408 model rows). Only catalog models with an unambiguous model key are stored; effort is the model-key suffix (-max, -xhigh, -high) and null where the key has none (qwen3.8-max, glm-5.3-flash, mimo and minimax rows). The text and text-coding rows use different snapshots/comparability groups. Arena votes for GPT-6.1 Sol (3,071 text / 609 coding) and Sonnet 5.5 (3,145 / 779) are still small. Step 5 Preview, Mistral Large 4 and Haiku 5.5 are not on the boards. DE-DUPLICATED against performance/third-party-board-roster-refresh-2026-10-07.json: 6 text-board rows with identical ratings are stored only there (gpt-6.1-sol/max, gpt-6-astra/max, gpt-6-sol/max, gpt-6-luna/max, claude-opus-5-5/high, claude-sonnet-5-5/xhigh). All Text Coding rows are kept here (Lane B read the text board only).",
+  "notes": "Arena (formerly LMArena) Text and Text-Coding leaderboards read 2026-10-07 by direct curl; rating, 95% bounds, rank and votes parsed from the embedded RSC rows (413 and 408 model rows). Only catalog models with an unambiguous model key are stored; effort is the model-key suffix (-max, -xhigh, -high) and null where the key has none (qwen3.8-max, glm-5.3-flash, mimo and minimax rows). The text and text-coding rows use different snapshots/comparability groups. Arena votes for GPT-6.1 Sol (3,071 text / 609 coding) and Sonnet 5.5 (3,145 / 779) are still small. Step 5 Preview, Mistral Large 4 and Haiku 5.5 are not on the boards. DE-DUPLICATED against performance/third-party-board-roster-refresh-2026-10-07.json: 6 text-board rows with identical ratings are stored only there (gpt-6.1-sol/max, gpt-6-astra/max, gpt-6-sol/max, gpt-6-luna/max, claude-opus-5-5/high, claude-sonnet-5-5/xhigh). All Text Coding rows are kept here (Lane B read the text board only). Overall text rows share the board dated 2026-10-02 recorded in SOURCES.json for the retained roster rows; 2026-10-07 is the retrieval date. The coding board keeps its separate snapshot.",
   "claims": [
     {
       "models": [
@@ -45,9 +45,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'claude-fable-5.1-max': rank 6 (rank upper 2, lower 13), rating 1501.14, interval 1494.7 to 1507.5, 11800 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -62,9 +62,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'claude-fable-5-high': rank 3 (rank upper 2, lower 9), rating 1504.27, interval 1499.9 to 1508.7, 38387 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -79,9 +79,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'claude-opus-5-high': rank 13 (rank upper 8, lower 24), rating 1489.74, interval 1485.9 to 1493.5, 59482 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -96,9 +96,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'claude-opus-5-max': rank 14 (rank upper 7, lower 27), rating 1489.49, interval 1484.5 to 1494.5, 28937 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -113,9 +113,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'claude-sonnet-5-high': rank 57 (rank upper 46, lower 76), rating 1461.82, interval 1457.6 to 1466.0, 45739 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -130,9 +130,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'gpt-5.6-sol-xhigh': rank 20 (rank upper 10, lower 36), rating 1483.94, interval 1479.5 to 1488.4, 36656 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -147,9 +147,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'gpt-5.6-terra-xhigh': rank 51 (rank upper 37, lower 66), rating 1465.48, interval 1461.1 to 1469.9, 37663 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -164,9 +164,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'gpt-5.6-luna-xhigh': rank 75 (rank upper 58, lower 88), rating 1453.05, interval 1448.7 to 1457.4, 38275 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -181,9 +181,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'grok-4.7-xhigh': rank 91 (rank upper 72, lower 114), rating 1442.46, interval 1434.7 to 1450.2, 6405 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -198,9 +198,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'grok-4.6-high': rank 73 (rank upper 56, lower 88), rating 1453.83, interval 1448.7 to 1458.9, 23680 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -215,9 +215,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'gemini-3.8-flash-high': rank 8 (rank upper 4, lower 19), rating 1494.77, interval 1489.7 to 1499.8, 26298 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -232,9 +232,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'gemini-3.7-flash-high': rank 17 (rank upper 8, lower 29), rating 1487.68, interval 1482.5 to 1492.9, 21539 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -249,9 +249,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'kimi-k3-max': rank 16 (rank upper 8, lower 29), rating 1488.36, interval 1483.6 to 1493.1, 28280 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -266,9 +266,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'glm-5.3-max': rank 27 (rank upper 15, lower 46), rating 1478.50, interval 1472.9 to 1484.1, 17857 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -283,9 +283,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'glm-5.3-flash': rank 41 (rank upper 22, lower 57), rating 1473.00, interval 1467.7 to 1478.3, 22971 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -300,9 +300,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'qwen3.8-max': rank 23 (rank upper 12, lower 43), rating 1481.62, interval 1476.4 to 1486.8, 23353 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -317,9 +317,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'qwen3.8-27b': rank 99 (rank upper 83, lower 118), rating 1437.70, interval 1432.3 to 1443.1, 18462 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -334,9 +334,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'deepseek-v4.1-flash-max': rank 38 (rank upper 20, lower 57), rating 1474.44, interval 1467.5 to 1481.4, 8728 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -351,9 +351,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'deepseek-v4-pro-high-20260813': rank 56 (rank upper 33, lower 76), rating 1464.28, interval 1457.7 to 1470.9, 9780 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -368,9 +368,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'mimo-v2.6-pro': rank 26 (rank upper 10, lower 50), rating 1480.08, interval 1470.7 to 1489.5, 4056 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -385,9 +385,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'mimo-v2.6-flash': rank 77 (rank upper 56, lower 97), rating 1451.78, interval 1443.9 to 1459.6, 6053 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -402,9 +402,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'muse-spark-1.3-max': rank 9 (rank upper 3, lower 22), rating 1494.30, interval 1488.1 to 1500.5, 12343 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {
@@ -419,9 +419,9 @@
       "observed_at": "2026-10-07",
       "task_family": "mixed",
       "metric_id": "chatbot-arena-text-elo",
-      "comparability_group": "arena-text-2026-10-07",
+      "comparability_group": "arena-text-overall-2026-10-02",
       "comparable": false,
-      "snapshot_id": "arena-text-2026-10-07",
+      "snapshot_id": "arena-text-overall-2026-10-02",
       "caveat": "Arena Text (overall), leaderboard row 'minimax-m3': rank 96 (rank upper 80, lower 112), rating 1440.06, interval 1436.1 to 1444.0, 58757 votes. Effort is the model-key suffix where present; Arena does not otherwise state settings."
     },
     {

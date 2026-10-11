@@ -17,7 +17,6 @@ from pathlib import Path
 STATE_FILE = 'quota-substitution.json'
 SCHEMA_VERSION = 1
 ACTIVE_STATES = ('activated', 'held_by_hysteresis')
-AUTHORIZED_BY = 'pack routing.quota_substitution (owner directive)'
 REASON = ('the best pair sits on an account whose weekly quota is projected at or above the activation threshold, '
           'and an eligible pack candidate sits on an account with a known projection below it')
 
@@ -127,46 +126,44 @@ def decide(memory, observed, thresholds, at):
     return accounts, report, constrained, known, unknown
 
 
-def evaluate(path, thresholds, observed, at, *, write):
-    """The substitution state for this evaluation. `write` is false for a simulation: nothing is created or changed.
+def evaluate(path, thresholds, observed, at, *, write, stack=None):
+    """Evaluate in memory. A real route holds the sidecar lock until its caller's stack closes.
 
-    The read, the decision and the write happen under one exclusive lock. When the memory is unreadable or the
-    location is not safe, the decision is made without memory and nothing is written.
+    `write=False` is a read-only simulation. `write=True` only prepares a transition;
+    the caller must commit it after validation and, when recording, receipt acceptance.
     """
-    written = False
-    issue = write_error = None
-    if write:
-        try:
-            with exclusive(path):
-                memory, state, issue = read_memory(path)
-                outcome = decide(memory, observed, thresholds, at)
-                if state != 'unreadable' and (state == 'missing' or outcome[0] != memory):
-                    try:
-                        write_state(path, outcome[0])
-                        written = True
-                    except OSError as error:
-                        write_error = error.strerror or type(error).__name__
-        except OSError as error:
-            memory, state, issue = None, 'unreadable', error.strerror or str(error)
-            outcome = decide(None, observed, thresholds, at)
-    else:
+    issue = None
+    try:
+        if write:
+            stack.enter_context(exclusive(path))
         try:
             parent_mode = Path(path).parent.stat().st_mode
         except FileNotFoundError:
-            parent_mode = None   # no directory, so no memory: read_memory reports missing
-        except OSError as error:
-            parent_mode = 'error'
-            memory, state, issue = None, 'unreadable', error.strerror or type(error).__name__
-        if parent_mode == 'error':
-            pass
-        elif parent_mode is not None and parent_mode & 0o022:
+            parent_mode = None  # read-only evaluation with no state directory
+        if parent_mode is not None and parent_mode & 0o022:
             memory, state, issue = None, 'unreadable', 'state directory must not be group- or world-writable'
         else:
             memory, state, issue = read_memory(path)
-        outcome = decide(memory, observed, thresholds, at)
-    _, report, constrained, known, unknown = outcome
-    return {'state': state, 'issue': issue, 'written': written, 'write_error': write_error, 'report': report,
-            'constrained': constrained, 'known': known, 'unknown': unknown}
+    except OSError as error:
+        memory, state, issue = None, 'unreadable', error.strerror or str(error)
+    accounts, report, constrained, known, unknown = decide(memory, observed, thresholds, at)
+    return {'state': state, 'issue': issue, 'written': False, 'write_error': None, 'report': report,
+            'constrained': constrained, 'known': known, 'unknown': unknown,
+            '_accounts': accounts, '_changed': state == 'missing' or accounts != memory}
+
+
+def commit(path, state):
+    """Commit a prepared transition while the caller still holds the sidecar lock.
+
+    State-file failures remain advisory, as before; a rejected route never calls this.
+    """
+    if state['state'] == 'unreadable' or not state['_changed']:
+        return
+    try:
+        write_state(path, state['_accounts'])
+        state['written'] = True
+    except OSError as error:
+        state['write_error'] = error.strerror or type(error).__name__
 
 
 def substitute(survivors, sub):
@@ -200,5 +197,5 @@ def summary(sub, *, move=None):
     if state['write_error']:
         block['state_write_error'] = state['write_error']
     if move:
-        block |= {'from': move['from'], 'to': move['to'], 'reason': REASON, 'authorized_by': AUTHORIZED_BY}
+        block |= {'from': move['from'], 'to': move['to'], 'reason': REASON, 'authorized_by': sub['authorized_by']}
     return block
