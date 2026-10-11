@@ -33,15 +33,17 @@ def read_memory(path):
     group or world can write, and malformed content are all `unreadable`, and the caller never rewrites them.
     """
     try:
-        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+        # O_NONBLOCK: a FIFO with no writer must not block the open; the type check below rejects it
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     except FileNotFoundError:
         return {}, 'missing', None
     except OSError as error:
         return None, 'unreadable', error.strerror
+    info = os.fstat(fd)
+    if not stat.S_ISREG(info.st_mode):
+        os.close(fd)
+        return None, 'unreadable', 'not_a_regular_file'
     with os.fdopen(fd, encoding='utf-8') as stream:
-        info = os.fstat(fd)
-        if not stat.S_ISREG(info.st_mode):
-            return None, 'unreadable', 'not_a_regular_file'
         if info.st_mode & 0o022:
             return None, 'unreadable', 'group_or_world_writable'
         try:
@@ -104,6 +106,11 @@ def decide(memory, observed, thresholds, at):
     for instance, binding in sorted(observed.items()):
         if binding is None:
             unknown.append(instance)  # no new fact: the stored state stays as it was
+            prior = (memory or {}).get(instance)
+            if prior:
+                # still constrained until a known projection falls below release; never headroom while unknown
+                row = {'projected_pct': None, 'window': prior['window'], 'state': 'held_unknown', 'since': prior['since']}
+                report[instance] = constrained[instance] = row
             continue
         projected, window = binding['projected_pct'], binding['window']
         prior = (memory or {}).get(instance)
@@ -143,7 +150,11 @@ def evaluate(path, thresholds, observed, at, *, write):
             memory, state, issue = None, 'unreadable', error.strerror or str(error)
             outcome = decide(None, observed, thresholds, at)
     else:
-        memory, state, issue = read_memory(path)
+        parent = Path(path).parent
+        if parent.exists() and parent.stat().st_mode & 0o022:
+            memory, state, issue = None, 'unreadable', 'state directory must not be group- or world-writable'
+        else:
+            memory, state, issue = read_memory(path)
         outcome = decide(memory, observed, thresholds, at)
     _, report, constrained, known, unknown = outcome
     return {'state': state, 'issue': issue, 'written': written, 'write_error': write_error, 'report': report,

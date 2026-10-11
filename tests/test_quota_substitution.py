@@ -371,12 +371,13 @@ def test_no_forecast_is_unknown_and_never_headroom(world):
     assert 'quota_substitution_unavailable' in codes(out)
 
 
-def test_unknown_constrained_account_is_not_constrained_and_keeps_its_memory(world):
+def test_an_activated_account_with_unknown_quota_stays_constrained_until_a_known_release(world):
+    """Spec: constrained until a KNOWN projection falls below release. Unknown quota is not a release and not headroom."""
     world.route('review.audit')
     assert 'codex' in world.stored()
     world.quota['providers']['openai']['usage']['windows'][0]['resets_at'] = '2026-10-10T00:00:00Z'
     out = world.route('review.audit')
-    assert pick(out)[0] == 'codex' and active(out) == {} and block(out)['unknown_accounts'] == ['codex']
+    assert pick(out)[0] != 'codex' and active(out) == {'codex': 'held_unknown'} and block(out)['unknown_accounts'] == ['codex']
     assert 'codex' in world.stored(), 'unknown quota erases nothing'
     world.quota['providers']['openai']['usage']['windows'][0]['resets_at'] = '2026-10-13T00:00:00Z'
     world.codex(92)
@@ -505,3 +506,24 @@ def test_a_healthy_account_is_preferred_over_a_rate_limit_demoted_one_for_the_sa
     assert qs.substitute(rows, sub)['instance'] == 'b-healthy', 'availability comes before substitution_rank and projection'
     rows[0]['rank']['availability'] = 0
     assert qs.substitute(rows, sub)['instance'] == 'a-demoted', 'with equal availability, substitution_rank decides'
+
+
+
+def test_a_fifo_at_the_state_path_reads_as_unreadable_without_blocking(world):
+    world.state.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    os.mkfifo(world.state, 0o600)
+    started = time.time()
+    out = world.route('review.audit')
+    assert time.time() - started < 15, 'a FIFO with no writer must not block route'
+    assert block(out)['state'] == 'unreadable' and block(out)['state_written'] is False
+    assert active(out) == {'codex': 'activated'}
+
+
+def test_a_simulation_does_not_trust_memory_in_an_unsafe_directory(world):
+    world.route('review.audit')                      # stores the codex activation in a safe directory
+    world.state.parent.chmod(0o777)
+    world.codex(92)                                  # inside the band: only memory could hold it
+    result, out = world.cli('route', 'review.audit', *world.args(), '--now', NOW, raw=True)
+    assert result.returncode == 0, result.stderr
+    assert block(out)['state'] == 'unreadable' and active(out) == {}, 'unsafe location: decide without memory'
+    world.state.parent.chmod(0o700)
