@@ -108,9 +108,7 @@ def run_oracle(oracle: dict, cwd: Path, protected: dict[str, str] | None) -> tup
             return False, f"missing {oracle['path']}"
         got = p.read_text(encoding="utf-8", errors="replace").strip()
         exp = str(oracle["equals"]).strip()
-        first = got.splitlines()[0].strip() if got else ""
-        ok = got == exp or first == exp
-        return ok, f"got={got!r} expected={exp!r}"
+        return got == exp, f"got={got!r} expected={exp!r}"
     return False, f"unknown oracle type {t}"
 
 

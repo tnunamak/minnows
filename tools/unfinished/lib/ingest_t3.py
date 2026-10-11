@@ -43,6 +43,7 @@ def main():
                   project_root text, provider text, created text, last_user text, prs text, url text, session_key text,
                   creation_source text, parent text)""")
     recent = []
+    native_sessions = dict(db.execute("select thread_id, session_key from t3threads"))
     prev = {r[0]: r[1] for r in db.execute(
         "select t.thread_id, s.ts from t3threads t join segments s on s.seg_id = 't3-' || substr(t.thread_id, -40)")}
     for t in lst["threads"]:
@@ -55,7 +56,7 @@ def main():
         db.execute("insert or replace into t3threads values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                    (t["id"], t["title"], t["status"], t.get("settledAt"), json.dumps(t.get("settledOverride")),
                     t.get("autoSettleDisabledAt"), t.get("snoozedUntil"), p.get("title"), p.get("workspaceRoot"),
-                    t.get("providerInstanceId"), t.get("createdAt"), last, json.dumps(prs), t3url(env_id, t["id"]), None,
+                    t.get("providerInstanceId"), t.get("createdAt"), last, json.dumps(prs), t3url(env_id, t["id"]), native_sessions.get(t["id"]),
                     t.get("creationSource"), (t.get("lineage") or {}).get("parentThreadId")))
         # re-read only threads with activity after their stored last turn (or never read)
         # updatedAt also moves on settle/visit, so compare the last run's completion instead
@@ -84,12 +85,19 @@ def main():
             if key:
                 mapped += 1
                 db.execute("update t3threads set session_key=? where thread_id=?", (key, tid))
+            seg_id = "t3-" + tid[-40:]
+            text = f["text"][:6000]
+            context = users[-1]["text"][:1500] if users else ""
+            previous = db.execute("select text, context from segments where seg_id=?", (seg_id,)).fetchone()
+            if previous is not None and previous != (text, context):
+                for table in ("jev1", "seg_items"):
+                    if db.execute("select 1 from sqlite_master where type='table' and name=?", (table,)).fetchone():
+                        db.execute(f"delete from {table} where seg_id=?", (seg_id,))
             db.execute("""insert or replace into segments (seg_id, kind, harness, session_key, source_path, project,
                           ts, ordinal, text, context, unanswered, human_rule, next_ts)
                           values (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                       ("t3-" + tid[-40:], "t3tail", "t3", key or ("t3:" + tid), t3url(env_id, tid), th.get("worktreePath"),
-                        f.get("createdAt") or f.get("updatedAt"), 0, f["text"][:6000],
-                        (users[-1]["text"][:1500] if users else ""), 0, 0, None))
+                       (seg_id, "t3tail", "t3", key or ("t3:" + tid), t3url(env_id, tid), th.get("worktreePath"),
+                        f.get("createdAt") or f.get("updatedAt"), 0, text, context, 0, 0, None))
             db.commit()
     db.commit()
     print(f"mapped to native sessions: {mapped}", file=sys.stderr)

@@ -17,7 +17,6 @@ m = json.loads(pathlib.Path("feature_matrix.json").read_text())
 keys = [k for k in sorted(m) if k in g]
 cols = sorted({c for k in keys for c in m[k]["features"]})
 X = [[float(m[k]["features"].get(c, 0.0)) for c in cols] for k in keys]
-Xs, mu, sd = fit.standardize(X)
 y_bin = [m[k]["label"] for k in keys]
 y_grade = [g[k] for k in keys]
 
@@ -34,25 +33,37 @@ def ridge(X, y, l2=1.0, epochs=600, lr=0.2):
     return w, b
 
 def spearman(a, b):
+    if len(a) != len(b):
+        raise ValueError("Rank vectors must have the same length")
+    if len(a) < 2:
+        return math.nan
     def rank(v):
         order = sorted(range(len(v)), key=lambda i: v[i])
         r = [0]*len(v)
-        for pos, i in enumerate(order): r[i] = pos
+        start = 0
+        while start < len(order):
+            end = start + 1
+            while end < len(order) and v[order[end]] == v[order[start]]:
+                end += 1
+            average = (start + end - 1) / 2
+            for i in order[start:end]:
+                r[i] = average
+            start = end
         return r
     ra, rb = rank(a), rank(b); n = len(a)
     ma = sum(ra)/n; mb = sum(rb)/n
     cov = sum((x-ma)*(yy-mb) for x, yy in zip(ra, rb))
     va = math.sqrt(sum((x-ma)**2 for x in ra)); vb = math.sqrt(sum((yy-mb)**2 for yy in rb))
-    return cov/((va*vb) or 1)
+    return cov/(va*vb) if va and vb else math.nan
 
 # Leave-one-out predictions from each target
 pred_bin, pred_grade = [], []
-for i in range(len(Xs)):
-    tr = Xs[:i]+Xs[i+1:]
+for i in range(len(X)):
+    tr, held = fit.standardize_fold(X[:i]+X[i+1:], X[i])
     w1,b1 = fit.train(tr, y_bin[:i]+y_bin[i+1:], epochs=200)
-    pred_bin.append(fit.predict(w1,b1,Xs[i]))
+    pred_bin.append(fit.predict(w1,b1,held))
     w2,b2 = ridge(tr, y_grade[:i]+y_grade[i+1:])
-    pred_grade.append(b2 + sum(w2[j]*Xs[i][j] for j in range(len(cols))))
+    pred_grade.append(b2 + sum(w2[j]*held[j] for j in range(len(cols))))
 
 print(f"{len(keys)} documents with both a binary and a graded label\n")
 print(f"model trained on AUTHORSHIP, ranking vs graded truth : rho={spearman(pred_bin, y_grade):+.2f}")

@@ -58,4 +58,9 @@ try:
     out["loadavg_end"] = os.getloadavg()[0]
     open(outp, "w").write(json.dumps(out, indent=1)); print(json.dumps(out))
 finally:
-    srv.terminate(); srv.wait(10)
+    srv.terminate()
+    try:
+        srv.wait(10)
+    except subprocess.TimeoutExpired:
+        srv.kill()
+        srv.wait()
