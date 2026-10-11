@@ -217,7 +217,7 @@ def main():
         w(f"`{i['id']}` · **{i['project']}** · P{i.get('priority')} · {i.get('effort')} · needs {who}")
         w(f"- **Why:** {i['why']}")
         if i.get("checked"):
-            w(f"- **Checked {NOW:%m-%d}:** {'unclear, ' if i.get('unclear') else 'still open: '}{i['checked']}")
+            w(f"- **Checked:** {'unclear, ' if i.get('unclear') else 'still open: '}{i['checked']}")
         else:
             w(f"- **Verdict:** open, not yet checked against current state ({i.get('confidence')} confidence): "
               f"{i.get('verdict_reason')}")
