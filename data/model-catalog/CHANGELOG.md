@@ -2,6 +2,17 @@
 
 Newest first. The README links here; this file is the single record.
 
+## Unreleased — 2026-10-11
+
+Data corrections from reviewed fix PRs (#42–#44, #47–#49, #51–#53), on main and not yet in a release tag. The next catalog release ships them together with a policy re-pin, which the validator requires. No new models or sources.
+
+- Pricing lookup order: the tables use the first matching substring, so specific rows now come before shorter family rules. Fable 5.1 and Mythos 5.1 reach their own cache-read rate ($0.25 per M, not $1); Gemini 3.8, 3.7 and 3.6 Flash no longer fall back to the generic Pro row, and 3.5 Flash Lite no longer matches standard Flash; `glm-5.3-flash` no longer matches `glm-5.3`.
+- The 21 vendor-table rows in the Opus 5.5 system card move from grade B to C (vendor-reported). Their caveats already said "not independent evidence".
+- After deduplication, the remaining Arena overall rows and the official Terminal-Bench rows use the same snapshot identity as the retained rows, so each board stays one comparison group.
+- Six deduplicated Vals Terminal-Bench 4.0 rows record effort `max` (from the board payload) instead of `unknown`. The generated README tables gain the rows this attributes.
+- The performance schema no longer defines sample size and the 95% bounds twice; the effective contract is unchanged.
+- The full-pack download examples in this README use the current pack tag.
+
 ## v0.5.12 — 2026-10-07
 
 - Added Claude Haiku 5.5 (`claude-haiku-5-5`, GA 2026-10-07) as the current Haiku-tier model. Claude Haiku 4.5 stays GA: Anthropic lists it as active with no deprecation date.

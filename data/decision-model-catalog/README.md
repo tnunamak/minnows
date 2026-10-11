@@ -106,7 +106,7 @@ items for Clef and $0.023 for the Perplexity decider; Bonn et al. paid $9.15 for
 | | |
 |---|---|
 | **Latest release** | [data-decision-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-decision-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | [data-decision-model-catalog-v0.1.0](https://github.com/tnunamak/minnows/releases/tag/data-decision-model-catalog-v0.1.0) — published by CI after this is merged to main |
+| **This version** | [data-decision-model-catalog-v0.1.1](https://github.com/tnunamak/minnows/releases/tag/data-decision-model-catalog-v0.1.1) — published by CI after this is merged to main |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -116,14 +116,14 @@ items for Clef and $0.023 for the Perplexity decider; Bonn et al. paid $9.15 for
 ### Full pack
 
 ```bash
-TAG=data-decision-model-catalog-v0.1.0
+TAG=data-decision-model-catalog-v0.1.1
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
 
 # or
 ./scripts/fetch-data-pack.sh decision-model-catalog
-./scripts/fetch-data-pack.sh decision-model-catalog v0.1.0
+./scripts/fetch-data-pack.sh decision-model-catalog v0.1.1
 ```
 
 ### Local
