@@ -340,6 +340,15 @@ write, a directory that others can write) is never rewritten: `route` decides wi
 memory (constrained if and only if the value is at or above `activate_projected_pct`)
 and records `state: unreadable` with `state_issue`.
 
+The state is committed only after the route is accepted: after every validation passes and, for
+`--record`, only when this call appended its receipt (never for a replay). A rejected route writes
+no state. A recorded receipt is a snapshot taken before that commit, so it carries
+`state_commit: "after_receipt"` and `state_written: false`; `state_written: false` there does not
+mean that no write happened. If the post-receipt write fails, `route` prints a warning on stderr
+and the stored receipt is unchanged. The quota lock is held from evaluation through any
+destination capacity probe and the receipt append, so a slow capacity command delays other
+routes that share the receipts directory, up to its timeout.
+
 **Ranking effect.** Every hard filter runs first and is unchanged. Then, when the best
 pair sits on a constrained account, `route` looks among the surviving pairs of the op's
 pack candidates (the primary and the alternates, so the pack's model tier and effort
@@ -500,7 +509,8 @@ ops there is no default.
   pack or the live catalog names.
 - T3 records the requested model, not the served model. The output always says
   `served_model: unattested`.
-- A review op with no maker needs judgment (`review_without_maker`).
+- A review op with no maker needs judgment (`review_without_maker`). An explicit `--independence`
+  with no maker also needs judgment (`independence_without_maker`).
 
 ### Judgment reasons
 
@@ -509,7 +519,7 @@ ops there is no default.
 `independence_maker_unknown`, `independence_line_unknown`, `final_metered_without_directive`,
 `final_avoided`, `final_quota_exhausted`, `final_not_runnable`, `final_requires_not_met`,
 `final_independence_bypassed`, `final_target_null`, `final_account_quota_constrained`,
-`quota_substitution_unavailable`, `review_without_maker`, `directive_conflict`, `destination_inputs_unknown`,
+`quota_substitution_unavailable`, `review_without_maker`, `independence_without_maker`, `directive_conflict`, `destination_inputs_unknown`,
 `destination_independence_unknown`, and
 `newer_ga_model_not_in_pack` (informational: a newer GA model on the same
 model line is in the live catalog and not in the pack; an informational reason is listed
@@ -597,7 +607,7 @@ Judgment when a destination is chosen. The model-pair reasons (pace, unvalidated
 quota, auth_config, model independence, model freshness) stay in `judgment_reasons`, tagged
 `applies_to: "model_fallback"` and `informational: true`. `judgment_required` then comes only
 from destination-level reasons (`applies_to: "destination"`): `destination_inputs_unknown`,
-`review_without_maker`, `destination_independence_unknown`. When the model is dispatched,
+`review_without_maker`, `independence_without_maker`, `destination_independence_unknown`. When the model is dispatched,
 judgment is unchanged. `--record`, replay, `close` and `followup` work as for any receipt.
 
 `request` gains `skip_destination` and `destinations_sha256` when a destinations file

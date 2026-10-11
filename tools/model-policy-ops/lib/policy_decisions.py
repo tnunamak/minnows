@@ -1,6 +1,7 @@
 """Resolve advisory policy into an explicit target without dispatch."""
 import json
 import os
+import sys
 import uuid
 from contextlib import ExitStack
 from datetime import datetime, timezone
@@ -418,6 +419,9 @@ def execute_locked(args, policy, stack):
                 summary['state_written'] = state['written']
                 if state['write_error']:
                     summary['state_write_error'] = state['write_error']
+            elif state['write_error']:
+                # The receipt is already stored and must stay identical on replay, so say it on stderr.
+                print(f"WARN quota substitution state not written after the receipt: {state['write_error']}", file=sys.stderr)
 
     if args.record:
         if route and ctx['substitution']:
