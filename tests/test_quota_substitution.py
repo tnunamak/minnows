@@ -467,9 +467,9 @@ def test_check_validates_the_thresholds(world, value, ok):
         assert 'quota_substitution' in result.stderr
 
 
-def test_the_shipped_pack_enables_substitution_with_the_agreed_thresholds():
+def test_the_shipped_pack_does_not_enable_substitution():
     pack = json.loads((REPO / 'data/model-choice-policy/operating-points.json').read_text())
-    assert pack['routing']['quota_substitution'] == THRESHOLDS
+    assert 'quota_substitution' not in pack['routing']
 
 
 # ---- the pinned live snapshot ----------------------------------------------------------------------------------------------------
