@@ -125,16 +125,20 @@ def main():
                 if r.get(k) not in (None, ""):
                     it[k] = r[k]
             a = a or r
+        d = dec.get(iid)
+        if d:
+            it["owner_decision"] = d
         if bundle and not a:
             bundles[bundle].append(it)
             continue
         if not a:
             unadjudicated.append(it)
             continue  # not adjudicated: kept in ledger.jsonl only
-        d = dec.get(iid)
-        if d:
-            it["owner_decision"] = d
         items.append(it)
+    visible_bundles = {b: [i for i in xs if not (
+        (i.get("owner_decision") or {}).get("decision") in ("done", "drop") or
+        ((i.get("owner_decision") or {}).get("decision") == "snooze" and
+         (i["owner_decision"].get("until") or "") > NOW.isoformat()))] for b, xs in bundles.items()}
     by_id = {i["id"]: i for i in items}
     # Duplicate links, lowest precedence first: same-batch marks from the adjudicator, Jev pair check,
     # the resolver's "same as" notes, then the Sonnet clustering of checked items (whose survivors are roots).
@@ -240,19 +244,22 @@ def main():
               f"{links_for(i, t3_by_session)} `{i['id']}`")
         w("")
     # Parked projects: repos whose open PRs have all gone quiet for 30+ days. One decision each, not N rows.
-    parked = defaultdict(list)
+    # Quietness counts every open PR (in-flight ones too); only PRs still awaiting a decision are listed.
+    parked, last_touch = defaultdict(list), defaultdict(str)
     quiet = (NOW - dt.timedelta(days=14)).strftime("%Y-%m-%d")
+    shown = {id(i) for i in live} | {id(i) for i in visible_bundles.get("abandoned-prs", [])}
     for i in [x for x in items if x["source_type"] == "pr" and x["kind"] == "open-pr"] + bundles.get("abandoned-prs", []):
         m = re.match(r"PR ([^#\s]+)#", i["title"] or "")
         if m:
-            parked[m.group(1)].append(i)
-    parked = {r: xs for r, xs in parked.items()
-              if len(xs) >= 2 and max(x["last_activity"] or "" for x in xs) < quiet}
+            last_touch[m.group(1)] = max(last_touch[m.group(1)], i["last_activity"] or "")
+            if id(i) in shown:
+                parked[m.group(1)].append(i)
+    parked = {r: xs for r, xs in parked.items() if len(xs) >= 2 and last_touch[r] < quiet}
     if parked:
         w(f"## Parked projects: revive or shelve? ({len(parked)})\n")
         w("Repos with 2+ open PRs and none touched in the last 14 days. Decide once per repo: pick one PR to revive, or close them all.\n")
         for r, xs in sorted(parked.items(), key=lambda kv: -len(kv[1])):
-            last = max(x["last_activity"] or "" for x in xs)
+            last = last_touch[r]
             wts = [i for i in items if i["source_type"] == "worktree" and r.split("/")[-1] in (i["project"] or "")]
             w(f"- [ ] **{r}**: {len(xs)} open PRs, last touched {last}"
               + (f", plus {len(wts)} local checkout(s) with unpushed commits" if wts else "") + " · "
@@ -303,7 +310,9 @@ def main():
              "abandoned-prs": "Open PRs untouched for 30+ days: close, or revive one",
              "unclosed-lanes": "waspflow lanes from the last 30 days that never got a closeout",
              "old-review-requests": "Review requests older than three months"}
-    for b, xs in sorted(bundles.items()):
+    for b, xs in sorted(visible_bundles.items()):
+        if not xs:
+            continue
         w(f"<details><summary><b>{names.get(b, b)}</b> ({len(xs)})</summary>\n")
         for i in sorted(xs, key=lambda x: x["last_activity"] or "", reverse=True):
             link = next((l for l in i["links"] if l.startswith("http")), i["links"][0] if i["links"] else "")
