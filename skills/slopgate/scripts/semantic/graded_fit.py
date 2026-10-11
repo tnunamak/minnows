@@ -47,8 +47,7 @@ def spearman(a, b):
 # Leave-one-out predictions from each target
 pred_bin, pred_grade = [], []
 for i in range(len(X)):
-    tr, mu, sd = fit.standardize(X[:i]+X[i+1:])
-    held = [(value-mean)/scale for value,mean,scale in zip(X[i],mu,sd)]
+    tr, held = fit.standardize_fold(X[:i]+X[i+1:], X[i])
     w1,b1 = fit.train(tr, y_bin[:i]+y_bin[i+1:], epochs=200)
     pred_bin.append(fit.predict(w1,b1,held))
     w2,b2 = ridge(tr, y_grade[:i]+y_grade[i+1:])

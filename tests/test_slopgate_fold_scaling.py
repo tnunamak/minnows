@@ -30,6 +30,26 @@ def matrix(values):
             for i, value in enumerate(values)}
 
 class FoldScaling(unittest.TestCase):
+    def test_research_and_permutation_checks_exclude_the_held_row(self):
+        raw = [[0.0], [1.0], [2.0], [10000.0]]
+        for script in ("autoresearch.py", "perm.py"):
+            with self.subTest(script=script):
+                calls = []
+                original = fit.standardize
+                def scaling(rows):
+                    calls.append([r[:] for r in rows])
+                    return original(rows)
+                with mock.patch.object(fit, "load", return_value=(raw, [0, 1, 0, 1], ["a"], list("abcd"))), \
+                     mock.patch.object(fit, "standardize", side_effect=scaling), \
+                     mock.patch.object(fit, "train", return_value=([0.0], 0.0)), \
+                     mock.patch.object(fit, "predict", return_value=.5), contextlib.redirect_stdout(io.StringIO()):
+                    result = runpy.run_path(str(SEM / script))
+                    if script == "autoresearch.py":
+                        result["loo_accuracy"]()
+                self.assertTrue(calls)
+                expected = [raw[:i] + raw[i + 1:] for i in range(4)]
+                self.assertEqual(calls, expected * (len(calls) // 4))
+
     def test_binary_fit_normalizes_only_training_rows(self):
         raw = [[0.0], [1.0], [2.0], [10000.0]]
         calls = []
@@ -60,13 +80,14 @@ class FoldScaling(unittest.TestCase):
             calls.append([r[:] for r in rows])
             return original(rows)
         fake.standardize = scaling
+        fake.standardize_fold = fit.standardize_fold
         fake.train = lambda *args, **kwargs: ([0.0], 0.0)
         fake.predict = lambda *args: .5
         with tempfile.TemporaryDirectory() as directory:
             p = Path(directory)
             (p / "feature_matrix.json").write_text(json.dumps(matrix(raw)))
             (p / "graded_labels.json").write_text(json.dumps({str(i): i / 3 for i in range(4)}))
-            with cwd(p), mock.patch.dict(sys.modules, {"fit": fake}), contextlib.redirect_stdout(io.StringIO()):
+            with cwd(p), mock.patch.dict(sys.modules, {"fit": fake}), mock.patch.object(fit, "standardize", side_effect=scaling), contextlib.redirect_stdout(io.StringIO()):
                 runpy.run_path(str(SEM / "graded_fit.py"))
         rows = [[float(v)] for v in raw]
         self.assertEqual(calls, [rows[:i] + rows[i + 1:] for i in range(4)])
@@ -81,9 +102,10 @@ class FoldScaling(unittest.TestCase):
             calls.append([r[:] for r in rows])
             return original(rows)
         fake.standardize = scaling
+        fake.standardize_fold = fit.standardize_fold
         fake.train = lambda *args, **kwargs: ([0.0], 0.0)
         fake.predict = lambda *args: .5
-        with mock.patch.dict(sys.modules, {"fit": fake}), contextlib.redirect_stdout(io.StringIO()):
+        with mock.patch.dict(sys.modules, {"fit": fake}), mock.patch.object(fit, "standardize", side_effect=scaling), contextlib.redirect_stdout(io.StringIO()):
             runpy.run_path(str(SEM / "curve.py"))
         self.assertEqual(max(map(len, calls)), 9)
         self.assertIn(3, list(map(len, calls)))  # 40% subsample has three training rows.

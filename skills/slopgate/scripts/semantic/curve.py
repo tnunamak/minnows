@@ -13,8 +13,7 @@ def loo_on(idx):
     Xi = [X[i] for i in idx]; yi = [y[i] for i in idx]
     c = 0
     for k in range(len(Xi)):
-        tr, mu, sd = fit.standardize(Xi[:k]+Xi[k+1:])
-        held = [(value-mean)/scale for value,mean,scale in zip(Xi[k],mu,sd)]
+        tr, held = fit.standardize_fold(Xi[:k]+Xi[k+1:], Xi[k])
         w, b = fit.train(tr, yi[:k]+yi[k+1:], epochs=200)
         c += (fit.predict(w, b, held) >= 0.5) == yi[k]
     return c/len(yi)
