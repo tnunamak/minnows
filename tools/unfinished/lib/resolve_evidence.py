@@ -42,6 +42,7 @@ def pr_refs(text, repo, rmap):
     out = set()
     for full, n in PR_FULL.findall(text):
         out.add((full, int(n)))
+    text = PR_FULL.sub(" ", text)
     for short, n in PR_SHORT.findall(text):
         full = rmap.get(short.lower())
         if full:
