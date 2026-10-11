@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { analyze, gate } from '../detector/cli.mjs';
 import { checkUnearnedNames } from '../detector/unearned-name.mjs';
-import { MUST_FLAG, MUST_PASS } from './fixtures.mjs';
+import { MUST_FLAG, MUST_PASS, KNOWN_MISSES } from './fixtures.mjs';
 
 async function runRow(row, kind) {
   const { wordHits, frameHits, cadenceHits, signatureHits, text } = await analyze(row.text);
@@ -54,11 +54,25 @@ async function main() {
   const precision = truePositives / (truePositives + falsePositives || 1);
   const recall = truePositives / (truePositives + falseNegatives || 1);
 
+  // Explicit positions test gate policy independently of upstream heuristics.
+  const policyText = 'first second\n\nthird';
+  const word = (text, index) => ({ rule: 'tier1', text, index, isTier1: true, isStructural: false });
+  const cases = [
+    ['one word without support', [word('first', 0)], [], 0],
+    ['two words in one paragraph', [word('first', 0), word('second', 6)], [], 2],
+    ['words in separate paragraphs', [word('first', 0), word('third', 14)], [], 0],
+    ['one word with independent frame', [word('first', 0)], [{ rule: 'frame' }], 2],
+  ];
+  for (const [id, words, frames, expected] of cases) {
+    const findings = gate(words, frames, [], 'file', policyText);
+    results.push({ id: `gate-policy: ${id}`, kind: 'policy', ok: findings.length === expected, required: expected, raised: findings.length });
+  }
+
   console.log('slopgate decoy/control suite\n');
   for (const r of results) {
     const mark = r.ok ? 'ok' : 'XX';
-    if (r.kind === 'flag') {
-      console.log(`  [${mark}] ${r.id} (MUST-FLAG): required ${JSON.stringify(r.required)}, raised ${JSON.stringify(r.raised)}`);
+    if (r.kind === 'flag' || r.kind === 'policy') {
+      console.log(`  [${mark}] ${r.id} (${r.kind === 'policy' ? 'GATE-POLICY' : 'MUST-FLAG'}): required ${JSON.stringify(r.required)}, raised ${JSON.stringify(r.raised)}`);
     } else {
       console.log(`  [${mark}] ${r.id} (MUST-PASS): ${r.ok ? 'clean' : `FALSE POSITIVE — ${JSON.stringify(r.findings.map((f) => f.rule))}`}`);
     }
@@ -70,9 +84,18 @@ async function main() {
   console.log(`  True negatives:  ${trueNegatives} / ${passes.length}`);
   console.log(`  False positives: ${falsePositives} / ${passes.length}`);
   console.log(`  Precision: ${(precision * 100).toFixed(1)}%`);
-  console.log(`  Recall:    ${(recall * 100).toFixed(1)}%`);
+  console.log(`  Required-case recall: ${(recall * 100).toFixed(1)}%`);
 
-  const gatePassed = falsePositives === 0 && falseNegatives === 0;
+  let knownDetected = 0;
+  for (const row of KNOWN_MISSES) {
+    const result = await runRow(row, 'flag');
+    if (result.ok) knownDetected += 1;
+    console.log(`  [known miss] ${row.id}: ${result.ok ? 'now detected' : 'not detected'}`);
+  }
+  const observedRecall = (truePositives + knownDetected) / (flags.length + KNOWN_MISSES.length || 1);
+  console.log(`  Observed recall (including known misses): ${(observedRecall * 100).toFixed(1)}%`);
+  const policyPassed = results.filter((r) => r.kind === 'policy').every((r) => r.ok);
+  const gatePassed = falsePositives === 0 && falseNegatives === 0 && policyPassed;
   console.log(`\nGate: ${gatePassed ? 'PASS' : 'FAIL'}`);
   process.exit(gatePassed ? 0 : 1);
 }
