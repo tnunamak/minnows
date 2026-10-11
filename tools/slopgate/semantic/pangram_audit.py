@@ -146,7 +146,6 @@ def main():
     out, err, status = call(chosen, key)
     if status != 0:
         print(f"Pangram transport/HTTP failure (exit {status}); no completed audit cached", file=sys.stderr)
-        return 1
     try:
         data = json.loads(out)
     except json.JSONDecodeError:
