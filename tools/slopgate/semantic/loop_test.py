@@ -261,7 +261,11 @@ def main():
 
         loss_verdict = llm(LOSS.format(before=clip(before), after=clip(after)),
                            max_tokens=120)
-        lost_real = bool(re.search(r"LOST:\s*yes", loss_verdict, re.I))
+        loss_match = re.fullmatch(r"LOST:[ \t]*(yes|no)[ \t]*\nWHAT:[ \t]*(\S[^\n]*)",
+                                  loss_verdict.strip(), re.I)
+        if not loss_match or len(loss_verdict.strip().splitlines()) != 2:
+            raise RuntimeError("invalid fact-loss judgment")
+        lost_real = loss_match.group(1).lower() == "yes"
         lost_what = ""
         m2 = re.search(r"WHAT:\s*(.+)", loss_verdict)
         if m2:
@@ -288,6 +292,7 @@ def main():
         print(f"[{f.stem}] SKIPPED: {type(e).__name__}: {str(e)[:110]}", flush=True)
 
     if not rows:
+        (HERE / os.environ.get("LOOP_OUT", "loop_test_results.json")).write_text(json.dumps(rows, indent=2))
         print("no cases")
         return
     n = len(rows)
