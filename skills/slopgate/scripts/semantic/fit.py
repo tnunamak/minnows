@@ -93,7 +93,7 @@ def threshold_baseline(keys, y):
             elif v["levels"]:
                 fires = v["max_level"] is not None and feats[name] <= v["max_level"]
             else:
-                fires = feats[name] >= v["threshold"]
+                fires = feats.get(name, 0.0) >= v["threshold"]
             if fires:
                 high += 1
         pred_human = 1 if high < 2 else 0
