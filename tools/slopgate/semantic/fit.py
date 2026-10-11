@@ -32,10 +32,13 @@ from jevgate import load_rules  # noqa: E402
 
 def load():
     d = json.loads((HERE / "feature_matrix.json").read_text())
-    cols = sorted({k for v in d.values() for k in v["features"]})
+    cols = sorted(next(iter(d.values()))["features"]) if d else []
+    for key, row in d.items():
+        if set(row["features"]) != set(cols):
+            raise ValueError(f"Inconsistent feature columns at {key}; use a complete matrix with the same measured questions")
     X, y, keys = [], [], []
     for k, v in sorted(d.items()):
-        X.append([float(v["features"].get(c, 0.0)) for c in cols])
+        X.append([float(v["features"][c]) for c in cols])
         y.append(v["label"])
         keys.append(k)
     return X, y, cols, keys
