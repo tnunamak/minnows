@@ -121,11 +121,11 @@ def loo_accuracy(drop=()):
     X, y, cols, _ = fit.load()
     keep = [i for i, c in enumerate(cols) if c not in drop]
     X = [[r[i] for i in keep] for r in X]
-    Xs, _, _ = fit.standardize(X)
     correct = 0
-    for i in range(len(Xs)):
-        w, b = fit.train(Xs[:i] + Xs[i + 1:], y[:i] + y[i + 1:])
-        correct += (fit.predict(w, b, Xs[i]) >= 0.5) == y[i]
+    for i in range(len(X)):
+        training, held = fit.standardize_fold(X[:i] + X[i + 1:], X[i])
+        w, b = fit.train(training, y[:i] + y[i + 1:])
+        correct += (fit.predict(w, b, held) >= 0.5) == y[i]
     return correct / len(y)
 
 
