@@ -387,7 +387,8 @@ A user tunes a few `routing` parameters without editing the pack. `~/.config/mod
 (example values). `routing` may set only `quota_substitution`, `observation_max_age_hours` and
 `observation_window_days`. Candidates, `basis`, independence, `lineage_key` and every other
 evidence policy stay in the pack. Each key replaces the pack value whole (no deep merge). A
-missing file means no overlay.
+missing file at the default path means no overlay; a file named with `--user-policy` that does
+not exist is an error, so a typo cannot silently turn the overlay off.
 
 `route` and `check` read it. An unknown key, a bad value (the pack validator checks the merged
 `routing`), a dangling symlink, a file that is not regular, a file owned by another user, or a

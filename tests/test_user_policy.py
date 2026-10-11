@@ -52,7 +52,7 @@ def route_fails(world, *flags):
 
 
 def test_no_overlay_means_substitution_is_off(world):
-    out = world.route('review.audit', '--user-policy', world.tmp / 'absent.json')
+    out = world.route('review.audit')   # the default path (under the test XDG_CONFIG_HOME) is absent
     assert pick(out) == ('codex', 'gpt-6.1-sol') and 'quota_substitution' not in out['routing']
     assert out['routing']['user_policy'] is None and out['effective_policy_sha256'] == out['policy_sha256']
     assert not world.state.exists()
@@ -162,7 +162,9 @@ def test_check_validates_the_overlay(world):
     skipped, _ = world.cli('check', '--policy', world.tmp / 'policy.json', '--user-policy', bad, '--no-user-policy', raw=True)
     assert skipped.returncode == 2
     missing, _ = world.cli('check', '--policy', world.tmp / 'policy.json', '--user-policy', world.tmp / 'absent.json', raw=True)
-    assert missing.returncode == 0
+    assert missing.returncode == 1 and 'no such file' in missing.stderr, 'a named overlay that is missing is an error'
+    default, _ = world.cli('check', '--policy', world.tmp / 'policy.json', raw=True)
+    assert default.returncode == 0, 'a missing default overlay means none'
 
 
 def test_a_replayed_receipt_is_unchanged_by_a_later_overlay(world):
@@ -187,3 +189,7 @@ def test_observation_limits_apply(one):
     path.chmod(0o600)
     out = route(one, '--user-policy', path)
     assert 'observations' not in out['routing']['calibration_notes'] and out['routing']['user_policy']['keys'] == ['observation_max_age_hours']
+
+
+def test_an_explicitly_named_missing_overlay_is_an_error(world, tmp_path):
+    route_fails(world, '--user-policy', tmp_path / 'typo-user-policy.json')

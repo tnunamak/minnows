@@ -18,8 +18,11 @@ def default_path():
     return Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config')) / 'model-policy/user-policy.json'
 
 
-def read(path):
+def read(path, required=False):
     """(routing, info), or (None, None) when no file exists. Any other problem is a ValueError.
+
+    With `required` (an explicitly named path), a missing file is an error, so a typo cannot silently turn the
+    overlay off.
 
     A symlink is followed, because a user may deploy config from a dotfiles repo. The target must exist, be a
     regular file owned by the current user, and not be writable by group or world.
@@ -27,6 +30,8 @@ def read(path):
     given = os.path.abspath(path)
     resolved = os.path.realpath(path)
     if not os.path.lexists(given):
+        if required:
+            raise ValueError(f'user policy {given}: no such file')
         return None, None
     try:
         fd = os.open(resolved, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)

@@ -184,7 +184,7 @@ def print_show(policy: dict, op_id: str) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--policy", type=Path, default=None)
-    parser.add_argument("--user-policy", type=Path, default=None, help="per-user routing overlay; default ~/.config/model-policy/user-policy.json (missing means none)")
+    parser.add_argument("--user-policy", type=Path, default=None, help="per-user routing overlay; default ~/.config/model-policy/user-policy.json (a missing default means none; a missing named file is an error)")
     parser.add_argument("--no-user-policy", action="store_true", help="ignore the per-user overlay")
     parser.add_argument("command", nargs="?", choices=("check", "list", "show", "resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe"))
     parser.add_argument("op", nargs="?")
@@ -204,7 +204,8 @@ def main() -> int:
         args.user_policy_info = None
         if args.no_user_policy or args.command not in ("route", "check", None):
             return pack
-        routing, args.user_policy_info = user_policy.read(args.user_policy or user_policy.default_path())
+        routing, args.user_policy_info = user_policy.read(args.user_policy or user_policy.default_path(),
+                                                          required=args.user_policy is not None)
         if routing is None:
             return pack
         errors = check_routing(routing) + check_policy(merged := user_policy.merge(pack, routing))
