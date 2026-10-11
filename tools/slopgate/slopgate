@@ -144,6 +144,8 @@ def cmd_check(a):
         text = sys.stdin.read()
 
     if len(text.strip()) < 40:
+        if a.json:
+            print(json.dumps({"findings": [], "notes": []}))
         return 0
 
     findings, notes = [], []
