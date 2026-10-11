@@ -34,10 +34,10 @@ def stats(text):
     t = re.sub(r"```.*?```", " ", text, flags=re.S)
     t = re.sub(r"^\s*[|>#].*$", " ", t, flags=re.M)
     t = re.sub(r"^\s*([-*+]|\d+[.)])\s.*$", " ", t, flags=re.M)
-    sents = [x.strip() for x in re.split(r"(?<=[.!?])\s+", t) if x.strip()]
+    sents = [x.strip() for x in re.split(r"(?<=[.!?])\s+", t) if len(x.split()) > 3]
     wl = [len(x.split()) for x in sents]
     if not wl:
-        return {"n": 0, "mean": 0.0, "frags": 0}
+        return None
     return {"n": len(wl), "mean": statistics.mean(wl),
             "frags": sum(1 for w in wl if w <= 6)}
 
@@ -57,7 +57,7 @@ def main():
             if not rev.exists():
                 continue
             sb, sa = stats(f.read_text()), stats(rev.read_text())
-            if not sb or not sa:
+            if not sb:
                 continue
             rows.append((f.stem, sb, sa, verdict(sb), verdict(sa)))
 
@@ -66,6 +66,10 @@ def main():
     print(f"{'case':22} {'before':>12} {'after':>12}   drift")
     toward = away = 0
     for name, sb, sa, db, da in rows:
+        if sa is None:
+            away += 1
+            print(f"  {name:20} {sb['mean']:5.1f}w/{sb['frags']:<2}f destroyed revision (unmeasurable)")
+            continue
         arrow = "->" if da < db else ("==" if abs(da - db) < 0.05 else "<-")
         if da < db - 0.05:
             toward += 1
@@ -77,7 +81,7 @@ def main():
     n = len(rows)
     print(f"\nmoved TOWARD the reference band : {toward}/{n}")
     print(f"moved AWAY from it              : {away}/{n}")
-    outside_after = sum(1 for *_, da in rows if da > 2)
+    outside_after = sum(1 for *_, da in rows if da is None or da > 2)
     print(f"outside 2sd after revision      : {outside_after}/{n}")
     print("\nThis is the non-LLM check. If revisions drifted away from how good")
     print("writing actually reads, the loop is optimising the rules rather than")
