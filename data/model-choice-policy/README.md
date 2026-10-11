@@ -10,14 +10,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.1.19](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.1.19) — published by CI on push to main |
+| **This version** | [data-model-choice-policy-v0.2.0](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.0) — published by CI on push to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.1.13
+TAG=data-model-choice-policy-v0.2.0
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
