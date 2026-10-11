@@ -311,7 +311,7 @@ thresholds, because they are a personal preference. A user enables it in the use
 overlay (see User policy overlay) with
 
 ```json
-"quota_substitution": {"activate_projected_pct": 95, "release_projected_pct": 90}
+"quota_substitution": {"activate_projected_pct": 97, "release_projected_pct": 85}
 ```
 
 The numbers above are an example, not a recommendation. A pack that sets the same key
@@ -381,7 +381,7 @@ A user tunes a few `routing` parameters without editing the pack. `~/.config/mod
 (`$XDG_CONFIG_HOME` honored; `--user-policy FILE` names another file; `--no-user-policy` skips it) holds
 
 ```json
-{"schema_version": 1, "routing": {"quota_substitution": {"activate_projected_pct": 95, "release_projected_pct": 90}}}
+{"schema_version": 1, "routing": {"quota_substitution": {"activate_projected_pct": 97, "release_projected_pct": 85}}}
 ```
 
 (example values). `routing` may set only `quota_substitution`, `observation_max_age_hours` and

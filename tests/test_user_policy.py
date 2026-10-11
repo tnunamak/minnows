@@ -98,7 +98,7 @@ def test_the_overlay_replaces_a_pack_key_whole(world):
     ('evidence key', {'schema_version': 1, 'routing': {'independence_default': 'none'}}),
     ('unknown top key', {'schema_version': 1, 'routing': {}, 'extra': 1}),
     ('bad schema', {'schema_version': 2, 'routing': {}}),
-    ('bad thresholds', {'schema_version': 1, 'routing': {'quota_substitution': {'activate_projected_pct': 80, 'release_projected_pct': 90}}}),
+    ('bad thresholds', {'schema_version': 1, 'routing': {'quota_substitution': {'activate_projected_pct': 80, 'release_projected_pct': 85}}}),
     ('bad int', {'schema_version': 1, 'routing': {'observation_window_days': 0}}),
     ('not an object', ['x']),
     ('malformed', '{nope')])
