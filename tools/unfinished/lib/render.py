@@ -51,7 +51,7 @@ def import_ticks():
             ticked.append(m.group(1))
     with open(DEC, "a") as f:
         for iid in dict.fromkeys(ticked):
-            if iid not in dec:
+            if iid not in dec or dec[iid].get("decision") == "snooze":
                 f.write(json.dumps({"id": iid, "decision": "done", "at": NOW.isoformat(), "via": "ledger-tick"}) + "\n")
                 n += 1
     return n
