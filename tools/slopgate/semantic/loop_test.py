@@ -163,10 +163,19 @@ def check(text, kind):
     r = subprocess.run(
         ["slopgate", "check", "--stdin", "--kind", kind, "--json", "--semantic-only"],
         input=text, capture_output=True, text=True, timeout=600)
+    if r.returncode not in (0, 1):
+        raise RuntimeError(f"semantic check failed with exit {r.returncode}")
     try:
-        return json.loads(r.stdout).get("findings", [])
-    except json.JSONDecodeError:
-        return []
+        result = json.loads(r.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("semantic check returned invalid JSON") from error
+    if not isinstance(result, dict) or not isinstance(result.get("findings"), list):
+        raise RuntimeError("semantic check returned no findings array")
+    if any(not isinstance(f, dict) for f in result["findings"]):
+        raise RuntimeError("semantic check returned malformed findings")
+    if result.get("notes"):
+        raise RuntimeError("semantic check reported an unavailable layer")
+    return result["findings"]
 
 
 def clip(s, n=6000):
