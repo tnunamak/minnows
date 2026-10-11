@@ -1,0 +1,38 @@
+{
+ "accounts": {
+  "claude-alt": {
+   "billing": "subscription",
+   "quota_provider": "claude",
+   "quota_source": "alt",
+   "substitution_rank": 1
+  },
+  "claude-api": {
+   "billing": "metered",
+   "quota_provider": null,
+   "quota_source": null
+  },
+  "claude-api-alt": {
+   "billing": "metered",
+   "quota_provider": null,
+   "quota_source": null
+  },
+  "claude-work": {
+   "billing": "subscription",
+   "quota_provider": "claude",
+   "quota_source": "work",
+   "substitution_rank": 2
+  },
+  "claudeAgent": {
+   "billing": "subscription",
+   "quota_provider": "claude",
+   "quota_source": "default",
+   "substitution_rank": 0
+  },
+  "codex": {
+   "billing": "subscription",
+   "quota_provider": "openai",
+   "quota_source": null
+  }
+ },
+ "schema_version": 1
+}

@@ -419,7 +419,7 @@ def refuse_shared_ledger(receipts, other, flag='--outcomes', first='--receipts')
         except OSError:
             pass  # one of them does not exist yet, so they cannot be one file
     if same:
-        rows = {'--outcomes': 'outcome rows', '--observations': 'observation rows'}.get(flag, 'directive rows')
+        rows = {'--outcomes': 'outcome rows', '--observations': 'observation rows', '--quota-state': 'quota substitution state'}.get(flag, 'directive rows')
         raise ValueError(f'{first} and {flag} name the same file; {rows} must never enter {"decisions.jsonl" if first == "--receipts" else "another ledger"}')
 
 

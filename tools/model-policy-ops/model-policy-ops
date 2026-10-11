@@ -79,6 +79,20 @@ def check_candidates(op: dict, where: str) -> list[str]:
     return errors
 
 
+def check_quota_substitution(value, present: bool) -> list[str]:
+    """Validate `routing.quota_substitution`: 0 < release_projected_pct < activate_projected_pct <= 200. Absent means off."""
+    if not present:
+        return []
+    keys = ("activate_projected_pct", "release_projected_pct")
+    if not isinstance(value, dict) or set(value) != set(keys):
+        return [f"routing.quota_substitution must be an object with exactly {', '.join(keys)}"]
+    if not all(type(value[key]) in (int, float) for key in keys):
+        return [f"routing.quota_substitution: {' and '.join(keys)} must be numbers"]
+    if not 0 < value["release_projected_pct"] < value["activate_projected_pct"] <= 200:
+        return ["routing.quota_substitution needs 0 < release_projected_pct < activate_projected_pct <= 200"]
+    return []
+
+
 def check_routing(routing) -> list[str]:
     """Validate the optional pack `routing` object. Each field is optional; a present field must be well formed."""
     if routing is None:
@@ -86,7 +100,7 @@ def check_routing(routing) -> list[str]:
     if not isinstance(routing, dict):
         return ["routing must be an object"]
     errors: list[str] = []
-    unknown = sorted(set(routing) - {"pace_windows", "failure_lookback_minutes", "failure_demote_count", "review_task_families", "independence_default", "directive_max_days", "lineage_key", "observation_max_age_hours", "observation_window_days"})
+    unknown = sorted(set(routing) - {"pace_windows", "failure_lookback_minutes", "failure_demote_count", "review_task_families", "independence_default", "directive_max_days", "lineage_key", "observation_max_age_hours", "observation_window_days", "quota_substitution"})
     if unknown:
         errors.append(f"routing: unknown keys {', '.join(unknown)}")
     for key in ("pace_windows", "review_task_families"):
@@ -97,6 +111,7 @@ def check_routing(routing) -> list[str]:
             errors.append(f"routing.{key} must be a positive integer")
     if "independence_default" in routing and routing["independence_default"] not in INDEPENDENCE_LEVELS:
         errors.append(f"routing.independence_default must be one of {', '.join(INDEPENDENCE_LEVELS)}")
+    errors.extend(check_quota_substitution(routing.get("quota_substitution"), "quota_substitution" in routing))
     lineage = routing.get("lineage_key")
     if "lineage_key" in routing and not (isinstance(lineage, dict) and lineage and all(
             isinstance(k, str) and k and v in LINEAGE_FIELDS for k, v in lineage.items())):

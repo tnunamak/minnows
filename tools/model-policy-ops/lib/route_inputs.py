@@ -18,7 +18,10 @@ def default_accounts_path():
 
 
 def read_accounts(path):
-    """Account map: {instance: {quota_provider, quota_source, billing}}. A missing file maps nothing."""
+    """Account map: {instance: {quota_provider, quota_source, billing[, substitution_rank]}}. A missing file maps nothing.
+
+    `substitution_rank` is optional: the owner's order among accounts for quota substitution, lower first.
+    """
     try:
         value = json.loads(Path(path).read_text(encoding='utf-8'))
     except FileNotFoundError:
@@ -34,6 +37,9 @@ def read_accounts(path):
         for key in ('quota_provider', 'quota_source'):
             if entry.get(key) is not None and not isinstance(entry[key], str):
                 raise ValueError(f'accounts.{instance}.{key} must be a string or null')
+        rank = entry.get('substitution_rank')
+        if rank is not None and (type(rank) is not int or rank < 0):
+            raise ValueError(f'accounts.{instance}.substitution_rank must be a non-negative integer')
     return rows, {'state': 'loaded', 'sha256': digest(rows)}
 
 

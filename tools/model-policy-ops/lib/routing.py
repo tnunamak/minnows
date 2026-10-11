@@ -5,6 +5,7 @@ The pack carries the policy: candidate arms with their evidence basis, and the r
 rejects, ranks the rest by a lexicographic key, and explains each step in a trace. It never learns
 from outcomes and it never dispatches work.
 """
+import quota_substitution
 from directives import matching
 from runtime_sources import digest, driver_family, provider_instance, providers, quota_context, quota_forecast, resolve_arm
 
@@ -21,6 +22,7 @@ EFFECTS = ('avoid', 'prefer', 'authorize', 'allow-metered')
 FINAL_REASONS = {'not_runnable': 'final_not_runnable', 'requires_not_met': 'final_requires_not_met',
                  'billing_not_subscription': 'final_metered_without_directive', 'avoid_directive': 'final_avoided',
                  'quota_exhausted': 'final_quota_exhausted', 'independence': 'final_independence_bypassed'}
+SUBSTITUTED = 'quota_substitution_exception'
 
 
 def expand_candidates(op):
@@ -199,15 +201,39 @@ def assess_pair(ctx, op_id, arm, instance, requires):
     return {'matched': matched, 'billing': billing, 'selection': selection, 'view': view, 'hits': hits, 'requested_only': requested_only}
 
 
+NEUTRAL_ARM = {'provider': None, 'model': '', 'effort': None}
+
+
+def substitution_context(params, accounts, quota, quota_meta, now, state_path, *, write):
+    """The `substitution` input of `make_context`, or None when the pack does not enable the feature.
+
+    Each mapped subscription account gets the binding projection of its pace windows. Those windows are
+    the same for every model, so the arm does not matter here. An account with no known projection is
+    unknown: neither constrained nor a substitution target.
+    """
+    thresholds = params.get('quota_substitution')
+    if not thresholds:
+        return None
+    observed = {}
+    for instance, entry in sorted(accounts.items()):
+        if entry['billing'] != 'subscription' or not entry.get('quota_provider'):
+            continue
+        binding = quota_view(quota, quota_meta, NEUTRAL_ARM, entry, params.get('pace_windows', []), now)['binding']
+        observed[instance] = {'projected_pct': binding['projected_pct'], 'window': binding['window']} if binding else None
+    return {'thresholds': thresholds, 'state': quota_substitution.evaluate(state_path, thresholds, observed, now, write=write),
+            'ranks': {instance: entry['substitution_rank'] for instance, entry in accounts.items() if entry.get('substitution_rank') is not None}}
+
+
 def is_review(op, params):
     return op.get('task_family') in params.get('review_task_families', [])
 
 
 def make_context(op, params, *, available, available_meta, quota, quota_meta, accounts, directives, maker, independence,
-                 proof_class, line_of, failures, freshness, now):
+                 proof_class, line_of, failures, freshness, now, substitution=None):
     """The inputs that every pair assessment shares. A review op without a pack `independence_default` requires `vendor`.
 
     `level_source` says where the level came from: the `flag`, the `pack` or the `mechanism_default`.
+    `substitution` is None when the pack does not enable quota substitution, else {thresholds, state, ranks}.
     """
     review = is_review(op, params)
     if independence:
@@ -219,7 +245,7 @@ def make_context(op, params, *, available, available_meta, quota, quota_meta, ac
     return {'available': available, 'available_meta': available_meta, 'quota': quota, 'quota_meta': quota_meta,
             'accounts': accounts, 'directives': directives, 'maker': maker, 'level': level, 'level_source': source, 'review': review,
             'proof_class': proof_class, 'line_of': line_of, 'failures': failures, 'freshness': freshness,
-            'pace_windows': params.get('pace_windows', []), 'now': now}
+            'pace_windows': params.get('pace_windows', []), 'now': now, 'substitution': substitution}
 
 
 def tag(reasons, applies_to):
@@ -246,6 +272,11 @@ def final_view(ctx, op, arm, instance, views):
     reasons = [{'code': FINAL_REASONS[name], 'detail': detail} for name, detail in found['hits']]
     reasons += pair_reasons(ctx, arm=arm, instance=instance, pace=view['pace'], eligibility_reasons=ineligible,
                             requested_only=found['requested_only'] and not any(name == 'independence' for name, _ in found['hits']))
+    sub = ctx['substitution']
+    if sub and instance in sub['state']['constrained']:
+        constrained = sub['state']['constrained'][instance]
+        reasons.append({'code': 'final_account_quota_constrained',
+                        'detail': {'instance': instance, 'projected_pct': constrained['projected_pct'], 'window': constrained['window']}})
     return {'billing': found['billing'], 'filters_bypassed': bypassed, 'pace': view['pace'], 'quota_ref': ref}, tag(reasons, 'final')
 
 
@@ -287,20 +318,50 @@ def route(op, params, ctx):
                                 'selection_basis': selection_basis, 'requested_only_independence': found['requested_only'], 'rank': rank,
                                 '_target': found['selection']['target'], '_authorizers': matched['authorize'], '_view': view})
     survivors = sorted((t for t in trace if t['removed_by'] is None), key=lambda t: rank_tuple(t['rank']))
-    chosen = chosen_view(survivors[0], candidates) if survivors else None
+    picked, move, unavailable = substituted_row(ctx, survivors)
+    chosen = chosen_view(picked, candidates) if picked else None
     for position, row in enumerate(survivors):
         row['rank_position'] = position
     for row in trace:
         for private in ('_authorizers', '_target', '_view'):
             row.pop(private, None)
     unknown_line = sum(1 for t in trace if t['removed_by'] == 'independence' and t['detail']['why'] == 'line_unknown')
-    reasons = routed_reasons(ctx, chosen, survivors[0] if survivors else None, conflicts, unknown_line)
-    return {'router_version': ROUTER_VERSION, 'params': params, 'params_sha256': digest(params),
+    reasons = routed_reasons(ctx, chosen, picked, conflicts, unknown_line)
+    if unavailable:
+        reasons += tag([{'code': 'quota_substitution_unavailable',
+                         'detail': {'constrained': {instance: {k: row[k] for k in ('projected_pct', 'window')}
+                                                    for instance, row in ctx['substitution']['state']['constrained'].items()}}}], 'routed')
+    block = {'router_version': ROUTER_VERSION, 'params': params, 'params_sha256': digest(params),
             'independence': {'required': ctx['level'], 'required_source': ctx['level_source'], 'maker': ctx['maker']},
             'directives_applied': sorted(applied), 'directives_unmatched': sorted(d['id'] for d in ctx['directives'] if d['id'] not in applied),
             'conflicts': conflicts,
             'rank_keys': ['eligibility', 'prefer', 'pace', 'availability', 'candidate_order', 'projected_pct (load-balancing heuristic)', 'instance'],
             'quota': views, 'trace': trace, 'chosen': chosen, 'judgment_required': judgment_needed(reasons), 'judgment_reasons': reasons}
+    if ctx['substitution']:
+        block['quota_substitution'] = quota_substitution.summary(ctx['substitution'], move=move)
+    return block
+
+
+def substituted_row(ctx, survivors):
+    """(row to choose, move, unavailable). The best row is chosen unless it sits on a constrained account.
+
+    A constrained best row is replaced by `quota_substitution.substitute` when that finds a pair. The substitute
+    keeps its evidence basis. This is an owner-authorized exception by the pack policy, so `unvalidated_candidate`
+    does not apply to it; every other judgment reason still does. `unavailable` is true when a constrained best
+    row has no substitute.
+    """
+    sub = ctx['substitution']
+    best = survivors[0] if survivors else None
+    if not sub or best is None or best['instance'] not in sub['state']['constrained']:
+        return best, None, False
+    found = quota_substitution.substitute(survivors, sub)
+    if found is None:
+        return best, None, True
+    known = sub['state']['known']
+    side = lambda row: {'instance': row['instance'], 'model': row['arm']['model'], 'effort': row['arm']['effort'],
+                        'projected_pct': known.get(row['instance'])}
+    picked = found | {'selection_basis': SUBSTITUTED, 'eligibility_reasons': [r for r in found['eligibility_reasons'] if r != 'unvalidated_candidate']}
+    return picked, {'from': side(best), 'to': side(found)}, False
 
 
 def finalize(block, ctx, op, arm, instance, selection, *, routed, overridden):
