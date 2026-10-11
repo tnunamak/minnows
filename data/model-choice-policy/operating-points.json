@@ -790,6 +790,10 @@
     "directive_max_days": 14,
     "observation_max_age_hours": 3,
     "observation_window_days": 14,
+    "quota_substitution": {
+      "activate_projected_pct": 95,
+      "release_projected_pct": 90
+    },
     "lineage_key": {
       "claude": "family",
       "codex": "tier",
