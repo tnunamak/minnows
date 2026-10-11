@@ -13,8 +13,8 @@ function walk(dir, exts, out = []) {
   let entries;
   try {
     entries = readdirSync(dir, { withFileTypes: true });
-  } catch {
-    return out;
+  } catch (error) {
+    throw new Error(`cannot scan directory ${dir}: ${error.message}`);
   }
   for (const e of entries) {
     if (e.name === 'node_modules' || e.name === '.git') continue;
@@ -29,8 +29,8 @@ async function scanFile(file) {
   let raw;
   try {
     raw = readFileSync(file, 'utf8');
-  } catch {
-    return [];
+  } catch (error) {
+    throw new Error(`cannot read file ${file}: ${error.message}`);
   }
   if (!raw.trim()) return [];
   const { wordHits, frameHits, cadenceHits, signatureHits, text } = await analyze(raw);
@@ -41,11 +41,20 @@ async function scanFile(file) {
 async function main() {
   const targets = process.argv.slice(2);
   let total = 0;
+  let failed = 0;
   for (const target of targets) {
+    try {
     const st = statSync(target, { throwIfNoEntry: false });
     const files = st?.isDirectory() ? walk(target, ['.md', '.html']) : [target];
     for (const file of files) {
-      const findings = await scanFile(file);
+      let findings;
+      try {
+        findings = await scanFile(file);
+      } catch (error) {
+        failed += 1;
+        console.error(error.message);
+        continue;
+      }
       if (findings.length) {
         console.log(`\n=== ${file} ===`);
         for (const f of findings) {
@@ -54,8 +63,14 @@ async function main() {
         total += findings.length;
       }
     }
+    } catch (error) {
+      failed += 1;
+      console.error(`cannot scan ${target}: ${error.message}`);
+    }
   }
   console.log(`\nTotal findings: ${total}`);
+  console.log(`Failed inputs: ${failed}`);
+  if (failed) process.exitCode = 1;
 }
 
 main();
