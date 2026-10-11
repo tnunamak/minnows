@@ -1,6 +1,7 @@
 import datetime as dt
 import importlib.util
 import json
+import os
 from pathlib import Path
 import sqlite3
 import sys
@@ -51,6 +52,25 @@ class RenderTest(unittest.TestCase):
         (self.data / 'LEDGER.md').write_text('<!-- generation: stale -->\n- [x] task `s:fixture`\n')
         self.assertEqual(self.render.import_ticks(), 0)
         (self.data / 'LEDGER.md').write_text('<!-- generation: current -->\n- [x] task `s:fixture`\n')
+        self.assertEqual(self.render.import_ticks(), 1)
+        self.assertEqual(self.render.load_decisions()[ident]['decision'], 'done')
+        self.assertEqual(self.render.import_ticks(), 0)
+
+    def test_newer_active_snooze_wins_over_an_older_unimported_tick(self):
+        ident = 's:fixture'
+        ledger = self.data / 'LEDGER.md'
+        (self.data / '.generation').write_text('current')
+        ledger.write_text('<!-- generation: current -->\n- [x] task `s:fixture`\n')
+        tick_at = dt.datetime(2026, 1, 1, tzinfo=dt.timezone.utc)
+        os.utime(ledger, (tick_at.timestamp(), tick_at.timestamp()))
+        decision = {'id':ident, 'decision':'snooze',
+                    'at':(tick_at + dt.timedelta(seconds=1)).isoformat(), 'until':'2999-01-01'}
+        (self.data / 'decisions.jsonl').write_text(json.dumps(decision)+'\n')
+        self.assertEqual(self.render.import_ticks(), 0)
+        self.assertEqual(self.render.load_decisions()[ident], decision)
+        # A subsequent checkbox edit is newer than the decision and can close it.
+        later_tick = tick_at + dt.timedelta(seconds=2)
+        os.utime(ledger, (later_tick.timestamp(), later_tick.timestamp()))
         self.assertEqual(self.render.import_ticks(), 1)
         self.assertEqual(self.render.load_decisions()[ident]['decision'], 'done')
         self.assertEqual(self.render.import_ticks(), 0)
