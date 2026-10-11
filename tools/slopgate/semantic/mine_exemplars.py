@@ -36,6 +36,7 @@ Usage:
   mine_exemplars.py --out corpus/mined [--per-repo 8] [--before 2023-01-01]
 """
 import argparse
+import datetime
 import json
 import pathlib
 import re
@@ -105,12 +106,21 @@ def mine(repo, per_repo, before):
             continue
         # Maintainer check: author_association is OWNER or MEMBER for someone
         # with write access, CONTRIBUTOR or NONE for an outside submitter.
-        assoc = gh(["api", f"repos/{repo}/pulls/{num}",
-                    "--jq", ".author_association"])
-        if not assoc or assoc.strip() not in ("OWNER", "MEMBER", "COLLABORATOR"):
+        raw_pr = gh(["api", f"repos/{repo}/pulls/{num}"])
+        try:
+            pr = json.loads(raw_pr or "null")
+            cutoff = datetime.date.fromisoformat(before)
+            created = datetime.datetime.fromisoformat(pr["created_at"].replace("Z", "+00:00")).date()
+            updated = datetime.datetime.fromisoformat(pr["updated_at"].replace("Z", "+00:00")).date()
+            merged = datetime.datetime.fromisoformat(pr["merged_at"].replace("Z", "+00:00")).date()
+        except (ValueError, TypeError, KeyError, AttributeError):
             continue
-        body = gh(["api", f"repos/{repo}/pulls/{num}", "--jq", ".body"])
-        if not body or body.strip() in ("", "null"):
+        if created >= cutoff or updated >= cutoff or merged >= cutoff:
+            continue
+        if pr.get("author_association") not in ("OWNER", "MEMBER", "COLLABORATOR"):
+            continue
+        body = pr.get("body")
+        if not isinstance(body, str) or not body.strip():
             continue
         body = strip_template(body)
         w = authored_words(body)
@@ -127,7 +137,7 @@ def mine(repo, per_repo, before):
         if len(prose_lines) < 3:
             continue
         out.append({"repo": repo, "number": num, "user": user,
-                    "created": "", "words": w, "body": body})
+                    "created": pr["created_at"], "words": w, "body": body})
         if len(out) >= per_repo:
             break
     return out
@@ -138,8 +148,7 @@ def main():
     ap.add_argument("--out", default="corpus/mined")
     ap.add_argument("--per-repo", type=int, default=8)
     ap.add_argument("--before", default="2023-01-01",
-                    help="only PRs created before this date (pre-LLM, so the "
-                         "positive class is clean by construction)")
+                    help="require PR creation and last update before this date")
     a = ap.parse_args()
 
     outdir = pathlib.Path(a.out)
