@@ -79,7 +79,8 @@ def main():
             refs = pr_refs(text, project, rmap)
         refs_by_item[iid] = refs[:6]
         all_refs.update(refs[:6])
-    known = {r[0] for r in db.execute("select ref from prs")}
+    known = {ref for ref, data in db.execute("select ref, data from prs")
+             if json.loads(data).get("state") == "MERGED"}
     todo = [r for r in all_refs if f"{r[0]}#{r[1]}" not in known]
     print(f"items={len(items)} pr refs={len(all_refs)} to fetch={len(todo)}", file=sys.stderr)
     with ThreadPoolExecutor(6) as ex:
