@@ -157,12 +157,12 @@
  },
  "match": [
   {
-   "pattern": "clef",
-   "model": "clef"
-  },
-  {
    "pattern": "clef-flash",
    "model": "clef-flash"
+  },
+  {
+   "pattern": "clef",
+   "model": "clef"
   },
   {
    "pattern": "pplx-decider-v1-27b",
