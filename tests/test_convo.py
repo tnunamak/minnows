@@ -88,6 +88,7 @@ class CrossHarnessGrepTests(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory()
         self.root = Path(self.directory.name)
         self.original_roots = {harness: config["root"] for harness, config in convo.HARNESSES.items()}
+        self.addCleanup(self._restore_setup_state)
         for harness, config in convo.HARNESSES.items():
             config["root"] = self.root / harness
 
@@ -103,7 +104,7 @@ class CrossHarnessGrepTests(unittest.TestCase):
             "message": {"role": "user", "parts": [{"text": "different topic"}]},
         }])
 
-    def tearDown(self):
+    def _restore_setup_state(self):
         for harness, root in self.original_roots.items():
             convo.HARNESSES[harness]["root"] = root
         self.directory.cleanup()
@@ -141,6 +142,7 @@ class MultiRootClaudeDiscoveryTests(unittest.TestCase):
         self.original_claude_root = convo.HARNESSES["claude"]["root"]
         self.original_agent_root = convo.HARNESSES["claude-agent"]["root"]
         self.original_claude_project_roots = convo.cs.claude_project_roots
+        self.addCleanup(self._restore_setup_state)
         # Restore "root" to its true original default so the roots_fn guard engages.
         convo.HARNESSES["claude"]["root"] = convo._DEFAULT_HARNESS_ROOTS["claude"]
         convo.HARNESSES["claude-agent"]["root"] = convo._DEFAULT_HARNESS_ROOTS["claude-agent"]
@@ -155,7 +157,7 @@ class MultiRootClaudeDiscoveryTests(unittest.TestCase):
             "isMeta": False, "message": {"content": "in the alternate config dir"},
         }])
 
-    def tearDown(self):
+    def _restore_setup_state(self):
         convo.HARNESSES["claude"]["root"] = self.original_claude_root
         convo.HARNESSES["claude-agent"]["root"] = self.original_agent_root
         convo.cs.claude_project_roots = self.original_claude_project_roots
@@ -215,6 +217,7 @@ class SubagentTranscriptTests(unittest.TestCase):
         self.original_roots = {harness: config["root"] for harness, config in convo.HARNESSES.items()}
         self.original_claude_roots_fn = convo.HARNESSES["claude"]["roots_fn"]
         self.original_agent_roots_fn = convo.HARNESSES["claude-agent"]["roots_fn"]
+        self.addCleanup(self._restore_setup_state)
         for harness, config in convo.HARNESSES.items():
             config["root"] = self.root / harness
         convo.HARNESSES["claude"]["root"] = self.root
@@ -248,7 +251,7 @@ class SubagentTranscriptTests(unittest.TestCase):
             encoding="utf-8",
         )
 
-    def tearDown(self):
+    def _restore_setup_state(self):
         for harness, root in self.original_roots.items():
             convo.HARNESSES[harness]["root"] = root
         convo.HARNESSES["claude"]["roots_fn"] = self.original_claude_roots_fn
@@ -332,6 +335,7 @@ class PiDshHarnessTests(unittest.TestCase):
         self.data_dir = self.root / "ledger-data"
         self.original_roots = {h: c["root"] for h, c in convo.HARNESSES.items()}
         self.old_env = {k: os.environ.get(k) for k in ("CONVO_DATA_DIR", "CONVO_PI_ROOTS", "PI_CODING_AGENT_DIR", "DSH_HOME")}
+        self.addCleanup(self._restore_setup_state)
         os.environ["CONVO_DATA_DIR"] = str(self.data_dir)
         for k in ("CONVO_PI_ROOTS", "PI_CODING_AGENT_DIR", "DSH_HOME"):
             os.environ.pop(k, None)
@@ -348,7 +352,7 @@ class PiDshHarnessTests(unittest.TestCase):
             dest.parent.mkdir(parents=True)
             dest.write_text((FIXTURES / name).read_text())
 
-    def tearDown(self):
+    def _restore_setup_state(self):
         for harness, root in self.original_roots.items():
             convo.HARNESSES[harness]["root"] = root
         for k, v in self.old_env.items():
@@ -357,6 +361,29 @@ class PiDshHarnessTests(unittest.TestCase):
             else:
                 os.environ[k] = v
         self.directory.cleanup()
+
+    def test_setup_failure_restores_environment_and_discovery_roots(self):
+        original_roots = {h: config["root"] for h, config in convo.HARNESSES.items()}
+        env_names = ("CONVO_DATA_DIR", "CONVO_PI_ROOTS", "PI_CODING_AGENT_DIR", "DSH_HOME")
+        original_env = {name: os.environ.get(name) for name in env_names}
+        interrupted = PiDshHarnessTests("test_pi_sync_status_search_roundtrip_excludes_tools_and_thinking")
+        try:
+            with mock.patch.object(Path, "write_text", side_effect=OSError("injected fixture write failure")):
+                with self.assertRaisesRegex(OSError, "injected fixture write failure"):
+                    interrupted.setUp()
+            interrupted.doCleanups()
+            self.assertEqual({h: config["root"] for h, config in convo.HARNESSES.items()}, original_roots)
+            self.assertEqual({name: os.environ.get(name) for name in env_names}, original_env)
+        finally:
+            for harness, root in original_roots.items():
+                convo.HARNESSES[harness]["root"] = root
+            for name, value in original_env.items():
+                if value is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = value
+            if hasattr(interrupted, "directory"):
+                interrupted.directory.cleanup()
 
     def run_convo(self, *args: str) -> tuple[str, str, int]:
         stdout, stderr = io.StringIO(), io.StringIO()
@@ -1223,6 +1250,7 @@ class CappedScanStarvationTests(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory()
         self.root = Path(self.directory.name)
         self.original_root = convo.HARNESSES["qwen"]["root"]
+        self.addCleanup(self._restore_setup_state)
         convo.HARNESSES["qwen"]["root"] = self.root / "qwen"
         now = time.time()
 
@@ -1243,7 +1271,7 @@ class CappedScanStarvationTests(unittest.TestCase):
         }])
         os.utime(real, (now - 5000, now - 5000))
 
-    def tearDown(self):
+    def _restore_setup_state(self):
         convo.HARNESSES["qwen"]["root"] = self.original_root
         self.directory.cleanup()
 
