@@ -5,6 +5,13 @@ An account becomes constrained when its binding pace-window projection reaches `
 and stays constrained until the projection falls below `release_projected_pct`. The memory that
 hysteresis needs lives in a small private state file. `route` never uses the memory to widen a choice:
 unknown or stale quota is neither constrained nor a substitution target.
+
+A constraint belongs to one quota window: the binding window's name and its `resets_at`. It never crosses a
+reset. When the observed window differs from the stored one, the stored constraint is dropped and the new window
+starts from the activation threshold. When quota is unknown and the stored window's reset time has passed, the
+constraint ends with its window; the account is then unknown, not headroom. A row without a usable `resets_at`
+(stored before window identity existed, or observed from a source time without a zone) keeps the old behavior: a
+different window name still ends it, otherwise hysteresis applies and unknown quota holds it until a known reading.
 """
 import fcntl
 import json
@@ -17,6 +24,9 @@ from pathlib import Path
 STATE_FILE = 'quota-substitution.json'
 SCHEMA_VERSION = 1
 ACTIVE_STATES = ('activated', 'held_by_hysteresis')
+# Same window when the name matches and the reset times are this close. Reset times in the receipt ledger move by at
+# most 1.2 s within one window (clock jitter in the source); consecutive windows of one account differ by 5 h or more.
+SAME_WINDOW_SECONDS = 60
 REASON = ('the best pair sits on an account whose weekly quota is projected at or above the activation threshold, '
           'and an eligible pack candidate sits on an account with a known projection below it')
 
@@ -25,8 +35,28 @@ def default_path(receipts):
     return Path(receipts).with_name(STATE_FILE)
 
 
+def parse_time(value):
+    """An aware datetime, or None when the value is not an ISO time with a zone."""
+    try:
+        moment = datetime.fromisoformat(value.replace('Z', '+00:00'))
+    except (AttributeError, TypeError, ValueError):
+        return None
+    return moment if moment.tzinfo else None
+
+
+def same_window(prior, binding):
+    """False for a different window name; for the same name, True or False by reset time, or None when either reset
+    time is missing or unusable (a row stored before window identity, or a source time without a zone)."""
+    if prior['window'] != binding['window']:
+        return False
+    stored, observed = parse_time(prior.get('resets_at')), parse_time(binding.get('resets_at'))
+    if stored is None or observed is None:
+        return None
+    return abs((stored - observed).total_seconds()) <= SAME_WINDOW_SECONDS
+
+
 def read_memory(path):
-    """(memory, state, issue). `memory` is {instance: {since, window}}, or None when it cannot be trusted.
+    """(memory, state, issue). `memory` is {instance: {since, window, resets_at?}}, or None when it cannot be trusted.
 
     `state` is `loaded`, `missing` or `unreadable`. A symlink, a file that is not a regular file, a file that
     group or world can write, and malformed content are all `unreadable`, and the caller never rewrites them.
@@ -55,6 +85,8 @@ def read_memory(path):
     for entry in rows.values():
         if not (isinstance(entry, dict) and isinstance(entry.get('since'), str) and isinstance(entry.get('window'), str)):
             return None, 'unreadable', 'schema_mismatch'
+        if 'resets_at' in entry and parse_time(entry['resets_at']) is None:
+            return None, 'unreadable', 'schema_mismatch'  # the writer stores only zoned ISO times
         try:
             datetime.fromisoformat(entry['since'])
         except ValueError:
@@ -95,34 +127,62 @@ def write_state(path, accounts):
 def decide(memory, observed, thresholds, at):
     """Apply the hysteresis rule to every observed account.
 
-    `observed` is {instance: binding or None}; a binding has `projected_pct` and `window`, and None means the
-    projection is unknown. `memory` is the stored state, or None when it cannot be trusted (decide without it).
-    Returns the new memory, the account rows that appear in the receipt, and the account facts that ranking uses.
+    `observed` is {instance: binding or None}; a binding has `projected_pct`, `window`, `resets_at` and `utilization`,
+    and None means the projection is unknown. `memory` is the stored state, or None when it cannot be trusted (decide
+    without it). Returns the new memory, the account rows that appear in the receipt, and the account facts that
+    ranking uses. `utilization` is observed use and `projected_pct` is the source's forecast; rows carry both.
     """
     activate, release = thresholds['activate_projected_pct'], thresholds['release_projected_pct']
     accounts = dict(memory or {})
     report, constrained, known, unknown = {}, {}, {}, []
     for instance, binding in sorted(observed.items()):
+        prior = (memory or {}).get(instance)
         if binding is None:
-            unknown.append(instance)  # no new fact: the stored state stays as it was
-            prior = (memory or {}).get(instance)
-            if prior:
-                # still constrained until a known projection falls below release; never headroom while unknown
-                row = {'projected_pct': None, 'window': prior['window'], 'state': 'held_unknown', 'since': prior['since']}
-                report[instance] = constrained[instance] = row
+            unknown.append(instance)  # no new fact about the current window
+            if not prior:
+                continue
+            ended = parse_time(prior.get('resets_at'))
+            if ended is not None and ended <= at:
+                # the stored constraint was about a window that has reset; unknown is not headroom either
+                del accounts[instance]
+                report[instance] = {'projected_pct': None, 'utilization': None, 'window': prior['window'],
+                                    'resets_at': prior['resets_at'], 'state': 'ended_with_window', 'since': at.isoformat()}
+                continue
+            # still constrained until a known projection falls below release; never headroom while unknown
+            row = {'projected_pct': None, 'utilization': None, 'window': prior['window'], 'resets_at': prior.get('resets_at'),
+                   'state': 'held_unknown', 'since': prior['since']}
+            report[instance] = constrained[instance] = row
             continue
         projected, window = binding['projected_pct'], binding['window']
-        prior = (memory or {}).get(instance)
+        facts = {'projected_pct': projected, 'utilization': binding.get('utilization'), 'window': window,
+                 'resets_at': binding.get('resets_at')}
+        reset_from = None
+        stored_reset = parse_time(prior.get('resets_at')) if prior else None
+        if prior and (same_window(prior, binding) is False
+                      or (same_window(prior, binding) is None and stored_reset is not None and stored_reset <= at)):
+            # the constraint ended with its window (shown by the reading, or by the stored reset time having passed)
+            reset_from, prior = prior, None
         known[instance] = projected
         if projected >= activate or (prior and projected >= release):
             state = 'activated' if projected >= activate else 'held_by_hysteresis'
             since = prior['since'] if prior else at.isoformat()
-            accounts[instance] = {'since': since, 'window': window}
-            row = {'projected_pct': projected, 'window': window, 'state': state, 'since': since}
+            # keep the stored reset time inside one window, so source jitter does not rewrite the file on every call;
+            # store only a zoned time, so an unusable source time leaves the row without identity instead of a bad one
+            observed_reset = facts['resets_at'] if parse_time(facts['resets_at']) else None
+            resets_at = prior.get('resets_at') if prior and prior.get('resets_at') else observed_reset
+            accounts[instance] = {'since': since, 'window': window} | ({'resets_at': resets_at} if resets_at else {})
+            row = facts | {'state': state, 'since': since}
             report[instance] = constrained[instance] = row
-        elif prior:
+        elif prior or reset_from:
             del accounts[instance]
-            report[instance] = {'projected_pct': projected, 'window': window, 'state': 'released', 'since': at.isoformat()}
+            report[instance] = facts | {'state': 'released', 'since': at.isoformat()}
+        else:
+            continue
+        if reset_from:
+            report[instance]['previous_window'] = {'window': reset_from['window'], 'resets_at': reset_from.get('resets_at')}
+        elif prior and same_window(prior, binding) is None:
+            # hysteresis still applies: without identity, a reset cannot be shown
+            report[instance]['previous_window'] = 'not_recorded' if not prior.get('resets_at') else 'not_comparable'
     return accounts, report, constrained, known, unknown
 
 
