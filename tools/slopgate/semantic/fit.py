@@ -30,12 +30,21 @@ sys.path.insert(0, str(HERE))
 from jevgate import load_rules  # noqa: E402
 
 
+def measured_columns(rows):
+    """Columns measured for every row. A column missing from some rows is dropped, not zero-filled:
+    the rows that lack it are not a random sample, so a fill value would leak their label."""
+    sets = [set(r["features"]) for r in rows]
+    cols = sorted(set.intersection(*sets)) if sets else []
+    dropped = sorted(set().union(*sets) - set(cols)) if sets else []
+    if dropped:
+        print(f"dropped {len(dropped)} columns not measured for every document: {', '.join(dropped)}",
+              file=sys.stderr)
+    return cols
+
+
 def load():
     d = json.loads((HERE / "feature_matrix.json").read_text())
-    cols = sorted(next(iter(d.values()))["features"]) if d else []
-    for key, row in d.items():
-        if set(row["features"]) != set(cols):
-            raise ValueError(f"Inconsistent feature columns at {key}; use a complete matrix with the same measured questions")
+    cols = measured_columns(d.values())
     X, y, keys = [], [], []
     for k, v in sorted(d.items()):
         X.append([float(v["features"][c]) for c in cols])
