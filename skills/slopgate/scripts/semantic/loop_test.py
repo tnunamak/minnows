@@ -256,7 +256,7 @@ def main():
         shrank = len(after.split()) < len(before.split()) * 0.45
         truncated = shrank and ends_clean(before) and not ends_clean(after)
 
-        loss_verdict = llm(LOSS.format(before=clip(before), after=clip(after)),
+        loss_verdict = llm(LOSS.format(before=before, after=after),
                            max_tokens=120)
         loss_match = re.fullmatch(r"LOST:[ \t]*(yes|no)[ \t]*\nWHAT:[ \t]*(\S[^\n]*)",
                                   loss_verdict.strip(), re.I)
