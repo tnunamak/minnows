@@ -1563,10 +1563,19 @@ def test_concurrent_directive_add_end_and_route_reads_never_tear_or_lose_a_row(w
     jobs = [('add', clock + ['directive', *add_args(name, 'provider=codex'), '--receipts', world.receipts, *known], dict(env)) for name in adds]
     jobs += [('end', clock + ['directive', 'end', name, '--reason', 'done', '--receipts', world.receipts, *known], dict(env, PINNED_NOW=NOW)) for name in seeded]
     jobs += [('route', clock + ['route', 'implement.quota-tight', *map(str, world.args()), '--decision-id', f'read{n}'], dict(env, PINNED_NOW=NOW)) for n in range(8)]
-    procs = [(kind, subprocess.Popen(map(str, argv), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=job_env)) for kind, argv, job_env in jobs]
-    assert len({p.pid for _, p in procs}) == len(jobs) == 24
-    barrier.write_text('go')
-    results = [(kind, p.communicate(), p.returncode) for kind, p in procs]
+    procs = []
+    try:
+        for kind, argv, job_env in jobs:
+            procs.append((kind, subprocess.Popen(map(str, argv), stdout=subprocess.PIPE,
+                                                stderr=subprocess.PIPE, text=True, env=job_env)))
+        assert len({p.pid for _, p in procs}) == len(jobs) == 24
+        barrier.write_text('go')
+        results = [(kind, p.communicate(timeout=30), p.returncode) for kind, p in procs]
+    finally:
+        for _, proc in procs:
+            if proc.poll() is None:
+                proc.kill()
+            proc.communicate(timeout=30)
     for kind, (out, err), code in results:
         assert code == 0, (kind, err)
         assert json.loads(out), kind
@@ -1649,14 +1658,21 @@ def test_directive_add_waits_for_a_held_exclusive_lock(world):
     directives = world.receipts.with_name('directives.jsonl')
     known = ['--policy', world.tmp / 'policy.json', '--available', world.tmp / 'catalog.json', '--accounts', world.tmp / 'accounts.json']
     argv = [sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), 'directive', *add_args('held', 'provider=codex'), '--receipts', world.receipts, *known]
-    with open(directives, 'r+') as stream:
-        fcntl.flock(stream, fcntl.LOCK_EX)
-        before = directives.read_bytes()
-        proc = subprocess.Popen(list(map(str, argv)), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        time.sleep(1.0)
-        assert proc.poll() is None, 'the writer must block while the lock is held'
-        assert directives.read_bytes() == before
-        fcntl.flock(stream, fcntl.LOCK_UN)
-    out, err = proc.communicate(timeout=30)
+    proc = None
+    try:
+        with open(directives, 'r+') as stream:
+            fcntl.flock(stream, fcntl.LOCK_EX)
+            before = directives.read_bytes()
+            proc = subprocess.Popen(list(map(str, argv)), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            time.sleep(1.0)
+            assert proc.poll() is None, 'the writer must block while the lock is held'
+            assert directives.read_bytes() == before
+            fcntl.flock(stream, fcntl.LOCK_UN)
+        out, err = proc.communicate(timeout=30)
+    finally:
+        if proc is not None:
+            if proc.poll() is None:
+                proc.kill()
+            proc.communicate(timeout=30)
     assert proc.returncode == 0, err
     assert [json.loads(line)['id'] for line in directives.read_text().splitlines()] == ['seed', 'held']
