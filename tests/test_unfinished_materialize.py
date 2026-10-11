@@ -27,6 +27,12 @@ class QuoteSpanTests(unittest.TestCase):
             "the first source phrase appears before unrelated text and the later source phrase",
         ))
 
+    def test_ellipsis_spans_must_keep_source_order(self):
+        self.assertFalse(materialize.quote_ok(
+            "the later source phrase ... the first source phrase",
+            "the first source phrase appears before unrelated text and the later source phrase",
+        ))
+
     def test_empty_or_missing_spans_are_rejected(self):
         self.assertFalse(materialize.quote_ok(" ... ", "any source text"))
         self.assertFalse(materialize.quote_ok("fabricated source words", "different text entirely"))

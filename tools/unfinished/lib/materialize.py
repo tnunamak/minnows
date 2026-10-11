@@ -19,7 +19,13 @@ def quote_ok(quote, src):
     if not spans:
         return False
     source = norm(src)
-    return all(span in source for span in spans)
+    cursor = 0
+    for span in spans:
+        position = source.find(span, cursor)
+        if position < 0:
+            return False
+        cursor = position + len(span)
+    return True
 
 
 def main():
