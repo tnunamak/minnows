@@ -284,7 +284,7 @@ def main():
                 detail = f"level={f['level']}"
             print(f"  [{f['severity']}] {f['rule']} ({detail}) "
                   f"-> {f['suggestion']}")
-    sys.exit(1 if findings else 0)
+    sys.exit(1 if any(f.get("severity") != "info" for f in findings) else 0)
 
 
 if __name__ == "__main__":
