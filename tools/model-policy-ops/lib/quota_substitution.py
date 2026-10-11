@@ -157,8 +157,11 @@ def decide(memory, observed, thresholds, at):
         facts = {'projected_pct': projected, 'utilization': binding.get('utilization'), 'window': window,
                  'resets_at': binding.get('resets_at')}
         reset_from = None
-        if prior and same_window(prior, binding) is False:
-            reset_from, prior = prior, None  # the constraint ended with its window; this window starts fresh
+        stored_reset = parse_time(prior.get('resets_at')) if prior else None
+        if prior and (same_window(prior, binding) is False
+                      or (same_window(prior, binding) is None and stored_reset is not None and stored_reset <= at)):
+            # the constraint ended with its window (shown by the reading, or by the stored reset time having passed)
+            reset_from, prior = prior, None
         known[instance] = projected
         if projected >= activate or (prior and projected >= release):
             state = 'activated' if projected >= activate else 'held_by_hysteresis'

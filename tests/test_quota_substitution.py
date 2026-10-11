@@ -527,6 +527,12 @@ def test_an_observed_reset_time_that_cannot_be_parsed_is_not_comparable_and_keep
     assert world.stored()['codex']['resets_at'] == NEW_RESET
 
 
+def test_a_passed_stored_reset_ends_the_constraint_even_when_the_new_reset_time_is_unusable(world, monkeypatch):
+    reading(world, monkeypatch, '2026-10-11T03:50:00Z', 99, 170, OLD_RESET)
+    row = block(reading(world, monkeypatch, '2026-10-14T05:00:00Z', 40, 92, 'soon'))['active_accounts']['codex']
+    assert row['state'] == 'released' and row['previous_window'] == {'window': '7d', 'resets_at': OLD_RESET}
+
+
 def test_a_different_window_name_is_a_different_window_even_without_reset_times():
     import quota_substitution as qs
     at = datetime(2026, 10, 11, 9, tzinfo=timezone.utc)

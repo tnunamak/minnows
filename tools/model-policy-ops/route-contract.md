@@ -275,7 +275,8 @@ second; consecutive windows differ by hours). At a reset boundary:
 - an unknown reading before that time holds the constraint (`held_unknown`);
 - an early reset followed only by unknown readings holds until the stored reset time,
   because nothing shows the window changed;
-- a different window name always ends the stored constraint;
+- a different window name always ends the stored constraint, and so does a stored reset
+  time that has passed, even when the new reading's reset time is unusable;
 - a stored row without a usable `resets_at` (written before revision 19, or observed from
   a source time without a zone, which is not stored) keeps the old rule, and the next
   known reading with a zoned reset time records it. Inside one window the stored reset
