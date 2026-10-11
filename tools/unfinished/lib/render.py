@@ -87,7 +87,7 @@ def main():
     resolved = {}
     if db.execute("select 1 from sqlite_master where name='resolved'").fetchone():
         resolved = {i: json.loads(o) for i, o in db.execute("select item_id, out from resolved")}
-    items, bundles = [], defaultdict(list)
+    items, bundles, unadjudicated = [], defaultdict(list), []
     for (iid, st, kind, project, title, detail, owner, ts, last_ts, sreason, links, quote, sk, seg_id, score,
          bundle, adj) in rows:
         a = json.loads(adj) if adj else None
@@ -120,6 +120,7 @@ def main():
             bundles[bundle].append(it)
             continue
         if not a:
+            unadjudicated.append(it)
             continue  # not adjudicated: kept in ledger.jsonl only
         d = dec.get(iid)
         if d:
@@ -180,7 +181,7 @@ def main():
     found_done = sorted([i for i in items if i.get("checked") and i.get("verdict") == "done"], key=rank)
 
     # evidence pages
-    for i in items + [x for b in bundles.values() for x in b]:
+    for i in items + unadjudicated + [x for b in bundles.values() for x in b]:
         write_evidence(db, i)
 
     gen = uuid.uuid4().hex[:12]
@@ -312,7 +313,7 @@ def main():
     os.replace(tmp, os.path.join(OUT, "LEDGER.md"))
     open(GEN, "w").write(gen)
     with open(os.path.join(OUT, "ledger.jsonl.tmp"), "w") as f:
-        for i in sorted(items, key=rank) + [x for b in bundles.values() for x in b]:
+        for i in sorted(items + unadjudicated, key=rank) + [x for b in bundles.values() for x in b]:
             f.write(json.dumps(i, ensure_ascii=False) + "\n")
     os.replace(os.path.join(OUT, "ledger.jsonl.tmp"), os.path.join(OUT, "ledger.jsonl"))
     print(f"open={len(live)} likely={len(likely)} stale={len(stale)} bundles={ {k: len(v) for k, v in bundles.items()} }",
