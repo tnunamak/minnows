@@ -51,12 +51,21 @@ def verdict(s):
 
 def main():
     rows = []
+    seen = set()
+    sources = {}
     for d in ("loop_corpus", "loop_corpus_pr", "loop_corpus_web"):
         for f in sorted((HERE / d).glob("*.txt")):
             rev = HERE / "loop_revisions" / f"{f.stem}.txt"
             if not rev.exists():
                 continue
-            sb, sa = stats(f.read_text()), stats(rev.read_text())
+            original = f.read_text()
+            if (f.stem, original) in seen:
+                continue
+            if f.stem in sources and sources[f.stem] != original:
+                raise RuntimeError(f"ambiguous shared revision for {f.stem}")
+            seen.add((f.stem, original))
+            sources[f.stem] = original
+            sb, sa = stats(original), stats(rev.read_text())
             if not sb:
                 continue
             rows.append((f.stem, sb, sa, verdict(sb), verdict(sa)))
