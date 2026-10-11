@@ -39,6 +39,7 @@ def import_ticks():
         print("LEDGER.md generation mismatch; not importing ticks", file=sys.stderr)
         return 0
     dec = load_decisions()
+    tick_at = dt.datetime.fromtimestamp(os.path.getmtime(p)).astimezone()
     n = 0
     lines = txt.splitlines()
     ticked = []
@@ -51,7 +52,13 @@ def import_ticks():
             ticked.append(m.group(1))
     with open(DEC, "a") as f:
         for iid in dict.fromkeys(ticked):
-            if iid not in dec:
+            d = dec.get(iid)
+            if d and d.get("decision") == "snooze" and (d.get("until") or "") > NOW.isoformat():
+                # The CLI can append a snooze without changing the ledger generation.
+                # Preserve it if the checkbox file predates that owner decision.
+                if dt.datetime.fromisoformat(d.get("at") or NOW.isoformat()).astimezone() >= tick_at:
+                    continue
+            if not d or d.get("decision") == "snooze":
                 f.write(json.dumps({"id": iid, "decision": "done", "at": NOW.isoformat(), "via": "ledger-tick"}) + "\n")
                 n += 1
     return n
