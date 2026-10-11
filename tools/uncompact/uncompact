@@ -83,7 +83,7 @@ def create_recovered_session(src_path: Path, project_dir: Path, cutoff: int, lin
                     out.write(json.dumps(rewrite(json.loads(line)), separators=(",", ":")) + "\n")
                 except json.JSONDecodeError as exc:
                     raise ValueError(f"source JSONL is corrupt inside recovery prefix: {exc.msg}") from exc
-    except Exception:
+    except BaseException:
         dst_path.unlink(missing_ok=True)
         raise
     return new_id
