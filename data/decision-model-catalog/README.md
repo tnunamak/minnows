@@ -95,7 +95,7 @@ Liquid's docs would bill it k times), per-request minimums, regional premiums an
 | Clef (Workers AI) | $0.24 | $0.000552 | $0.000184 | $184.00 |
 
 The per-decision column assumes the 3 questions are billed as one request. Sent as 3 separate requests that each repeat the
-2,000-token state, each decision bills about 2,100 tokens (state + one question), roughly 2.1x the per-decision figure above
+2,000-token state, each decision bills about 2,100 tokens (state + one question), roughly 2.74x the per-decision figure above
 (Jev: 2,100 x $0.042 / 1M = $0.0000882).
 
 Measured costs are separate rows (`unit: usd_per_decision`) and differ because real items are shorter: Requesty billed $0.131 per 1,000
