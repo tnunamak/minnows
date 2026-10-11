@@ -77,9 +77,10 @@ def main():
     db = sqlite3.connect(str(WORK_DB), timeout=600)
     db.execute("create table if not exists resolved (item_id text primary key, out text, src text)")
     xs = [json.loads(l) for l in open(os.path.join(OUT, "ledger.jsonl"))]
-    done = {iid for iid, out in db.execute("select item_id, out from resolved")
-            if json.loads(out).get("status_now") not in ("open", "unclear")}
-    pick = [x for x in xs if x.get("verdict") == "open" and x["id"] not in done][:n]
+    previous = {iid: json.loads(out) for iid, out in db.execute("select item_id, out from resolved")}
+    done = {iid for iid, out in previous.items() if out.get("status_now") not in ("open", "unclear")}
+    pick = sorted([x for x in xs if x.get("verdict") == "open" and x["id"] not in done],
+                  key=lambda x: x["id"] in previous)[:n]
     batch_in = [{"id": x["id"], "project": x["project"], "source_type": x["source_type"],
                  "next_action": x.get("next_action"), "why": x.get("why"), "first_seen": x["first_seen"],
                  "session_key": x.get("session_key"), "prs": [p.get("ref") for p in x.get("prs", [])],
