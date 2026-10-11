@@ -4,6 +4,7 @@ In it the Codex 7d window is at 58% and projected near 105%, and the three Claud
 87% (`claude-work`), 72% (`claudeAgent`) and 29% (`claude-alt`). Each test changes one input and runs the real CLI.
 """
 import fcntl
+from datetime import datetime, timezone
 import json
 import os
 import subprocess
@@ -527,3 +528,24 @@ def test_a_simulation_does_not_trust_memory_in_an_unsafe_directory(world):
     assert result.returncode == 0, result.stderr
     assert block(out)['state'] == 'unreadable' and active(out) == {}, 'unsafe location: decide without memory'
     world.state.parent.chmod(0o700)
+
+
+
+def test_simulation_with_a_missing_state_directory_reads_missing_memory(tmp_path):
+    qs = __import__('quota_substitution')
+    out = qs.evaluate(tmp_path / 'gone' / 'quota-substitution.json', {'activate_projected_pct': 95, 'release_projected_pct': 90},
+                      {'codex': {'projected_pct': 92.0, 'window': '7d'}}, datetime.now(timezone.utc), write=False)
+    assert out['state'] == 'missing' and out['constrained'] == {}
+
+
+def test_simulation_with_an_unreadable_state_directory_decides_without_memory(tmp_path, monkeypatch):
+    qs = __import__('quota_substitution')
+    real_stat = qs.Path.stat
+    def stat(self, *args, **kwargs):
+        if self == tmp_path / 'locked':
+            raise PermissionError(13, 'Permission denied')
+        return real_stat(self, *args, **kwargs)
+    monkeypatch.setattr(qs.Path, 'stat', stat)
+    out = qs.evaluate(tmp_path / 'locked' / 'quota-substitution.json', {'activate_projected_pct': 95, 'release_projected_pct': 90},
+                      {'codex': {'projected_pct': 105.0, 'window': '7d'}}, datetime.now(timezone.utc), write=False)
+    assert out['state'] == 'unreadable' and out['constrained'] == {'codex': out['constrained']['codex']}

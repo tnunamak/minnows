@@ -150,8 +150,16 @@ def evaluate(path, thresholds, observed, at, *, write):
             memory, state, issue = None, 'unreadable', error.strerror or str(error)
             outcome = decide(None, observed, thresholds, at)
     else:
-        parent = Path(path).parent
-        if parent.exists() and parent.stat().st_mode & 0o022:
+        try:
+            parent_mode = Path(path).parent.stat().st_mode
+        except FileNotFoundError:
+            parent_mode = None   # no directory, so no memory: read_memory reports missing
+        except OSError as error:
+            parent_mode = 'error'
+            memory, state, issue = None, 'unreadable', error.strerror or type(error).__name__
+        if parent_mode == 'error':
+            pass
+        elif parent_mode is not None and parent_mode & 0o022:
             memory, state, issue = None, 'unreadable', 'state directory must not be group- or world-writable'
         else:
             memory, state, issue = read_memory(path)
