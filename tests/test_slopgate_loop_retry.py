@@ -70,3 +70,35 @@ def test_llm_does_not_retry_permanent_html_401_response():
 
     call.assert_called_once()
     sleep.assert_not_called()
+
+
+def test_llm_retries_overload_named_only_in_the_http_error_body():
+    overloaded = subprocess.CompletedProcess(
+        ["curl"], 22, '{"error":{"message":"Overloaded"}}',
+        "curl: (22) The requested URL returned error: 529")
+    success = subprocess.CompletedProcess(
+        ["curl"], 0, '{"choices":[{"message":{"content":"ok"}}]}', "")
+    with mock.patch.object(loop_test.subprocess, "run", side_effect=[overloaded, success]) as call, \
+         mock.patch.object(loop_test.time, "sleep") as sleep, \
+         mock.patch.dict(loop_test.os.environ, {"OPENAI_API_KEY": ""}):
+        assert loop_test.llm("prompt") == "ok"
+
+    assert call.call_count == 2
+    sleep.assert_called_once_with(15)
+
+
+def test_llm_error_keeps_the_gateway_body():
+    bad_request = subprocess.CompletedProcess(
+        ["curl"], 22, '{"error":{"message":"context length exceeded"}}',
+        "curl: (22) The requested URL returned error: 400")
+    with mock.patch.object(loop_test.subprocess, "run", return_value=bad_request), \
+         mock.patch.object(loop_test.time, "sleep") as sleep, \
+         mock.patch.dict(loop_test.os.environ, {"OPENAI_API_KEY": ""}):
+        try:
+            loop_test.llm("prompt")
+        except RuntimeError as error:
+            assert "context length exceeded" in str(error)
+        else:
+            raise AssertionError("permanent HTTP error was swallowed")
+
+    sleep.assert_not_called()

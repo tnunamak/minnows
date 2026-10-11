@@ -147,8 +147,9 @@ def _llm(prompt, max_tokens=1200, timeout=300):
              "-d", f"@{body}"],
             capture_output=True, text=True, timeout=timeout + 30)
         if r.returncode:
-            detail = r.stderr.strip() or r.stdout.strip()
-            raise RuntimeError(f"curl exited {r.returncode}: {detail[:200]}")
+            # Keep the body too: the retry checks read gateway text such as "overload".
+            detail = " ".join(x for x in (r.stderr.strip(), r.stdout.strip()) if x)
+            raise RuntimeError(f"curl exited {r.returncode}: {detail[:400]}")
         try:
             d = json.loads(r.stdout)
         except json.JSONDecodeError:
