@@ -22,11 +22,12 @@ def t3url(env_id, tid):
 
 
 def read(tid):
-    r = subprocess.run(["t3code", "--json", "threads", "read", "--thread", tid, "--detail", "answers",
-                        "--turns", "2", "--max-chars", "6000"], capture_output=True, text=True, timeout=120)
     try:
+        r = subprocess.run(["t3code", "--json", "threads", "read", "--thread", tid, "--detail", "answers",
+                            "--turns", "2", "--max-chars", "6000"], capture_output=True, text=True, timeout=120)
         return tid, json.loads(r.stdout)["data"]["thread"]
-    except Exception:
+    except Exception as error:
+        print(f"T3 read failed for {tid}: {error}", file=sys.stderr)
         return tid, None
 
 
