@@ -7,19 +7,20 @@ import random, sys
 sys.path.insert(0, ".")
 import fit
 X, y, cols, _ = fit.load()
-Xs, _, _ = fit.standardize(X)
 rng = random.Random(11)
 
 def loo_on(idx):
-    Xi = [Xs[i] for i in idx]; yi = [y[i] for i in idx]
+    Xi = [X[i] for i in idx]; yi = [y[i] for i in idx]
     c = 0
     for k in range(len(Xi)):
-        w, b = fit.train(Xi[:k]+Xi[k+1:], yi[:k]+yi[k+1:], epochs=200)
-        c += (fit.predict(w, b, Xi[k]) >= 0.5) == yi[k]
+        tr, mu, sd = fit.standardize(Xi[:k]+Xi[k+1:])
+        held = [(value-mean)/scale for value,mean,scale in zip(Xi[k],mu,sd)]
+        w, b = fit.train(tr, yi[:k]+yi[k+1:], epochs=200)
+        c += (fit.predict(w, b, held) >= 0.5) == yi[k]
     return c/len(yi)
 
 print("n     accuracy (mean of 3 subsamples)")
-full = list(range(len(Xs)))
+full = list(range(len(X)))
 for frac in (0.4, 0.6, 0.8, 1.0):
     n = int(len(full)*frac)
     accs = []
