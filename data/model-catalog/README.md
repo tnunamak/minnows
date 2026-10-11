@@ -150,7 +150,7 @@ Public benchmarks measure other people's tasks, so use them to narrow the choice
 | Task | Benchmark | Source | Grade | Models compared |
 |---|---|---|---|---|
 | Coding | CursorBench 3.2.0 | [`performance/anthropic-fable-mythos-5-1-2026-09.json`](performance/anthropic-fable-mythos-5-1-2026-09.json) · vendor table | C | Claude Fable 5.1 |
-| Coding | CursorBench 4.0 | [`performance/anthropic-opus-5-5-system-card-2026-09.json`](performance/anthropic-opus-5-5-system-card-2026-09.json) · vendor table | B | Claude Fable 5.1, Claude Opus 5.5 |
+| Coding | CursorBench 4.0 | [`performance/anthropic-opus-5-5-system-card-2026-09.json`](performance/anthropic-opus-5-5-system-card-2026-09.json) · vendor table | C | Claude Fable 5.1, Claude Opus 5.5 |
 | Coding | CursorBench 4.0 | [`performance/anthropic-sonnet5-5-digitized-2026-09.json`](performance/anthropic-sonnet5-5-digitized-2026-09.json) · vendor table | C | Claude Opus 5.5, Claude Sonnet 5.5 |
 | Coding | CursorBench 4.0 | [`performance/anthropic-opus5-5-digitized-2026-09.json`](performance/anthropic-opus5-5-digitized-2026-09.json) · vendor table | C | Claude Fable 5.1, Claude Opus 5.5 |
 | Coding | FrontierCode v1.1 (Main) | [`performance/anthropic-sonnet5-5-digitized-2026-09.json`](performance/anthropic-sonnet5-5-digitized-2026-09.json) · vendor table | C | Claude Opus 5.5, Claude Sonnet 5.5 |
