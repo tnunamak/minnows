@@ -99,7 +99,6 @@ def threshold_baseline(keys, y):
 
 def main():
     X, y, cols, keys = load()
-    Xs, _, _ = standardize(X)
     print(f"{len(X)} documents, {len(cols)} features, "
           f"{sum(y)} human / {len(y)-sum(y)} machine\n")
 
@@ -108,16 +107,18 @@ def main():
 
     # Leave-one-out: the only honest split at n=92.
     correct = 0
-    for i in range(len(Xs)):
-        Xtr = Xs[:i] + Xs[i + 1:]
+    for i in range(len(X)):
+        Xtr, mu, sd = standardize(X[:i] + X[i + 1:])
+        held = [(value - mean) / scale for value, mean, scale in zip(X[i], mu, sd)]
         ytr = y[:i] + y[i + 1:]
         w, b = train(Xtr, ytr)
-        correct += (predict(w, b, Xs[i]) >= 0.5) == y[i]
+        correct += (predict(w, b, held) >= 0.5) == y[i]
     print(f"learned on probabilities (LOO) : {correct/len(y):.1%}")
 
     majority = max(sum(y), len(y) - sum(y)) / len(y)
     print(f"majority-class baseline        : {majority:.1%}")
 
+    Xs, _, _ = standardize(X)
     w, b = train(Xs, y)
     ranked = sorted(zip(cols, w), key=lambda t: -abs(t[1]))
     print("\nstrongest learned features (sign: + means human-like):")
