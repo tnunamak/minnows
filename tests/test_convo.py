@@ -770,7 +770,7 @@ class LedgerTests(unittest.TestCase):
                 mock.patch.object(convo, "_hash_file_prefix", side_effect=AssertionError("growth proof")):
             _, _, code = self.run_convo("sync")
         self.assertEqual(code, 0)
-        with sqlite3.connect(self.data_dir / "ledger.sqlite3") as conn:
+        with contextlib.closing(sqlite3.connect(self.data_dir / "ledger.sqlite3")) as conn, conn:
             self.assertEqual(conn.execute("SELECT content_hash FROM source_files").fetchone()[0], expected)
 
     def test_stream_spool_is_removed_when_reading_raises(self):
@@ -1125,12 +1125,12 @@ class LedgerTests(unittest.TestCase):
         self.ledger().status()
         self._ledger.close()
         self._ledger = None
-        with sqlite3.connect(self.data_dir / "ledger.sqlite3") as conn:
+        with contextlib.closing(sqlite3.connect(self.data_dir / "ledger.sqlite3")) as conn, conn:
             conn.execute("PRAGMA user_version = 99")
         with self.assertRaises(SystemExit) as raised:
             convo.main(["status"])
         self.assertIn("newer than supported", str(raised.exception))
-        with sqlite3.connect(self.data_dir / "ledger.sqlite3") as conn:
+        with contextlib.closing(sqlite3.connect(self.data_dir / "ledger.sqlite3")) as conn, conn:
             self.assertEqual(conn.execute("PRAGMA user_version").fetchone()[0], 99)
 
     def test_sync_lock_excludes_other_syncs_while_wal_readers_continue(self):
