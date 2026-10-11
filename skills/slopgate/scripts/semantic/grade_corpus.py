@@ -141,6 +141,11 @@ def main():
             print(f"  {len(done)} agreed comparisons", flush=True)
     PAIRS.write_text(json.dumps(done))
 
+    if not done:
+        raise RuntimeError("no usable pairwise comparisons; prior labels preserved")
+    covered = {key for a, b, _ in done for key in (a, b)}
+    if set(keys) - covered:
+        raise RuntimeError("some documents have no comparisons; prior labels preserved")
     s = bradley_terry(keys, done)
     lo, hi = min(s.values()), max(s.values())
     rng_ = (hi - lo) or 1.0
