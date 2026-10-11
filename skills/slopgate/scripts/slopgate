@@ -177,6 +177,8 @@ def cmd_check(a):
             extra = ""
             if "probability" in f:
                 extra = f" (p={f['probability']})"
+            elif "score" in f:
+                extra = f" (score={f['score']})"
             elif f.get("text"):
                 extra = f" — {f['text'][:60]!r}"
             fix = f.get("suggestion", "")
