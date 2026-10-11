@@ -21,10 +21,10 @@ are the efficient unit. This script:
 
   - refuses to run if the selection exceeds the unit budget
   - requires --confirm to spend anything
-  - caches the full response to disk on first success, and refuses to re-spend
+  - caches the accepted bulk-job response to disk, and refuses to re-spend
     if the cache exists
-  - keeps the per-window detail, not just the verdict, so this never needs
-    re-running for a different question
+  - reports the accepted job as incomplete; fetching classification results
+    requires a separate retrieval workflow
 
 Usage:
   pangram_audit.py --plan              # show what would be sent, spend nothing
@@ -104,12 +104,12 @@ def call(items, key):
     body.write_text(json.dumps(payload))
     try:
         r = subprocess.run(
-            ["curl", "-sS", "-m", "600", BULK,
+            ["curl", "-sS", "--fail-with-body", "-m", "600", BULK,
              "-H", "Content-Type: application/json",
              "-H", f"x-api-key: {key}",
              "-d", f"@{body}"],
             capture_output=True, text=True, timeout=660)
-        return r.stdout, r.stderr
+        return r.stdout, r.stderr, r.returncode
     finally:
         body.unlink(missing_ok=True)
 
@@ -123,7 +123,7 @@ def main():
 
     if CACHE.exists() and a.confirm:
         print(f"REFUSING: {CACHE.name} already exists. The budget is spent and "
-              f"the results are cached. Delete it deliberately to re-spend.")
+              f"the bulk-job response is cached. Delete it deliberately to re-spend.")
         return 2
 
     chosen, spent = fit(select(), a.budget)
@@ -143,7 +143,10 @@ def main():
         return 1
 
     print(f"\nspending {spent} units...", flush=True)
-    out, err = call(chosen, key)
+    out, err, status = call(chosen, key)
+    if status != 0:
+        print(f"Pangram transport/HTTP failure (exit {status}); no completed audit cached", file=sys.stderr)
+        return 1
     try:
         data = json.loads(out)
     except json.JSONDecodeError:
@@ -151,13 +154,27 @@ def main():
         (HERE / "pangram_audit_raw_error.txt").write_text(out + "\n---\n" + err)
         return 1
 
+    if not isinstance(data, dict) or data.get("error"):
+        print("invalid Pangram bulk response; no completed audit cached", file=sys.stderr)
+        return 1
+    accepted = data.get("accepted_items")
+    failed = data.get("failed_items")
+    if (not isinstance(data.get("bulk_id"), str) or not data["bulk_id"]
+            or data.get("status") not in ("queued", "running", "succeeded", "failed", "partial")
+            or data.get("total_items") != len(chosen)
+            or not isinstance(accepted, list) or not isinstance(failed, list)
+            or not accepted or len(accepted) + len(failed) != len(chosen)
+            or any(not isinstance(item, dict) or not item.get("task_id") for item in accepted)):
+        print("Pangram returned no valid accepted bulk job; no completed audit cached", file=sys.stderr)
+        return 1
+
     CACHE.write_text(json.dumps(
         {"requested_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
          "units_spent": spent,
          "items": [{k: v for k, v in c.items() if k != "text"} for c in chosen],
          "response": data}, indent=2))
-    print(f"cached full response to {CACHE.name}")
-    return 0
+    print(f"cached accepted bulk job to {CACHE.name}; classification results are not yet retrieved", file=sys.stderr)
+    return 1
 
 
 if __name__ == "__main__":
