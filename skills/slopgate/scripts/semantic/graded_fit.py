@@ -18,7 +18,7 @@ keys = [k for k in sorted(m) if k in g]
 cols = sorted(m[keys[0]]["features"]) if keys else []
 for key in keys:
     if set(m[key]["features"]) != set(cols):
-        raise ValueError(f"Mixed feature schema at {key}; rerun features.py")
+        raise ValueError(f"Mixed feature schema at {key}; rerun features.py for current rules; rescore research columns separately")
 X = [[float(m[k]["features"][c]) for c in cols] for k in keys]
 Xs, mu, sd = fit.standardize(X)
 y_bin = [m[k]["label"] for k in keys]

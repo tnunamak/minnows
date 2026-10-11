@@ -35,7 +35,7 @@ def load():
     cols = sorted(next(iter(d.values()))["features"]) if d else []
     for key, row in d.items():
         if set(row["features"]) != set(cols):
-            raise ValueError(f"Mixed feature schema at {key}; rerun features.py")
+            raise ValueError(f"Mixed feature schema at {key}; rerun features.py for current rules; rescore research columns separately")
     X, y, keys = [], [], []
     for k, v in sorted(d.items()):
         X.append([float(v["features"][c]) for c in cols])

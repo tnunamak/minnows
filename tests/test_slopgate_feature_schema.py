@@ -29,6 +29,39 @@ def matrix(values):
             for i, value in enumerate(values)}
 
 class FeatureSchema(unittest.TestCase):
+    def test_total_scoring_outage_preserves_existing_paid_rows(self):
+        import features
+        with tempfile.TemporaryDirectory() as directory:
+            p = Path(directory); (p / "corpus").mkdir()
+            (p / "corpus/current.txt").write_text("current " * 50)
+            cache = p / "feature_matrix.json"
+            original = {"corpus/current": {"features": {"old": .25}, "label": 1, "kind": "doc", "words": 50}}
+            cache.write_text(json.dumps(original))
+            with mock.patch.object(features, "HERE", p), mock.patch.object(features, "CACHE", cache), \
+                 mock.patch.object(features, "SOURCES", [("corpus", 1, "doc")]), \
+                 mock.patch.object(features, "score_doc", side_effect=ImportError("SDK unavailable")), \
+                 mock.patch.object(features, "load_rules", return_value={}), contextlib.redirect_stdout(io.StringIO()):
+                features.main()
+            self.assertEqual(json.loads(cache.read_text()), original)
+
+    def test_unchanged_rows_reuse_scores_but_changed_rules_rescore(self):
+        import features
+        with tempfile.TemporaryDirectory() as directory:
+            p = Path(directory); (p / "corpus").mkdir()
+            (p / "corpus/current.txt").write_text("current " * 50)
+            cache = p / "feature_matrix.json"
+            rules = {"rule": {"question": "original"}}
+            with mock.patch.object(features, "HERE", p), mock.patch.object(features, "CACHE", cache), \
+                 mock.patch.object(features, "SOURCES", [("corpus", 1, "doc")]), \
+                 mock.patch.object(features, "score_doc", return_value={"new": .25}) as score, \
+                 mock.patch.object(features, "load_rules", return_value=rules), contextlib.redirect_stdout(io.StringIO()):
+                features.main()
+                features.main()
+                self.assertEqual(score.call_count, 1)
+                rules["rule"]["question"] = "changed"
+                features.main()
+                self.assertEqual(score.call_count, 2)
+
     def test_binary_fit_rejects_unmeasured_columns(self):
         with tempfile.TemporaryDirectory() as directory:
             p = Path(directory)

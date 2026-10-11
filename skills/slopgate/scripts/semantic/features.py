@@ -22,10 +22,12 @@ rules" output lost to real human writing five times out of six.
 
 This builds the matrix. fit.py trains on it.
 """
+import hashlib
 import json
 import os
 import pathlib
 import sys
+import tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -72,24 +74,43 @@ def score_doc(text, kind, rules):
 
 def main():
     rules = load_rules("doc")
-    # Recompute current documents and rules; path-only cached rows can be stale.
+    previous = json.loads(CACHE.read_text()) if CACHE.exists() else {}
     data = {}
-    CACHE.write_text(json.dumps(data))
+    updated = 0
+    failed = 0
     for d, label, kind in SOURCES:
         for f in sorted((HERE / d).glob("*.txt")):
             key = f"{d}/{f.stem}"
             t = f.read_text().strip()
             if len(t.split()) < 40:
                 continue
+            fingerprint = hashlib.sha256(
+                json.dumps([t, kind, label, rules], sort_keys=True).encode()).hexdigest()
+            if previous.get(key, {}).get("fingerprint") == fingerprint:
+                data[key] = previous[key]
+                continue
             try:
                 feats = score_doc(t, kind, rules)
             except Exception as e:
+                failed += 1
                 print(f"  skip {key}: {type(e).__name__}", flush=True)
                 continue
             data[key] = {"label": label, "kind": kind,
-                         "words": len(t.split()), "features": feats}
-            CACHE.write_text(json.dumps(data, indent=2))
+                         "words": len(t.split()), "features": feats, "fingerprint": fingerprint}
+            updated += 1
             print(f"  {key}  label={label}", flush=True)
+    if failed and not updated:
+        print("Scoring unavailable; existing cache preserved.")
+        return
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=CACHE.parent, delete=False) as stream:
+            temporary = pathlib.Path(stream.name)
+            json.dump(data, stream, indent=2)
+        os.replace(temporary, CACHE)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
     n1 = sum(1 for v in data.values() if v["label"] == 1)
     n0 = len(data) - n1
     ncol = len(next(iter(data.values()))["features"]) if data else 0
