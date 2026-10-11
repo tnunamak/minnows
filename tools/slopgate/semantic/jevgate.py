@@ -221,7 +221,7 @@ def run(text, kind="doc"):
                          "suggestion": f"quality score {score:.2f} of 1.0, from a model "
                                        f"fitted to pairwise quality comparisons"})
 
-    order = {"high": 0, "medium": 1, "low": 2, "info": 3}
+    order = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
     findings.sort(key=lambda f: (order[f["severity"]], -f.get("probability", 1.0)))
     return findings, None
 
