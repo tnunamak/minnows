@@ -204,8 +204,8 @@ def assess_pair(ctx, op_id, arm, instance, requires):
 NEUTRAL_ARM = {'provider': None, 'model': '', 'effort': None}
 
 
-def substitution_context(params, accounts, quota, quota_meta, now, state_path, *, write):
-    """The `substitution` input of `make_context`, or None when the pack does not enable the feature.
+def substitution_context(params, accounts, quota, quota_meta, now, state_path, *, write, authorized_by):
+    """The `substitution` input of `make_context`, or None when neither the pack nor the user policy enables the feature.
 
     Each mapped subscription account gets the binding projection of its pace windows. Those windows are
     the same for every model, so the arm does not matter here. An account with no known projection is
@@ -220,7 +220,7 @@ def substitution_context(params, accounts, quota, quota_meta, now, state_path, *
             continue
         binding = quota_view(quota, quota_meta, NEUTRAL_ARM, entry, params.get('pace_windows', []), now)['binding']
         observed[instance] = {'projected_pct': binding['projected_pct'], 'window': binding['window']} if binding else None
-    return {'thresholds': thresholds, 'state': quota_substitution.evaluate(state_path, thresholds, observed, now, write=write),
+    return {'thresholds': thresholds, 'authorized_by': authorized_by, 'state': quota_substitution.evaluate(state_path, thresholds, observed, now, write=write),
             'ranks': {instance: entry['substitution_rank'] for instance, entry in accounts.items() if entry.get('substitution_rank') is not None}}
 
 

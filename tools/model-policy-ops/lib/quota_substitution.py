@@ -17,7 +17,6 @@ from pathlib import Path
 STATE_FILE = 'quota-substitution.json'
 SCHEMA_VERSION = 1
 ACTIVE_STATES = ('activated', 'held_by_hysteresis')
-AUTHORIZED_BY = 'pack routing.quota_substitution (owner directive)'
 REASON = ('the best pair sits on an account whose weekly quota is projected at or above the activation threshold, '
           'and an eligible pack candidate sits on an account with a known projection below it')
 
@@ -200,5 +199,5 @@ def summary(sub, *, move=None):
     if state['write_error']:
         block['state_write_error'] = state['write_error']
     if move:
-        block |= {'from': move['from'], 'to': move['to'], 'reason': REASON, 'authorized_by': AUTHORIZED_BY}
+        block |= {'from': move['from'], 'to': move['to'], 'reason': REASON, 'authorized_by': sub['authorized_by']}
     return block

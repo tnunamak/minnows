@@ -907,7 +907,8 @@ def baseline_tree(tmp_path):
 
 
 def run_tool(tool, *args):
-    result = subprocess.run([str(tool), *map(str, args)], capture_output=True, text=True)
+    env = dict(os.environ, XDG_CONFIG_HOME='/nonexistent-xdg')   # no real user-policy.json leaks in
+    result = subprocess.run([str(tool), *map(str, args)], capture_output=True, text=True, env=env)
     return result.returncode, result.stdout, result.stderr
 
 
@@ -924,18 +925,18 @@ def test_legacy_commands_are_byte_identical_to_the_baseline(world, tmp_path):
         for extra in ([], ['--account-hint', 'claude-work', '--quota-provider', 'claude', '--quota-source', 'work'], ['--override', 'effort=high', '--reason', 'r']):
             old = run_tool(old_tool, 'resolve', op, *common, *extra, '--receipts', receipts_old, '--decision-id', 'same')
             new = run_tool(TOOL, 'resolve', op, *common, *extra, '--receipts', receipts_new, '--decision-id', 'same')
-            strip = lambda r: (r[0], {k: v for k, v in json.loads(r[1] or '{}').items() if k not in ('recorded_at', 'policy_path')}, r[2])
+            strip = lambda r: (r[0], {k: v for k, v in json.loads(r[1] or '{}').items() if k not in ('recorded_at', 'policy_path', 'effective_policy_sha256')}, r[2])
             assert strip(old) == strip(new), (op, extra)
     flags = ['--record', '--parent-model', 'pm', '--parent-provider-instance', 'pp', '--parent-thread', 'pt', '--decision-id', 'rec1', '--purpose', 'review']
     old = run_tool(old_tool, 'resolve', 'review.audit', *common, *flags, '--account-hint', 'codex', '--receipts', receipts_old)
     new = run_tool(TOOL, 'resolve', 'review.audit', *common, *flags, '--account-hint', 'codex', '--receipts', receipts_new)
     assert json.loads(old[1])['request'] == json.loads(new[1])['request'] and old[0] == new[0] == 0
-    stored = lambda path: {k: v for k, v in json.loads(path.read_text().splitlines()[0]).items() if k not in ('recorded_at', 'policy_path')}
+    stored = lambda path: {k: v for k, v in json.loads(path.read_text().splitlines()[0]).items() if k not in ('recorded_at', 'policy_path', 'effective_policy_sha256')}
     assert stored(receipts_old) == stored(receipts_new)
     close = ['--close-id', 'c1', '--outcome', 'accepted', '--judged-by', 'parent', '--check', 'none']
     a = run_tool(old_tool, 'close', 'rec1', '--receipts', receipts_old, *close)
     b = run_tool(TOOL, 'close', 'rec1', '--receipts', receipts_new, *close)
-    clean = lambda r: {k: v for k, v in json.loads(r[1]).items() if k not in ('recorded_at', 'policy_sha256')}
+    clean = lambda r: {k: v for k, v in json.loads(r[1]).items() if k not in ('recorded_at', 'policy_sha256', 'effective_policy_sha256')}
     assert a[0] == b[0] == 0 and clean(a) == clean(b)
     export = {'schema_version': 1, 'delegations': [{'call_id': 'c', 'thread_id': 'pt', 'timestamp': '2099-01-01T00:00:00Z',
                                                       'input': {'clientRequestId': 'rec1', 'target': json.loads(new[1])['target']}, 'output': {}}]}

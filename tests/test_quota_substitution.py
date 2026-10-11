@@ -19,7 +19,7 @@ from test_route_destinations import capacity, config, entry as worker
 
 FIX = REPO / 'tests/fixtures/route-live-20261011'
 NOW = '2026-10-11T00:25:00Z'
-THRESHOLDS = {'activate_projected_pct': 95, 'release_projected_pct': 90}
+THRESHOLDS = {'activate_projected_pct': 97, 'release_projected_pct': 85}
 TOOL = REPO / 'tools/model-policy-ops/model-policy-ops'
 AFFECTED = [('review.audit', 'claude-opus-5-5', 'high', ()),
             ('fanout.explore', 'claude-opus-5-5', 'medium', ()),
@@ -75,8 +75,8 @@ def pick(out):
 # ---- thresholds and hysteresis ----------------------------------------------------------------------------------------
 
 def test_threshold_crossing_with_hysteresis(world):
-    steps = [(94.9, {}, 'codex'), (95, {'codex': 'activated'}, 'claude'), (92, {'codex': 'held_by_hysteresis'}, 'claude'),
-             (90, {'codex': 'held_by_hysteresis'}, 'claude'), (89.9, {'codex': 'released'}, 'codex'), (92, {}, 'codex')]
+    steps = [(96.9, {}, 'codex'), (97, {'codex': 'activated'}, 'claude'), (92, {'codex': 'held_by_hysteresis'}, 'claude'),
+             (85, {'codex': 'held_by_hysteresis'}, 'claude'), (84.9, {'codex': 'released'}, 'codex'), (92, {}, 'codex')]
     for projected, expected, vendor in steps:
         world.codex(projected)
         out = world.route('review.audit')
@@ -95,7 +95,7 @@ def test_active_row_carries_projection_window_and_since(world):
 
 
 def test_each_account_has_its_own_state(world):
-    world.set_claude(96, 'claude-alt')
+    world.set_claude(98, 'claude-alt')
     out = world.route('review.audit')
     assert active(out) == {'claude-alt': 'activated', 'codex': 'activated'}
     assert set(world.stored()) == {'claude-alt', 'codex'}
@@ -139,7 +139,7 @@ def test_corrupt_state_is_not_rewritten_and_decides_without_memory(world, conten
     out = world.route('review.audit')
     assert block(out)['state'] == 'unreadable' and block(out)['state_written'] is False and block(out)['state_issue']
     assert active(out) == {} and pick(out)[0] == 'codex', 'without memory 92 is below the activation threshold'
-    world.codex(96)
+    world.codex(98)
     out = world.route('review.audit')
     assert active(out) == {'codex': 'activated'} and pick(out)[0] != 'codex'
     assert world.state.read_text() == content, 'a corrupt state is never rewritten'
@@ -226,7 +226,7 @@ def test_codex_constrained_gives_a_claude_alternate_on_the_preferred_account(wor
     assert 'unvalidated_candidate' not in codes(out)
     assert out['target']['providerInstanceId'] == 'claudeAgent' and out['target']['model'] == model
     moved = block(out)
-    assert moved['substituted'] is True and moved['authorized_by'] == 'pack routing.quota_substitution (owner directive)'
+    assert moved['substituted'] is True and moved['authorized_by'] == 'pack routing.quota_substitution'
     assert moved['from']['instance'] == 'codex' and moved['from']['projected_pct'] == 105.12
     assert moved['to'] == {'instance': 'claudeAgent', 'model': model, 'effort': effort, 'projected_pct': 72.4}
     assert moved['reason'] and out['routing']['routed']['account'] == 'claudeAgent'
@@ -249,7 +249,7 @@ def test_other_judgment_reasons_still_apply_to_a_substitute(world):
 def test_a_prior_candidate_keeps_its_basis(world):
     out = world.route('fanout.dollar-tight')
     assert chosen_basis(out) == 'evidence_prior' and block(out)['substituted'] is False, 'at 105% the normal pace rank already prefers Claude'
-    world.codex(96)
+    world.codex(98)
     out = world.route('fanout.dollar-tight')
     chosen = out['routing']['chosen']
     assert chosen['arm']['provider'] == 'claude' and chosen['basis'] == 'task_benchmark_prior' and chosen['evidence'] == 'prior'
@@ -264,19 +264,19 @@ def test_substitution_needs_a_constrained_best_pair(world):
 
 
 def test_unavailable_when_every_claude_account_is_constrained_too(world):
-    world.set_claude(96)
+    world.set_claude(98)
     out = world.route('review.audit')
     assert pick(out) == ('codex', 'gpt-6.1-sol') and block(out)['substituted'] is False
     reason = next(r for r in out['routing']['judgment_reasons'] if r['code'] == 'quota_substitution_unavailable')
     assert reason['applies_to'] == 'routed' and out['routing']['judgment_required'] is True
-    assert reason['detail']['constrained'] == {'claude-alt': {'projected_pct': 96, 'window': '7d All'}, 'claude-work': {'projected_pct': 96, 'window': '7d All'},
-                                              'claudeAgent': {'projected_pct': 96, 'window': '7d All'}, 'codex': {'projected_pct': 105.12, 'window': '7d'}}
+    assert reason['detail']['constrained'] == {'claude-alt': {'projected_pct': 98, 'window': '7d All'}, 'claude-work': {'projected_pct': 98, 'window': '7d All'},
+                                              'claudeAgent': {'projected_pct': 98, 'window': '7d All'}, 'codex': {'projected_pct': 105.12, 'window': '7d'}}
     out = world.route('implement.quota-tight')
     assert pick(out) == ('claude-alt', 'claude-sonnet-5-5') and 'quota_substitution_unavailable' in codes(out), 'a constrained Claude primary has no substitute either'
 
 
 def test_one_unconstrained_claude_account_is_enough(world):
-    world.set_claude(96, 'claudeAgent', 'claude-alt')
+    world.set_claude(98, 'claudeAgent', 'claude-alt')
     out = world.route('review.audit')
     assert pick(out) == ('claude-work', 'claude-opus-5-5') and block(out)['to']['projected_pct'] == 87.01
 
@@ -446,16 +446,16 @@ def test_feature_off_without_the_pack_param_changes_nothing(world):
 # ---- the pack check ---------------------------------------------------------------------------------------------------------
 
 @pytest.mark.parametrize('value, ok', [
-    ({'activate_projected_pct': 95, 'release_projected_pct': 90}, True),
+    ({'activate_projected_pct': 97, 'release_projected_pct': 85}, True),
     ({'activate_projected_pct': 200, 'release_projected_pct': 0.5}, True),
-    ({'activate_projected_pct': 200.5, 'release_projected_pct': 90}, False),
-    ({'activate_projected_pct': 90, 'release_projected_pct': 90}, False),
-    ({'activate_projected_pct': 90, 'release_projected_pct': 95}, False),
-    ({'activate_projected_pct': 95, 'release_projected_pct': 0}, False),
-    ({'activate_projected_pct': 95, 'release_projected_pct': -1}, False),
-    ({'activate_projected_pct': 95}, False),
-    ({'activate_projected_pct': 95, 'release_projected_pct': 90, 'extra': 1}, False),
-    ({'activate_projected_pct': '95', 'release_projected_pct': 90}, False),
+    ({'activate_projected_pct': 200.5, 'release_projected_pct': 85}, False),
+    ({'activate_projected_pct': 85, 'release_projected_pct': 85}, False),
+    ({'activate_projected_pct': 85, 'release_projected_pct': 97}, False),
+    ({'activate_projected_pct': 97, 'release_projected_pct': 0}, False),
+    ({'activate_projected_pct': 97, 'release_projected_pct': -1}, False),
+    ({'activate_projected_pct': 97}, False),
+    ({'activate_projected_pct': 97, 'release_projected_pct': 85, 'extra': 1}, False),
+    ({'activate_projected_pct': '97', 'release_projected_pct': 85}, False),
     ({'activate_projected_pct': True, 'release_projected_pct': 0.5}, False),
     ([], False), (None, False)])
 def test_check_validates_the_thresholds(world, value, ok):
@@ -467,9 +467,9 @@ def test_check_validates_the_thresholds(world, value, ok):
         assert 'quota_substitution' in result.stderr
 
 
-def test_the_shipped_pack_enables_substitution_with_the_agreed_thresholds():
+def test_the_shipped_pack_does_not_enable_substitution():
     pack = json.loads((REPO / 'data/model-choice-policy/operating-points.json').read_text())
-    assert pack['routing']['quota_substitution'] == THRESHOLDS
+    assert 'quota_substitution' not in pack['routing']
 
 
 # ---- the pinned live snapshot ----------------------------------------------------------------------------------------------------
@@ -501,7 +501,7 @@ def stat_mode(path):
 def test_a_healthy_account_is_preferred_over_a_rate_limit_demoted_one_for_the_same_arm():
     qs = lib_module('quota_substitution') if 'lib_module' in globals() else __import__('quota_substitution')
     sub = {'state': {'known': {'a-demoted': 10.0, 'b-healthy': 60.0}, 'constrained': set()},
-           'ranks': {'a-demoted': 0, 'b-healthy': 5}, 'thresholds': {'activate_projected_pct': 95, 'release_projected_pct': 90}}
+           'ranks': {'a-demoted': 0, 'b-healthy': 5}, 'thresholds': {'activate_projected_pct': 97, 'release_projected_pct': 85}}
     rows = [{'instance': 'a-demoted', 'candidate': 1, 'rank': {'availability': 2}},
             {'instance': 'b-healthy', 'candidate': 1, 'rank': {'availability': 0}}]
     assert qs.substitute(rows, sub)['instance'] == 'b-healthy', 'availability comes before substitution_rank and projection'
@@ -533,7 +533,7 @@ def test_a_simulation_does_not_trust_memory_in_an_unsafe_directory(world):
 
 def test_simulation_with_a_missing_state_directory_reads_missing_memory(tmp_path):
     qs = __import__('quota_substitution')
-    out = qs.evaluate(tmp_path / 'gone' / 'quota-substitution.json', {'activate_projected_pct': 95, 'release_projected_pct': 90},
+    out = qs.evaluate(tmp_path / 'gone' / 'quota-substitution.json', {'activate_projected_pct': 97, 'release_projected_pct': 85},
                       {'codex': {'projected_pct': 92.0, 'window': '7d'}}, datetime.now(timezone.utc), write=False)
     assert out['state'] == 'missing' and out['constrained'] == {}
 
@@ -546,6 +546,6 @@ def test_simulation_with_an_unreadable_state_directory_decides_without_memory(tm
             raise PermissionError(13, 'Permission denied')
         return real_stat(self, *args, **kwargs)
     monkeypatch.setattr(qs.Path, 'stat', stat)
-    out = qs.evaluate(tmp_path / 'locked' / 'quota-substitution.json', {'activate_projected_pct': 95, 'release_projected_pct': 90},
+    out = qs.evaluate(tmp_path / 'locked' / 'quota-substitution.json', {'activate_projected_pct': 97, 'release_projected_pct': 85},
                       {'codex': {'projected_pct': 105.0, 'window': '7d'}}, datetime.now(timezone.utc), write=False)
     assert out['state'] == 'unreadable' and out['constrained'] == {'codex': out['constrained']['codex']}
