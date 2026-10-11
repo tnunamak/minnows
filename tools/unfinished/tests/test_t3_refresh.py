@@ -9,8 +9,7 @@ import types
 import unittest
 from unittest.mock import patch
 
-ROOT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[3]
-sys.argv = [sys.argv[0]]
+ROOT = Path(__file__).resolve().parents[3]
 
 class RefreshTest(unittest.TestCase):
     def test_changed_tail_invalidates_both_caches_and_unchanged_tail_keeps_them(self):
