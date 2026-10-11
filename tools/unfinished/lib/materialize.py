@@ -14,15 +14,12 @@ def norm(s):
 
 
 def quote_ok(quote, src):
-    """Near-verbatim check: the model often elides words, so require that at least
-    80% of the quote's content words (4+ letters) occur in the source text.
-    Fabricated quotes fail this; a reordered paraphrase of real words can pass."""
-    strip = lambda s: re.sub(r"[*`_\"'“”‘’()\[\]]", " ", norm(s))
-    q = re.findall(r"[a-z0-9][a-z0-9.#/-]{3,}", strip(quote))
-    if len(q) < 3:
+    """Require each normalized quote span to occur in the source text."""
+    spans = [norm(part) for part in (quote or "").split("...") if norm(part)]
+    if not spans:
         return False
-    srcw = set(re.findall(r"[a-z0-9][a-z0-9.#/-]{3,}", strip(src)))
-    return sum(w in srcw for w in q) / len(q) >= 0.8
+    source = norm(src)
+    return all(span in source for span in spans)
 
 
 def main():
