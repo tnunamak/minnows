@@ -53,10 +53,12 @@ def main():
         scores = json.loads(cache.read_text())
     else:
         scores = {}
-        for r in rows:
-            scores[r["id"]] = score(r["text"], r["kind"])
-            print(f"  scored {r['id']}", file=sys.stderr, flush=True)
+    for r in rows:
+        if r["id"] in scores:
+            continue
+        scores[r["id"]] = score(r["text"], r["kind"])
         cache.write_text(json.dumps(scores, indent=2))
+        print(f"  scored {r['id']}", file=sys.stderr, flush=True)
 
     decoys = [r for r in rows if r["must_flag"]]
     controls = [r for r in rows if not r["must_flag"]]

@@ -163,10 +163,19 @@ def check(text, kind):
     r = subprocess.run(
         ["slopgate", "check", "--stdin", "--kind", kind, "--json", "--semantic-only"],
         input=text, capture_output=True, text=True, timeout=600)
+    if r.returncode not in (0, 1):
+        raise RuntimeError(f"semantic check failed with exit {r.returncode}")
     try:
-        return json.loads(r.stdout).get("findings", [])
-    except json.JSONDecodeError:
-        return []
+        result = json.loads(r.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("semantic check returned invalid JSON") from error
+    if not isinstance(result, dict) or not isinstance(result.get("findings"), list):
+        raise RuntimeError("semantic check returned no findings array")
+    if any(not isinstance(f, dict) for f in result["findings"]):
+        raise RuntimeError("semantic check returned malformed findings")
+    if result.get("notes"):
+        raise RuntimeError("semantic check reported an unavailable layer")
+    return result["findings"]
 
 
 def clip(s, n=6000):
@@ -199,6 +208,8 @@ def main():
     src = HERE / os.environ.get("LOOP_CORPUS", "loop_corpus")
     rng = random.Random(int(os.environ.get('LOOP_SEED', '20260918')))
     rows = []
+    output = HERE / os.environ.get("LOOP_OUT", "loop_test_results.json")
+    output.write_text(json.dumps(rows))
 
     for f in sorted(src.glob("*.txt")):
       try:
@@ -223,11 +234,6 @@ def main():
         after = llm(REVISE.format(text=before, problems=problems),
                     max_tokens=budget)
         fa = check(after, kind)
-        # Persist revisions so the non-LLM drift check can compare distributions.
-        outdir = HERE / "loop_revisions"
-        outdir.mkdir(exist_ok=True)
-        (outdir / f"{f.stem}.txt").write_text(after)
-
         # Judged, not counted. An earlier version counted vanished tokens and
         # reported 58 losses on a padded document whose "facts" were mostly line
         # numbers, a date fragment and the word MUST. Deleting those from a bloated
@@ -252,7 +258,11 @@ def main():
 
         loss_verdict = llm(LOSS.format(before=clip(before), after=clip(after)),
                            max_tokens=120)
-        lost_real = bool(re.search(r"LOST:\s*yes", loss_verdict, re.I))
+        loss_match = re.fullmatch(r"LOST:\s*(yes|no)\s*\nWHAT:\s*([^\n]+)",
+                                  loss_verdict.strip(), re.I)
+        if not loss_match:
+            raise RuntimeError("invalid fact-loss judgment")
+        lost_real = loss_match.group(1).lower() == "yes"
         lost_what = ""
         m2 = re.search(r"WHAT:\s*(.+)", loss_verdict)
         if m2:
@@ -267,6 +277,11 @@ def main():
         if m:
             chosen = m.group(1).upper()
             pick = ("after" if (chosen == "A") == flip else "before")
+
+        # Persist revisions so the non-LLM drift check can compare distributions.
+        outdir = HERE / "loop_revisions"
+        outdir.mkdir(exist_ok=True)
+        (outdir / f"{f.stem}.txt").write_text(after)
 
         rows.append({"case": f.stem, "n_before": len(fb), "n_after": len(fa),
                      "preferred": pick, "lost_needed": lost_real,
