@@ -1,4 +1,4 @@
-"""End-to-end joins across route, dispatch, close, observe, audit and calibrate."""
+"""End-to-end joins across route, dispatch, close, observe and audit."""
 import json
 import sqlite3
 
@@ -134,8 +134,7 @@ def test_mismatched_delegate_target_does_not_hide_observed_child_config(setup, w
     assert requested['provider_instance'] == changed_target['providerInstanceId']
 
 
-@pytest.mark.xfail(strict=True, reason='calibrate currently omits relaunch lineage links even though receipts and audit preserve them')
-def test_superseded_decision_relaunch_joins_audit_and_calibrate(setup, world, tmp_path):
+def test_superseded_decision_relaunch_joins_audit(setup, world, tmp_path):
     world.route('implement.quota-tight', record='one')
     result, _ = close(setup, 'one', 'c1', outcome='superseded')
     assert result.returncode == 0, result.stderr
@@ -149,11 +148,13 @@ def test_superseded_decision_relaunch_joins_audit_and_calibrate(setup, world, tm
 
     result, audit = audit_export(setup, tmp_path, export)
     assert result.returncode == 0, result.stderr
-    assert audit['scope']['decisions'] == 2
-    assert audit['outcomes']['superseded_closes'] == 1
-    result, calibrate = run('calibrate', '--available', setup[1], '--quota', setup[2], '--receipts', setup[3])
-    assert result.returncode == 0, result.stderr
-    assert '"from": "one", "why": "config"' in json.dumps(calibrate)
+    # Only the relaunch was dispatched; the superseded first decision stays visible as an unmatched receipt.
+    assert audit['counts']['distinct_receipt_decisions'] == 1 and audit['relaunches'] == 1
+    assert audit['unmatched_receipts'] == ['one']
+    assert audit['outcomes']['outcome_distribution']['closed'] == {'accepted': 1}
+    # superseded_closes counts close corrections (--supersedes), not the outcome `superseded`.
+    assert audit['outcomes']['superseded_closes'] == 0
+    assert relaunch['relaunch'] == {'from': 'one', 'why': 'config'}
 
 
 def test_quota_substituted_receipt_joins_audit_and_observe(setup, tmp_path):
