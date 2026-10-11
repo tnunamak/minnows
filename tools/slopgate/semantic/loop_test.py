@@ -252,7 +252,11 @@ def main():
 
         loss_verdict = llm(LOSS.format(before=clip(before), after=clip(after)),
                            max_tokens=120)
-        lost_real = bool(re.search(r"LOST:\s*yes", loss_verdict, re.I))
+        loss_match = re.fullmatch(r"LOST:\s*(yes|no)\s*\nWHAT:\s*([^\n]+)",
+                                  loss_verdict.strip(), re.I)
+        if not loss_match:
+            raise RuntimeError("invalid fact-loss judgment")
+        lost_real = loss_match.group(1).lower() == "yes"
         lost_what = ""
         m2 = re.search(r"WHAT:\s*(.+)", loss_verdict)
         if m2:
