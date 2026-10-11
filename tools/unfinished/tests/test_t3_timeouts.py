@@ -8,8 +8,7 @@ import unittest
 from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import patch
 
-ROOT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[3]
-sys.argv = [sys.argv[0]]
+ROOT = Path(__file__).resolve().parents[3]
 config = types.ModuleType('uf_config')
 config.CFG = {'t3': True}; config.CONVO_LEDGER = Path('unused'); config.WORK_DB = Path('unused')
 config.since_default = lambda: '2026-10-01'
