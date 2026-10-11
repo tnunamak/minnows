@@ -58,5 +58,8 @@ class RenderTest(unittest.TestCase):
         rest=output.split('## Not yet checked')[1].split('## In flight')[0]
         self.assertIn('s:unchecked', rest)
         self.assertIn('s:unclear', rest)
+        rows={line.rsplit('`',2)[-2]:line for line in rest.splitlines() if line.startswith('- [ ]')}
+        self.assertIn('checked: unclear', rows['s:unclear'])
+        self.assertNotIn('checked: unclear', rows['s:unchecked'])
 
 if __name__ == '__main__': unittest.main()

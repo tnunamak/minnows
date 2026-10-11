@@ -194,7 +194,7 @@ def main():
     n_checked = len(checked_open)
     w(f"- **{n_checked} items were checked against git, GitHub and later sessions and are still open.** The Top 25 come from these.")
     w(f"- {len(found_done)} items that looked open turned out to be finished when checked (listed below, nothing to do).")
-    w(f"- {len(live) - n_checked} more candidates are not checked yet. In a hand-checked sample only about 1 in 4 such items "
+    w(f"- {len(live) - n_checked} more candidates are not checked yet or were checked without a clear answer. In a hand-checked sample only about 1 in 4 such items "
       f"was still open, so treat that section as a list to skim, not a to-do list.")
     w(f"- {len(likely)} likely done and {len(stale)} probably stale items are collapsed at the bottom."
       f"{' Imported ' + str(ticked) + ' ticks from the last ledger.' if ticked else ''}\n")
@@ -253,14 +253,15 @@ def main():
     byp = defaultdict(list)
     for i in rest:
         byp[i["project"]].append(i)
-    w(f"## Not yet checked, by project ({len(rest)})\n")
-    w("Candidates from the transcripts that no agent has checked against the current state yet. Most are already done. "
+    w(f"## Not yet checked or unclear, by project ({len(rest)})\n")
+    w("Candidates from the transcripts that no agent has checked against the current state yet, or that a check left "
+      "unclear (tagged *checked: unclear*). Most are already done. "
       "The nightly run checks the highest-ranked ones and moves survivors up.\n")
     for p in sorted(byp, key=lambda p: rank(byp[p][0])):
         w(f"### {p} ({len(byp[p])})\n")
         for i in byp[p][:6]:
-            w(f"- [ ] **{i['next_action']}** — {i['why']} · P{i.get('priority')}{' · needs you' if i.get('needs_owner') else ''} · "
-              f"{i['first_seen']} · {links_for(i, t3_by_session)} `{i['id']}`")
+            w(f"- [ ] **{i['next_action']}** — {i['why']} · P{i.get('priority')}{' · needs you' if i.get('needs_owner') else ''}"
+              f"{' · checked: unclear' if i.get('unclear') else ''} · {i['first_seen']} · {links_for(i, t3_by_session)} `{i['id']}`")
         if len(byp[p]) > 6:
             w(f"- … and {len(byp[p]) - 6} more lower-ranked items: `unfinished list {p}`")
         w("")
