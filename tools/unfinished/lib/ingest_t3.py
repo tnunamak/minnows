@@ -43,6 +43,7 @@ def main():
                   project_root text, provider text, created text, last_user text, prs text, url text, session_key text,
                   creation_source text, parent text)""")
     recent = []
+    native_sessions = dict(db.execute("select thread_id, session_key from t3threads"))
     prev = {r[0]: r[1] for r in db.execute(
         "select t.thread_id, s.ts from t3threads t join segments s on s.seg_id = 't3-' || substr(t.thread_id, -40)")}
     for t in lst["threads"]:
@@ -55,7 +56,7 @@ def main():
         db.execute("insert or replace into t3threads values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                    (t["id"], t["title"], t["status"], t.get("settledAt"), json.dumps(t.get("settledOverride")),
                     t.get("autoSettleDisabledAt"), t.get("snoozedUntil"), p.get("title"), p.get("workspaceRoot"),
-                    t.get("providerInstanceId"), t.get("createdAt"), last, json.dumps(prs), t3url(env_id, t["id"]), None,
+                    t.get("providerInstanceId"), t.get("createdAt"), last, json.dumps(prs), t3url(env_id, t["id"]), native_sessions.get(t["id"]),
                     t.get("creationSource"), (t.get("lineage") or {}).get("parentThreadId")))
         # re-read only threads with activity after their stored last turn (or never read)
         # updatedAt also moves on settle/visit, so compare the last run's completion instead
