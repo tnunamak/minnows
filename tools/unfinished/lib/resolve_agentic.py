@@ -79,8 +79,16 @@ def main():
     xs = [json.loads(l) for l in open(os.path.join(OUT, "ledger.jsonl"))]
     previous = {iid: json.loads(out) for iid, out in db.execute("select item_id, out from resolved")}
     done = {iid for iid, out in previous.items() if out.get("status_now") not in ("open", "unclear")}
-    pick = sorted([x for x in xs if x.get("verdict") == "open" and x["id"] not in done],
-                  key=lambda x: x["id"] in previous)[:n]
+    now = dt.datetime.now().astimezone().isoformat()
+    eligible = []
+    for x in xs:
+        d = x.get("owner_decision") or {}
+        if d.get("decision") in ("done", "drop") or (d.get("decision") == "snooze" and
+                (d.get("until") or "") > now):
+            continue
+        if x.get("verdict") == "open" and x["id"] not in done:
+            eligible.append(x)
+    pick = sorted(eligible, key=lambda x: x["id"] in previous)[:n]
     batch_in = [{"id": x["id"], "project": x["project"], "source_type": x["source_type"],
                  "next_action": x.get("next_action"), "why": x.get("why"), "first_seen": x["first_seen"],
                  "session_key": x.get("session_key"), "prs": [p.get("ref") for p in x.get("prs", [])],

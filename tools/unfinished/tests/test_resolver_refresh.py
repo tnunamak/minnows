@@ -65,4 +65,31 @@ class ResolverTest(unittest.TestCase):
                 resolver.main()
             self.assertEqual(seen,["fresh"])
 
+    def test_owner_hidden_items_do_not_spend_the_refresh_limit(self):
+        for decision in ({'decision':'done'}, {'decision':'drop'},
+                         {'decision':'snooze','until':'2999-01-01T00:00:00+00:00'},
+                         {'decision':'snooze','until':'2020-01-01T00:00:00+00:00'}):
+            with self.subTest(decision=decision), tempfile.TemporaryDirectory() as tmp:
+                cfg = types.ModuleType('uf_config')
+                cfg.DATA = cfg.STATE = Path(tmp); cfg.WORK_DB = cfg.STATE / 'work.db'
+                cfg.CFG = {}; cfg.claude_env = lambda: {}; cfg.owner = lambda: 'fixture'
+                resolver = load('tools/unfinished/lib/resolve_agentic.py', cfg)
+                with sqlite3.connect(cfg.WORK_DB) as db:
+                    db.execute('create table resolved(item_id text primary key, out text, src text)')
+                    for iid in ('owner-decided','live'):
+                        db.execute('insert into resolved values(?,?,?)',
+                            (iid,json.dumps({'status_now':'open'}),'fixture'))
+                rows = [{'id':iid,'verdict':'open','project':'fixture','source_type':'session',
+                         'first_seen':'2026-01-01','slug':iid} for iid in ('owner-decided','live')]
+                rows[0]['owner_decision'] = decision
+                (cfg.DATA/'ledger.jsonl').write_text(''.join(json.dumps(x)+'\n' for x in rows))
+                seen = []
+                def answer(batch):
+                    seen.extend(x['id'] for x in batch)
+                    return {'results':[]}, 0
+                with patch.object(resolver,'call',side_effect=answer),patch.object(sys,'argv',['resolve','1']):
+                    resolver.main()
+                expected = 'owner-decided' if decision.get('until','').startswith('2020') else 'live'
+                self.assertEqual(seen,[expected])
+
 if __name__ == '__main__': unittest.main()
