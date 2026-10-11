@@ -145,6 +145,12 @@ def main():
                 continue
             for r in res.get("results", []):
                 if r.get("id") in b:
+                    if r.get("verdict") == "done":
+                        r = dict(r)
+                        r["verdict"] = "likely-done"
+                        r["verdict_reason"] = (
+                            "The adjudicator cannot confirm completion; verify current state before closing."
+                        )
                     db.execute("insert or replace into adj values (?,?,?)", (r["id"], json.dumps(r), MODEL))
             db.commit()
             if n % 10 == 0:
