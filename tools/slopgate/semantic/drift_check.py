@@ -34,10 +34,10 @@ def stats(text):
     t = re.sub(r"```.*?```", " ", text, flags=re.S)
     t = re.sub(r"^\s*[|>#].*$", " ", t, flags=re.M)
     t = re.sub(r"^\s*([-*+]|\d+[.)])\s.*$", " ", t, flags=re.M)
-    sents = [x.strip() for x in re.split(r"(?<=[.!?])\s+", t) if len(x.split()) > 3]
+    sents = [x.strip() for x in re.split(r"(?<=[.!?])\s+", t) if x.strip()]
     wl = [len(x.split()) for x in sents]
     if not wl:
-        return None
+        return {"n": 0, "mean": 0.0, "frags": 0}
     return {"n": len(wl), "mean": statistics.mean(wl),
             "frags": sum(1 for w in wl if w <= 6)}
 
