@@ -34,6 +34,7 @@ class CurveEmpty(unittest.TestCase):
                 fake = types.ModuleType("fit")
                 fake.load = lambda: ([[float(i)] for i in range(len(labels))], labels, ["a"], list(range(len(labels))))
                 fake.standardize = fit.standardize
+                fake.standardize_fold = fit.standardize_fold
                 fake.train = lambda *args, **kwargs: ([0.0], 0.0)
                 fake.predict = lambda *args: .5
                 output = io.StringIO()
