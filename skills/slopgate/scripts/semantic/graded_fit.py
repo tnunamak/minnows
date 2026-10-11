@@ -34,16 +34,28 @@ def ridge(X, y, l2=1.0, epochs=600, lr=0.2):
     return w, b
 
 def spearman(a, b):
+    if len(a) != len(b):
+        raise ValueError("Rank vectors must have the same length")
+    if len(a) < 2:
+        return math.nan
     def rank(v):
         order = sorted(range(len(v)), key=lambda i: v[i])
         r = [0]*len(v)
-        for pos, i in enumerate(order): r[i] = pos
+        start = 0
+        while start < len(order):
+            end = start + 1
+            while end < len(order) and v[order[end]] == v[order[start]]:
+                end += 1
+            average = (start + end - 1) / 2
+            for i in order[start:end]:
+                r[i] = average
+            start = end
         return r
     ra, rb = rank(a), rank(b); n = len(a)
     ma = sum(ra)/n; mb = sum(rb)/n
     cov = sum((x-ma)*(yy-mb) for x, yy in zip(ra, rb))
     va = math.sqrt(sum((x-ma)**2 for x in ra)); vb = math.sqrt(sum((yy-mb)**2 for yy in rb))
-    return cov/((va*vb) or 1)
+    return cov/(va*vb) if va and vb else math.nan
 
 # Leave-one-out predictions from each target
 pred_bin, pred_grade = [], []
