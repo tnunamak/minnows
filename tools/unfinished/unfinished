@@ -81,8 +81,7 @@ def cmd_run(args):
     _step("ingest T3", "ingest_t3.py", since)
     _step("ingest structured sources", "ingest_structured.py")
     _step("decision-model pass", "jev_pass1.py",
-          "(kind in ('user','tail','t3tail') or (kind='reply' and (next_ts is null or "
-          "(julianday(next_ts)-julianday(ts))*24>=6)))")
+          "kind in ('user','tail','t3tail','reply')")
     _step("select candidates", "select_cands.py")
     _step("extract items", "extract_items.py")
     _step("materialize", "materialize.py")
