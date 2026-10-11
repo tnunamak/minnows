@@ -278,7 +278,7 @@ def main():
         for f in findings:
             print(f"  [{f['severity']}] {f['rule']} (p={f['probability']}) "
                   f"-> {f['suggestion']}")
-    sys.exit(1 if findings else 0)
+    sys.exit(1 if any(f.get("severity") != "info" for f in findings) else 0)
 
 
 if __name__ == "__main__":
