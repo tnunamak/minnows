@@ -184,13 +184,33 @@ def print_show(policy: dict, op_id: str) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--policy", type=Path, default=None)
+    parser.add_argument("--user-policy", type=Path, default=None, help="per-user routing overlay; default ~/.config/model-policy/user-policy.json (missing means none)")
+    parser.add_argument("--no-user-policy", action="store_true", help="ignore the per-user overlay")
     parser.add_argument("command", nargs="?", choices=("check", "list", "show", "resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe"))
     parser.add_argument("op", nargs="?")
     sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
     from policy_decisions import add_arguments, execute
+    import user_policy
+    from runtime_sources import digest
     add_arguments(parser)
     args = parser.parse_args()
     args.policy = select_policy(args.policy)
+    if args.no_user_policy and args.user_policy:
+        parser.error("--user-policy and --no-user-policy are mutually exclusive")
+
+    def with_user_policy(pack):
+        """The pack with the per-user overlay merged in (route and check only), checked as a whole. Raises ValueError."""
+        args.pack_policy_sha256 = digest(pack)
+        args.user_policy_info = None
+        if args.no_user_policy or args.command not in ("route", "check", None):
+            return pack
+        routing, args.user_policy_info = user_policy.read(args.user_policy or user_policy.default_path())
+        if routing is None:
+            return pack
+        errors = check_routing(routing) + check_policy(merged := user_policy.merge(pack, routing))
+        if errors:
+            raise ValueError(f"user policy {args.user_policy_info['path']}: " + "; ".join(dict.fromkeys(errors)))
+        return merged
     if args.target and args.command != "directive":
         parser.error(f"unrecognized arguments: {args.target}")
     if args.command in ("resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe"):
@@ -199,6 +219,11 @@ def main() -> int:
             policy = load_policy(args.policy) if needs_policy else {}
             if needs_policy and not isinstance(policy, dict):
                 raise ValueError('policy must be a JSON object')
+            if needs_policy:
+                errors = check_policy(policy)
+                if errors:
+                    raise ValueError("; ".join(errors))
+                policy = with_user_policy(policy)
             errors = check_policy(policy) if needs_policy else []
             if errors:
                 raise ValueError("; ".join(errors))
@@ -210,6 +235,11 @@ def main() -> int:
 
     policy = load_policy(args.policy)
     errors = check_policy(policy)
+    if not errors:
+        try:
+            policy = with_user_policy(policy)
+        except (ValueError, OSError) as error:
+            errors = [str(error)]
     if errors:
         for error in errors:
             print(f"FAIL {error}", file=sys.stderr)
@@ -226,6 +256,7 @@ def main() -> int:
         print(
             f"PASS model-choice-policy {policy['policy_version']} "
             f"({len(policy.get('operating_points', []))} operating points)"
+            + (f" + user policy {args.user_policy_info['path']}" if args.user_policy_info and command == "check" else "")
         )
     return 0
 

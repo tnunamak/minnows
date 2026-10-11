@@ -85,6 +85,13 @@ def add_arguments(parser):
     parser.add_argument('--source', choices=directive_store.SOURCES, help='directive add: who instructed it')
 
 
+def quota_authorized_by(args):
+    info = getattr(args, 'user_policy_info', None)
+    if info and 'quota_substitution' in info['keys']:
+        return f"user policy overlay {info['path']}"
+    return 'pack routing.quota_substitution'
+
+
 def route_choice(args, policy, op, available, available_meta, quota, quota_meta, at):
     """Run the router and add the evidence snapshot and calibration notes. Read-only."""
     params = policy.get('routing', {})
@@ -104,7 +111,8 @@ def route_choice(args, policy, op, available, available_meta, quota, quota_meta,
                                accounts=accounts, directives=directive_store.active(records, at, max_days), maker=maker,
                                independence=args.independence, proof_class=args.proof_class, line_of=line_of,
                                failures=failures, freshness=fresh, now=at,
-                               substitution=routing.substitution_context(params, accounts, quota, quota_meta, at, args.quota_state, write=not args.now))
+                               substitution=routing.substitution_context(params, accounts, quota, quota_meta, at, args.quota_state, write=not args.now,
+                                                              authorized_by=quota_authorized_by(args)))
     block = routing.route(op, params, ctx)
     try:
         outcome_rows = outcomes.read_outcomes(args.outcomes)
@@ -297,6 +305,7 @@ def execute(args, policy):
     routing_block = None
     if route:
         routing_block, accounts, ctx = route_choice(args, policy, op, available, available_meta, quota, quota_meta, at)
+        routing_block['user_policy'] = getattr(args, 'user_policy_info', None)
         chosen = routing_block['chosen']
         routed = {'arm': chosen['arm'], 'account': chosen['instance']} if chosen else None
         arm = dict(arm, **chosen['arm']) if chosen else arm
@@ -328,7 +337,8 @@ def execute(args, policy):
     return_value = {'schema_version': 1, 'decision_id': decision_id, 'request': request,
                    'recorded_at': datetime.now(timezone.utc).isoformat(), 'parent': request['parent'],
                    'policy_version': policy['policy_version'], 'catalog_ref': policy['catalog_ref'],
-                   'policy_path': str(args.policy.resolve()), 'policy_sha256': digest(policy), 'policy_generated_at': policy.get('generated_at'),
+                   'policy_path': str(args.policy.resolve()), 'policy_sha256': getattr(args, 'pack_policy_sha256', None) or digest(policy),
+                   'effective_policy_sha256': digest(policy), 'policy_generated_at': policy.get('generated_at'),
                    'policy_context': context, 'confidence_semantics': 'ordinal evidence/prior; not probability or optimality',
                    'selection': selection, 'target': selection['target'],
                    'launch_ready': selection['target'] is not None,

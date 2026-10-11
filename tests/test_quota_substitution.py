@@ -226,7 +226,7 @@ def test_codex_constrained_gives_a_claude_alternate_on_the_preferred_account(wor
     assert 'unvalidated_candidate' not in codes(out)
     assert out['target']['providerInstanceId'] == 'claudeAgent' and out['target']['model'] == model
     moved = block(out)
-    assert moved['substituted'] is True and moved['authorized_by'] == 'pack routing.quota_substitution (owner directive)'
+    assert moved['substituted'] is True and moved['authorized_by'] == 'pack routing.quota_substitution'
     assert moved['from']['instance'] == 'codex' and moved['from']['projected_pct'] == 105.12
     assert moved['to'] == {'instance': 'claudeAgent', 'model': model, 'effort': effort, 'projected_pct': 72.4}
     assert moved['reason'] and out['routing']['routed']['account'] == 'claudeAgent'
