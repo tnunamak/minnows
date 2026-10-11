@@ -132,7 +132,7 @@ def file_hash_state(path, expected):
         digest = hashlib.sha256()
         total = 0
         # The cap counts bytes actually read, so a file that grows during the read stays bounded.
-        for block in iter(lambda: stream.read(1 << 20), b''):
+        for block in iter(lambda: stream.read(min(1 << 20, MAX_HASH_BYTES - total + 1)), b''):
             total += len(block)
             if total > MAX_HASH_BYTES:
                 return 'too_large'
