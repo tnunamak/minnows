@@ -63,24 +63,27 @@ class RenderTest(unittest.TestCase):
         decisions = []
         cases = [('done', '', None), ('drop', '', None),
                  ('snooze', '2999-01-01', None), ('snooze', '2020-01-01', None),
-                 ('', '', 'done'), ('', '', 'superseded')]
+                 ('', '', 'done'), ('', '', 'superseded'), ('', '', 'open')]
         for group, (action, until, resolution) in enumerate(cases):
             repo = f'org/repo{group}'
             for number in (1, 2):
                 ident = f'pr:{repo}#{number}'
-                self.item(ident, bundle='abandoned-prs', resolution=resolution)
+                # An adjudication moves this PR from its original bundle into items.
+                self.item(ident, adj=True, bundle='abandoned-prs', resolution=resolution)
                 self.db.execute('update items set source_type=?,kind=?,title=?,links=? where item_id=?',
                     ('pr','open-pr',f'PR {repo}#{number}',json.dumps([f'https://github.com/{repo}/pull/{number}']),ident))
                 if action:
                     decisions.append({'id':ident, 'decision':action, 'until':until})
         self.db.commit()
         (self.data / 'decisions.jsonl').write_text(''.join(json.dumps(x)+'\n' for x in decisions))
+        self.assertEqual(self.db.execute('select count(*) from adj').fetchone()[0], 14)
         output = self.publish()
         parked = output.split('## Parked projects:', 1)[1].split('## ', 1)[0]
         self.assertIn('**org/repo3**: 2 open PRs', parked)
+        self.assertIn('**org/repo6**: 2 open PRs', parked)
         for group in (0, 1, 2, 4, 5):
             self.assertNotIn(f'**org/repo{group}**', parked)
         records = {x['id']:x for x in map(json.loads,(self.data/'ledger.jsonl').read_text().splitlines())}
-        self.assertEqual(len(records), 12)
+        self.assertEqual(len(records), 14)
 
 if __name__ == '__main__': unittest.main()
