@@ -235,7 +235,7 @@ def main():
     # Parked projects: repos whose open PRs have all gone quiet for 30+ days. One decision each, not N rows.
     parked = defaultdict(list)
     quiet = (NOW - dt.timedelta(days=14)).strftime("%Y-%m-%d")
-    for i in [x for x in items if x["source_type"] == "pr" and x["kind"] == "open-pr"] + visible_bundles.get("abandoned-prs", []):
+    for i in [x for x in live if x["source_type"] == "pr" and x["kind"] == "open-pr"] + visible_bundles.get("abandoned-prs", []):
         m = re.match(r"PR ([^#\s]+)#", i["title"] or "")
         if m:
             parked[m.group(1)].append(i)
