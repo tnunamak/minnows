@@ -200,16 +200,17 @@ def main():
     w(f"<!-- generation: {gen} -->")
     w(f"Generated {NOW:%Y-%m-%d %H:%M %Z} from the last 30 days of agent sessions (Claude, Codex), T3 threads, "
       f"open PRs, waspflow lanes and inbox notes.\n")
-    n_checked = sum(1 for i in live if i.get("checked"))
+    checked_open = [i for i in live if i.get("checked") and not i.get("unclear")]
+    n_checked = len(checked_open)
     w(f"- **{n_checked} items were checked against git, GitHub and later sessions and are still open.** The Top 25 come from these.")
     w(f"- {len(found_done)} items that looked open turned out to be finished when checked (listed below, nothing to do).")
-    w(f"- {len(live) - n_checked} more candidates are not checked yet. In a hand-checked sample only about 1 in 4 such items "
+    w(f"- {len(live) - n_checked} more candidates are not checked yet or were checked without a clear answer. In a hand-checked sample only about 1 in 4 such items "
       f"was still open, so treat that section as a list to skim, not a to-do list.")
     w(f"- {len(likely)} likely done and {len(stale)} probably stale items are collapsed at the bottom."
       f"{' Imported ' + str(ticked) + ' ticks from the last ledger.' if ticked else ''}\n")
     w("**How to use:** tick a box (`[x]`) to close an item; the next run records it. Or run "
       "`unfinished done|snooze|drop <id> [7d|note]`. Every item has an *evidence* link to the exact source excerpt.\n")
-    top = live[:25]
+    top = checked_open[:25]
     start = [i for i in top if i.get("needs_owner")][:3] or top[:3]
     w("## Start here\n")
     for n, i in enumerate(start, 1):
@@ -230,7 +231,7 @@ def main():
         if i.get("quote"):
             w(f"- **Source says:** “{i['quote'][:220]}”")
         w(f"- **Links:** {links_for(i, t3_by_session)}\n")
-    more_checked = [i for i in live[25:] if i.get("checked")]
+    more_checked = checked_open[25:]
     if more_checked:
         w(f"## Also checked and still open ({len(more_checked)})\n")
         for i in more_checked:
@@ -258,18 +259,19 @@ def main():
               + ", ".join(f"[#{x['id'].rsplit('#', 1)[-1]}]({x['links'][0]})" for x in
                           sorted(xs, key=lambda x: x["last_activity"] or "", reverse=True)[:8]))
         w("")
-    rest = [i for i in live[25:] if not i.get("checked")]
+    rest = [i for i in live if not i.get("checked") or i.get("unclear")]
     byp = defaultdict(list)
     for i in rest:
         byp[i["project"]].append(i)
-    w(f"## Not yet checked, by project ({len(rest)})\n")
-    w("Candidates from the transcripts that no agent has checked against the current state yet. Most are already done. "
+    w(f"## Not yet checked or unclear, by project ({len(rest)})\n")
+    w("Candidates from the transcripts that no agent has checked against the current state yet, or that a check left "
+      "unclear (tagged *checked: unclear*). Most are already done. "
       "The nightly run checks the highest-ranked ones and moves survivors up.\n")
     for p in sorted(byp, key=lambda p: rank(byp[p][0])):
         w(f"### {p} ({len(byp[p])})\n")
         for i in byp[p][:6]:
-            w(f"- [ ] **{i['next_action']}** — {i['why']} · P{i.get('priority')}{' · needs you' if i.get('needs_owner') else ''} · "
-              f"{i['first_seen']} · {links_for(i, t3_by_session)} `{i['id']}`")
+            w(f"- [ ] **{i['next_action']}** — {i['why']} · P{i.get('priority')}{' · needs you' if i.get('needs_owner') else ''}"
+              f"{' · checked: unclear' if i.get('unclear') else ''} · {i['first_seen']} · {links_for(i, t3_by_session)} `{i['id']}`")
         if len(byp[p]) > 6:
             w(f"- … and {len(byp[p]) - 6} more lower-ranked items: `unfinished list {p}`")
         w("")
