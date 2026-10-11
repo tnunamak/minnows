@@ -81,6 +81,7 @@ class FoldScaling(unittest.TestCase):
             return original(rows)
         fake.standardize = scaling
         fake.standardize_fold = fit.standardize_fold
+        fake.measured_columns = fit.measured_columns
         fake.train = lambda *args, **kwargs: ([0.0], 0.0)
         fake.predict = lambda *args: .5
         with tempfile.TemporaryDirectory() as directory:
