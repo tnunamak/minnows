@@ -233,19 +233,22 @@ def main():
               f"{links_for(i, t3_by_session)} `{i['id']}`")
         w("")
     # Parked projects: repos whose open PRs have all gone quiet for 30+ days. One decision each, not N rows.
-    parked = defaultdict(list)
+    # Quietness counts every open PR (in-flight ones too); only PRs still awaiting a decision are listed.
+    parked, last_touch = defaultdict(list), defaultdict(str)
     quiet = (NOW - dt.timedelta(days=14)).strftime("%Y-%m-%d")
-    for i in [x for x in live if x["source_type"] == "pr" and x["kind"] == "open-pr"] + visible_bundles.get("abandoned-prs", []):
+    shown = {id(i) for i in live} | {id(i) for i in visible_bundles.get("abandoned-prs", [])}
+    for i in [x for x in items if x["source_type"] == "pr" and x["kind"] == "open-pr"] + bundles.get("abandoned-prs", []):
         m = re.match(r"PR ([^#\s]+)#", i["title"] or "")
         if m:
-            parked[m.group(1)].append(i)
-    parked = {r: xs for r, xs in parked.items()
-              if len(xs) >= 2 and max(x["last_activity"] or "" for x in xs) < quiet}
+            last_touch[m.group(1)] = max(last_touch[m.group(1)], i["last_activity"] or "")
+            if id(i) in shown:
+                parked[m.group(1)].append(i)
+    parked = {r: xs for r, xs in parked.items() if len(xs) >= 2 and last_touch[r] < quiet}
     if parked:
         w(f"## Parked projects: revive or shelve? ({len(parked)})\n")
         w("Repos with 2+ open PRs and none touched in the last 14 days. Decide once per repo: pick one PR to revive, or close them all.\n")
         for r, xs in sorted(parked.items(), key=lambda kv: -len(kv[1])):
-            last = max(x["last_activity"] or "" for x in xs)
+            last = last_touch[r]
             wts = [i for i in items if i["source_type"] == "worktree" and r.split("/")[-1] in (i["project"] or "")]
             w(f"- [ ] **{r}**: {len(xs)} open PRs, last touched {last}"
               + (f", plus {len(wts)} local checkout(s) with unpushed commits" if wts else "") + " · "

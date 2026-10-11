@@ -86,4 +86,18 @@ class RenderTest(unittest.TestCase):
         records = {x['id']:x for x in map(json.loads,(self.data/'ledger.jsonl').read_text().splitlines())}
         self.assertEqual(len(records), 14)
 
+    def test_in_flight_pr_keeps_its_repo_out_of_parked_projects(self):
+        today = self.render.NOW.strftime('%Y-%m-%d')
+        for number, last_ts, needs_owner in [(1, '2026-01-01', True), (2, '2026-01-01', True), (3, today, False)]:
+            ident = f'pr:org/busy#{number}'
+            self.item(ident, adj=True)
+            self.db.execute('update adj set out=? where item_id=?', (json.dumps({'verdict':'open', 'next_action':ident,
+                'why':'fixture', 'priority':3, 'effort':'minutes', 'needs_owner':needs_owner}), ident))
+            self.db.execute('update items set source_type=?,kind=?,title=?,links=?,last_ts=? where item_id=?',
+                ('pr','open-pr',f'PR org/busy#{number}',json.dumps([f'https://github.com/org/busy/pull/{number}']),last_ts,ident))
+        self.db.commit()
+        output = self.publish()
+        self.assertIn('pr:org/busy#3', output.split('## In flight', 1)[1])
+        self.assertNotIn('**org/busy**', output)
+
 if __name__ == '__main__': unittest.main()
