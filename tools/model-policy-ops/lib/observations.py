@@ -48,6 +48,16 @@ def make_observation(source, subject_id, decision_id, fact_type, fact, *, source
             'scope': scope}
 
 
+def check_timestamp(value, name):
+    """Require an ISO timestamp with an explicit timezone at the ledger boundary."""
+    try:
+        parsed = datetime.fromisoformat(value)
+        if parsed.utcoffset() is None:
+            raise ValueError('timezone required')
+    except (TypeError, ValueError):
+        raise ValueError(f'{name} must be an ISO timestamp with timezone') from None
+
+
 def check_row(row):
     """Raise ValueError with a reason when one row is not what this CLI writes."""
     if not isinstance(row, dict):
@@ -61,10 +71,7 @@ def check_row(row):
     if missing:
         raise ValueError(f'{kind} row missing {", ".join(missing)}')
     for name in ('observed_at',) if kind == 'observation' else ('started_at', 'finished_at'):
-        try:
-            datetime.fromisoformat(row[name])
-        except (TypeError, ValueError):
-            raise ValueError(f'{name} must be an ISO timestamp') from None
+        check_timestamp(row[name], name)
     if kind == 'source_run':
         sources = row['sources']
         bad = [name for name, entry in sources.items() if not (
@@ -73,6 +80,10 @@ def check_row(row):
         if bad:
             raise ValueError(f'sources must map each source (t3, git or destination:NAME) to a state in ok, partial, unavailable or error; rejected {bad[:3]}')
         return
+    if not isinstance(row['source_timestamps'], dict):
+        raise ValueError('source_timestamps must be an object')
+    for name, value in row['source_timestamps'].items():
+        check_timestamp(value, f'source_timestamps.{name}')
     if not isinstance(row['source'], str) or not SOURCE.fullmatch(row['source']):
         raise ValueError('source must be t3, git or destination:NAME')
     if not isinstance(row['fact'], dict) or row['fact'].get('type') != row['fact_type']:

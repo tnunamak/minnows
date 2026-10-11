@@ -2,6 +2,7 @@
 import json
 import os
 import uuid
+from contextlib import ExitStack
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -92,8 +93,8 @@ def quota_authorized_by(args):
     return 'pack routing.quota_substitution'
 
 
-def route_choice(args, policy, op, available, available_meta, quota, quota_meta, at):
-    """Run the router and add the evidence snapshot and calibration notes. Read-only."""
+def route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack):
+    """Run the router and add the evidence snapshot and calibration notes. No state commit."""
     params = policy.get('routing', {})
     accounts, accounts_meta = route_inputs.read_accounts(args.accounts)
     records = directive_store.read_directives(args.directives)
@@ -112,7 +113,7 @@ def route_choice(args, policy, op, available, available_meta, quota, quota_meta,
                                independence=args.independence, proof_class=args.proof_class, line_of=line_of,
                                failures=failures, freshness=fresh, now=at,
                                substitution=routing.substitution_context(params, accounts, quota, quota_meta, at, args.quota_state, write=not args.now,
-                                                              authorized_by=quota_authorized_by(args)))
+                                                              authorized_by=quota_authorized_by(args), stack=stack))
     block = routing.route(op, params, ctx)
     try:
         outcome_rows = outcomes.read_outcomes(args.outcomes)
@@ -168,6 +169,13 @@ def clear_targets(value):
 
 
 def execute(args, policy):
+    # Lock order is quota sidecar -> receipts. Keep the quota snapshot stable until
+    # acceptance, and release it on every validation error without committing.
+    with ExitStack() as stack:
+        return execute_locked(args, policy, stack)
+
+
+def execute_locked(args, policy, stack):
     if args.now is not None and not args.now.strip():
         raise ValueError('--now must not be empty')
     if args.directives is None:
@@ -188,8 +196,10 @@ def execute(args, policy):
         raise ValueError('--quota-state applies to route only')
     if args.command == 'route':
         args.quota_state = args.quota_state or quota_substitution.default_path(args.receipts)
+        lock_path = args.quota_state.with_name(args.quota_state.name + '.lock')
         for other, name in ((args.receipts, '--receipts'), (args.directives, '--directives'), (args.outcomes, '--outcomes'), (args.observations, '--observations')):
             outcomes.refuse_shared_ledger(other, args.quota_state, '--quota-state', first=name)
+            outcomes.refuse_shared_ledger(other, lock_path, '--quota-state lock', first=name)
     if args.command in ('audit', 'calibrate', 'observe'):
         outcomes.refuse_shared_ledger(args.receipts, args.observations, '--observations')
         outcomes.refuse_shared_ledger(args.outcomes, args.observations, '--observations', first='--outcomes')
@@ -304,7 +314,7 @@ def execute(args, policy):
                       'handoff_boundary': args.handoff_boundary}
     routing_block = None
     if route:
-        routing_block, accounts, ctx = route_choice(args, policy, op, available, available_meta, quota, quota_meta, at)
+        routing_block, accounts, ctx = route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack)
         routing_block['user_policy'] = getattr(args, 'user_policy_info', None)
         chosen = routing_block['chosen']
         routed = {'arm': chosen['arm'], 'account': chosen['instance']} if chosen else None
@@ -373,7 +383,7 @@ def execute(args, policy):
     if offer:
         # The model pair is only a fallback now: its reasons stay visible and no longer need judgment.
         for reason in routing_block['judgment_reasons']:
-            if reason['code'] != 'review_without_maker':
+            if reason['code'] not in ('review_without_maker', 'independence_without_maker'):
                 reason |= {'applies_to': 'model_fallback', 'informational': True}
             else:
                 reason['applies_to'] = 'destination'
@@ -396,6 +406,25 @@ def execute(args, policy):
         return_value['launch_readiness_basis'] = 'simulation only; no dispatchable target'
         return_value['simulation'] = {'now': at.isoformat(), 'real_clock_at_evaluation': datetime.now(timezone.utc).isoformat(),
                                       'note': 'simulation only; not a dispatch decision'}
+
+    def commit_quota():
+        if route and not simulation and ctx['substitution']:
+            state = ctx['substitution']['state']
+            quota_substitution.commit(args.quota_state, state)
+            # Recorded receipts are snapshots before the post-append commit.
+            # Keep their output identical on replay; unrecorded routes can report it.
+            if not args.record:
+                summary = return_value['routing']['quota_substitution']
+                summary['state_written'] = state['written']
+                if state['write_error']:
+                    summary['state_write_error'] = state['write_error']
+
     if args.record:
-        return append_receipt(args.receipts, return_value)
+        if route and ctx['substitution']:
+            return_value['routing']['quota_substitution']['state_commit'] = 'after_receipt'
+        recorded = append_receipt(args.receipts, return_value)
+        if not recorded.get('replayed'):
+            commit_quota()
+        return recorded
+    commit_quota()
     return return_value

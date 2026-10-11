@@ -204,7 +204,7 @@ def assess_pair(ctx, op_id, arm, instance, requires):
 NEUTRAL_ARM = {'provider': None, 'model': '', 'effort': None}
 
 
-def substitution_context(params, accounts, quota, quota_meta, now, state_path, *, write, authorized_by):
+def substitution_context(params, accounts, quota, quota_meta, now, state_path, *, write, authorized_by, stack=None):
     """The `substitution` input of `make_context`, or None when neither the pack nor the user policy enables the feature.
 
     Each mapped subscription account gets the binding projection of its pace windows. Those windows are
@@ -220,7 +220,8 @@ def substitution_context(params, accounts, quota, quota_meta, now, state_path, *
             continue
         binding = quota_view(quota, quota_meta, NEUTRAL_ARM, entry, params.get('pace_windows', []), now)['binding']
         observed[instance] = {'projected_pct': binding['projected_pct'], 'window': binding['window']} if binding else None
-    return {'thresholds': thresholds, 'authorized_by': authorized_by, 'state': quota_substitution.evaluate(state_path, thresholds, observed, now, write=write),
+    return {'thresholds': thresholds, 'authorized_by': authorized_by,
+            'state': quota_substitution.evaluate(state_path, thresholds, observed, now, write=write, stack=stack),
             'ranks': {instance: entry['substitution_rank'] for instance, entry in accounts.items() if entry.get('substitution_rank') is not None}}
 
 
@@ -433,8 +434,9 @@ def pair_reasons(ctx, *, arm, instance, pace, eligibility_reasons, requested_onl
             reasons.append({'code': 'independence_requested_only', 'detail': level})
         if maker['provenance'] == 'caller_claim':
             reasons.append({'code': 'independence_caller_claim', 'detail': 'maker vendor and model are the caller\'s claim'})
-    if ctx['review'] and not maker:
-        reasons.append({'code': 'review_without_maker', 'detail': 'independence cannot be checked'})
+    if level and not maker:
+        code = 'review_without_maker' if ctx['review'] else 'independence_without_maker'
+        reasons.append({'code': code, 'detail': 'independence cannot be checked'})
     for newer in ctx['freshness'].get('newer_ga_not_in_pack', []):
         if newer['pack_model'] == arm['model']:
             reasons.append({'code': 'newer_ga_model_not_in_pack', 'informational': True, 'detail': newer})
