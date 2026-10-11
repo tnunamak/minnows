@@ -14,6 +14,10 @@ POLICY = REPO / 'data/model-choice-policy/operating-points.json'
 
 
 def run(*args, **kwargs):
+    if 'env' not in kwargs:
+        env = os.environ.copy()
+        env.pop('DATA_PACKS_HOME', None)
+        kwargs['env'] = env
     result = subprocess.run([str(TOOL), *map(str, args)], capture_output=True, text=True, **kwargs)
     return result, json.loads(result.stdout) if result.returncode == 0 and result.stdout.startswith('{') else None
 
