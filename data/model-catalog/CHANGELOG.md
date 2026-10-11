@@ -2,9 +2,9 @@
 
 Newest first. The README links here; this file is the single record.
 
-## Unreleased — 2026-10-11
+## v0.5.13 — 2026-10-11
 
-Data corrections from reviewed fix PRs (#42–#44, #47–#49, #51–#53), on main and not yet in a release tag. The next catalog release ships them together with a policy re-pin, which the validator requires. No new models or sources.
+Data corrections from reviewed fix PRs (#42–#44, #47–#49, #51–#53). No new models or sources.
 
 - Pricing lookup order: the tables use the first matching substring, so specific rows now come before shorter family rules. Fable 5.1 and Mythos 5.1 reach their own cache-read rate ($0.25 per M, not $1); Gemini 3.8, 3.7 and 3.6 Flash no longer fall back to the generic Pro row, and 3.5 Flash Lite no longer matches standard Flash; `glm-5.3-flash` no longer matches `glm-5.3`.
 - The 21 vendor-table rows in the Opus 5.5 system card move from grade B to C (vendor-reported). Their caveats already said "not independent evidence".
