@@ -9,8 +9,7 @@ import types
 import unittest
 from unittest.mock import patch
 
-ROOT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[3]
-sys.argv = [sys.argv[0]]
+ROOT = Path(__file__).resolve().parents[3]
 
 class LinkTest(unittest.TestCase):
     def test_unchanged_metadata_refresh_preserves_native_session_link(self):
