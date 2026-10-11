@@ -137,6 +137,14 @@
   },
   "match": [
     {
+      "pattern": "fable-5-1",
+      "model": "claude-fable-5-1"
+    },
+    {
+      "pattern": "mythos-5-1",
+      "model": "claude-mythos-5-1"
+    },
+    {
       "pattern": "fable-5",
       "model": "claude-fable-5"
     },
