@@ -27,4 +27,7 @@ for frac in (0.4, 0.6, 0.8, 1.0):
         idx = rng.sample(full, n)
         if len(set(y[i] for i in idx)) < 2: continue
         accs.append(loo_on(idx))
+    if not accs:
+        print(f"{n:3}   insufficient data (no two-class subsamples)")
+        continue
     print(f"{n:3}   {sum(accs)/len(accs):.1%}")
