@@ -2,6 +2,7 @@
 import concurrent.futures
 import hashlib
 import json
+import os
 import sqlite3
 import subprocess
 
@@ -30,17 +31,40 @@ def follow(setup, decision='one', followup_id='f1', *extra):
                '--finding', 'no_rework_found', '--checked-scope', 'git log of touched files', *extra)
 
 
+def make_test_git_repo(root):
+    """Create the test repository without honoring caller-selected Git repositories."""
+    root.mkdir(parents=True, exist_ok=True)
+    env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
+    repo = root / 'repo'
+    repo.mkdir()
+    identity = ['-c', 'user.name=t', '-c', 'user.email=t@example.com']
+    subprocess.run(['git', '-C', repo, 'init', '-q'], check=True, env=env)
+    (repo / 'a').write_text('x')
+    subprocess.run(['git', '-C', repo, 'add', 'a'], check=True, env=env)
+    subprocess.run(['git', '-C', repo, *identity, 'commit', '-qm', 'one'], check=True, env=env)
+    sha_ = subprocess.run(['git', '-C', repo, 'rev-parse', 'HEAD'], capture_output=True, text=True, check=True, env=env).stdout.strip()
+    return repo, sha_
+
+
 @pytest.fixture
 def git_repo(tmp_path):
-    repo = tmp_path / 'repo'
-    repo.mkdir()
-    env = ['-c', 'user.name=t', '-c', 'user.email=t@example.com']
-    subprocess.run(['git', '-C', repo, 'init', '-q'], check=True)
-    (repo / 'a').write_text('x')
-    subprocess.run(['git', '-C', repo, 'add', 'a'], check=True)
-    subprocess.run(['git', '-C', repo, *env, 'commit', '-qm', 'one'], check=True)
-    sha_ = subprocess.run(['git', '-C', repo, 'rev-parse', 'HEAD'], capture_output=True, text=True, check=True).stdout.strip()
-    return repo, sha_
+    return make_test_git_repo(tmp_path)
+
+
+def test_test_git_repository_fixture_ignores_inherited_repository_selection(tmp_path, monkeypatch):
+    other = tmp_path / 'other'
+    other.mkdir()
+    clean_env = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
+    subprocess.run(['git', '-C', other, 'init', '-q'], check=True, env=clean_env)
+    monkeypatch.setenv('GIT_DIR', str(other / '.git'))
+    monkeypatch.setenv('GIT_WORK_TREE', str(other))
+
+    repo, head = make_test_git_repo(tmp_path / 'fixture')
+
+    assert (repo / '.git').is_dir()
+    result = subprocess.run(['git', '--git-dir', repo / '.git', 'cat-file', '-e', f'{head}^{{commit}}'],
+                            check=False, capture_output=True, env=clean_env)
+    assert result.returncode == 0, result.stderr.decode()
 
 
 def test_unknown_decision_refused_and_nothing_written(setup):

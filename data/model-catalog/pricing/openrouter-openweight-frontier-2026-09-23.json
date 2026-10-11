@@ -91,12 +91,12 @@
       "model": "kimi-k3"
     },
     {
-      "pattern": "glm-5.3",
-      "model": "glm-5.3"
-    },
-    {
       "pattern": "glm-5.3-flash",
       "model": "glm-5.3-flash"
+    },
+    {
+      "pattern": "glm-5.3",
+      "model": "glm-5.3"
     },
     {
       "pattern": "minimax-m3",

@@ -51,13 +51,22 @@ def verdict(s):
 
 def main():
     rows = []
+    seen = set()
+    sources = {}
     for d in ("loop_corpus", "loop_corpus_pr", "loop_corpus_web"):
         for f in sorted((HERE / d).glob("*.txt")):
             rev = HERE / "loop_revisions" / f"{f.stem}.txt"
             if not rev.exists():
                 continue
-            sb, sa = stats(f.read_text()), stats(rev.read_text())
-            if not sb or not sa:
+            original = f.read_text()
+            if (f.stem, original) in seen:
+                continue
+            if f.stem in sources and sources[f.stem] != original:
+                raise RuntimeError(f"ambiguous shared revision for {f.stem}")
+            seen.add((f.stem, original))
+            sources[f.stem] = original
+            sb, sa = stats(original), stats(rev.read_text())
+            if not sb:
                 continue
             rows.append((f.stem, sb, sa, verdict(sb), verdict(sa)))
 
@@ -66,6 +75,10 @@ def main():
     print(f"{'case':22} {'before':>12} {'after':>12}   drift")
     toward = away = 0
     for name, sb, sa, db, da in rows:
+        if sa is None:
+            away += 1
+            print(f"  {name:20} {sb['mean']:5.1f}w/{sb['frags']:<2}f destroyed revision (unmeasurable)")
+            continue
         arrow = "->" if da < db else ("==" if abs(da - db) < 0.05 else "<-")
         if da < db - 0.05:
             toward += 1
@@ -77,7 +90,7 @@ def main():
     n = len(rows)
     print(f"\nmoved TOWARD the reference band : {toward}/{n}")
     print(f"moved AWAY from it              : {away}/{n}")
-    outside_after = sum(1 for *_, da in rows if da > 2)
+    outside_after = sum(1 for *_, da in rows if da is None or da > 2)
     print(f"outside 2sd after revision      : {outside_after}/{n}")
     print("\nThis is the non-LLM check. If revisions drifted away from how good")
     print("writing actually reads, the loop is optimising the rules rather than")

@@ -1,5 +1,14 @@
 # Decision model catalog changelog
 
+## v0.1.1 — 2026-10-11
+
+Data corrections from reviewed fix PRs (#34, #36, #37, #40, #41, #46). No new models or sources.
+
+- Pricing lookup order: Span-01 Lite now matches its free row before paid Span-01, and self-hosted Clef Flash matches before Clef.
+- The three Clef AG News rows limited to 62 items by quota set `comparable: false`, so consumers do not rank them against full-dataset results.
+- Local CPU latency rows: the 66 ms repeated-request row sets `prefix_cache: true`; server and basic-case rows describe their real sampling (one first request, median of three later requests, or a median across 12 cases) instead of the in-process five-repeat description.
+- The local benchmark scripts in `evidence/` abort when their server dies or never becomes ready, instead of measuring anyway.
+
 ## v0.1.0 — 2026-10-07
 
 - First release. Data as of 2026-10-07 UTC (research ran the evening of 2026-10-06 US Central); every `generated_at` and `retrieved_at` uses 2026-10-07.

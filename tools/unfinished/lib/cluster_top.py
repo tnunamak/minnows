@@ -33,8 +33,19 @@ def main():
                         "--output-format", "json", "--json-schema", json.dumps(SCHEMA)],
                        input=PROMPT + json.dumps(payload, ensure_ascii=False, indent=0), capture_output=True,
                        text=True, timeout=600, env=env, cwd=str(STATE))
+    if p.returncode != 0:
+        raise RuntimeError(f"clustering command failed: {p.stderr[-1000:]}")
     out = json.loads(p.stdout)
-    groups = (out.get("structured_output") or {}).get("groups", [])
+    structured = out.get("structured_output") if isinstance(out, dict) else None
+    groups = structured.get("groups") if isinstance(structured, dict) else None
+    if (not isinstance(out, dict) or out.get("is_error") is True or not isinstance(groups, list)
+            or any(not isinstance(group, dict)
+                   or not isinstance(group.get("ids"), list)
+                   or not all(isinstance(item_id, str) for item_id in group["ids"])
+                   or not isinstance(group.get("survivor"), str)
+                   or not isinstance(group.get("merged_next_action"), str)
+                   for group in groups)):
+        raise RuntimeError("clustering command returned an invalid result")
     ids = {r[0] for r in rows}
     db.execute("drop table if exists top_clusters")
     db.execute("create table top_clusters (item_id text primary key, survivor text, merged_action text)")

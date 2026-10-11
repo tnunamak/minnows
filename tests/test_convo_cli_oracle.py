@@ -12,6 +12,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from typing import Optional
+from unittest import mock
 
 
 TOOL = Path(__file__).parents[1] / "tools" / "convo" / "convo"
@@ -46,12 +47,10 @@ class ConvoCliOracleTests(unittest.TestCase):
         env = os.environ.copy()
         env["HOME"] = str(self.home)
         env["PYTHONNOUSERSITE"] = "1"
-        # This oracle simulates a single-config-dir machine via $HOME alone. The operator's
-        # own real CLAUDE_CONFIG_DIR (if set) must not leak into the subprocess — convo now
-        # discovers extra Claude config dirs from that env var (see claude_project_roots),
-        # so an inherited real value would pull real production sessions into these fixture
-        # assertions.
-        env.pop("CLAUDE_CONFIG_DIR", None)
+        # This oracle simulates a single-config-dir machine via $HOME alone. Inherited
+        # discovery overrides must not pull operator sessions into fixture assertions.
+        for variable in ("CLAUDE_CONFIG_DIR", "CONVO_PI_ROOTS", "PI_CODING_AGENT_DIR", "DSH_HOME"):
+            env.pop(variable, None)
         return subprocess.run(
             [str(TOOL), *args],
             cwd=str(cwd or self.project),
@@ -216,6 +215,31 @@ class ConvoCliOracleTests(unittest.TestCase):
             "harness", "session_id", "path", "project", "mtime", "user_msgs",
             "user_msgs_truncated", "first_user", "parse_error_count",
         } for entry in entries))
+
+    def test_list_ignores_inherited_pi_and_dsh_roots(self):
+        external = self.root / "external"
+        pi_root = external / "pi-agent"
+        dsh_home = external / "dsh-home"
+        slug = str(self.project).replace("/", "-")
+        pi_session = pi_root / "sessions" / slug / "2026-08-01T00-00-00-000Z_00000000-0000-7000-8000-000000000001.jsonl"
+        dsh_session = dsh_home / "sessions" / slug / "session-00000000-0000-4000-8000-000000000001" / "session.jsonl"
+        for destination, fixture in (
+            (pi_session, "pi-session.jsonl"),
+            (dsh_session, "dsh-real-error-session.jsonl"),
+        ):
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes((Path(__file__).parent / "fixtures" / "convo" / fixture).read_bytes())
+
+        for variable, value in (
+            ("CONVO_PI_ROOTS", str(pi_root)),
+            ("PI_CODING_AGENT_DIR", str(pi_root)),
+            ("DSH_HOME", str(dsh_home)),
+        ):
+            with self.subTest(variable=variable), mock.patch.dict(os.environ, {variable: value}):
+                result = self.run_cli("list", "--all-projects", "--harness", "all", "--limit", "20", "--json")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                entries = json.loads(result.stdout)
+                self.assertEqual({entry["harness"] for entry in entries}, {"claude", "codex", "gemini", "qwen"})
 
     def test_show_json_shape_and_clean_exchange_for_each_harness(self):
         expected = {

@@ -101,6 +101,8 @@ def main():
         if a:
             it.update({k: a.get(k) for k in ("verdict", "verdict_reason", "needs_owner", "next_action", "why",
                                               "priority", "effort", "duplicate_of", "confidence")})
+        if it.get("verdict") == "done":
+            it["verdict"] = "likely-done"
         r = resolved.get(iid)
         if r:  # an agent with tools (or a hand check) looked at the current state: this wins over model verdicts
             st_now = r.get("status_now")
