@@ -123,6 +123,12 @@ def main():
     keys = sorted(texts)
     rng = random.Random(1234)
     done = json.loads(PAIRS.read_text()) if PAIRS.exists() else []
+    valid = [r for r in done if isinstance(r, (list, tuple)) and len(r) == 3
+             and r[0] in texts and r[1] in texts and r[0] != r[1]
+             and isinstance(r[2], bool)]
+    if len(valid) != len(done):
+        print(f"discarded {len(done) - len(valid)} invalid or removed-document comparisons")
+    done = valid
     seen = {(r[0], r[1]) for r in done}
 
     all_pairs = [p for p in itertools.combinations(keys, 2)
@@ -141,6 +147,11 @@ def main():
             print(f"  {len(done)} agreed comparisons", flush=True)
     PAIRS.write_text(json.dumps(done))
 
+    if not done:
+        raise RuntimeError("no usable pairwise comparisons; prior labels preserved")
+    covered = {key for a, b, _ in done for key in (a, b)}
+    if set(keys) - covered:
+        raise RuntimeError("some documents have no comparisons; prior labels preserved")
     s = bradley_terry(keys, done)
     lo, hi = min(s.values()), max(s.values())
     rng_ = (hi - lo) or 1.0
