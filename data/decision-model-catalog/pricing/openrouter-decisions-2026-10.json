@@ -258,12 +258,12 @@
    "model": "solar-decide"
   },
   {
-   "pattern": "span-01",
-   "model": "span-01"
-  },
-  {
    "pattern": "span-01-lite",
    "model": "span-01-lite"
+  },
+  {
+   "pattern": "span-01",
+   "model": "span-01"
   },
   {
    "pattern": "kev-4b",
