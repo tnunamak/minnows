@@ -27,6 +27,8 @@ class ReferenceTest(unittest.TestCase):
         evidence = load("tools/unfinished/lib/resolve_evidence.py", cfg)
         mapping = {"minnows":"local/minnows", "waspflow":"local/waspflow"}
         self.assertEqual(evidence.pr_refs("external/minnows#42", "waspflow", mapping), [("external/minnows",42)])
+        self.assertEqual(evidence.pr_refs("PR external/minnows#42 3 files changed", "waspflow", mapping),
+                         [("external/minnows",42)])
         self.assertEqual(evidence.pr_refs("external/minnows#42 and minnows#43 and PR #44", "waspflow", mapping),
             [("external/minnows",42),("local/minnows",43),("local/waspflow",44)])
 
