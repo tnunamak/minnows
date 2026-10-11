@@ -24,7 +24,7 @@ It is built for people who run many agents at once. Its sources:
    - "Top 25", which holds checked items only
    - checked items that are still open
    - parked projects
-   - items not yet checked, grouped by project
+   - items not yet checked, or checked without a clear answer, grouped by project
    - work in flight
    - items found done
    - items likely done
