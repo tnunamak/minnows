@@ -11,6 +11,7 @@ import outcomes
 import calibrate
 import directives as directive_store
 import route_inputs
+import quota_substitution
 import routing
 import destinations
 import observations as observation_store
@@ -73,6 +74,7 @@ def add_arguments(parser):
     parser.add_argument('--maker-model', metavar='PROVIDER:MODEL', help='route: the maker as a caller claim, for direct or native work')
     parser.add_argument('--independence', choices=routing.INDEPENDENCE_LEVELS, help='route: required checker independence; default is the pack default for review')
     parser.add_argument('--accounts', type=Path, default=route_inputs.default_accounts_path(), help='account map; default ~/.config/model-policy/accounts.json')
+    parser.add_argument('--quota-state', type=Path, help='route: quota substitution state; default quota-substitution.json beside --receipts')
     parser.add_argument('--directives', type=Path, help='directives file; default directives.jsonl beside --receipts')
     parser.add_argument('--model-catalog', type=Path, help='model-catalog pack models.json; default from the clone or DATA_PACKS_HOME')
     parser.add_argument('--now', help='RFC 3339 time for directive expiry, the failure lookback and quota staleness. Read-only: route --now is a simulation (no dispatchable target, cannot --record), directive list and calibrate accept it, every other command refuses it')
@@ -101,7 +103,8 @@ def route_choice(args, policy, op, available, available_meta, quota, quota_meta,
     ctx = routing.make_context(op, params, available=available, available_meta=available_meta, quota=quota, quota_meta=quota_meta,
                                accounts=accounts, directives=directive_store.active(records, at, max_days), maker=maker,
                                independence=args.independence, proof_class=args.proof_class, line_of=line_of,
-                               failures=failures, freshness=fresh, now=at)
+                               failures=failures, freshness=fresh, now=at,
+                               substitution=routing.substitution_context(params, accounts, quota, quota_meta, at, args.quota_state, write=not args.now))
     block = routing.route(op, params, ctx)
     try:
         outcome_rows = outcomes.read_outcomes(args.outcomes)
@@ -173,6 +176,12 @@ def execute(args, policy):
         args.outcomes = args.receipts.with_name('outcomes.jsonl')
     if args.observations is None:
         args.observations = args.receipts.with_name('observations.jsonl')
+    if args.command != 'route' and args.quota_state is not None:
+        raise ValueError('--quota-state applies to route only')
+    if args.command == 'route':
+        args.quota_state = args.quota_state or quota_substitution.default_path(args.receipts)
+        for other, name in ((args.receipts, '--receipts'), (args.directives, '--directives'), (args.outcomes, '--outcomes'), (args.observations, '--observations')):
+            outcomes.refuse_shared_ledger(other, args.quota_state, '--quota-state', first=name)
     if args.command in ('audit', 'calibrate', 'observe'):
         outcomes.refuse_shared_ledger(args.receipts, args.observations, '--observations')
         outcomes.refuse_shared_ledger(args.outcomes, args.observations, '--observations', first='--outcomes')

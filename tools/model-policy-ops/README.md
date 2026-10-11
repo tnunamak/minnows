@@ -223,6 +223,10 @@ refuses it, because they write state with the real clock.
     once per account in `routing.quota`, under that `ref`;
   - `chosen` (or `null`): `arm`, `instance`, `target`, `basis`, `selection_basis`,
     `evidence`, `prior`, `known_gaps`, `authorized_by`, `pace`, `quota_binding`;
+    when quota substitution replaced the best pair, `selection_basis` is
+    `quota_substitution_exception` (see Quota substitution);
+  - `quota_substitution`, only when the pack enables it: the constrained accounts, the
+    thresholds, and the substitution if one happened (see Quota substitution);
   - `judgment_required` and `judgment_reasons` (`code`, `detail`, `applies_to`
     `routed` or `final`, and `informational` for the stale-pack note). After an
     override, `judgment_required` follows the final pair; the routed reasons stay listed;
@@ -235,7 +239,8 @@ refuses it, because they write state with the real clock.
     independence filter adds `final_not_runnable`, `final_requires_not_met` or
     `final_independence_bypassed`. The final pair also gets the routed-pair rules (basis,
     pace, `auth_config`, independence provenance). A final pair with no target adds
-    `final_target_null`;
+    `final_target_null`. A final pair on a quota-constrained account adds
+    `final_account_quota_constrained`;
   - `evidence` (label `descriptive_only`), `calibration_notes` and `inputs`.
 
 The same inputs give the same output, apart from `recorded_at` (and a random
@@ -263,7 +268,7 @@ When it is known and not listed, the candidate is removed. `check` validates all
 this. The pack `routing` object holds `pace_windows`, `failure_lookback_minutes`,
 `failure_demote_count`, `review_task_families`, `independence_default`,
 `directive_max_days`, `observation_max_age_hours` (default 3), `observation_window_days`
-(default 14) and `lineage_key`. `lineage_key` maps a provider to the
+(default 14), `quota_substitution` (see Quota substitution) and `lineage_key`. `lineage_key` maps a provider to the
 model-catalog field that names a model line (`{"claude": "family", "codex": "tier",
 "grok": "family"}`). Absent fields turn the matching feature off: no pace, no
 demotion, no directive lifetime cap, no model line. A review op with no
@@ -286,13 +291,81 @@ eligibility (`primary`, `task_benchmark_prior` and authorized candidates first),
 `prefer` directive, pace (`on_track`, `unknown`, `at_risk`), availability
 (`healthy`, `unknown`, `demoted`), pack candidate order, lower `projected_pct`,
 instance ID. The `projected_pct` key is a load-balancing heuristic. It is not a
-measure of subscription value. There are no weights.
+measure of subscription value. There are no weights. With quota substitution on, a
+best pair on a constrained account can be replaced after this ranking (next section).
 
 Pace is `on_track` when every pace window that the account reports has a clawmeter
 `forecast` below 100. It is `at_risk` at 100 or more. It is `unknown` for an
 unmapped account, a source that is not a plain snapshot, a missing forecast, an
 expired window, or no pace window. Unknown is never headroom. The 5-hour window
 only excludes an account when it is exhausted.
+
+### Quota substitution
+
+Pace class ranks after eligibility, so a primary Codex arm that is projected over 100%
+still beats an `unvalidated` Claude alternate. Quota substitution moves the choice off
+an account that is about to run out. It is off unless the pack `routing` object has
+
+```json
+"quota_substitution": {"activate_projected_pct": 95, "release_projected_pct": 90}
+```
+
+`check` requires `0 < release_projected_pct < activate_projected_pct <= 200`.
+
+Per mapped subscription account, `route` takes the binding pace-window `projected_pct`
+(the same value as the pace class). The account is **constrained** when that value is at
+or above `activate_projected_pct`. It stays constrained until the value falls below
+`release_projected_pct`. Between the two thresholds the previous state holds, so the
+mechanism does not flap. A value of exactly `release_projected_pct` still holds. Unknown
+or stale quota is never headroom: an account with no known projection is not
+constrained and is never a substitute. Its stored state is kept, not erased.
+
+The memory is `quota-substitution.json` beside the receipts (`--quota-state FILE`
+changes it). It holds `{since, window}` for each constrained account and follows the
+private-ledger rules: mode 0600, an exclusive lock on `quota-substitution.json.lock`
+for the read, the decision and the write, a temporary file that is written, fsynced and
+closed before it replaces the state, and a refusal to name the same file as another
+ledger. It is written only on a transition (or when it is missing). `route --now` is a
+simulation: it reads the state and never writes it. A replay of a recorded decision ID
+returns the stored receipt and does not read or write the state. A missing state starts
+empty. A state that is unreadable (malformed, a symlink, a file that group or world can
+write, a directory that others can write) is never rewritten: `route` decides without
+memory (constrained if and only if the value is at or above `activate_projected_pct`)
+and records `state: unreadable` with `state_issue`.
+
+**Ranking effect.** Every hard filter runs first and is unchanged. Then, when the best
+pair sits on a constrained account, `route` looks among the surviving pairs of the op's
+pack candidates (the primary and the alternates, so the pack's model tier and effort
+stay) for pairs on an account that is not constrained and has a known projection below
+`activate_projected_pct`. Order: pack candidate order, then the account's
+`substitution_rank` (see Account map; lower first, none last), then the lower
+projection, then the instance ID. The first pair is chosen.
+
+The substitute keeps its evidence `basis`: `unvalidated` stays `unvalidated`.
+`selection_basis` is `quota_substitution_exception`. The pack enables the feature as
+an owner directive, so a substitution to an `unvalidated` arm does not raise
+`unvalidated_candidate`, the same way an `authorize` directive does not. Every other
+judgment reason (independence, `requires`, `auth_config` and the rest) still applies.
+When no such pair exists, the normal choice stays and the judgment reason
+`quota_substitution_unavailable` lists each constrained account with its projection.
+Destinations are unchanged: the dot-first decision runs after model ranking. An
+override to a constrained account adds `final_account_quota_constrained`.
+
+`routing.quota_substitution`:
+
+- `active_accounts`: `{instance: {projected_pct, window, state, since}}` for each account
+  that is constrained or was released in this evaluation. `state` is `activated` (at or
+  above the activation threshold), `held_by_hysteresis` (between the thresholds, held
+  from before) or `released`. `since` is the time the constraint began, or the release
+  time for `released`;
+- `thresholds`, `substituted`, `unknown_accounts` (mapped accounts with no known
+  projection), `state` (`loaded`, `missing` or `unreadable`), `state_written` and, when
+  they apply, `state_issue` and `state_write_error`;
+- when substituted: `from` and `to` (`instance`, `model`, `effort`, `projected_pct`),
+  a fixed `reason` and `authorized_by: "pack routing.quota_substitution (owner directive)"`.
+
+The block is part of the receipt's routing record. It is not part of the request
+identity, and the state path is not either.
 
 ### Account map
 
@@ -309,6 +382,10 @@ maps nothing, so every instance is excluded for unknown billing.
 
 `quota_provider` and `quota_source` must equal the IDs in `clawmeter --json`. Use
 `null` for a provider that has no `sources` array.
+
+An entry can also have `substitution_rank`, a non-negative integer: the owner's order
+among accounts when quota substitution picks a substitute (lower first; an account with
+no rank comes after every ranked one).
 
 ### Directives
 
@@ -397,7 +474,8 @@ ops there is no default.
 `auth_config_events`, `independence_requested_only`, `independence_caller_claim`,
 `independence_maker_unknown`, `independence_line_unknown`, `final_metered_without_directive`,
 `final_avoided`, `final_quota_exhausted`, `final_not_runnable`, `final_requires_not_met`,
-`final_independence_bypassed`, `final_target_null`, `review_without_maker`, `directive_conflict`, `destination_inputs_unknown`,
+`final_independence_bypassed`, `final_target_null`, `final_account_quota_constrained`,
+`quota_substitution_unavailable`, `review_without_maker`, `directive_conflict`, `destination_inputs_unknown`,
 `destination_independence_unknown`, and
 `newer_ga_model_not_in_pack` (informational: a newer GA model on the same
 model line is in the live catalog and not in the pack; an informational reason is listed
