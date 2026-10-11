@@ -1,9 +1,9 @@
 {
   "name": "local-evals",
   "schema_version": 1,
-  "tag": "data-local-evals-v0.1.2",
-  "generated_at": "2026-10-07",
-  "description": "Harness SMOKE tests for policy-op runner wiring only — NOT model quality evidence. v0.1.1 reclassified the v0.1.0 historical waspflow rows as grade D / smoke after the Sol+Fable audit. v0.1.2 changes wording only (runner no longer named waspflow); data is unchanged.",
+  "tag": "data-local-evals-v0.1.3",
+  "generated_at": "2026-10-11",
+  "description": "Harness SMOKE tests for policy-op runner wiring only — NOT model quality evidence. v0.1.1 reclassified the v0.1.0 historical waspflow rows as grade D / smoke after the Sol+Fable audit. v0.1.2 changes wording only (runner no longer named waspflow); data is unchanged. v0.1.3 corrects SCHEMA.md to name the smoke rows' evidence grade (D); data is unchanged.",
   "files": [
     "README.md",
     "SCHEMA.md",

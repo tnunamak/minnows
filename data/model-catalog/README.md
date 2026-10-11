@@ -241,7 +241,7 @@ For independently run comparisons across many more models, including speed and l
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | [data-model-catalog-v0.5.12](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.12) — published by CI on push to main |
+| **This version** | [data-model-catalog-v0.5.13](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.13) — published by CI on push to main |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -250,14 +250,14 @@ For independently run comparisons across many more models, including speed and l
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.5.12
+TAG=data-model-catalog-v0.5.13
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
 
 # or
 ./scripts/fetch-data-pack.sh model-catalog
-./scripts/fetch-data-pack.sh model-catalog v0.5.12
+./scripts/fetch-data-pack.sh model-catalog v0.5.13
 ```
 
 ### Local

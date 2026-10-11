@@ -10,14 +10,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.2.0](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.0) — published by CI on push to main |
+| **This version** | [data-model-choice-policy-v0.2.1](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.1) — published by CI on push to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.2.0
+TAG=data-model-choice-policy-v0.2.1
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -78,6 +78,13 @@ not silently route by model name.
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.2.1 — 2026-10-11
+
+- **No routing change.** Every operating point expands exactly as in v0.2.0.
+- Repins to catalog v0.5.13, which corrects price-lookup order, vendor evidence grades and deduplicated board rows.
+- Ships the `observation_max_age_hours` (3) and `observation_window_days` (14) parameters that `route` already reads for its evidence-freshness notes. They equal the code defaults, so routes do not change.
+- Catalog pin: **v0.5.13**.
 
 ### v0.1.19 — 2026-10-07
 

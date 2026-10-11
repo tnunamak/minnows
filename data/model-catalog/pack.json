@@ -2,9 +2,9 @@
   "$schema": "schemas/pack-v1.schema.json",
   "name": "model-catalog",
   "schema_version": 1,
-  "tag": "data-model-catalog-v0.5.12",
-  "generated_at": "2026-10-07",
-  "description": "Model economics catalog. v0.5.12: adds Claude Haiku 5.5 (prompt-length pricing, effort surfaces, launch table, Artificial Analysis rows), a GPT-6.1 Sol board recheck, a pricing re-verification across vendors, new preview models, and a generated cost-vs-intelligence chart.",
+  "tag": "data-model-catalog-v0.5.13",
+  "generated_at": "2026-10-11",
+  "description": "Model economics catalog. v0.5.13: data corrections only. Price lookups now reach the specific Anthropic 5.1, Gemini Flash and GLM Flash rows; Opus 5.5 system-card rows are graded vendor-reported (C); deduplicated Arena, Terminal-Bench and Vals rows keep one snapshot identity and their known effort; the performance schema loses duplicate keys.",
   "files": [
     "CHANGELOG.md",
     "FRESHNESS.md",
