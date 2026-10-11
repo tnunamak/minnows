@@ -82,7 +82,7 @@ def run_semantic(text, kind):
         cmd = [sys.executable, str(SEMANTIC)]
     try:
         r = subprocess.run(
-            cmd + ["--stdin", "--kind", kind, "--json", "--quiet"],
+            cmd + ["--stdin", "--kind", kind, "--json"],
             input=text, capture_output=True, text=True, timeout=300)
     except (OSError, subprocess.SubprocessError) as e:
         return [], f"semantic layer unavailable ({type(e).__name__})"
