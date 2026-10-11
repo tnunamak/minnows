@@ -109,7 +109,7 @@ def check_rhythm(text):
     body = re.sub(r"```.*?```", " ", text, flags=re.S)
     body = re.sub(r"^\s*[|>#].*$", " ", body, flags=re.M)
     body = re.sub(r"^\s*([-*+]|\d+[.)])\s.*$", " ", body, flags=re.M)
-    sents = [s.strip() for s in re.split(r"(?<=[.!?])\s+", body) if len(s.split()) > 3]
+    sents = [s.strip() for s in re.split(r"(?<=[.!?])\s+", body) if s.strip()]
     if len(sents) < 6:
         return []
     wl = [len(s.split()) for s in sents]
