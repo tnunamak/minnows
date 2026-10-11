@@ -173,4 +173,4 @@ def test_quota_substituted_receipt_joins_audit_and_observe(setup, tmp_path):
     observe_result = ok(setup, '--db', db)
     assert observe_result['sources']['t3']['state'] == 'ok'
     assert facts(setup, 't3', 't3_requested_config')[0]['fact']['requested']['model'] == receipt['target']['model']
-    assert receipt['routing']['quota_substitution']['thresholds'] == {'activate_projected_pct': 95, 'release_projected_pct': 90}
+    assert receipt['routing']['quota_substitution']['thresholds'] == {'activate_projected_pct': 97, 'release_projected_pct': 85}
