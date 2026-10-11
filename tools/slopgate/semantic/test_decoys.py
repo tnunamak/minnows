@@ -23,6 +23,7 @@ Exit 1 if any control is flagged (precision failure) — that is the failure mod
 slopgate's own header calls worse than a miss.
 """
 import json
+import os
 import pathlib
 import sys
 
@@ -57,7 +58,10 @@ def main():
         if r["id"] in scores:
             continue
         scores[r["id"]] = score(r["text"], r["kind"])
-        cache.write_text(json.dumps(scores, indent=2))
+        # Atomic: a failed write must not destroy the previous valid checkpoint.
+        tmp = cache.with_name(cache.name + ".tmp")
+        tmp.write_text(json.dumps(scores, indent=2))
+        os.replace(tmp, cache)
         print(f"  scored {r['id']}", file=sys.stderr, flush=True)
 
     decoys = [r for r in rows if r["must_flag"]]
