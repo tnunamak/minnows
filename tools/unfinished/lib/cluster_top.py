@@ -33,7 +33,11 @@ def main():
                         "--output-format", "json", "--json-schema", json.dumps(SCHEMA)],
                        input=PROMPT + json.dumps(payload, ensure_ascii=False, indent=0), capture_output=True,
                        text=True, timeout=600, env=env, cwd=str(STATE))
+    if p.returncode != 0:
+        raise SystemExit(f"cluster model failed with exit code {p.returncode}: {p.stderr[-500:]}")
     out = json.loads(p.stdout)
+    if out.get("is_error"):
+        raise SystemExit(f"cluster model returned an error: {str(out.get('result', 'unknown error'))[:500]}")
     groups = (out.get("structured_output") or {}).get("groups", [])
     ids = {r[0] for r in rows}
     db.execute("drop table if exists top_clusters")
