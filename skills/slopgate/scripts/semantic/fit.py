@@ -83,17 +83,21 @@ def predict(w, b, x):
 def threshold_baseline(keys, y):
     """What slopgate ships: >=2 high-severity findings means 'machine-like'."""
     d = json.loads((HERE / "feature_matrix.json").read_text())
-    rules = load_rules("doc")
     correct = 0
     for k, yi in zip(keys, y):
         feats = d[k]["features"]
+        rules = load_rules(d[k].get("kind", "doc"))
         high = 0
         for name, v in rules.items():
-            if v["choices"] or v["levels"]:
-                continue
             if v["severity"] not in ("high", "critical"):
                 continue
-            if feats.get(name, 0.0) >= v["threshold"]:
+            if v["choices"]:
+                fires = any(feats[f"{name}::{option[:28]}"] == 1.0 for option in v["flag"])
+            elif v["levels"]:
+                fires = v["max_level"] is not None and feats[name] <= v["max_level"]
+            else:
+                fires = feats[name] >= v["threshold"]
+            if fires:
                 high += 1
         pred_human = 1 if high < 2 else 0
         correct += (pred_human == yi)
