@@ -84,12 +84,19 @@ def main():
             if key:
                 mapped += 1
                 db.execute("update t3threads set session_key=? where thread_id=?", (key, tid))
+            seg_id = "t3-" + tid[-40:]
+            text = f["text"][:6000]
+            context = users[-1]["text"][:1500] if users else ""
+            previous = db.execute("select text, context from segments where seg_id=?", (seg_id,)).fetchone()
+            if previous is not None and previous != (text, context):
+                for table in ("jev1", "seg_items"):
+                    if db.execute("select 1 from sqlite_master where type='table' and name=?", (table,)).fetchone():
+                        db.execute(f"delete from {table} where seg_id=?", (seg_id,))
             db.execute("""insert or replace into segments (seg_id, kind, harness, session_key, source_path, project,
                           ts, ordinal, text, context, unanswered, human_rule, next_ts)
                           values (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                       ("t3-" + tid[-40:], "t3tail", "t3", key or ("t3:" + tid), t3url(env_id, tid), th.get("worktreePath"),
-                        f.get("createdAt") or f.get("updatedAt"), 0, f["text"][:6000],
-                        (users[-1]["text"][:1500] if users else ""), 0, 0, None))
+                       (seg_id, "t3tail", "t3", key or ("t3:" + tid), t3url(env_id, tid), th.get("worktreePath"),
+                        f.get("createdAt") or f.get("updatedAt"), 0, text, context, 0, 0, None))
             db.commit()
     db.commit()
     print(f"mapped to native sessions: {mapped}", file=sys.stderr)
