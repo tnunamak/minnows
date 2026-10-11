@@ -15,8 +15,11 @@ import fit
 g = json.loads(pathlib.Path("graded_labels.json").read_text())
 m = json.loads(pathlib.Path("feature_matrix.json").read_text())
 keys = [k for k in sorted(m) if k in g]
-cols = sorted({c for k in keys for c in m[k]["features"]})
-X = [[float(m[k]["features"].get(c, 0.0)) for c in cols] for k in keys]
+cols = sorted(m[keys[0]]["features"]) if keys else []
+for key in keys:
+    if set(m[key]["features"]) != set(cols):
+        raise ValueError(f"Mixed feature schema at {key}; rerun features.py")
+X = [[float(m[k]["features"][c]) for c in cols] for k in keys]
 Xs, mu, sd = fit.standardize(X)
 y_bin = [m[k]["label"] for k in keys]
 y_grade = [g[k] for k in keys]

@@ -72,12 +72,12 @@ def score_doc(text, kind, rules):
 
 def main():
     rules = load_rules("doc")
-    data = json.loads(CACHE.read_text()) if CACHE.exists() else {}
+    # Recompute current documents and rules; path-only cached rows can be stale.
+    data = {}
+    CACHE.write_text(json.dumps(data))
     for d, label, kind in SOURCES:
         for f in sorted((HERE / d).glob("*.txt")):
             key = f"{d}/{f.stem}"
-            if key in data:
-                continue
             t = f.read_text().strip()
             if len(t.split()) < 40:
                 continue
