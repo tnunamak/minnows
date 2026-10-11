@@ -276,7 +276,13 @@ def main():
         print(json.dumps({"findings": findings}, indent=2))
     elif findings:
         for f in findings:
-            print(f"  [{f['severity']}] {f['rule']} (p={f['probability']}) "
+            if "probability" in f:
+                detail = f"p={f['probability']}"
+            elif "diagnosis" in f:
+                detail = f["diagnosis"]
+            else:
+                detail = f"level={f['level']}"
+            print(f"  [{f['severity']}] {f['rule']} ({detail}) "
                   f"-> {f['suggestion']}")
     sys.exit(1 if findings else 0)
 
