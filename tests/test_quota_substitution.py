@@ -489,11 +489,54 @@ def test_a_legacy_row_with_unknown_quota_stays_held(world, monkeypatch):
     assert active(world.route('review.audit')) == {'codex': 'held_unknown'}
 
 
-def test_a_stored_reset_time_that_is_not_a_string_is_unreadable(world):
+@pytest.mark.parametrize('value', [5, None, '', 'garbage', '2026-10-14T00:00:00'])
+def test_a_stored_reset_time_that_is_not_a_zoned_iso_time_is_unreadable(world, value):
     world.state.parent.mkdir(mode=0o700)
-    world.state.write_text(json.dumps({'schema_version': 1, 'accounts': {'codex': {'since': NOW, 'window': '7d', 'resets_at': 5}}}))
+    world.state.write_text(json.dumps({'schema_version': 1, 'accounts': {'codex': {'since': NOW, 'window': '7d', 'resets_at': value}}}))
     world.state.chmod(0o600)
     assert block(world.route('review.audit'))['state'] == 'unreadable'
+
+
+@pytest.mark.parametrize('offset, same', [(60, True), (61, False)])
+def test_the_same_window_tolerance_is_sixty_seconds(world, monkeypatch, offset, same):
+    reading(world, monkeypatch, '2026-10-11T05:00:00Z', 30, 98)
+    later = f'2026-10-18T04:01:{offset - 60:02d}Z'
+    row = block(reading(world, monkeypatch, '2026-10-11T05:10:00Z', 31, 92, later))['active_accounts']['codex']
+    assert row['state'] == ('held_by_hysteresis' if same else 'released')
+
+
+def test_unknown_quota_exactly_at_the_stored_reset_time_ends_the_constraint(world, monkeypatch):
+    reading(world, monkeypatch, '2026-10-11T03:50:00Z', 99, 170, OLD_RESET)
+    monkeypatch.setattr(test_route, 'NOW', '2026-10-14T03:42:47Z')
+    assert active(world.route('review.audit')) == {'codex': 'ended_with_window'}
+
+
+def test_a_source_reset_time_without_a_zone_is_never_stored_and_a_name_change_still_ends_the_constraint(world, monkeypatch):
+    out = reading(world, monkeypatch, '2026-10-11T05:00:00Z', 30, 120, '2026-10-18T04:00:00')
+    assert active(out) == {'codex': 'activated'}
+    assert world.stored()['codex'] == {'since': '2026-10-11T05:00:00+00:00', 'window': '7d'}, 'no identity, not a bad one'
+    out = reading(world, monkeypatch, '2026-10-11T05:10:00Z', 31, 92, '2026-10-18T04:00:00')
+    row = block(out)['active_accounts']['codex']
+    assert row['state'] == 'held_by_hysteresis' and row['previous_window'] == 'not_recorded'
+
+
+def test_an_observed_reset_time_that_cannot_be_parsed_is_not_comparable_and_keeps_the_stored_one(world, monkeypatch):
+    reading(world, monkeypatch, '2026-10-11T05:00:00Z', 30, 98)
+    row = block(reading(world, monkeypatch, '2026-10-11T05:10:00Z', 31, 92, 'soon'))['active_accounts']['codex']
+    assert row['state'] == 'held_by_hysteresis' and row['previous_window'] == 'not_comparable'
+    assert world.stored()['codex']['resets_at'] == NEW_RESET
+
+
+def test_a_different_window_name_is_a_different_window_even_without_reset_times():
+    import quota_substitution as qs
+    at = datetime(2026, 10, 11, 9, tzinfo=timezone.utc)
+    thresholds = {'activate_projected_pct': 97, 'release_projected_pct': 85}
+    for prior in ({'since': '2026-10-11T04:00:00+00:00', 'window': '7d', 'resets_at': NEW_RESET},
+                  {'since': '2026-10-11T04:00:00+00:00', 'window': '7d'}):
+        observed = {'codex': {'projected_pct': 92, 'window': '5h', 'resets_at': None, 'utilization': 40}}
+        accounts, report, constrained, _, _ = qs.decide({'codex': prior}, observed, thresholds, at)
+        assert report['codex']['state'] == 'released' and constrained == {} and accounts == {}, prior
+        assert report['codex']['previous_window'] == {'window': '7d', 'resets_at': prior.get('resets_at')}
 
 
 def test_each_account_window_resets_on_its_own(world, monkeypatch):

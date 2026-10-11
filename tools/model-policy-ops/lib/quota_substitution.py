@@ -9,8 +9,9 @@ unknown or stale quota is neither constrained nor a substitution target.
 A constraint belongs to one quota window: the binding window's name and its `resets_at`. It never crosses a
 reset. When the observed window differs from the stored one, the stored constraint is dropped and the new window
 starts from the activation threshold. When quota is unknown and the stored window's reset time has passed, the
-constraint ends with its window; the account is then unknown, not headroom. A row stored before window identity
-was recorded has no `resets_at`; it keeps the old behavior until a known observation records one.
+constraint ends with its window; the account is then unknown, not headroom. A row without a usable `resets_at`
+(stored before window identity existed, or observed from a source time without a zone) keeps the old behavior: a
+different window name still ends it, otherwise hysteresis applies and unknown quota holds it until a known reading.
 """
 import fcntl
 import json
@@ -44,11 +45,14 @@ def parse_time(value):
 
 
 def same_window(prior, binding):
-    """True or False, or None when the stored row has no usable window identity (legacy or unparseable)."""
+    """False for a different window name; for the same name, True or False by reset time, or None when either reset
+    time is missing or unusable (a row stored before window identity, or a source time without a zone)."""
+    if prior['window'] != binding['window']:
+        return False
     stored, observed = parse_time(prior.get('resets_at')), parse_time(binding.get('resets_at'))
     if stored is None or observed is None:
         return None
-    return prior['window'] == binding['window'] and abs((stored - observed).total_seconds()) <= SAME_WINDOW_SECONDS
+    return abs((stored - observed).total_seconds()) <= SAME_WINDOW_SECONDS
 
 
 def read_memory(path):
@@ -79,9 +83,10 @@ def read_memory(path):
     if not isinstance(rows, dict) or value.get('schema_version') != SCHEMA_VERSION:
         return None, 'unreadable', 'schema_mismatch'
     for entry in rows.values():
-        if not (isinstance(entry, dict) and isinstance(entry.get('since'), str) and isinstance(entry.get('window'), str)
-                and isinstance(entry.get('resets_at', ''), str)):
+        if not (isinstance(entry, dict) and isinstance(entry.get('since'), str) and isinstance(entry.get('window'), str)):
             return None, 'unreadable', 'schema_mismatch'
+        if 'resets_at' in entry and parse_time(entry['resets_at']) is None:
+            return None, 'unreadable', 'schema_mismatch'  # the writer stores only zoned ISO times
         try:
             datetime.fromisoformat(entry['since'])
         except ValueError:
@@ -158,8 +163,10 @@ def decide(memory, observed, thresholds, at):
         if projected >= activate or (prior and projected >= release):
             state = 'activated' if projected >= activate else 'held_by_hysteresis'
             since = prior['since'] if prior else at.isoformat()
-            # keep the stored reset time inside one window, so source jitter does not rewrite the file on every call
-            resets_at = prior.get('resets_at') if prior and prior.get('resets_at') else facts['resets_at']
+            # keep the stored reset time inside one window, so source jitter does not rewrite the file on every call;
+            # store only a zoned time, so an unusable source time leaves the row without identity instead of a bad one
+            observed_reset = facts['resets_at'] if parse_time(facts['resets_at']) else None
+            resets_at = prior.get('resets_at') if prior and prior.get('resets_at') else observed_reset
             accounts[instance] = {'since': since, 'window': window} | ({'resets_at': resets_at} if resets_at else {})
             row = facts | {'state': state, 'since': since}
             report[instance] = constrained[instance] = row
@@ -169,7 +176,7 @@ def decide(memory, observed, thresholds, at):
         else:
             continue
         if reset_from:
-            report[instance]['previous_window'] = {'window': reset_from['window'], 'resets_at': reset_from['resets_at']}
+            report[instance]['previous_window'] = {'window': reset_from['window'], 'resets_at': reset_from.get('resets_at')}
         elif prior and same_window(prior, binding) is None:
             # hysteresis still applies: without identity, a reset cannot be shown
             report[instance]['previous_window'] = 'not_recorded' if not prior.get('resets_at') else 'not_comparable'
