@@ -13,6 +13,11 @@ TOOL = REPO / 'tools/model-policy-ops/model-policy-ops'
 POLICY = REPO / 'data/model-choice-policy/operating-points.json'
 
 
+@pytest.fixture(autouse=True)
+def isolate_selected_policy(monkeypatch):
+    monkeypatch.delenv('DATA_PACKS_HOME', raising=False)
+
+
 def run(*args, **kwargs):
     result = subprocess.run([str(TOOL), *map(str, args)], capture_output=True, text=True, **kwargs)
     return result, json.loads(result.stdout) if result.returncode == 0 and result.stdout.startswith('{') else None

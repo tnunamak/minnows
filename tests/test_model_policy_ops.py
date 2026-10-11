@@ -1,9 +1,16 @@
 import subprocess
 from pathlib import Path
 
+import pytest
+
 
 REPO = Path(__file__).resolve().parents[1]
 TOOL = REPO / "tools" / "model-policy-ops" / "model-policy-ops"
+
+
+@pytest.fixture(autouse=True)
+def isolate_selected_policy(monkeypatch):
+    monkeypatch.delenv("DATA_PACKS_HOME", raising=False)
 
 
 def test_model_policy_ops_check():
