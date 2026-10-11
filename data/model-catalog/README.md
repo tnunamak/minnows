@@ -250,14 +250,14 @@ For independently run comparisons across many more models, including speed and l
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.5.9
+TAG=data-model-catalog-v0.5.12
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
 
 # or
 ./scripts/fetch-data-pack.sh model-catalog
-./scripts/fetch-data-pack.sh model-catalog v0.4.2
+./scripts/fetch-data-pack.sh model-catalog v0.5.12
 ```
 
 ### Local
