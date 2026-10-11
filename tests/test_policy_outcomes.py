@@ -444,6 +444,34 @@ def test_hash_cap_counts_bytes_read(tmp_path, monkeypatch):
     assert outcomes_lib.file_hash_state(str(big), sha(big)) == 'hash_matches'
 
 
+def test_hash_cap_stops_after_one_byte_past_limit(tmp_path, monkeypatch):
+    big = tmp_path / 'big'
+    big.write_bytes(b'x' * 4096)
+    monkeypatch.setattr(outcomes_lib, 'MAX_HASH_BYTES', 1024)
+    original_fdopen = outcomes_lib.os.fdopen
+    consumed = 0
+
+    class CountingStream:
+        def __init__(self, stream):
+            self.stream = stream
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            self.stream.close()
+
+        def read(self, size):
+            nonlocal consumed
+            block = self.stream.read(size)
+            consumed += len(block)
+            return block
+
+    monkeypatch.setattr(outcomes_lib.os, 'fdopen', lambda fd, mode: CountingStream(original_fdopen(fd, mode)))
+    assert outcomes_lib.file_hash_state(str(big), sha(big)) == 'too_large'
+    assert consumed == 1025
+
+
 GOOD_CLOSE = {'kind': 'close', 'schema_version': 1, 'close_id': 'c1', 'decision_id': 'one', 'outcome': 'accepted', 'judged_by': 'parent',
               'check': 'none', 'repairs': None, 'owner_input': 'unknown', 'evidence': [], 'note': None, 'supersedes': None,
               'reason': None, 'closer_thread': None, 'recorded_at': '2026-10-08T00:00:00+00:00',
