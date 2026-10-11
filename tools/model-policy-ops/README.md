@@ -369,11 +369,17 @@ override to a constrained account adds `final_account_quota_constrained`.
 
 `routing.quota_substitution`:
 
-- `active_accounts`: `{instance: {projected_pct, window, state, since}}` for each account
-  that is constrained or was released in this evaluation. `state` is `activated` (at or
-  above the activation threshold), `held_by_hysteresis` (between the thresholds, held
-  from before) or `released`. `since` is the time the constraint began, or the release
-  time for `released`;
+- `active_accounts`: `{instance: {projected_pct, utilization, window, resets_at, state,
+  since}}` for each account that is constrained or was released in this evaluation.
+  `utilization` is observed use; `projected_pct` is the quota source's forecast. `state`
+  is `activated` (at or above the activation threshold), `held_by_hysteresis` (between
+  the thresholds, held from before in the same window), `held_unknown` (quota unknown,
+  stored window not yet reset), `released`, or `ended_with_window` (quota unknown and
+  the stored window has reset: no longer constrained, still not a target). `since` is
+  the time the constraint began, or the release time. `previous_window` appears when a
+  reset dropped a stored constraint (`{window, resets_at}`), or is `"not_recorded"` for
+  a row stored before window identity existed. A constraint never crosses a reset;
+  same window means the same name and reset times within 60 seconds;
 - `thresholds`, `substituted`, `unknown_accounts` (mapped accounts with no known
   projection), `state` (`loaded`, `missing` or `unreadable`), `state_written` and, when
   they apply, `state_issue` and `state_write_error`;

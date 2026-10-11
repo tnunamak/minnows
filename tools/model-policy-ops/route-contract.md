@@ -1,6 +1,6 @@
-# `route` delivery contract (v1, revision 17)
+# `route` delivery contract (v1, revision 19)
 
-Status: revision 18, 2026-10-11. Revision 18 fixes independence without a maker, defers quota-state commits until acceptance and requires timezone-aware observation timestamps. Revision 17 moves quota-substitution thresholds out of the shipped pack into a per-user overlay (see the changelog). Revision 16 adds quota-aware substitution to `route` (see the changelog). Revision 15 adds observation notes to `route` (see the changelog). Revision 13 applies the observe round-3 review (see the changelog). Revision 12 applies the observe round-2 review (see the changelog). Revision 11 applies the observe review (see the changelog). Revision 10 adds `observe` (see the changelog). Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
+Status: revision 19, 2026-10-11. Revision 19 ties each quota constraint to one quota window, so a constraint never crosses a reset (see the changelog). Revision 18 fixes independence without a maker, defers quota-state commits until acceptance and requires timezone-aware observation timestamps. Revision 17 moves quota-substitution thresholds out of the shipped pack into a per-user overlay (see the changelog). Revision 16 adds quota-aware substitution to `route` (see the changelog). Revision 15 adds observation notes to `route` (see the changelog). Revision 13 applies the observe round-3 review (see the changelog). Revision 12 applies the observe round-2 review (see the changelog). Revision 11 applies the observe review (see the changelog). Revision 10 adds `observe` (see the changelog). Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
 child runs of a maker, the directive cap on write and on read, and final-pair judgment after an
 override (see the changelog). Revision 4 applies the independent checker's
 findings (report r1): maker provenance from the T3 child run, a model line key for
@@ -259,7 +259,32 @@ pace-window projection is at or above `activate_projected_pct`; it stays constra
 until the projection is below `release_projected_pct`, and between the two the previous
 state holds (memory in `quota-substitution.json` beside the receipts, committed only after
 a real-clock route passes validation and, when recording, successfully appends its receipt).
-Unknown quota is neither constrained nor a target. When the best pair sits on a constrained account, the first surviving pair of the op's pack candidates
+Unknown quota is neither constrained nor a target.
+
+A constraint belongs to one window (revision 19): the binding window's name and its
+`resets_at`. Two readings are the same window when the names match and the reset times
+differ by at most 60 seconds (within one window the source's reset time moves by about a
+second; consecutive windows differ by hours). At a reset boundary:
+
+- a known reading of a different window drops the stored constraint; the new window
+  is judged from the activation threshold, so the hysteresis band never carries a
+  constraint into the next window;
+- an unknown reading after the stored window's reset time ends the constraint
+  (`ended_with_window`); the account is then unknown, not headroom, and its pace is
+  `unknown`;
+- an unknown reading before that time holds the constraint (`held_unknown`);
+- a stored row without `resets_at` (written before revision 19) keeps the old rule,
+  and the next known reading records the reset time. Inside one window the stored reset
+  time is not rewritten, so source jitter writes nothing.
+
+`projected_pct` is the quota source's forecast, not observed use. Clawmeter projects
+the elapsed-average rate to the reset, so early in a window it multiplies observed use
+by window length over elapsed time. Clawmeter does not report how much of the window
+the forecast is based on, so `route` cannot grade the forecast's reliability, and it does
+not compute a second forecast. Rows carry `utilization` (observed) beside
+`projected_pct` (forecast).
+
+When the best pair sits on a constrained account, the first surviving pair of the op's pack candidates
 on an account that is not constrained and has a known projection below the activation
 threshold replaces it: candidate order, then the account's `substitution_rank`, then
 lower projection, then instance ID. The substitute keeps its `basis`; `selection_basis`
@@ -459,4 +484,5 @@ protect quality, not quota.
 - Revision 5 (2026-10-10): checker report r2 fixes. R1: every T3 child run of the maker decision is read (`multiple_child_runs`). R2: `directive add` refuses `--now`; readers reject rows beyond the cap or recorded after the evaluation time (`directives_rejected`, state `rejected`). R3: an override with a null target raises `final_target_null`. R4: reasons carry `applies_to`; the final pair gets the same judgment rules; `judgment_required` follows the final pair. R5: `freshness.unchecked` and state `partial`. Also `independence.required_source`.
 - Revision 4 (2026-10-10): checker report r1 fixes (maker provenance from the run, `lineage_key`, override filters, directive validation and lifetime cap, alternates-only `candidates`, AC6 key); revision 3 was the scope review decision on evidence classification.
 - Revision 16 (2026-10-11): quota-aware substitution. The pack `routing` object gains optional `quota_substitution` (`activate_projected_pct`, `release_projected_pct`; `0 < release < activate <= 200`); without it nothing below happens and no key changes. The accounts file gains optional `substitution_rank` (non-negative integer). `route` gains `--quota-state FILE` (default `quota-substitution.json` beside `--receipts`, private-ledger rules, a sidecar `.lock` for the exclusive lock, never the same file as another ledger). When the best pair sits on a constrained account, a pack-candidate pair on an unconstrained account with a known projection below the activation threshold replaces it (`chosen.selection_basis: quota_substitution_exception`, basis unchanged, no `unvalidated_candidate`); otherwise the judgment reason `quota_substitution_unavailable` is added. An override to a constrained account adds `final_account_quota_constrained`. `routing.quota_substitution` records the constrained accounts, thresholds, state-file status and the substitution. It is outside `request`, a replay returns the stored receipt without reading the state, and `route --now` never writes the state. Destinations, filters and the other judgment rules are unchanged.
+- Revision 19 (2026-10-11): quota constraints are per window. State rows gain an optional `resets_at` (a string; any other type makes the file `unreadable`). Same window means the same name and reset times within 60 seconds. A known reading of a different window drops the stored constraint and evaluates from the activation threshold; an unknown reading after the stored reset time ends the constraint with state `ended_with_window` (not constrained, not a target); an unknown reading before it stays `held_unknown`. `active_accounts` rows gain `utilization` and `resets_at`, and `previous_window`: `{window, resets_at}` when a reset dropped the stored constraint, `"not_recorded"` for a row stored before revision 19, `"not_comparable"` when a reset time cannot be parsed. Before this, a constraint stored in one window held through the hysteresis band in the next one and held indefinitely while quota was unknown. State files written by revision 18 stay readable.
 - Revision 18 (2026-10-11): interaction fixes. Explicit independence without a maker adds the non-informational `independence_without_maker`; review ops keep `review_without_maker`. Both remain destination-level reasons when a destination is chosen. Quota substitution evaluates in memory and commits only after all validation and a successful receipt append; the locked decision-ID recheck discards replay evaluations. Lock order is quota sidecar then receipts. Recorded quota blocks use `state_commit: "after_receipt"` with pre-commit `state_written: false`; unrecorded routes report the completed write. Observation writers and readers require timezone-aware collection and source timestamps; an invalid ledger produces `observations_missing` in route notes.

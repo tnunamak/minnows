@@ -219,7 +219,8 @@ def substitution_context(params, accounts, quota, quota_meta, now, state_path, *
         if entry['billing'] != 'subscription' or not entry.get('quota_provider'):
             continue
         binding = quota_view(quota, quota_meta, NEUTRAL_ARM, entry, params.get('pace_windows', []), now)['binding']
-        observed[instance] = {'projected_pct': binding['projected_pct'], 'window': binding['window']} if binding else None
+        observed[instance] = ({k: binding[k] for k in ('projected_pct', 'window', 'resets_at', 'utilization')}
+                              if binding else None)
     return {'thresholds': thresholds, 'authorized_by': authorized_by,
             'state': quota_substitution.evaluate(state_path, thresholds, observed, now, write=write, stack=stack),
             'ranks': {instance: entry['substitution_rank'] for instance, entry in accounts.items() if entry.get('substitution_rank') is not None}}
