@@ -79,12 +79,16 @@ def main():
             refs = pr_refs(text, project, rmap)
         refs_by_item[iid] = refs[:6]
         all_refs.update(refs[:6])
-    known = {r[0] for r in db.execute("select ref from prs")}
+    cached = dict(db.execute("select ref, data from prs"))
+    known = {ref for ref, data in cached.items() if json.loads(data).get("state") == "MERGED"}
     todo = [r for r in all_refs if f"{r[0]}#{r[1]}" not in known]
     print(f"items={len(items)} pr refs={len(all_refs)} to fetch={len(todo)}", file=sys.stderr)
     with ThreadPoolExecutor(6) as ex:
         for ref, data in ex.map(gh_state, todo):
-            db.execute("insert or replace into prs values (?,?)", (f"{ref[0]}#{ref[1]}", json.dumps(data)))
+            key = f"{ref[0]}#{ref[1]}"
+            if "error" in data and key in cached:
+                continue  # a failed refresh keeps the last known state
+            db.execute("insert or replace into prs values (?,?)", (key, json.dumps(data)))
     db.commit()
     src = sqlite3.connect(f"file:{CONVO}?mode=ro", uri=True)
     for iid, st, project, title, detail, quote, ts, sk in items:
