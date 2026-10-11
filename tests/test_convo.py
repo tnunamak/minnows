@@ -1326,6 +1326,7 @@ class ShowFromUserTests(unittest.TestCase):
         self.root = Path(self.directory.name)
         self.original_root = convo.HARNESSES["claude"]["root"]
         self.original_roots_fn = convo.HARNESSES["claude"]["roots_fn"]
+        self.addCleanup(self._restore_setup_state)
         convo.HARNESSES["claude"]["root"] = self.root / "claude"
         convo.HARNESSES["claude"]["roots_fn"] = None
         self.path = self.root / "claude" / "project" / "session.jsonl"
@@ -1340,7 +1341,7 @@ class ShowFromUserTests(unittest.TestCase):
              "message": {"content": [{"type": "text", "text": "agent reply two"}]}},
         ])
 
-    def tearDown(self):
+    def _restore_setup_state(self):
         convo.HARNESSES["claude"]["root"] = self.original_root
         convo.HARNESSES["claude"]["roots_fn"] = self.original_roots_fn
         self.directory.cleanup()
@@ -1392,6 +1393,7 @@ class ShowFromUserQueuedMessageTests(unittest.TestCase):
         self.root = Path(self.directory.name)
         self.original_root = convo.HARNESSES["claude"]["root"]
         self.original_roots_fn = convo.HARNESSES["claude"]["roots_fn"]
+        self.addCleanup(self._restore_setup_state)
         convo.HARNESSES["claude"]["root"] = self.root / "claude"
         convo.HARNESSES["claude"]["roots_fn"] = None
         self.path = self.root / "claude" / "project" / "session.jsonl"
@@ -1414,7 +1416,7 @@ class ShowFromUserQueuedMessageTests(unittest.TestCase):
              "message": {"content": [{"type": "text", "text": "done, docs updated too"}]}},
         ])
 
-    def tearDown(self):
+    def _restore_setup_state(self):
         convo.HARNESSES["claude"]["root"] = self.original_root
         convo.HARNESSES["claude"]["roots_fn"] = self.original_roots_fn
         self.directory.cleanup()
@@ -1466,6 +1468,7 @@ class ShowFromUserQueuedCommandAttachmentTests(unittest.TestCase):
         self.root = Path(self.directory.name)
         self.original_root = convo.HARNESSES["claude"]["root"]
         self.original_roots_fn = convo.HARNESSES["claude"]["roots_fn"]
+        self.addCleanup(self._restore_setup_state)
         convo.HARNESSES["claude"]["root"] = self.root / "claude"
         convo.HARNESSES["claude"]["roots_fn"] = None
         self.path = self.root / "claude" / "project" / "session.jsonl"
@@ -1490,7 +1493,7 @@ class ShowFromUserQueuedCommandAttachmentTests(unittest.TestCase):
              "message": {"content": [{"type": "text", "text": "done, docs updated too"}]}},
         ])
 
-    def tearDown(self):
+    def _restore_setup_state(self):
         convo.HARNESSES["claude"]["root"] = self.original_root
         convo.HARNESSES["claude"]["roots_fn"] = self.original_roots_fn
         self.directory.cleanup()
@@ -1544,6 +1547,7 @@ class CorruptJsonlToleranceTests(unittest.TestCase):
         self.root = Path(self.directory.name)
         self.original_root = convo.HARNESSES["claude"]["root"]
         self.original_roots_fn = convo.HARNESSES["claude"]["roots_fn"]
+        self.addCleanup(self._restore_setup_state)
         convo.HARNESSES["claude"]["root"] = self.root / "claude"
         convo.HARNESSES["claude"]["roots_fn"] = None
         self.path = self.root / "claude" / "project" / "session.jsonl"
@@ -1567,7 +1571,7 @@ class CorruptJsonlToleranceTests(unittest.TestCase):
                                   "message": {"content": [{"type": "text", "text": "second good answer"}]}}))
         self.path.write_text("".join(line + "\n" for line in lines), encoding="utf-8")
 
-    def tearDown(self):
+    def _restore_setup_state(self):
         convo.HARNESSES["claude"]["root"] = self.original_root
         convo.HARNESSES["claude"]["roots_fn"] = self.original_roots_fn
         self.directory.cleanup()
@@ -1622,6 +1626,25 @@ class CorruptJsonlToleranceTests(unittest.TestCase):
         self.assertEqual(code, 0, err)
         self.assertNotIn("partial session", err)
         self.assertNotIn("corrupt/unreadable session skipped", err)
+
+
+class FixtureFailureCleanupTests(unittest.TestCase):
+    def test_all_remaining_file_fixtures_restore_roots_after_setup_failure(self):
+        for fixture_type in (ShowFromUserTests, ShowFromUserQueuedMessageTests,
+                             ShowFromUserQueuedCommandAttachmentTests, CorruptJsonlToleranceTests):
+            with self.subTest(fixture=fixture_type.__name__):
+                original = dict(convo.HARNESSES["claude"])
+                fixture = fixture_type(unittest.defaultTestLoader.getTestCaseNames(fixture_type)[0])
+                try:
+                    with mock.patch.object(Path, "write_text", side_effect=OSError("fixture write failed")):
+                        with self.assertRaisesRegex(OSError, "fixture write failed"):
+                            fixture.setUp()
+                    fixture.doCleanups()
+                    self.assertEqual(convo.HARNESSES["claude"], original)
+                finally:
+                    convo.HARNESSES["claude"].update(original)
+                    if hasattr(fixture, "directory"):
+                        fixture.directory.cleanup()
 
 
 class PackagingBoundaryTests(unittest.TestCase):
