@@ -29,10 +29,14 @@ def read(path, required=False):
     """
     given = os.path.abspath(path)
     resolved = os.path.realpath(path)
-    if not os.path.lexists(given):
+    try:
+        os.lstat(given)
+    except (FileNotFoundError, NotADirectoryError):
         if required:
             raise ValueError(f'user policy {given}: no such file')
         return None, None
+    except OSError as error:
+        raise ValueError(f'user policy {given}: cannot inspect: {error.strerror}') from None
     try:
         fd = os.open(resolved, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     except OSError as error:
@@ -51,7 +55,7 @@ def read(path, required=False):
         value = json.loads(raw)
     except (ValueError, UnicodeDecodeError):
         raise ValueError(f'user policy {given}: not valid JSON') from None
-    if not isinstance(value, dict) or set(value) != {'schema_version', 'routing'} or value['schema_version'] != SCHEMA_VERSION:
+    if not isinstance(value, dict) or set(value) != {'schema_version', 'routing'} or type(value['schema_version']) is not int or value['schema_version'] != SCHEMA_VERSION:
         raise ValueError(f'user policy {given}: must be an object with exactly schema_version {SCHEMA_VERSION} and routing')
     routing = value['routing']
     if not isinstance(routing, dict):

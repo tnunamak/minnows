@@ -192,11 +192,14 @@ def main() -> int:
     from policy_decisions import add_arguments, execute
     import user_policy
     from runtime_sources import digest
+    from decision_receipts import find_receipt
     add_arguments(parser)
     args = parser.parse_args()
     args.policy = select_policy(args.policy)
     if args.no_user_policy and args.user_policy:
         parser.error("--user-policy and --no-user-policy are mutually exclusive")
+    if (args.user_policy or args.no_user_policy) and (args.command or "check") not in ("route", "check"):
+        parser.error("--user-policy and --no-user-policy apply to route and check only")
 
     def with_user_policy(pack):
         """The pack with the per-user overlay merged in (route and check only), checked as a whole. Raises ValueError."""
@@ -204,6 +207,8 @@ def main() -> int:
         args.user_policy_info = None
         if args.no_user_policy or args.command not in ("route", "check", None):
             return pack
+        if args.command == "route" and not args.now and args.decision_id and find_receipt(args.receipts, args.decision_id):
+            return pack   # a stored receipt replays unchanged, so the current overlay is not read
         routing, args.user_policy_info = user_policy.read(args.user_policy or user_policy.default_path(),
                                                           required=args.user_policy is not None)
         if routing is None:

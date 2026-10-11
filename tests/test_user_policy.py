@@ -5,6 +5,7 @@ test starts with it off and adds the overlay it needs.
 """
 import hashlib
 import json
+import os
 import sys
 
 import pytest
@@ -193,3 +194,42 @@ def test_observation_limits_apply(one):
 
 def test_an_explicitly_named_missing_overlay_is_an_error(world, tmp_path):
     route_fails(world, '--user-policy', tmp_path / 'typo-user-policy.json')
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason='root ignores directory permissions')
+def test_an_unreadable_default_overlay_is_an_error_not_absence(world):
+    folder = world.tmp / 'xdg/model-policy'
+    folder.mkdir(parents=True)
+    write(world, OVERLAY, 'xdg/model-policy/user-policy.json')
+    folder.chmod(0)
+    try:
+        result, _ = world.cli('check', '--policy', world.tmp / 'policy.json', raw=True)
+        assert result.returncode == 1 and result.stderr.startswith('FAIL') and 'user policy' in result.stderr, result.stdout + result.stderr
+        assert 'Permission denied' in result.stderr
+    finally:
+        folder.chmod(0o700)
+
+
+@pytest.mark.parametrize('how', ['deleted', 'corrupted'])
+def test_a_recorded_route_replays_without_the_overlay(world, how):
+    path = write(world, OVERLAY)
+    first = world.route('review.audit', '--user-policy', path, record='keep')
+    if how == 'deleted':
+        path.unlink()
+    else:
+        path.write_text('{nope')
+    replay = world.route('review.audit', '--user-policy', path, record='keep')
+    assert replay['replayed'] is True and replay['routing'] == first['routing']
+
+
+@pytest.mark.parametrize('flag', ['--user-policy', '--no-user-policy'])
+@pytest.mark.parametrize('command', [['resolve', 'review.audit'], ['list'], ['show', 'review.audit']])
+def test_commands_without_overlay_support_reject_the_flags(world, command, flag):
+    extra = [flag, world.tmp / 'x.json'] if flag == '--user-policy' else [flag]
+    result, out = world.cli(*command, *world.args(), *extra, raw=True)
+    assert out is None and result.returncode == 2 and 'user-policy' in result.stderr, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize('version', [True, 1.0])
+def test_the_schema_version_must_be_the_integer_one(world, version):
+    assert 'user policy' in route_fails(world, '--user-policy', write(world, {'schema_version': version, 'routing': {}}))
