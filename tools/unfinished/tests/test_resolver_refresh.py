@@ -47,4 +47,22 @@ class ResolverTest(unittest.TestCase):
                 resolver.main()
             self.assertEqual(seen, [])
 
+    def test_fresh_items_are_not_starved_by_cached_open_results(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = types.ModuleType("uf_config")
+            cfg.DATA = cfg.STATE = Path(tmp); cfg.WORK_DB = cfg.STATE / "work.db"
+            cfg.CFG = {}; cfg.claude_env = lambda: {}; cfg.owner = lambda: "fixture"
+            resolver = load("tools/unfinished/lib/resolve_agentic.py", cfg)
+            with sqlite3.connect(cfg.WORK_DB) as db:
+                db.execute("create table resolved(item_id text primary key, out text, src text)")
+                db.execute("insert into resolved values('cached',?, 'fixture')",(json.dumps({"status_now":"open"}),))
+            (cfg.DATA/"ledger.jsonl").write_text("".join(json.dumps({"id":iid,"verdict":"open","project":"fixture","source_type":"session","first_seen":"2026-01-01","slug":iid})+"\n" for iid in ("cached","fresh")))
+            seen=[]
+            def answer(batch):
+                seen.extend(x["id"] for x in batch)
+                return {"results":[]},0
+            with patch.object(resolver,"call",side_effect=answer),patch.object(sys,"argv",["resolve","1"]):
+                resolver.main()
+            self.assertEqual(seen,["fresh"])
+
 if __name__ == '__main__': unittest.main()
