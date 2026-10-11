@@ -46,4 +46,23 @@ class CacheTest(unittest.TestCase):
                 evidence.main()
             self.assertEqual(seen,[])
 
+    def test_failed_refresh_keeps_cached_state(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg = types.ModuleType("uf_config")
+            cfg.CFG = {}; cfg.WORK_DB = Path(tmp)/"work.db"; cfg.CONVO_LEDGER = Path(tmp)/"convo.db"
+            with sqlite3.connect(cfg.CONVO_LEDGER): pass
+            with sqlite3.connect(cfg.WORK_DB) as db:
+                db.executescript("create table items(item_id text, source_type text, project text, title text, detail text, quote text, ts text, session_key text);create table prs(ref text primary key, data text);")
+                for n in (1, 2):
+                    db.execute("insert into items values(?,?,?,?,?,?,?,?)", (str(n),"pr","fixture",f"PR example/repo#{n}","{}","","", ""))
+                db.execute("insert into prs values(?,?)", ("example/repo#1",json.dumps({"state":"OPEN","url":"https://example.invalid/1"})))
+            evidence = load("tools/unfinished/lib/resolve_evidence.py", cfg)
+            with patch.object(evidence,"repo_map",return_value={}), \
+                 patch.object(evidence,"gh_state",side_effect=lambda ref:(ref,{"error":"gh auth expired"})):
+                evidence.main()
+            with sqlite3.connect(cfg.WORK_DB) as db:
+                rows = {ref:json.loads(data) for ref,data in db.execute("select ref, data from prs")}
+            self.assertEqual(rows["example/repo#1"]["state"], "OPEN")
+            self.assertEqual(rows["example/repo#2"], {"error":"gh auth expired"})
+
 if __name__ == '__main__': unittest.main()
