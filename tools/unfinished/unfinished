@@ -81,8 +81,7 @@ def cmd_run(args):
     _step("ingest T3", "ingest_t3.py", since)
     _step("ingest structured sources", "ingest_structured.py")
     _step("decision-model pass", "jev_pass1.py",
-          "(kind in ('user','tail','t3tail') or (kind='reply' and (next_ts is null or "
-          "(julianday(next_ts)-julianday(ts))*24>=6)))")
+          "kind in ('user','tail','t3tail','reply')")
     _step("select candidates", "select_cands.py")
     _step("extract items", "extract_items.py")
     _step("materialize", "materialize.py")
@@ -204,7 +203,13 @@ def main(argv):
         return cmd_run(args)
     if cmd == "render":
         _cfg().ensure_dirs()
-        _step("render", "render.py")
+        with open(_cfg().STATE / ".run.lock", "w") as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                print("unfinished render: another run is in progress", file=sys.stderr)
+                return 0
+            _step("render", "render.py")
         return 0
     if cmd == "list":
         return cmd_list(args)

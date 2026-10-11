@@ -117,9 +117,16 @@ def llm(prompt, max_tokens=1200, timeout=300, tries=4):
     for i in range(tries):
         try:
             return _llm(prompt, max_tokens, timeout)
-        except RuntimeError as e:
+        except (RuntimeError, subprocess.TimeoutExpired) as e:
             last = e
-            if "no available server" in str(e) or "overload" in str(e).lower():
+            message = str(e).lower()
+            transient = (isinstance(e, subprocess.TimeoutExpired)
+                         or "no available server" in message
+                         or "overload" in message
+                         or re.search(r"curl exited (?:7|28|52|56):", message)
+                         or re.search(
+                             r"returned error: (?:429|500|502|503|504)\b", message))
+            if transient:
                 time.sleep(15 * (i + 1))
                 continue
             raise
@@ -134,11 +141,15 @@ def _llm(prompt, max_tokens=1200, timeout=300):
         body = pathlib.Path(fh.name)
     try:
         r = subprocess.run(
-            ["curl", "-sS", "-m", str(timeout), GATEWAY,
+            ["curl", "-sS", "--fail-with-body", "-m", str(timeout), GATEWAY,
              "-H", "Content-Type: application/json",
              "-H", f"Authorization: Bearer {os.environ.get('OPENAI_API_KEY','')}",
              "-d", f"@{body}"],
             capture_output=True, text=True, timeout=timeout + 30)
+        if r.returncode:
+            # Keep the body too: the retry checks read gateway text such as "overload".
+            detail = " ".join(x for x in (r.stderr.strip(), r.stdout.strip()) if x)
+            raise RuntimeError(f"curl exited {r.returncode}: {detail[:400]}")
         try:
             d = json.loads(r.stdout)
         except json.JSONDecodeError:
@@ -256,7 +267,7 @@ def main():
         shrank = len(after.split()) < len(before.split()) * 0.45
         truncated = shrank and ends_clean(before) and not ends_clean(after)
 
-        loss_verdict = llm(LOSS.format(before=clip(before), after=clip(after)),
+        loss_verdict = llm(LOSS.format(before=before, after=after),
                            max_tokens=120)
         loss_match = re.fullmatch(r"LOST:[ \t]*(yes|no)[ \t]*\nWHAT:[ \t]*(\S[^\n]*)",
                                   loss_verdict.strip(), re.I)

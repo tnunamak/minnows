@@ -115,7 +115,7 @@ KIND_STATE = {
 
 
 def quality_score(probs):
-    """P(reads like human-expert writing), from the fitted model. None if absent."""
+    """Return classifier probability or graded relative score; None if absent."""
     mp = pathlib.Path(__file__).resolve().parent / "quality_model.json"
     if not mp.exists():
         return None
@@ -217,12 +217,13 @@ def run(text, kind="doc"):
     score = None if kind == "web" else quality_score(feats)
     if score is not None:
         findings.append({"type": "model", "rule": "quality-score",
-                         "probability": round(score, 3), "severity": "info",
-                         "suggestion": f"quality score {score:.2f} of 1.0, from a model "
-                                       f"fitted to pairwise quality comparisons"})
+                         "score": round(score, 3), "severity": "info",
+                         "suggestion": f"model score {score:.2f} of 1.0; higher values "
+                                       f"indicate more of the model's target"})
 
     order = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
-    findings.sort(key=lambda f: (order[f["severity"]], -f.get("probability", 1.0)))
+    findings.sort(key=lambda f: (order[f["severity"]],
+                                 -f.get("probability", f.get("score", 1.0))))
     return findings, None
 
 
@@ -278,6 +279,8 @@ def main():
         for f in findings:
             if "probability" in f:
                 detail = f"p={f['probability']}"
+            elif "score" in f:
+                detail = f"score={f['score']}"
             elif "diagnosis" in f:
                 detail = f["diagnosis"]
             else:

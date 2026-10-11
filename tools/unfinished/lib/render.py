@@ -39,6 +39,7 @@ def import_ticks():
         print("LEDGER.md generation mismatch; not importing ticks", file=sys.stderr)
         return 0
     dec = load_decisions()
+    tick_at = dt.datetime.fromtimestamp(os.path.getmtime(p)).astimezone()
     n = 0
     lines = txt.splitlines()
     ticked = []
@@ -51,7 +52,13 @@ def import_ticks():
             ticked.append(m.group(1))
     with open(DEC, "a") as f:
         for iid in dict.fromkeys(ticked):
-            if iid not in dec:
+            d = dec.get(iid)
+            if d and d.get("decision") == "snooze" and (d.get("until") or "") > NOW.isoformat():
+                # The CLI can append a snooze without changing the ledger generation.
+                # Preserve it if the checkbox file predates that owner decision.
+                if dt.datetime.fromisoformat(d.get("at") or NOW.isoformat()).astimezone() >= tick_at:
+                    continue
+            if not d or d.get("decision") == "snooze":
                 f.write(json.dumps({"id": iid, "decision": "done", "at": NOW.isoformat(), "via": "ledger-tick"}) + "\n")
                 n += 1
     return n
@@ -87,7 +94,7 @@ def main():
     resolved = {}
     if db.execute("select 1 from sqlite_master where name='resolved'").fetchone():
         resolved = {i: json.loads(o) for i, o in db.execute("select item_id, out from resolved")}
-    items, bundles = [], defaultdict(list)
+    items, bundles, unadjudicated = [], defaultdict(list), []
     for (iid, st, kind, project, title, detail, owner, ts, last_ts, sreason, links, quote, sk, seg_id, score,
          bundle, adj) in rows:
         a = json.loads(adj) if adj else None
@@ -118,15 +125,20 @@ def main():
                 if r.get(k) not in (None, ""):
                     it[k] = r[k]
             a = a or r
+        d = dec.get(iid)
+        if d:
+            it["owner_decision"] = d
         if bundle and not a:
             bundles[bundle].append(it)
             continue
         if not a:
+            unadjudicated.append(it)
             continue  # not adjudicated: kept in ledger.jsonl only
-        d = dec.get(iid)
-        if d:
-            it["owner_decision"] = d
         items.append(it)
+    visible_bundles = {b: [i for i in xs if not (
+        (i.get("owner_decision") or {}).get("decision") in ("done", "drop") or
+        ((i.get("owner_decision") or {}).get("decision") == "snooze" and
+         (i["owner_decision"].get("until") or "") > NOW.isoformat()))] for b, xs in bundles.items()}
     by_id = {i["id"]: i for i in items}
     # Duplicate links, lowest precedence first: same-batch marks from the adjudicator, Jev pair check,
     # the resolver's "same as" notes, then the Sonnet clustering of checked items (whose survivors are roots).
@@ -182,7 +194,7 @@ def main():
     found_done = sorted([i for i in items if i.get("checked") and i.get("verdict") == "done"], key=rank)
 
     # evidence pages
-    for i in items + [x for b in bundles.values() for x in b]:
+    for i in items + unadjudicated + [x for b in bundles.values() for x in b]:
         write_evidence(db, i)
 
     gen = uuid.uuid4().hex[:12]
@@ -192,16 +204,17 @@ def main():
     w(f"<!-- generation: {gen} -->")
     w(f"Generated {NOW:%Y-%m-%d %H:%M %Z} from the last 30 days of agent sessions (Claude, Codex), T3 threads, "
       f"open PRs, waspflow lanes and inbox notes.\n")
-    n_checked = sum(1 for i in live if i.get("checked"))
+    checked_open = [i for i in live if i.get("checked") and not i.get("unclear")]
+    n_checked = len(checked_open)
     w(f"- **{n_checked} items were checked against git, GitHub and later sessions and are still open.** The Top 25 come from these.")
     w(f"- {len(found_done)} items that looked open turned out to be finished when checked (listed below, nothing to do).")
-    w(f"- {len(live) - n_checked} more candidates are not checked yet. In a hand-checked sample only about 1 in 4 such items "
+    w(f"- {len(live) - n_checked} more candidates are not checked yet or were checked without a clear answer. In a hand-checked sample only about 1 in 4 such items "
       f"was still open, so treat that section as a list to skim, not a to-do list.")
     w(f"- {len(likely)} likely done and {len(stale)} probably stale items are collapsed at the bottom."
       f"{' Imported ' + str(ticked) + ' ticks from the last ledger.' if ticked else ''}\n")
     w("**How to use:** tick a box (`[x]`) to close an item; the next run records it. Or run "
       "`unfinished done|snooze|drop <id> [7d|note]`. Every item has an *evidence* link to the exact source excerpt.\n")
-    top = live[:25]
+    top = checked_open[:25]
     start = [i for i in top if i.get("needs_owner")][:3] or top[:3]
     w("## Start here\n")
     for n, i in enumerate(start, 1):
@@ -213,7 +226,7 @@ def main():
         w(f"`{i['id']}` · **{i['project']}** · P{i.get('priority')} · {i.get('effort')} · needs {who}")
         w(f"- **Why:** {i['why']}")
         if i.get("checked"):
-            w(f"- **Checked {NOW:%m-%d}:** {'unclear, ' if i.get('unclear') else 'still open: '}{i['checked']}")
+            w(f"- **Checked:** {'unclear, ' if i.get('unclear') else 'still open: '}{i['checked']}")
         else:
             w(f"- **Verdict:** open, not yet checked against current state ({i.get('confidence')} confidence): "
               f"{i.get('verdict_reason')}")
@@ -222,7 +235,7 @@ def main():
         if i.get("quote"):
             w(f"- **Source says:** “{i['quote'][:220]}”")
         w(f"- **Links:** {links_for(i, t3_by_session)}\n")
-    more_checked = [i for i in live[25:] if i.get("checked")]
+    more_checked = checked_open[25:]
     if more_checked:
         w(f"## Also checked and still open ({len(more_checked)})\n")
         for i in more_checked:
@@ -231,37 +244,41 @@ def main():
               f"{links_for(i, t3_by_session)} `{i['id']}`")
         w("")
     # Parked projects: repos whose open PRs have all gone quiet for 30+ days. One decision each, not N rows.
-    parked = defaultdict(list)
+    # Quietness counts every open PR (in-flight ones too); only PRs still awaiting a decision are listed.
+    parked, last_touch = defaultdict(list), defaultdict(str)
     quiet = (NOW - dt.timedelta(days=14)).strftime("%Y-%m-%d")
+    shown = {id(i) for i in live} | {id(i) for i in visible_bundles.get("abandoned-prs", [])}
     for i in [x for x in items if x["source_type"] == "pr" and x["kind"] == "open-pr"] + bundles.get("abandoned-prs", []):
         m = re.match(r"PR ([^#\s]+)#", i["title"] or "")
         if m:
-            parked[m.group(1)].append(i)
-    parked = {r: xs for r, xs in parked.items()
-              if len(xs) >= 2 and max(x["last_activity"] or "" for x in xs) < quiet}
+            last_touch[m.group(1)] = max(last_touch[m.group(1)], i["last_activity"] or "")
+            if id(i) in shown:
+                parked[m.group(1)].append(i)
+    parked = {r: xs for r, xs in parked.items() if len(xs) >= 2 and last_touch[r] < quiet}
     if parked:
         w(f"## Parked projects: revive or shelve? ({len(parked)})\n")
         w("Repos with 2+ open PRs and none touched in the last 14 days. Decide once per repo: pick one PR to revive, or close them all.\n")
         for r, xs in sorted(parked.items(), key=lambda kv: -len(kv[1])):
-            last = max(x["last_activity"] or "" for x in xs)
+            last = last_touch[r]
             wts = [i for i in items if i["source_type"] == "worktree" and r.split("/")[-1] in (i["project"] or "")]
             w(f"- [ ] **{r}**: {len(xs)} open PRs, last touched {last}"
               + (f", plus {len(wts)} local checkout(s) with unpushed commits" if wts else "") + " · "
               + ", ".join(f"[#{x['id'].rsplit('#', 1)[-1]}]({x['links'][0]})" for x in
                           sorted(xs, key=lambda x: x["last_activity"] or "", reverse=True)[:8]))
         w("")
-    rest = [i for i in live[25:] if not i.get("checked")]
+    rest = [i for i in live if not i.get("checked") or i.get("unclear")]
     byp = defaultdict(list)
     for i in rest:
         byp[i["project"]].append(i)
-    w(f"## Not yet checked, by project ({len(rest)})\n")
-    w("Candidates from the transcripts that no agent has checked against the current state yet. Most are already done. "
+    w(f"## Not yet checked or unclear, by project ({len(rest)})\n")
+    w("Candidates from the transcripts that no agent has checked against the current state yet, or that a check left "
+      "unclear (tagged *checked: unclear*). Most are already done. "
       "The nightly run checks the highest-ranked ones and moves survivors up.\n")
     for p in sorted(byp, key=lambda p: rank(byp[p][0])):
         w(f"### {p} ({len(byp[p])})\n")
         for i in byp[p][:6]:
-            w(f"- [ ] **{i['next_action']}** — {i['why']} · P{i.get('priority')}{' · needs you' if i.get('needs_owner') else ''} · "
-              f"{i['first_seen']} · {links_for(i, t3_by_session)} `{i['id']}`")
+            w(f"- [ ] **{i['next_action']}** — {i['why']} · P{i.get('priority')}{' · needs you' if i.get('needs_owner') else ''}"
+              f"{' · checked: unclear' if i.get('unclear') else ''} · {i['first_seen']} · {links_for(i, t3_by_session)} `{i['id']}`")
         if len(byp[p]) > 6:
             w(f"- … and {len(byp[p]) - 6} more lower-ranked items: `unfinished list {p}`")
         w("")
@@ -293,7 +310,9 @@ def main():
              "abandoned-prs": "Open PRs untouched for 30+ days: close, or revive one",
              "unclosed-lanes": "waspflow lanes from the last 30 days that never got a closeout",
              "old-review-requests": "Review requests older than three months"}
-    for b, xs in sorted(bundles.items()):
+    for b, xs in sorted(visible_bundles.items()):
+        if not xs:
+            continue
         w(f"<details><summary><b>{names.get(b, b)}</b> ({len(xs)})</summary>\n")
         for i in sorted(xs, key=lambda x: x["last_activity"] or "", reverse=True):
             link = next((l for l in i["links"] if l.startswith("http")), i["links"][0] if i["links"] else "")
@@ -314,7 +333,7 @@ def main():
     os.replace(tmp, os.path.join(OUT, "LEDGER.md"))
     open(GEN, "w").write(gen)
     with open(os.path.join(OUT, "ledger.jsonl.tmp"), "w") as f:
-        for i in sorted(items, key=rank) + [x for b in bundles.values() for x in b]:
+        for i in sorted(items + unadjudicated, key=rank) + [x for b in bundles.values() for x in b]:
             f.write(json.dumps(i, ensure_ascii=False) + "\n")
     os.replace(os.path.join(OUT, "ledger.jsonl.tmp"), os.path.join(OUT, "ledger.jsonl"))
     print(f"open={len(live)} likely={len(likely)} stale={len(stale)} bundles={ {k: len(v) for k, v in bundles.items()} }",
