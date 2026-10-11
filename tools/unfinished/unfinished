@@ -204,7 +204,13 @@ def main(argv):
         return cmd_run(args)
     if cmd == "render":
         _cfg().ensure_dirs()
-        _step("render", "render.py")
+        with open(_cfg().STATE / ".run.lock", "w") as lock:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                print("unfinished render: another run is in progress", file=sys.stderr)
+                return 0
+            _step("render", "render.py")
         return 0
     if cmd == "list":
         return cmd_list(args)
