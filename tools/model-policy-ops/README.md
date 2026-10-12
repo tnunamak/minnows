@@ -613,6 +613,43 @@ destination needs one pushed GitHub input; if inputs are local, re-run with
 `--inputs local`. Every nested `target` key is cleared after the offer, the capacity JSON and
 the `submit` object are in place, so no field from the config or the probe can bring one back.
 
+**Destination target (revision 20).** A destination that T3 can run as a provider instance
+(for example a local ACP worker pool) may declare how to dispatch to it directly:
+
+```json
+{"target": {"providerInstanceId": "pool", "driverKind": "acpRegistry", "model": "pool"},
+ "brief_token": "[pool-decision:<root_decision_id>]", "max_chain_failures": 2,
+ "request_id_pattern": "[-\\w]{8,120}"}
+```
+
+`target` takes only those three keys (no options, so effort is null). `brief_token` is one
+line holding `<root_decision_id>` once, and `max_chain_failures` (1–10) is required with
+`target`. `request_id_pattern` is optional: the root decision IDs the destination accepts as
+its own request ID. These values describe one machine's setup and belong in the local
+config, not in the pack.
+
+When such a destination is chosen, and the live catalog (`--available`) lists the instance,
+the driver kind and the model, and both the instance and the model can run a child task now, the output also has:
+
+- `target`: the destination's target, unchanged, and `launch_ready: true`;
+- `dispatch`: `{clientRequestId, mode: "async", brief_first_line, root_decision_id}`.
+  Call `delegate_task` with `target`, `clientRequestId` and `mode` as given, and make
+  `brief_first_line` the task's first line. The root is the first decision of the relaunch
+  chain, so a relaunch keeps the same line and the destination keeps one request.
+
+Every other `target` stays cleared (the model fallback is never dispatchable here), and
+`destination_offer` stays, for hand submission. `routing.destination.target_state` is
+`in_catalog`, `not_in_catalog` or `decision_id_not_accepted`; in the last two cases `target`
+is null and only the offer remains. A simulation never returns the destination target.
+
+Relaunch chain. With `--relaunch-of`, `route` walks the chain of `relaunch.from` links
+back to its first decision. Each earlier route to a destination in that chain counts as one
+failure, because a relaunch follows a child that did not deliver. When a destination with
+`max_chain_failures` has reached it, it is declined (`considered` state
+`declined_by_chain`, with `chain_failures`), and when none is left, `fallback` =
+`{destination, reasons: ["chain_failures"], source: "chain", chain_failures}` and `route`
+picks a model. Routes to a model in the chain do not count.
+
 Judgment when a destination is chosen. The model-pair reasons (pace, unvalidated candidate,
 quota, auth_config, model independence, model freshness) stay in `judgment_reasons`, tagged
 `applies_to: "model_fallback"` and `informational: true`. `judgment_required` then comes only

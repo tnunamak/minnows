@@ -70,6 +70,12 @@ def provider_instance(provider):
     return provider.get('providerInstanceId', provider.get('instanceId'))
 
 
+def runnable(row):
+    """A live-catalog provider or model row that can run a child task now."""
+    return not (row.get('enabled') is False or row.get('canRunChildTask') is False or row.get('runnable') is False
+                or row.get('status', 'ready') not in ('ready', 'available'))
+
+
 def resolve_arm(arm, available, metadata, account=None):
     candidates = []
     for provider in providers(available):
@@ -91,13 +97,13 @@ def resolve_arm(arm, available, metadata, account=None):
     for provider in providers(available):
         if provider.get('providerInstanceId', provider.get('instanceId')) != instance or instance not in candidates:
             continue
-        if provider.get('enabled') is False or provider.get('canRunChildTask') is False or provider.get('runnable') is False or provider.get('status', 'ready') not in ('ready', 'available'):
+        if not runnable(provider):
             result['state'] = 'unavailable_account'
             return result
         for model in provider.get('models', []):
             if model.get('id', model.get('slug')) != arm['model']:
                 continue
-            if model.get('enabled') is False or model.get('canRunChildTask') is False or model.get('runnable') is False or model.get('status', 'ready') not in ('ready', 'available'):
+            if not runnable(model):
                 result['state'] = 'unavailable_model'
                 return result
             options = [o for o in model.get('options') or [] if o.get('id') in ('effort', 'reasoningEffort', 'thinking')]
