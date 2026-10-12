@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 
 from outcomes import PURPOSES
-from runtime_sources import digest
+from runtime_sources import digest, provider_instance, providers, runnable
 
 # The one name contract: config, receipts and the observation ledger all use it.
 NAME = re.compile(r'[a-z0-9][a-z0-9_-]{0,31}')
@@ -61,8 +61,67 @@ def read_destinations(path):
             raise ValueError(f'{where}.vendor must be a non-empty string when present')
         if not isinstance(entry.get('submit'), dict):
             raise ValueError(f'{where}.submit must be an object')
+        validate_target(entry, where)
     # observe_command belongs to `observe`; adding it must not change the identity that a route request records.
     return rows, {'state': 'loaded', 'sha256': digest([{k: v for k, v in e.items() if k != 'observe_command'} for e in rows])}
+
+
+ROOT = '<root_decision_id>'
+TARGET_KEYS = ('providerInstanceId', 'model', 'driverKind')
+
+
+def validate_target(entry, where):
+    """Optional dispatch target. With `target`, a chosen destination returns a normal T3 target instead of a hand-submit
+    offer only. `brief_token` (holding `<root_decision_id>` once) is the brief's required first line, and
+    `max_chain_failures` is how many routes to this destination one relaunch chain may hold before it is declined.
+    `request_id_pattern` (optional) is the root decision IDs the destination accepts as its request ID."""
+    keys = ('target', 'brief_token', 'max_chain_failures', 'request_id_pattern')
+    if not any(k in entry for k in keys):
+        return
+    target = entry.get('target')
+    if (not isinstance(target, dict) or set(target) - set(TARGET_KEYS)
+            or not all(isinstance(target.get(k), str) and target[k] for k in ('providerInstanceId', 'model'))
+            or ('driverKind' in target and not (isinstance(target['driverKind'], str) and target['driverKind']))):
+        raise ValueError(f'{where}.target must be {{providerInstanceId, model, driverKind?}} with non-empty strings and no options')
+    token = entry.get('brief_token')
+    if not isinstance(token, str) or token.count(ROOT) != 1 or '\n' in token or len(token) > 200:
+        raise ValueError(f'{where}.brief_token must be one line holding {ROOT} exactly once')
+    limit = entry.get('max_chain_failures')
+    if type(limit) is not int or not 1 <= limit <= 10:
+        raise ValueError(f'{where}.max_chain_failures must be an integer from 1 to 10')
+    if 'request_id_pattern' in entry:
+        try:
+            re.compile(entry['request_id_pattern'])
+        except (TypeError, re.error):
+            raise ValueError(f'{where}.request_id_pattern must be a regular expression') from None
+
+
+def catalog_target(available, target):
+    """True when the live catalog lists the target's instance, driver (when given) and model, and both can run a child task now (the rule model arms use)."""
+    for row in providers(available):
+        if provider_instance(row) != target['providerInstanceId']:
+            continue
+        driver = row.get('driverKind', row.get('driver'))
+        if 'driverKind' in target and driver != target['driverKind']:
+            return False
+        if not runnable(row):
+            return False
+        return any(m.get('id', m.get('slug')) == target['model'] and runnable(m) for m in row.get('models', []) if isinstance(m, dict))
+    return False
+
+
+def chain(rows, relaunch_of, name):
+    """(root decision ID, routes to `name` in the relaunch chain that ends at `relaunch_of`). Each one is a failed attempt:
+    the caller relaunches only after the previous child did not deliver."""
+    by_id = {r.get('decision_id'): r for r in rows}
+    root, failures, seen, current = None, 0, set(), relaunch_of
+    while current and current not in seen and current in by_id:
+        seen.add(current)
+        row = by_id[current]
+        failures += row.get('destination') == name
+        root = current
+        current = (row.get('relaunch') or {}).get('from')
+    return root, failures
 
 
 def command_argv(entry, key, where):
@@ -197,7 +256,7 @@ def independence_unknown(entry, independence):
     return bool(independence) and (not entry.get('vendor') or not independence['maker_complete'] or independence['level'] != 'vendor')
 
 
-def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, independence=None, run_probe=probe):
+def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, independence=None, run_probe=probe, lineage=None):
     """Return (`routing.destination` block, offer or None). Facts first, then the parent's skip, then independence, then capacity.
 
     `independence` is None when none is required, else {level, maker_vendors, maker_complete}; `maker_complete` is false when any maker run has an unknown vendor.
@@ -226,6 +285,17 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
     if not listed:
         return block | {'considered': considered,
                         'fallback': {'destination': first, 'reasons': ['independence'], 'source': 'facts'}}, None
+    spent = {}
+    for entry in listed:
+        root, failures = (lineage or (lambda name: (None, 0)))(entry['name'])
+        if 'max_chain_failures' in entry and failures >= entry['max_chain_failures']:
+            spent[entry['name']] = failures
+            considered.append({'name': entry['name'], 'state': 'declined_by_chain', 'chain_failures': failures})
+    listed = [e for e in listed if e['name'] not in spent]
+    if not listed:
+        reasons = (['independence'] if declined_names else []) + ['chain_failures']
+        return block | {'considered': considered,
+                        'fallback': {'destination': first, 'reasons': reasons, 'source': 'chain', 'chain_failures': spent}}, None
     for entry in listed:
         capacity = run_probe(entry)
         if capacity['available']:
@@ -233,6 +303,12 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
             offer = {'name': entry['name'], 'request_id': request_id, 'purpose': purpose, 'how_to': entry['how_to'],
                      'submit': substitute(entry['submit'], {'<request_id>': request_id, '<purpose>': purpose}), 'capacity': capacity,
                      'vendor': entry.get('vendor')}
+            if 'target' in entry:
+                root = (lineage or (lambda name: (None, 0)))(entry['name'])[0] or request_id
+                pattern = entry.get('request_id_pattern')
+                offer['_dispatch'] = {'target': dict(entry['target']), 'root_decision_id': root,
+                                      'brief_first_line': entry['brief_token'].replace(ROOT, root),
+                                      'root_accepted': pattern is None or re.fullmatch(pattern, root) is not None}
             return block | {'chosen': entry['name'], 'considered': considered}, offer
         considered.append({'name': entry['name'], 'state': 'unavailable', 'capacity': capacity})
     probed = [row for row in considered if row['state'] == 'unavailable']

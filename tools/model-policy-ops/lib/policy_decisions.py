@@ -369,9 +369,10 @@ def execute_locked(args, policy, stack):
         required = routing_block['independence']
         vendors, complete = routing.maker_vendor_coverage(required['maker'])
         independence = {'level': required['required'], 'maker_vendors': vendors, 'maker_complete': complete} if required['required'] else None
+        receipt_rows = read_receipts(args.receipts) if args.relaunch_of else []
         routing_block['destination'], offer = destinations.decide(
             dest_entries, purpose=args.purpose, facts=facts, skip=skip, reason=args.reason, request_id=decision_id, simulate=simulation,
-            independence=independence)
+            independence=independence, lineage=lambda name: destinations.chain(receipt_rows, args.relaunch_of, name))
     if routing_block:
         # Descriptive only: added once the destination is decided, so no ranking, target or judgment can depend on it.
         rows, state, _ = observation_store.read_observations(args.observations)
@@ -396,9 +397,27 @@ def execute_locked(args, policy, stack):
         return_value['destination'] = offer['name']
         return_value['launch_ready'] = False
         return_value['launch_readiness_basis'] = 'destination chosen; no model target to dispatch'
+        dispatch = offer.pop('_dispatch', None)
         return_value['destination_offer'] = offer
         # Assembled in full first, then cleared once: no offer, capacity or submit field can bring a model target back.
         return_value = clear_targets(return_value)
+        if dispatch:
+            # The destination's own T3 target, only when the live catalog lists it; the model fallback stays cleared.
+            found = destinations.catalog_target(available, dispatch['target'])
+            state = 'decision_id_not_accepted' if not dispatch['root_accepted'] else 'in_catalog' if found else 'not_in_catalog'
+            return_value['routing']['destination']['target_state'] = state
+            if state == 'in_catalog':
+                return_value['target'] = dict(dispatch['target'])
+                return_value['launch_ready'] = True
+                return_value['launch_readiness_basis'] = ('destination target listed in the live catalog; dispatch with delegate_task: '
+                                                          'clientRequestId = decision_id, mode async, brief_first_line as the first line')
+                return_value['dispatch'] = {'clientRequestId': decision_id, 'mode': 'async',
+                                            'brief_first_line': dispatch['brief_first_line'], 'root_decision_id': dispatch['root_decision_id']}
+            elif state == 'not_in_catalog':
+                return_value['launch_readiness_basis'] = 'destination chosen; its target is not in the live catalog; submit by hand'
+            else:
+                return_value['launch_readiness_basis'] = ('destination chosen; the root decision ID does not match its request_id_pattern; '
+                                                          'submit by hand or re-route with a matching decision ID')
     if simulation:
         simulated = return_value['target']
         return_value = clear_targets(return_value)
