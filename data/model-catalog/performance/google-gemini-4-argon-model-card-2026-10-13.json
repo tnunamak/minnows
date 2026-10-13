@@ -1,0 +1,83 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "google-gemini-4-argon-model-card-2026-10",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "google",
+  "retrieved_at": "2026-10-13",
+  "source_urls": [
+    "https://storage.googleapis.com/deepmind-media/Model-Cards/Gemini-4-Argon-Model-Card.pdf",
+    "https://storage.googleapis.com/deepmind-media/gemini/gemini_4_safety_report.pdf",
+    "https://deepmind.google/models/model-cards/gemini-4-argon/"
+  ],
+  "source_ids": [
+    "google-gemini-4-argon-model-card-2026-10",
+    "google-gemini-4-argon-safety-report-2026-10-13"
+  ],
+  "notes": "Gemini 4 Argon Model Card (14-page PDF, 'Published: October 2026'), extracted with pdftotext -layout; every stored statement was checked against the extracted text. The HTML card page https://deepmind.google/models/model-cards/gemini-4-argon/ returned HTTP 404 on 2026-10-13 (linked from the Gemini API model page); the card is the storage.googleapis.com PDF. The benchmark results table on card printed page 5 (PDF page 6) is an image and is stored cell by cell in google-gemini-4-argon-launch-2026-10-13.json, where it matches the 2026-09-30 blog table and the methodology PDF page 5. This file holds the card's model information, Frontier Safety Framework assessment, automated safety deltas versus Gemini 3.1 Pro, and the safety-report headline cyber figures as stated claims only (no comparison models, no effort labels: the card does not state an effort for its safety evaluations; the methodology page says benchmark runs use the highest thinking setting). Google-authored; no third-party replication. The full 217-page safety report was not digitized. Recheck the HTML card and the safety report by 2026-10-20.",
+  "claims": [
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "safety"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Model card 'Model Information' (published October 2026): 'Gemini 4 Argon, a new frontier model, is not a modification or a fine-tune of a prior model.' Architecture: large scale sparse mixture-of-experts transformer with native multimodal support for text, vision and audio inputs; inputs text, images, audio and video 'with a combined input-output token context window of up to 1M'; output text, 'with up to a 1M token input + output'. Knowledge cutoff for Gemini 4 is March 2026 'but in some domains the model's knowledge may be less up to date'. Trained on Google TPUs with JAX and ML Pathways. Distribution: Gemini App, Gemini API, Google AI Studio, Gemini for business, Google Antigravity, Google AI Mode. Known limitations named: hallucinations and 'occasional slowness or timeout issues'.",
+      "implication": "Model-card facts only; the card gives no parameter count, expert count or active-parameter figure.",
+      "source_id": "google-gemini-4-argon-model-card-2026-10"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "safety"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Frontier Safety Framework assessment (card printed pages 10-13, FSF April 2026), Google's words: CBRN uplift TCL 'not reached' (can be ruled out for chemical, radiological and nuclear with reasonable confidence); CBRN Uplift Level 1 CCL (biological) 'cannot be ruled out' ('Expert red teaming demonstrated a measurable capability uplift over web baselines and compared to previously tested models in two separate scenarios'), with safeguards Google assesses lower risk to below the CCL level; Cybersecurity Uplift Level 1 CCL 'cannot be ruled out' ('The model provides substantial uplift by our evaluations and quantitative modeling'), with safeguards assessed to lower risk below the CCL level; Harmful Manipulation Level 1 CCL 'not reached'; Loss of control: Stealth and Situational Awareness TCL 'cannot be ruled out' (Argon 'passes 14/15 of our challenges'), with safeguards for internal and external deployments; ML R&D acceleration level 1 and ML R&D automation level 1 CCLs 'not reached'.",
+      "implication": "Google-authored assessments; the safety cases and residual-risk assessments are not independently verified. The cyber and biological CCLs are the stated reason the cyber-guardrail-free variant is allowlisted (Fairwind Program).",
+      "source_id": "google-gemini-4-argon-model-card-2026-10"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "safety"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Automated training-and-development safety evaluations (card printed page 9), Gemini 4 Argon versus Gemini 3.1 Pro in percentage points, printed values: Text to Text Safety +1.57pp (lower is better); Multilingual Safety -3.16pp (lower is better); Image to Text Safety -9.29pp (lower is better); Tone +5.50pp (higher is better); Unjustified refusals -9.60pp (lower is better). Google says text-to-text safety 'remains at a similarly high safe response rate within confidence intervals', that these evaluations were improved and 'are not directly comparable with performance results found in previous Gemini model cards', and that manual review found losses 'overwhelmingly either a) false positives or b) not egregious'. Human red teaming found 'similar or improved safety performance compared to Gemini 3.1 Pro' and 'no egregious concerns'; child-safety launch thresholds satisfied.",
+      "implication": "Deltas against a different, older model (Gemini 3.1 Pro), automated, not scores on a shared scale; not stored as score rows.",
+      "source_id": "google-gemini-4-argon-model-card-2026-10"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "coding",
+        "safety"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Safety and Security Report executive summary and section 3.2.2 (217-page PDF; only these parts read): on CWE-Bench v1, 'an end-to-end benchmark testing autonomous security audits and patch synthesis across six programming languages without prior bug localization', Argon achieved 68% Pass@1, tying for first among frontier models; on Irregular's CyScenarioBench it solves 100% of end-to-end challenges versus 41.7% for Gemini 3.8 Flash Cyber (saturated); with an unmitigated model, an attacker could 'complete a severe historical cyberattack at 16.7x lower cost on average'; Google cannot rule out the cyber CCL without mitigations. Unless noted, report evaluations run the model without out-of-model production safeguards and compare to Gemini 3.7 Flash, 3.8 Flash and 3.1 Pro. Report-level claims: hallucination rates cut by more than two-thirds and sycophancy reduced by nearly two-thirds relative to Gemini 3.1 Pro; 'lowest attack success rate of any frontier model tested' by Gray Swan on its Indirect Prompt Injection benchmark.",
+      "implication": "Vendor claims from a document read only in part (executive summary and the cyber-uplift conclusions); the unmitigated-model results are not what the production API serves.",
+      "source_id": "google-gemini-4-argon-safety-report-2026-10-13"
+    }
+  ],
+  "missing": [
+    "The card prints no effort label for its safety evaluations and no per-evaluation sample size or confidence interval.",
+    "The card prints no parameter count, expert count or active-parameter figure (only 'large scale sparse mixture-of-experts').",
+    "Safety and Security Report sections beyond the executive summary and cyber-uplift conclusions (content safety, agentic misuse, health, hallucination, prompt-injection red teaming, CoT transparency, ML R&D) were not read in detail.",
+    "HTML model-card page returned HTTP 404; recheck whether it appears and whether its table differs from the PDF."
+  ]
+}

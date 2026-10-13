@@ -48,8 +48,9 @@ Anthropic, Google, xAI, Qwen, and other vendor families where the vendor names a
 - **openai**: `astra` | `sol` | `terra` | `luna` | `pro` | `mini` | `nano` | `codex` | `base`
   (`base` = the flagship generation id with no tier suffix, e.g. `gpt-5.5`, `gpt-5.4`)
 - **anthropic**: `fable` | `mythos` | `opus` | `sonnet` | `haiku`
-- **google**: `pro` | `flash` | `flash-lite` | `deep-think` | `specialized` | `managed-agent`
-  (vendor model classes; managed agents remain distinct from text models)
+- **google**: `pro` | `flash` | `flash-lite` | `deep-think` | `specialized` | `managed-agent` | `argon`
+  (vendor model classes; managed agents remain distinct from text models; `argon` is Gemini 4 Argon,
+  which Google names as its flagship reasoning model without a Pro or Flash label, so it is kept out of `pro`)
 - **xai**: `flagship` for Grok flagship releases and `build-agent` for Grok Build. Grok 4.7
   is identified by xAI as its flagship; Fast is a deployment variant, not a public API model id.
 - **deepseek**: `pro` | `flash` (vendor model names; V4.1 Flash is current).

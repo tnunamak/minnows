@@ -39,7 +39,11 @@
     "https://dev.meta.ai/docs/reasoning",
     "https://dev.meta.ai/docs/muse-code/configuration",
     "https://dev.meta.ai/docs/muse-code/subscriptions",
-    "https://dev.meta.ai/models/muse-wonder"
+    "https://dev.meta.ai/models/muse-wonder",
+    "https://ai.google.dev/gemini-api/docs/generate-content/thinking",
+    "https://ai.google.dev/gemini-api/docs/latest-model",
+    "https://ai.google.dev/gemini-api/docs/models/gemini-4-argon",
+    "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/4-argon"
   ],
   "source_ids": [
     "anthropic-claude-code-model-config-2026-07-09",
@@ -98,7 +102,11 @@
     "meta-model-api-docs-reasoning-2026-10-13",
     "meta-muse-code-docs-configuration-2026-10-13",
     "meta-muse-code-docs-subscriptions-2026-10-13",
-    "meta-muse-wonder-model-page-2026-10-13"
+    "meta-muse-wonder-model-page-2026-10-13",
+    "google-gemini-thinking-2026-10-13",
+    "google-gemini-whats-new-argon-2026-10-13",
+    "google-gemini-4-argon-model-page-2026-10-13",
+    "google-agent-platform-gemini-4-argon-2026-10-13"
   ],
   "notes": "Per provider/model/surface effort and mode capabilities. Never silent remap in orchestration. Org policies may still cap Claude Code effort. 2026-09-05: effort-stratified Astra benchmark evidence is now HELD in performance/ (launch charts, ARC Prize, AA, secondary TB4.0 audit). The earlier claim that none existed was FALSE and has been removed. 2026-09-22: added claude-opus-5-5 api surface (Opus 5.5 launch). Default effort medium (Opus 5 default is high). Thinking cannot be disabled at any effort level (Opus 5 only blocks disabling at xhigh/max). No claude_code surface entry added for Opus 5.5 — no Claude Code-specific model-config doc content was fetched for it in this pass; do not assume parity with the api surface without checking. 2026-09-22: added gpt-6-sol/gpt-6-luna api surfaces from their model pages (none/low/medium(default)/high/xhigh/max — no minimal, unlike gpt-5.6's api surface). 2026-09-22 (integration correction): the gpt-6-sol/gpt-6-luna codex_cli surfaces were initially recorded empty, citing a codex-cli 0.154.0 read that reported both slugs absent (auth-scoped rollout gap). A same-day 0.156.0 re-read on the same host shows both ARE listed (visibility=list): gpt-6-sol low/medium/high/xhigh/max/ultra default medium, gpt-6-luna low/medium/high/xhigh/max default medium — filled in from that later read (see openai-codex-debug-models-0-156-0-2026-09-22). 2026-09-23: added observed agy 1.2.9 per-model efforts (3.8/3.7/3.6 Flash low/medium/high; 3.1 Pro low/high), auth-scoped; added Grok 4.7 API effort and authenticated Grok CLI listing (sole/default model). Qwen candidates carry vendor product-family tiers and explicit enable_thinking surface notes where the primary model/API/config pages document them; this is a binary thinking toggle, not an effort ladder. Local CLI verification on 2026-09-23: installed qwen 0.21.1; `qwen --help` exposes no top-level --effort/--thinking flags. The installed bundled docs expose interactive `/effort` with low|medium|high|xhigh|max via model.reasoningEffort; provider mappings determine whether tiers remain distinct or map to thinking on/off. 2026-09-29: added GPT-6.1 Sol API surface from the dedicated model page. API default is medium. Added a separate Codex CLI surface from the official Codex model guide; its documented choices include Ultra, but the guide does not specify a fixed model default and the local model catalog did not include this model at retrieval. 2026-09-29: Xiaomi MiMo-V2.6 Pro/Flash API reasoning.effort accepts none, minimal, low, medium, high, xhigh, max, and ultra; only none disables reasoning, while other labels map to enabled reasoning and do not provide custom tuning. Default is enabled. 2026-10-07: added claude-haiku-5-5 api and claude_code surfaces (Haiku 5.5 launch). It is the first Haiku model with an effort parameter (all five levels; default medium on both surfaces). The two surfaces differ on thinking: the API accepts thinking disabled at high or below, Claude Code cannot turn thinking off on Haiku 5.5. 2026-10-07: Codex CLI default effort for gpt-6.1-sol set to low from a local codex-cli 0.161.0 `codex debug models` read; Kimi K3 API default effort corrected from high to max per Moonshot's K3 guide; added the StepFun step-5-preview API surface (low/medium/high). No effort surface recorded for mistral-large-4: the model card and chat-completion docs fetched do not document a reasoning-effort parameter. 2026-10-13: added Meta Muse Wonder (api), Muse Wonder and Muse Wonder Full (Muse Code), Muse Spark 1.3 and its Contributor id (api) from Meta docs. Meta documents effort levels for the API only; the Muse Code surfaces list no per-model levels, so valid_efforts is empty there (not recorded) and the CLI-wide facts sit in notes.",
   "surfaces": [
@@ -696,6 +704,31 @@
         "google-gemini-thinking-2026-09-05"
       ],
       "notes": "Gemini 3.x uses discrete thinkingLevel, NOT the numeric thinking_budget of 2.5 — different control surfaces. `minimal` errors on this model. Limits: 1,000,000 input / 64,000 output."
+    },
+    {
+      "provider": "google",
+      "model": "gemini-4-argon",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "google-gemini-thinking-2026-10-13",
+        "google-gemini-whats-new-argon-2026-10-13",
+        "google-gemini-4-argon-model-page-2026-10-13",
+        "google-agent-platform-gemini-4-argon-2026-10-13"
+      ],
+      "notes": "API parameter thinkingLevel (REST generationConfig.thinkingConfig.thinkingLevel; SDK thinking_level), REQUIRED for Gemini 4 per the thinking guide. Levels low, medium (default, 'Recommended for most tasks, including complex code and agentic use cases') and high ('Supported (Dynamic)'; 'Complex reasoning, hard math and science, and the most difficult code or agent tasks'). `minimal` is not supported and errors (HTTP 400 on Vertex). Thinking cannot be disabled. thinkingBudget / thinking_budget is deprecated for Gemini 4: passed alone it maps to the nearest thinkingLevel with a warning; sent together with thinkingLevel it returns HTTP 400. temperature, top_p and top_k are ignored. Default is medium on the API and per Google's methodology page its published benchmark runs used 'the highest thinking settings' (high); the AA, Vals and Arena boards label their Argon runs high, so published scores are high-effort and the default-effort (medium) behavior has no first-party number. Google tells developers to 'Run your evaluations at all three levels, then pick the lowest level that meets your quality bar' and publishes no per-level quality or cost series. Limits: 1,048,576-token window shared by input, thinking and output; max_output_tokens counts thinking tokens and is a hard cutoff; per-request output caps 65,536 streaming / 32,768 non-streaming; long decode (background execution or continuation_token) goes to 1,048,576 minus input; Google recommends max_output_tokens of at least 32,768 and HTTP timeouts of at least 15 minutes because hard prompts can take minutes. Thinking tokens bill as output tokens. Service classes Batch, Flex and Priority are supported (pricing/google-api-2026-10.json). The Vertex/Agent Platform model page lists the same levels (LOW, MEDIUM default, HIGH) and says setting thinking_budget or MINIMAL returns an HTTP 400 validation error. Gemini 4 Argon Cyber Permissive (Vertex, allowlist) defaults to HIGH; it is not catalogued."
     },
     {
       "provider": "openai",
@@ -1931,7 +1964,7 @@
     "Z.AI/GLM: AA measures GLM 5.3 max at Index 60 and GLM 5.2 max at 53, and a GLM 5.2 non-reasoning setting at Index 35 — but these are CROSS-MODEL comparisons, not a same-version thinking-on/off experiment. The AA displayed $0.90 is its 7:2:1 token-mix effective price, NOT a replacement for Z.AI direct list pricing.",
     "Anthropic: claude-opus-5-5 claude_code surface not recorded (no Claude Code-specific model-config doc content fetched for it this pass). Tokenizer identity vs claude-opus-5 (\"same tokenizer\") was not found in any fetched source and is NOT recorded as fact anywhere in this pack. Opus 5.5 lifecycle/retirement floor not found in fetched sources.",
     "Mistral Large 4 (preview): no documented reasoning-effort parameter found on the model card or chat-completion docs on 2026-10-07; Vals labels its run 'high' but Mistral's own docs do not list a control. No capability surface recorded.",
-    "Gemini 4 Argon: not on the Gemini API models, pricing or changelog pages on 2026-10-07 (trusted cyber defenders only); boards label the Vals/AA/Arena runs 'high'. No effort surface recorded until Google documents one.",
+    "Gemini 4 Argon: not on the Gemini API models, pricing or changelog pages on 2026-10-07 (trusted cyber defenders only); boards label the Vals/AA/Arena runs 'high'. No effort surface recorded until Google documents one. [Superseded 2026-10-13: Argon is GA on the Gemini API and the api surface is now recorded above from google-gemini-thinking-2026-10-13. Still missing: any Google per-level (low/medium/high) quality or cost series; any Argon surface for the Antigravity CLI (agy 1.3.1 `agy models` on this machine's account on 2026-10-13 lists no Argon entry, only gemini-3.8-flash low/medium/high; Google says Antigravity access is for Google AI Ultra subscribers, so this is an account-scoped negative, not proof of absence).]",
     "Meta Muse Wonder (api): docs name no default reasoning effort ('model-determined level'); Muse Code per-model effort lists and per-model defaults are not printed (CLI-wide default high, stale default model muse-spark-1.2). Recheck docs by 2026-10-20 (Muse Code docs predate Wonder).",
     "Meta Muse Wonder Full: no API surface exists; Muse Code is the only access path (Power and Maximum plans)."
   ]

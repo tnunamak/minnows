@@ -348,7 +348,8 @@
       "family": "gemini-3.5",
       "status": "ga",
       "aliases": [],
-      "tier": "flash"
+      "tier": "flash",
+      "notes": "Deprecated 2026-10-08 per the Gemini API changelog (google-gemini-changelog-2026-10-13): replaced by gemini-3.6-flash; API requests to gemini-3.5-flash are automatically routed to gemini-3.6-flash and the model is no longer selectable in AI Studio. Status left ga (the id still serves traffic); do not dispatch to it expecting 3.5 behavior."
     },
     {
       "id": "gemini-3.5-flash-lite",
@@ -372,7 +373,8 @@
       "family": "gemini-3",
       "status": "ga",
       "aliases": [],
-      "tier": "flash"
+      "tier": "flash",
+      "notes": "Deprecated 2026-10-08 per the Gemini API changelog (google-gemini-changelog-2026-10-13): replaced by gemini-3.8-flash; API requests to gemini-3.7-flash are automatically routed to gemini-3.8-flash and the model is no longer selectable in AI Studio. The Vertex pricing page banner still names Gemini 3.7 Flash (google-agent-platform-pricing-2026-10-13). Status left ga (the id still serves traffic); do not dispatch to it expecting 3.7 behavior."
     },
     {
       "id": "gemini-3.8-flash",
@@ -384,6 +386,20 @@
       "tier": "flash",
       "released": "2026-09-02",
       "release_source_id": "google-gemini-changelog-2026-09-23"
+    },
+    {
+      "id": "gemini-4-argon",
+      "name": "Gemini 4 Argon",
+      "provider": "google",
+      "family": "gemini-4",
+      "status": "ga",
+      "aliases": [
+        "Gemini 4 Argon"
+      ],
+      "tier": "argon",
+      "released": "2026-10-13",
+      "release_source_id": "google-gemini-changelog-2026-10-13",
+      "notes": "Gemini API model code gemini-4-argon, listed Stable and 'generally available (GA)' on 2026-10-13 (Gemini API changelog); Vertex/Agent Platform page: launch stage GA, release date October 13, 2026. Announced 2026-09-30 (trusted cyber defenders via the Fairwind Program only, source google-gemini-4-argon-announcement-2026-09-30); public paid-tier API availability began 2026-10-13. Google calls it 'our flagship reasoning model' and the first model of the Gemini 4 family, with no Pro/Flash label, so it gets its own tier `argon` instead of `pro` (Gemini 3.1 Pro Preview is the only `pro` row; assigning `pro` would make Argon the newest Pro-tier model by label alone, which Google does not claim). Text, image, video, audio and PDF input; text output. Context window 1,048,576 tokens shared across input, thinking and output; synchronous output 65,536 (32,768 non-streaming) with long decode to 1,048,576 minus input. Thinking levels low, medium (default), high; thinking cannot be disabled. Not available on the Free tier or the Google AI Pro plan; the Gemini app and AI Mode in Search are consumer surfaces for Ultra and Pro subscribers. Sibling gemini-4-argon-cyber-permissive exists on Vertex only, allowlist (Fairwind Program), and is not catalogued. Introductory price valid through 2026-11-30; see pricing/google-api-2026-10.json."
     },
     {
       "id": "glm-5.1",

@@ -4558,6 +4558,146 @@
       "retrieved_at": "2026-10-13",
       "kind": "third_party_eval",
       "notes": "Aggregator page found by search 2026-10-13: \"6 of 668 tracked benchmark slots currently have displayable evidence\", evidence status Estimated. Aggregators (BenchLM, llm-stats.com, aireleasetracker.com) relay Meta-reported and AA numbers; none is a primary board and no numbers are stored from them."
+    },
+    {
+      "id": "google-gemini-4-argon-launch-2026-10-13",
+      "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-argon/",
+      "title": "Gemini 4 Argon: Built to solve your hardest problems",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_blog",
+      "notes": "Global-availability post (Koray Kavukcuoglu), dated Oct 13, 2026. Availability: API in AI Studio and Gemini platform, Google AI Ultra in Antigravity, AI Ultra and Pro in the Gemini app and AI Mode in Search. Introductory price $2 in / $10 out per 1M tokens (cached input 95% off); footnote: after the introductory period expires on November 30, 2026, $4 / $20 applies, 'Applies to the Argon model intended for public access only'. 1M unified input-output token limit. Prose claims: ERQA 87% (outperforms all other frontier models), Gamow Labs private evals (RareBench 57%, LabBench 52.2%), Gray Swan IPI attack success 0.7% across 15 adaptive attempts, shortcut attempts 2% on coding benchmarks, external bio red teaming unlocked less than 1% of bio sub-tasks, violations on an adversarial set reduced nearly 2-fold. Contains no benchmark table; the table image is on the 2026-09-30 post and in the model card."
+    },
+    {
+      "id": "google-gemini-4-argon-developers-blog-2026-10-13",
+      "url": "https://blog.google/innovation-and-ai/technology/developers-tools/build-with-gemini-4-argon/",
+      "title": "Gemini 4 Argon is now available for developers",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_blog",
+      "notes": "Short developer post (Oct 13, 2026): build with the Gemini API paid tier in AI Studio and Android Studio; Google AI Ultra subscribers in AI Studio and Antigravity. No price or benchmark figures."
+    },
+    {
+      "id": "google-gemini-4-argon-model-card-2026-10",
+      "url": "https://storage.googleapis.com/deepmind-media/Model-Cards/Gemini-4-Argon-Model-Card.pdf",
+      "title": "Gemini 4 Argon Model Card (PDF)",
+      "publisher": "Google DeepMind",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Model card PDF (14 pages, 'Published: October 2026'), linked from the ai.google.dev model page. The HTML URL https://deepmind.google/models/model-cards/gemini-4-argon/ returned HTTP 404 on 2026-10-13; the PDF at the storage.googleapis.com path above is the card. Facts: not a modification or fine-tune of a prior model; large-scale sparse mixture-of-experts transformer, natively multimodal (text, image, audio, video in; text out); combined input-output context window up to 1M; knowledge cutoff March 2026; Frontier Safety Framework (April 2026) assessment tables; automated safety evals vs Gemini 3.1 Pro. The results table on printed page 5 (PDF page 6) is an image (same cells as the 2026-09-30 blog table); pdftotext returns no table text, so it was read visually and OCR-checked."
+    },
+    {
+      "id": "google-gemini-4-argon-evals-methodology-2026-10",
+      "url": "https://deepmind.google/models/evals-methodology/gemini-4-argon/",
+      "title": "Gemini 4 Argon: Model evaluation, approach, methodology and results (PDF)",
+      "publisher": "Google DeepMind",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "The URL serves a 5-page PDF (Content-Type PDF) named in the blog and model card as the methodology page. States: all Argon scores pass@1 unless noted; single-attempt settings allow no majority voting or parallel test-time compute; 'All of the results are run with the Gemini API with the highest thinking settings unless indicated otherwise below'; non-Gemini results are providers' self-reported numbers unless noted; for GPT-6 Astra, Fable 5.1 and Opus 5.5 'we default to reporting maximum thinking/reasoning settings available, but when reported results are not available we use best available reasoning results'. Per-benchmark sourcing notes (self-computed vs Vals AI, Zapier, Datacurve, tbench.ai, Proximal, Surge, Gray Swan leaderboards) are quoted in the performance file notes. Page 5 repeats the results table image."
+    },
+    {
+      "id": "google-gemini-4-argon-safety-blog-2026-10-13",
+      "url": "https://blog.google/innovation-and-ai/technology/safety-security/gemini-4-model-safety-security/",
+      "title": "Developing Gemini 4 Argon responsibly and safely",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_blog",
+      "notes": "Safety and security post by Anca Dragan and Raluca Ada Popa (Oct 13, 2026). Vendor claims only: solved all 12 end-to-end simulated cyberattack scenarios (up from five in the previous generation); violations on an adversarial set reduced nearly twofold; external bio jailbreak red teaming unlocked less than 1% of bio sub-tasks; shortcut/cheating attempts on coding benchmarks 2%; Gray Swan IPI attack success 0.7% across 15 adaptive attempts; three real-time protection layers (input screening, activation probes, continuous monitoring)."
+    },
+    {
+      "id": "google-gemini-4-argon-safety-report-2026-10-13",
+      "url": "https://storage.googleapis.com/deepmind-media/gemini/gemini_4_safety_report.pdf",
+      "title": "Gemini 4 Argon Safety and Security Report (PDF, 217 pages)",
+      "publisher": "Google DeepMind",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "217-page report linked from the safety blog and the model card. Only the executive summary and the cyber-uplift conclusions were read for this catalog (CWE-Bench v1 68% Pass@1 tying for first; CyScenarioBench 100% of end-to-end challenges vs 41.7% for Gemini 3.8 Flash Cyber; risk model: an attacker could complete a severe historical cyberattack at 16.7x lower cost on average without mitigations). Not digitized beyond those claims."
+    },
+    {
+      "id": "google-gemini-4-argon-model-page-2026-10-13",
+      "url": "https://ai.google.dev/gemini-api/docs/models/gemini-4-argon",
+      "title": "Gemini 4 Argon | Gemini API",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Model page, 'Last updated 2026-10-13 UTC'. Model code gemini-4-argon; stable version gemini-4-argon; inputs text, image, video, audio, PDF; output text; context window 1,048,576 (unified input and output); max output 65,536 default synchronous, up to 1,048,576 with long decode; caching: implicit only, explicit caching not supported; thinking: low, medium, high; code execution, computer use (Preview), file search, function calling, Google Maps and Search grounding, structured outputs, URL context supported; Live API, audio generation and image generation not supported; Batch, Flex and Priority supported; latest update October 2026."
+    },
+    {
+      "id": "google-gemini-models-2026-10-13",
+      "url": "https://ai.google.dev/gemini-api/docs/models",
+      "title": "Gemini API models",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Models overview read 2026-10-13. Lists Gemini 4 Argon (gemini-4-argon) under 'Gemini 4 / Stable', tagged New Stable ('Our flagship reasoning model with a shared 1M context window and long decodes up to 1M tokens'). The roster no longer lists gemini-3.7-flash or gemini-3.5-flash (both deprecated 2026-10-08 per the changelog)."
+    },
+    {
+      "id": "google-gemini-pricing-2026-10-13",
+      "url": "https://ai.google.dev/gemini-api/docs/pricing",
+      "title": "Gemini Developer API pricing",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Paid-tier tables parsed from the page HTML on 2026-10-13. Gemini 4 Argon (gemini-4-argon), per 1M tokens: Standard input $2.00 through November 30, 2026 then $4.00 starting December 1, 2026; output (including thinking tokens) $10.00 then $20.00; context caching $0.10 then $0.20, implicit caching only. Batch: $1.00 / $5.00 / $0.05 then $2.00 / $10.00 / $0.10. Flex: same as Batch. Priority: $3.60 / $18.00 / $0.18 then $7.20 / $36.00 / $0.36. Search and Maps grounding: 5,000 free requests per month shared across Gemini 3 and newer models, then $14 per 1,000. Not available on the Free tier or on the Google AI Pro plan. No long-context (>200k) tier and no cache storage fee is listed for Argon (the page does list both for Gemini 3.1 Pro Preview and storage fees for other models)."
+    },
+    {
+      "id": "google-gemini-changelog-2026-10-13",
+      "url": "https://ai.google.dev/gemini-api/docs/changelog",
+      "title": "Gemini API release notes",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Release notes read 2026-10-13. October 13, 2026: 'Gemini 4 Argon (gemini-4-argon) generally available (GA)'. October 8, 2026: gemini-3.7-flash deprecated and replaced by gemini-3.8-flash (requests automatically routed); gemini-3.5-flash deprecated and replaced by gemini-3.6-flash (requests automatically routed). Earlier entries as in the 2026-10-07 read."
+    },
+    {
+      "id": "google-gemini-thinking-2026-10-13",
+      "url": "https://ai.google.dev/gemini-api/docs/generate-content/thinking",
+      "title": "Gemini thinking controls",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Thinking guide read 2026-10-13. thinkingLevel (thinking_level) is required for Gemini 4 and recommended for Gemini 3. Gemini 4 Argon supports low, medium (default) and high; minimal is not supported (error); thinking cannot be disabled. high is 'Supported (Dynamic)'. thinkingBudget is deprecated for Gemini 4: alone it maps to the nearest thinkingLevel with a warning, together with thinkingLevel it returns HTTP 400. 1,048,576-token shared context window; per-request output caps 65,536 streaming and 32,768 non-streaming; long decode continues across hops (continuation_token) up to 1,048,576 minus input."
+    },
+    {
+      "id": "google-gemini-whats-new-argon-2026-10-13",
+      "url": "https://ai.google.dev/gemini-api/docs/latest-model",
+      "title": "What's new in Gemini 4 Argon",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Developer guide read 2026-10-13. Model id gemini-4-argon, default thinking level medium; levels low, medium (default), high. Introductory pricing through Nov 30, 2026 ($2 / $10; $4 / $20 thereafter); cached input discounted 95% on implicit-cache hits to $0.10 ($0.20 from Dec 1, 2026). Explicit caching not supported; implicit caching on by default for prompts of at least 4,096 tokens. temperature, top_p and top_k are ignored. Recommended max_output_tokens at least 32,768; HTTP client timeouts at least 15 minutes. Supported in Gemini Managed Agents (Antigravity agent). Not available on the Free tier or the Google AI Pro plan."
+    },
+    {
+      "id": "google-agent-platform-gemini-4-argon-2026-10-13",
+      "url": "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/4-argon",
+      "title": "Gemini 4 Argon | Gemini Enterprise Agent Platform (Vertex AI)",
+      "publisher": "Google Cloud",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Google Cloud model page read 2026-10-13. Launch stage GA, release date October 13, 2026; model id gemini-4-argon; context window 1,048,576; maximum output tokens 1,048,576; thinking levels LOW, MEDIUM (default), HIGH (thinking_budget or MINIMAL returns HTTP 400); implicit caching only with a 6,144-token minimum (the Gemini API page says 4,096); Standard, Flex, Priority PayGo, Provisioned Throughput and Batch supported; regions global, us, eu. Also documents gemini-4-argon-cyber-permissive: allowlist only (Fairwind Program), default thinking HIGH, computer use not supported."
+    },
+    {
+      "id": "google-agent-platform-pricing-2026-10-13",
+      "url": "https://cloud.google.com/vertex-ai/generative-ai/pricing",
+      "title": "Agent Platform (Vertex AI) generative AI pricing",
+      "publisher": "Google Cloud",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Gemini 4 Argon rows read 2026-10-13. Standard global: $2 input, $0.1 cached input, $10 output through November 30, 2026; $4 / $0.2 / $20 from December 1, 2026 (also applies to Gemini 4 Argon Cyber Permissive). Non-global endpoints cost 10% more ($2.2 / $0.11 / $11). Priority and Batch/Flex tabs match the Gemini API ratios. Footnote: promotional pricing is provided through 50% credits back on net spend on select models and does not apply to Cyber Permissive. A page-wide footnote says that if a query input context is longer than 200K tokens, all tokens are charged at long context rates; no Argon-specific long-context row is listed."
     }
   ]
 }
