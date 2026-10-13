@@ -16,48 +16,49 @@ Public benchmarks measure other people's tasks, so use them to narrow the choice
   <img src="charts/cost-vs-intelligence-light.svg" alt="Line chart, cost vs intelligence. Across: API cost per task in US dollars, log scale, $0.0045 to $7.63. Up: Artificial Analysis Intelligence Index v4.3.2. One line per model joins its effort levels, coloured by vendor (Anthropic, OpenAI, Google, xAI, Other vendors); 15 models shown. A dashed Pareto frontier runs through GPT-6 Luna low to xhigh (21.5–34.6 at $0.0045–$0.042), MiMo-V2.6-Flash (37.9 at $0.062), GPT-6 Luna max (38.1 at $0.068), Claude Haiku 5.5 xhigh (41.2 at $0.12), GPT-6.1 Sol low (42.1 at $0.13), MiMo-V2.6-Pro (46.3 at $0.13), GPT-6.1 Sol medium to max (47.8–51.8 at $0.21–$0.72), Claude Opus 5.5 high to xhigh (53.6–56.0 at $1.82–$3.46), Claude Sonnet 5.5 max (56.0 at $5.46), Claude Opus 5.5 max (57.6 at $5.98). The table below lists every point.">
 </picture>
 
-**Reading the chart.** Up is smarter, left is cheaper. The frontier (dashed) holds the settings that no other setting beats on both cost and score: GPT-6 Luna low to xhigh (21.5–34.6 at $0.0045–$0.042), MiMo-V2.6-Flash (37.9 at $0.062), GPT-6 Luna max (38.1 at $0.068), Claude Haiku 5.5 xhigh (41.2 at $0.12), GPT-6.1 Sol low (42.1 at $0.13), MiMo-V2.6-Pro (46.3 at $0.13), GPT-6.1 Sol medium to max (47.8–51.8 at $0.21–$0.72), Claude Opus 5.5 high to xhigh (53.6–56.0 at $1.82–$3.46), Claude Sonnet 5.5 max (56.0 at $5.46), Claude Opus 5.5 max (57.6 at $5.98). The top score is Claude Opus 5.5 max at 57.6 for $5.98 per task. Data from Artificial Analysis, observed 2026-10-07. Each point is the latest observation of that model and effort; snapshots share the chart only where the settings they both list agree within 1 point. Cost is the API cost to run one index task. The source re-measures cost between snapshots: the same setting's cost moved by up to 39%, and each point uses the latest. Left out, estimated or not checkable against the other snapshots: Claude Opus 5, Claude Sonnet 5, GPT-5.6 Sol, Grok 4.6, MiniMax-M2.7. 2 more settings of plotted models have a score but no cost and are not drawn. Below 25 on the index, so only in the all-models chart: gemini-3.5-flash-lite.
+**Reading the chart.** Up is smarter, left is cheaper. The frontier (dashed) holds the settings that no other setting beats on both cost and score: GPT-6 Luna low to xhigh (21.5–34.6 at $0.0045–$0.042), MiMo-V2.6-Flash (37.9 at $0.062), GPT-6 Luna max (38.1 at $0.068), Claude Haiku 5.5 xhigh (41.2 at $0.12), GPT-6.1 Sol low (42.1 at $0.13), MiMo-V2.6-Pro (46.3 at $0.13), GPT-6.1 Sol medium to max (47.8–51.8 at $0.21–$0.72), Claude Opus 5.5 high to xhigh (53.6–56.0 at $1.82–$3.46), Claude Sonnet 5.5 max (56.0 at $5.46), Claude Opus 5.5 max (57.6 at $5.98). The top score is Claude Opus 5.5 max at 57.6 for $5.98 per task. Data from Artificial Analysis, observed 2026-10-07 to 2026-10-13. Each point is the latest observation of that model and effort; snapshots share the chart only where the settings they both list agree within 1 point. Cost is the API cost to run one index task. The source re-measures cost between snapshots: the same setting's cost moved by up to 39%, and each point uses the latest. Not plotted, no cost per task: Muse Wonder Full. Left out, estimated or not checkable against the other snapshots: Claude Opus 5, Claude Sonnet 5, GPT-5.6 Sol, Grok 4.6, MiniMax-M2.7. 2 more settings of plotted models have a score but no cost and are not drawn. Below 25 on the index, so only in the all-models chart: gemini-3.5-flash-lite.
 
-<details><summary><b>All 33 models</b> on the same axes</summary>
+<details><summary><b>All 34 models</b> on the same axes</summary>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="charts/cost-vs-intelligence-all-dark.svg">
-  <img src="charts/cost-vs-intelligence-all-light.svg" alt="The same chart with all 33 models that have a cost per task. The table below lists every point.">
+  <img src="charts/cost-vs-intelligence-all-light.svg" alt="The same chart with all 34 models that have a cost per task. The table below lists every point.">
 </picture>
 
 </details>
 
-<details><summary><b>Data behind the chart</b>: 80 settings, one row per model and effort</summary>
+<details><summary><b>Data behind the chart</b>: 81 settings, one row per model and effort</summary>
 
 | Model | Effort | Intelligence Index | $/task | Observed | Note |
 |---|---|---|---|---|---|
-| Claude Opus 5.5 | low | 42.3 | $0.55 | 2026-10-07 |  |
-| Claude Opus 5.5 | medium | 51.2 | $1.34 | 2026-10-07 |  |
-| Claude Opus 5.5 | high | 53.6 | $1.82 | 2026-10-07 | on the frontier |
-| Claude Opus 5.5 | xhigh | 56.0 | $3.46 | 2026-10-07 | on the frontier |
-| Claude Opus 5.5 | max | 57.6 | $5.98 | 2026-10-07 | on the frontier |
-| Claude Sonnet 5.5 | low | 35.9 | $0.35 | 2026-10-07 |  |
-| Claude Sonnet 5.5 | medium | 40.8 | $0.48 | 2026-10-07 |  |
-| Claude Sonnet 5.5 | high | 46.8 | $0.88 | 2026-10-07 |  |
-| Claude Sonnet 5.5 | xhigh | 51.9 | $2.01 | 2026-10-07 |  |
-| Claude Sonnet 5.5 | max | 56.0 | $5.46 | 2026-10-07 | on the frontier |
-| Claude Fable 5.1 | low | 46.8 | $2.37 | 2026-10-07 |  |
-| Claude Fable 5.1 | medium | 48.9 | $2.98 | 2026-10-07 |  |
-| Claude Fable 5.1 | high | 51.2 | $3.91 | 2026-10-07 |  |
-| Claude Fable 5.1 | xhigh | 53.2 | $5.98 | 2026-10-07 |  |
-| Claude Fable 5.1 | max | 53.4 | $7.63 | 2026-10-07 |  |
-| GPT-6 Astra | low | 45.8 | $0.82 | 2026-10-07 |  |
-| GPT-6 Astra | medium | 49.6 | $1.54 | 2026-10-07 |  |
-| GPT-6 Astra | high | 50.9 | $1.73 | 2026-10-07 |  |
-| GPT-6 Astra | xhigh | 52.4 | $2.31 | 2026-10-07 |  |
-| GPT-6 Astra | max | 52.7 | $3.26 | 2026-10-07 |  |
-| GPT-6.1 Sol | low | 42.1 | $0.13 | 2026-10-07 | on the frontier |
-| GPT-6.1 Sol | medium | 47.8 | $0.21 | 2026-10-07 | on the frontier |
-| GPT-6.1 Sol | high | 50.2 | $0.32 | 2026-10-07 | on the frontier |
-| GPT-6.1 Sol | xhigh | 51.0 | $0.39 | 2026-10-07 | on the frontier |
-| GPT-6.1 Sol | max | 51.8 | $0.72 | 2026-10-07 | on the frontier |
-| Muse Spark 1.3 | xhigh | 45.1 | $1.37 | 2026-10-07 |  |
-| Muse Spark 1.3 | max | 48.1 | $1.60 | 2026-10-07 |  |
+| Claude Opus 5.5 | low | 42.3 | $0.55 | 2026-10-13 |  |
+| Claude Opus 5.5 | medium | 51.2 | $1.34 | 2026-10-13 |  |
+| Claude Opus 5.5 | high | 53.6 | $1.82 | 2026-10-13 | on the frontier |
+| Claude Opus 5.5 | xhigh | 56.0 | $3.46 | 2026-10-13 | on the frontier |
+| Claude Opus 5.5 | max | 57.6 | $5.98 | 2026-10-13 | on the frontier |
+| Claude Sonnet 5.5 | low | 35.9 | $0.35 | 2026-10-13 |  |
+| Claude Sonnet 5.5 | medium | 40.8 | $0.48 | 2026-10-13 |  |
+| Claude Sonnet 5.5 | high | 46.8 | $0.88 | 2026-10-13 |  |
+| Claude Sonnet 5.5 | xhigh | 51.9 | $2.01 | 2026-10-13 |  |
+| Claude Sonnet 5.5 | max | 56.0 | $5.46 | 2026-10-13 | on the frontier |
+| Claude Fable 5.1 | low | 46.8 | $2.37 | 2026-10-13 |  |
+| Claude Fable 5.1 | medium | 48.9 | $2.98 | 2026-10-13 |  |
+| Claude Fable 5.1 | high | 51.2 | $3.91 | 2026-10-13 |  |
+| Claude Fable 5.1 | xhigh | 53.2 | $5.98 | 2026-10-13 |  |
+| Claude Fable 5.1 | max | 53.4 | $7.63 | 2026-10-13 |  |
+| GPT-6 Astra | low | 45.8 | $0.82 | 2026-10-13 |  |
+| GPT-6 Astra | medium | 49.6 | $1.54 | 2026-10-13 |  |
+| GPT-6 Astra | high | 50.9 | $1.73 | 2026-10-13 |  |
+| GPT-6 Astra | xhigh | 52.4 | $2.31 | 2026-10-13 |  |
+| GPT-6 Astra | max | 52.7 | $3.26 | 2026-10-13 |  |
+| Muse Wonder | max | 52.4 | $4.52 | 2026-10-13 |  |
+| GPT-6.1 Sol | low | 42.1 | $0.13 | 2026-10-13 | on the frontier |
+| GPT-6.1 Sol | medium | 47.8 | $0.21 | 2026-10-13 | on the frontier |
+| GPT-6.1 Sol | high | 50.2 | $0.32 | 2026-10-13 | on the frontier |
+| GPT-6.1 Sol | xhigh | 51.0 | $0.39 | 2026-10-13 | on the frontier |
+| GPT-6.1 Sol | max | 51.8 | $0.72 | 2026-10-13 | on the frontier |
+| Muse Spark 1.3 | xhigh | 45.1 | $1.37 | 2026-10-13 |  |
+| Muse Spark 1.3 | max | 48.1 | $1.60 | 2026-10-13 |  |
 | GPT-6 Sol | Non-reasoning | 28.5 | $0.33 | 2026-10-07 |  |
 | GPT-6 Sol | low | 34.2 | $0.13 | 2026-10-07 |  |
 | GPT-6 Sol | medium | 39.8 | $0.25 | 2026-10-07 |  |
@@ -74,11 +75,11 @@ Public benchmarks measure other people's tasks, so use them to narrow the choice
 | step-5-preview | – | 43.7 | $0.72 | 2026-10-07 |  |
 | Kimi K3 | low | 30.1 | $1.15 | 2026-10-07 |  |
 | Kimi K3 | max | 43.6 | $2.00 | 2026-10-07 |  |
-| Claude Haiku 5.5 | low | 29.4 | $0.025 | 2026-10-07 |  |
-| Claude Haiku 5.5 | medium | 34.5 | $0.047 | 2026-10-07 |  |
-| Claude Haiku 5.5 | high | 37.8 | $0.079 | 2026-10-07 |  |
-| Claude Haiku 5.5 | xhigh | 41.2 | $0.12 | 2026-10-07 | on the frontier |
-| Claude Haiku 5.5 | max | 43.4 | $0.21 | 2026-10-07 |  |
+| Claude Haiku 5.5 | low | 29.5 | $0.025 | 2026-10-13 |  |
+| Claude Haiku 5.5 | medium | 34.5 | $0.047 | 2026-10-13 |  |
+| Claude Haiku 5.5 | high | 37.8 | $0.079 | 2026-10-13 |  |
+| Claude Haiku 5.5 | xhigh | 41.2 | $0.12 | 2026-10-13 | on the frontier |
+| Claude Haiku 5.5 | max | 43.4 | $0.21 | 2026-10-13 |  |
 | GPT-5.6 Terra | low | 27.5 | $0.14 | 2026-10-07 |  |
 | GPT-5.6 Terra | medium | 30.1 | $0.18 | 2026-10-07 |  |
 | GPT-5.6 Terra | high | 34.2 | $0.34 | 2026-10-07 |  |
@@ -132,18 +133,18 @@ Public benchmarks measure other people's tasks, so use them to narrow the choice
 
 | Task | Model | low | medium | high | xhigh | max |
 |---|---|---|---|---|---|---|
-| Coding | Claude Haiku 5.5 | ● | ◐ low (2 of 3) | ◐ Claude Sonnet 5.5 medium (2 of 4) | ◐ Claude Sonnet 5.5 medium (2 of 4) | ◐ Claude Sonnet 5.5 high (2 of 4) |
-| Coding | Claude Sonnet 5.5 | ◐ Claude Haiku 5.5 xhigh (2 of 4) | ◐ Claude Haiku 5.5 xhigh (2 of 4) | ◐ medium (1 of 9) | ◐ Claude Opus 5.5 medium (2 of 5) | ◐ xhigh (2 of 9) |
-| Coding | Claude Opus 5.5 | ◐ Claude Sonnet 5.5 xhigh (1 of 5) | ◐ low (1 of 8) | ◐ medium (2 of 7) | ← high (6 of 6) | ← high (6 of 6) |
-| Coding | Claude Fable 5.1 | ✕ Claude Opus 5.5 medium (3 of 3) | ✕ Claude Opus 5.5 medium (3 of 3) | ✕ Claude Opus 5.5 medium (3 of 3) | ✕ Claude Opus 5.5 medium (3 of 3) | ✕ Claude Opus 5.5 high (4 of 4) |
+| Coding | Claude Haiku 5.5 | ● | ◐ low (4 of 5) | ◐ Claude Sonnet 5.5 medium (2 of 6) | ◐ Claude Sonnet 5.5 medium (2 of 6) | ◐ Claude Sonnet 5.5 high (2 of 6) |
+| Coding | Claude Sonnet 5.5 | ◐ Claude Haiku 5.5 xhigh (4 of 6) | ◐ Claude Haiku 5.5 xhigh (4 of 6) | ◐ medium (2 of 11) | ◐ Claude Opus 5.5 high (3 of 5) | ◐ Claude Opus 5.5 max (4 of 14) |
+| Coding | Claude Opus 5.5 | ◐ Claude Sonnet 5.5 xhigh (2 of 7) | ◐ low (2 of 10) | ◐ medium (3 of 9) | ◐ high (6 of 8) | ◐ xhigh (6 of 8) |
+| Coding | Claude Fable 5.1 | ✕ Claude Opus 5.5 medium (5 of 5) | ✕ Claude Opus 5.5 medium (5 of 5) | ✕ Claude Opus 5.5 medium (5 of 5) | ✕ Claude Opus 5.5 medium (5 of 5) | ✕ Claude Opus 5.5 high (6 of 6) |
 | Knowledge work | Claude Haiku 5.5 | ● | ● | ● | ● | ● |
 | Knowledge work | Claude Sonnet 5.5 | ✕ Claude Haiku 5.5 medium (1 of 1) | ✕ Claude Haiku 5.5 high (1 of 1) | ● | ● | ● |
 | Knowledge work | Claude Opus 5.5 | ● | ● | ● | ● | ● |
 | Knowledge work | Claude Fable 5.1 | ✕ Claude Opus 5.5 medium (1 of 1) | ✕ Claude Opus 5.5 medium (1 of 1) | ✕ Claude Opus 5.5 high (1 of 1) | ✕ Claude Opus 5.5 xhigh (1 of 1) | ✕ Claude Opus 5.5 xhigh (1 of 1) |
-| Agent workflows | Claude Haiku 5.5 | ● | ● | ◐ medium (1 of 5) | ◐ high (2 of 5) | ◐ xhigh (2 of 5) |
-| Agent workflows | Claude Sonnet 5.5 | ◐ Claude Haiku 5.5 xhigh (4 of 5) | ◐ Claude Haiku 5.5 xhigh (4 of 5) | ◐ Claude Haiku 5.5 max (2 of 5) | ◐ high (1 of 5) | ◐ xhigh (2 of 5) |
-| Agent workflows | Claude Opus 5.5 | ◐ Claude Sonnet 5.5 xhigh (2 of 4) | ◐ Claude Sonnet 5.5 high (3 of 4) | ● | ◐ high (1 of 2) | ◐ Claude Sonnet 5.5 max (3 of 4) |
-| Agent workflows | Claude Fable 5.1 | ✕ Claude Opus 5.5 medium (1 of 1) | ✕ Claude Opus 5.5 medium (1 of 1) | ✕ Claude Opus 5.5 high (1 of 1) | ✕ Claude Opus 5.5 high (1 of 1) | ✕ Claude Opus 5.5 high (1 of 1) |
+| Agent workflows | Claude Haiku 5.5 | ● | ● | ◐ medium (2 of 9) | ◐ high (4 of 9) | ◐ xhigh (4 of 9) |
+| Agent workflows | Claude Sonnet 5.5 | ◐ Claude Haiku 5.5 xhigh (7 of 9) | ◐ Claude Haiku 5.5 xhigh (7 of 9) | ◐ Claude Haiku 5.5 max (3 of 9) | ◐ high (2 of 9) | ◐ xhigh (3 of 9) |
+| Agent workflows | Claude Opus 5.5 | ◐ Claude Sonnet 5.5 xhigh (4 of 8) | ◐ Claude Sonnet 5.5 high (6 of 8) | ◐ medium (1 of 6) | ◐ high (3 of 6) | ◐ Claude Sonnet 5.5 max (10 of 17) |
+| Agent workflows | Claude Fable 5.1 | ✕ Claude Opus 5.5 medium (5 of 5) | ✕ Claude Opus 5.5 medium (5 of 5) | ✕ Claude Opus 5.5 high (5 of 5) | ✕ Claude Opus 5.5 xhigh (5 of 5) | ✕ Claude Opus 5.5 xhigh (5 of 5) |
 
 ✕ *model effort (n of n)*: that cheaper setting scores as well on every benchmark they share. ← *effort*: the same, for a lower effort of this model. ◐ *(k of n)*: cheaper and as good on k of the n benchmarks they share. ○: not yet compared with other models.
 
@@ -157,21 +158,42 @@ Public benchmarks measure other people's tasks, so use them to narrow the choice
 | Coding | FrontierCode v1.1 (Main) | [`performance/anthropic-opus5-5-digitized-2026-09.json`](performance/anthropic-opus5-5-digitized-2026-09.json) · vendor table | C | Claude Fable 5.1, Claude Opus 5.5 |
 | Coding | FrontierCode v1.1 (Main) | [`performance/openai-gpt-6-sol-luna-launch-curves-2026-09.json`](performance/openai-gpt-6-sol-luna-launch-curves-2026-09.json) · vendor table | C | Claude Fable 5.1 |
 | Coding | SciCode | [`performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json`](performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json) · third party board | B | Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Coding | SciCode | [`performance/artificial-analysis-muse-wonder-2026-10-13.json`](performance/artificial-analysis-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
 | Coding | Terminal-Bench 4.0 | [`performance/anthropic-fable-mythos-5-1-2026-09.json`](performance/anthropic-fable-mythos-5-1-2026-09.json) · vendor table | C | Claude Fable 5.1 |
 | Coding | Terminal-Bench 4.0 | [`performance/anthropic-haiku5-5-digitized-2026-10.json`](performance/anthropic-haiku5-5-digitized-2026-10.json) · vendor table | C | Claude Haiku 5.5, Claude Sonnet 5.5 |
 | Coding | Terminal-Bench 4.0 | [`performance/anthropic-sonnet5-5-digitized-2026-09.json`](performance/anthropic-sonnet5-5-digitized-2026-09.json) · vendor table | C | Claude Opus 5.5, Claude Sonnet 5.5 |
 | Coding | Terminal-Bench 4.0 | [`performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json`](performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json) · third party board | B | Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Coding | Terminal-Bench 4.0 | [`performance/artificial-analysis-muse-wonder-2026-10-13.json`](performance/artificial-analysis-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
 | Coding | Terminal-Bench 4.0 | [`performance/anthropic-opus5-5-digitized-2026-09.json`](performance/anthropic-opus5-5-digitized-2026-09.json) · vendor table | C | Claude Fable 5.1, Claude Opus 5.5 |
 | Coding | Terminal-Bench 4.0 | [`performance/terminal-bench-4-vals-opus-5-5-2026-09.json`](performance/terminal-bench-4-vals-opus-5-5-2026-09.json) · other | C | Claude Fable 5.1, Claude Opus 5.5 |
 | Coding | Terminal-Bench 4.0 | [`performance/third-party-board-roster-refresh-2026-10-07.json`](performance/third-party-board-roster-refresh-2026-10-07.json) · third party board | B | Claude Fable 5.1, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Coding | Terminal-Bench 4.0 | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Coding | Code Migration (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Coding | IOI (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Coding | ProgramBench (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Coding | SWE-bench Multimodal (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Coding | Vibe Code Bench v1.1 (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
 | Knowledge work | GDPval-AA v2.1 | [`performance/anthropic-haiku5-5-digitized-2026-10.json`](performance/anthropic-haiku5-5-digitized-2026-10.json) · vendor table | C | Claude Haiku 5.5, Claude Sonnet 5.5 |
 | Knowledge work | GDPval-AA v2.1 | [`performance/anthropic-opus5-5-digitized-2026-09.json`](performance/anthropic-opus5-5-digitized-2026-09.json) · vendor table | C | Claude Fable 5.1, Claude Opus 5.5 |
 | Agent workflows | AA-Briefcase v1.1 | [`performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json`](performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json) · third party board | B | Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Agent workflows | AA-Briefcase v1.1 | [`performance/artificial-analysis-muse-wonder-2026-10-13.json`](performance/artificial-analysis-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
 | Agent workflows | AutomationBench | [`performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json`](performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json) · third party board | B | Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Agent workflows | AutomationBench | [`performance/artificial-analysis-muse-wonder-2026-10-13.json`](performance/artificial-analysis-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
 | Agent workflows | AutomationBench | [`performance/anthropic-opus5-5-digitized-2026-09.json`](performance/anthropic-opus5-5-digitized-2026-09.json) · vendor table | C | Claude Opus 5.5 |
+| Agent workflows | BioMysteryBench | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
 | Agent workflows | gdp.pdf | [`performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json`](performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json) · third party board | B | Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Agent workflows | gdp.pdf | [`performance/artificial-analysis-muse-wonder-2026-10-13.json`](performance/artificial-analysis-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
 | Agent workflows | GDPval-AA v2.1 | [`performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json`](performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json) · third party board | B | Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Agent workflows | GDPval-AA v2.1 | [`performance/artificial-analysis-muse-wonder-2026-10-13.json`](performance/artificial-analysis-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Agent workflows | Harvey Legal Agent Benchmark | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
 | Agent workflows | OSWorld 2.1 (partial score) | [`performance/anthropic-haiku5-5-digitized-2026-10.json`](performance/anthropic-haiku5-5-digitized-2026-10.json) · vendor table | C | Claude Haiku 5.5, Claude Sonnet 5.5 |
+| Agent workflows | Terminal-Bench Science 0.1 | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Agent workflows | CyberBench v1.1 (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Agent workflows | EMB (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Agent workflows | Vals Finance Agent v2 | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Agent workflows | Legal Research Bench (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Agent workflows | Public Benefits Bench v1.1 (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
+| Agent workflows | Tax Agent Bench (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | Claude Fable 5.1, Claude Haiku 5.5, Claude Opus 5.5, Claude Sonnet 5.5 |
 | Agent workflows | WANDR | [`performance/anthropic-opus5-5-digitized-2026-09.json`](performance/anthropic-opus5-5-digitized-2026-09.json) · vendor table | C | Claude Fable 5.1, Claude Opus 5.5 |
 
 </details>
@@ -182,16 +204,16 @@ Public benchmarks measure other people's tasks, so use them to narrow the choice
 |---|---|---|---|---|---|---|
 | Coding | GPT-6 Luna | ● | ◐ low (1 of 4) | ◐ medium (3 of 4) | ◐ high (3 of 4) | ◐ xhigh (1 of 4) |
 | Coding | GPT-5.6 Terra | ● | ● | ● | ✕ GPT-6 Astra low (1 of 1) | n/a |
-| Coding | GPT-6.1 Sol | ◐ GPT-6 Luna xhigh (1 of 2) | ◐ low (1 of 2) | · | · | ◐ GPT-6 Luna max (1 of 3) |
-| Coding | GPT-6 Astra | ✕ GPT-6 Luna max (2 of 2) | ◐ low (1 of 8) | ◐ medium (6 of 8) | ← high (8 of 8) | ← xhigh (8 of 8) |
+| Coding | GPT-6.1 Sol | ◐ GPT-6 Luna xhigh (1 of 2) | ◐ low (2 of 4) | ◐ medium (1 of 2) | ← high (2 of 2) | ← xhigh (2 of 2) |
+| Coding | GPT-6 Astra | ✕ GPT-6 Luna max (2 of 2) | ✕ GPT-6.1 Sol medium (2 of 2) | ✕ GPT-6.1 Sol high (2 of 2) | ◐ high (9 of 10) | ← xhigh (10 of 10) |
 | Knowledge work | GPT-6 Luna | ● | ● | ◐ xhigh (1 of 2) | ◐ medium (1 of 2) | ● |
 | Knowledge work | GPT-5.6 Terra | · | · | · | · | n/a |
 | Knowledge work | GPT-6.1 Sol | · | · | · | · | · |
 | Knowledge work | GPT-6 Astra | ✕ GPT-6 Luna max (1 of 1) | ● | ← medium (2 of 2) | ◐ medium (1 of 2) | ◐ xhigh (1 of 2) |
 | Agent workflows | GPT-6 Luna | ● | ● | ● | ◐ high (5 of 7) | ● |
 | Agent workflows | GPT-5.6 Terra | · | · | · | · | n/a |
-| Agent workflows | GPT-6.1 Sol | ◐ GPT-6 Luna max (3 of 4) | ◐ GPT-6 Luna max (1 of 4) | · | · | ◐ medium (2 of 4) |
-| Agent workflows | GPT-6 Astra | ● | ● | ← medium (3 of 3) | ← high (3 of 3) | ← xhigh (3 of 3) |
+| Agent workflows | GPT-6.1 Sol | ◐ GPT-6 Luna max (3 of 4) | ◐ GPT-6 Luna max (1 of 4) | ◐ medium (2 of 4) | ◐ high (2 of 4) | ◐ medium (4 of 8) |
+| Agent workflows | GPT-6 Astra | ✕ GPT-6.1 Sol medium (4 of 4) | ✕ GPT-6.1 Sol high (4 of 4) | ✕ GPT-6.1 Sol xhigh (4 of 4) | ✕ GPT-6.1 Sol max (4 of 4) | ◐ GPT-6.1 Sol max (13 of 16) |
 
 ✕ *model effort (n of n)*: that cheaper setting scores as well on every benchmark they share. ← *effort*: the same, for a lower effort of this model. ◐ *(k of n)*: cheaper and as good on k of the n benchmarks they share. ○: not yet compared with other models.
 
@@ -204,21 +226,41 @@ Public benchmarks measure other people's tasks, so use them to narrow the choice
 | Coding | FrontierCode v1.1 (Main) | [`performance/anthropic-opus5-5-digitized-2026-09.json`](performance/anthropic-opus5-5-digitized-2026-09.json) · vendor table | C | GPT-6 Astra |
 | Coding | FrontierCode v1.1 (Main) | [`performance/openai-gpt-6-sol-luna-launch-curves-2026-09.json`](performance/openai-gpt-6-sol-luna-launch-curves-2026-09.json) · vendor table | C | GPT-6 Astra, GPT-6 Luna |
 | Coding | SciCode | [`performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json`](performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json) · third party board | B | GPT-6 Astra, GPT-6 Luna, GPT-6.1 Sol |
+| Coding | SciCode | [`performance/artificial-analysis-muse-wonder-2026-10-13.json`](performance/artificial-analysis-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
 | Coding | Terminal-Bench 4.0 | [`performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json`](performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json) · third party board | B | GPT-6 Astra, GPT-6 Luna, GPT-6.1 Sol |
+| Coding | Terminal-Bench 4.0 | [`performance/artificial-analysis-muse-wonder-2026-10-13.json`](performance/artificial-analysis-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
 | Coding | Terminal-Bench 4.0 | [`performance/anthropic-opus5-5-digitized-2026-09.json`](performance/anthropic-opus5-5-digitized-2026-09.json) · vendor table | C | GPT-6 Astra |
 | Coding | Terminal-Bench 4.0 | [`performance/third-party-board-roster-refresh-2026-10-07.json`](performance/third-party-board-roster-refresh-2026-10-07.json) · third party board | B | GPT-6 Astra, GPT-6 Luna, GPT-6.1 Sol |
+| Coding | Terminal-Bench 4.0 | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
 | Coding | Terminal-Bench 4.0 | [`performance/openai-gpt-6-astra-launch-2026-09.json`](performance/openai-gpt-6-astra-launch-2026-09.json) · vendor table | C | GPT-6 Astra |
+| Coding | Code Migration (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
+| Coding | IOI (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
+| Coding | ProgramBench (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
+| Coding | SWE-bench Multimodal (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
+| Coding | Vibe Code Bench v1.1 (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
 | Knowledge work | Agents' Last Exam | [`performance/openai-gpt-6-sol-luna-launch-curves-2026-09.json`](performance/openai-gpt-6-sol-luna-launch-curves-2026-09.json) · vendor table | C | GPT-6 Astra, GPT-6 Luna |
 | Knowledge work | GDPval-AA v2.1 | [`performance/anthropic-haiku5-5-digitized-2026-10.json`](performance/anthropic-haiku5-5-digitized-2026-10.json) · vendor table | C | GPT-6 Luna |
 | Knowledge work | GDPval-AA v2.1 | [`performance/anthropic-opus5-5-digitized-2026-09.json`](performance/anthropic-opus5-5-digitized-2026-09.json) · vendor table | C | GPT-6 Astra |
 | Agent workflows | AA-Briefcase v1.1 | [`performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json`](performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json) · third party board | B | GPT-6 Astra, GPT-6 Luna, GPT-6.1 Sol |
+| Agent workflows | AA-Briefcase v1.1 | [`performance/artificial-analysis-muse-wonder-2026-10-13.json`](performance/artificial-analysis-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
 | Agent workflows | AutomationBench | [`performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json`](performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json) · third party board | B | GPT-6 Astra, GPT-6 Luna, GPT-6.1 Sol |
+| Agent workflows | AutomationBench | [`performance/artificial-analysis-muse-wonder-2026-10-13.json`](performance/artificial-analysis-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
 | Agent workflows | AutomationBench | [`performance/anthropic-opus5-5-digitized-2026-09.json`](performance/anthropic-opus5-5-digitized-2026-09.json) · vendor table | C | GPT-6 Astra |
 | Agent workflows | AutomationBench | [`performance/openai-gpt-6-sol-luna-launch-curves-2026-09.json`](performance/openai-gpt-6-sol-luna-launch-curves-2026-09.json) · vendor table | C | GPT-6 Astra, GPT-6 Luna |
+| Agent workflows | BioMysteryBench | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
 | Agent workflows | gdp.pdf | [`performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json`](performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json) · third party board | B | GPT-6 Astra, GPT-6 Luna, GPT-6.1 Sol |
+| Agent workflows | gdp.pdf | [`performance/artificial-analysis-muse-wonder-2026-10-13.json`](performance/artificial-analysis-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
 | Agent workflows | GDPval-AA v2.1 | [`performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json`](performance/artificial-analysis-claude-haiku-5-5-2026-10-07.json) · third party board | B | GPT-6 Astra, GPT-6 Luna, GPT-6.1 Sol |
+| Agent workflows | GDPval-AA v2.1 | [`performance/artificial-analysis-muse-wonder-2026-10-13.json`](performance/artificial-analysis-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
+| Agent workflows | Harvey Legal Agent Benchmark | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
 | Agent workflows | OSWorld 2.0 (partial score) | [`performance/openai-gpt-6-sol-luna-launch-curves-2026-09.json`](performance/openai-gpt-6-sol-luna-launch-curves-2026-09.json) · vendor table | C | GPT-6 Astra, GPT-6 Luna |
 | Agent workflows | OSWorld 2.1 (partial score) | [`performance/anthropic-haiku5-5-digitized-2026-10.json`](performance/anthropic-haiku5-5-digitized-2026-10.json) · vendor table | C | GPT-6 Luna |
+| Agent workflows | Terminal-Bench Science 0.1 | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
+| Agent workflows | CyberBench v1.1 (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
+| Agent workflows | EMB (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
+| Agent workflows | Vals Finance Agent v2 | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
+| Agent workflows | Legal Research Bench (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
+| Agent workflows | Tax Agent Bench (Vals AI) | [`performance/vals-ai-muse-wonder-2026-10-13.json`](performance/vals-ai-muse-wonder-2026-10-13.json) · third party board | B | GPT-6 Astra, GPT-6.1 Sol |
 
 </details>
 
@@ -241,7 +283,7 @@ For independently run comparisons across many more models, including speed and l
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | [data-model-catalog-v0.5.13](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.13) — published by CI on push to main |
+| **This version** | [data-model-catalog-v0.5.14](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.14) — published by CI on push to main |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -250,14 +292,14 @@ For independently run comparisons across many more models, including speed and l
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.5.13
+TAG=data-model-catalog-v0.5.14
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
 
 # or
 ./scripts/fetch-data-pack.sh model-catalog
-./scripts/fetch-data-pack.sh model-catalog v0.5.13
+./scripts/fetch-data-pack.sh model-catalog v0.5.14
 ```
 
 ### Local

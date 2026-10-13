@@ -2,6 +2,17 @@
 
 Newest first. The README links here; this file is the single record.
 
+## v0.5.14 — 2026-10-13
+
+- Added Meta Muse Wonder (`muse-wonder-1-0`, released 2026-10-12) and Muse Wonder Full (`muse-wonder-full-1-0`). Meta's developer docs call Muse Wonder a preview, so both rows have status `preview`. Muse Wonder is in the Meta Model API and Muse Code. Muse Wonder Full is only in a Muse Code subscription, so it has no API price; `models.json` gets a new `access: subscription_only` value for it.
+- Muse Wonder costs $4.00 input, $0.20 cached input and $20.00 output per M tokens, with a 1M-token context. Meta publishes no cache-write price and no long-context premium. The new pricing file also holds the Muse Spark 1.3 Standard and Contributor prices, and the Muse Code plan prices in its notes ($50 Power and $200 Maximum a month; the $5 Everyday and $15 High prices come from one page).
+- The API accepts efforts from minimal to max, and `none` returns an error. Meta names no default. Every published Muse Wonder score is at max effort, except one SWE-Marathon cell at xhigh. No board lists a lower effort.
+- Added Meta's launch table (14 benchmarks, 5 models) and the model card's risk tables. Added Artificial Analysis rows (Intelligence Index 55.8 for Full and 52.4 for Muse Wonder, v4.3.2), Vals (Index 64.6% and 61.1%, 18 benchmarks), SWE-Marathon, the Artificial Analysis Coding Agents Index, OpenRouter and Epoch. Terminal-Bench, ARC Prize, Datacurve DeepSWE, SEAL, Arena, SWE-bench and METR do not list the models yet (recheck 2026-10-20).
+- Meta's numbers and the independent boards disagree. Meta reports DeepSWE 1.1 at 79.0 (Full) and SWE-Marathon at 57.5 (Full, xhigh); the boards' own runs give 77.0 and 53.1 (max). Meta's Muse Wonder SWE-Marathon value (53.1) equals the board's value for Full. Both sets are stored, not reconciled. Artificial Analysis has no cost for Full, and Vals prices it at Muse Wonder's list rate.
+- Vals now lists Claude Haiku 5.5 (Index 54.3%). Artificial Analysis re-rated its two Elo evals after adding the Muse models, so GDPval-AA peer scores moved by up to 30 Elo; the Index values did not change.
+- Added 26 metrics (for example `personal-superintelligence-index`, `memorybench`, `jobbench`, `swe-marathon`, `focusbench`). Meta's AA-style Index is stored under its own id, `artificial-analysis-intelligence-index-v4-3-meta-reported`, because Meta's version label and numbers differ from Artificial Analysis'.
+- Hone is unchanged: it has no Meta provider path.
+
 ## v0.5.13 — 2026-10-11
 
 Data corrections from reviewed fix PRs (#42–#44, #47–#49, #51–#53). No new models or sources.
