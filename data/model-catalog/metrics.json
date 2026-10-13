@@ -11,7 +11,8 @@
     "Claude Sonnet 5.5 system card and launch table (2026-09-28) rows reuse existing benchmark metric_ids; publisher/harness differences are separated with comparability_group. New IDs added only for SWE-Bench Multilingual and SWE-Bench Multimodal.",
     "Claude Sonnet 5.5 system card and launch table (2026-09-28) rows reuse existing benchmark metric_ids; publisher/harness differences are separated with comparability_group. New IDs added only for SWE-Bench Multilingual and SWE-Bench Multimodal.",
     "Claude Sonnet 5.5 system card and launch table (2026-09-28) rows reuse existing benchmark metric_ids; publisher/harness differences are separated with comparability_group. New IDs added only for SWE-Bench Multilingual and SWE-Bench Multimodal.",
-    "Meta Muse Wonder launch (2026-10-12): new metric ids only for benchmarks not already registered (PSI, Harvey LAB-AA v1.1, JobBench, MemoryBench, SWE-Marathon, FocusBench and the model-card and blog safety evaluations). Meta rows reuse vals-finance-agent-v2, healthbench-professional, automationbench, gdp-pdf, osworld-2-1, osworld-2-1-strict, terminal-bench-4-0, deepswe-v1-1, programbench, artificial-analysis-intelligence-index-v4-3-meta-reported, cybergym, exploitbench and exploitgym; Meta-vs-other-publisher differences are carried by comparability_group."
+    "Meta Muse Wonder launch (2026-10-12): new metric ids only for benchmarks not already registered (PSI, Harvey LAB-AA v1.1, JobBench, MemoryBench, SWE-Marathon, FocusBench and the model-card and blog safety evaluations). Meta rows reuse vals-finance-agent-v2, healthbench-professional, automationbench, gdp-pdf, osworld-2-1, osworld-2-1-strict, terminal-bench-4-0, deepswe-v1-1, programbench, artificial-analysis-intelligence-index-v4-3-meta-reported, cybergym, exploitbench and exploitgym; Meta-vs-other-publisher differences are carried by comparability_group.",
+    "Google Gemini 4 Argon launch (2026-10-13): new metric ids only for benchmarks not already registered (PostTrainBench v1.1, RiemannBench, the two GraphWalks Google subsets, CWE-bench v1, the Gray Swan IPI k=15 benchmark, Google's real-world vulnerability discovery set, the Wiz penetration test benchmark and ERQA). Argon rows reuse vals-index, automationbench, vals-finance-agent-v2, harvey-legal-agent-benchmark, deepswe-v1-1, frontierswe-v2, vals-vibe-code-bench, terminal-bench-4-0, terminal-bench-science-0-1, labbench2, agents-last-exam, osworld-2-0-partial, chartography, lvbench and cyscenariobench; Google-versus-board differences are carried by comparability_group."
   ],
   "metrics": [
     {
@@ -2732,6 +2733,225 @@
       "unit_default": "error_rate",
       "comparable": false,
       "notes": "Whether an agent takes harmful actions to advance its objectives or avoid replacement or shutdown; lower is better."
+    },
+    {
+      "id": "posttrainbench-v1-1",
+      "name": "PostTrainBench v1.1",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Google's run of PostTrainBench v1.1: OpenCode harness, 10-hour budget on a single NVIDIA H100, weighted aggregate across four base models and seven benchmarks (Gemini 4 Argon methodology page). Distinct from posttrainbench-lite."
+    },
+    {
+      "id": "riemannbench",
+      "name": "RiemannBench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Surge public leaderboard reading as quoted in Google's Gemini 4 Argon launch table."
+    },
+    {
+      "id": "graphwalks-bfs-up-to-128k-f1",
+      "name": "GraphWalks BFS F1 (up to 128k subset)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Google's subset: the 650 GraphWalks items with context up to 128k tokens, self-computed for all models (Gemini 4 Argon methodology). F1 stored as unit accuracy to match the other GraphWalks ids. Not the same subset as graphwalks-bfs-256k-f1 or graphwalks-bfs-1mil-f1."
+    },
+    {
+      "id": "graphwalks-bfs-256k-1m-f1",
+      "name": "GraphWalks BFS F1 (256k to 1M subset)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Google's subset: 200 GraphWalks problems with context between 256k and 1M tokens, self-computed for all models (Gemini 4 Argon methodology). Not the same slice as graphwalks-bfs-256k-f1 or graphwalks-bfs-1mil-f1."
+    },
+    {
+      "id": "cwe-bench-v1",
+      "name": "CWE-bench v1",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "pass_rate",
+      "comparable": false,
+      "task_family": "coding",
+      "notes": "End-to-end autonomous security audit and patch synthesis across six programming languages without prior bug localization (Gemini 4 Argon Safety and Security Report). Ranked on Pass@1 with ties broken by Pass@4; each leaderboard row carries its own harness (Antigravity, Codex, Claude Code, opencode). Rows read from Google's launch table and chart, not from the board itself."
+    },
+    {
+      "id": "gray-swan-ipi-benchmark-asr-k15",
+      "name": "Gray Swan Indirect Prompt Injection benchmark attack success rate (k=15)",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other",
+      "comparable": false,
+      "notes": "Attack success rate across 15 adaptive attempts, as plotted on Google's Gemini 4 Argon post (values sourced from Gray Swan per the methodology page). Lower is better. Distinct from gray-swan-ipi-arena-asr (the 1,810-attack Arena set)."
+    },
+    {
+      "id": "google-real-world-vulnerability-discovery",
+      "name": "Real-world Vulnerability Discovery (Google internal)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Google-internal recall of recent, confirmed historical vulnerabilities in popular open source projects across 20 programming languages; Antigravity harness, source access, Pass@1. No public dataset."
+    },
+    {
+      "id": "wiz-penetration-test-benchmark",
+      "name": "Wiz Penetration Test Benchmark",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Wiz-internal black-box benchmark: write exploits against real web application vulnerabilities without codebase access; Pass@1. No public dataset."
+    },
+    {
+      "id": "erqa",
+      "name": "ERQA (Embodied Reasoning Question Answering)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Physical and spatial reasoning benchmark quoted in Google's Gemini 4 Argon launch post (87% without tools, 'pure reasoning'). Published without comparison values."
+    },
+    {
+      "id": "arena-webdev-elo",
+      "name": "Arena WebDev Elo",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "elo",
+      "notes": "Arena (formerly LMArena) WebDev board preference Elo. Not the Text Coding category."
+    },
+    {
+      "id": "epoch-apex-agents",
+      "name": "APEX-Agents (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-proofbench",
+      "name": "ProofBench (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-blueprint-bench-2",
+      "name": "Blueprint-Bench 2 (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-furniture-assembly",
+      "name": "Furniture Assembly Benchmark (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-critpt",
+      "name": "CritPt (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-scicode",
+      "name": "SciCode (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-frontierswe-v2",
+      "name": "FrontierSWE (v2) (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "vals-medcode",
+      "name": "MedCode (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "Medical billing support tasks (Vals AI, one-shot)."
+    },
+    {
+      "id": "vals-medscribe",
+      "name": "MedScribe (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "Administrative work for doctors (Vals AI, one-shot)."
+    },
+    {
+      "id": "vals-sage",
+      "name": "SAGE (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "Student Assessment with Generative Evaluation (Vals AI, one-shot)."
+    },
+    {
+      "id": "vals-sre-bench",
+      "name": "SRE Bench (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "Reverse engineering of real-world binaries by agents (Vals AI)."
+    },
+    {
+      "id": "vals-legalbench",
+      "name": "LegalBench (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "Open source legal reasoning tasks (Vals AI, one-shot)."
+    },
+    {
+      "id": "vals-cua-bench",
+      "name": "CUA-bench (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "Computer-use agents playing six commercial video games; half held out (Vals AI). Each model runs in its own agent harness."
+    },
+    {
+      "id": "vals-time-horizon-index-ksp",
+      "name": "Time Horizon Index: KSP (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "An agent builds and runs a space program in Kerbal Space Program (Vals AI)."
     }
   ]
 }

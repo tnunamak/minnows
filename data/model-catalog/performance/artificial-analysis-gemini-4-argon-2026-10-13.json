@@ -1,0 +1,408 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "artificial-analysis-gemini-4-argon-2026-10-13",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-13",
+  "source_urls": [
+    "https://artificialanalysis.ai/models/gemini-4-argon",
+    "https://artificialanalysis.ai/articles/gemini-4-argon-google-top-three-labs",
+    "https://artificialanalysis.ai/evaluations/aa-briefcase"
+  ],
+  "source_ids": [
+    "artificial-analysis-gemini-4-argon-model-page-2026-10-13",
+    "artificial-analysis-gemini-4-argon-article-2026-09-30",
+    "artificial-analysis-evaluation-aa-briefcase-gemini-4-argon-2026-10-13"
+  ],
+  "notes": "Artificial Analysis rows for Gemini 4 Argon, retrieved 2026-10-13 (general availability day). Earlier files record Argon only in claims (it was not a catalog model): artificial-analysis-leaderboard-2026-10-07.json (52.56, $1.99) and artificial-analysis-muse-wonder-2026-10-13.json. This file stores the Intelligence Index and ten per-evaluation rows from the model page's embedded object (curl with a browser User-Agent; RSC payload parsed in code, not read from a rendered chart). Values are unchanged from 2026-10-07 for the Index (52.5606), cost per task ($1.9903) and Omniscience (42.35); the AA launch article's Briefcase numbers differ from the live page (see claims). Rows share snapshot_id artificial-analysis-intelligence-index-2026-10-13 and the comparability groups of artificial-analysis-muse-wonder-2026-10-13.json, whose peer rows (Opus 5.5, Sonnet 5.5, Fable 5.1, Haiku 5.5, GPT-6.1 Sol, GPT-6 Astra, Muse Wonder, Muse Wonder Full, Muse Spark 1.3, all efforts AA lists) were re-parsed from the live pages today and match to full precision, so they are not repeated. Cost per task is AA's figure at the introductory price. Argon is run at High, which AA calls the highest level. Index scores are not comparable with other boards. Recheck on or after 2026-10-20, and again after Google's introductory price ends (see pricing/google-api-2026-07.json).",
+  "claims": [
+    {
+      "models": [
+        "gemini-4-argon",
+        "claude-opus-5-5",
+        "claude-sonnet-5-5",
+        "claude-fable-5-1",
+        "claude-haiku-5-5",
+        "gpt-6.1-sol",
+        "gpt-6-astra",
+        "muse-wonder-1-0",
+        "muse-wonder-full-1-0"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality",
+        "cost",
+        "effort"
+      ],
+      "statement": "Artificial Analysis Intelligence Index v4.3.2, Gemini 4 Argon (High) 52.56 (displayed 53) at $1.99 per Index task at the introductory $2/$10 price. Same-snapshot peers parsed from the same AA pages in the same session (all 374 peer rows in artificial-analysis-muse-wonder-2026-10-13.json re-checked equal to the live pages, so that file's peer rows and this file share one snapshot): Opus 5.5 max 57.62 ($5.98) / xhigh 55.99 ($3.46) / high 53.58 ($1.82) / medium 51.24 ($1.34) / low 42.31 ($0.55); Sonnet 5.5 max 56.00 ($5.46) / xhigh 51.90 ($2.01) / high 46.75 ($0.88); Fable 5.1 max 53.36 ($7.63) / xhigh 53.20 ($5.98) / high 51.15 ($3.91); GPT-6 Astra max 52.67 ($3.26) / xhigh 52.39 ($2.31) / high 50.92 ($1.73); GPT-6.1 Sol max 51.83 ($0.72) / xhigh 51.04 ($0.39) / high 50.24 ($0.32); Haiku 5.5 max 43.40 ($0.21); Muse Wonder Full max 55.80 (no cost); Muse Wonder max 52.39 ($4.52). Argon sits level with GPT-6 Astra max (52.67), 0.6 points under Fable 5.1 xhigh (53.20), 1.0 under Opus 5.5 high (53.58) and 0.7 above GPT-6.1 Sol max (51.83).",
+      "implication": "On cost per task at the introductory price Argon (52.56, $1.99) costs more than GPT-6.1 Sol max ($0.72, 51.83) and about the same as Opus 5.5 high ($1.82, 53.58), which scores higher. AA's article states $3.98 per task at the standard $4/$20 price (derived by AA; every cost component scales linearly with token price); at that figure Argon costs more than every Opus 5.5 effort up to xhigh ($3.46, 55.99). Treat the introductory price as time-limited (see the pricing claim).",
+      "source_id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "effort"
+      ],
+      "statement": "AA lists ONE Gemini 4 Argon variant: 'Gemini 4 Argon (High)', effort level 40, slug gemini-4-argon. AA's launch article calls high 'the highest available' reasoning level for Argon. There are no AA low, medium or other effort rows and no variant slugs on the leaderboard; so AA gives no Argon reading at the efforts a cheap-tier operating point would use. OpenRouter lists efforts high, medium and low with default medium (see the OpenRouter file), so AA's single row is the top effort, not the API default.",
+      "source_id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "Price and discount per AA, with a conflict against Google, stored side by side and not reconciled. AA's model page object (2026-10-13): input $2, output $10, cache hit $0.10 (95% discount), cache write $2 (AA's cacheWritePrice field). AA's launch article (published 2026-09-30, not updated since): 'currently discounted 50% to $2/$10 for at least one month', 'Google has not yet confirmed the promotion end date', standard price $4/$20, cost per Index task $1.99 now and $3.98 after the discount, 62k output tokens per task for Argon against 27k for GPT-6 Astra (max). Google's blog footnote says the $4/$20 price applies 'after the introductory period expires'; Google's pricing page (see pricing/google-api-2026-07.json) states the end date, which AA's article does not have.",
+      "implication": "Use Google's stated end date from the pricing file, not AA's 'at least one month'. AA's $1.99 cost per task is an introductory-price figure; do not compare it with standard-price rows without the 2x adjustment.",
+      "source_id": "artificial-analysis-gemini-4-argon-article-2026-09-30"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "mixed",
+        "agentic"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "AA Briefcase re-rating, article vs model page. Article (2026-09-30): AA-Briefcase 1494 Elo, 65% rubric pass rate ('the highest we have recorded'), Analytical Quality 1576 Elo, Presentation Quality 1308 Elo. Model page and evaluation page (2026-10-13): overall 1488.47 Elo (95% CI 1477.77 to 1499.89), rubric pass rate 0.6463, analytical 1563.88, presentation 1304.52. The score row stores the model-page value, which is in the same snapshot as the peer rows. Other article numbers agree with the page: Terminal-Bench 4.0 57% (page 0.5707), AutomationBench-AA 78% (page 0.7751), Omniscience 42, Index 53.",
+      "source_id": "artificial-analysis-gemini-4-argon-article-2026-09-30"
+    },
+    {
+      "models": [
+        "gemini-4-argon",
+        "gpt-6-astra",
+        "gpt-6.1-sol",
+        "claude-opus-5-5",
+        "claude-sonnet-5-5",
+        "claude-fable-5-1",
+        "claude-haiku-5-5",
+        "muse-wonder-1-0",
+        "muse-wonder-full-1-0"
+      ],
+      "task_families": [
+        "knowledge/factuality"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "AA-Omniscience, from the embedded model objects (index score / accuracy / hallucination rate): Gemini 4 Argon (high) 42.35 / 0.499 / 0.151; GPT-6 Astra max 43.40 / 0.626 / 0.513; GPT-6.1 Sol max 41.53 / 0.621 / 0.543; Opus 5.5 max 46.42 / 0.662 / 0.586; Sonnet 5.5 max 32.30 / 0.539 / 0.470; Fable 5.1 max 43.45 / 0.672 / 0.726; Haiku 5.5 max 10.67 / 0.364 / 0.404; Muse Wonder max 25.48 / 0.411 / 0.265; Muse Wonder Full max 30.15 / 0.432 / 0.230. AA's article: Argon's 15% hallucination rate is 'the lowest of any model scoring 45+ on the Intelligence Index' (it scores 52.56 on the Index, not on Omniscience); accuracy 50% is 13 points below GPT-6 Astra.",
+      "source_id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "AA Intelligence Index capability categories for Argon (page object 'capabilities'): finance and accounting 53.79, strategy and ops 56.24, legal 60.02, engineering 55.22, economics 60.42. AA's page object carries no harveyLab, mlcrOverall, tau2, IFBench, GPQA or other fields for Argon (null or absent); in particular there is NO Argon value for AA's Harvey LAB-AA (the field exists for the Muse and Astra objects), while Google's blog says Argon has 'similarly leading performance' on Harvey's Legal Agent Benchmark (Vals HLAB: Argon 19.58%, below Muse Wonder Full 21.67% and Muse Spark 1.3 23.8% on the same Vals board; see the Vals file).",
+      "source_id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Modalities and context per AA, with an internal conflict. Model page object: context window 1,000,000 tokens; input text true, image true, speech false, video false; output text only. AA's launch article: 'Text, image, video, and speech input, with text output'. OpenRouter lists input audio, file, image, text and video (see the OpenRouter file); Vals lists text, image, video and file input. Not reconciled. AA lists no speed, latency or time-to-first-token for Argon (provider performance data empty; data source 'firstParty', Google), and no Index time per task. AA tested Google's 'Long Decode Continuation' feature, which pauses long responses and resumes them across follow-up calls and 'lets reasoning run up to 1M output tokens without request timeouts'.",
+      "source_id": "artificial-analysis-gemini-4-argon-article-2026-09-30"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "AA evaluation pages read 2026-10-13: Gemini 4 Argon (High) has records on the AA-Briefcase and Terminal-Bench 4.0 pages (the Index components with an Argon score). The AA Cyber Index, FrontierCode, Harvey LAB-AA v1.1 and AA-3D evaluation pages list Argon only in their tracked-release list, with no score. AA's Cyber Index trusted-access article (2026-10-08) does not mention Argon even though Argon launched to cyber defenders first.",
+      "source_id": "artificial-analysis-evaluation-aa-briefcase-gemini-4-argon-2026-10-13"
+    }
+  ],
+  "scores": [
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "effort_verbatim": "High",
+      "source_id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "metric": "Artificial Analysis Intelligence Index v4.3.2",
+      "score": 52.5605655745982,
+      "unit": "other",
+      "caveat": "AA label 'Gemini 4 Argon (High)'. AA model page https://artificialanalysis.ai/models/gemini-4-argon. Cost/task $1.9903 (publisher-computed at the introductory list price AA shows, $2/$10 per M, cache read $0.10; AA's article says it rises to $3.98 per task at standard $4/$20 pricing; the standard figure is AA's, not a stored value); output tokens/task 61,558; total cost to run the Index $2,407.24. Displayed value 53. High is the highest reasoning level Google offers (AA article); AA lists no other Argon effort.",
+      "task_family": "mixed",
+      "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-intelligence-index-v4-3-2-2026-10-13",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-10-13",
+      "cost": {
+        "value": 1.9903,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "effort_verbatim": "High",
+      "source_id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "metric": "Artificial Analysis Briefcase",
+      "score": 1488.47,
+      "unit": "elo",
+      "caveat": "Per-evaluation value from the embedded model object on https://artificialanalysis.ai/models/gemini-4-argon (AA label 'Gemini 4 Argon (High)'). Output tokens/task 142,374; cost/task $5.8277 at the introductory price ($2/$10). Elo-type score as published. Page breakdown: rubric pass rate 0.6463, Analytical Quality Elo 1563.88, Presentation Elo 1304.52, overall 95% CI 1477.77 to 1499.89. AA's 2026-09-30 launch article states 1494 / 65% / 1576 / 1308, so AA re-rated Briefcase after launch (see claims).",
+      "task_family": "agentic",
+      "metric_id": "aa-briefcase-v1-1",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-aa-briefcase-v1-1-2026-10-13",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-10-13",
+      "cost": {
+        "value": 5.8277,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "effort_verbatim": "High",
+      "source_id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "metric": "GDPval-AA",
+      "score": 1623.83,
+      "unit": "elo",
+      "caveat": "Per-evaluation value from the embedded model object on https://artificialanalysis.ai/models/gemini-4-argon (AA label 'Gemini 4 Argon (High)'). Output tokens/task 74,571; cost/task $1.8192 at the introductory price ($2/$10). Elo-type score as published.",
+      "task_family": "agentic",
+      "metric_id": "gdpval-aa-v2-1",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-gdpval-aa-v2-1-2026-10-13",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-10-13",
+      "cost": {
+        "value": 1.8192,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "effort_verbatim": "High",
+      "source_id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "metric": "AutomationBench (Artificial Analysis)",
+      "score": 0.7751346945899195,
+      "unit": "accuracy",
+      "caveat": "Per-evaluation value from the embedded model object on https://artificialanalysis.ai/models/gemini-4-argon (AA label 'Gemini 4 Argon (High)'). Output tokens/task 32,595; cost/task $0.6087 at the introductory price ($2/$10).",
+      "task_family": "agentic",
+      "metric_id": "automationbench",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-automationbench-2026-10-13",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-10-13",
+      "cost": {
+        "value": 0.6087,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "effort_verbatim": "High",
+      "source_id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "metric": "Terminal-Bench 4.0 (Artificial Analysis)",
+      "score": 0.570707070707071,
+      "unit": "accuracy",
+      "caveat": "Per-evaluation value from the embedded model object on https://artificialanalysis.ai/models/gemini-4-argon (AA label 'Gemini 4 Argon (High)'). Output tokens/task 165,330; cost/task $6.7801 at the introductory price ($2/$10).",
+      "task_family": "coding",
+      "metric_id": "terminal-bench-4-0",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-terminal-bench-4-0-2026-10-13",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-10-13",
+      "cost": {
+        "value": 6.7801,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "effort_verbatim": "High",
+      "source_id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "metric": "SciCode (Artificial Analysis)",
+      "score": 0.618055555555556,
+      "unit": "accuracy",
+      "caveat": "Per-evaluation value from the embedded model object on https://artificialanalysis.ai/models/gemini-4-argon (AA label 'Gemini 4 Argon (High)'). Output tokens/task 9,570; cost/task $0.1057 at the introductory price ($2/$10).",
+      "task_family": "coding",
+      "metric_id": "scicode",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-scicode-2026-10-13",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-10-13",
+      "cost": {
+        "value": 0.1057,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "effort_verbatim": "High",
+      "source_id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "metric": "Humanity's Last Exam (Artificial Analysis)",
+      "score": 0.570898980537535,
+      "unit": "accuracy",
+      "caveat": "Per-evaluation value from the embedded model object on https://artificialanalysis.ai/models/gemini-4-argon (AA label 'Gemini 4 Argon (High)'). Output tokens/task 15,777; cost/task $0.1764 at the introductory price ($2/$10).",
+      "task_family": "reasoning",
+      "metric_id": "aa-humanitys-last-exam",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-aa-humanitys-last-exam-2026-10-13",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-10-13",
+      "cost": {
+        "value": 0.1764,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "effort_verbatim": "High",
+      "source_id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "metric": "GDP.pdf (Artificial Analysis)",
+      "score": 0.218,
+      "unit": "accuracy",
+      "caveat": "Per-evaluation value from the embedded model object on https://artificialanalysis.ai/models/gemini-4-argon (AA label 'Gemini 4 Argon (High)'). Output tokens/task 8,432; cost/task $0.2593 at the introductory price ($2/$10).",
+      "task_family": "agentic",
+      "metric_id": "gdp-pdf",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-gdp-pdf-2026-10-13",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-10-13",
+      "cost": {
+        "value": 0.2593,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "effort_verbatim": "High",
+      "source_id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "metric": "CritPt (Artificial Analysis)",
+      "score": 0.271428571428571,
+      "unit": "accuracy",
+      "caveat": "Per-evaluation value from the embedded model object on https://artificialanalysis.ai/models/gemini-4-argon (AA label 'Gemini 4 Argon (High)'). Output tokens/task 109,533; cost/task $1.5839 at the introductory price ($2/$10).",
+      "task_family": "reasoning",
+      "metric_id": "aa-critpt",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-aa-critpt-2026-10-13",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-10-13",
+      "cost": {
+        "value": 1.5839,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "effort_verbatim": "High",
+      "source_id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "metric": "AA Omniscience",
+      "score": 42.35,
+      "unit": "other",
+      "caveat": "Per-evaluation value from the embedded model object on https://artificialanalysis.ai/models/gemini-4-argon (AA label 'Gemini 4 Argon (High)'). Output tokens/task 938; cost/task $0.0096 at the introductory price ($2/$10). Index-style score (-100..100), not a rate.",
+      "task_family": "knowledge/factuality",
+      "metric_id": "aa-omniscience",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-aa-omniscience-2026-10-13",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-10-13",
+      "cost": {
+        "value": 0.0096,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "effort_verbatim": "High",
+      "source_id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "metric": "AA-LCR (Artificial Analysis Long Context Reasoning)",
+      "score": 0.796666666666667,
+      "unit": "accuracy",
+      "caveat": "Per-evaluation value from the embedded model object on https://artificialanalysis.ai/models/gemini-4-argon (AA label 'Gemini 4 Argon (High)'). Output tokens/task 2,197; cost/task $0.2364 at the introductory price ($2/$10).",
+      "task_family": "reasoning",
+      "metric_id": "aa-lcr",
+      "comparable": false,
+      "comparability_group": "artificial-analysis-aa-lcr-2026-10-13",
+      "snapshot_id": "artificial-analysis-intelligence-index-2026-10-13",
+      "cost": {
+        "value": 0.2364,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    }
+  ],
+  "missing": [
+    "AA Argon rows at effort low or medium: none (AA lists only High).",
+    "AA speed, latency and time-to-first-token for Argon: none on the model page object.",
+    "AA Harvey LAB-AA, MLCR and other late-added eval values for Argon: absent from the model object.",
+    "AA statement on a pre-release or trusted-tester deployment for the Argon runs: none found on the model page; the launch article says Argon 'is currently being rolled out to selected users and is not publicly available' (2026-09-30).",
+    "AA Argon cost per task at standard $4/$20 pricing as a stored value: only the article's $3.98 figure exists (a claim, not a row)."
+  ]
+}

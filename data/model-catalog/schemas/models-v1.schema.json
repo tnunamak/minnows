@@ -80,7 +80,7 @@
           },
           "tier": {
             "type": "string",
-            "description": "Capability tier. Provider-specific: OpenAI astra/sol/terra/luna/pro/mini/nano/codex/base; Anthropic fable/mythos/opus/sonnet/haiku; Google pro/flash/flash-lite/deep-think/specialized/managed-agent; xAI flagship/build-agent.",
+            "description": "Capability tier. Provider-specific: OpenAI astra/sol/terra/luna/pro/mini/nano/codex/base; Anthropic fable/mythos/opus/sonnet/haiku; Google pro/flash/flash-lite/deep-think/specialized/managed-agent/argon; xAI flagship/build-agent.",
             "enum": [
               "astra",
               "sol",
@@ -110,7 +110,8 @@
               "plus",
               "spark",
               "wonder",
-              "wonder-full"
+              "wonder-full",
+              "argon"
             ]
           },
           "aliases": {

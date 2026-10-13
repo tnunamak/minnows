@@ -1,0 +1,142 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "gemini-4-argon-board-coverage-2026-10-13",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-13",
+  "source_urls": [
+    "https://www.tbench.ai/",
+    "https://arcprize.org/leaderboard",
+    "https://deepswe.datacurve.ai/",
+    "https://labs.scale.com/leaderboard/swe_bench_pro_public",
+    "https://metr.org/time-horizons/",
+    "https://www.vals.ai/benchmarks/swebench",
+    "https://www.swebench.com/",
+    "https://osworld-v2.xlang.ai/",
+    "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+    "https://www.swe-marathon.org/",
+    "https://www.harvey.ai/lab"
+  ],
+  "source_ids": [
+    "terminal-bench-official-gemini-4-argon-2026-10-13",
+    "arcprize-leaderboard-gemini-4-argon-2026-10-13",
+    "deepswe-datacurve-gemini-4-argon-2026-10-13",
+    "seal-swebench-pro-gemini-4-argon-2026-10-13",
+    "metr-time-horizons-gemini-4-argon-2026-10-13",
+    "vals-ai-swebench-no-argon-2026-10-13",
+    "swebench-official-gemini-4-argon-2026-10-13",
+    "osworld-gemini-4-argon-2026-10-13",
+    "steel-browsecomp-gemini-4-argon-2026-10-13",
+    "swe-marathon-gemini-4-argon-2026-10-13",
+    "harvey-lab-site-gemini-4-argon-2026-10-13"
+  ],
+  "notes": "Third-party board coverage sweep for Gemini 4 Argon on 2026-10-13, general availability day. Boards that LIST Argon have their own dated files: Artificial Analysis (Intelligence Index and Coding Agents Index), Vals AI, Arena (Text, Text Coding, WebDev), Epoch AI and OpenRouter. This file covers the boards with NO Argon row and nothing else; it states no Argon score. Methods: curl for static pages and embedded JSON; headless-Chrome DOM dumps for the client-rendered ARC Prize, DeepSWE and SWE-Marathon pages. Every absence is provisional: recheck on or after 2026-10-20 and keep the later read as a new dated snapshot. An absence is not proof that the board will not run the model. Argon was announced 2026-09-30 and became generally available 2026-10-13, so the boards have had at most a few hours of public availability; the Terminal-Bench, ARC Prize, DeepSWE and SEAL boards pre-date it.",
+  "claims": [
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "coding",
+        "agentic"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Terminal-Bench official (tbench.ai, Terminal-Bench 4.0): ABSENT. Board payload updated_at 2026-10-06T23:20Z, unchanged since the 2026-10-07 read; no Gemini 4 Argon row (the only Google row is Gemini 3.8 Flash high, mini-SWE-agent, 19.09%). Recheck on or after 2026-10-20.",
+      "implication": "No official Terminal-Bench reading for Argon. AA, Vals and AA Coding Agents each give a separate reading (AA 57.07%, Vals 57.58%, AA Coding Agents 56.06%).",
+      "source_id": "terminal-bench-official-gemini-4-argon-2026-10-13"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "reasoning"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "ARC Prize leaderboard: ABSENT. DOM dump 2026-10-13, 283 table rows, newest row date 2026-09-29 (GPT-6.1 Sol). Recheck on or after 2026-10-20 (the 2026-10-07 file set 2026-10-14).",
+      "implication": "No ARC-AGI reading for Argon.",
+      "source_id": "arcprize-leaderboard-gemini-4-argon-2026-10-13"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "DeepSWE (Datacurve) public board: ABSENT, stale: '113 tasks - updated September 22, 2026' (same as the 2026-10-07 read). No Argon row, so Google's 'new state of the art on DeepSWE v1.1 (77.9%)' has no Datacurve confirmation; the only independent DeepSWE v1.1 figure is AA's Coding Agents run (Argon 78.76%, see that file). Recheck on or after 2026-10-20.",
+      "implication": "Do not cite the Datacurve board for Argon.",
+      "source_id": "deepswe-datacurve-gemini-4-argon-2026-10-13"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Scale SEAL SWE-Bench Pro public: ABSENT, stale (Muse Spark 1.1, GPT-5.4, Claude Opus 4.6 and Gemini 3.1 Pro era rows). SWE-bench (swebench.com): ABSENT (page content dated May 2026). Recheck on or after 2026-10-20.",
+      "implication": "No SWE-Bench Pro or SWE-bench reading for Argon.",
+      "source_id": "seal-swebench-pro-gemini-4-argon-2026-10-13"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "agentic"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "METR time horizons: ABSENT; the page says it 'is no longer actively updated' (LAST UPDATED September 8, 2026). OSWorld 2.0 page: no Argon label. Steel BrowseComp: no Argon label (last updated 2026-10-11). SWE-Marathon (Abundant) v1.1: no Argon row (17 rows; only Gemini 3.7 Flash from Google, 22.5%). Harvey's own LAB site https://www.harvey.ai/lab returns 404. Recheck on or after 2026-10-20.",
+      "implication": "These boards give no Argon evidence today.",
+      "source_id": "metr-time-horizons-gemini-4-argon-2026-10-13"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Vals boards with NO Argon entry on 2026-10-13: SWE-bench (updated 2026-09-01, 88 models), Terminal-Bench 2.1 (2026-09-28, 76), Terminal-Bench 2.0 (2026-06-04, 67), MortgageTax (2026-09-01, 98) and Vals Multimodal Index (2026-08-11, 33). Argon is on at least 26 Vals boards: 25 stored in the Vals file plus the RSI Index. Recheck on or after 2026-10-20.",
+      "implication": "Argon has no Vals SWE-bench, Terminal-Bench 2.x or Multimodal Index reading.",
+      "source_id": "vals-ai-swebench-no-argon-2026-10-13"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Board changes since the 2026-10-07 reads: Argon now has rows on AA (stored), AA Coding Agents (new), Vals (18 views plus 7 more), Arena Text, Text Coding and WebDev (3 boards), Epoch (unchanged values) and OpenRouter (newly listed, 2026-10-13). Boards that still do not list it: Terminal-Bench official, ARC Prize, DeepSWE Datacurve, SEAL SWE-Bench Pro, SWE-bench, METR, OSWorld 2.0, Steel BrowseComp, SWE-Marathon, Harvey LAB (site 404), AA Cyber Index, FrontierCode, Harvey LAB-AA and AA-3D, Vals SWE-bench and Terminal-Bench 2.x. Recheck all on or after 2026-10-20.",
+      "source_id": "terminal-bench-official-gemini-4-argon-2026-10-13"
+    }
+  ],
+  "scores": [],
+  "missing": [
+    "Aggregator pages (BenchLM, llm-stats.com, aireleasetracker.com) that relay Google's or AA's numbers: not checked or stored (not primary boards).",
+    "LiveBench: returns a JavaScript shell; not checked.",
+    "Argon on Hugging Face or any open-weights leaderboard: not applicable (closed weights).",
+    "Terminal-Bench official board's own run of Argon: none."
+  ]
+}

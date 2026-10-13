@@ -4558,6 +4558,516 @@
       "retrieved_at": "2026-10-13",
       "kind": "third_party_eval",
       "notes": "Aggregator page found by search 2026-10-13: \"6 of 668 tracked benchmark slots currently have displayable evidence\", evidence status Estimated. Aggregators (BenchLM, llm-stats.com, aireleasetracker.com) relay Meta-reported and AA numbers; none is a primary board and no numbers are stored from them."
+    },
+    {
+      "id": "google-gemini-4-argon-launch-2026-10-13",
+      "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-argon/",
+      "title": "Gemini 4 Argon: Built to solve your hardest problems",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_blog",
+      "notes": "Global-availability post (Koray Kavukcuoglu), dated Oct 13, 2026. Availability: API in AI Studio and Gemini platform, Google AI Ultra in Antigravity, AI Ultra and Pro in the Gemini app and AI Mode in Search. Introductory price $2 in / $10 out per 1M tokens (cached input 95% off); footnote: after the introductory period expires on November 30, 2026, $4 / $20 applies, 'Applies to the Argon model intended for public access only'. 1M unified input-output token limit. Prose claims: ERQA 87% (outperforms all other frontier models), Gamow Labs private evals (RareBench 57%, LabBench 52.2%), Gray Swan IPI attack success 0.7% across 15 adaptive attempts, shortcut attempts 2% on coding benchmarks, external bio red teaming unlocked less than 1% of bio sub-tasks, violations on an adversarial set reduced nearly 2-fold. Contains no benchmark table; the table image is on the 2026-09-30 post and in the model card."
+    },
+    {
+      "id": "google-gemini-4-argon-developers-blog-2026-10-13",
+      "url": "https://blog.google/innovation-and-ai/technology/developers-tools/build-with-gemini-4-argon/",
+      "title": "Gemini 4 Argon is now available for developers",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_blog",
+      "notes": "Short developer post (Oct 13, 2026): build with the Gemini API paid tier in AI Studio and Android Studio; Google AI Ultra subscribers in AI Studio and Antigravity. No price or benchmark figures."
+    },
+    {
+      "id": "google-gemini-4-argon-model-card-2026-10",
+      "url": "https://storage.googleapis.com/deepmind-media/Model-Cards/Gemini-4-Argon-Model-Card.pdf",
+      "title": "Gemini 4 Argon Model Card (PDF)",
+      "publisher": "Google DeepMind",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Model card PDF (14 pages, 'Published: October 2026'), linked from the ai.google.dev model page. The HTML URL https://deepmind.google/models/model-cards/gemini-4-argon/ returned HTTP 404 on 2026-10-13; the PDF at the storage.googleapis.com path above is the card. Facts: not a modification or fine-tune of a prior model; large-scale sparse mixture-of-experts transformer, natively multimodal (text, image, audio, video in; text out); combined input-output context window up to 1M; knowledge cutoff March 2026; Frontier Safety Framework (April 2026) assessment tables; automated safety evals vs Gemini 3.1 Pro. The results table on printed page 5 (PDF page 6) is an image (same cells as the 2026-09-30 blog table); pdftotext returns no table text, so it was read visually and OCR-checked."
+    },
+    {
+      "id": "google-gemini-4-argon-evals-methodology-2026-10",
+      "url": "https://deepmind.google/models/evals-methodology/gemini-4-argon/",
+      "title": "Gemini 4 Argon: Model evaluation, approach, methodology and results (PDF)",
+      "publisher": "Google DeepMind",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "The URL serves a 5-page PDF (Content-Type PDF) named in the blog and model card as the methodology page. States: all Argon scores pass@1 unless noted; single-attempt settings allow no majority voting or parallel test-time compute; 'All of the results are run with the Gemini API with the highest thinking settings unless indicated otherwise below'; non-Gemini results are providers' self-reported numbers unless noted; for GPT-6 Astra, Fable 5.1 and Opus 5.5 'we default to reporting maximum thinking/reasoning settings available, but when reported results are not available we use best available reasoning results'. Per-benchmark sourcing notes (self-computed vs Vals AI, Zapier, Datacurve, tbench.ai, Proximal, Surge, Gray Swan leaderboards) are quoted in the performance file notes. Page 5 repeats the results table image."
+    },
+    {
+      "id": "google-gemini-4-argon-safety-blog-2026-10-13",
+      "url": "https://blog.google/innovation-and-ai/technology/safety-security/gemini-4-model-safety-security/",
+      "title": "Developing Gemini 4 Argon responsibly and safely",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_blog",
+      "notes": "Safety and security post by Anca Dragan and Raluca Ada Popa (Oct 13, 2026). Vendor claims only: solved all 12 end-to-end simulated cyberattack scenarios (up from five in the previous generation); violations on an adversarial set reduced nearly twofold; external bio jailbreak red teaming unlocked less than 1% of bio sub-tasks; shortcut/cheating attempts on coding benchmarks 2%; Gray Swan IPI attack success 0.7% across 15 adaptive attempts; three real-time protection layers (input screening, activation probes, continuous monitoring)."
+    },
+    {
+      "id": "google-gemini-4-argon-safety-report-2026-10-13",
+      "url": "https://storage.googleapis.com/deepmind-media/gemini/gemini_4_safety_report.pdf",
+      "title": "Gemini 4 Argon Safety and Security Report (PDF, 217 pages)",
+      "publisher": "Google DeepMind",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "217-page report linked from the safety blog and the model card. Only the executive summary and the cyber-uplift conclusions were read for this catalog (CWE-Bench v1 68% Pass@1 tying for first; CyScenarioBench 100% of end-to-end challenges vs 41.7% for Gemini 3.8 Flash Cyber; risk model: an attacker could complete a severe historical cyberattack at 16.7x lower cost on average without mitigations). Not digitized beyond those claims."
+    },
+    {
+      "id": "google-gemini-4-argon-model-page-2026-10-13",
+      "url": "https://ai.google.dev/gemini-api/docs/models/gemini-4-argon",
+      "title": "Gemini 4 Argon | Gemini API",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Model page, 'Last updated 2026-10-13 UTC'. Model code gemini-4-argon; stable version gemini-4-argon; inputs text, image, video, audio, PDF; output text; context window 1,048,576 (unified input and output); max output 65,536 default synchronous, up to 1,048,576 with long decode; caching: implicit only, explicit caching not supported; thinking: low, medium, high; code execution, computer use (Preview), file search, function calling, Google Maps and Search grounding, structured outputs, URL context supported; Live API, audio generation and image generation not supported; Batch, Flex and Priority supported; latest update October 2026."
+    },
+    {
+      "id": "google-gemini-models-2026-10-13",
+      "url": "https://ai.google.dev/gemini-api/docs/models",
+      "title": "Gemini API models",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Models overview read 2026-10-13. Lists Gemini 4 Argon (gemini-4-argon) under 'Gemini 4 / Stable', tagged New Stable ('Our flagship reasoning model with a shared 1M context window and long decodes up to 1M tokens'). The roster no longer lists gemini-3.7-flash or gemini-3.5-flash (both deprecated 2026-10-08 per the changelog)."
+    },
+    {
+      "id": "google-gemini-pricing-2026-10-13",
+      "url": "https://ai.google.dev/gemini-api/docs/pricing",
+      "title": "Gemini Developer API pricing",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Paid-tier tables parsed from the page HTML on 2026-10-13. Gemini 4 Argon (gemini-4-argon), per 1M tokens: Standard input $2.00 through November 30, 2026 then $4.00 starting December 1, 2026; output (including thinking tokens) $10.00 then $20.00; context caching $0.10 then $0.20, implicit caching only. Batch: $1.00 / $5.00 / $0.05 then $2.00 / $10.00 / $0.10. Flex: same as Batch. Priority: $3.60 / $18.00 / $0.18 then $7.20 / $36.00 / $0.36. Search and Maps grounding: 5,000 free requests per month shared across Gemini 3 and newer models, then $14 per 1,000. Not available on the Free tier or on the Google AI Pro plan. No long-context (>200k) tier and no cache storage fee is listed for Argon (the page does list both for Gemini 3.1 Pro Preview and storage fees for other models)."
+    },
+    {
+      "id": "google-gemini-changelog-2026-10-13",
+      "url": "https://ai.google.dev/gemini-api/docs/changelog",
+      "title": "Gemini API release notes",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Release notes read 2026-10-13. October 13, 2026: 'Gemini 4 Argon (gemini-4-argon) generally available (GA)'. October 8, 2026: gemini-3.7-flash deprecated and replaced by gemini-3.8-flash (requests automatically routed); gemini-3.5-flash deprecated and replaced by gemini-3.6-flash (requests automatically routed). Earlier entries as in the 2026-10-07 read."
+    },
+    {
+      "id": "google-gemini-thinking-2026-10-13",
+      "url": "https://ai.google.dev/gemini-api/docs/generate-content/thinking",
+      "title": "Gemini thinking controls",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Thinking guide read 2026-10-13. thinkingLevel (thinking_level) is required for Gemini 4 and recommended for Gemini 3. Gemini 4 Argon supports low, medium (default) and high; minimal is not supported (error); thinking cannot be disabled. high is 'Supported (Dynamic)'. thinkingBudget is deprecated for Gemini 4: alone it maps to the nearest thinkingLevel with a warning, together with thinkingLevel it returns HTTP 400. 1,048,576-token shared context window; per-request output caps 65,536 streaming and 32,768 non-streaming; long decode continues across hops (continuation_token) up to 1,048,576 minus input."
+    },
+    {
+      "id": "google-gemini-whats-new-argon-2026-10-13",
+      "url": "https://ai.google.dev/gemini-api/docs/latest-model",
+      "title": "What's new in Gemini 4 Argon",
+      "publisher": "Google",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Developer guide read 2026-10-13. Model id gemini-4-argon, default thinking level medium; levels low, medium (default), high. Introductory pricing through Nov 30, 2026 ($2 / $10; $4 / $20 thereafter); cached input discounted 95% on implicit-cache hits to $0.10 ($0.20 from Dec 1, 2026). Explicit caching not supported; implicit caching on by default for prompts of at least 4,096 tokens. temperature, top_p and top_k are ignored. Recommended max_output_tokens at least 32,768; HTTP client timeouts at least 15 minutes. Supported in Gemini Managed Agents (Antigravity agent). Not available on the Free tier or the Google AI Pro plan."
+    },
+    {
+      "id": "google-agent-platform-gemini-4-argon-2026-10-13",
+      "url": "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/4-argon",
+      "title": "Gemini 4 Argon | Gemini Enterprise Agent Platform (Vertex AI)",
+      "publisher": "Google Cloud",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Google Cloud model page read 2026-10-13. Launch stage GA, release date October 13, 2026; model id gemini-4-argon; context window 1,048,576; maximum output tokens 1,048,576; thinking levels LOW, MEDIUM (default), HIGH (thinking_budget or MINIMAL returns HTTP 400); implicit caching only with a 6,144-token minimum (the Gemini API page says 4,096); Standard, Flex, Priority PayGo, Provisioned Throughput and Batch supported; regions global, us, eu. Also documents gemini-4-argon-cyber-permissive: allowlist only (Fairwind Program), default thinking HIGH, computer use not supported."
+    },
+    {
+      "id": "google-agent-platform-pricing-2026-10-13",
+      "url": "https://cloud.google.com/vertex-ai/generative-ai/pricing",
+      "title": "Agent Platform (Vertex AI) generative AI pricing",
+      "publisher": "Google Cloud",
+      "published": "2026-10-13",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Gemini 4 Argon rows read 2026-10-13. Standard global: $2 input, $0.1 cached input, $10 output through November 30, 2026; $4 / $0.2 / $20 from December 1, 2026 (also applies to Gemini 4 Argon Cyber Permissive). Non-global endpoints cost 10% more ($2.2 / $0.11 / $11). Priority and Batch/Flex tabs match the Gemini API ratios. Footnote: promotional pricing is provided through 50% credits back on net spend on select models and does not apply to Cyber Permissive. A page-wide footnote says that if a query input context is longer than 200K tokens, all tokens are charged at long context rates; no Argon-specific long-context row is listed."
+    },
+    {
+      "id": "artificial-analysis-gemini-4-argon-article-2026-09-30",
+      "url": "https://artificialanalysis.ai/articles/gemini-4-argon-google-top-three-labs",
+      "title": "Gemini 4 Argon: Google is back as one of the top three labs in intelligence achieved | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": "2026-09-30",
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "AA launch article, datePublished 2026-09-30, read 2026-10-13 by curl with a browser User-Agent (HTML text parsed). The page was not updated after general availability: it still says Argon is 'currently being rolled out to selected users and is not publicly available' and that Google 'has not yet confirmed the promotion end date'. Its Briefcase numbers (1494 Elo, 65% rubric, 1576 analytical, 1308 presentation) differ from the model page read the same day (1488.47, 64.6%, 1563.88, 1304.52)."
+    },
+    {
+      "id": "artificial-analysis-evaluation-aa-briefcase-gemini-4-argon-2026-10-13",
+      "url": "https://artificialanalysis.ai/evaluations/aa-briefcase",
+      "title": "AA-Briefcase | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "AA-Briefcase evaluation page read 2026-10-13 by curl. Lists Gemini 4 Argon (High) at 1488 (rounded) with the same value as the model page object."
+    },
+    {
+      "id": "artificial-analysis-evaluation-terminalbench-4-0-gemini-4-argon-2026-10-13",
+      "url": "https://artificialanalysis.ai/evaluations/terminalbench-4-0",
+      "title": "Terminal-Bench 4.0 | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "AA Terminal-Bench 4.0 evaluation page read 2026-10-13 by curl. Carries a Gemini 4 Argon (High) record in the embedded model list."
+    },
+    {
+      "id": "artificial-analysis-evaluation-artificial-analysis-cyber-index-gemini-4-argon-2026-10-13",
+      "url": "https://artificialanalysis.ai/evaluations/artificial-analysis-cyber-index",
+      "title": "Artificial Analysis Cyber Index | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "AA Artificial Analysis Cyber Index evaluation page read 2026-10-13 by curl. Gemini 4 Argon appears only in the page's list of tracked model releases (release date 2026-09-30), with no score record."
+    },
+    {
+      "id": "artificial-analysis-evaluation-frontiercode-gemini-4-argon-2026-10-13",
+      "url": "https://artificialanalysis.ai/evaluations/frontiercode",
+      "title": "FrontierCode | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "AA FrontierCode evaluation page read 2026-10-13 by curl. Gemini 4 Argon appears only in the page's list of tracked model releases (release date 2026-09-30), with no score record."
+    },
+    {
+      "id": "artificial-analysis-evaluation-harvey-lab-aa-gemini-4-argon-2026-10-13",
+      "url": "https://artificialanalysis.ai/evaluations/harvey-lab-aa",
+      "title": "Harvey LAB-AA | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "AA Harvey LAB-AA evaluation page read 2026-10-13 by curl. Gemini 4 Argon appears only in the page's list of tracked model releases (release date 2026-09-30), with no score record."
+    },
+    {
+      "id": "artificial-analysis-evaluation-aa-3d-gemini-4-argon-2026-10-13",
+      "url": "https://artificialanalysis.ai/evaluations/aa-3d",
+      "title": "AA-3D | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "AA AA-3D evaluation page read 2026-10-13 by curl. Gemini 4 Argon appears only in the page's list of tracked model releases (release date 2026-09-30), with no score record."
+    },
+    {
+      "id": "vals-ai-gemini-4-argon-model-page-2026-10-13",
+      "url": "https://www.vals.ai/models/google_gemini-4-argon",
+      "title": "Gemini 4 Argon Benchmarks, Cost and Capabilities | Vals AI",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals model page read 2026-10-13 by curl (text parsed). Update note dated Sep 30, 2026; hyperparameters: temperature 1, top-p and top-k default, max output tokens 262,144, reasoning effort high, default provider Google; token costs shown $4.00/$20.00 (the standard price, not the introductory price); 1M context; input modalities text, image, video, file."
+    },
+    {
+      "id": "vals-ai-medcode-2026-10-13",
+      "url": "https://www.vals.ai/benchmarks/medcode",
+      "title": "MedCode | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-08, 106 models. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task). Accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort or compute_effort field where present."
+    },
+    {
+      "id": "vals-ai-medscribe-2026-10-13",
+      "url": "https://www.vals.ai/benchmarks/medscribe",
+      "title": "MedScribe | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-08, 108 models. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task). Accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort or compute_effort field where present."
+    },
+    {
+      "id": "vals-ai-sage-2026-10-13",
+      "url": "https://www.vals.ai/benchmarks/sage",
+      "title": "SAGE | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-08, 91 models. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task). Accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort or compute_effort field where present."
+    },
+    {
+      "id": "vals-ai-srebench-2026-10-13",
+      "url": "https://www.vals.ai/benchmarks/srebench",
+      "title": "SRE Bench | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-08, 33 models. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task). Accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort or compute_effort field where present."
+    },
+    {
+      "id": "vals-ai-legal-bench-2026-10-13",
+      "url": "https://www.vals.ai/benchmarks/legal_bench",
+      "title": "LegalBench | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 150 models. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task). Accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort or compute_effort field where present."
+    },
+    {
+      "id": "vals-ai-cua-bench-2026-10-13",
+      "url": "https://www.vals.ai/benchmarks/cua_bench",
+      "title": "CUA-bench | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-09-29, 8 models. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task). Accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort or compute_effort field where present."
+    },
+    {
+      "id": "vals-ai-time-horizon-index-ksp-2026-10-13",
+      "url": "https://www.vals.ai/benchmarks/time_horizon_index",
+      "title": "Time Horizon Index: KSP | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-07, 13 models. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task). Accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort or compute_effort field where present."
+    },
+    {
+      "id": "vals-ai-swebench-no-argon-2026-10-13",
+      "url": "https://www.vals.ai/benchmarks/swebench",
+      "title": "SWE-bench | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals board page; board metadata updated 2026-09-01. Read 2026-10-13 from the board view JSON. No google/gemini-4-argon entry in the 'overall' task."
+    },
+    {
+      "id": "vals-ai-terminal-bench-2-1-no-argon-2026-10-13",
+      "url": "https://www.vals.ai/benchmarks/terminal-bench-2-1",
+      "title": "Terminal-Bench 2.1 | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals board page; board metadata updated 2026-09-28. Read 2026-10-13 from the board view JSON. No google/gemini-4-argon entry in the 'overall' task."
+    },
+    {
+      "id": "vals-ai-terminal-bench-2-no-argon-2026-10-13",
+      "url": "https://www.vals.ai/benchmarks/terminal-bench-2",
+      "title": "Terminal-Bench 2.0 | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals board page; board metadata updated 2026-06-04. Read 2026-10-13 from the board view JSON. No google/gemini-4-argon entry in the 'overall' task."
+    },
+    {
+      "id": "vals-ai-mortgage-tax-no-argon-2026-10-13",
+      "url": "https://www.vals.ai/benchmarks/mortgage_tax",
+      "title": "MortgageTax | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals board page; board metadata updated 2026-09-01. Read 2026-10-13 from the board view JSON. No google/gemini-4-argon entry in the 'overall' task."
+    },
+    {
+      "id": "vals-ai-vals-multimodal-index-no-argon-2026-10-13",
+      "url": "https://www.vals.ai/benchmarks/vals_multimodal_index",
+      "title": "Vals Multimodal Index | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals board page; board metadata updated 2026-08-11. Read 2026-10-13 from the board view JSON. No google/gemini-4-argon entry in the 'overall' task."
+    },
+    {
+      "id": "arena-text-gemini-4-argon-2026-10-13",
+      "url": "https://arena.ai/leaderboard/text",
+      "title": "Arena Text leaderboard (arena.ai)",
+      "publisher": "Arena (formerly LMArena)",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Read 2026-10-13 through a logged-in headed browser session (plain curl, headless Chrome and the fetch tool all return a Cloudflare 'Just a moment' 403): same-origin fetch of the board page, rows parsed from the embedded RSC payload (rank, rank bounds, rating, 95% bounds, votes). The page does not state a board snapshot date. Text overall board, 415 models, 8,804,675 votes; Argon row is flagged 'Preliminary' on the page."
+    },
+    {
+      "id": "arena-text-coding-gemini-4-argon-2026-10-13",
+      "url": "https://arena.ai/leaderboard/text/coding",
+      "title": "Arena Text Coding leaderboard (arena.ai)",
+      "publisher": "Arena (formerly LMArena)",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Read 2026-10-13 through a logged-in headed browser session (plain curl, headless Chrome and the fetch tool all return a Cloudflare 'Just a moment' 403): same-origin fetch of the board page, rows parsed from the embedded RSC payload (rank, rank bounds, rating, 95% bounds, votes). The page does not state a board snapshot date. Text coding category, 410 models, 1,889,463 votes. The URL redirects to /leaderboard/chat/text/coding."
+    },
+    {
+      "id": "arena-webdev-gemini-4-argon-2026-10-13",
+      "url": "https://arena.ai/leaderboard/code/webdev",
+      "title": "Arena WebDev leaderboard (arena.ai)",
+      "publisher": "Arena (formerly LMArena)",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Read 2026-10-13 through a logged-in headed browser session (plain curl, headless Chrome and the fetch tool all return a Cloudflare 'Just a moment' 403): same-origin fetch of the board page, rows parsed from the embedded RSC payload (rank, rank bounds, rating, 95% bounds, votes). The page does not state a board snapshot date. WebDev board, 142 models, 878,407 votes. First Arena board where this pack records an Argon WebDev row."
+    },
+    {
+      "id": "epoch-ai-model-page-gemini-4-argon-2026-10-13",
+      "url": "https://epoch.ai/models/gemini-4-argon",
+      "title": "Gemini 4 Argon | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Epoch per-model page re-read 2026-10-13 by curl; benchmark results parsed from the embedded page props (10 Argon results, each with a model-version tag _high or _unknown) plus the page's comparison columns for Claude Opus 5.5 (max), GPT-6 Astra (max) and Kimi K3 (Max). ECI is N/A. Values equal the 2026-10-07 read to the displayed precision."
+    },
+    {
+      "id": "openrouter-gemini-4-argon-model-page-2026-10-13",
+      "url": "https://openrouter.ai/google/gemini-4-argon",
+      "title": "Gemini 4 Argon - API Pricing & Providers | OpenRouter",
+      "publisher": "OpenRouter",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "OpenRouter model page read 2026-10-13 by curl: 2 providers, headline $2/$10 per M, 1,048,576 context, max output 65,536, endpoint stats (p50 latency and throughput over a 30-minute window) in the embedded payload. Design Arena records list is empty."
+    },
+    {
+      "id": "openrouter-models-api-gemini-4-argon-2026-10-13",
+      "url": "https://openrouter.ai/api/v1/models",
+      "title": "OpenRouter models API (461 models), Gemini 4 Argon entries",
+      "publisher": "OpenRouter",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Public models list JSON read 2026-10-13: entries google/gemini-4-argon (canonical slug google/gemini-4-argon-20261013, created 2026-10-13 16:04 UTC) and google/gemini-4-argon:batch. On 2026-10-07 (openrouter-models-api-2026-10-07) neither existed."
+    },
+    {
+      "id": "openrouter-gemini-4-argon-endpoints-2026-10-13",
+      "url": "https://openrouter.ai/api/v1/models/google/gemini-4-argon-20261013/endpoints",
+      "title": "OpenRouter endpoints API for google/gemini-4-argon-20261013",
+      "publisher": "OpenRouter",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Endpoint records read 2026-10-13: Google AI Studio and Google (Vertex global) endpoints at standard, flex and priority tags, with per-endpoint price, max completion tokens, uptime and status."
+    },
+    {
+      "id": "terminal-bench-official-gemini-4-argon-2026-10-13",
+      "url": "https://www.tbench.ai/",
+      "title": "Terminal-Bench leaderboard (tbench.ai)",
+      "publisher": "www.tbench.ai",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Direct curl 2026-10-13; embedded rows parsed. Board payload updated_at 2026-10-06T23:20Z (unchanged since the 2026-10-07 read). No Gemini 4 Argon row; the only Google row is Gemini 3.8 Flash (high, mini-SWE-agent) at 19.09%."
+    },
+    {
+      "id": "arcprize-leaderboard-gemini-4-argon-2026-10-13",
+      "url": "https://arcprize.org/leaderboard",
+      "title": "ARC Prize leaderboard",
+      "publisher": "arcprize.org",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Client-rendered; headless-Chrome DOM dump 2026-10-13, 283 table rows. Newest row date 2026-09-29. No Gemini 4 Argon or other Argon codename row."
+    },
+    {
+      "id": "deepswe-datacurve-gemini-4-argon-2026-10-13",
+      "url": "https://deepswe.datacurve.ai/",
+      "title": "DeepSWE Leaderboard (Datacurve)",
+      "publisher": "deepswe.datacurve.ai",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Headless-Chrome DOM dump 2026-10-13. Page says '113 tasks - updated September 22, 2026' (stale, unchanged). No Gemini 4 Argon row."
+    },
+    {
+      "id": "seal-swebench-pro-gemini-4-argon-2026-10-13",
+      "url": "https://labs.scale.com/leaderboard/swe_bench_pro_public",
+      "title": "Scale SEAL SWE-Bench Pro (public)",
+      "publisher": "labs.scale.com",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Direct curl 2026-10-13; the page lists Muse Spark 1.1, GPT-5.4, Claude Opus 4.6 and Gemini 3.1 Pro era rows. No Gemini 4 Argon label."
+    },
+    {
+      "id": "swebench-official-gemini-4-argon-2026-10-13",
+      "url": "https://www.swebench.com/",
+      "title": "SWE-bench (swebench.com)",
+      "publisher": "www.swebench.com",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Direct curl 2026-10-13. Page content is dated May 2026; no Gemini 4 Argon label."
+    },
+    {
+      "id": "metr-time-horizons-gemini-4-argon-2026-10-13",
+      "url": "https://metr.org/time-horizons/",
+      "title": "METR time horizons",
+      "publisher": "metr.org",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Direct curl 2026-10-13. The page states it 'is no longer actively updated' and LAST UPDATED September 8, 2026. No Gemini 4 Argon label."
+    },
+    {
+      "id": "osworld-gemini-4-argon-2026-10-13",
+      "url": "https://osworld-v2.xlang.ai/",
+      "title": "OSWorld 2.0",
+      "publisher": "osworld-v2.xlang.ai",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Direct curl 2026-10-13 of the OSWorld 2.0 page. No Gemini 4 Argon label."
+    },
+    {
+      "id": "steel-browsecomp-gemini-4-argon-2026-10-13",
+      "url": "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+      "title": "BrowseComp leaderboard (Steel)",
+      "publisher": "leaderboard.steel.dev",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Direct curl 2026-10-13. Page says Last updated 2026-10-11. No Gemini 4 Argon label."
+    },
+    {
+      "id": "swe-marathon-gemini-4-argon-2026-10-13",
+      "url": "https://www.swe-marathon.org/",
+      "title": "SWE-Marathon (Abundant AI)",
+      "publisher": "www.swe-marathon.org",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Headless-Chrome DOM dump 2026-10-13, v1.1 leaderboard of 17 rows. The only Google row is Gemini 3.7 Flash (max, OpenCode) at 22.5%. No Gemini 4 Argon row."
+    },
+    {
+      "id": "harvey-lab-site-gemini-4-argon-2026-10-13",
+      "url": "https://www.harvey.ai/lab",
+      "title": "Harvey LAB site (HTTP 404)",
+      "publisher": "www.harvey.ai",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "HTTP 404 on 2026-10-13. Harvey LAB readings exist only on AA (Harvey LAB-AA) and Vals (HLAB)."
     }
   ]
 }
