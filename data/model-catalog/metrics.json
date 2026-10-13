@@ -41,6 +41,204 @@
       "unit_default": "other"
     },
     {
+      "id": "vals-swe-bench-multimodal",
+      "name": "SWE-bench Multimodal (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vals AI run of SWE-bench Multimodal (JavaScript front-end repositories, screenshot-based reports). Separate id from the vendor-table swe-bench-multimodal rows.",
+      "task_family": "coding"
+    },
+    {
+      "id": "vals-programbench",
+      "name": "ProgramBench (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "pass_rate",
+      "comparable": false,
+      "notes": "Vals AI run of ProgramBench (rebuild programs from scratch). Separate id from the vendor-table programbench rows.",
+      "task_family": "coding"
+    },
+    {
+      "id": "aa-critpt",
+      "name": "CritPt (Artificial Analysis)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "AA per-model-page result for the CritPt physics-research evaluation, an Intelligence Index v4.3.2 component. Third-party board reading; separate from any vendor-reported CritPt."
+    },
+    {
+      "id": "aa-lcr",
+      "name": "AA-LCR (Artificial Analysis Long Context Reasoning)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "AA per-model-page long-context reasoning result, an Intelligence Index v4.3.2 component."
+    },
+    {
+      "id": "aa-coding-agents-index",
+      "name": "Artificial Analysis Coding Agents Index",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other",
+      "comparable": false,
+      "notes": "Equal-weight mean (0-100) of DeepSWE v1.1, SWE-Atlas-QnA and Terminal-Bench v4 run by AA on agent-plus-model pairs (Claude Code, Codex, Muse Code and others). The agent harness is part of the measurement; do not read a row as a model-only score."
+    },
+    {
+      "id": "aa-coding-agents-deepswe-v1-1",
+      "name": "DeepSWE v1.1 (Artificial Analysis Coding Agents run)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "AA-run DeepSWE v1.1 reward inside the Coding Agents Index, each agent in its own harness. Distinct from deepswe-leaderboard-datacurve (mini-swe-agent for all models), deepswe-v1-1 (OpenAI vendor table) and Meta-reported DeepSWE 1.1 figures.",
+      "task_family": "coding"
+    },
+    {
+      "id": "aa-coding-agents-swe-atlas-qna",
+      "name": "SWE-Atlas-QnA (Artificial Analysis Coding Agents run)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "AA-run SWE-Atlas-QnA reward inside the Coding Agents Index.",
+      "task_family": "coding"
+    },
+    {
+      "id": "vals-cyberbench",
+      "name": "CyberBench v1.1 (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vals AI private benchmark: agents craft proof-of-concept inputs that trigger OSS-Fuzz vulnerabilities and produce patches."
+    },
+    {
+      "id": "vals-emb",
+      "name": "EMB (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vals AI private benchmark of Excel-based financial modeling tasks."
+    },
+    {
+      "id": "vals-code-migration",
+      "name": "Code Migration (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vals AI private benchmark: reimplement real-world programs in another language.",
+      "task_family": "coding"
+    },
+    {
+      "id": "vals-legal-research-bench",
+      "name": "Legal Research Bench (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vals AI private benchmark of legal research tasks across US law."
+    },
+    {
+      "id": "vals-mysterymechanism",
+      "name": "MysteryMechanism (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vals AI private benchmark: rediscover sealed mathematical mechanisms through bounded experiments."
+    },
+    {
+      "id": "vals-proofbench",
+      "name": "ProofBench v1.1 (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vals AI private automated theorem-proving benchmark."
+    },
+    {
+      "id": "vals-public-benefits-bench",
+      "name": "Public Benefits Bench v1.1 (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vals AI private benchmark on navigating SNAP benefits."
+    },
+    {
+      "id": "vals-tax-agent-bench",
+      "name": "Tax Agent Bench (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vals AI private benchmark of research-grade US tax questions using the Tax Agent Bench harness."
+    },
+    {
+      "id": "vals-vibe-code-bench",
+      "name": "Vibe Code Bench v1.1 (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vals AI private benchmark: build web applications from scratch.",
+      "task_family": "coding"
+    },
+    {
+      "id": "vals-ioi",
+      "name": "IOI (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Vals AI benchmark based on the International Olympiad in Informatics, custom runner.",
+      "task_family": "coding"
+    },
+    {
+      "id": "swe-marathon-board-v1-1",
+      "name": "SWE-Marathon v1.1 (Abundant AI leaderboard, pass@1)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "pass_rate",
+      "comparable": false,
+      "notes": "Public Abundant AI leaderboard: 20 multi-hour software engineering tasks, k=8 trials, binary reward, each model in its own vendor harness. Distinct from any Meta-reported SWE-Marathon figure.",
+      "task_family": "coding"
+    },
+    {
+      "id": "design-arena-elo",
+      "name": "Design Arena Elo (via OpenRouter)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "elo",
+      "comparable": false,
+      "notes": "Design Arena preference Elo per arena and category as embedded in the OpenRouter models API. Each category is its own snapshot and comparability group."
+    },
+    {
       "id": "agents-last-exam",
       "name": "Agents' Last Exam",
       "direction": "higher_better",

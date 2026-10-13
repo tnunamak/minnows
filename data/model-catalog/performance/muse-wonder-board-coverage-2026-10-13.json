@@ -1,0 +1,184 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "muse-wonder-board-coverage-2026-10-13",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-13",
+  "source_urls": [
+    "https://www.tbench.ai/leaderboard/terminal-bench/4.0",
+    "https://arcprize.org/leaderboard",
+    "https://deepswe.datacurve.ai/",
+    "https://labs.scale.com/leaderboard/swe_bench_pro_public",
+    "https://arena.ai/leaderboard/text",
+    "https://arena.ai/leaderboard/code/webdev",
+    "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+    "https://www.swebench.com/",
+    "https://osworld-v2.xlang.ai/",
+    "https://metr.org/time-horizons/",
+    "https://livebench.ai/",
+    "https://benchlm.ai/models/muse-wonder-full"
+  ],
+  "source_ids": [
+    "terminal-bench-official-muse-wonder-2026-10-13",
+    "arcprize-leaderboard-muse-wonder-2026-10-13",
+    "deepswe-datacurve-muse-wonder-2026-10-13",
+    "seal-swebench-pro-muse-wonder-2026-10-13",
+    "arena-ai-text-muse-wonder-2026-10-13",
+    "arena-ai-webdev-muse-wonder-2026-10-13",
+    "steel-browsecomp-muse-wonder-2026-10-13",
+    "swebench-official-muse-wonder-2026-10-13",
+    "osworld-muse-wonder-2026-10-13",
+    "metr-time-horizons-muse-wonder-2026-10-13",
+    "livebench-muse-wonder-2026-10-13",
+    "benchlm-muse-wonder-full-2026-10-13"
+  ],
+  "notes": "Third-party board coverage sweep for Muse Wonder and Muse Wonder Full, 2026-10-13, one day after release. LISTED boards have their own dated files from this lane: Artificial Analysis (Intelligence Index and Coding Agents Index), Vals AI, SWE-Marathon (Abundant), OpenRouter (listing facts and Design Arena) and Epoch AI (Muse Wonder only). This file covers the boards with NO Muse Wonder row. Methods: raw HTML by curl for static pages and for table JSON embedded in them (tbench.ai, Arena, Steel, SEAL, SWE-bench); a headless-Chrome DOM dump for the client-rendered ARC Prize, DeepSWE and SWE-Marathon pages. Every absence is provisional: recheck on or after 2026-10-20 and keep the later read as a new dated snapshot. The coverage also records where Meta's launch-table numbers differ from the independent boards (last two claims but one) and the Haiku 5.5 status change. Nothing in this file states a Muse Wonder score; it records absences, board dates and conflicts.",
+  "claims": [
+    {
+      "models": [
+        "muse-wonder-1-0",
+        "muse-wonder-full-1-0"
+      ],
+      "task_families": [
+        "coding",
+        "agentic"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Terminal-Bench official (tbench.ai, Terminal-Bench 4.0): ABSENT. 35 rows, newest updated_at 2026-10-06T23:20Z, so the board has not changed since the 2026-10-07 reads in this pack. No Muse Wonder or Muse Wonder Full row, no Haiku 5.5 row. Muse Spark 1.3 (xhigh, Muse Code) is 14.5% +/- 2.9 (rank 32). The URL .../leaderboard/terminal-bench/4.0 now redirects (HTTP 308) to the site root, where the table renders. Checked 2026-10-13. Recheck on or after 2026-10-20 and keep the later read as a new dated snapshot. An absence is not proof that the board will not run the models.",
+      "implication": "No official Terminal-Bench reading for the Muse Wonder models. The AA and Vals Terminal-Bench readings are in their own files.",
+      "source_id": "terminal-bench-official-muse-wonder-2026-10-13"
+    },
+    {
+      "models": [
+        "muse-wonder-1-0",
+        "muse-wonder-full-1-0"
+      ],
+      "task_families": [
+        "reasoning"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "ARC Prize leaderboard: ABSENT. DOM dump 2026-10-13; newest row 2026-09-29 (GPT-6.1 Sol). No Muse row; the only Meta entries are Llama 4 Maverick and Scout. Recheck on or after 2026-10-20.",
+      "implication": "No ARC-AGI reading for Muse Wonder or Muse Wonder Full.",
+      "source_id": "arcprize-leaderboard-muse-wonder-2026-10-13"
+    },
+    {
+      "models": [
+        "muse-wonder-1-0",
+        "muse-wonder-full-1-0"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "DeepSWE (Datacurve) public board: ABSENT, and stale. Updated September 22, 2026; 28 models, v1.1 view, mini-swe-agent for all. Muse Spark 1.2 (xhigh) 55% is the only Meta row. The board lists no Opus 5.5, Sonnet 5.5 or GPT-6.1 Sol either, so it has not taken any model released after 2026-09-22. Meta's page says Muse Wonder Full 'tops agentic and coding benchmarks, including DeepSWE and SWE-Marathon in independent third-party runs'; the only independent DeepSWE v1.1 numbers found for the Muse Wonder models are in AA's Coding Agents Index (see that file), where Muse Wonder Full is 77.0%, below Gemini 4 Argon at 78.8%.",
+      "implication": "The Datacurve board cannot support a 'tops DeepSWE' claim at retrieval. Recheck on or after 2026-10-20.",
+      "source_id": "deepswe-datacurve-muse-wonder-2026-10-13"
+    },
+    {
+      "models": [
+        "muse-wonder-1-0",
+        "muse-wonder-full-1-0"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Scale SEAL SWE-Bench Pro public: ABSENT, stale. The page still shows Opus 4.6 / GPT-5.4 / Muse Spark 1.1 era rows; no Opus 5.5 and no Muse Wonder. Recheck on or after 2026-10-20.",
+      "implication": "No SWE-Bench Pro reading from SEAL for the Muse Wonder models.",
+      "source_id": "seal-swebench-pro-muse-wonder-2026-10-13"
+    },
+    {
+      "models": [
+        "muse-wonder-1-0",
+        "muse-wonder-full-1-0"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Arena text and WebDev: ABSENT. Boards stamped 2026-10-08T14:00Z (text, 414 models) and 2026-10-08T13:00Z (WebDev, 141 models), i.e. before the 2026-10-12 release. Newest Muse entry is muse-spark-1.3-max (text rank 9, 1494.19; WebDev rank 13, 1656.86). Recheck on or after 2026-10-20; new models normally take days to collect votes.",
+      "implication": "No Arena rating for the Muse Wonder models yet.",
+      "source_id": "arena-ai-text-muse-wonder-2026-10-13"
+    },
+    {
+      "models": [
+        "muse-wonder-1-0",
+        "muse-wonder-full-1-0"
+      ],
+      "task_families": [
+        "research/browsing"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Steel BrowseComp leaderboard: ABSENT (last updated Oct 11, 2026, before release). SWE-bench (swebench.com, May 2026 content): ABSENT. METR time horizons: ABSENT; METR states the page 'is no longer actively updated' (last updated September 8, 2026). OSWorld: no Muse entry on the OSWorld Verified or OSWorld 2.0 pages; Meta's table cites 'OSWorld V2.1' and no independent OSWorld 2.1 leaderboard was found. LiveBench returned a JavaScript shell and was not checked. Harvey's own LAB site was not found (https://www.harvey.ai/lab returned 404); Harvey LAB readings exist only on AA ('Harvey LAB-AA') and Vals. Recheck on or after 2026-10-20.",
+      "implication": "These boards give no Muse Wonder evidence today.",
+      "source_id": "steel-browsecomp-muse-wonder-2026-10-13"
+    },
+    {
+      "models": [
+        "muse-wonder-1-0",
+        "muse-wonder-full-1-0"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Aggregator pages (BenchLM 'Muse Wonder Full' evidence status Estimated, 6 of 668 benchmark slots with evidence; llm-stats.com; aireleasetracker.com) and blog posts (for example kie.ai, felloai.com, mindstudio.ai, layer3labs.io, dev.to) relay Meta's table and AA's numbers one day after launch. They are not primary boards and are not stored. One search snippet (aireleasetracker.com) describes DeepSWE 1.1 as 'Artificial Analysis' independent test'; that matches AA's Coding Agents Index DeepSWE v1.1 run, whose values differ from Meta's table (see the AA Coding Agents file).",
+      "implication": "Do not cite the aggregators for numbers.",
+      "source_id": "benchlm-muse-wonder-full-2026-10-13"
+    },
+    {
+      "models": [
+        "muse-wonder-1-0",
+        "muse-wonder-full-1-0",
+        "claude-opus-5-5",
+        "claude-fable-5-1",
+        "gpt-6-astra"
+      ],
+      "task_families": [
+        "coding",
+        "agentic"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "CONFLICTS between Meta's launch table (https://dev.meta.ai/models/muse-wonder, columns Muse Wonder Full, Muse Wonder, Fable 5.1, GPT-6 Astra, Opus 5.5, all max) and the independent boards, stored side by side, not reconciled: DeepSWE 1.1: Meta 79.0 / 78.8 / 67.4 / 74.1 / 74.2; AA Coding Agents run 77.0 / 75.8 / 64.3 / 67.6 / 68.4 (Gemini 4 Argon 78.8 is above Muse Wonder Full); Datacurve board has no row. SWE-Marathon: Meta 57.5 (xhigh) / 53.1 / 45.6 / 42.5 / 46.3; the Abundant board 53.1 (max) / 52.5 / 45.6 / 42.5 / 46.3. Terminal-Bench 4.0-AA: Meta 57.1 / 52.0 / 52.0 / 59.1 / 59.6; AA's Intelligence Index page 57.07 / 52.02 / 52.02 / 59.09 / 59.60 (agree); Vals (Mini-SWE-agent) 58.1 / 49.5 / 58.1 / 59.6 / 65.2. AA Index: Meta 56 / 52 / 53 / 53 / 58, AA pages 55.8 / 52.4 / 53.4 / 52.7 / 57.6 (agree). Harvey LAB-AA: Meta 13.1 / 10.0 / 6.4 / 8.6 / 4.2 equals AA's field. Vals Finance Agent V2: Meta 59.1 / 56.6 / 58.9 / 53.5 / 58.6 equals Vals. Meta's AutomationBench-AA (45.4 / 39.1 / 32.1 / 41.6 / 41.2) and GDP.pdf (33.2 / 30.8 / 27.6 / 34.2 / 30.6) differ from AA's page values (71.3 / 68.1 partial for AutomationBench; 32.6 / 30.6 for GDP.pdf), so Meta's cells for those two rows are not AA's index-component numbers.",
+      "implication": "Meta's cells agree with AA where the row is an AA index component (index, Terminal-Bench, Harvey LAB-AA) and with Vals for Finance Agent V2. They differ from the independent runs on DeepSWE 1.1 and SWE-Marathon, the two rows the page cites as 'independent third-party runs'.",
+      "source_id": "deepswe-datacurve-muse-wonder-2026-10-13"
+    },
+    {
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Haiku 5.5 board status changed since the 2026-10-07 coverage file (which recorded it absent on Vals, Terminal-Bench official, ARC, DeepSWE, SEAL, Arena, Steel and Epoch): it is now on Vals (Vals Index 54.31%, Finance Agent v2 54.14%, Terminal-Bench 4.0 35.35%, 23 benchmark rows; see the Vals file), on the AA Coding Agents Index (five efforts) and on the SWE-Marathon board (50.0% at max). It is still absent from Terminal-Bench official, ARC Prize, the Datacurve DeepSWE board, SEAL, Arena text and Steel on 2026-10-13.",
+      "implication": "Haiku 5.5 evidence has grown; the new rows are in the Vals, AA Coding Agents and SWE-Marathon files from this lane.",
+      "source_id": "terminal-bench-official-muse-wonder-2026-10-13"
+    }
+  ],
+  "missing": [
+    "Any Terminal-Bench official, ARC Prize, Datacurve DeepSWE, SEAL, Arena, Steel BrowseComp, SWE-bench or METR row for Muse Wonder or Muse Wonder Full: none on 2026-10-13.",
+    "LiveBench: JavaScript shell only, not checked.",
+    "An independent OSWorld 2.1 board: none found.",
+    "A Harvey-hosted LAB leaderboard: https://www.harvey.ai/lab returned 404; none found."
+  ]
+}

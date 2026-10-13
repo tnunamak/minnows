@@ -1,0 +1,108 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "epoch-ai-muse-wonder-2026-10-13",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-13",
+  "source_urls": [
+    "https://epoch.ai/models/muse-wonder",
+    "https://epoch.ai/models/muse-wonder-full"
+  ],
+  "source_ids": [
+    "epoch-ai-model-page-muse-wonder-2026-10-13",
+    "epoch-ai-model-page-muse-wonder-full-404-2026-10-13"
+  ],
+  "notes": "Epoch AI read 2026-10-13. The Muse Wonder page exists (listed 2026-10-12) with ECI N/A and a single EBR-bench result; the Muse Wonder Full page is HTTP 404. The three EBR-bench values come from the page's own comparison columns (Muse Wonder (max), Claude Opus 5.5 (max), GPT-6 Astra (max)). The Opus 5.5 and Astra values agree with the 2026-10-07 Epoch file to displayed precision (71% and 76%). Recheck on or after 2026-10-20.",
+  "claims": [
+    {
+      "models": [
+        "muse-wonder-1-0"
+      ],
+      "task_families": [
+        "reasoning"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Epoch AI lists Muse Wonder (max) at ECI 'N/A' (no Epoch Capabilities Index yet) with one benchmark result: Earthborne Rangers (EBR-bench) 31% (0.3143), against Claude Opus 5.5 (max) 71% (0.7143) and GPT-6 Astra (max) 76% (0.7619, the best on the benchmark). Kimi K3 has no value. Epoch dates the model 2026-10-12, closed weights, price shown as '-' (no price data), knowledge cutoff and parameters unknown.",
+      "implication": "On the one Epoch benchmark available, Muse Wonder (max) scores less than half of Opus 5.5 and Astra. It is a single game-learning benchmark and says little about the agent tasks Muse Wonder targets. Recheck for an ECI value on or after 2026-10-20.",
+      "source_id": "epoch-ai-model-page-muse-wonder-2026-10-13"
+    },
+    {
+      "models": [
+        "muse-wonder-full-1-0"
+      ],
+      "task_families": [
+        "reasoning"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "Epoch AI has no page for Muse Wonder Full: https://epoch.ai/models/muse-wonder-full returns HTTP 404 on 2026-10-13. Epoch's model records for the family contain only 'muse-wonder-1.0_max'.",
+      "implication": "No Epoch ECI or benchmark reading exists for Muse Wonder Full. Epoch usually evaluates API-accessible models; Full has no API.",
+      "source_id": "epoch-ai-model-page-muse-wonder-full-404-2026-10-13"
+    }
+  ],
+  "scores": [
+    {
+      "model": "muse-wonder-1-0",
+      "metric": "Earthborne Rangers (EBR-bench, Epoch AI)",
+      "score": 0.3143,
+      "unit": "accuracy",
+      "effort": "max",
+      "effort_verbatim": "Muse Wonder (max)",
+      "source_id": "epoch-ai-model-page-muse-wonder-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "reasoning",
+      "metric_id": "epoch-earthborne-rangers-ebr-bench",
+      "comparable": false,
+      "comparability_group": "epoch-ai-model-page-muse-wonder-2026-10-13-epoch-earthborne-rangers-ebr-bench",
+      "snapshot_id": "epoch-ai-model-page-muse-wonder-2026-10-13",
+      "caveat": "Epoch per-model page for Muse Wonder, column 'Muse Wonder (max)'; raw 0.3142857142857143 of 21 possible objectives (displayed 31%). Epoch's topline score is the better of two scored playthroughs on default settings; Epoch evaluator 'epoch-ai'. Epoch's 'Card ban' setting applies to recent models."
+    },
+    {
+      "model": "claude-opus-5-5",
+      "metric": "Earthborne Rangers (EBR-bench, Epoch AI)",
+      "score": 0.7143,
+      "unit": "accuracy",
+      "effort": "max",
+      "effort_verbatim": "Claude Opus 5.5 (max)",
+      "source_id": "epoch-ai-model-page-muse-wonder-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "reasoning",
+      "metric_id": "epoch-earthborne-rangers-ebr-bench",
+      "comparable": false,
+      "comparability_group": "epoch-ai-model-page-muse-wonder-2026-10-13-epoch-earthborne-rangers-ebr-bench",
+      "snapshot_id": "epoch-ai-model-page-muse-wonder-2026-10-13",
+      "caveat": "Epoch per-model page for Muse Wonder, column 'Claude Opus 5.5 (max)'; raw 0.7142857142857142 of 21 possible objectives (displayed 71%). Epoch's topline score is the better of two scored playthroughs on default settings; Epoch evaluator 'epoch-ai'. Epoch's 'Card ban' setting applies to recent models."
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "Earthborne Rangers (EBR-bench, Epoch AI)",
+      "score": 0.7619,
+      "unit": "accuracy",
+      "effort": "max",
+      "effort_verbatim": "GPT-6 Astra (max)",
+      "source_id": "epoch-ai-model-page-muse-wonder-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "reasoning",
+      "metric_id": "epoch-earthborne-rangers-ebr-bench",
+      "comparable": false,
+      "comparability_group": "epoch-ai-model-page-muse-wonder-2026-10-13-epoch-earthborne-rangers-ebr-bench",
+      "snapshot_id": "epoch-ai-model-page-muse-wonder-2026-10-13",
+      "caveat": "Epoch per-model page for Muse Wonder, column 'GPT-6 Astra (max)'; raw 0.7619047619047619 of 21 possible objectives (displayed 76%). Epoch's topline score is the better of two scored playthroughs on default settings; Epoch evaluator 'epoch-ai'. Epoch's 'Card ban' setting applies to recent models."
+    }
+  ],
+  "missing": [
+    "Epoch ECI for Muse Wonder (N/A at read time).",
+    "Epoch benchmark results for Muse Wonder other than EBR-bench (FrontierMath, MirrorCode, SimpleQA Verified and others show no Muse Wonder value on the page).",
+    "Any Epoch record for Muse Wonder Full."
+  ]
+}
