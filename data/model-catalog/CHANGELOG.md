@@ -2,6 +2,17 @@
 
 Newest first. The README links here; this file is the single record.
 
+## v0.5.15 — 2026-10-13
+
+- Added Google Gemini 4 Argon (`gemini-4-argon`). Google announced it on 2026-09-30 for trusted cyber defenders and made it generally available on 2026-10-13; the Gemini API changelog calls it generally available, so the row has status `ga`. It has a 1,048,576-token context shared by input, thinking and output, and text, image, video, audio and PDF input. It gets a new tier, `argon`, because Google gives it no Pro or Flash label; the models schema and `SCHEMA.md` list the new value.
+- The API price is an introductory $2.00 input, $0.10 cached input and $10.00 output per M tokens through 2026-11-30, then $4.00, $0.20 and $20.00 from 2026-12-01. The row is in `pricing/google-api-2026-07.json`, ahead of its catch-all `gemini` rule, which would otherwise price Argon like Gemini 3.1 Pro; the rule matches routed ids such as `google/gemini-4-argon` too. The row carries both rates, and its freshness check will fail after the intro ends until the row moves to the standard rate. Batch, Flex and Priority prices and the Vertex AI differences are in the file's notes.
+- Thinking levels are low, medium (the default) and high. Thinking cannot be turned off, and `thinkingBudget` is deprecated for Gemini 4. Every board reads Argon at high effort; no board lists low or medium.
+- Added Google's launch table (19 rows, four models) and model card, including the Frontier Safety Framework results as stated claims. Added fresh Artificial Analysis (Intelligence Index 52.56, $1.99 per task at the intro price), Artificial Analysis Coding Agents, Vals (18 boards plus seven more), Arena (Text, Text Coding, WebDev), Epoch and OpenRouter readings. Terminal-Bench, ARC Prize, Datacurve DeepSWE, SEAL, SWE-bench, METR and OSWorld do not list Argon yet (recheck 2026-10-20).
+- Google and the boards disagree. Google reports DeepSWE 1.1 at 77.9%; Artificial Analysis' own run gives 78.76%. Terminal-Bench 4.0 reads 57.4% (Google), 57.07% (Artificial Analysis), 57.58% (Vals) and 56.06% (Coding Agents Index). Google says Argon is "similarly leading" on Harvey's Legal Agent Benchmark, while the Vals board has it at 19.58%, below Muse Wonder Full and Muse Spark 1.3. Artificial Analysis' launch article and its live page differ on Briefcase (1494 Elo against 1488.47). All of these are stored, not reconciled.
+- Added 24 metrics (Arena WebDev, seven Epoch and seven Vals boards, and the Argon launch-table benchmarks).
+- Hone is unchanged: it has only Claude and Codex provider paths.
+- No routing change. Opus 5.5, GPT-6.1 Sol and the other policy models keep their operating points.
+
 ## v0.5.14 — 2026-10-13
 
 - Added Meta Muse Wonder (`muse-wonder-1-0`, released 2026-10-12) and Muse Wonder Full (`muse-wonder-full-1-0`). Meta's developer docs call Muse Wonder a preview, so both rows have status `preview`. Muse Wonder is in the Meta Model API and Muse Code. Muse Wonder Full is only in a Muse Code subscription, so it has no API price; `models.json` gets a new `access: subscription_only` value for it.
