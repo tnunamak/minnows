@@ -61,7 +61,8 @@
               "alibaba",
               "deepseek",
               "other",
-              "xiaomi"
+              "xiaomi",
+              "meta"
             ]
           },
           "family": {
@@ -106,7 +107,10 @@
               "open-weight",
               "glm",
               "max",
-              "plus"
+              "plus",
+              "spark",
+              "wonder",
+              "wonder-full"
             ]
           },
           "aliases": {
@@ -123,9 +127,10 @@
             "type": "string",
             "enum": [
               "general",
-              "restricted"
+              "restricted",
+              "subscription_only"
             ],
-            "description": "restricted = trusted-access only; never a routing candidate"
+            "description": "restricted = trusted-access only; subscription_only = reachable only through a vendor subscription, no API id or token price; neither is ever a routing candidate"
           },
           "effort_parameter": {
             "type": "boolean",

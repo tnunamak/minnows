@@ -2,7 +2,7 @@
   "$schema": "schemas/metrics-v1.schema.json",
   "id": "model-catalog-metrics",
   "schema_version": 1,
-  "generated_at": "2026-09-28",
+  "generated_at": "2026-10-13",
   "notes": [
     "Metric registry — distinct metric_ids are not comparable unless same id.",
     "Official boards, re-runs, and vendor tables must not share an id.",
@@ -10,7 +10,8 @@
     "Claude Sonnet 5.5 system card and launch table (2026-09-28) rows reuse existing benchmark metric_ids; publisher/harness differences are separated with comparability_group. New IDs added only for SWE-Bench Multilingual and SWE-Bench Multimodal.",
     "Claude Sonnet 5.5 system card and launch table (2026-09-28) rows reuse existing benchmark metric_ids; publisher/harness differences are separated with comparability_group. New IDs added only for SWE-Bench Multilingual and SWE-Bench Multimodal.",
     "Claude Sonnet 5.5 system card and launch table (2026-09-28) rows reuse existing benchmark metric_ids; publisher/harness differences are separated with comparability_group. New IDs added only for SWE-Bench Multilingual and SWE-Bench Multimodal.",
-    "Claude Sonnet 5.5 system card and launch table (2026-09-28) rows reuse existing benchmark metric_ids; publisher/harness differences are separated with comparability_group. New IDs added only for SWE-Bench Multilingual and SWE-Bench Multimodal."
+    "Claude Sonnet 5.5 system card and launch table (2026-09-28) rows reuse existing benchmark metric_ids; publisher/harness differences are separated with comparability_group. New IDs added only for SWE-Bench Multilingual and SWE-Bench Multimodal.",
+    "Meta Muse Wonder launch (2026-10-12): new metric ids only for benchmarks not already registered (PSI, Harvey LAB-AA v1.1, JobBench, MemoryBench, SWE-Marathon, FocusBench and the model-card and blog safety evaluations). Meta rows reuse vals-finance-agent-v2, healthbench-professional, automationbench, gdp-pdf, osworld-2-1, osworld-2-1-strict, terminal-bench-4-0, deepswe-v1-1, programbench, artificial-analysis-intelligence-index-v4-3-meta-reported, cybergym, exploitbench and exploitgym; Meta-vs-other-publisher differences are carried by comparability_group."
   ],
   "metrics": [
     {
@@ -2273,6 +2274,266 @@
       "steward": "third_party_board",
       "unit_default": "accuracy",
       "notes": "Vals AI composite across finance, coding, legal, tax and related agent tasks, weighted by sector (overall task on the Vals Index board). Third-party board; rows carry the board's own reasoning/compute effort field and a per-board comparability_group."
+    },
+    {
+      "id": "artificial-analysis-intelligence-index-v4-3-meta-reported",
+      "name": "Artificial Analysis Intelligence Index v4.3 (as reported by Meta)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "other",
+      "comparable": false,
+      "notes": "Artificial Analysis index values (integers) as republished by Meta in its Muse Wonder launch table and blog chart, 0-100 scale. Kept apart from artificial-analysis-intelligence-index-v4-3-2 (third_party_board rows with decimals) because the source class differs; Meta calls the index v4.3 and Artificial Analysis's page names v4.3.2 with the same ten evaluations."
+    },
+    {
+      "id": "personal-superintelligence-index",
+      "name": "Personal Superintelligence Index",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Meta internal composite of seven personal and knowledge-work evaluations: Agents' Last Exam, AutomationBench-AA, FocusBench, JobBench, GDP.pdf, VBT and DRACO. Not reproducible outside Meta. First rows: Meta Muse Wonder launch (2026-10-12)."
+    },
+    {
+      "id": "harvey-lab-aa-v1-1",
+      "name": "Harvey LAB-AA v1.1",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Artificial Analysis's version of Harvey's Legal Agent Benchmark, v1.1 (adds hallucination checks): share of tasks whose deliverable meets every criterion and passes the hallucination checks. Distinct from harvey-legal-agent-benchmark (vendor tables). First rows: Meta Muse Wonder launch table."
+    },
+    {
+      "id": "jobbench",
+      "name": "JobBench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "65 professional tasks across 35 white-collar occupations; mean reward against task-specific rubrics (Meta description). First rows: Meta Muse Wonder launch table."
+    },
+    {
+      "id": "memorybench",
+      "name": "MemoryBench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Meta internal: recall of critical facts across 64K-100K-token multi-turn conversations with distractors and conflicting or updating turns; LLM judge with weighted question-specific rubrics. Not public. First rows: Meta Muse Wonder launch table."
+    },
+    {
+      "id": "swe-marathon",
+      "name": "SWE-Marathon",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Ultra-long-horizon software-engineering benchmark of substantial projects graded by executing project tests; pass@1. Abundant AI is the result source; leaderboard results use each vendor harness (Codex for GPT-6 Astra, Claude Code for Claude Fable 5.1), so cross-model rows are not a controlled comparison. First rows: Meta Muse Wonder launch table."
+    },
+    {
+      "id": "focusbench",
+      "name": "FocusBench",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Meta internal evaluation of personal agentic tasks (housing, travel, IT, finance) that tests persistence through real-world blockers across multiple interactions. Not public. First rows: Meta Muse Wonder blog chart."
+    },
+    {
+      "id": "mishandling-personal-information-rate",
+      "name": "Mishandling personal information (violation rate)",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "error_rate",
+      "comparable": false,
+      "notes": "Meta blog chart \"Mishandling Personal Information\", violation rate, lower is better. Dataset and grader not described in the blog or model card."
+    },
+    {
+      "id": "executing-unauthorized-code-asr",
+      "name": "Executing unauthorized code (attack success rate)",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "error_rate",
+      "comparable": false,
+      "notes": "Meta blog chart \"Executing Unauthorized Code\", attack success rate, lower is better. Dataset and grader not described."
+    },
+    {
+      "id": "cyber-misuse-refusal-benchmark",
+      "name": "Cyber Misuse Refusal Benchmark",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "pass_rate",
+      "comparable": false,
+      "notes": "Meta blog chart, refusal rate, higher is better. Dataset not described."
+    },
+    {
+      "id": "cyber-defense-compliance-benchmark",
+      "name": "Cyber Defense Compliance Benchmark",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "pass_rate",
+      "comparable": false,
+      "notes": "Meta blog chart, compliance rate on defensive cyber requests, higher is better. Dataset not described."
+    },
+    {
+      "id": "biotier-refusal",
+      "name": "BioTIER refusal rate",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "pass_rate",
+      "comparable": false,
+      "notes": "SecureBio's BioTIER benchmark of safety mitigations for high-risk dual-use biological topics; refusal rate, higher is better. Model card variants: English, Multilingual, Adversarial. The blog chart does not name its variant."
+    },
+    {
+      "id": "internal-chemistry-refusal",
+      "name": "Meta internal chemistry refusal",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "pass_rate",
+      "comparable": false,
+      "notes": "Meta in-house refusal benchmark on high-risk chemistry questions; refusal rate, higher is better. Variants: English, Multilingual (10 language buckets), Adversarial."
+    },
+    {
+      "id": "cyberbench-asr",
+      "name": "CyberBench adversarial attack success rate",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "error_rate",
+      "comparable": false,
+      "notes": "Adversarial refusal, ASR %, lower is better; single-turn and multi-turn variants (model card, Muse Wonder Full only)."
+    },
+    {
+      "id": "polyguard-cyber-asr",
+      "name": "PolyGuard (cyber subset) attack success rate",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "error_rate",
+      "comparable": false,
+      "notes": "Adversarial refusal, ASR %, lower is better; single-turn and multi-turn variants (model card, Muse Wonder Full only)."
+    },
+    {
+      "id": "redcode-asr",
+      "name": "RedCode attack success rate",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "error_rate",
+      "comparable": false,
+      "notes": "Adversarial refusal, ASR %, lower is better; single-turn and multi-turn variants (model card, Muse Wonder Full only)."
+    },
+    {
+      "id": "securebio-mbct",
+      "name": "SecureBio Molecular Biology Capabilities Test (MBCT)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Dual-use bio/chem knowledge proxy evaluation (SecureBio and Center for AI Safety): practical troubleshooting across molecular-biology tasks."
+    },
+    {
+      "id": "securebio-hpct",
+      "name": "SecureBio Human Pathogens Capabilities Test (HPCT)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Dual-use proxy evaluation: practical knowledge about working with high-priority human pathogens."
+    },
+    {
+      "id": "securebio-vct",
+      "name": "SecureBio Virology Capabilities Test (VCT)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Dual-use proxy evaluation: wet-lab virology troubleshooting."
+    },
+    {
+      "id": "securebio-dual-use-average",
+      "name": "SecureBio dual-use average (MBCT, HPCT, VCT)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Average of MBCT, HPCT and VCT as printed in the Muse Wonder model card."
+    },
+    {
+      "id": "labbench-v1-protocolqa",
+      "name": "LAB-Bench v1 ProtocolQA",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Debugging of practical wet-lab protocols (LAB-Bench v1). Not LABBench2 and not the OpenAI open-ended variant (protocolqa-open-ended)."
+    },
+    {
+      "id": "labbench-v1-seqqa-tools",
+      "name": "LAB-Bench v1 SeqQA (with tools)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "15 common DNA-sequence analysis and modification tasks (LAB-Bench v1), tool-assisted."
+    },
+    {
+      "id": "abc-bench-liquid-handling",
+      "name": "ABC Bench: Liquid Handling",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "SecureBio Agentic Bio-Capabilities Benchmark liquid-handling-robot script task. Fragment Design and Screening Evasion cells are dashes in the Muse Wonder model card: high refusal rate due to safety training, refusals dropped prior to scoring."
+    },
+    {
+      "id": "biodesign-tools-meta-bdt",
+      "name": "Meta BioDesign Tools (BDT)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Meta with Faculty.AI and external experts: complex computational tasks with dual-use potential across Host-Pathogen Interaction, Protein Design and Sequence Analysis; averaged over five tasks."
+    },
+    {
+      "id": "mask-honesty",
+      "name": "MASK (honesty under pressure)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Whether the model keeps honesty when pressured to contradict its baseline knowledge; higher is better."
+    },
+    {
+      "id": "agentic-misalignment-harmful-action-rate",
+      "name": "Agentic Misalignment (harmful action rate)",
+      "direction": "lower_better",
+      "harness": null,
+      "steward": "vendor_table",
+      "unit_default": "error_rate",
+      "comparable": false,
+      "notes": "Whether an agent takes harmful actions to advance its objectives or avoid replacement or shutdown; lower is better."
     }
   ]
 }

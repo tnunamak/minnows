@@ -3678,6 +3678,126 @@
       "retrieved_at": "2026-10-07",
       "kind": "third_party_eval",
       "notes": "Board view JSON read 2026-10-07: SWE-bench updated 2026-09-01 (88 models), Terminal-Bench 2.1 (Terminus 2) updated 2026-09-28 (76 models). Neither lists GPT-6.1 Sol, Gemini 4 Argon, Step 5 or Mistral Large 4; TB2.1 lists Sonnet 5.5 (83.15%)."
+    },
+    {
+      "id": "meta-muse-wonder-model-page-2026-10-13",
+      "url": "https://dev.meta.ai/models/muse-wonder",
+      "title": "Muse Wonder and Muse Wonder Full (Meta Model API model page)",
+      "publisher": "Meta",
+      "published": "2026-10-12",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Rendered page fetched with curl and parsed in code. Benchmark grid is a column-major div list (columns: Muse Wonder Full (max), Muse Wonder (max), Claude Fable 5.1 (max), GPT-6 Astra (max), Claude Opus 5.5 (max)); 14 rows x 5 columns, OSWorld V2.1 cells carry a partial and a binary value, Muse Wonder Full SWE-Marathon carries \"(xhigh)\". Every cell was diffed against the benchmark image in the model card and the blog. Pricing table: muse-wonder-1.0 1M context $4.00 input / $0.20 cached input / $20.00 output per Mtok; muse-wonder-full-1.0 \"Available by subscription in Muse Code\" with no token price. Lists Power Usage $50/month and Maximum Usage $200/month plans. The page footer links \"OpenRouter\" to the muse-spark-1.2 listing, not to Muse Wonder."
+    },
+    {
+      "id": "meta-muse-wonder-model-card-2026-10-12",
+      "url": "https://research.meta.ai/static/muse-wonder-model-card",
+      "title": "Muse Wonder Model Card",
+      "publisher": "Meta",
+      "published": "2026-10-12",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "8-page PDF (Google Docs renderer), extracted with pdftotext -layout; page 3 benchmark image extracted with pdfimages and read visually. States Date of Release October 12, 2026; 1M-token context; text/image/video/audio input and text output; results generated at max reasoning effort for Muse Wonder, Muse Wonder Full and the compared models, with Muse Wonder Full SWE-Marathon reported at xhigh. Section 4 risk-assessment tables are Muse Wonder Full only. The card says nothing about Muse Wonder (non-Full) safety numbers."
+    },
+    {
+      "id": "meta-muse-wonder-blog-2026-10-12",
+      "url": "https://research.meta.ai/blog/muse-wonder",
+      "title": "Muse Wonder: A Frontier Model For Personal & Professional AI Agents",
+      "publisher": "Meta",
+      "published": "2026-10-12",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_blog",
+      "notes": "Canonical URL; /blog/introducing-muse-wonder/ returns the same page. Fetched with curl. Benchmark charts are webp images under /articles/introducing-muse-wonder/images/ with printed value labels; downloaded and read visually (no pixel estimation). The effort-scaling plot (Muse Spark 1.3 vs Muse Wonder Full, in-distribution vs out-of-distribution) has no per-point value labels and no per-point effort labels, so it is not digitized."
+    },
+    {
+      "id": "meta-newsroom-muse-wonder-2026-10-12",
+      "url": "https://about.fb.com/news/2026/10/introducing-muse-wonder-models/",
+      "title": "Introducing Muse Wonder and Muse Wonder Full: Frontier Models for Agents",
+      "publisher": "Meta",
+      "published": "2026-10-12",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_blog",
+      "notes": "Newsroom post. Confirms availability: Muse Wonder through the Meta Model API and Muse Code today; Muse Wonder Full for Muse Code subscribers today; Muse Wonder to power more of Muse later. No prices, no benchmark table."
+    },
+    {
+      "id": "meta-model-api-docs-overview-2026-10-13",
+      "url": "https://dev.meta.ai/docs/",
+      "title": "Get started with Meta Model API and Muse Code",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Docs home. At a glance for Muse Wonder: base URL https://api.meta.ai/v1, standard-mode model muse-wonder-1.0, context window 1,048,576 tokens, bearer auth. States \"Muse Wonder is in preview.\" Muse Code subscription plans can include Muse Wonder Full and Contributor mode."
+    },
+    {
+      "id": "meta-model-api-docs-models-2026-10-13",
+      "url": "https://dev.meta.ai/docs/models",
+      "title": "Meta Model API: Models",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Model lines, versions and availability. Muse Wonder: text/image/video/audio/PDF input, text output, 1,048,576-token context, reasoning effort \"minimal\" to \"max\", \"Muse Wonder is in preview\". Muse Wonder Full is available only in Muse Code on the Power Usage and Maximum Usage plans; setting effort to max on Muse Wonder does not select it. Contributor mode is not available for Muse Wonder on pay-as-you-go. Muse Spark 1.3 (muse-spark-1.3) is described as the latest version, recommended for new work; the page carries no preview label for Muse Spark."
+    },
+    {
+      "id": "meta-model-api-docs-pricing-2026-10-13",
+      "url": "https://dev.meta.ai/docs/pricing-rate-limits",
+      "title": "Meta Model API: Pricing and rate limits",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Per-1M-token rates. muse-wonder-1.0 Standard: cached input $0.20, input $4.00, output $20.00; Contributor mode not available. Muse Spark 1.3/1.2/1.1 Standard: cached $0.15, input $1.25, output $4.25; Contributor (1.3 and 1.2 only): cached $0.002, input $0.10, output $0.20. \"No long-context premium\". No cache-write rate is listed. Web search grounding $2.50 per 1,000 queries on top of tokens. Rate limits: muse-wonder-1.0 3,000 RPM / 4,000,000 TPM."
+    },
+    {
+      "id": "meta-model-api-docs-reasoning-2026-10-13",
+      "url": "https://dev.meta.ai/docs/reasoning",
+      "title": "Meta Model API: Reasoning",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "reasoning_effort (Chat Completions) or reasoning.effort (Responses): none (HTTP 400 on Muse Wonder and Muse Spark), minimal, low, medium, high, xhigh, max. max is supported by muse-wonder-1.0 and muse-spark-1.3, not by muse-spark-1.3-contributor. \"When you omit the parameter, the model still reasons at a model-determined level\"; no default level is named. In Muse Code, Muse Wonder Full also supports max."
+    },
+    {
+      "id": "meta-muse-code-docs-subscriptions-2026-10-13",
+      "url": "https://dev.meta.ai/docs/muse-code/subscriptions",
+      "title": "Muse Code: Subscriptions",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Four plans: Everyday Usage (10-50 prompts every 5 hours), High Usage (5x Everyday), Power Usage (20x Everyday, access to the most powerful Muse models), Maximum Usage (80x Everyday). Gives no prices (they are on the Muse Code product page). Subscriptions default to Contributor mode, which gives more usage in exchange for training use of content. Subscription works only through Muse Code CLI with the connected API key."
+    },
+    {
+      "id": "meta-muse-code-docs-configuration-2026-10-13",
+      "url": "https://dev.meta.ai/docs/muse-code/configuration",
+      "title": "Muse Code: Configuration and context",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "--reasoning-effort levels: none, minimal, low, medium, high (default), xhigh, max, ultra; change with /effort. ultra is a client-side setting that maps to the provider's highest supported level (runs at xhigh where unsupported). Says the default model is muse-spark-1.2, which is stale or at least not updated for Muse Wonder (page does not mention Muse Wonder). The model picker offers only levels the active model supports; per-model level lists are not given."
+    },
+    {
+      "id": "meta-muse-code-product-page-2026-10-13",
+      "url": "https://dev.meta.ai/products/muse-code",
+      "title": "Muse Code product page",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Plan prices: Everyday Usage $5.00/month, High Usage $15.00/month, Power Usage $50.00/month, Maximum Usage $200.00/month. Usage multiples vs Everyday: 5x, 20x, 80x. The page text still says Muse Code is \"powered by Muse Spark\" and its model price table lists only Muse Spark 1.3/1.2 rows, so it predates or ignores the Muse Wonder launch in those parts."
+    },
+    {
+      "id": "artificialanalysis-muse-wonder-article-2026-10-12",
+      "url": "https://artificialanalysis.ai/articles/muse-wonder",
+      "title": "Muse Wonder and Muse Wonder Full: a material jump in intelligence over previous Meta models",
+      "publisher": "Artificial Analysis",
+      "published": "2026-10-12",
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Used here only to cross-check Meta figures. AA Intelligence Index v4.3: Muse Wonder Full (max) 56, Muse Wonder (max) 52 (match Meta). Terminal-Bench 4.0 57% / 52% and GDP.pdf 33% for Full match Meta. AutomationBench-AA in the AA index is 71% for Full and 68% for Wonder, versus 45.4 and 39.1 in Meta's table, which uses a strict pass@1 reading. AA notes Muse Wonder Full has no per-token price and no API. Lane B owns the board rows."
     }
   ]
 }
