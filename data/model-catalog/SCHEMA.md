@@ -34,6 +34,9 @@ source states the model's release date. `release_source_id` must resolve in `SOU
 
 `access` — `restricted` marks a model that is trusted-access only (e.g. `claude-mythos-5-1`):
 GA for its program, but never a routing candidate. Omitted means generally available.
+`subscription_only` marks a model reachable only through a vendor's consumer or coding-agent
+subscription, with no API id and no token price (e.g. `muse-wonder-full-1-0`); also never a routing
+candidate.
 
 `effort_parameter` — `false` marks a model that accepts no effort parameter (e.g.
 `claude-haiku-4-5`); routing uses it with no effort flag, and its score rows carry `effort: null`.
@@ -55,7 +58,7 @@ Anthropic, Google, xAI, Qwen, and other vendor families where the vendor names a
   the vendor's designation, not an inferred capability ordering.
 - **minimax**: `m3` | `m2.7` (vendor model family designations).
 - **xiaomi**: `pro` | `flash` (MiMo-V2.6 product designations).
-- **meta**: `spark` (Muse Spark family; preview status is separate).
+- **meta**: `spark` (Muse Spark family; preview status is separate) | `wonder` (Muse Wonder, Model API) | `wonder-full` (Muse Wonder Full, a Muse Code subscription variant with no API id; kept in its own tier so it never competes with `wonder` as the newest model in a tier).
 - **mistral**: `large` | `medium` | `small` (vendor family names; not a universal rank).
 - **alibaba**: Qwen's `max` | `plus` | `flash` | `coder` suffixes are product-family
   designations, not cross-vendor ranks. `open` identifies Qwen open-weight/base model families

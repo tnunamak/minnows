@@ -10,14 +10,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.2.1](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.1) — published by CI on push to main |
+| **This version** | [data-model-choice-policy-v0.2.2](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.2) — published by CI on push to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.2.1
+TAG=data-model-choice-policy-v0.2.2
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -78,6 +78,12 @@ not silently route by model name.
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.2.2 — 2026-10-13
+
+- **No routing change.** Every operating point expands exactly as in v0.2.1.
+- Repins to catalog v0.5.14, which adds Meta Muse Wonder. Meta lists Muse Wonder as a preview, publishes only max-effort scores, and Hone has no Meta provider path, so no operating point can use it yet.
+- Catalog pin: **v0.5.14**.
 
 ### v0.2.1 — 2026-10-11
 

@@ -1,0 +1,237 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "swe-marathon-muse-wonder-2026-10-13",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-13",
+  "source_urls": [
+    "https://www.swe-marathon.org/"
+  ],
+  "source_ids": [
+    "swe-marathon-leaderboard-2026-10-13"
+  ],
+  "notes": "SWE-Marathon (Abundant AI) v1.1 leaderboard read 2026-10-13 from a headless-Chrome DOM dump (27 rows parsed in code; the static HTML is an empty shell). Roster rows stored: Muse Wonder Full, Muse Wonder, Claude Sonnet 5.5, Haiku 5.5, Opus 5.5, Fable 5.1, GPT-6 Astra, GPT-6.1 Sol and Muse Spark 1.3. Each row is a model run in its own vendor harness (Muse Code, Claude Code, Codex). The page does not state a retrieval or update date for the board. Metric id swe-marathon-board-v1-1 is distinct from any Meta-reported SWE-Marathon figure. Recheck on or after 2026-10-20.",
+  "claims": [
+    {
+      "models": [
+        "muse-wonder-full-1-0",
+        "muse-wonder-1-0",
+        "claude-sonnet-5-5",
+        "claude-haiku-5-5",
+        "claude-opus-5-5",
+        "claude-fable-5-1",
+        "gpt-6-astra",
+        "gpt-6.1-sol",
+        "muse-spark-1-3"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality",
+        "effort"
+      ],
+      "statement": "SWE-Marathon v1.1 (Abundant AI; 20 multi-hour tasks, k=8 trials, pass@1, binary reward), all at max except Muse Spark 1.3 at xhigh: Muse Wonder Full / Muse Code 53.1%, Muse Wonder / Muse Code 52.5%, Claude Sonnet 5.5 / Claude Code 51.3%, Claude Haiku 5.5 / Claude Code 50.0%, Claude Opus 5.5 / Claude Code 46.3%, Claude Fable 5.1 / Claude Code 45.6%, GPT-6 Astra / Codex 42.5%, GPT-6.1 Sol / Codex 42.5%, Muse Spark 1.3 / Muse Code 30.6%. Muse Wonder Full is first of 27 rows, but its lead over Muse Wonder (0.6 points) and Sonnet 5.5 (1.8 points) is small on a 20-task, 8-trial benchmark, and the main view shows no confidence intervals, so the ranking is not shown to be significant.",
+      "implication": "Muse Wonder Full 'tops SWE-Marathon' on the public board only by a margin the board does not show to be significant. Haiku 5.5 at 50.0% scores above Opus 5.5 (46.3%) and Fable 5.1 (45.6%) on this board, which is unlike its position on AA, Vals and the AA Coding Agents Index.",
+      "source_id": "swe-marathon-leaderboard-2026-10-13"
+    },
+    {
+      "models": [
+        "muse-wonder-full-1-0",
+        "muse-wonder-1-0",
+        "claude-opus-5-5",
+        "claude-fable-5-1",
+        "gpt-6-astra"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "CONFLICT between Meta's launch table and the SWE-Marathon board, not reconciled. Meta's table on https://dev.meta.ai/models/muse-wonder (columns Muse Wonder Full, Muse Wonder, Fable 5.1, GPT-6 Astra, Opus 5.5; column-major cells re-parsed on 2026-10-13) lists SWE-Marathon as 57.5 (xhigh) for Muse Wonder Full, 53.1 for Muse Wonder, 45.6 for Fable 5.1, 42.5 for GPT-6 Astra and 46.3 for Opus 5.5. The board's peer values (45.6, 42.5, 46.3) match Meta's. The board's Muse Wonder Full row is 53.1 at (max) and its Muse Wonder row is 52.5 at (max): Meta's Muse Wonder value 53.1 equals the board's Muse Wonder Full (max) value, and Meta's 57.5 for Full at xhigh has no row on the board. Meta's page also says Muse Wonder Full 'tops agentic and coding benchmarks, including DeepSWE and SWE-Marathon in independent third-party runs'.",
+      "implication": "The 57.5 (xhigh) figure for Muse Wonder Full is not on the public board at retrieval; the board's own row is 53.1 at max. Whether Meta's 57.5 is a newer or unpublished board row is unknown. Recheck the board on or after 2026-10-20.",
+      "source_id": "swe-marathon-leaderboard-2026-10-13"
+    }
+  ],
+  "scores": [
+    {
+      "model": "muse-wonder-full-1-0",
+      "metric": "SWE-Marathon v1.1 (Abundant leaderboard, pass@1)",
+      "score": 0.531,
+      "unit": "pass_rate",
+      "effort": "max",
+      "effort_verbatim": "(max)",
+      "harness": "muse-code",
+      "source_id": "swe-marathon-leaderboard-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "coding",
+      "metric_id": "swe-marathon-board-v1-1",
+      "comparable": false,
+      "comparability_group": "swe-marathon-v1-1-2026-10-13",
+      "snapshot_id": "swe-marathon-v1-1-2026-10-13",
+      "caveat": "Leaderboard row 'Muse Wonder Full (max) / Muse Code', rank 1 of 27 on the v1.1 view as listed. Binary reward over 20 tasks, k=8 trials per task, run by Abundant. Effort from the row label; the page states '(max) indicates reasoning-effort, except Muse Spark 1.3 which is shown at (xhigh)'. Each row is a model plus its own vendor harness."
+    },
+    {
+      "model": "muse-wonder-1-0",
+      "metric": "SWE-Marathon v1.1 (Abundant leaderboard, pass@1)",
+      "score": 0.525,
+      "unit": "pass_rate",
+      "effort": "max",
+      "effort_verbatim": "(max)",
+      "harness": "muse-code",
+      "source_id": "swe-marathon-leaderboard-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "coding",
+      "metric_id": "swe-marathon-board-v1-1",
+      "comparable": false,
+      "comparability_group": "swe-marathon-v1-1-2026-10-13",
+      "snapshot_id": "swe-marathon-v1-1-2026-10-13",
+      "caveat": "Leaderboard row 'Muse Wonder (max) / Muse Code', rank 2 of 27 on the v1.1 view as listed. Binary reward over 20 tasks, k=8 trials per task, run by Abundant. Effort from the row label; the page states '(max) indicates reasoning-effort, except Muse Spark 1.3 which is shown at (xhigh)'. Each row is a model plus its own vendor harness."
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "metric": "SWE-Marathon v1.1 (Abundant leaderboard, pass@1)",
+      "score": 0.513,
+      "unit": "pass_rate",
+      "effort": "max",
+      "effort_verbatim": "(max)",
+      "harness": "claude-code",
+      "source_id": "swe-marathon-leaderboard-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "coding",
+      "metric_id": "swe-marathon-board-v1-1",
+      "comparable": false,
+      "comparability_group": "swe-marathon-v1-1-2026-10-13",
+      "snapshot_id": "swe-marathon-v1-1-2026-10-13",
+      "caveat": "Leaderboard row 'Claude Sonnet 5.5 (max) / Claude Code', rank 3 of 27 on the v1.1 view as listed. Binary reward over 20 tasks, k=8 trials per task, run by Abundant. Effort from the row label; the page states '(max) indicates reasoning-effort, except Muse Spark 1.3 which is shown at (xhigh)'. Each row is a model plus its own vendor harness."
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "metric": "SWE-Marathon v1.1 (Abundant leaderboard, pass@1)",
+      "score": 0.5,
+      "unit": "pass_rate",
+      "effort": "max",
+      "effort_verbatim": "(max)",
+      "harness": "claude-code",
+      "source_id": "swe-marathon-leaderboard-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "coding",
+      "metric_id": "swe-marathon-board-v1-1",
+      "comparable": false,
+      "comparability_group": "swe-marathon-v1-1-2026-10-13",
+      "snapshot_id": "swe-marathon-v1-1-2026-10-13",
+      "caveat": "Leaderboard row 'Claude Haiku 5.5 (max) / Claude Code', rank 5 of 27 on the v1.1 view as listed. Binary reward over 20 tasks, k=8 trials per task, run by Abundant. Effort from the row label; the page states '(max) indicates reasoning-effort, except Muse Spark 1.3 which is shown at (xhigh)'. Each row is a model plus its own vendor harness."
+    },
+    {
+      "model": "claude-opus-5-5",
+      "metric": "SWE-Marathon v1.1 (Abundant leaderboard, pass@1)",
+      "score": 0.463,
+      "unit": "pass_rate",
+      "effort": "max",
+      "effort_verbatim": "(max)",
+      "harness": "claude-code",
+      "source_id": "swe-marathon-leaderboard-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "coding",
+      "metric_id": "swe-marathon-board-v1-1",
+      "comparable": false,
+      "comparability_group": "swe-marathon-v1-1-2026-10-13",
+      "snapshot_id": "swe-marathon-v1-1-2026-10-13",
+      "caveat": "Leaderboard row 'Claude Opus 5.5 (max) / Claude Code', rank 8 of 27 on the v1.1 view as listed. Binary reward over 20 tasks, k=8 trials per task, run by Abundant. Effort from the row label; the page states '(max) indicates reasoning-effort, except Muse Spark 1.3 which is shown at (xhigh)'. Each row is a model plus its own vendor harness."
+    },
+    {
+      "model": "claude-fable-5-1",
+      "metric": "SWE-Marathon v1.1 (Abundant leaderboard, pass@1)",
+      "score": 0.456,
+      "unit": "pass_rate",
+      "effort": "max",
+      "effort_verbatim": "(max)",
+      "harness": "claude-code",
+      "source_id": "swe-marathon-leaderboard-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "coding",
+      "metric_id": "swe-marathon-board-v1-1",
+      "comparable": false,
+      "comparability_group": "swe-marathon-v1-1-2026-10-13",
+      "snapshot_id": "swe-marathon-v1-1-2026-10-13",
+      "caveat": "Leaderboard row 'Claude Fable 5.1 (max) / Claude Code', rank 9 of 27 on the v1.1 view as listed. Binary reward over 20 tasks, k=8 trials per task, run by Abundant. Effort from the row label; the page states '(max) indicates reasoning-effort, except Muse Spark 1.3 which is shown at (xhigh)'. Each row is a model plus its own vendor harness."
+    },
+    {
+      "model": "gpt-6-astra",
+      "metric": "SWE-Marathon v1.1 (Abundant leaderboard, pass@1)",
+      "score": 0.425,
+      "unit": "pass_rate",
+      "effort": "max",
+      "effort_verbatim": "(max)",
+      "harness": "codex",
+      "source_id": "swe-marathon-leaderboard-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "coding",
+      "metric_id": "swe-marathon-board-v1-1",
+      "comparable": false,
+      "comparability_group": "swe-marathon-v1-1-2026-10-13",
+      "snapshot_id": "swe-marathon-v1-1-2026-10-13",
+      "caveat": "Leaderboard row 'GPT-6 Astra (max) / Codex', rank 14 of 27 on the v1.1 view as listed. Binary reward over 20 tasks, k=8 trials per task, run by Abundant. Effort from the row label; the page states '(max) indicates reasoning-effort, except Muse Spark 1.3 which is shown at (xhigh)'. Each row is a model plus its own vendor harness."
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "metric": "SWE-Marathon v1.1 (Abundant leaderboard, pass@1)",
+      "score": 0.425,
+      "unit": "pass_rate",
+      "effort": "max",
+      "effort_verbatim": "(max)",
+      "harness": "codex",
+      "source_id": "swe-marathon-leaderboard-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "coding",
+      "metric_id": "swe-marathon-board-v1-1",
+      "comparable": false,
+      "comparability_group": "swe-marathon-v1-1-2026-10-13",
+      "snapshot_id": "swe-marathon-v1-1-2026-10-13",
+      "caveat": "Leaderboard row 'GPT-6.1 Sol (max) / Codex', rank 16 of 27 on the v1.1 view as listed. Binary reward over 20 tasks, k=8 trials per task, run by Abundant. Effort from the row label; the page states '(max) indicates reasoning-effort, except Muse Spark 1.3 which is shown at (xhigh)'. Each row is a model plus its own vendor harness."
+    },
+    {
+      "model": "muse-spark-1-3",
+      "metric": "SWE-Marathon v1.1 (Abundant leaderboard, pass@1)",
+      "score": 0.306,
+      "unit": "pass_rate",
+      "effort": "xhigh",
+      "effort_verbatim": "(xhigh)",
+      "harness": "muse-code",
+      "source_id": "swe-marathon-leaderboard-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "coding",
+      "metric_id": "swe-marathon-board-v1-1",
+      "comparable": false,
+      "comparability_group": "swe-marathon-v1-1-2026-10-13",
+      "snapshot_id": "swe-marathon-v1-1-2026-10-13",
+      "caveat": "Leaderboard row 'Muse Spark 1.3 (xhigh) / Muse Code', rank 20 of 27 on the v1.1 view as listed. Binary reward over 20 tasks, k=8 trials per task, run by Abundant. Effort from the row label; the page states '(max) indicates reasoning-effort, except Muse Spark 1.3 which is shown at (xhigh)'. Each row is a model plus its own vendor harness."
+    }
+  ],
+  "missing": [
+    "SWE-Marathon row for Muse Wonder Full at xhigh (Meta table: 57.5): not on the v1.1 board view read on 2026-10-13.",
+    "SWE-Marathon rows for Muse Wonder or Muse Wonder Full below max: none; the board lists one effort per model.",
+    "Confidence intervals or per-task spread for the leaderboard rows: not shown on the main view (per-task pages exist on the site and were not read).",
+    "The v1.0 archive view was not read."
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "$schema": "schemas/pricing-v1.schema.json",
+  "id": "meta-api-2026-10",
+  "schema_version": 1,
+  "kind": "api_usd",
+  "agent": "other",
+  "retrieved_at": "2026-10-13",
+  "source_urls": [
+    "https://dev.meta.ai/docs/pricing-rate-limits",
+    "https://dev.meta.ai/models/muse-wonder",
+    "https://dev.meta.ai/docs/models",
+    "https://dev.meta.ai/docs/muse-code/subscriptions",
+    "https://dev.meta.ai/products/muse-code",
+    "https://artificialanalysis.ai/articles/muse-wonder"
+  ],
+  "source_ids": [
+    "meta-model-api-docs-pricing-2026-10-13",
+    "meta-muse-wonder-model-page-2026-10-13",
+    "meta-model-api-docs-models-2026-10-13",
+    "meta-muse-code-docs-subscriptions-2026-10-13",
+    "meta-muse-code-product-page-2026-10-13",
+    "artificialanalysis-muse-wonder-article-2026-10-12"
+  ],
+  "notes": "Meta Model API first-party rates, USD per 1M tokens, Standard mode. muse-wonder-1.0: $4.00 input, $0.20 cached input, $20.00 output; 1M context; Meta states no long-context premium and lists no cache-write rate, so cache_write_per_m is 0 here and means NOT PUBLISHED, not free (Artificial Analysis's cost breakdown for Muse Wonder shows a cache-write component, so a charge may exist). Reasoning tokens bill as output at the same per-token price at every effort level. Web search grounding is $2.50 per 1,000 queries on top of tokens. Contributor mode is not available for Muse Wonder on Model API. muse-spark-1.3 Standard: $1.25 / $0.15 cached / $4.25; muse-spark-1.3-contributor (training use of content): $0.10 / $0.002 / $0.20 (same cache-write caveat). This closes the earlier gap that Muse Spark 1.3 had no first-party price row. Muse Wonder Full has NO row and NO match pattern on purpose: Meta lists no API id and no token price, only Muse Code subscription access, and a bare \"muse-wonder\" substring would price it at Muse Wonder rates. The patterns below therefore match only the versioned ids, and the contributor patterns sit above the Standard ones. MUSE CODE SUBSCRIPTIONS (flat monthly, usage metered against the Everyday plan, not in tokens or dollars, so no schema row): Everyday Usage $5/month (10-50 prompts per 5 hours incl. image/video uploads, voice mode, web search); High Usage $15/month (5x Everyday usage); Power Usage $50/month (20x; includes Muse Wonder Full); Maximum Usage $200/month (80x). Muse Wonder is on every plan, Muse Wonder Full on Power and Maximum, each in Standard or Contributor mode; subscriptions default to Contributor mode (more usage, content used for training). The $5 and $15 prices come only from the Muse Code product page, whose model table still lists only Muse Spark rows. Rate limit for muse-wonder-1.0: 3,000 RPM and 4,000,000 TPM per team. Preview status per Meta docs; recheck by 2026-11-13 or on any Meta price change.",
+  "models": {
+    "muse-wonder-1-0": {
+      "fresh_input_per_m": 4.0,
+      "cache_read_per_m": 0.2,
+      "cache_write_per_m": 0,
+      "output_per_m": 20.0,
+      "confidence": "high"
+    },
+    "muse-spark-1-3": {
+      "fresh_input_per_m": 1.25,
+      "cache_read_per_m": 0.15,
+      "cache_write_per_m": 0,
+      "output_per_m": 4.25,
+      "confidence": "high"
+    },
+    "muse-spark-1-3-contributor": {
+      "fresh_input_per_m": 0.1,
+      "cache_read_per_m": 0.002,
+      "cache_write_per_m": 0,
+      "output_per_m": 0.2,
+      "confidence": "high"
+    }
+  },
+  "match": [
+    {
+      "pattern": "muse-spark-1.3-contributor",
+      "model": "muse-spark-1-3-contributor"
+    },
+    {
+      "pattern": "muse-spark-1-3-contributor",
+      "model": "muse-spark-1-3-contributor"
+    },
+    {
+      "pattern": "muse-spark-1.3",
+      "model": "muse-spark-1-3"
+    },
+    {
+      "pattern": "muse-spark-1-3",
+      "model": "muse-spark-1-3"
+    },
+    {
+      "pattern": "muse-wonder-1.0",
+      "model": "muse-wonder-1-0"
+    },
+    {
+      "pattern": "muse-wonder-1-0",
+      "model": "muse-wonder-1-0"
+    }
+  ]
+}

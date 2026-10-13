@@ -3678,6 +3678,886 @@
       "retrieved_at": "2026-10-07",
       "kind": "third_party_eval",
       "notes": "Board view JSON read 2026-10-07: SWE-bench updated 2026-09-01 (88 models), Terminal-Bench 2.1 (Terminus 2) updated 2026-09-28 (76 models). Neither lists GPT-6.1 Sol, Gemini 4 Argon, Step 5 or Mistral Large 4; TB2.1 lists Sonnet 5.5 (83.15%)."
+    },
+    {
+      "id": "meta-muse-wonder-model-page-2026-10-13",
+      "url": "https://dev.meta.ai/models/muse-wonder",
+      "title": "Muse Wonder and Muse Wonder Full (Meta Model API model page)",
+      "publisher": "Meta",
+      "published": "2026-10-12",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Rendered page fetched with curl and parsed in code. Benchmark grid is a column-major div list (columns: Muse Wonder Full (max), Muse Wonder (max), Claude Fable 5.1 (max), GPT-6 Astra (max), Claude Opus 5.5 (max)); 14 rows x 5 columns, OSWorld V2.1 cells carry a partial and a binary value, Muse Wonder Full SWE-Marathon carries \"(xhigh)\". Every cell was diffed against the benchmark image in the model card and the blog. Pricing table: muse-wonder-1.0 1M context $4.00 input / $0.20 cached input / $20.00 output per Mtok; muse-wonder-full-1.0 \"Available by subscription in Muse Code\" with no token price. Lists Power Usage $50/month and Maximum Usage $200/month plans. The page footer links \"OpenRouter\" to the muse-spark-1.2 listing, not to Muse Wonder."
+    },
+    {
+      "id": "meta-muse-wonder-model-card-2026-10-12",
+      "url": "https://research.meta.ai/static/muse-wonder-model-card",
+      "title": "Muse Wonder Model Card",
+      "publisher": "Meta",
+      "published": "2026-10-12",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "8-page PDF (Google Docs renderer), extracted with pdftotext -layout; page 3 benchmark image extracted with pdfimages and read visually. States Date of Release October 12, 2026; 1M-token context; text/image/video/audio input and text output; results generated at max reasoning effort for Muse Wonder, Muse Wonder Full and the compared models, with Muse Wonder Full SWE-Marathon reported at xhigh. Section 4 risk-assessment tables are Muse Wonder Full only. The card says nothing about Muse Wonder (non-Full) safety numbers."
+    },
+    {
+      "id": "meta-muse-wonder-blog-2026-10-12",
+      "url": "https://research.meta.ai/blog/muse-wonder",
+      "title": "Muse Wonder: A Frontier Model For Personal & Professional AI Agents",
+      "publisher": "Meta",
+      "published": "2026-10-12",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_blog",
+      "notes": "Canonical URL; /blog/introducing-muse-wonder/ returns the same page. Fetched with curl. Benchmark charts are webp images under /articles/introducing-muse-wonder/images/ with printed value labels; downloaded and read visually (no pixel estimation). The effort-scaling plot (Muse Spark 1.3 vs Muse Wonder Full, in-distribution vs out-of-distribution) has no per-point value labels and no per-point effort labels, so it is not digitized."
+    },
+    {
+      "id": "meta-newsroom-muse-wonder-2026-10-12",
+      "url": "https://about.fb.com/news/2026/10/introducing-muse-wonder-models/",
+      "title": "Introducing Muse Wonder and Muse Wonder Full: Frontier Models for Agents",
+      "publisher": "Meta",
+      "published": "2026-10-12",
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_blog",
+      "notes": "Newsroom post. Confirms availability: Muse Wonder through the Meta Model API and Muse Code today; Muse Wonder Full for Muse Code subscribers today; Muse Wonder to power more of Muse later. No prices, no benchmark table."
+    },
+    {
+      "id": "meta-model-api-docs-overview-2026-10-13",
+      "url": "https://dev.meta.ai/docs/",
+      "title": "Get started with Meta Model API and Muse Code",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Docs home. At a glance for Muse Wonder: base URL https://api.meta.ai/v1, standard-mode model muse-wonder-1.0, context window 1,048,576 tokens, bearer auth. States \"Muse Wonder is in preview.\" Muse Code subscription plans can include Muse Wonder Full and Contributor mode."
+    },
+    {
+      "id": "meta-model-api-docs-models-2026-10-13",
+      "url": "https://dev.meta.ai/docs/models",
+      "title": "Meta Model API: Models",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Model lines, versions and availability. Muse Wonder: text/image/video/audio/PDF input, text output, 1,048,576-token context, reasoning effort \"minimal\" to \"max\", \"Muse Wonder is in preview\". Muse Wonder Full is available only in Muse Code on the Power Usage and Maximum Usage plans; setting effort to max on Muse Wonder does not select it. Contributor mode is not available for Muse Wonder on pay-as-you-go. Muse Spark 1.3 (muse-spark-1.3) is described as the latest version, recommended for new work; the page carries no preview label for Muse Spark."
+    },
+    {
+      "id": "meta-model-api-docs-pricing-2026-10-13",
+      "url": "https://dev.meta.ai/docs/pricing-rate-limits",
+      "title": "Meta Model API: Pricing and rate limits",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Per-1M-token rates. muse-wonder-1.0 Standard: cached input $0.20, input $4.00, output $20.00; Contributor mode not available. Muse Spark 1.3/1.2/1.1 Standard: cached $0.15, input $1.25, output $4.25; Contributor (1.3 and 1.2 only): cached $0.002, input $0.10, output $0.20. \"No long-context premium\". No cache-write rate is listed. Web search grounding $2.50 per 1,000 queries on top of tokens. Rate limits: muse-wonder-1.0 3,000 RPM / 4,000,000 TPM."
+    },
+    {
+      "id": "meta-model-api-docs-reasoning-2026-10-13",
+      "url": "https://dev.meta.ai/docs/reasoning",
+      "title": "Meta Model API: Reasoning",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "reasoning_effort (Chat Completions) or reasoning.effort (Responses): none (HTTP 400 on Muse Wonder and Muse Spark), minimal, low, medium, high, xhigh, max. max is supported by muse-wonder-1.0 and muse-spark-1.3, not by muse-spark-1.3-contributor. \"When you omit the parameter, the model still reasons at a model-determined level\"; no default level is named. In Muse Code, Muse Wonder Full also supports max."
+    },
+    {
+      "id": "meta-muse-code-docs-subscriptions-2026-10-13",
+      "url": "https://dev.meta.ai/docs/muse-code/subscriptions",
+      "title": "Muse Code: Subscriptions",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Four plans: Everyday Usage (10-50 prompts every 5 hours), High Usage (5x Everyday), Power Usage (20x Everyday, access to the most powerful Muse models), Maximum Usage (80x Everyday). Gives no prices (they are on the Muse Code product page). Subscriptions default to Contributor mode, which gives more usage in exchange for training use of content. Subscription works only through Muse Code CLI with the connected API key."
+    },
+    {
+      "id": "meta-muse-code-docs-configuration-2026-10-13",
+      "url": "https://dev.meta.ai/docs/muse-code/configuration",
+      "title": "Muse Code: Configuration and context",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "--reasoning-effort levels: none, minimal, low, medium, high (default), xhigh, max, ultra; change with /effort. ultra is a client-side setting that maps to the provider's highest supported level (runs at xhigh where unsupported). Says the default model is muse-spark-1.2, which is stale or at least not updated for Muse Wonder (page does not mention Muse Wonder). The model picker offers only levels the active model supports; per-model level lists are not given."
+    },
+    {
+      "id": "meta-muse-code-product-page-2026-10-13",
+      "url": "https://dev.meta.ai/products/muse-code",
+      "title": "Muse Code product page",
+      "publisher": "Meta",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "vendor_docs",
+      "notes": "Plan prices: Everyday Usage $5.00/month, High Usage $15.00/month, Power Usage $50.00/month, Maximum Usage $200.00/month. Usage multiples vs Everyday: 5x, 20x, 80x. The page text still says Muse Code is \"powered by Muse Spark\" and its model price table lists only Muse Spark 1.3/1.2 rows, so it predates or ignores the Muse Wonder launch in those parts."
+    },
+    {
+      "id": "artificialanalysis-muse-wonder-article-2026-10-12",
+      "url": "https://artificialanalysis.ai/articles/muse-wonder",
+      "title": "Muse Wonder and Muse Wonder Full: a material jump in intelligence over previous Meta models",
+      "publisher": "Artificial Analysis",
+      "published": "2026-10-12",
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Used here only to cross-check Meta figures. AA Intelligence Index v4.3: Muse Wonder Full (max) 56, Muse Wonder (max) 52 (match Meta). Terminal-Bench 4.0 57% / 52% and GDP.pdf 33% for Full match Meta. AutomationBench-AA in the AA index is 71% for Full and 68% for Wonder, versus 45.4 and 39.1 in Meta's table, which uses a strict pass@1 reading. AA notes Muse Wonder Full has no per-token price and no API. Lane B owns the board rows."
+    },
+    {
+      "id": "artificial-analysis-muse-wonder-article-2026-10-12",
+      "url": "https://artificialanalysis.ai/articles/muse-wonder",
+      "title": "Muse Wonder and Muse Wonder Full: a material jump in intelligence over previous Meta models | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": "2026-10-12",
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "AA article dated 2026-10-12. Retrieved 2026-10-13 by curl. Gives index v4.3 scores, per-task cost and token figures, pricing, context, modalities and availability for both models."
+    },
+    {
+      "id": "artificial-analysis-leaderboards-models-2026-10-13",
+      "url": "https://artificialanalysis.ai/leaderboards/models",
+      "title": "Artificial Analysis LLM Leaderboard (embedded model table)",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Embedded model list. Used to confirm which Muse variants AA lists: muse-wonder, muse-wonder-full, muse-spark-1-3, muse-spark-1-3-xhigh. Retrieved 2026-10-13 by curl."
+    },
+    {
+      "id": "artificial-analysis-claude-fable-5-1-high-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-fable-5-1-high",
+      "title": "Claude Fable 5.1 (High, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-fable-5-1-low-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-fable-5-1-low",
+      "title": "Claude Fable 5.1 (Low, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-fable-5-1-medium-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-fable-5-1-medium",
+      "title": "Claude Fable 5.1 (Medium, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-fable-5-1-xhigh-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-fable-5-1-xhigh",
+      "title": "Claude Fable 5.1 (Xhigh, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-fable-5-1-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-fable-5-1",
+      "title": "Claude Fable 5.1 (Max, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-haiku-5-5-high-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-haiku-5-5-high",
+      "title": "Claude Haiku 5.5 (High) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-haiku-5-5-low-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-haiku-5-5-low",
+      "title": "Claude Haiku 5.5 (Low) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-haiku-5-5-medium-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-haiku-5-5-medium",
+      "title": "Claude Haiku 5.5 (Medium) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-haiku-5-5-xhigh-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-haiku-5-5-xhigh",
+      "title": "Claude Haiku 5.5 (Xhigh) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-haiku-5-5-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-haiku-5-5",
+      "title": "Claude Haiku 5.5 (Max) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-opus-5-5-high-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-opus-5-5-high",
+      "title": "Claude Opus 5.5 (High, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-opus-5-5-low-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-opus-5-5-low",
+      "title": "Claude Opus 5.5 (Low, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-opus-5-5-medium-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-opus-5-5-medium",
+      "title": "Claude Opus 5.5 (Medium, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-opus-5-5-xhigh-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-opus-5-5-xhigh",
+      "title": "Claude Opus 5.5 (Xhigh, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-opus-5-5-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-opus-5-5",
+      "title": "Claude Opus 5.5 (Max, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-sonnet-5-5-high-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-sonnet-5-5-high",
+      "title": "Claude Sonnet 5.5 (High, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-sonnet-5-5-low-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-sonnet-5-5-low",
+      "title": "Claude Sonnet 5.5 (Low, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-sonnet-5-5-medium-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-sonnet-5-5-medium",
+      "title": "Claude Sonnet 5.5 (Medium, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-sonnet-5-5-xhigh-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-sonnet-5-5-xhigh",
+      "title": "Claude Sonnet 5.5 (Xhigh, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-claude-sonnet-5-5-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/claude-sonnet-5-5",
+      "title": "Claude Sonnet 5.5 (Max, Default Fallback) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-gemini-4-argon-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/gemini-4-argon",
+      "title": "Gemini 4 Argon (High) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-1-sol-high-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/gpt-6-1-sol-high",
+      "title": "GPT-6.1 Sol (High) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-1-sol-low-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/gpt-6-1-sol-low",
+      "title": "GPT-6.1 Sol (Low) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-1-sol-medium-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/gpt-6-1-sol-medium",
+      "title": "GPT-6.1 Sol (Medium) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-1-sol-xhigh-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/gpt-6-1-sol-xhigh",
+      "title": "GPT-6.1 Sol (Xhigh) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-1-sol-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/gpt-6-1-sol",
+      "title": "GPT-6.1 Sol (Max) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-astra-high-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/gpt-6-astra-high",
+      "title": "GPT-6 Astra (High) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-astra-low-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/gpt-6-astra-low",
+      "title": "GPT-6 Astra (Low) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-astra-medium-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/gpt-6-astra-medium",
+      "title": "GPT-6 Astra (Medium) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-astra-xhigh-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/gpt-6-astra-xhigh",
+      "title": "GPT-6 Astra (Xhigh) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-gpt-6-astra-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/gpt-6-astra",
+      "title": "GPT-6 Astra (Max) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-muse-spark-1-3-xhigh-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/muse-spark-1-3-xhigh",
+      "title": "Muse Spark 1.3 (Xhigh) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-muse-spark-1-3-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/muse-spark-1-3",
+      "title": "Muse Spark 1.3 (Max) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-muse-wonder-full-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/muse-wonder-full",
+      "title": "Muse Wonder Full (Max) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-muse-wonder-model-page-2026-10-13",
+      "url": "https://artificialanalysis.ai/models/muse-wonder",
+      "title": "Muse Wonder (Max) - Intelligence, Performance & Price Analysis | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Model page with the embedded model object (index, per-evaluation scores, cost and token counts). Retrieved 2026-10-13 by curl with a browser User-Agent; the object is parsed from the page RSC payload."
+    },
+    {
+      "id": "artificial-analysis-coding-agents-2026-10-13",
+      "url": "https://artificialanalysis.ai/agents/coding-agents",
+      "title": "Coding Agents Index | Artificial Analysis",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Coding Agents Index page with the embedded agent records (index score, per-evaluation reward, cost, steps, tokens). Three evaluations: DeepSWE v1.1, SWE-Atlas-QnA, Terminal-Bench v4. Retrieved 2026-10-13 by curl; 39 agent records parsed from the RSC payload."
+    },
+    {
+      "id": "vals-ai-vals-index-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/vals_index",
+      "title": "Vals Index | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 47 models, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-fabv2-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/fabv2",
+      "title": "Finance Agent (v2) | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 78 models, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-terminal-bench-4-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/terminal-bench-4",
+      "title": "Terminal-Bench 4.0 | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 47 models, harness Mini-SWE-agent, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-terminal-bench-science-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/terminal-bench-science",
+      "title": "Terminal-Bench Science | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 40 models, harness Mini-SWE-agent, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-hlab-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/hlab",
+      "title": "Harvey's Legal Agent Benchmark | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 79 models, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-programbench-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/programbench",
+      "title": "ProgramBench | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 64 models, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-swebench-multimodal-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/swebench-multimodal",
+      "title": "SWE-bench Multimodal | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 15 models, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-biomysterybench-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/biomysterybench",
+      "title": "BioMysteryBench | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 27 models, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-cyber-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/cyber",
+      "title": "CyberBench v1.1 | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 47 models, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-emb-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/emb",
+      "title": "EMB | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 74 models, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-code-migration-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/code-migration",
+      "title": "Code Migration | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 77 models, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-legal-research-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/legal_research",
+      "title": "Legal Research Bench | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 78 models, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-mysterymechanism-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/mysterymechanism",
+      "title": "MysteryMechanism | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 27 models, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-proof-bench-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/proof_bench",
+      "title": "ProofBench v1.1 | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 52 models, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-public-benefits-bench-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/public-benefits-bench",
+      "title": "Public Benefits Bench v1.1 | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 50 models, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-tax-agent-bench-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/tax_agent_bench",
+      "title": "Tax Agent Bench | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 69 models, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-vibe-code-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/vibe-code",
+      "title": "Vibe Code Bench v1.1 | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 112 models, runner external. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-ioi-2026-10-12",
+      "url": "https://www.vals.ai/benchmarks/ioi",
+      "title": "IOI | Vals AI benchmark",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals AI board page; board metadata updated 2026-10-12, 44 models, runner custom. Rows read 2026-10-13 from the board view JSON the page loads (/_astro/benchmark_view_*.json, 'overall' task); accuracy is a 0-100 percent in the payload and is converted to a 0-1 fraction. Effort comes from the payload reasoning_effort (non-Anthropic) or compute_effort (Anthropic) field."
+    },
+    {
+      "id": "vals-ai-muse-wonder-model-page-2026-10-12",
+      "url": "https://www.vals.ai/models/meta_muse-wonder",
+      "title": "Wonder Benchmarks, Cost and Capabilities | Vals AI",
+      "publisher": "Vals AI",
+      "published": "2026-10-12",
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals model page for Muse Wonder (Vals name \"Wonder\"). Summary, benchmark table with ranks, hyperparameters (temperature 1, max output 131,072, reasoning effort max) and the 2026-10-12 update note. Retrieved 2026-10-13 by curl."
+    },
+    {
+      "id": "vals-ai-muse-wonder-full-model-page-2026-10-12",
+      "url": "https://www.vals.ai/models/meta_muse-wonder-full",
+      "title": "Wonder Full Benchmarks, Cost and Capabilities | Vals AI",
+      "publisher": "Vals AI",
+      "published": "2026-10-12",
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Vals model page for Muse Wonder Full (Vals name \"Wonder Full\"). Summary, benchmark table with ranks, hyperparameters and the 2026-10-12 update note. Retrieved 2026-10-13 by curl."
+    },
+    {
+      "id": "swe-marathon-leaderboard-2026-10-13",
+      "url": "https://www.swe-marathon.org/",
+      "title": "SWE-Marathon leaderboard (v1.1) | Abundant AI",
+      "publisher": "Abundant AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "SWE-Marathon v1.1 leaderboard (20 multi-hour software engineering tasks, k=8 trials per task, pass@1 resolution rate; binary reward). The page is client-rendered; the table was read from a headless-Chrome DOM dump on 2026-10-13. Page note: all evals were run by Abundant except GLM-5.3 and GLM-5.3 Flash (Z.ai); '(max) indicates reasoning-effort, except Muse Spark 1.3 which is shown at (xhigh)'."
+    },
+    {
+      "id": "openrouter-muse-wonder-2026-10-13",
+      "url": "https://openrouter.ai/meta/muse-wonder",
+      "title": "Meta: Muse Wonder - API Pricing & Benchmarks | OpenRouter",
+      "publisher": "OpenRouter",
+      "published": "2026-10-12",
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "OpenRouter model page: price, context, release date, provider table (one provider, Meta), P50 latency and throughput, 3-day uptime, Design Arena benchmark rows labelled \"Muse Wonder (max)\". Retrieved 2026-10-13 by curl. Not a quality board except the embedded Design Arena rows."
+    },
+    {
+      "id": "openrouter-models-api-2026-10-13",
+      "url": "https://openrouter.ai/api/v1/models",
+      "title": "OpenRouter models API (461 models)",
+      "publisher": "OpenRouter",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Public models list JSON read 2026-10-13: id, canonical slug, created timestamp, context length, pricing, modalities, supported parameters, reasoning efforts and the embedded design_arena benchmark rows for each model. meta/muse-wonder is present; no meta/muse-wonder-full entry."
+    },
+    {
+      "id": "openrouter-muse-wonder-endpoints-2026-10-13",
+      "url": "https://openrouter.ai/api/v1/models/meta/muse-wonder/endpoints",
+      "title": "OpenRouter endpoints for meta/muse-wonder",
+      "publisher": "OpenRouter",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Endpoint record read 2026-10-13: provider Meta, tag meta, context length, max completion tokens, pricing, supported parameters, uptime. Latency and throughput fields were null at read time (the model page shows P50 values)."
+    },
+    {
+      "id": "epoch-ai-model-page-muse-wonder-2026-10-13",
+      "url": "https://epoch.ai/models/muse-wonder",
+      "title": "Muse Wonder | Epoch AI",
+      "publisher": "Epoch AI",
+      "published": "2026-10-12",
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Epoch per-model page for Muse Wonder (version 'Muse Wonder (max)', slug muse-wonder-1.0_max). ECI shows N/A. One benchmark scorecard row (Earthborne Rangers, EBR-bench) with comparison columns for Claude Opus 5.5, GPT-6 Astra and Kimi K3. Retrieved 2026-10-13 by curl; values parsed from the embedded page props."
+    },
+    {
+      "id": "epoch-ai-model-page-muse-wonder-full-404-2026-10-13",
+      "url": "https://epoch.ai/models/muse-wonder-full",
+      "title": "Muse Wonder Full model page on Epoch AI (HTTP 404)",
+      "publisher": "Epoch AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "HTTP 404 (title \"404 | Epoch AI\") on 2026-10-13. Epoch lists only Muse Wonder (max) for the family."
+    },
+    {
+      "id": "terminal-bench-official-muse-wonder-2026-10-13",
+      "url": "https://www.tbench.ai/leaderboard/terminal-bench/4.0",
+      "title": "Terminal-Bench 4.0 leaderboard (tbench.ai)",
+      "publisher": "Terminal-Bench (Stanford / Harbor / Laude Institute)",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "The URL now answers HTTP 308 to the site root, where the Terminal-Bench 4.0 table renders. Table JSON embedded in the page HTML: 35 rows, newest updated_at 2026-10-06T23:20Z. No Muse Wonder row and no Haiku row; Muse Spark 1.3 (xhigh, Muse Code) 14.5% +/- 2.9, rank 32, cost shown as $0.00."
+    },
+    {
+      "id": "arcprize-leaderboard-muse-wonder-2026-10-13",
+      "url": "https://arcprize.org/leaderboard",
+      "title": "ARC Prize leaderboard",
+      "publisher": "ARC Prize Foundation",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Client-rendered page; headless-Chrome DOM dump read 2026-10-13. Newest row date 2026-09-29 (GPT-6.1 Sol). Opus 5.5 (five efforts) and Fable 5.1 are listed. No Muse row of any version; the only Meta entries are Llama 4 Maverick and Scout."
+    },
+    {
+      "id": "deepswe-datacurve-muse-wonder-2026-10-13",
+      "url": "https://deepswe.datacurve.ai/",
+      "title": "DeepSWE leaderboard (Datacurve)",
+      "publisher": "Datacurve",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Client-rendered page; headless-Chrome DOM dump read 2026-10-13. \"113 tasks, updated September 22, 2026\", 28 models, v1.1 view with a v1 toggle, all models on mini-swe-agent. Muse Spark 1.2 (xhigh) 55% is the only Meta row. No Muse Wonder, no Opus 5.5, no Sonnet 5.5, no GPT-6.1 Sol."
+    },
+    {
+      "id": "seal-swebench-pro-muse-wonder-2026-10-13",
+      "url": "https://labs.scale.com/leaderboard/swe_bench_pro_public",
+      "title": "SWE-Bench Pro public leaderboard (Scale SEAL)",
+      "publisher": "Scale AI",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Static HTML read 2026-10-13 (the scale.com URL redirects here). The page lists Muse Spark and Muse Spark 1.1 (mini-swe-agent harness), GPT-5.4, Claude Opus 4.6 and older models; no Opus 5.5, no Muse Wonder."
+    },
+    {
+      "id": "arena-ai-text-muse-wonder-2026-10-13",
+      "url": "https://arena.ai/leaderboard/text",
+      "title": "Arena Text leaderboard (arena.ai)",
+      "publisher": "Arena (formerly LMArena)",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Direct curl, RSC rows (414 model names). Board timestamp 2026-10-08T14:00Z. Muse entries: muse-spark-1.3-max (rank 9, rating 1494.19, 14,694 votes), muse-spark-1.2 (xHigh), muse-spark-1.1, muse-spark, muse-glimmer. No Muse Wonder."
+    },
+    {
+      "id": "arena-ai-webdev-muse-wonder-2026-10-13",
+      "url": "https://arena.ai/leaderboard/code/webdev",
+      "title": "Arena WebDev leaderboard (arena.ai)",
+      "publisher": "Arena (formerly LMArena)",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Direct curl, RSC rows (141 model names). Board timestamp 2026-10-08T13:00Z. Muse entries: muse-spark-1.3-max (rank 13, rating 1656.86, 7,886 votes), muse-spark-1.3 (xHigh) rank 20 (1625.86), muse-spark-1.2, muse-spark-1.1, muse-glimmer. No Muse Wonder."
+    },
+    {
+      "id": "steel-browsecomp-muse-wonder-2026-10-13",
+      "url": "https://leaderboard.steel.dev/leaderboards/browsecomp/",
+      "title": "BrowseComp leaderboard (Steel)",
+      "publisher": "Steel.dev",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Static HTML read 2026-10-13; page says \"Last updated: Oct 11, 2026\"; leader GPT-5.6 Sol Ultra 92.2%. No Muse Wonder row or mention."
+    },
+    {
+      "id": "swebench-official-muse-wonder-2026-10-13",
+      "url": "https://www.swebench.com/",
+      "title": "SWE-bench leaderboards (swebench.com)",
+      "publisher": "SWE-bench team",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Static HTML read 2026-10-13 (2.4 MB shell with the leaderboard data); no Muse Wonder string; page text dated May 2026."
+    },
+    {
+      "id": "osworld-muse-wonder-2026-10-13",
+      "url": "https://osworld-v2.xlang.ai/",
+      "title": "OSWorld 2.0 (XLANG Lab)",
+      "publisher": "XLANG Lab, University of Hong Kong",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "OSWorld 2.0 paper site (108 long-horizon tasks; best result in the text is Claude Opus 4.8 at 20.6% binary). The OSWorld v1 / Verified page (https://os-world.github.io/ -> https://osworld-v1.xlang.ai/) says \"2026-06-26: OSWorld 2.0 is now available\". Neither page mentions Muse. Meta's table cites \"OSWorld V2.1\"; no OSWorld 2.1 leaderboard was found."
+    },
+    {
+      "id": "metr-time-horizons-muse-wonder-2026-10-13",
+      "url": "https://metr.org/time-horizons/",
+      "title": "Task-Completion Time Horizons of Frontier AI Models (METR)",
+      "publisher": "METR",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Page says \"This page is no longer actively updated. LAST UPDATED September 8, 2026.\" No Muse Wonder."
+    },
+    {
+      "id": "livebench-muse-wonder-2026-10-13",
+      "url": "https://livebench.ai/",
+      "title": "LiveBench",
+      "publisher": "LiveBench",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Returned a 1 KB JavaScript shell (HTTP 200); not checked."
+    },
+    {
+      "id": "benchlm-muse-wonder-full-2026-10-13",
+      "url": "https://benchlm.ai/models/muse-wonder-full",
+      "title": "Muse Wonder Full Benchmarks & Context (BenchLM)",
+      "publisher": "BenchLM",
+      "published": null,
+      "retrieved_at": "2026-10-13",
+      "kind": "third_party_eval",
+      "notes": "Aggregator page found by search 2026-10-13: \"6 of 668 tracked benchmark slots currently have displayable evidence\", evidence status Estimated. Aggregators (BenchLM, llm-stats.com, aireleasetracker.com) relay Meta-reported and AA numbers; none is a primary board and no numbers are stored from them."
     }
   ]
 }
