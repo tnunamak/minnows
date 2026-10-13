@@ -2824,6 +2824,134 @@
       "unit_default": "accuracy",
       "comparable": false,
       "notes": "Physical and spatial reasoning benchmark quoted in Google's Gemini 4 Argon launch post (87% without tools, 'pure reasoning'). Published without comparison values."
+    },
+    {
+      "id": "arena-webdev-elo",
+      "name": "Arena WebDev Elo",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "elo",
+      "notes": "Arena (formerly LMArena) WebDev board preference Elo. Not the Text Coding category."
+    },
+    {
+      "id": "epoch-apex-agents",
+      "name": "APEX-Agents (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-proofbench",
+      "name": "ProofBench (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-blueprint-bench-2",
+      "name": "Blueprint-Bench 2 (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-furniture-assembly",
+      "name": "Furniture Assembly Benchmark (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-critpt",
+      "name": "CritPt (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-scicode",
+      "name": "SciCode (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "epoch-frontierswe-v2",
+      "name": "FrontierSWE (v2) (Epoch AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy"
+    },
+    {
+      "id": "vals-medcode",
+      "name": "MedCode (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "Medical billing support tasks (Vals AI, one-shot)."
+    },
+    {
+      "id": "vals-medscribe",
+      "name": "MedScribe (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "Administrative work for doctors (Vals AI, one-shot)."
+    },
+    {
+      "id": "vals-sage",
+      "name": "SAGE (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "Student Assessment with Generative Evaluation (Vals AI, one-shot)."
+    },
+    {
+      "id": "vals-sre-bench",
+      "name": "SRE Bench (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "Reverse engineering of real-world binaries by agents (Vals AI)."
+    },
+    {
+      "id": "vals-legalbench",
+      "name": "LegalBench (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "Open source legal reasoning tasks (Vals AI, one-shot)."
+    },
+    {
+      "id": "vals-cua-bench",
+      "name": "CUA-bench (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "Computer-use agents playing six commercial video games; half held out (Vals AI). Each model runs in its own agent harness."
+    },
+    {
+      "id": "vals-time-horizon-index-ksp",
+      "name": "Time Horizon Index: KSP (Vals AI)",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "notes": "An agent builds and runs a space program in Kerbal Space Program (Vals AI)."
     }
   ]
 }

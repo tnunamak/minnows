@@ -1,0 +1,79 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "openrouter-gemini-4-argon-2026-10-13",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-13",
+  "source_urls": [
+    "https://openrouter.ai/api/v1/models",
+    "https://openrouter.ai/google/gemini-4-argon",
+    "https://openrouter.ai/api/v1/models/google/gemini-4-argon-20261013/endpoints"
+  ],
+  "source_ids": [
+    "openrouter-models-api-gemini-4-argon-2026-10-13",
+    "openrouter-gemini-4-argon-model-page-2026-10-13",
+    "openrouter-gemini-4-argon-endpoints-2026-10-13"
+  ],
+  "notes": "OpenRouter facts for Gemini 4 Argon read 2026-10-13 (general availability day): model id, canonical slug, price tiers, context, max output, modalities, reasoning efforts, endpoint stats and the empty Design Arena list. OpenRouter is a provider listing; rates are router-listed, equal Google's introductory price, and are recorded here only. The first-party pricing file belongs to the Google lane (pricing/google-api-2026-10.json). Recheck on or after 2026-10-20 and when Google's introductory price ends, to see how OpenRouter's rates change.",
+  "claims": [
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "OpenRouter lists Argon as 'google/gemini-4-argon' (canonical slug 'google/gemini-4-argon-20261013', name 'Google: Gemini 4 Argon', created 2026-10-13 16:04 UTC) and a batch twin 'google/gemini-4-argon:batch'. Neither existed on 2026-10-07. Prices per token as listed: prompt $2 per M, completion $10 per M, internal reasoning $10 per M, input cache read $0.10 per M, cache write $0.1875 per M, image and audio input $2 per M, web search 0.014 (unit not stated in the record). Batch twin: $1 / $5 per M, cache read $0.05. Endpoint tags seen: google-ai-studio (standard, flex, priority) and google-vertex/global (standard, priority). Endpoint records: flex $1 in / $5 out; priority $3.60 in / $18 out (1.8x standard); the endpoint 'discount' field reads 0.5 on all records. These equal the introductory first-party price ($2/$10); they are not vendor prices and not the standard $4/$20 (see pricing/google-api-2026-10.json for Google's own table and its end date).",
+      "source_id": "openrouter-models-api-gemini-4-argon-2026-10-13"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "effort"
+      ],
+      "statement": "OpenRouter capability record: context 1,048,576 tokens; top-provider max completion 65,536 (Vertex endpoint 65,536; Google AI Studio endpoint 943,718); input modalities audio, file, image, text, video; output text; reasoning is mandatory with supported efforts high, medium and low and default effort medium; supported parameters include_reasoning, max_tokens, reasoning, reasoning_effort, response_format, seed, stop, structured_outputs, temperature, tool_choice, tools, top_p; native tool openrouter:web_search maps to google_search. The boards (AA, Vals, Arena) ran Argon at high, which is not OpenRouter's default (medium).",
+      "source_id": "openrouter-models-api-gemini-4-argon-2026-10-13"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "mixed"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "OpenRouter endpoint stats on the model page (30-minute window, read 2026-10-13): two endpoint records show p50 throughput 55 and 62 tokens/s (p95 88 and 139) and p50 latency 3,720.5 and 3,712.5 (unit not stated; presumably milliseconds), on 1,190 and 21,579 requests; the second record is the Google Vertex global endpoint. Uptime in the endpoints API: 100% (AI Studio flex, Vertex priority, AI Studio priority), 99.40% (Vertex standard, 1 day) and 99.38% (AI Studio standard, 1 day); the AI Studio standard endpoint record carries status -2 (OpenRouter does not define the code in the payload) while the others carry 0. Throughput and latency fields are null in the endpoints API. These are OpenRouter's own sampling hours after launch, not a benchmark.",
+      "source_id": "openrouter-gemini-4-argon-model-page-2026-10-13"
+    },
+    {
+      "models": [
+        "gemini-4-argon"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "OpenRouter embeds Design Arena rows for models; for google/gemini-4-argon-20261013 the design_arena records list is empty on 2026-10-13, so there is no Design Arena reading for Argon yet (compare design-arena-elo rows for Muse Wonder in openrouter-muse-wonder-2026-10-13.json).",
+      "source_id": "openrouter-gemini-4-argon-model-page-2026-10-13"
+    }
+  ],
+  "scores": [],
+  "missing": [
+    "OpenRouter Design Arena rows for Argon: none (empty list).",
+    "OpenRouter model-page percentile throughput and latency by prompt size: not read.",
+    "OpenRouter Argon usage ranking: not read."
+  ]
+}

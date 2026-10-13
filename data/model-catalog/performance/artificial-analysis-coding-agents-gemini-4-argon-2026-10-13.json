@@ -1,0 +1,141 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "artificial-analysis-coding-agents-gemini-4-argon-2026-10-13",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-13",
+  "source_urls": [
+    "https://artificialanalysis.ai/agents/coding-agents"
+  ],
+  "source_ids": [
+    "artificial-analysis-coding-agents-2026-10-13"
+  ],
+  "notes": "Artificial Analysis Coding Agents Index rows for Gemini 4 Argon, read 2026-10-13 from the embedded agent records of https://artificialanalysis.ai/agents/coding-agents (curl with a browser User-Agent; RSC payload parsed in code). The 2026-10-13 Muse Wonder file mentioned Argon's 78.8% DeepSWE figure only in a claim. The agent is Antigravity CLI (host model slug google_barium-bb_ai-studio) with Gemini 4 Argon at high, AA's default configuration. Rows reuse the snapshot id and comparability groups of artificial-analysis-coding-agents-muse-wonder-2026-10-13.json; its 88 stored peer values (Muse Wonder rows, Claude Code Opus/Sonnet/Fable/Haiku, Codex GPT-6.1 Sol and GPT-6 Astra) were re-parsed and are unchanged, so the peers are not repeated. The Terminal-Bench v4 reading here is a different run from the Intelligence Index Terminal-Bench 4.0 row. Rows are harness-tagged and comparable:false. Recheck on or after 2026-10-20.",
+  "claims": [
+    {
+      "models": [
+        "gemini-4-argon",
+        "claude-sonnet-5-5",
+        "claude-opus-5-5",
+        "gpt-6.1-sol",
+        "gpt-6-astra",
+        "claude-fable-5-1",
+        "muse-wonder-1-0",
+        "muse-wonder-full-1-0"
+      ],
+      "task_families": [
+        "coding",
+        "agentic"
+      ],
+      "axes": [
+        "quality",
+        "cost"
+      ],
+      "statement": "AA Coding Agents Index (equal-weight mean of DeepSWE v1.1, SWE-Atlas-QnA and Terminal-Bench v4, each agent in its own harness), same page snapshot as artificial-analysis-coding-agents-muse-wonder-2026-10-13.json (all 88 stored peer values re-checked equal): Antigravity CLI with Gemini 4 Argon (high) 63.76 at $5.84 per task (AA default configuration), against Claude Code Sonnet 5.5 (max) 68.36 ($14.19), Muse Code Muse Wonder Full 68.03, Claude Code Opus 5.5 (max) 65.99 ($13.04), Muse Code Muse Wonder 63.50 ($8.05), Codex GPT-6.1 Sol (xhigh) 62.91 ($1.04), Claude Code Fable 5.1 (max) 62.22 ($12.39), Codex GPT-6 Astra (max) 61.65 ($7.47). Argon is 4th of the stored roster on the Index and the cheapest per task among the five rows above 63 (Muse Wonder Full has no cost). DeepSWE v1.1 on this run: Argon 78.76%, Muse Wonder Full 77.0%, Sol xhigh 73.2%, Sonnet 5.5 72.0%, Opus 5.5 68.4%. SWE-Atlas-QnA Argon 56.45%; Terminal-Bench v4 (this run) Argon 56.06%.",
+      "source_id": "artificial-analysis-coding-agents-2026-10-13"
+    },
+    {
+      "models": [
+        "gemini-4-argon",
+        "muse-wonder-full-1-0",
+        "muse-wonder-1-0"
+      ],
+      "task_families": [
+        "coding"
+      ],
+      "axes": [
+        "quality"
+      ],
+      "statement": "CONFLICT, not reconciled: Google's blog says Argon 'sets a new state of the art on DeepSWE v1.1 (77.9%)'. AA's own DeepSWE v1.1 run through the Antigravity CLI gives Argon 78.76%, i.e. 0.9 points above Google's figure, and Muse Wonder Full 77.0% (Meta's launch table: 79.0 for Muse Wonder Full, 78.8 for Muse Wonder; see the Meta files). The Datacurve DeepSWE board has no Argon row and was last updated 2026-09-22 (see the coverage file). The three sources use different harnesses and dates.",
+      "source_id": "artificial-analysis-coding-agents-2026-10-13"
+    }
+  ],
+  "scores": [
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "effort_verbatim": "Gemini 4 Argon (high)",
+      "harness": "antigravity-cli",
+      "source_id": "artificial-analysis-coding-agents-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "coding",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-coding-agents-index-2026-10-13",
+      "metric": "Artificial Analysis Coding Agents Index",
+      "score": 63.7578,
+      "unit": "other",
+      "metric_id": "aa-coding-agents-index",
+      "comparability_group": "artificial-analysis-coding-agents-index-2026-10-13",
+      "caveat": "AA label 'Antigravity CLI - Gemini 4 Argon (high)'; AA default configuration: True. Equal-weight mean of DeepSWE v1.1, SWE-Atlas-QnA and Terminal-Bench v4 (0-100). AA host model slug 'google_barium-bb_ai-studio' (not a public model id; the slug 'barium-bb' is Argon's codename on AA's agent board). Mean per task: $5.84, 149 steps, 2070 s wall time, 13.73M total tokens, cache hit rate 0.870. Cost is at the introductory $2/$10 price if AA used it (AA does not state the basis on this board).",
+      "cost": {
+        "value": 5.8439,
+        "unit": "usd_per_task",
+        "basis": "api_usd"
+      }
+    },
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "effort_verbatim": "Gemini 4 Argon (high)",
+      "harness": "antigravity-cli",
+      "source_id": "artificial-analysis-coding-agents-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "coding",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-coding-agents-index-2026-10-13",
+      "metric": "DeepSWE v1.1 (Artificial Analysis Coding Agents run)",
+      "score": 0.787611,
+      "unit": "accuracy",
+      "metric_id": "aa-coding-agents-deepswe-v1-1",
+      "comparability_group": "artificial-analysis-coding-agents-deepswe-v1-1-2026-10-13",
+      "caveat": "AA label 'Antigravity CLI - Gemini 4 Argon (high)'. 336 attempts; mean 152,423 output tokens per attempt."
+    },
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "effort_verbatim": "Gemini 4 Argon (high)",
+      "harness": "antigravity-cli",
+      "source_id": "artificial-analysis-coding-agents-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "coding",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-coding-agents-index-2026-10-13",
+      "metric": "SWE-Atlas-QnA (Artificial Analysis Coding Agents run)",
+      "score": 0.564516,
+      "unit": "accuracy",
+      "metric_id": "aa-coding-agents-swe-atlas-qna",
+      "comparability_group": "artificial-analysis-coding-agents-swe-atlas-qna-2026-10-13",
+      "caveat": "AA label 'Antigravity CLI - Gemini 4 Argon (high)'. 371 attempts; mean 48,671 output tokens per attempt."
+    },
+    {
+      "model": "gemini-4-argon",
+      "effort": "high",
+      "effort_verbatim": "Gemini 4 Argon (high)",
+      "harness": "antigravity-cli",
+      "source_id": "artificial-analysis-coding-agents-2026-10-13",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "observed_at": "2026-10-13",
+      "task_family": "coding",
+      "comparable": false,
+      "snapshot_id": "artificial-analysis-coding-agents-index-2026-10-13",
+      "metric": "Terminal-Bench v4 (Artificial Analysis Coding Agents run)",
+      "score": 0.560606,
+      "unit": "accuracy",
+      "metric_id": "terminal-bench-4-0",
+      "comparability_group": "artificial-analysis-coding-agents-terminal-bench-v4-2026-10-13",
+      "caveat": "AA label 'Antigravity CLI - Gemini 4 Argon (high)'. 198 attempts; mean 162,940 output tokens per attempt. Reward-hacking audit: 1 flagged of 112 reviewed passing attempts."
+    }
+  ],
+  "missing": [
+    "AA Coding Agents rows for Argon at efforts other than high: none on AA.",
+    "AA statement on whether the Argon coding-agent runs used a pre-release or evaluation deployment: none found (the host slug barium-bb is an internal codename, not a public id)."
+  ]
+}
