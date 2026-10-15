@@ -203,6 +203,11 @@ Offline verification: tests/test_cost_report.py uses temporary fixture ledgers,
 sanitized exports, and SQLite projections only. It never launches a model or
 contacts a service.
 
+The DB path currently loads all delegation history and hydrates usage per call.
+Small fixtures do not establish scalability; measure the actual collection run
+before scheduling it. Unknown usage scopes, named-instance driver mappings and
+historical adapter versions remain coverage limits, not zero usage.
+
 ## Procedure
 
 1. Choose an op from `list`, based on the task and its verification boundary.
@@ -1411,7 +1416,3 @@ Top-level keys: `schema_version`, `scope`, `coverage`, `counts`, `effort_explici
     `commit_verification`, as for a close.
   - `launch_facts`, `observed_child_usage`, `parent_overhead_usage`, `quota`.
 
-The DB path currently loads all delegation history and hydrates usage per call.
-Small fixtures do not establish scalability; measure the actual collection run
-before scheduling it. Unknown usage scopes, named-instance driver mappings and
-historical adapter versions remain coverage limits, not zero usage.
