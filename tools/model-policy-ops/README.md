@@ -323,6 +323,18 @@ bound to OpenCode's `opencode` provider and account plus
 aliases do not inherit its zero-cost metadata. The effort option key is read from
 the live T3 catalog and remains `variant`; an authorized public experimental
 request can emit its T3 target.
+
+This model-arm path validates and emits the actual effort option, such as
+`options.variant: high`. Generic destination submission does not support governed
+OpenCode routes: its options-free target cannot carry that validation. A chosen
+governed destination refuses even with exact public experimental overrides, and
+even when its configured target is absent from the catalog. Refusal removes all
+targets, dispatch metadata, `submit`, `how_to`, and manual submission readiness
+advice from full and brief output, including nested copies and receipt replay.
+Receipts retain descriptive governed identity for current-policy checks; that
+identity does not authorize submission. Ordinary destinations keep their existing
+dispatch and manual submission behavior.
+
 `public` is the caller's assertion, not content scanning or attestation. Missing
 or invalid expiry evidence, and evidence at or beyond its local UTC recheck
 deadline, refuses dispatch. The seven-day deadline is local policy and does not
@@ -925,7 +937,7 @@ except that `routing.destination` is `{chosen: "model", considered: []}` when a
 destinations file exists. `--override` does not suppress the destination; add
 `--skip-destination` as well to dispatch the override.
 
-When a destination is chosen, the output is a valid receipt with `target: null`,
+When an ordinary destination is chosen, the output is a valid receipt with `target: null`,
 `launch_ready: false`, every nested `target` key null, a top-level `destination: NAME`
 and `destination_offer`: `{name, request_id, purpose, how_to, submit, capacity}`.
 `request_id` is the `decision_id`, so the worker's reports join to the receipt. When
@@ -949,7 +961,12 @@ line holding `<root_decision_id>` once, and `max_chain_failures` (1–10) is req
 its own request ID. These values describe one machine's setup and belong in the local
 config, not in the pack.
 
-When such a destination is chosen, and the live catalog (`--available`) lists the instance,
+Governed OpenCode routes are unsupported through this generic destination contract.
+Use the validated model-arm override described under experimental free routes.
+An unsupported destination returns `data_policy.state: refused` and suppresses
+its manual offer instructions as well as its T3 dispatch target.
+
+When an ordinary destination with a target is chosen, and the live catalog (`--available`) lists the instance,
 the driver kind and the model, and both the instance and the model can run a child task now, the output also has:
 
 - `target`: the destination's target, unchanged, and `launch_ready: true`;

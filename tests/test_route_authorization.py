@@ -44,6 +44,12 @@ def refused(out):
     assert out['data_policy']['state'] == 'refused'
     assert all(target is None for target in all_target_values(out))
     assert 'dispatch' not in out
+    for node in nested_nodes(out):
+        assert not {'submit', 'how_to', 'dispatch', 'simulated_target'} & node.keys()
+        if 'launch_ready' in node:
+            assert node['launch_ready'] is False
+        if 'launch_readiness_basis' in node:
+            assert 'submit by hand' not in node['launch_readiness_basis']
 
 
 @pytest.mark.parametrize('case', ['unclassified', 'sensitive', 'expired', 'allowed-to-sibling', 'ordinary-to-sibling'])
@@ -134,14 +140,14 @@ def test_r3_unrelated_effort_surface_matches_baseline(world, command, option):
     assert 'data_policy' not in out
 
 
-def test_r1_exact_destination_retains_options_free_dispatch_contract(world):
+def test_r1_exact_destination_refuses_unsupported_options_free_dispatch(world):
     add_opencode_fixture(world)
     out = run(world, 'route', 'fanout.explore', *world.args(), *deepseek_flags(classification='public'),
               *destination(world, DEEPSEEK_FREE))
-    assert out['launch_ready'] is True
-    assert out['target'] == {'providerInstanceId': 'opencode', 'model': DEEPSEEK_FREE}
-    assert out['data_policy']['state'] == 'allowed_public_experimental'
-    assert out['dispatch']['mode'] == 'async'
+    refused(out)
+    assert out['data_policy']['refusal'] == 'governed_destination_unsupported'
+    assert out['data_policy']['targets'] == [
+        {'provider': 'opencode', 'model': DEEPSEEK_FREE, 'account': 'opencode', 'effort': None}]
 
 
 def test_r1_unrelated_destination_does_not_inherit_fallback_policy(world):
@@ -224,8 +230,10 @@ def test_destination_replay_revocation_clears_dispatch_instructions(world):
              *destination(world, DEEPSEEK_FREE), '--record', '--decision-id', 'destination-replay',
              '--parent-model', 'parent', '--parent-provider-instance', 'parent', '--parent-thread', 'parent']
     first = run(world, *flags)
-    assert first['launch_ready'] is True and first['dispatch']['mode'] == 'async'
-    assert run(world, *flags) == first | {'replayed': True}
+    refused(first)
+    replayed = run(world, *flags)
+    assert replayed['replayed'] is True
+    refused(replayed)
     world.policy['experimental_free_routes'] = []
     out = run(world, *flags)
     assert out['replayed'] is True

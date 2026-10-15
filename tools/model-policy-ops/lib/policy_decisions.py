@@ -190,13 +190,27 @@ def run_calibrate(args, policy, at):
                             model_catalog=model_catalog, db=args.db, since=since, at=at, params=policy.get('routing', {}))
 
 
-def clear_targets(value, *, remove_dispatch=False):
-    """Null every `target` key inside a result, so no nested copy is dispatchable."""
+REFUSED_READINESS = 'experimental route refused by its current public-input data policy'
+
+
+def clear_targets(value, *, refuse_submission=False):
+    """Clear nested targets; a refusal also removes every submission channel."""
     if isinstance(value, dict):
-        return {k: None if k == 'target' else clear_targets(v, remove_dispatch=remove_dispatch)
-                for k, v in value.items() if not (remove_dispatch and k == 'dispatch')}
+        cleared = {}
+        for key, child in value.items():
+            if refuse_submission and key in ('dispatch', 'submit', 'how_to', 'simulated_target'):
+                continue
+            if key == 'target':
+                cleared[key] = None
+            elif refuse_submission and key == 'launch_ready':
+                cleared[key] = False
+            elif refuse_submission and key == 'launch_readiness_basis':
+                cleared[key] = REFUSED_READINESS
+            else:
+                cleared[key] = clear_targets(child, refuse_submission=refuse_submission)
+        return cleared
     if isinstance(value, list):
-        return [clear_targets(v, remove_dispatch=remove_dispatch) for v in value]
+        return [clear_targets(v, refuse_submission=refuse_submission) for v in value]
     return value
 
 
@@ -341,7 +355,8 @@ def execute_locked(args, policy, stack):
     old = None if simulation else find_receipt(args.receipts, decision_id)
     if old:
         replayed = replay_receipt(old, request, facts, extensions)
-        apply_experimental_route_policy(replayed, policy, datetime.now(timezone.utc), replay=True)
+        proposed = next((entry.get('target') for entry in dest_entries if entry['name'] == replayed.get('destination')), None)
+        apply_experimental_route_policy(replayed, policy, datetime.now(timezone.utc), replay=True, destination_target=proposed)
         return replayed
     # Exact historical replay wins. Validate known fresh routes (including simulations)
     # before reading runtime sources, running probes or acquiring writable quota state.
@@ -456,6 +471,7 @@ def execute_locked(args, policy, stack):
             has_observe_command=any('observe_command' in e for e in dest_entries))
         if found:
             routing_block['calibration_notes'] = routing_block['calibration_notes'] | {'observations': found}
+    proposed_destination = None
     if offer:
         # The model pair is only a fallback now: its reasons stay visible and no longer need judgment.
         for reason in routing_block['judgment_reasons']:
@@ -472,6 +488,9 @@ def execute_locked(args, policy, stack):
         return_value['launch_ready'] = False
         return_value['launch_readiness_basis'] = 'destination chosen; no model target to dispatch'
         dispatch = offer.pop('_dispatch', None)
+        # Keep the chosen structured proposal until authorization, even if no
+        # catalog target can be emitted. It is not the fallback arm's identity.
+        proposed_destination = dispatch['target'] if dispatch else None
         return_value['destination_offer'] = offer
         # Assembled in full first, then cleared once: no offer, capacity or submit field can bring a model target back.
         return_value = clear_targets(return_value)
@@ -492,7 +511,7 @@ def execute_locked(args, policy, stack):
             else:
                 return_value['launch_readiness_basis'] = ('destination chosen; the root decision ID does not match its request_id_pattern; '
                                                           'submit by hand or re-route with a matching decision ID')
-    apply_experimental_route_policy(return_value, policy, at, available=available)
+    apply_experimental_route_policy(return_value, policy, at, available=available, destination_target=proposed_destination)
 
     if simulation:
         simulated = return_value['target']
@@ -527,7 +546,8 @@ def execute_locked(args, policy, stack):
             return_value['routing']['quota_substitution']['state_commit'] = 'after_receipt'
         recorded = append_receipt(args.receipts, return_value, extensions)
         if recorded.get('replayed'):
-            apply_experimental_route_policy(recorded, policy, datetime.now(timezone.utc), replay=True)
+            proposed = next((entry.get('target') for entry in dest_entries if entry['name'] == recorded.get('destination')), None)
+            apply_experimental_route_policy(recorded, policy, datetime.now(timezone.utc), replay=True, destination_target=proposed)
         else:
             commit_quota()
         return recorded
@@ -535,7 +555,7 @@ def execute_locked(args, policy, stack):
     return return_value
 
 
-def dispatch_identities(result, available=None):
+def dispatch_identities(result, available=None, destination_target=None):
     """Identify every returned target, retaining provider identity across receipt replay.
 
     Old receipts have selection arms but no identity list. Destination targets need
@@ -553,6 +573,8 @@ def dispatch_identities(result, available=None):
                 visit(child)
 
     visit(result)
+    if destination_target:
+        nodes.append({'target': destination_target})
     stored = (result.get('data_policy') or {}).get('targets', [])
     known = {(row['account'], row['model']): row['provider'] for row in stored}
     for node in nodes:
@@ -560,7 +582,9 @@ def dispatch_identities(result, available=None):
         if isinstance(arm, dict) and isinstance(target, dict) and arm.get('model') == target.get('model'):
             known[(target.get('providerInstanceId'), target.get('model'))] = arm.get('provider')
     live = {provider_instance(row): driver_family(row) for row in providers(available or {})}
-    identities = []
+    # Refused destinations have no remaining targets. Their descriptive identities
+    # must still be governed on replay after declarations or catalog rows disappear.
+    identities = list(stored) if result.get('destination') else []
     overrides = (result.get('request') or {}).get('overrides') or {}
     for node in nodes:
         target = node.get('target')
@@ -573,7 +597,7 @@ def dispatch_identities(result, available=None):
             provider = 'opencode'
         options = target.get('options') or {}
         effort = next((options[key] for key in ('effort', 'reasoningEffort', 'thinking', 'variant') if key in options),
-                      overrides.get('effort'))
+                      None)
         identity = {'provider': provider, 'model': model, 'account': account, 'effort': effort}
         if identity not in identities:
             identities.append(identity)
@@ -589,7 +613,7 @@ def dispatch_identities(result, available=None):
     return identities
 
 
-def experimental_target_refusal(identity, request, sensitive, routes, evaluated_at):
+def experimental_target_refusal(identity, request, sensitive, routes, evaluated_at, *, generic_destination=False):
     """One current exact authorization is required for each governed identity."""
     declared = next((row for row in routes if row['provider'] == identity['provider']
                      and row['model'] == identity['model']), None)
@@ -603,6 +627,8 @@ def experimental_target_refusal(identity, request, sensitive, routes, evaluated_
         return route, 'sensitive_inputs'
     if request.get('data_classification') != 'public':
         return route, 'public_classification_required'
+    if generic_destination:
+        return route, 'governed_destination_unsupported'
     overrides = request.get('overrides') or {}
     scope = ((request.get('route') is True and request.get('op') == 'fanout.explore')
              or (not request.get('route') and request.get('no_op') is True))
@@ -624,7 +650,7 @@ def experimental_target_refusal(identity, request, sensitive, routes, evaluated_
     return route, None
 
 
-def apply_experimental_route_policy(result, policy, evaluated_at, *, available=None, replay=False):
+def apply_experimental_route_policy(result, policy, evaluated_at, *, available=None, replay=False, destination_target=None):
     """Authorize actual targets once, for both fresh decisions and historical replay.
 
     Identification is intentionally independent of current declarations: revoking
@@ -635,7 +661,7 @@ def apply_experimental_route_policy(result, policy, evaluated_at, *, available=N
     previous = result.get('data_policy') or {}
     governed_models = ({row['model'] for row in routes} | {previous.get('route')}
                        | {row['model'] for row in previous.get('targets', [])})
-    governed = [identity for identity in dispatch_identities(result, available)
+    governed = [identity for identity in dispatch_identities(result, available, destination_target)
                 if (identity['provider'] == 'opencode' or identity['account'] == 'opencode'
                     or (identity['model'] or '').startswith('opencode/')
                     or identity['model'] in governed_models)]
@@ -646,7 +672,8 @@ def apply_experimental_route_policy(result, policy, evaluated_at, *, available=N
         return
     sensitive = bool(request.get('sensitive') or (result.get('launch_facts') or {}).get('sensitive'))
     for identity in governed:
-        route, refusal = experimental_target_refusal(identity, request, sensitive, routes, evaluated_at)
+        route, refusal = experimental_target_refusal(identity, request, sensitive, routes, evaluated_at,
+                                                     generic_destination=bool(result.get('destination')))
         if refusal:
             break
     if replay and refusal is None:
@@ -659,13 +686,13 @@ def apply_experimental_route_policy(result, policy, evaluated_at, *, available=N
                              'refusal': ('experimental_route_receipt_not_currently_authorized' if replay and refusal else refusal)}
     if refusal is None:
         return
-    cleared = clear_targets(result, remove_dispatch=True)
+    cleared = clear_targets(result, refuse_submission=True)
     result.clear()
     result.update(cleared)
     if isinstance(result.get('selection'), dict):
         result['selection'] |= {'state': 'data_policy_refused', 'target': None}
     result['launch_ready'] = False
-    result['launch_readiness_basis'] = 'experimental route refused by its current public-input data policy'
+    result['launch_readiness_basis'] = REFUSED_READINESS
     result.pop('simulated_target', None)
     if result.get('routing'):
         result['routing']['judgment_reasons'].append({'code': 'experimental_data_policy_refused',
