@@ -175,6 +175,20 @@ def clear_targets(value):
     return value
 
 
+def validate_route_proof(op_id, proof_class):
+    """Fresh route task-fit guard; explicit resolve/escalation retains its existing behavior."""
+    state = outcomes.op_proof_assessment(op_id, proof_class)['state']
+    if state == 'missing_proof':
+        raise ValueError(f'{op_id} requires explicit --proof-class oracle|judged|none; none is a declaration, not an omitted flag')
+    if state == 'standard_oracle_review_required':
+        raise ValueError('implement.standard with --proof-class oracle requires op-fit review: bounded work wholly accepted/rejected '
+                         'by a deterministic oracle should use implement.oracle-bounded; if tests do not cover the whole standard, '
+                         'declare judged; for deliberate broader/long/security-sensitive oracle work use explicit resolve with '
+                         'a --reason explaining op fit')
+    if state == 'oracle_bounded_requires_oracle':
+        raise ValueError('implement.oracle-bounded requires --proof-class oracle; judged or none does not declare an oracle-bounded task')
+
+
 def execute(args, policy):
     # Lock order is quota sidecar -> receipts. Keep the quota snapshot stable until
     # acceptance, and release it on every validation error without committing.
@@ -297,6 +311,11 @@ def execute_locked(args, policy, stack):
     old = None if simulation else find_receipt(args.receipts, decision_id)
     if old:
         return replay_receipt(old, request, facts, extensions)
+    # Exact historical replay wins. Validate known fresh routes (including simulations)
+    # before reading runtime sources, running probes or acquiring writable quota state.
+    # Unknown ops retain the existing unknown-op path; resolve/escalation is unchanged.
+    if route and args.op in ops:
+        validate_route_proof(args.op, args.proof_class)
     relaunch = None
     if args.relaunch_of:
         if args.relaunch_of == decision_id or not find_receipt(args.receipts, args.relaunch_of):

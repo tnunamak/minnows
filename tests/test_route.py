@@ -119,6 +119,9 @@ class World:
 
     def route(self, op, *extra, record=None):
         flags = ['--decision-id', record or 'probe']
+        # Convenience for unrelated tests only. Raw cli() calls must declare their own intent.
+        if op.startswith('implement.') and not any(str(arg).split('=', 1)[0] == '--proof-class' for arg in extra):
+            flags += ['--proof-class', 'oracle' if op == 'implement.oracle-bounded' else 'judged']
         if record:
             flags += ['--record', '--parent-model', 'pm', '--parent-provider-instance', 'pp', '--parent-thread', 'pt']
         result, out = self.cli('route', op, *self.args(), *flags, *extra)
@@ -290,13 +293,19 @@ def test_filter_stale_quota_is_not_exhaustion_and_is_unknown_pace(world):
 
 
 def test_filter_requires_known_mismatch_removes_and_unknown_needs_judgment(world):
+    # Put the same candidate requirements on a nonimplementation fixture so unknown
+    # and mismatched declarations still exercise candidate filtering, not the new guard.
+    source = next(o for o in world.policy['operating_points'] if o['id'] == 'implement.oracle-bounded')
+    fixture = next(o for o in world.policy['operating_points'] if o['id'] == 'fanout.dollar-tight')
+    fixture['expands_to'] = copy.deepcopy(source['expands_to'])
+    fixture['candidates'] = copy.deepcopy(source['candidates'])
     world.catalog['data']['providers'] = [p for p in world.catalog['data']['providers'] if p['driver'] != 'codex']
-    out = world.route('implement.oracle-bounded')
+    out = world.route('fanout.dollar-tight')
     assert chosen(out)['arm']['model'] == 'claude-sonnet-5-5'
     assert codes(out) == ['requires_unknown', 'unvalidated_candidate']
-    out = world.route('implement.oracle-bounded', '--proof-class', 'oracle')
+    out = world.route('fanout.dollar-tight', '--proof-class', 'oracle')
     assert codes(out) == ['unvalidated_candidate']
-    out = world.route('implement.oracle-bounded', '--proof-class', 'judged')
+    out = world.route('fanout.dollar-tight', '--proof-class', 'judged')
     assert entry(out, 'claudeAgent')['removed_by'] == 'requires_not_met' and chosen(out) is None
 
 
@@ -627,7 +636,7 @@ def test_availability_unknown_without_db_missing_table_or_changed_schema(world, 
     world.with_db = True
     empty = tmp_path / 'empty.sqlite'
     sqlite3.connect(empty).close()
-    result, out = world.cli('route', 'implement.quota-tight', *world.args()[:-2], '--db', empty)
+    result, out = world.cli('route', 'implement.quota-tight', '--proof-class', 'judged', *world.args()[:-2], '--db', empty)
     assert result.returncode == 0 and out['routing']['inputs']['failures']['reason'] == 'turn_items_table_absent'
     odd = tmp_path / 'odd.sqlite'
     db = sqlite3.connect(odd)
@@ -635,9 +644,9 @@ def test_availability_unknown_without_db_missing_table_or_changed_schema(world, 
     db.execute(f'CREATE TABLE {PREFIX}runs (run_id TEXT)')
     db.commit()
     db.close()
-    result, out = world.cli('route', 'implement.quota-tight', *world.args()[:-2], '--db', odd)
+    result, out = world.cli('route', 'implement.quota-tight', '--proof-class', 'judged', *world.args()[:-2], '--db', odd)
     assert result.returncode == 0 and out['routing']['inputs']['failures']['reason'] == 'schema_mismatch'
-    result, out = world.cli('route', 'implement.quota-tight', *world.args()[:-2], '--db', tmp_path / 'absent.sqlite')
+    result, out = world.cli('route', 'implement.quota-tight', '--proof-class', 'judged', *world.args()[:-2], '--db', tmp_path / 'absent.sqlite')
     assert result.returncode == 0 and out['routing']['inputs']['failures']['reason'] == 'database_unreadable'
 
 
@@ -692,7 +701,7 @@ def test_replay_returns_the_stored_receipt_and_does_not_route_again(world):
     set_forecast(world, 'claude', 'work', '7d All', 10)
     again = world.route('implement.quota-tight', record='r1')
     assert again['replayed'] is True and again['target'] == first['target']
-    result, _ = world.cli('route', 'implement.quota-tight', *world.args(), '--decision-id', 'r1', '--record', '--parent-model', 'pm',
+    result, _ = world.cli('route', 'implement.quota-tight', '--proof-class', 'judged', *world.args(), '--decision-id', 'r1', '--record', '--parent-model', 'pm',
                           '--parent-provider-instance', 'pp', '--parent-thread', 'pt', '--maker-model', 'claude:x')
     assert result.returncode == 1 and 'changed inputs' in result.stderr
     result, _ = world.cli('resolve', 'implement.quota-tight', *world.args(), '--decision-id', 'r1', '--record', '--parent-model', 'pm',
@@ -712,14 +721,14 @@ def test_route_is_deterministic_apart_from_timestamps(world):
     runs = [stable(world.route('review.audit', '--maker-model', 'claude:claude-sonnet-5-5')) for _ in range(3)]
     assert json.dumps(runs[0], sort_keys=True) == json.dumps(runs[1], sort_keys=True) == json.dumps(runs[2], sort_keys=True)
     world.write()
-    first = world.cli('route', 'implement.quota-tight', *world.args(), '--decision-id', 'same')[0].stdout
-    second = world.cli('route', 'implement.quota-tight', *world.args(), '--decision-id', 'same')[0].stdout
+    first = world.cli('route', 'implement.quota-tight', '--proof-class', 'judged', *world.args(), '--decision-id', 'same')[0].stdout
+    second = world.cli('route', 'implement.quota-tight', '--proof-class', 'judged', *world.args(), '--decision-id', 'same')[0].stdout
     strip = lambda text: {k: v for k, v in json.loads(text).items() if k != 'recorded_at'}
     assert strip(first) == strip(second)
 
 
 def test_override_records_the_routed_and_the_final_choice(world):
-    result, _ = world.cli('route', 'implement.quota-tight', *world.args(), '--override', 'account=claude-work')
+    result, _ = world.cli('route', 'implement.quota-tight', '--proof-class', 'judged', *world.args(), '--override', 'account=claude-work')
     assert result.returncode == 1 and 'require --reason' in result.stderr
     out = world.route('implement.quota-tight', '--override', 'account=claude-work', '--reason', 'owner wants Work', record='ov1')
     routing = out['routing']
@@ -733,7 +742,7 @@ def test_override_records_the_routed_and_the_final_choice(world):
 
 def test_route_refuses_options_that_it_decides(world):
     for flag in (['--no-op'], ['--account-hint', 'codex'], ['--escalate-from', 'x'], ['--quota-provider', 'claude']):
-        result, _ = world.cli('route', 'implement.quota-tight', *world.args(), *flag)
+        result, _ = world.cli('route', 'implement.quota-tight', '--proof-class', 'judged', *world.args(), *flag)
         assert result.returncode == 1 and 'route takes an op ID only' in result.stderr
 
 
@@ -1481,7 +1490,7 @@ RECORD = ['--record', '--parent-model', 'pm', '--parent-provider-instance', 'pp'
 
 
 def simulate(world, *extra, at='2026-10-10T00:30:00Z'):
-    result, out = world.cli('route', 'implement.quota-tight', *world.args(), '--now', at, *extra, raw=True)
+    result, out = world.cli('route', 'implement.quota-tight', '--proof-class', 'judged', *world.args(), '--now', at, *extra, raw=True)
     return result, out
 
 
@@ -1570,7 +1579,7 @@ def test_concurrent_directive_add_end_and_route_reads_never_tear_or_lose_a_row(w
     known = ['--policy', world.tmp / 'policy.json', '--available', world.tmp / 'catalog.json', '--accounts', world.tmp / 'accounts.json']
     jobs = [('add', clock + ['directive', *add_args(name, 'provider=codex'), '--receipts', world.receipts, *known], dict(env)) for name in adds]
     jobs += [('end', clock + ['directive', 'end', name, '--reason', 'done', '--receipts', world.receipts, *known], dict(env, PINNED_NOW=NOW)) for name in seeded]
-    jobs += [('route', clock + ['route', 'implement.quota-tight', *map(str, world.args()), '--decision-id', f'read{n}'], dict(env, PINNED_NOW=NOW)) for n in range(8)]
+    jobs += [('route', clock + ['route', 'implement.quota-tight', '--proof-class', 'judged', *map(str, world.args()), '--decision-id', f'read{n}'], dict(env, PINNED_NOW=NOW)) for n in range(8)]
     procs = []
     try:
         for kind, argv, job_env in jobs:
@@ -1653,7 +1662,7 @@ def test_a_simulation_has_no_dispatchable_target_anywhere_in_its_output(world, e
 
 
 def test_an_empty_now_is_rejected(world):
-    result, out = world.cli('route', 'implement.quota-tight', *world.args(), '--now', '', raw=True)
+    result, out = world.cli('route', 'implement.quota-tight', '--proof-class', 'judged', *world.args(), '--now', '', raw=True)
     assert result.returncode == 1 and out is None and '--now must not be empty' in result.stderr
 
 
@@ -1684,3 +1693,285 @@ def test_directive_add_waits_for_a_held_exclusive_lock(world):
             proc.communicate(timeout=30)
     assert proc.returncode == 0, err
     assert [json.loads(line)['id'] for line in directives.read_text().splitlines()] == ['seed', 'held']
+
+
+# ---- implementation op/proof task-fit guard (synthetic inputs only) -----------------------------------------------
+
+@pytest.fixture
+def proof_world(world):
+    """Hand-built runtime inputs, with the pack's op IDs but no snapshot measurements."""
+    world.events = []
+    world.quota = {'providers': {}}
+    world.accounts = {'schema_version': 1, 'accounts': {
+        'fixture-account': {'billing': 'subscription', 'quota_provider': 'openai', 'quota_source': None}}}
+    models = []
+    for op in world.policy['operating_points']:
+        model = 'fixture-' + op['id']
+        op['expands_to'] = {'provider': 'codex', 'model': model, 'effort': 'medium', 'mode': 'standard'}
+        op.pop('candidates', None)
+        op['evidence_refs'] = []
+        op['known_gaps'] = []
+        models.append({'slug': model, 'options': [{'id': 'reasoningEffort', 'values': [{'id': 'medium'}]}]})
+    world.catalog = {'data': {'providers': [{'instanceId': 'fixture-account', 'driver': 'codex', 'models': models}]}}
+    world.model_catalog = world.tmp / 'absent-model-catalog.json'
+    return world
+
+
+def proof_record_flags(decision_id):
+    return ['--record', '--decision-id', decision_id, '--parent-model', 'pm',
+            '--parent-provider-instance', 'pp', '--parent-thread', 'pt']
+
+
+def proof_state_bytes(world):
+    paths = [world.receipts, world.receipts.with_name('outcomes.jsonl'),
+             world.receipts.with_name('quota-substitution.json'),
+             world.receipts.with_name('quota-substitution.json.lock')]
+    return {str(p): p.read_bytes() if p.exists() else None for p in paths}
+
+
+PROOF_REFUSALS = [
+    ('implement.standard', None, 'requires explicit --proof-class'),
+    ('implement.quota-tight', None, 'requires explicit --proof-class'),
+    ('implement.oracle-bounded', None, 'requires explicit --proof-class'),
+    ('implement.standard', 'oracle', 'bounded work wholly accepted/rejected by a deterministic oracle'),
+    ('implement.oracle-bounded', 'judged', 'requires --proof-class oracle'),
+    ('implement.oracle-bounded', 'none', 'requires --proof-class oracle'),
+]
+
+
+@pytest.mark.parametrize('op,proof,error', PROOF_REFUSALS)
+@pytest.mark.parametrize('mode', ['record', 'unrecorded', 'simulation'])
+@pytest.mark.parametrize('existing', [False, True])
+def test_proof_guard_raw_cli_has_no_writes_or_external_probes(proof_world, monkeypatch, op, proof, error, mode, existing):
+    world = proof_world
+    if existing:
+        world.route('implement.standard', record='seed')
+        close(world, 'seed', 'seed-close', 'accepted')
+        world.receipts.with_name('quota-substitution.json').write_text('{"untouched":"quota fixture"}\n')
+    before = proof_state_bytes(world)
+    marker = world.tmp / 'probe-ran'
+    bin_dir = world.tmp / 'stubbin'
+    bin_dir.mkdir()
+    for name in ('t3code', 'clawmeter'):
+        script = bin_dir / name
+        script.write_text('#!/bin/sh\nprintf ran >> ' + str(marker) + '\nprintf "{}\\n"\n')
+        script.chmod(0o755)
+    monkeypatch.setenv('PATH', str(bin_dir) + os.pathsep + os.environ['PATH'])
+    destinations_file = world.tmp / 'proof-destinations.json'
+    destinations_file.write_text(json.dumps({'schema_version': 1, 'destinations': [{
+        'name': 'fixture', 'purposes': ['execution'], 'vendor': 'codex', 'timeout_seconds': 5,
+        'capacity_command': [sys.executable, '-c', f'from pathlib import Path; Path({str(marker)!r}).write_text("ran"); print("{{}}")'],
+        'how_to': '/fixture/submit', 'submit': {'request_id': '<request_id>'},
+    }]}))
+    flags = proof_record_flags('fresh') if mode == 'record' else ['--decision-id', 'fresh']
+    if mode == 'simulation':
+        flags += ['--now', NOW]
+    if proof is not None:
+        flags += ['--proof-class', proof]
+    # Deliberately raw: World.cli and the production CLI must never fill in a proof declaration.
+    result, out = world.cli('route', op, *world.args(), *flags, '--available', 'auto', '--quota', 'auto',
+                            '--destinations', destinations_file, '--purpose', 'execution', raw=True)
+    assert result.returncode == 1 and out is None and result.stdout == '', result.stderr
+    assert error in result.stderr
+    assert proof_state_bytes(world) == before
+    assert not marker.exists(), 'a refused route must never probe external commands or a destination'
+    if not existing:
+        assert not world.receipts.parent.exists()
+    if op == 'implement.standard' and proof == 'oracle':
+        for guidance in ('implement.oracle-bounded', 'declare judged', 'broader/long/security-sensitive', 'explicit resolve', '--reason'):
+            assert guidance in result.stderr
+
+
+def proof_cli_without_runtime_reads(world, *args):
+    """Run real CLI parsing, with runtime-source reads/probes/writes replaced by a failing sentinel."""
+    world.write()
+    code = '''import runpy, sys
+sys.path.insert(0, sys.argv[1])
+import policy_decisions
+
+def forbidden(*args, **kwargs):
+    raise AssertionError('runtime source/probe/write reached')
+
+policy_decisions.read_source = forbidden
+policy_decisions.route_choice = forbidden
+policy_decisions.append_receipt = forbidden
+policy_decisions.destinations.decide = forbidden
+sys.argv = [sys.argv[2], *sys.argv[3:]]
+runpy.run_path(sys.argv[0], run_name='__main__')
+'''
+    env = dict(os.environ, XDG_CONFIG_HOME=str(world.tmp / 'xdg'))
+    return subprocess.run([sys.executable, '-c', code, str(TOOL.parent / 'lib'), str(TOOL), *map(str, args)],
+                          capture_output=True, text=True, env=env, timeout=30)
+
+
+@pytest.mark.parametrize('op,proof,error', PROOF_REFUSALS)
+def test_proof_guard_precedes_even_runtime_snapshot_reads(proof_world, op, proof, error):
+    world = proof_world
+    flags = [] if proof is None else ['--proof-class', proof]
+    before = proof_state_bytes(world)
+    result = proof_cli_without_runtime_reads(world, 'route', op, *world.args(), *flags, *proof_record_flags('fresh'))
+    assert result.returncode == 1 and error in result.stderr and result.stdout == '', result.stderr
+    assert 'runtime source/probe/write reached' not in result.stderr
+    assert proof_state_bytes(world) == before
+
+
+def test_all_known_implementation_ops_require_an_explicit_declaration(proof_world):
+    world = proof_world
+    for op in world.policy['operating_points']:
+        if op['id'].startswith('implement.'):
+            result, out = world.cli('route', op['id'], *world.args())
+            assert result.returncode == 1 and 'requires explicit --proof-class' in result.stderr, (op['id'], result.stderr)
+            assert out is None and not world.receipts.exists()
+
+
+@pytest.mark.parametrize('op,proof', [('implement.standard', 'judged'), ('implement.standard', 'none'),
+                                      ('implement.oracle-bounded', 'oracle'), ('implement.quota-tight', 'none')])
+def test_fresh_consistent_declarations_are_preserved_and_route_normally(proof_world, op, proof):
+    world = proof_world
+    result, row = world.cli('route', op, *world.args(), '--proof-class', proof, *proof_record_flags('fresh'))
+    assert result.returncode == 0, result.stderr
+    assert row['target']['model'] == 'fixture-' + op and row['launch_ready'] is True
+    assert row['launch_facts'] == {'schema_version': 1, 'proof_class': proof}
+    assert 'proof_class' not in row['request'] and 'op_proof_assessment' not in row
+    before = proof_state_bytes(world)
+    replay, again = world.cli('route', op, *world.args(), '--proof-class', proof, *proof_record_flags('fresh'))
+    assert replay.returncode == 0 and again == row | {'replayed': True}
+    assert proof_state_bytes(world) == before
+
+
+def test_nonimplementation_and_unknown_ops_keep_their_behavior(proof_world):
+    world = proof_world
+    result, row = world.cli('route', 'fanout.dollar-tight', *world.args())
+    assert result.returncode == 0 and row['target'] is not None, result.stderr
+    assert 'launch_facts' not in row
+    for op in ('unknown.fixture', 'implement.unknown-fixture'):
+        result, row = world.cli('route', op, *world.args())
+        assert result.returncode == 1 and f'unknown op: {op}' in result.stderr and row is None
+        assert '--proof-class' not in result.stderr
+
+
+@pytest.mark.parametrize('op,proof', [('implement.standard', None), ('implement.standard', 'oracle'),
+                                      ('implement.oracle-bounded', 'judged'), ('implement.oracle-bounded', 'none')])
+def test_explicit_resolve_keeps_its_existing_proof_behavior(proof_world, op, proof):
+    world = proof_world
+    flags = [] if proof is None else ['--proof-class', proof]
+    result, row = world.cli('resolve', op, *world.args(), *flags, '--reason', 'deliberate op fit')
+    assert result.returncode == 0 and row['target']['model'] == 'fixture-' + op, result.stderr
+
+
+def historical_proof_route(world, op, proof):
+    # Seed a valid synthetic snapshot, then model an immutable pre-guard receipt.
+    row = world.route(op, record='historical')
+    if proof is None:
+        row.pop('launch_facts', None)
+    else:
+        row['launch_facts'] = {'schema_version': 1, 'proof_class': proof}
+    world.receipts.write_text(json.dumps(row) + '\n')
+    return row
+
+
+@pytest.mark.parametrize('op,proof,error', PROOF_REFUSALS)
+def test_historical_missing_or_mismatched_route_replays_before_guard_and_sources(proof_world, op, proof, error):
+    world = proof_world
+    row = historical_proof_route(world, op, proof)
+    before = proof_state_bytes(world)
+    flags = [] if proof is None else ['--proof-class', proof]
+    result = proof_cli_without_runtime_reads(world, 'route', op, *world.args(), *flags, *proof_record_flags('historical'))
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout) == row | {'replayed': True}
+    assert proof_state_bytes(world) == before
+    changed = 'none' if proof != 'none' else 'judged'
+    result, out = world.cli('route', op, *world.args(), '--proof-class', changed, *proof_record_flags('historical'))
+    assert result.returncode == 1 and 'changed inputs' in result.stderr and out is None
+    assert proof_state_bytes(world) == before
+
+
+@pytest.mark.parametrize('op,proof,state', [
+    ('implement.standard', None, 'missing_proof'),
+    ('implement.oracle-bounded', None, 'missing_proof'),
+    ('implement.standard', 'oracle', 'standard_oracle_review_required'),
+    ('implement.oracle-bounded', 'judged', 'oracle_bounded_requires_oracle'),
+    ('implement.oracle-bounded', 'none', 'oracle_bounded_requires_oracle'),
+    ('implement.standard', 'judged', 'declared_consistent'),
+    ('implement.standard', 'none', 'declared_consistent'),
+    ('implement.oracle-bounded', 'oracle', 'declared_consistent'),
+])
+def test_new_close_assesses_recorded_facts_only_without_changing_judgments(proof_world, op, proof, state):
+    world = proof_world
+    receipt = historical_proof_route(world, op, proof)
+    receipt_bytes = world.receipts.read_bytes()
+    # The current pack deliberately no longer contains the recorded op.
+    world.policy['operating_points'] = [o for o in world.policy['operating_points'] if o['id'] != op]
+    for current in world.policy['operating_points']:
+        current['escalate_to'] = [x for x in current.get('escalate_to', []) if x != op]
+        current['deescalate_to'] = [x for x in current.get('deescalate_to', []) if x != op]
+    world.write()
+    argv = ['close', 'historical', '--policy', world.tmp / 'policy.json', '--receipts', world.receipts,
+            '--close-id', 'new-close', '--outcome', 'accepted', '--judged-by', 'parent', '--check', 'none']
+    # The close-time proof is contradictory where possible and must be ignored.
+    result, row = world.cli(*argv, '--proof-class', 'judged' if proof != 'judged' else 'oracle')
+    assert result.returncode == 0, result.stderr
+    assert row['op_proof_assessment'] == {
+        'state': state, 'op': op, 'proof_class': proof,
+        'meaning': 'declared op/proof relationship only; not proof adequacy, wrongdoing or acceptance'}
+    assert row['schema_version'] == 1 and row['outcome'] == 'accepted' and row['check'] == 'none'
+    assert row['judged_by'] == 'parent' and row['evidence'] == []
+    assert row['evidence_summary']['accepted_with_hash_matched_check_log'] is False
+    assert world.receipts.read_bytes() == receipt_bytes
+    before = proof_state_bytes(world)
+    result, replay = world.cli(*argv, '--proof-class', 'none')
+    assert result.returncode == 0 and replay == row | {'replayed': True}
+    assert proof_state_bytes(world) == before
+
+
+def test_legacy_close_replay_never_retrofits_assessment(proof_world):
+    world = proof_world
+    historical_proof_route(world, 'implement.standard', None)
+    argv = ['close', 'historical', '--receipts', world.receipts, '--close-id', 'legacy-close',
+            '--outcome', 'accepted', '--judged-by', 'parent', '--check', 'none']
+    result, row = world.cli(*argv)
+    assert result.returncode == 0, result.stderr
+    row.pop('op_proof_assessment')
+    world.receipts.with_name('outcomes.jsonl').write_text(json.dumps(row) + '\n')
+    before = proof_state_bytes(world)
+    result, replay = world.cli(*argv)
+    assert result.returncode == 0 and replay == row | {'replayed': True}
+    assert 'op_proof_assessment' not in replay and proof_state_bytes(world) == before
+
+
+def test_nonimplementation_close_omits_assessment(proof_world):
+    world = proof_world
+    world.route('fanout.dollar-tight', record='nonimplementation')
+    close(world, 'nonimplementation', 'nonimplementation-close', 'accepted')
+    row = json.loads(world.receipts.with_name('outcomes.jsonl').read_text())
+    assert 'op_proof_assessment' not in row
+
+
+def test_old_reader_replays_new_assessment_without_evidence_changes(proof_world, tmp_path):
+    world = proof_world
+    # Require the pinned pre-guard CLI, rather than silently skipping compatibility
+    # when a much older optional baseline is absent from this checkout.
+    base = '9b95136141313cf606f51ee19651dc75fbc68ab2'
+    tree = tmp_path / 'pre-guard'
+    tree.mkdir()
+    archive = subprocess.run(['git', 'archive', base, 'tools/model-policy-ops', 'data/model-choice-policy'],
+                             cwd=REPO, capture_output=True, check=True)
+    subprocess.run(['tar', '-x', '-C', str(tree)], input=archive.stdout, check=True)
+    old_tool = tree / 'tools/model-policy-ops/model-policy-ops'
+    historical_proof_route(world, 'implement.standard', 'oracle')
+    evidence = {'type': 'pr', 'repo': 'fixture/repo', 'number': 1}
+    flags = ['--receipts', world.receipts, '--close-id', 'new-close', '--outcome', 'accepted',
+             '--judged-by', 'parent', '--check', 'maker_judged', '--evidence', json.dumps(evidence)]
+    result, row = world.cli('close', 'historical', *flags)
+    assert result.returncode == 0, result.stderr
+    assert row['op_proof_assessment']['state'] == 'standard_oracle_review_required'
+    assert set(row['evidence'][0]) == set(evidence) | {'verified_state', 'verified_at', 'verification_scope'}
+    before = proof_state_bytes(world)
+    code, stdout, stderr = run_tool(old_tool, 'close', 'historical', *flags)
+    assert code == 0, stderr
+    assert json.loads(stdout) == row | {'replayed': True}
+    assert proof_state_bytes(world) == before
+    code, stdout, stderr = run_tool(old_tool, 'followup', 'historical', '--receipts', world.receipts,
+                                   '--followup-id', 'old-reader-followup', '--finding', 'no_rework_found', '--checked-scope', 'fixture')
+    assert code == 0, stderr
+    assert 'op_proof_assessment' not in json.loads(stdout)

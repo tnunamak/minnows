@@ -403,6 +403,30 @@ replayed in a simulation. `--now` is read-only: `directive list` and `calibrate`
 it; every other command (`resolve`, `close`, `followup`, `audit`, `directive add|end`)
 refuses it, because they write state with the real clock.
 
+### Implementation proof declarations
+
+Every fresh `route implement.*` requires an explicit `--proof-class oracle|judged|none`,
+including unrecorded routes and `--now` simulations. Explicit `none` declares that no
+proof is being claimed; leaving the flag out is unknown and is refused.
+
+Here `oracle` means a deterministic check can wholly accept or reject the bounded
+work. Passing some tests does not establish that they cover the whole acceptance
+standard. Use `implement.oracle-bounded --proof-class oracle` for that bounded case.
+`implement.standard --proof-class oracle` is refused with guidance, never silently
+swapped to another op or model. If checks cover only part of the standard, declare
+`judged`. For deliberate broader, long-running or security-sensitive oracle work,
+use explicit `resolve` with a `--reason` explaining why the selected op fits.
+`implement.oracle-bounded` refuses `judged` and `none`; `implement.standard` accepts
+both declarations. Other implementation ops require a declaration without gaining
+an automatic classification or new model ranking.
+
+This validates the declared task fit, not proof adequacy or whether the chosen
+workflow is cheapest. `resolve` and linked escalation retain their existing rules.
+An exact stored receipt replay returns the original, even with a missing or now
+mismatched declaration. The guard runs after that replay check and before runtime
+availability/quota reads, probes or quota/receipt writes. Unknown and nonimplementation
+ops retain their existing behavior. Request and launch-fact shapes stay unchanged.
+
 ### Output
 
 `route` prints one JSON object. It is a valid `resolve` receipt (`target`,
@@ -462,7 +486,7 @@ and `--json` retain the existing full, indented receipt output. `--brief --json`
 is rejected, as is `--brief` on every other command.
 
 ```bash
-model-policy-ops route implement.quota-tight --brief \
+model-policy-ops route implement.quota-tight --proof-class judged --brief \
   --available capabilities.json --quota quota.json --accounts accounts.json \
   --decision-id task-unique-id --record \
   --parent-model PARENT_MODEL --parent-provider-instance PARENT_INSTANCE \
@@ -1186,6 +1210,20 @@ separately; a difference in either is rejected. A legacy receipt has no
 cannot be added later. Use a new decision ID.
 
 ## Outcomes
+
+Each new implementation close includes optional top-level `op_proof_assessment`,
+computed from the recorded receipt's op and launch proof class, never current flags
+or the current policy pack. Its `state` is `missing_proof`,
+`standard_oracle_review_required`, `oracle_bounded_requires_oracle`, or
+`declared_consistent`; it also records `op`, `proof_class` and its limited `meaning`.
+Missing proof takes precedence over a mismatch. This is only a declared op/proof
+relationship signal, not proof adequacy, wrongdoing or acceptance. It never changes
+outcome/check judgments or rejects a historical close. Nonimplementation closes omit it.
+
+The assessment is optional on read, outside evidence entries and close replay
+identity, with schema version 1 unchanged. Older readers can read and replay new
+rows. An exact close replay returns its original metadata; an old close without the
+field stays without it. No historical rows or evidence fields are rewritten.
 
 `close` and `followup` write to `outcomes.jsonl`, beside the receipts file (override
 with `--outcomes FILE`). A separate file keeps `decisions.jsonl` readable by older

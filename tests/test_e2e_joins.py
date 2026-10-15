@@ -138,7 +138,7 @@ def test_superseded_decision_relaunch_joins_audit(setup, world, tmp_path):
     world.route('implement.quota-tight', record='one')
     result, _ = close(setup, 'one', 'c1', outcome='superseded')
     assert result.returncode == 0, result.stderr
-    second, relaunch = world.cli('route', 'implement.quota-tight', *world.args(), '--relaunch-of', 'one', '--why', 'config', '--reason', 'repair runtime',
+    second, relaunch = world.cli('route', 'implement.quota-tight', *world.args(), '--proof-class', 'judged', '--relaunch-of', 'one', '--why', 'config', '--reason', 'repair runtime',
                                  '--decision-id', 'two', '--record', '--parent-model', 'pm', '--parent-provider-instance', 'pp', '--parent-thread', 'pt')
     assert second.returncode == 0, second.stderr
     result, _ = close(setup, 'two', 'c2', outcome='accepted')
