@@ -106,6 +106,95 @@ does not rewrite history, and every total_cost remains null because parent,
 native, planning, and other coverage gaps prevent complete cost accounting.
 It is not wired into the legacy report formatter.
 
+## Read-only decision reconciliation
+
+The new report is a launch-cohort reconciliation of delegated decisions, not a
+whole-task cost or success report. It never dispatches, observes live services,
+records a close, changes a receipt, or strengthens a judgment.
+
+```bash
+model-policy-ops report --receipts /private/state/decisions.jsonl \
+  --outcomes /private/state/outcomes.jsonl --db /private/t3/statev2.sqlite \
+  --report-dir /private/reports/2026-10-15
+# Or use --export /private/exports/audit.json instead of --db.
+
+```
+
+Exactly one of --db and --export is required. --observations defaults to
+observations.jsonl beside the receipts, and --outcomes defaults to outcomes.jsonl
+there. Receipts, outcomes, and the selected DB/export are mandatory, even when
+empty. Missing or malformed optional observations are explicitly unavailable.
+Malformed mandatory input fails before publishing artifacts.
+
+--since accepts a timezone-bearing ISO timestamp. The default cohort starts
+14 rolling days before collection, includes both boundaries, and uses the
+receipt's recorded_at (UTC launch day), not call or close time. All current
+closes are considered, including late closes. An explicit superseding rejection
+removes an earlier acceptance. Completed runs and destination acceptance events
+never create a decision close. --record and --now are refused; report accepts no
+op or --thread. There is no simulation or source-ledger write path.
+
+The report parent must already exist, be owned by the current user, and not be
+writable by others. --report-dir must be new and outside every source directory.
+Symlink traversal, existing destinations, aliased source files, and overlapping
+input/output directories are refused. A private adjacent staging directory
+publishes reconciliation.json and daily.md together by rename, with directory
+mode 0700 and file modes 0600. A new directory is required for each report; old
+reports are never overwritten or cleaned up. Stdout is only a small summary,
+artifact paths, and coverage.
+
+Provenance and interpretation:
+
+- Each ledger/export is read once under a shared lock. Existing readers parse
+  private immutable copies of those exact bytes; their SHA-256 hashes include
+  whitespace. They never reopen a live ledger after hashing it.
+- The DB reader uses its existing read transaction. Its hash is explicitly a
+  canonical hash of the projected transaction, not a DB-file or WAL hash. No
+  raw database copy is made. Collection metadata, cohort bounds, schema/report
+  version, and the verified T3 runtime-semantics version are explicit.
+- Rows use the top-level receipt target. A dot destination's selection.arm is
+  only a model fallback. Caller account hints are never reported as known
+  dispatch accounts. Model versions and supported requested options retain
+  exact identifiers; unknown option surfaces are counted as dropped. Served
+  models remain unattested. Prompts, titles, reasons, notes, and evidence text
+  are excluded from artifacts.
+- A usage unit is source namespace plus provider_turn_id, not token values.
+  Duplicate joins count once; distinct turns with equal counters both count.
+  Conflicting decision/run/attempt ownership or contradictory authoritative
+  snapshots are retained as conflicts and excluded from attribution. Missing
+  identities remain gaps. Historical usage observations are never a source
+  revision and never substitute for current DB counters.
+- At this base, audit export projects lifecycle/configuration but no turn usage.
+  Export-backed report usage is therefore explicitly unknown_not_in_export.
+  Use a DB projection for unique-turn usage. Extra export usage fields are not
+  silently treated as an extension to the audit contract.
+- Verified claude/codex runtime semantics are
+  v0.0.46-nightly.20261014.3105: input includes cache reads and cache creation;
+  fresh input is input minus those caches, and output already includes reasoning.
+  Invalid partitions remain invalid, and missing fields are never zero-filled.
+  Unknown provider semantics do not gain derived totals. Codex turn counters
+  already include resets; the report never sums historical snapshots.
+- Complete main-agent usage does not mean complete nested or procedure usage.
+  Parent overhead and native subagents remain unknown/unallocated. Explicit
+  relaunch, escalation, and maker edges are nonadditive decision views, including
+  ancestors outside the cohort; they never become task totals.
+- Daily rows group UTC launch day, op, and destination. They retain all failed,
+  repaired, and rejected attempts, current close/judge/check/repair missingness,
+  known token components, coverage and conflicts. A zero accepted denominator
+  does not produce a zero-dollar ratio. Receipt-to-close latency is labeled
+  decision latency. Available historical run timestamps are labeled as such;
+  parallel run durations are never summed into wall time.
+- Pricing scenarios are deliberately not implemented. USD, credits, task cost,
+  and task accepted-result counts remain null. A token price or benchmark prior
+  cannot establish an invoice, subscription allocation, historical billed rate,
+  or predicted task cost. Missing price bindings/regimes are explicit gaps.
+- With the same pinned inputs and cohort bounds, reconciliation is deterministic;
+  collection timestamps are separate metadata.
+
+Offline verification: tests/test_cost_report.py uses temporary fixture ledgers,
+sanitized exports, and SQLite projections only. It never launches a model or
+contacts a service.
+
 ## Procedure
 
 1. Choose an op from `list`, based on the task and its verification boundary.
