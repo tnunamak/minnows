@@ -12,7 +12,8 @@ import stat
 import subprocess
 from datetime import datetime, timezone
 
-from decision_receipts import append_row, find_receipt, locked_private_rows, numbered_rows, validate_id
+from decision_receipts import (append_row, find_receipt, locked_private_rows, numbered_rows, validate_id,
+                               read_receipts, metadata_object, metadata_id, validate_task_link)
 
 CLI_VERSION = 1
 OUTCOMES = ('accepted', 'accepted_after_repair', 'rejected', 'abandoned_by_choice', 'superseded', 'unknown')
@@ -427,6 +428,158 @@ def split_rows(rows):
     return [r for r in rows if r.get('kind') == 'close'], [r for r in rows if r.get('kind') == 'followup']
 
 
+
+def validate_task_result(value, refs):
+    keys = {'v', 'consumer_task_id', 'supersedes_task_close_id', 'standard_evidence'}
+    if not isinstance(value, dict) or set(value) != keys or type(value.get('v')) is not int or value['v'] != 1:
+        raise ValueError('task_result requires exactly v:1, consumer_task_id, supersedes_task_close_id and standard_evidence')
+    metadata_id(value['consumer_task_id'], 'consumer_task_id')
+    if value['supersedes_task_close_id'] is not None:
+        metadata_id(value['supersedes_task_close_id'], 'supersedes_task_close_id')
+    indices = value['standard_evidence']
+    if (not isinstance(indices, list) or not indices or len(indices) > MAX_EVIDENCE
+            or any(type(index) is not int or not 0 <= index < len(refs) for index in indices)
+            or len(set(indices)) != len(indices)):
+        raise ValueError('standard_evidence must contain unique indices into the existing evidence array')
+    return value
+
+
+def result_matches_receipt(value, receipt):
+    link = validate_task_link(receipt.get('task_link'))
+    if link['consumer_task_id'] != value['consumer_task_id']:
+        raise ValueError('task_result requires the receipt explicitly linked to the same consumer task')
+
+
+def task_projection(receipts, rows):
+    """Conservative whole-result claims, by links, never timestamps; legacy decision semantics are untouched.
+
+    An untagged normal successor invalidates the declaration and becomes its recoverable head.
+    A fork, malformed metadata, missing receipt, or broken task link has no accepted task.
+    No lifecycle event, ordinary checker close, or token-price estimate is task acceptance/cost.
+    """
+    tasks, receipt_map, bad, global_bad = {}, {}, set(), False
+
+    def ensure(task):
+        if isinstance(task, str):
+            try:
+                metadata_id(task, 'consumer_task_id')
+            except ValueError:
+                return None
+            tasks.setdefault(task, [])
+            return task
+        return None
+
+    for receipt in receipts:
+        decision = receipt.get('decision_id')
+        if decision in receipt_map:
+            global_bad = True
+        receipt_map[decision] = receipt
+        if 'task_link' in receipt:
+            raw = receipt['task_link']
+            task = ensure(raw.get('consumer_task_id')) if isinstance(raw, dict) else None
+            try:
+                validate_task_link(raw)
+            except ValueError:
+                if task:
+                    bad.add(task)
+                else:
+                    global_bad = True
+
+    closes = [row for row in rows if row.get('kind') == 'close']
+    by_id, association, valid = {}, {}, {}
+    for row in closes:
+        close_id = row.get('close_id')
+        if not isinstance(close_id, str) or close_id in by_id:
+            global_bad = True
+            continue
+        by_id[close_id] = row
+        if 'task_result' not in row:
+            continue
+        raw = row['task_result']
+        task = ensure(raw.get('consumer_task_id')) if isinstance(raw, dict) else None
+        receipt = receipt_map.get(row.get('decision_id'), {})
+        linked = receipt.get('task_link')
+        linked_task = ensure(linked.get('consumer_task_id')) if isinstance(linked, dict) else None
+        if task:
+            association[close_id] = task
+        elif linked_task:
+            association[close_id] = linked_task
+        try:
+            validate_task_result(raw, row.get('evidence', []))
+            result_matches_receipt(raw, receipt)
+        except (ValueError, TypeError):
+            bad.update(t for t in (task, linked_task) if t)
+            if not task and not linked_task:
+                global_bad = True
+        else:
+            valid[close_id] = raw
+    # Link traversal is independent of ledger/list order and of wall-clock timestamps.
+    changed = True
+    while changed:
+        changed = False
+        for close_id, row in by_id.items():
+            if close_id not in association and 'task_result' not in row and row.get('supersedes') in association:
+                association[close_id] = association[row['supersedes']]
+                changed = True
+    for close_id, task in association.items():
+        tasks[task].append(close_id)
+
+    try:
+        validate_outcome_rows(list(enumerate(rows, 1)))
+    except (ValueError, TypeError, KeyError):
+        # Do not repair or silently omit broken legacy history.
+        global_bad = True
+    result = {}
+    for task, nodes in tasks.items():
+        parents, children = {}, {node: [] for node in nodes}
+        broken = global_bad or task in bad
+        for node in nodes:
+            row = by_id[node]
+            parent = (valid[node]['supersedes_task_close_id'] if node in valid else row.get('supersedes'))
+            parents[node] = parent
+            if parent is not None:
+                if parent not in children or parent == node:
+                    broken = True
+                else:
+                    children[parent].append(node)
+        roots = [node for node in nodes if parents[node] is None]
+        heads = [node for node in nodes if not children[node]]
+        if nodes and (len(roots) != 1 or len(heads) != 1 or any(len(kids) > 1 for kids in children.values())):
+            broken = True
+        reached, pending = set(), list(roots)
+        while pending:
+            node = pending.pop()
+            if node in reached:
+                broken = True
+                continue
+            reached.add(node)
+            pending.extend(children[node])
+        if reached != set(nodes):
+            broken = True
+        head = heads[0] if nodes and not broken else None
+        declared = head in valid if head else False
+        terminal = by_id[head]['outcome'] if declared else None
+        result[task] = {'state': 'declared' if declared else 'unknown',
+                        'current_close_id': head, 'terminal_judgment': terminal,
+                        'accepted_count': int(declared and terminal in ('accepted', 'accepted_after_repair')),
+                        'total_cost': None,
+                        'reason': 'conflicting_or_malformed_metadata' if broken else
+                                  'explicit_whole_result_claim' if declared else
+                                  'untagged_successor' if head else 'no_task_declaration'}
+    return {'tasks': result, 'accepted_count': sum(item['accepted_count'] for item in result.values()),
+            'total_cost': None, 'scope': 'explicit whole-consumer-result caller claims; incomplete cost coverage'}
+
+
+def validate_task_append(value, receipts, rows):
+    projection = task_projection(receipts, rows)
+    state = projection['tasks'].get(value['consumer_task_id'])
+    if state and state['reason'] == 'conflicting_or_malformed_metadata':
+        raise ValueError('task history has conflicting or malformed metadata')
+    head = state['current_close_id'] if state else None
+    if value['supersedes_task_close_id'] != head:
+        raise ValueError('supersedes_task_close_id must name the unique current close of this task (null for its first declaration)')
+
+
 def write_close(args, receipt):
     close_id = args.close_id
     if not close_id:
@@ -450,6 +603,11 @@ def write_close(args, receipt):
         raise ValueError(f'at most {MAX_EVIDENCE} evidence references')
     refs = [parse_evidence(raw) for raw in args.evidence]
     check_consistency(outcome, check, args.repairs, refs)
+    raw_task_result = getattr(args, 'task_result', None)
+    task_result = (validate_task_result(metadata_object(raw_task_result, '--task-result', 2048), refs)
+                   if raw_task_result is not None else None)
+    if task_result is not None:
+        result_matches_receipt(task_result, receipt)
     intent = {'decision_id': decision_id, 'outcome': outcome, 'judged_by': judged_by, 'check': check,
               'repairs': args.repairs, 'owner_input': owner_input, 'evidence': refs, 'note': note,
               'supersedes': args.supersedes, 'reason': reason, 'closer_thread': closer_thread}
@@ -458,7 +616,7 @@ def write_close(args, receipt):
         for old in closes:
             if old['close_id'] == close_id:
                 stored = {k: old[k] for k in intent if k != 'evidence'} | {'evidence': [{k: e[k] for k in e if k not in ('verified_state', 'verified_at', 'verification_scope')} for e in old['evidence']]}
-                if stored != intent:
+                if stored != intent or (task_result is not None and old.get('task_result') != task_result):
                     raise ValueError('close ID already recorded with changed inputs; use --supersedes with a new ID')
                 return old | {'replayed': True}
         if any(r.get('close_id') == close_id or r.get('followup_id') == close_id for r in rows):
@@ -471,9 +629,18 @@ def write_close(args, receipt):
                 raise ValueError('--supersedes must name the current close of this decision')
         elif heads:
             raise ValueError('decision already closed; correct it with --supersedes CURRENT_CLOSE_ID and --reason')
+        if task_result is not None:
+            receipt_rows = read_receipts(args.receipts)
+            matches = [row for row in receipt_rows if row.get('decision_id') == decision_id]
+            if len(matches) != 1:
+                raise ValueError('task result requires exactly one matching receipt')
+            result_matches_receipt(task_result, matches[0])
+            validate_task_append(task_result, receipt_rows, rows)
         record = {'schema_version': 1, 'kind': 'close', 'close_id': close_id, **intent,
                   **verify_all(refs), 'recorded_at': now(), 'cli_version': CLI_VERSION,
                   'policy_sha256': receipt.get('policy_sha256'), 'scope': SCOPE, 'assertion': 'caller_claim'}
+        if task_result is not None:
+            record['task_result'] = task_result
         record['evidence_summary'] = evidence_summary(record['evidence'], check, outcome)
         append_row(stream, record)
     return record
