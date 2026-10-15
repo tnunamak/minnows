@@ -1,6 +1,6 @@
-# `route` delivery contract (v1, revision 23)
+# `route` delivery contract (v1, revision 24)
 
-Status: revision 23, 2026-10-15. Revision 23 records owner authorization for public-only experimental T3 evaluation of the exact OpenCode DeepSeek route; sensitive and unknown inputs, undeclared models, and ordinary operations remain refused. Sandbox and MCP isolation remain future hardening. Revision 22 refuses undeclared OpenCode `variant` models and requires unexpired route evidence at evaluation time. The expiry is a local seven-day policy horizon, not a vendor end date; `--now` remains a non-dispatchable simulation. It records that public classification is a caller assertion and shares one durable validator. Revision 21 adds exact, public-input-only experimental free routes. Revision 20 lets a destination return its own T3 target (see the changelog). Revision 19 ties each quota constraint to one quota window, so a constraint never crosses a reset (see the changelog). Revision 18 fixes independence without a maker, defers quota-state commits until acceptance and requires timezone-aware observation timestamps. Revision 17 moves quota-substitution thresholds out of the shipped pack into a per-user overlay (see the changelog). Revision 16 adds quota-aware substitution to `route` (see the changelog). Revision 15 adds observation notes to `route` (see the changelog). Revision 13 applies the observe round-3 review (see the changelog). Revision 12 applies the observe round-2 review (see the changelog). Revision 11 applies the observe review (see the changelog). Revision 10 adds `observe` (see the changelog). Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
+Status: revision 24, 2026-10-15. Revision 24 authorizes every actual returned target through one fresh/replay boundary, including destination replacements and nested targets. Revoked declarations cannot authorize old receipts. New effort surfaces require an explicit policy tuple. Revision 23 records owner authorization for public-only experimental T3 evaluation of the exact OpenCode DeepSeek route; sensitive and unknown inputs, undeclared models, and ordinary operations remain refused. Sandbox and MCP isolation remain future hardening. Revision 22 refuses undeclared OpenCode `variant` models and requires unexpired route evidence at evaluation time. The expiry is a local seven-day policy horizon, not a vendor end date; `--now` remains a non-dispatchable simulation. It records that public classification is a caller assertion and shares one durable validator. Revision 21 adds exact, public-input-only experimental free routes. Revision 20 lets a destination return its own T3 target (see the changelog). Revision 19 ties each quota constraint to one quota window, so a constraint never crosses a reset (see the changelog). Revision 18 fixes independence without a maker, defers quota-state commits until acceptance and requires timezone-aware observation timestamps. Revision 17 moves quota-substitution thresholds out of the shipped pack into a per-user overlay (see the changelog). Revision 16 adds quota-aware substitution to `route` (see the changelog). Revision 15 adds observation notes to `route` (see the changelog). Revision 13 applies the observe round-3 review (see the changelog). Revision 12 applies the observe round-2 review (see the changelog). Revision 11 applies the observe review (see the changelog). Revision 10 adds `observe` (see the changelog). Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
 child runs of a maker, the directive cap on write and on read, and final-pair judgment after an
 override (see the changelog). Revision 4 applies the independent checker's
 findings (report r1): maker provenance from the T3 child run, a model line key for
@@ -120,7 +120,15 @@ refuses the route; the timestamp is evaluated in UTC. Undeclared OpenCode models
 using the `variant` option are also refused before any target can be returned.
 The transport's known risks are shared OpenCode server host tools and injected
 `t3_thread_read` private-thread access. Receipt replay checks current public
-classification, explicit overrides, and expiry. Per-instance custom binary and
+classification, explicit overrides, and expiry for every governed target, including
+destinations and nested selections. Stored governance metadata, selection arms,
+and legacy OpenCode targets identify governed receipts even after the current
+declaration is removed or renamed. Each target requires a current exact
+provider/model/account authorization; fallback approval does not authorize a
+replacement destination. A refusal clears every target and dispatch instruction.
+New `variant` resolution is limited to the provider/model tuple passed explicitly
+from policy; unrelated providers retain their existing effort surfaces. Ordinary
+historical receipts retain their existing replay behavior. Per-instance custom binary and
 MCP isolation remain future hardening.
 Private repositories, PDPP data, secrets, Jev text, and personal data are
 prohibited. This route has no earned operations and is not added to any op.
@@ -506,6 +514,8 @@ The two `task_benchmark_prior` substitutes cost more than their primaries. They
 protect quality, not quota.
 
 ## Changelog
+
+- Revision 24 (2026-10-15): apply current exact experimental authorization to every returned target on fresh decisions and replay, including destination replacements, nested selections, revoked routes and legacy OpenCode receipts. Clear dispatch instructions on refusal. Restrict new effort surfaces to a policy-declared provider/model tuple.
 
 - Revision 23 (2026-10-15): record the owner's narrow public-only experimental T3 authorization for exact overrides to the DeepSeek OpenCode route, while keeping sensitive/unknown inputs, sibling models, and ordinary operations refused. Record shared-host and private-thread access risks plus per-instance binary/MCP isolation as future hardening.
 

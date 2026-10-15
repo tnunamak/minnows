@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from experimental_routes import has_current_evidence, parse_utc_timestamp
-from runtime_sources import digest, read_source, providers, resolve_arm, quota_context
+from runtime_sources import digest, read_source, providers, provider_instance, driver_family, resolve_arm, quota_context
 from decision_receipts import read_receipts, find_receipt, append_receipt, validate_id, replay_receipt, validate_escalation_source
 from decision_receipts import receipt_extensions, capture_choice
 import outcomes
@@ -190,65 +190,14 @@ def run_calibrate(args, policy, at):
                             model_catalog=model_catalog, db=args.db, since=since, at=at, params=policy.get('routing', {}))
 
 
-def clear_targets(value):
-    """Null every `target` key inside a simulation result, so no nested copy is dispatchable."""
+def clear_targets(value, *, remove_dispatch=False):
+    """Null every `target` key inside a result, so no nested copy is dispatchable."""
     if isinstance(value, dict):
-        return {k: None if k == 'target' else clear_targets(v) for k, v in value.items()}
+        return {k: None if k == 'target' else clear_targets(v, remove_dispatch=remove_dispatch)
+                for k, v in value.items() if not (remove_dispatch and k == 'dispatch')}
     if isinstance(value, list):
-        return [clear_targets(v) for v in value]
+        return [clear_targets(v, remove_dispatch=remove_dispatch) for v in value]
     return value
-
-
-def enforce_current_experimental_route_policy(receipt, policy):
-    """Prevent old receipts from bypassing the current public route gate or expiry."""
-    routes = policy.get('experimental_free_routes', [])
-    if not routes:
-        return receipt
-
-    def targets_route(value, route):
-        if isinstance(value, dict):
-            target = value.get('target')
-            if (isinstance(target, dict) and target.get('providerInstanceId') == route.get('account')
-                    and target.get('model') == route.get('model')):
-                return True
-            return any(targets_route(child, route) for child in value.values())
-        if isinstance(value, list):
-            return any(targets_route(child, route) for child in value)
-        return False
-
-    for route in routes:
-        if not targets_route(receipt, route):
-            continue
-        request = receipt.get('request') or {}
-        overrides = request.get('overrides') or {}
-        now = datetime.now(timezone.utc)
-        expires_at = parse_utc_timestamp(route.get('expires_at_utc'))
-        current = ((route.get('t3_transport') or {}).get('enabled') is True
-                   and request.get('experimental_route') is True
-                   and request.get('data_classification') == 'public'
-                   and request.get('sensitive') is False
-                   and (request.get('op') == 'fanout.explore' or request.get('no_op') is True)
-                   and overrides.get('provider') == route.get('provider')
-                   and overrides.get('model') == route.get('model')
-                   and overrides.get('account') == route.get('account')
-                   and 'effort' in overrides
-                   and expires_at is not None and now < expires_at
-                   and has_current_evidence(route, now))
-        if current:
-            continue
-
-        result = clear_targets(receipt)
-        result['launch_ready'] = False
-        result['launch_readiness_basis'] = 'current public experimental route policy refused receipt replay'
-        result.pop('dispatch', None)
-        result['data_policy'] = {'route': route['model'], 'account': route['account'],
-                                 'classification': request.get('data_classification', 'unknown'),
-                                 't3_transport': route.get('t3_transport'), 'state': 'refused',
-                                 'refusal': 'experimental_route_receipt_not_currently_authorized'}
-        if isinstance(result.get('selection'), dict):
-            result['selection'] |= {'state': 'data_policy_refused', 'target': None}
-        return result
-    return receipt
 
 
 def validate_route_proof(op_id, proof_class):
@@ -392,7 +341,8 @@ def execute_locked(args, policy, stack):
     old = None if simulation else find_receipt(args.receipts, decision_id)
     if old:
         replayed = replay_receipt(old, request, facts, extensions)
-        return enforce_current_experimental_route_policy(replayed, policy)
+        apply_experimental_route_policy(replayed, policy, datetime.now(timezone.utc), replay=True)
+        return replayed
     # Exact historical replay wins. Validate known fresh routes (including simulations)
     # before reading runtime sources, running probes or acquiring writable quota state.
     # Unknown ops retain the existing unknown-op path; resolve/escalation is unchanged.
@@ -434,6 +384,8 @@ def execute_locked(args, policy, stack):
             raise ValueError('same-arm quality retry is not escalation')
         escalation = {'from': args.escalate_from, 'to_op': args.op, 'why': args.why,
                       'handoff_boundary': args.handoff_boundary}
+    declared_route = next((row for row in policy.get('experimental_free_routes', [])
+                           if (row['provider'], row['model']) == (arm['provider'], arm['model'])), None)
     routing_block = None
     if route:
         routing_block, accounts, ctx = route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack)
@@ -449,14 +401,15 @@ def execute_locked(args, policy, stack):
             selection = {'arm': arm, 'accounts': routing.catalog_instances(available, arm['provider']), 'state': 'no_route_target',
                          'target': None, 'authentication': 'not_attested'}
         else:
-            selection = resolve_arm(arm, available, available_meta, account)
+            selection = resolve_arm(arm, available, available_meta, account, experimental_route=declared_route)
         final_instance = selection['target']['providerInstanceId'] if selection['target'] else account
         entry = accounts.get(final_instance) or {}
         quota_info = quota_context(quota, quota_meta, arm, entry.get('quota_provider'), entry.get('quota_source'), at)
         final_arm = {k: arm[k] for k in ('provider', 'model', 'effort')}
         routing.finalize(routing_block, ctx, op, final_arm, final_instance, selection, routed=routed, overridden=bool(overrides))
     else:
-        selection = resolve_arm(arm, available, available_meta, overrides.get('account', args.account_hint))
+        selection = resolve_arm(arm, available, available_meta, overrides.get('account', args.account_hint),
+                                experimental_route=declared_route)
         quota_info = quota_context(quota, quota_meta, arm, args.quota_provider, args.quota_source)
     context = dict(op) if op else {'id': None, 'known_gaps': ['No policy operating point selected'], 'evidence_refs': [], 'escalate_to': []}
     alternatives = []
@@ -539,6 +492,8 @@ def execute_locked(args, policy, stack):
             else:
                 return_value['launch_readiness_basis'] = ('destination chosen; the root decision ID does not match its request_id_pattern; '
                                                           'submit by hand or re-route with a matching decision ID')
+    apply_experimental_route_policy(return_value, policy, at, available=available)
+
     if simulation:
         simulated = return_value['target']
         return_value = clear_targets(return_value)
@@ -547,9 +502,6 @@ def execute_locked(args, policy, stack):
         return_value['launch_readiness_basis'] = 'simulation only; no dispatchable target'
         return_value['simulation'] = {'now': at.isoformat(), 'real_clock_at_evaluation': datetime.now(timezone.utc).isoformat(),
                                       'note': 'simulation only; not a dispatch decision'}
-
-    apply_experimental_route_policy(return_value, args, policy, arm,
-                                    final_instance if route else (overrides.get('account') or args.account_hint), at)
 
     if 'task_link' in extensions:
         return_value['task_link'] = extensions['task_link']
@@ -574,84 +526,146 @@ def execute_locked(args, policy, stack):
         if route and ctx['substitution']:
             return_value['routing']['quota_substitution']['state_commit'] = 'after_receipt'
         recorded = append_receipt(args.receipts, return_value, extensions)
-        if not recorded.get('replayed'):
+        if recorded.get('replayed'):
+            apply_experimental_route_policy(recorded, policy, datetime.now(timezone.utc), replay=True)
+        else:
             commit_quota()
         return recorded
     commit_quota()
     return return_value
 
 
-def apply_experimental_route_policy(result, args, policy, arm, account, evaluated_at):
-    """Gate declared routes and refuse undeclared OpenCode variant arms."""
+def dispatch_identities(result, available=None):
+    """Identify every returned target, retaining provider identity across receipt replay.
+
+    Old receipts have selection arms but no identity list. Destination targets need
+    the catalog driver on fresh evaluation; store it so replay never needs live I/O.
+    """
+    nodes = []
+
+    def visit(value):
+        if isinstance(value, dict):
+            nodes.append(value)
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    visit(result)
+    stored = (result.get('data_policy') or {}).get('targets', [])
+    known = {(row['account'], row['model']): row['provider'] for row in stored}
+    for node in nodes:
+        arm, target = node.get('arm'), node.get('target')
+        if isinstance(arm, dict) and isinstance(target, dict) and arm.get('model') == target.get('model'):
+            known[(target.get('providerInstanceId'), target.get('model'))] = arm.get('provider')
+    live = {provider_instance(row): driver_family(row) for row in providers(available or {})}
+    identities = []
+    overrides = (result.get('request') or {}).get('overrides') or {}
+    for node in nodes:
+        target = node.get('target')
+        if not isinstance(target, dict):
+            continue
+        account, model = target.get('providerInstanceId'), target.get('model')
+        provider = live.get(account, known.get((account, model), target.get('driverKind')))
+        # Legacy OpenCode receipts/destinations can predate stored provider identity.
+        if provider is None and account == 'opencode':
+            provider = 'opencode'
+        options = target.get('options') or {}
+        effort = next((options[key] for key in ('effort', 'reasoningEffort', 'thinking', 'variant') if key in options),
+                      overrides.get('effort'))
+        identity = {'provider': provider, 'model': model, 'account': account, 'effort': effort}
+        if identity not in identities:
+            identities.append(identity)
+    # A failed direct resolution must still explain a governed request's refusal.
+    # A destination replaces this selection, so its fallback cannot authorize it.
+    if not result.get('destination'):
+        selection = result.get('selection') or {}
+        arm = selection.get('arm') or {}
+        if arm and selection.get('target') is None:
+            identities.append({'provider': arm.get('provider'), 'model': arm.get('model'),
+                               'account': overrides.get('account') or (result.get('request') or {}).get('account'),
+                               'effort': arm.get('effort')})
+    return identities
+
+
+def experimental_target_refusal(identity, request, sensitive, routes, evaluated_at):
+    """One current exact authorization is required for each governed identity."""
+    declared = next((row for row in routes if row['provider'] == identity['provider']
+                     and row['model'] == identity['model']), None)
+    model_alias = next((row for row in routes if row['model'] == identity['model']), None)
+    route = declared or model_alias
+    if route is None:
+        return None, 'model_not_declared_for_experimental_route'
+    if declared is None:
+        return route, 'provider_alias_not_allowed'
+    if sensitive:
+        return route, 'sensitive_inputs'
+    if request.get('data_classification') != 'public':
+        return route, 'public_classification_required'
+    overrides = request.get('overrides') or {}
+    scope = ((request.get('route') is True and request.get('op') == 'fanout.explore')
+             or (not request.get('route') and request.get('no_op') is True))
+    explicit = (scope and request.get('experimental_route') is True
+                and bool((request.get('reason') or '').strip())
+                and all(overrides.get(key) == identity[key] == route[key] for key in ('provider', 'model', 'account'))
+                and overrides.get('effort') is not None and overrides['effort'] == identity['effort'])
+    if not explicit:
+        return route, 'exact_experimental_override_required'
+    expires_at = parse_utc_timestamp(route.get('expires_at_utc'))
+    if expires_at is None:
+        return route, 'verification_expiry_missing_or_invalid'
+    if not has_current_evidence(route, evaluated_at):
+        return route, 'verification_evidence_from_future_or_invalid'
+    if evaluated_at >= expires_at:
+        return route, 'verification_expired'
+    if (route.get('t3_transport') or {}).get('enabled') is not True:
+        return route, 't3_transport_disabled'
+    return route, None
+
+
+def apply_experimental_route_policy(result, policy, evaluated_at, *, available=None, replay=False):
+    """Authorize actual targets once, for both fresh decisions and historical replay.
+
+    Identification is intentionally independent of current declarations: revoking
+    a route cannot turn its old receipts into ordinary authorized dispatches.
+    OpenCode's legacy namespace identifies governed targets; it grants no permission.
+    """
     routes = policy.get('experimental_free_routes', [])
-    declared_route = next((row for row in routes if row['provider'] == arm.get('provider')
-                           and row['model'] == arm.get('model')), None)
-    model_alias = next((row for row in routes if row['model'] == arm.get('model')), None)
-    selection = result.get('selection') or {}
-    effort_option = selection.get('effort_option') or {}
-    undeclared_opencode_variant = (arm.get('provider') == 'opencode'
-                                   and effort_option.get('key') == 'variant'
-                                   and declared_route is None)
-    provider_alias = model_alias is not None and declared_route is None
-    route = declared_route or model_alias
-    if not route:
-        if undeclared_opencode_variant:
-            route = {'provider': arm.get('provider'), 'model': arm.get('model'), 'account': account}
-        elif args.experimental_route:
+    previous = result.get('data_policy') or {}
+    governed_models = ({row['model'] for row in routes} | {previous.get('route')}
+                       | {row['model'] for row in previous.get('targets', [])})
+    governed = [identity for identity in dispatch_identities(result, available)
+                if (identity['provider'] == 'opencode' or identity['account'] == 'opencode'
+                    or (identity['model'] or '').startswith('opencode/')
+                    or identity['model'] in governed_models)]
+    request = result.get('request') or {}
+    if not governed:
+        if request.get('experimental_route') and not result.get('destination') and not replay:
             raise ValueError('--experimental-route must resolve to an exact policy-declared provider, model, and account override')
-        else:
-            return
-
-    exact = (route['provider'] == arm.get('provider') and route['model'] == arm.get('model')
-             and route['account'] == account)
-    explicit = (experimental_route_scope(args) and args.experimental_route and args.reason and args.reason.strip()
-                and result['overrides'].get('provider') == route['provider']
-                and result['overrides'].get('model') == route['model']
-                and result['overrides'].get('account') == route['account']
-                and result['overrides'].get('effort') == arm.get('effort'))
-    classification = args.data_classification
-    expires_at = parse_utc_timestamp(route.get('expires_at_utc')) if declared_route else None
-    fresh = expires_at is not None and evaluated_at < expires_at
-    current_evidence = bool(declared_route and has_current_evidence(route, evaluated_at))
-    t3_transport = route.get('t3_transport') or {}
-    t3_enabled = t3_transport.get('enabled') is True
-    allowed = bool(declared_route and exact and explicit and classification == 'public'
-                   and not args.sensitive and fresh and current_evidence and t3_enabled)
-    if undeclared_opencode_variant:
-        refusal = 'model_not_declared_for_experimental_route'
-    elif provider_alias:
-        refusal = 'provider_alias_not_allowed'
-    elif args.sensitive:
-        refusal = 'sensitive_inputs'
-    elif classification != 'public':
-        refusal = 'public_classification_required'
-    elif not declared_route or not exact or not explicit:
-        refusal = 'exact_experimental_override_required'
-    elif expires_at is None:
-        refusal = 'verification_expiry_missing_or_invalid'
-    elif not current_evidence:
-        refusal = 'verification_evidence_from_future_or_invalid'
-    elif evaluated_at >= expires_at:
-        refusal = 'verification_expired'
-    elif not t3_enabled:
-        refusal = 't3_transport_disabled'
-    else:
-        refusal = None
-    result['data_policy'] = {'route': route['model'],
-                             'account': route['account'], 'classification': classification or 'unknown',
-                             't3_transport': t3_transport,
-                             'state': 'allowed_public_experimental' if allowed else 'refused',
-                             'refusal': refusal}
-    if allowed:
         return
-
-    cleared = clear_targets(result)
+    sensitive = bool(request.get('sensitive') or (result.get('launch_facts') or {}).get('sensitive'))
+    for identity in governed:
+        route, refusal = experimental_target_refusal(identity, request, sensitive, routes, evaluated_at)
+        if refusal:
+            break
+    if replay and refusal is None:
+        return  # Preserve an authorized historical snapshot byte-for-byte.
+    result['data_policy'] = {'route': identity['model'], 'account': identity['account'],
+                             'classification': request.get('data_classification') or 'unknown',
+                             't3_transport': (route or {}).get('t3_transport') or {},
+                             'targets': governed,
+                             'state': 'refused' if refusal else 'allowed_public_experimental',
+                             'refusal': ('experimental_route_receipt_not_currently_authorized' if replay and refusal else refusal)}
+    if refusal is None:
+        return
+    cleared = clear_targets(result, remove_dispatch=True)
     result.clear()
     result.update(cleared)
-    result['selection'] = result['selection'] | {'state': 'data_policy_refused', 'target': None}
-    result['target'] = None
+    if isinstance(result.get('selection'), dict):
+        result['selection'] |= {'state': 'data_policy_refused', 'target': None}
     result['launch_ready'] = False
-    result['launch_readiness_basis'] = 'experimental route refused by its public-input data policy'
+    result['launch_readiness_basis'] = 'experimental route refused by its current public-input data policy'
     result.pop('simulated_target', None)
     if result.get('routing'):
         result['routing']['judgment_reasons'].append({'code': 'experimental_data_policy_refused',

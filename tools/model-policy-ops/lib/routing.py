@@ -179,7 +179,8 @@ def assess_pair(ctx, op_id, arm, instance, requires):
     matched = {effect: matching(ctx['directives'], effect, **facts) for effect in EFFECTS}
     entry = ctx['accounts'].get(instance)
     billing = entry['billing'] if entry else 'unmapped'
-    selection = resolve_arm(arm, ctx['available'], ctx['available_meta'], instance)
+    selection = resolve_arm(arm, ctx['available'], ctx['available_meta'], instance,
+                            experimental_route=ctx.get('experimental_route'))
     view = quota_view(ctx['quota'], ctx['quota_meta'], arm, entry, ctx['pace_windows'], ctx['now'])
     proof_class = ctx['proof_class']
     hits = []
