@@ -249,6 +249,50 @@ The same inputs give the same output, apart from `recorded_at` (and a random
 decision ID when you give none). A replay with the same `--decision-id` returns the
 stored receipt and does not route again.
 
+### Compact agent output
+
+Use `--brief` with `route` or `resolve` for one compact JSON line. The default
+and `--json` retain the existing full, indented receipt output. `--brief --json`
+is rejected, as is `--brief` on every other command.
+
+```bash
+model-policy-ops route implement.quota-tight --brief \
+  --available capabilities.json --quota quota.json --accounts accounts.json \
+  --decision-id task-unique-id --record \
+  --parent-model PARENT_MODEL --parent-provider-instance PARENT_INSTANCE \
+  --parent-thread PARENT_THREAD
+```
+
+The compact object contains:
+
+- `decision_id`, `target`, `destination`, `launch_ready`, `launch_readiness_basis`, and `dispatch`. Pass the
+  exact target and dispatch fields unchanged. Destination dispatch keeps its root
+  decision ID and first-line token; a model dispatch uses the decision ID.
+- All `judgment_reasons`, including routed/final and informational tags, and
+  `judgment_required` (null for resolve, which does not provide that judgment).
+- `selected` with the final arm and account, plus `routed` with the original
+  arm/basis. `selected.final_basis` is null because the receipt does not record
+  it. `routed_basis` and `routed_selection_basis` are copied only for an exact
+  arm match, never inferred for a changed effort/model or for resolve. For an
+  external destination these arms are under `model_fallback`, and `selected`
+  is null. Its hand-submission `destination_offer` is included without the capacity snapshot.
+- Compact `calibration_notes`: small actionable notes remain structured.
+  At most eight sections are shown; bulky arrays retain counts and up to three
+  items, and values over 512 serialized characters become explicitly truncated
+  previews. Omission counts point to the full receipt for further review.
+- `receipt` with `stored`, the decision ID, and, only when recorded or replayed,
+  the JSONL path and replay instructions. Match the decision ID to read the exact
+  stored row, or repeat identical caller-intent flags without `--brief`.
+  Unrecorded evaluations and simulations instead say why no stored receipt exists.
+
+This is only a print projection: execution, ranking, validation, errors and ledger
+bytes are unchanged. Large catalog, quota, source and candidate-trace snapshots
+stay in the full receipt. Required targets, dispatch identity and judgment reasons
+are never truncated, so output size still depends on those exact fields.
+Simulations retain `simulation` and `simulated_target`, with null targets,
+false launch readiness and no dispatch; an existing real receipt is not presented
+as the stored result of a simulation.
+
 ### Candidates and evidence basis
 
 The pack holds the policy. `lib/routing.py` holds no model names. Each op can have
