@@ -9,6 +9,7 @@ from pathlib import Path
 
 from runtime_sources import digest, read_source, providers, resolve_arm, quota_context
 from decision_receipts import read_receipts, find_receipt, append_receipt, validate_id, replay_receipt, validate_escalation_source
+from decision_receipts import receipt_extensions, capture_choice
 import outcomes
 import calibrate
 import directives as directive_store
@@ -33,6 +34,9 @@ def add_arguments(parser):
     parser.add_argument('--reason')
     parser.add_argument('--decision-id')
     parser.add_argument('--record', action='store_true')
+    parser.add_argument('--task-link', metavar='JSON', help='explicit consumer task, workflow, stage and role; top-level metadata')
+    parser.add_argument('--choice', metavar='JSON', help='bounded parent workflow choice; descriptive only, never dispatch control')
+    parser.add_argument('--task-result', metavar='JSON', help='close: explicit whole-consumer-result claim at referenced evidence standard')
     parser.add_argument('--receipts', type=Path, default=Path(os.environ.get('XDG_STATE_HOME', Path.home() / '.local/state')) / 'model-policy/decisions.jsonl')
     parser.add_argument('--parent-model')
     parser.add_argument('--parent-provider-instance')
@@ -177,6 +181,11 @@ def execute(args, policy):
 
 
 def execute_locked(args, policy, stack):
+    extensions = receipt_extensions(args)
+    if extensions and args.command not in ('resolve', 'route'):
+        raise ValueError('--task-link and --choice apply only to resolve or route')
+    if getattr(args, 'task_result', None) is not None and args.command != 'close':
+        raise ValueError('--task-result applies only to close')
     if args.now is not None and not args.now.strip():
         raise ValueError('--now must not be empty')
     if args.directives is None:
@@ -276,7 +285,7 @@ def execute_locked(args, policy, stack):
             request |= {'skip_destination': skip, 'destinations_sha256': dest_meta['sha256']}
     old = None if simulation else find_receipt(args.receipts, decision_id)
     if old:
-        return replay_receipt(old, request, facts)
+        return replay_receipt(old, request, facts, extensions)
     relaunch = None
     if args.relaunch_of:
         if args.relaunch_of == decision_id or not find_receipt(args.receipts, args.relaunch_of):
@@ -427,6 +436,10 @@ def execute_locked(args, policy, stack):
         return_value['simulation'] = {'now': at.isoformat(), 'real_clock_at_evaluation': datetime.now(timezone.utc).isoformat(),
                                       'note': 'simulation only; not a dispatch decision'}
 
+    if 'task_link' in extensions:
+        return_value['task_link'] = extensions['task_link']
+    return_value['choice'] = capture_choice(return_value, extensions.get('choice'))
+
     def commit_quota():
         if route and not simulation and ctx['substitution']:
             state = ctx['substitution']['state']
@@ -445,7 +458,7 @@ def execute_locked(args, policy, stack):
     if args.record:
         if route and ctx['substitution']:
             return_value['routing']['quota_substitution']['state_commit'] = 'after_receipt'
-        recorded = append_receipt(args.receipts, return_value)
+        recorded = append_receipt(args.receipts, return_value, extensions)
         if not recorded.get('replayed'):
             commit_quota()
         return recorded

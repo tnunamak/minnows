@@ -5,13 +5,115 @@ Read the selected model-choice-policy pack, make an explicit delegation decision
 record how it ended, and audit its use. This CLI never dispatches work or changes running threads.
 `check`, `list`, and `show` keep their existing output contracts.
 
+## Explicit consumer tasks and inspectable choices (v1)
+
+These are optional, additive top-level fields on the existing schema-version-1
+receipts and closes. They do not change routing, ranking, targets, dispatch,
+judgment, or legacy per-decision reports, and create no new ledger.
+
+Choose a consumer task ID yourself and keep it stable through planning, maker,
+checker, repair, escalation, and workflow replans. A T3 child taskId is not the
+consumer identity. Workflow and stage IDs describe the current attempt; roles
+are planning, maker, checker, repair, escalation, rework, or other. IDs are
+1-128 letters, digits, dots, underscores, colons, or hyphens, starting with a
+letter or digit. No historical task identity is inferred.
+
+Add the following flags to a normal resolve or route command:
+
+```bash
+model-policy-ops resolve implement.standard \
+  --available capabilities.json --reason 'Implement; check against the task standard' \
+  --record --decision-id t1-make \
+  --parent-model PARENT_MODEL --parent-provider-instance PARENT_INSTANCE \
+  --parent-thread PARENT_THREAD \
+  --task-link '{"v":1,"consumer_task_id":"t1","workflow_id":"w1","stage_id":"make","role":"maker"}' \
+  --choice '{"v":1,"reason":{"code":"complete_workflow"},"workflow_candidate":"maker-checker","considered":[{"kind":"workflow","candidate":"maker-checker","disposition":"selected","reason":{"code":"independent_check"}}]}'
+```
+
+Every fresh upgraded receipt gets choice v1, including when --choice is omitted.
+Its considered entries reference the existing evaluated routing trace, final
+override, destination consideration, or resolve selection/alternatives through
+JSON pointers. Unexamined models are never enumerated. Dispatch arms, destinations,
+and caller-considered workflows are distinct kinds; an unvalidated trace basis
+stays unvalidated. Reasons describe the existing decision, not a new policy.
+
+The bounded --choice JSON requires v:1 and reason:{code,detail?}; it optionally
+takes workflow_candidate, considered (at most 16 unique workflows), and schedule.
+Each caller considered item has exactly kind:"workflow", candidate, disposition
+(selected, selected_waiting, not_selected, or rejected), and reason. It may add
+predicted_total_cost_per_accepted_result:{state:"unknown",value:null,reason:"..."}.
+This version permits only unknown predictions. Generated entries have that same
+unknown/null structure. Token prices and quota headroom are not complete-workflow
+cost or quality evidence. Reason codes are IDs; detail and unknown-cost reason
+are single lines of at most 280 characters. JSON has an 8192-character limit,
+exact allowed keys, and rejects duplicate keys.
+
+To record a parent decision to wait for busy dot, --choice may include
+schedule:{"state":"selected_waiting","candidate":"dot","reason":{"code":"busy"}}.
+Schedule states are immediate or selected_waiting. This is a caller claim:
+old launchers do not enforce it, the parent must withhold dispatch, and there is
+no queue mechanism. The underlying model dispatch recommendation is unchanged.
+Compact output exposes the claim under `waiting` and sets `dispatch` to null.
+With either output format, check this claim before using any launch recipe below.
+Explicit workflow_candidate/schedule names also appear among considered workflows.
+
+The exact supplied choice is kept in choice.caller; derived entries and source
+pointers are outside it. Supplied extensions must match their stored caller
+metadata on replay, including the locked append-race path. Omitting new flags
+replays old or new receipts unchanged apart from the existing replayed:true
+response flag. Supplying metadata missing from a historical receipt rejects;
+replay never retrofits task_link or choice. Neither field is put in request,
+caller_intent, launch_facts, or evidence entries.
+
+### Explicit whole-result close
+
+An ordinary accepted maker or checker close still counts zero accepted consumer
+tasks. Only an explicit --task-result declares that this close's existing
+judgment covers the whole consumer result at the referenced acceptance standard.
+The receipt must already have a matching task_link. For example, use existing
+evidence formats and reference their zero-based indices:
+
+```bash
+model-policy-ops close t1-make --close-id t1-final \
+  --outcome accepted --judged-by parent --check independent_judged \
+  --evidence '{"type":"file","path":"/absolute/path/acceptance-standard-and-review.txt","sha256":"REPLACE_WITH_ACTUAL_64_CHARACTER_SHA256"}' \
+  --task-result '{"v":1,"consumer_task_id":"t1","supersedes_task_close_id":null,"standard_evidence":[0]}'
+```
+
+Replace the file/hash with real evidence; existence or a matching file hash does
+not prove acceptance. The new marker is an explicit caller judgment, not an
+automatic acceptance check. All four keys are required, no extras are accepted,
+and standard_evidence must be a nonempty list of unique valid evidence indices.
+The marker has a 2048-character limit and never adds keys to evidence entries.
+
+To correct a task result, supersedes_task_close_id must name its unique current
+task head. It can cross decisions linked to the same consumer task. A correction
+on a previously closed decision also requires ordinary --supersedes and --reason;
+ordinary supersession remains strictly per decision. The outcomes exclusive lock
+rejects duplicate declarations, forks, missing targets, and cross-task targets.
+A legacy CLI's untagged successor invalidates task acceptance rather than
+inheriting the marker. It becomes the recoverable task head; a later explicit
+declaration can supersede it. Omitting --task-result when replaying a close keeps
+the original close; supplying a changed or historically absent marker rejects.
+
+The Python helper outcomes.task_projection(receipt_rows, outcome_rows) returns
+per-task state, current_close_id, terminal_judgment, accepted_count, and total_cost,
+plus the unique accepted-task total. It follows links, never newest timestamps.
+Accepted and accepted_after_repair whole-result claims count one; other judgments
+count zero. Absent, malformed, conflicting, or forked task metadata is unknown.
+Legacy decision/outcome readers keep their existing semantics. The projection
+does not rewrite history, and every total_cost remains null because parent,
+native, planning, and other coverage gaps prevent complete cost accounting.
+It is not wired into the legacy report formatter.
+
 ## Procedure
 
 1. Choose an op from `list`, based on the task and its verification boundary.
 2. Run `resolve`. Read `policy_context`, evidence, gaps, account choices, quota,
    and alternatives. Choose an account explicitly when more than one matches.
 3. Record the decision with caller-supplied parent metadata and a unique decision
-   ID. Pass the returned `target` unchanged and `decision_id` as
+   ID. If `choice.warning` (or compact `waiting`) asks to withhold dispatch, wait.
+   Otherwise pass the returned `target` unchanged and `decision_id` as
    `delegate_task.clientRequestId`. Supply the task separately to T3.
 4. When you integrate or discard the result, run `close` (see Outcomes). Later
    rework goes in `followup`.
@@ -60,7 +162,8 @@ request = {
 }
 ```
 
-Do not submit a null target. `launch_ready` means the exact model and explicit
+Do not submit a null target or a decision whose `choice.warning` (compact `waiting`)
+requires withholding dispatch. `launch_ready` means the exact model and explicit
 supported effort are present in a runnable catalog account. It does not attest
 authentication, quota, or suitability. An unresolved choice has `target: null`.
 Alternatives are linked policy arms, with their complete contexts; they are never
@@ -167,7 +270,8 @@ work and it does not learn from outcomes. The full spec is
 ### Procedure
 
 1. Run `route` in place of `resolve`. Pass the same recording flags.
-2. Read `routing.judgment_required` and `routing.judgment_reasons`. When it is
+2. Check `choice.warning` (compact `waiting`) first and withhold dispatch when it
+   records a waiting claim. Otherwise read `routing.judgment_required` and `routing.judgment_reasons`. When it is
    `false`, pass `target` unchanged to `delegate_task`, with `decision_id` as
    `clientRequestId`. When it is `true`, you decide. Accept the target, or use
    `--override ... --reason`. A recorded override keeps the routed choice and the
@@ -265,8 +369,9 @@ model-policy-ops route implement.quota-tight --brief \
 
 The compact object contains:
 
-- `decision_id`, `target`, `destination`, `launch_ready`, `launch_readiness_basis`, and `dispatch`. Pass the
-  exact target and dispatch fields unchanged. Destination dispatch keeps its root
+- `decision_id`, `target`, `destination`, `launch_ready`, `launch_readiness_basis`, and `dispatch`. First check
+  `waiting`: when present, withhold dispatch even if the target is runnable. Otherwise pass
+  the exact target and dispatch fields unchanged. Destination dispatch keeps its root
   decision ID and first-line token; a model dispatch uses the decision ID.
 - All `judgment_reasons`, including routed/final and informational tags, and
   `judgment_required` (null for resolve, which does not provide that judgment).
@@ -287,7 +392,8 @@ The compact object contains:
 
 This is only a print projection: execution, ranking, validation, errors and ledger
 bytes are unchanged. Large catalog, quota, source and candidate-trace snapshots
-stay in the full receipt. Required targets, dispatch identity and judgment reasons
+stay in the full receipt. Waiting claims suppress the compact launch tuple and expose
+the caller warning; the full receipt retains the underlying target. Required targets, dispatch identity and judgment reasons
 are never truncated, so output size still depends on those exact fields.
 Simulations retain `simulation` and `simulated_target`, with null targets,
 false launch readiness and no dispatch; an existing real receipt is not presented

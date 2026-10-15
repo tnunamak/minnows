@@ -234,8 +234,10 @@ def brief_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
             "full_output": "No stored receipt for this evaluation. Rerun without --brief for full output; inputs may change.",
         })
 
+    choice = result.get("choice") or {}
+    waiting = choice.get("warning")
     dispatch = result.get("dispatch")
-    if simulation:
+    if simulation or waiting:
         dispatch = None
     elif dispatch is None and result.get("target") is not None and result.get("launch_ready") is True:
         dispatch = {"clientRequestId": result.get("decision_id"), "mode": "async"}
@@ -254,6 +256,8 @@ def brief_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
         "receipt": receipt,
         "replayed": result.get("replayed", False),
     }
+    if waiting:
+        brief["waiting"] = {"state": "selected_waiting", "assertion": "caller_claim", "warning": waiting}
     if destination == "model":
         brief["routed"] = routed
     else:
