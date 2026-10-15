@@ -281,7 +281,7 @@ The compact object contains:
   items, and values over 512 serialized characters become explicitly truncated
   previews. Omission counts point to the full receipt for further review.
 - `receipt` with `stored`, the decision ID, and, only when recorded or replayed,
-  the JSONL path and replay instructions. Match the decision ID to read the exact
+  the absolute JSONL path and replay instructions. Match the decision ID to read the exact
   stored row, or repeat identical caller-intent flags without `--brief`.
   Unrecorded evaluations and simulations instead say why no stored receipt exists.
 

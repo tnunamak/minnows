@@ -224,7 +224,7 @@ def brief_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
     receipt = {"stored": stored, "decision_id": result.get("decision_id")}
     if stored:
         receipt.update({
-            "path": str(receipts), "format": "jsonl",
+            "path": str(receipts.absolute()), "format": "jsonl",
             "replay": "Read the JSONL row matching decision_id for the exact stored receipt; "
                       "or repeat identical caller-intent arguments without --brief (optionally --json) to replay.",
         })

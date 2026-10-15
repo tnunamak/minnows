@@ -114,6 +114,35 @@ def test_brief_keeps_ledger_bytes_and_full_replay_unchanged(world, command):
     assert world.receipts.read_bytes() == original
 
 
+@pytest.mark.parametrize("command", ["route", "resolve"])
+def test_brief_relative_receipt_locator_survives_cwd_change(world, tmp_path, command):
+    import json
+    import sys
+
+    caller = tmp_path / "caller"
+    caller.mkdir()
+    world.write()
+    extra = [] if command == "route" else ["--account-hint", "claude-work"]
+    argv = [str(TOOL), command, "implement.quota-tight", *world.args(),
+            "--receipts", "state/decisions.jsonl", *record_flags("relative-locator"),
+            *extra, "--brief"]
+    result = subprocess.run(argv, cwd=caller, text=True, capture_output=True)
+    assert result.returncode == 0, result.stderr
+    locator = json.loads(result.stdout)["receipt"]
+    located = Path(locator["path"])
+    assert located.is_absolute()
+    elsewhere = tmp_path / "reader"
+    elsewhere.mkdir()
+    reader = subprocess.run(
+        [sys.executable, "-c",
+         "import json,sys; print(json.loads(open(sys.argv[1]).read())['decision_id'])", str(located)],
+        cwd=elsewhere, text=True, capture_output=True,
+    )
+    assert reader.returncode == 0, reader.stderr
+    assert reader.stdout.strip() == "relative-locator"
+    assert located == caller / "state/decisions.jsonl"
+
+
 def test_brief_keeps_all_routed_and_final_judgment_reasons(world):
     argv = ["route", "review.audit", *world.args(), "--decision-id", "override",
             "--override", "effort=medium", "--reason", "bounded review"]
