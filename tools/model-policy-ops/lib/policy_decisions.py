@@ -51,6 +51,8 @@ def add_arguments(parser):
     parser.add_argument('--urgent', action='store_true', help='launch fact; absent means unknown')
     parser.add_argument('--irreversible', action='store_true', help='launch fact; absent means unknown')
     parser.add_argument('--inputs', choices=outcomes.INPUTS, help='launch fact: where the task inputs are; absent means unknown')
+    parser.add_argument('--data-classification', choices=['public', 'sensitive'], help='experimental free routes require an explicit public declaration')
+    parser.add_argument('--experimental-route', action='store_true', help='explicitly request a policy-declared experimental free route')
     parser.add_argument('--sensitive', action='store_true', help='launch fact: the task touches credential or signing code; absent means unknown')
     parser.add_argument('--skip-destination', action='append', default=[], choices=destinations.SKIP_REASONS, metavar='REASON',
                         help='route: decline the destination (local-inputs|synchronous|credential|unavailable|other); repeatable; requires --reason')
@@ -100,6 +102,26 @@ def quota_authorized_by(args):
     return 'pack routing.quota_substitution'
 
 
+def experimental_route_scope(args):
+    return (args.command == 'route' and args.op == 'fanout.explore') or (args.command == 'resolve' and args.no_op)
+
+
+def authorized_experimental_route(args, policy):
+    """Return only an exact, explicitly requested public route; no account map is needed."""
+    if not experimental_route_scope(args) or not args.experimental_route or args.data_classification != 'public' or args.sensitive:
+        return None
+    supplied = {}
+    for item in args.override:
+        key, separator, value = item.partition('=')
+        if separator:
+            supplied[key] = value
+    for route in policy.get('experimental_free_routes', []):
+        expected = {'provider': route['provider'], 'model': route['model'], 'account': route['account']}
+        if all(supplied.get(key) == value for key, value in expected.items()) and 'effort' in supplied:
+            return route
+    return None
+
+
 def route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack):
     """Run the router and add the evidence snapshot and calibration notes. No state commit."""
     params = policy.get('routing', {})
@@ -119,6 +141,7 @@ def route_choice(args, policy, op, available, available_meta, quota, quota_meta,
                                accounts=accounts, directives=directive_store.active(records, at, max_days), maker=maker,
                                independence=args.independence, proof_class=args.proof_class, line_of=line_of,
                                failures=failures, freshness=fresh, now=at,
+                               experimental_route=authorized_experimental_route(args, policy),
                                substitution=routing.substitution_context(params, accounts, quota, quota_meta, at, args.quota_state, write=not args.now,
                                                               authorized_by=quota_authorized_by(args), stack=stack))
     block = routing.route(op, params, ctx)
@@ -303,6 +326,10 @@ def execute_locked(args, policy, stack):
                'reason': args.reason, 'parent': {'model': args.parent_model, 'provider_instance_id': args.parent_provider_instance, 'thread_id': args.parent_thread},
                'escalate_from': args.escalate_from, 'why': args.why, 'handoff_boundary': args.handoff_boundary,
                'relaunch_of': args.relaunch_of}
+    if args.experimental_route:
+        request['experimental_route'] = True
+    if args.data_classification is not None:
+        request['data_classification'] = args.data_classification
     if route:
         request |= {'route': True, 'maker': args.maker, 'maker_model': args.maker_model, 'independence': args.independence}
         # Added only when a destinations file or a skip exists, so a route without them keeps its old request shape.
@@ -466,6 +493,9 @@ def execute_locked(args, policy, stack):
         return_value['simulation'] = {'now': at.isoformat(), 'real_clock_at_evaluation': datetime.now(timezone.utc).isoformat(),
                                       'note': 'simulation only; not a dispatch decision'}
 
+    apply_experimental_route_policy(return_value, args, policy, arm,
+                                    final_instance if route else (overrides.get('account') or args.account_hint))
+
     if 'task_link' in extensions:
         return_value['task_link'] = extensions['task_link']
     return_value['choice'] = capture_choice(return_value, extensions.get('choice'))
@@ -494,3 +524,46 @@ def execute_locked(args, policy, stack):
         return recorded
     commit_quota()
     return return_value
+
+
+def apply_experimental_route_policy(result, args, policy, arm, account):
+    """Fail closed for the exact experimental provider/model/account tuple."""
+    routes = policy.get('experimental_free_routes', [])
+    matching_model = next((row for row in routes if row['provider'] == arm.get('provider') and row['model'] == arm.get('model')), None)
+    route = matching_model
+    if not route:
+        if args.experimental_route:
+            raise ValueError('--experimental-route must resolve to an exact policy-declared provider, model, and account override')
+        return
+
+    exact = (route['provider'] == arm.get('provider') and route['model'] == arm.get('model')
+             and route['account'] == account)
+    explicit = (experimental_route_scope(args) and args.experimental_route and args.reason and args.reason.strip()
+                and result['overrides'].get('provider') == route['provider']
+                and result['overrides'].get('model') == route['model']
+                and result['overrides'].get('account') == route['account']
+                and result['overrides'].get('effort') == arm.get('effort'))
+    classification = args.data_classification
+    allowed = bool(exact and explicit and classification == 'public' and not args.sensitive)
+    result['data_policy'] = {'route': f"{route['provider']}/{route['model']}",
+                             'account': route['account'], 'classification': classification or 'unknown',
+                             'state': 'allowed_public_experimental' if allowed else 'refused',
+                             'refusal': None if allowed else ('sensitive_inputs' if args.sensitive else
+                                 'public_classification_required' if classification != 'public' else
+                                 'exact_experimental_override_required')}
+    if allowed:
+        return
+
+    cleared = clear_targets(result)
+    result.clear()
+    result.update(cleared)
+    result['selection'] = result['selection'] | {'state': 'data_policy_refused', 'target': None}
+    result['target'] = None
+    result['launch_ready'] = False
+    result['launch_readiness_basis'] = 'experimental route refused by its public-input data policy'
+    result.pop('simulated_target', None)
+    if result.get('routing'):
+        result['routing']['judgment_reasons'].append({'code': 'experimental_data_policy_refused',
+                                                      'detail': result['data_policy']['refusal'],
+                                                      'applies_to': 'final'})
+        result['routing']['judgment_required'] = True

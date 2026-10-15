@@ -119,6 +119,34 @@ def check_routing(routing) -> list[str]:
     return errors
 
 
+def check_experimental_free_routes(experimental_routes) -> list[str]:
+    errors = []
+    if experimental_routes is None:
+        return errors
+    if not isinstance(experimental_routes, list):
+        return ["experimental_free_routes must be a list"]
+    else:
+        seen = set()
+        for index, route in enumerate(experimental_routes):
+            label = f"experimental_free_routes[{index}]"
+            if not isinstance(route, dict):
+                errors.append(f"{label} must be an object")
+                continue
+            identity = (route.get("provider"), route.get("model"), route.get("account"))
+            if any(not isinstance(value, str) or not value for value in identity):
+                errors.append(f"{label} needs exact provider, model and account strings")
+                continue
+            if identity in seen:
+                errors.append(f"{label} duplicates a provider/model/account tuple")
+            seen.add(identity)
+            privacy = route.get("data_policy")
+            if (route.get("cost_usd") != 0 or route.get("rate_limits") != "unknown"
+                    or not isinstance(privacy, dict) or privacy.get("classification_required") != "public"
+                    or privacy.get("sensitive_flag_forces_refusal") is not True):
+                errors.append(f"{label} must remain zero-cost, rate-limit unknown, and public-input-only")
+    return errors
+
+
 def check_policy(policy: dict) -> list[str]:
     errors: list[str] = []
     seen: set[str] = set()
@@ -140,6 +168,7 @@ def check_policy(policy: dict) -> list[str]:
                 errors.append(f"{where}: missing expands_to.{key}")
         errors.extend(check_candidates(op, where))
     errors.extend(check_routing(policy.get("routing")))
+    errors.extend(check_experimental_free_routes(policy.get("experimental_free_routes")))
     if not policy.get("catalog_ref"):
         errors.append("missing catalog_ref")
     if not policy.get("policy_version"):
@@ -258,6 +287,8 @@ def brief_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
     }
     if waiting:
         brief["waiting"] = {"state": "selected_waiting", "assertion": "caller_claim", "warning": waiting}
+    if "data_policy" in result:
+        brief["data_policy"] = result["data_policy"]
     if destination == "model":
         brief["routed"] = routed
     else:

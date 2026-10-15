@@ -106,7 +106,7 @@ def resolve_arm(arm, available, metadata, account=None):
             if not runnable(model):
                 result['state'] = 'unavailable_model'
                 return result
-            options = [o for o in model.get('options') or [] if o.get('id') in ('effort', 'reasoningEffort', 'thinking')]
+            options = [o for o in model.get('options') or [] if o.get('id') in ('effort', 'reasoningEffort', 'thinking', 'variant')]
             if len(options) != 1:
                 result['state'] = 'unknown_effort_surface'
                 return result

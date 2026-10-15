@@ -1,8 +1,8 @@
 {
   "id": "model-choice-policy",
   "schema_version": 1,
-  "policy_version": "0.2.3",
-  "generated_at": "2026-10-07",
+  "policy_version": "0.2.4",
+  "generated_at": "2026-10-15",
   "catalog_ref": "data-model-catalog-v0.5.15",
   "doctrine": [
     "Task-shaped operating points, not cheap/default/max ladders",
@@ -776,6 +776,57 @@
     }
   ],
   "preferred_over": [],
+  "experimental_free_routes": [
+    {
+      "provider": "opencode",
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "account": "opencode",
+      "status": "temporary_free_as_of_2026-10-15",
+      "cost_usd": 0,
+      "authentication": {
+        "state": "none_observed_owner_smoke",
+        "official_docs": "inconclusive"
+      },
+      "rate_limits": "unknown",
+      "effort_option": "variant",
+      "effort_values_source": "live_t3_catalog",
+      "data_policy": {
+        "classification_required": "public",
+        "sensitive_flag_forces_refusal": true,
+        "provider_zero_retention": "OpenCode says the upstream provider follows zero retention and does not train on submitted data.",
+        "opencode_unpaid_processing": "Terms permit use of unpaid-account Content to develop and improve OpenCode services; Privacy Policy says prompts are passed upstream and not stored.",
+        "prohibited_inputs": [
+          "private_repositories",
+          "PDPP_data",
+          "secrets",
+          "Jev_text",
+          "personal_data"
+        ]
+      },
+      "evidence": [
+        {
+          "url": "https://opencode.ai/docs/zen/",
+          "accessed": "2026-10-15",
+          "supports": ["model_id", "temporary_free_price", "provider_zero_retention", "provider_no_training"]
+        },
+        {
+          "url": "https://opencode.ai/legal/terms-of-service",
+          "accessed": "2026-10-15",
+          "supports": ["unpaid_content_service_improvement"]
+        },
+        {
+          "url": "https://opencode.ai/legal/privacy-policy",
+          "accessed": "2026-10-15",
+          "supports": ["prompt_pass_through", "prompt_not_stored"]
+        },
+        {
+          "url": "https://opencode.ai/docs/providers/",
+          "accessed": "2026-10-15",
+          "supports": ["auth_docs_inconclusive_for_free_route"]
+        }
+      ]
+    }
+  ],
   "routing": {
     "pace_windows": [
       "7d",

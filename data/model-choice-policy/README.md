@@ -10,14 +10,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.2.3](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.3) — published by CI on push to main |
+| **This version** | [data-model-choice-policy-v0.2.4](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.4) — published by CI on push to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.2.3
+TAG=data-model-choice-policy-v0.2.4
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -31,6 +31,16 @@ curl -fsSL -L \
 4. **Quota ≠ dollars** — never merge without an explicit exchange rate.
 5. Update ops only from source-backed catalog facts or local evals.
 6. Raw flags always win: `--provider` / `--model` / `--effort` override `--op`.
+
+## Experimental free routes
+
+The OpenCode DeepSeek V4.1 Flash Free route is not an operating-point candidate
+and has no earned operations. Use it only with `--experimental-route`, explicit
+provider/model/effort/account overrides, a reason, and
+`--data-classification public`, under `fanout.explore` or `resolve --no-op`.
+`--sensitive` refuses the route. A GitHub input
+location alone does not establish that its contents are public. The route stays
+bound to the exact `opencode` provider, model, and account in this pack.
 
 ## Read operating points
 
@@ -78,6 +88,10 @@ not silently route by model name.
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.2.4 — 2026-10-15
+
+- Add an exact OpenCode DeepSeek V4.1 Flash Free experimental route. It has no earned operations, costs $0 temporarily as of this date, and refuses inputs without an explicit public classification.
 
 ### v0.2.3 — 2026-10-13
 

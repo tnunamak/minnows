@@ -310,6 +310,36 @@ when selected by the pack. Parent model, provider instance, and thread are alway
 caller-supplied; unrelated environment variables are not evidence of the parent.
 Reason and handoff text must be short explanations, without prompts or secrets.
 
+### Experimental free routes
+
+An entry in the pack's root `experimental_free_routes` metadata is never an
+operating-point candidate. It is usable only through an explicit experimental
+override under `fanout.explore` or `resolve --no-op`, with exact provider, model,
+effort, and account flags. `--data-classification public` is required; omission
+means unknown, and `--sensitive` always refuses the
+route. `--inputs github` does not classify its contents. The exact route below is
+bound to OpenCode's `opencode` provider and account plus
+`opencode/deepseek-v4.1-flash-free`; other OpenCode models and provider/account
+aliases do not inherit its zero-cost metadata. The effort option key is read from
+the live T3 catalog, so `variant=high` stays `variant=high` in the target.
+
+```bash
+./tools/model-policy-ops/model-policy-ops route fanout.explore \
+  --policy data/model-choice-policy/operating-points.json --available auto \
+  --experimental-route --data-classification public \
+  --override provider=opencode \
+  --override model=opencode/deepseek-v4.1-flash-free \
+  --override effort=high --override account=opencode \
+  --reason 'Experimental exploration using explicitly public inputs' \
+  --decision-id deepseek-public-exploration-001 --record \
+  --parent-model PARENT_MODEL --parent-provider-instance PARENT_INSTANCE \
+  --parent-thread PARENT_THREAD
+```
+
+Do not dispatch if the result is refused or `target` is null. A sensitive
+negative check adds `--sensitive`; the result must have `launch_ready: false`
+and `target: null`.
+
 ## Receipts and escalation
 
 Default resolve is read-only. `--record` requires a caller decision ID plus all

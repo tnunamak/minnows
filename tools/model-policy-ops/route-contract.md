@@ -1,6 +1,6 @@
-# `route` delivery contract (v1, revision 20)
+# `route` delivery contract (v1, revision 21)
 
-Status: revision 20, 2026-10-11. Revision 20 lets a destination return its own T3 target (see the changelog). Revision 19 ties each quota constraint to one quota window, so a constraint never crosses a reset (see the changelog). Revision 18 fixes independence without a maker, defers quota-state commits until acceptance and requires timezone-aware observation timestamps. Revision 17 moves quota-substitution thresholds out of the shipped pack into a per-user overlay (see the changelog). Revision 16 adds quota-aware substitution to `route` (see the changelog). Revision 15 adds observation notes to `route` (see the changelog). Revision 13 applies the observe round-3 review (see the changelog). Revision 12 applies the observe round-2 review (see the changelog). Revision 11 applies the observe review (see the changelog). Revision 10 adds `observe` (see the changelog). Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
+Status: revision 21, 2026-10-15. Revision 21 adds exact, public-input-only experimental free routes. Revision 20 lets a destination return its own T3 target (see the changelog). Revision 19 ties each quota constraint to one quota window, so a constraint never crosses a reset (see the changelog). Revision 18 fixes independence without a maker, defers quota-state commits until acceptance and requires timezone-aware observation timestamps. Revision 17 moves quota-substitution thresholds out of the shipped pack into a per-user overlay (see the changelog). Revision 16 adds quota-aware substitution to `route` (see the changelog). Revision 15 adds observation notes to `route` (see the changelog). Revision 13 applies the observe round-3 review (see the changelog). Revision 12 applies the observe round-2 review (see the changelog). Revision 11 applies the observe review (see the changelog). Revision 10 adds `observe` (see the changelog). Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
 child runs of a maker, the directive cap on write and on read, and final-pair judgment after an
 override (see the changelog). Revision 4 applies the independent checker's
 findings (report r1): maker provenance from the T3 child run, a model line key for
@@ -92,6 +92,27 @@ no preferences. The **policy** is the pack data. Each op has an optional
   eligible without judgment.
 
 ## Inputs
+
+### Experimental free route gate
+
+An optional root `experimental_free_routes` pack entry is exact metadata; it
+does not join candidate ranking. The route is usable only under `fanout.explore`
+or `resolve --no-op`, when the caller sets `--experimental-route`, provides explicit `provider`, `model`, `effort`, and
+`account` overrides that match the entry, gives a reason, and sets
+`--data-classification public`. `--sensitive` always refuses it. Missing or
+`sensitive` classification clears every nested target. `--inputs github` alone
+does not prove the contents are public. The free billing exception matches only
+the exact provider/model/account tuple, so paid or unknown models and account
+aliases do not inherit it. Effort option keys and values come from the live T3
+catalog; the resolver preserves the reported key and value in `target.options`.
+
+The current entry is `opencode` / `opencode/deepseek-v4.1-flash-free` / account
+`opencode`, temporarily free at $0 as of 2026-10-15. The pack records auth as
+`none_observed_owner_smoke` with official docs inconclusive and numeric rate
+limits unknown. It records the upstream provider's zero-retention/no-training
+statement separately from OpenCode's unpaid-content service-improvement terms.
+Private repositories, PDPP data, secrets, Jev text, and personal data are
+prohibited. This route has no earned operations and is not added to any op.
 
 1. **Pack**: `candidates`, and an optional `routing` object with these declared
    parameters:
@@ -474,6 +495,8 @@ The two `task_benchmark_prior` substitutes cost more than their primaries. They
 protect quality, not quota.
 
 ## Changelog
+
+- Revision 21 (2026-10-15): exact experimental free-route metadata and refusal gate. Dispatch requires explicit public classification, exact reasoned overrides, and rejects `--sensitive`; neither `--inputs github` nor other OpenCode models inherit free billing. The live T3 effort option key is preserved in the exact target.
 
 - Revision 12 (2026-10-10): `observe` round-2 fixes. Every retained T3 id (call, thread, child run, attempt, turn item, provider turn) must fit the T3 id grammar (`[A-Za-z0-9%:._-]`, 1-1024 characters) and every ordinal must be a non-negative integer; a value that does not becomes null in the fact with `unknown.<field>` set to `invalid_id` or `invalid_ordinal`, and the row is kept. A child run id that fails is an unknown reference: no run facts follow it. `audit` applies the same grammar to the usage it reports. `close` evidence and `observe` check a commit with `git cat-file --batch-check`: only an explicit `missing` line is absence (`sha_missing`); a non-zero exit, signal, timeout or malformed output is `git_failed` or `git_timeout`. `close` still records `exists` or `unverified_missing`. A repository root is a directory with `.git` or the files of a bare repository, which git then confirms; a directory without them is `not_a_repository_root`, and a failed confirmation (dubious ownership, unreadable config, any non-zero exit) is `git_failed`, so the git source is `partial` or `error`, never healthy. No `route`, `resolve`, `close` or `audit` key changes.
 - Revision 13 (2026-10-10): `observe` round-3 fix. The repository and root probes use explicit `lstat`/`stat`; only real absence (`ENOENT`, `ENOTDIR`) is ineligible (`repo_missing`, `not_a_repository_root`). A permission or I/O error is `filesystem_unreadable` in `failed`, so the git source is `partial` or `error`, never healthy.

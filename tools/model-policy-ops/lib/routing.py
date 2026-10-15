@@ -187,7 +187,13 @@ def assess_pair(ctx, op_id, arm, instance, requires):
         hits.append(('not_runnable', {'state': selection['state']}))
     if requires and proof_class is not None and proof_class not in requires:
         hits.append(('requires_not_met', {'proof_class': proof_class, 'requires': requires}))
-    if billing != 'subscription' and not matched['allow-metered']:
+    exact_experimental_free = (ctx.get('experimental_route') is not None
+                               and ctx['experimental_route']['provider'] == arm['provider']
+                               and ctx['experimental_route']['model'] == arm['model']
+                               and ctx['experimental_route']['account'] == instance)
+    if exact_experimental_free:
+        billing = 'free'
+    if billing not in ('subscription', 'free') and not matched['allow-metered']:
         hits.append(('billing_not_subscription', {'billing': billing}))
     if matched['avoid']:
         hits.append(('avoid_directive', {'directives': [d['id'] for d in matched['avoid']]}))
@@ -231,7 +237,7 @@ def is_review(op, params):
 
 
 def make_context(op, params, *, available, available_meta, quota, quota_meta, accounts, directives, maker, independence,
-                 proof_class, line_of, failures, freshness, now, substitution=None):
+                 proof_class, line_of, failures, freshness, now, experimental_route=None, substitution=None):
     """The inputs that every pair assessment shares. A review op without a pack `independence_default` requires `vendor`.
 
     `level_source` says where the level came from: the `flag`, the `pack` or the `mechanism_default`.
@@ -247,7 +253,8 @@ def make_context(op, params, *, available, available_meta, quota, quota_meta, ac
     return {'available': available, 'available_meta': available_meta, 'quota': quota, 'quota_meta': quota_meta,
             'accounts': accounts, 'directives': directives, 'maker': maker, 'level': level, 'level_source': source, 'review': review,
             'proof_class': proof_class, 'line_of': line_of, 'failures': failures, 'freshness': freshness,
-            'pace_windows': params.get('pace_windows', []), 'now': now, 'substitution': substitution}
+            'pace_windows': params.get('pace_windows', []), 'now': now, 'experimental_route': experimental_route,
+            'substitution': substitution}
 
 
 def tag(reasons, applies_to):

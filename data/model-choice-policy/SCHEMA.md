@@ -23,6 +23,16 @@ Root also carries:
 - `policy_version` — pack semver
 - `doctrine` — short non-goals
 
+The optional root `experimental_free_routes` array declares exact temporary
+free routes. Each entry binds billing, provider, model, and T3 account identity;
+it does not add a route to any operating point. Entries carry dated evidence,
+auth and rate-limit state, a data classification requirement, and prohibited
+input classes. The validator checks this shape and the router recognizes the
+entry only with `--experimental-route`, exact provider/model/account/effort
+overrides, a reason, and `--data-classification public` under `fanout.explore`
+or `resolve --no-op`. `--sensitive` always
+refuses it. `--inputs github` is not a public-data declaration.
+
 ## `op-requirements.json` (DRAFT — owner review pending)
 
 The recommender reads this policy and the catalog; it never edits `operating-points.json`.

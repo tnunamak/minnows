@@ -154,6 +154,127 @@ def chosen(out):
     return out['routing']['chosen']
 
 
+DEEPSEEK_FREE = 'opencode/deepseek-v4.1-flash-free'
+
+
+def add_opencode_fixture(world):
+    providers = world.catalog['data']['providers']
+    providers.append({'driver': 'opencode', 'enabled': True, 'instanceId': 'opencode', 'models': [
+        {'slug': DEEPSEEK_FREE, 'options': [{'id': 'variant', 'values': [{'id': v} for v in ('low', 'high', 'max')]}]},
+        {'slug': 'opencode/paid-model', 'options': [{'id': 'variant', 'values': [{'id': 'high'}]}]},
+    ]})
+
+
+def deepseek_flags(*, classification=None, sensitive=False):
+    flags = ['--experimental-route', '--override', 'provider=opencode', '--override', f'model={DEEPSEEK_FREE}',
+             '--override', 'effort=high', '--override', 'account=opencode', '--reason', 'Experimental exploration on a public task']
+    if classification:
+        flags += ['--data-classification', classification]
+    if sensitive:
+        flags += ['--sensitive']
+    return flags
+
+
+def all_target_values(value):
+    if isinstance(value, dict):
+        own = [value['target']] if 'target' in value else []
+        return own + [target for child in value.values() for target in all_target_values(child)]
+    if isinstance(value, list):
+        return [target for child in value for target in all_target_values(child)]
+    return []
+
+
+def test_experimental_opencode_route_needs_public_classification_and_preserves_variant_target(world):
+    add_opencode_fixture(world)
+    result, out = world.cli('route', 'fanout.explore', *world.args(), *deepseek_flags(classification='public'))
+    assert result.returncode == 0, result.stderr
+    assert out['target'] == {'providerInstanceId': 'opencode', 'model': DEEPSEEK_FREE, 'options': {'variant': 'high'}}
+    assert out['data_policy']['state'] == 'allowed_public_experimental'
+    assert out['routing']['final']['billing'] == 'free'
+    assert out['routing']['final']['account'] == 'opencode'
+
+
+def test_experimental_data_policy_is_visible_in_brief_output(world):
+    add_opencode_fixture(world)
+    result, out = world.cli('route', 'fanout.explore', *world.args(), *deepseek_flags(classification='public'), '--brief')
+    assert result.returncode == 0, result.stderr
+    assert out['data_policy']['state'] == 'allowed_public_experimental'
+    assert out['target']['options'] == {'variant': 'high'}
+
+
+@pytest.mark.parametrize('command,classification,sensitive,inputs', [
+    ('route', None, False, None),
+    ('route', None, False, 'github'),
+    ('route', 'sensitive', False, None),
+    ('route', 'public', True, None),
+    ('resolve', None, False, None),
+    ('resolve', 'public', True, None),
+])
+def test_experimental_opencode_route_refuses_unknown_or_sensitive_even_with_override(world, command, classification, sensitive, inputs):
+    add_opencode_fixture(world)
+    op_args = ['fanout.explore'] if command == 'route' else ['--no-op']
+    flags = deepseek_flags(classification=classification, sensitive=sensitive)
+    if inputs:
+        flags += ['--inputs', inputs]
+    result, out = world.cli(command, *op_args, *world.args(), *flags)
+    assert result.returncode == 0, result.stderr
+    assert out['launch_ready'] is False and out['target'] is None
+    assert out['data_policy']['state'] == 'refused'
+    assert out['selection']['target'] is None
+    assert all(target is None for target in all_target_values(out))
+
+
+def test_opencode_free_arm_is_never_selected_by_default(world):
+    add_opencode_fixture(world)
+    out = world.route('fanout.explore')
+    assert out['target']['model'] != DEEPSEEK_FREE
+
+
+def test_experimental_free_route_cannot_replace_an_ordinary_operation(world):
+    add_opencode_fixture(world)
+    result, out = world.cli('route', 'implement.standard', *world.args(), '--proof-class', 'judged',
+                            *deepseek_flags(classification='public'))
+    assert result.returncode == 0, result.stderr
+    assert out['launch_ready'] is False and out['target'] is None
+    assert out['data_policy']['state'] == 'refused'
+
+
+def test_other_opencode_model_remains_unmapped_not_free(world):
+    add_opencode_fixture(world)
+    result, out = world.cli('route', 'fanout.explore', *world.args(), '--override', 'provider=opencode',
+                            '--override', 'model=opencode/paid-model', '--override', 'effort=high',
+                            '--override', 'account=opencode', '--reason', 'Explicit paid-model probe')
+    assert result.returncode == 0, result.stderr
+    assert out['target']['model'] == 'opencode/paid-model'
+    assert out['routing']['final']['billing'] == 'unmapped'
+    assert any(r['code'] == 'final_metered_without_directive' for r in out['routing']['judgment_reasons'])
+
+
+def test_opencode_free_metadata_does_not_follow_account_alias(world):
+    add_opencode_fixture(world)
+    flags = deepseek_flags(classification='public')
+    flags[flags.index('account=opencode')] = 'account=opencode-alias'
+    result, out = world.cli('resolve', '--no-op', *world.args(), *flags)
+    assert result.returncode == 0, result.stderr
+    assert out['launch_ready'] is False and out['target'] is None
+    assert out['data_policy']['state'] == 'refused'
+    assert out['data_policy']['refusal'] == 'exact_experimental_override_required'
+
+
+def test_same_model_id_under_another_provider_does_not_inherit_free_billing(world):
+    add_opencode_fixture(world)
+    world.catalog['data']['providers'].append({'driver': 'other', 'enabled': True, 'instanceId': 'other', 'models': [
+        {'slug': DEEPSEEK_FREE, 'options': [{'id': 'variant', 'values': [{'id': 'high'}]}]},
+    ]})
+    result, out = world.cli('route', 'fanout.explore', *world.args(), '--override', 'provider=other',
+                            '--override', f'model={DEEPSEEK_FREE}', '--override', 'effort=high',
+                            '--override', 'account=other', '--reason', 'Probe the separately configured provider')
+    assert result.returncode == 0, result.stderr
+    assert out['target']['providerInstanceId'] == 'other'
+    assert out['routing']['final']['billing'] == 'unmapped'
+    assert 'data_policy' not in out
+
+
 def codes(out):
     return [r['code'] for r in out['routing']['judgment_reasons']]
 
