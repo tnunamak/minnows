@@ -97,6 +97,150 @@ class ReportTests(unittest.TestCase):
                  {'db': {'path': '/fixture/db.sqlite', 'state': 'transaction_projection'}},
                  as_of=NOW, since=since)
 
+    def task_receipt(self, d='d1', task='consumer:1', role='maker', workflow='workflow:1', **kwargs):
+        return receipt(d, task_link={'v': 1, 'consumer_task_id': task,
+                       'workflow_id': workflow, 'stage_id': d, 'role': role}, **kwargs)
+
+    def task_close(self, d='d1', cid='c1', task='consumer:1', previous=None, **kwargs):
+        row = close(d, cid, **kwargs)
+        row['evidence'] = [{'type': 'file', 'path': '/PRIVATE/standard.txt',
+                            'sha256': 'a' * 64, 'verified_state': 'hash_matches'}]
+        row['task_result'] = {'v': 1, 'consumer_task_id': task,
+                              'supersedes_task_close_id': previous, 'standard_evidence': [0]}
+        report.outcomes.validate_task_result(row['task_result'], row['evidence'])
+        report.outcomes.check_row(row)
+        return row
+
+    def test_consumer_composite_one_result_and_legacy_rows_unchanged(self):
+        receipts = [self.task_receipt(), self.task_receipt('d2', role='checker'),
+                    self.task_receipt('d3', role='repair', workflow='workflow:replan',
+                                      destination='dot', target={'providerInstanceId': 'other', 'model': 'other-model'})]
+        closes = [close(), close('d2', cid='c2'),
+                  self.task_close('d3', cid='c3', outcome='accepted_after_repair', repairs=1)]
+        result = self.make(receipts=receipts, closes=closes)
+        plain_receipts = [{k: v for k, v in r.items() if k != 'task_link'} for r in receipts]
+        plain_closes = [{k: v for k, v in c.items() if k != 'task_result'} for c in closes]
+        legacy = self.make(receipts=plain_receipts, closes=plain_closes)
+        for key in ('rows', 'daily', 'usage', 'task_accepted_result_count', 'schema_version', 'report_version'):
+            self.assertEqual(result[key], legacy[key])
+        tasks = result['consumer_tasks']
+        self.assertEqual(tasks['observed_cohort_confirmed_accepted_count'], 1)
+        row = tasks['rows'][0]
+        self.assertEqual(row['consumer_task_id'], 'consumer:1')
+        self.assertEqual(row['workflow_ids'], ['workflow:1', 'workflow:replan'])
+        self.assertEqual([d['role'] for d in row['linked_decisions']], ['maker', 'checker', 'repair'])
+        self.assertEqual(row['current_close_provenance']['judged_by'], 'parent')
+        self.assertEqual(row['current_close_provenance']['standard_evidence_indices'], [0])
+        self.assertNotIn('PRIVATE', report.canonical(tasks))
+        self.assertIsNone(row['total_cost'])
+        self.assertIsNone(tasks['total_cost'])
+        self.assertNotIn('model', row)
+        self.assertIn('Observed consumer tasks', report.markdown(result))
+
+    def test_consumer_checker_unknown_and_explicit_rejection_zero(self):
+        r = self.make(receipts=[self.task_receipt(role='checker')], closes=[close()])
+        self.assertEqual(r['consumer_tasks']['rows'][0]['state'], 'unknown')
+        self.assertEqual(r['consumer_tasks']['observed_cohort_confirmed_accepted_count'], 0)
+        r = self.make(receipts=[self.task_receipt()], closes=[self.task_close(outcome='rejected')])
+        self.assertEqual(r['consumer_tasks']['rows'][0]['terminal_judgment'], 'rejected')
+        self.assertEqual(r['consumer_tasks']['coverage']['in_cohort_declared_results'], 1)
+        self.assertEqual(r['consumer_tasks']['observed_cohort_confirmed_accepted_count'], 0)
+
+    def test_consumer_full_history_correction_not_latest_timestamp(self):
+        receipts = [self.task_receipt(at=START),
+                    self.task_receipt('d2', role='repair', at=NOW)]
+        first = self.task_close(at='2026-10-20T00:00:00Z')
+        correction = self.task_close('d2', cid='c2', previous='c1', outcome='rejected',
+                                     at='2026-10-14T00:00:00Z')
+        result = self.make(receipts=receipts, closes=[first, correction], since=START)
+        row = result['consumer_tasks']['rows'][0]
+        self.assertEqual(row['current_close_id'], 'c2')
+        self.assertEqual(row['accepted_count'], 0)
+        self.assertEqual(len(row['linked_decisions']), 2)
+        self.assertEqual(len(result['rows']), 1)
+        legacy = close(cid='c2', supersedes='c1', outcome='rejected')
+        r = self.make(receipts=receipts, closes=[first, legacy])
+        self.assertEqual(r['consumer_tasks']['rows'][0]['reason'], 'untagged_successor')
+        self.assertEqual(r['consumer_tasks']['rows'][0]['accepted_count'], 0)
+
+    def test_consumer_first_link_half_open_cohort(self):
+        receipts = [self.task_receipt('old', task='old', at='2026-10-01T11:59:59Z'),
+                    self.task_receipt('old-stage', task='old', at=NOW),
+                    self.task_receipt('lower', task='lower', at=START),
+                    self.task_receipt('upper', task='upper', at=NOW)]
+        closes = [self.task_close('old-stage', cid='old-close', task='old'),
+                  self.task_close('lower', cid='lower-close', task='lower'),
+                  self.task_close('upper', cid='upper-close', task='upper')]
+        tasks = self.make(receipts=receipts, closes=closes, since=START)['consumer_tasks']
+        self.assertEqual([r['consumer_task_id'] for r in tasks['rows']], ['lower'])
+        self.assertEqual(tasks['observed_cohort_confirmed_accepted_count'], 1)
+        self.assertEqual(tasks['coverage']['observed_tasks'], 3)
+        self.assertEqual(tasks['coverage']['outside_cohort_tasks'], 2)
+        self.assertEqual(tasks['rows'][0]['first_observed_linkage_at'], START)
+
+    def test_consumer_missing_malformed_links_and_results_not_dropped(self):
+        good = self.task_receipt()
+        broken = self.task_receipt('d2')
+        broken['task_link']['role'] = 'PRIVATE INVALID ROLE'
+        receipts = [good, broken, receipt('missing')]
+        tasks = self.make(receipts=receipts, closes=[self.task_close()])['consumer_tasks']
+        c = tasks['coverage']
+        self.assertEqual((c['total_source_receipts'], c['valid_task_links'],
+                          c['missing_task_links'], c['malformed_task_links']), (3, 1, 1, 1))
+        self.assertEqual(tasks['rows'][0]['reason'], 'conflicting_or_malformed_metadata')
+        self.assertEqual(tasks['observed_cohort_confirmed_accepted_count'], 0)
+        self.assertNotIn('PRIVATE', report.canonical(tasks))
+        for raw in (None, [], {'consumer_task_id': []}):
+            invalid = receipt('invalid', task_link=raw)
+            tasks = self.make(receipts=[good, invalid], closes=[self.task_close()])['consumer_tasks']
+            self.assertEqual(tasks['coverage']['malformed_task_links'], 1)
+            self.assertEqual(tasks['rows'][0]['state'], 'unknown')
+        bad_result = self.task_close()
+        bad_result['task_result']['standard_evidence'] = [99]
+        tasks = self.make(receipts=[good], closes=[bad_result])['consumer_tasks']
+        self.assertEqual(tasks['rows'][0]['state'], 'unknown')
+
+    def test_consumer_unknown_linkage_time_excluded_without_inventing_date(self):
+        r = self.task_receipt()
+        r['recorded_at'] = None
+        tasks = report.consumer_tasks([r], [self.task_close()], audit.stamp(START), audit.stamp(NOW))
+        self.assertEqual(tasks['coverage']['unknown_first_linkage_tasks'], 1)
+        self.assertEqual(tasks['rows'], [])
+        self.assertEqual(tasks['observed_cohort_confirmed_accepted_count'], 0)
+        # Mandatory report input validation remains unchanged.
+        with self.assertRaises((ValueError, TypeError, AttributeError)):
+            self.make(receipts=[r])
+
+    def test_consumer_markdown_keeps_all_tasks_in_one_table(self):
+        result = self.make(receipts=[self.task_receipt(task='consumer-a'),
+                                    self.task_receipt('d2', task='consumer-b')], calls=[])
+        lines = report.markdown(result).split('## Observed consumer tasks', 1)[1].splitlines()
+        header = next(i for i, line in enumerate(lines) if line.startswith('| Consumer task |'))
+        table = []
+        for line in lines[header:]:
+            if not line.startswith('|'):
+                break
+            table.append(line)
+        self.assertEqual(len(table), 4, 'header, separator and both task rows must be contiguous')
+        self.assertIn('consumer-a', table[2])
+        self.assertIn('consumer-b', table[3])
+        self.assertGreater(lines.index(next(line for line in lines if line.startswith('Linked decisions'))),
+                           header + 3)
+
+    def test_consumer_cli_read_only_source_snapshots(self):
+        self.write_sources(receipts=[self.task_receipt(at=START)], closes=[self.task_close()])
+        before = {p: p.read_bytes() for p in self.inputs.iterdir()}
+        result = self.cli('report', '--receipts', self.args.receipts, '--outcomes', self.args.outcomes,
+                          '--export', self.args.export, '--since', START, '--report-dir', self.args.report_dir)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        paths = json.loads(result.stdout)['paths']
+        self.assertEqual(set(paths), {'reconciliation.json', 'daily.md'})
+        data = json.loads(Path(paths['reconciliation.json']).read_text())
+        self.assertEqual(data['consumer_tasks']['observed_cohort_confirmed_accepted_count'], 1)
+        self.assertIsNone(data['task_accepted_result_count'])
+        self.assertIn('Observed consumer tasks', Path(paths['daily.md']).read_text())
+        self.assertEqual(before, {p: p.read_bytes() for p in self.inputs.iterdir()})
+
     def create_db(self, two_turns=False):
         path = self.inputs / 'fixture.sqlite'
         db = sqlite3.connect(path)

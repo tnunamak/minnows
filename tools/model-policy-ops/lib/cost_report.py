@@ -1,7 +1,8 @@
 """Read-only decision reconciliation; no dispatch, judgment, or source writes.
 
-Only explicit current closes establish decision outcomes. No source establishes
-whole-task acceptance/cost, billed dollars, served models, or parent allocation.
+Only explicit current closes establish decision outcomes. Optional task markers
+establish whole-result caller claims, never complete cost, billed dollars,
+served models, or parent allocation.
 """
 import fcntl
 import hashlib
@@ -15,7 +16,7 @@ from contextlib import ExitStack
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from decision_receipts import read_receipts, validate_id
+from decision_receipts import read_receipts, validate_id, validate_task_link, metadata_id
 import outcomes
 import observations as observation_store
 import delegation_audit as audit
@@ -30,7 +31,7 @@ OPTION_VALUES = {'minimal', 'none', 'low', 'medium', 'high', 'xhigh', 'max', 'de
                  'priority', 'flex', 'standard', '200k', '1m'}
 MAX_SOURCE_BYTES = 256 * 1024 * 1024
 GAPS = ['no_price_binding', 'served_model_unattested', 'parent_overhead_unallocated',
-        'native_subagent_usage_unknown', 'whole_task_linkage_and_acceptance_unavailable',
+        'native_subagent_usage_unknown', 'whole_task_population_coverage_unknown',
         'observation_order_is_not_source_revision', 'provider_instance_driver_mapping_unavailable',
         'producing_runtime_and_historical_interpretation_unattested']
 
@@ -329,6 +330,99 @@ def edges_for(receipt, known, cohort):
                     'in_launch_cohort': edge['decision_id'] in cohort} for edge in result]
 
 
+def consumer_tasks(receipts, outcome_rows, start, as_of):
+    """Cohort the existing full-source projection; never infer task acceptance."""
+    projection = outcomes.task_projection(receipts, outcome_rows)
+    links = defaultdict(list)
+    coverage = Counter(total_source_receipts=len(receipts), valid_task_links=0,
+                       missing_task_links=0, malformed_task_links=0)
+    for receipt in receipts:
+        raw = receipt.get('task_link')
+        if 'task_link' not in receipt:
+            coverage['missing_task_links'] += 1
+            continue
+        try:
+            validate_task_link(raw)
+            valid = True
+        except ValueError:
+            valid = False
+        coverage['valid_task_links' if valid else 'malformed_task_links'] += 1
+        task = raw.get('consumer_task_id') if isinstance(raw, dict) else None
+        if not isinstance(task, str) or task not in projection['tasks']:
+            continue
+        # Retain identifiable broken links too: dropping them could invent a cohort.
+        links[task].append((receipt, raw, valid))
+    closes = {row.get('close_id'): row for row in outcome_rows if row.get('kind') == 'close'}
+    rows = []
+    coverage.update(observed_tasks=len(projection['tasks']), in_cohort_tasks=0,
+                    outside_cohort_tasks=0, unknown_first_linkage_tasks=0,
+                    source_declared_results=0, source_unknown_results=0,
+                    in_cohort_declared_results=0, in_cohort_unknown_results=0)
+    for task, state in sorted(projection['tasks'].items()):
+        coverage['source_declared_results' if state['state'] == 'declared' else 'source_unknown_results'] += 1
+        linked, times, unresolved = [], [], not links[task]
+        for receipt, raw, valid in links[task]:
+            try:
+                value = receipt.get('recorded_at')
+                if value is None:
+                    raise ValueError('missing linkage time')
+                times.append(audit.stamp(value))
+            except (ValueError, TypeError, AttributeError):
+                unresolved = True
+            linked.append({'decision_id': receipt['decision_id'],
+                           'role': raw.get('role') if valid else None,
+                           'workflow_id': metadata_identifier(raw.get('workflow_id')),
+                           'stage_id': metadata_identifier(raw.get('stage_id')),
+                           'task_link_state': 'valid' if valid else 'malformed'})
+        first = min(times) if times and not unresolved else None
+        if first is None:
+            coverage['unknown_first_linkage_tasks'] += 1
+            continue
+        if not start <= first < as_of:
+            coverage['outside_cohort_tasks'] += 1
+            continue
+        coverage['in_cohort_tasks'] += 1
+        coverage['in_cohort_declared_results' if state['state'] == 'declared' else 'in_cohort_unknown_results'] += 1
+        current = closes.get(state['current_close_id'])
+        provenance = None
+        if state['state'] == 'declared' and current is not None:
+            indices = current['task_result']['standard_evidence']
+            provenance = {key: current.get(key) for key in ('close_id', 'decision_id', 'judged_by', 'check')}
+            provenance |= {'assertion': 'caller_claim', 'standard_evidence_indices': indices,
+                           'evidence': [{'index': index,
+                                         'type': enum(current['evidence'][index].get('type'), outcomes.EVIDENCE_KEYS),
+                                         'verified_state': enum(current['evidence'][index].get('verified_state'),
+                                             ('hash_matches', 'exists', 'missing', 'mismatch', 'unreadable',
+                                              'too_large', 'timeout', 'error', 'not_checked'))}
+                                        for index in indices],
+                           'verification_scope': 'existence_or_hash_only_not_acceptance'}
+        rows.append({'consumer_task_id': task, **state,
+                     'linked_decisions': sorted(linked, key=lambda item: item['decision_id']),
+                     'workflow_ids': sorted({item['workflow_id'] for item in linked if item['workflow_id']}),
+                     'first_observed_linkage_at': first.isoformat(),
+                     'first_observed_linkage_day_utc': first.date().isoformat(),
+                     'current_close_provenance': provenance})
+    return {'rows': rows, 'coverage': dict(coverage),
+            'observed_cohort_confirmed_accepted_count': sum(row['accepted_count'] for row in rows),
+            'total_cost': None,
+            'cohort': {'since_utc': start.isoformat(), 'through_utc': as_of.isoformat(),
+                       'boundaries': '[since,as_of)', 'anchor': 'earliest_observed_linked_receipt.recorded_at'},
+            'semantics': {'acceptance': 'explicit_current_whole_result_caller_claims_only',
+                          'judgment_time': 'current_source_snapshot_not_historical_cutoff',
+                          'cohort': 'first_observed_linkage_not_actual_task_start',
+                          'coverage': 'observed_subset_not_population_success_rate; missing_link_is_not_no_task_or_no_cost',
+                          'legacy_task_accepted_result_count': 'unknown_population_total'}}
+
+
+def metadata_identifier(value):
+    """Preserve exact metadata IDs, without exposing malformed free text."""
+    try:
+        metadata_id(value, 'metadata ID')
+    except ValueError:
+        return None
+    return value
+
+
 def make_report(receipts, outcome_rows, observations, calls, outside, sources, *, as_of, since=None):
     by_id = validate_receipts(receipts)
     as_of = audit.stamp(as_of) if isinstance(as_of, str) else as_of.astimezone(timezone.utc)
@@ -428,6 +522,7 @@ def make_report(receipts, outcome_rows, observations, calls, outside, sources, *
             'sources': sources, 'source_gaps': GAPS + (['export_usage_not_projected'] if 'export' in sources else [])
                        + (['optional_observations_unavailable'] if sources.get('observations', {}).get('state') == 'unavailable' else []),
             'rows': rows, 'daily': daily,
+            'consumer_tasks': consumer_tasks(receipts, outcome_rows, start, as_of),
             'usage': [u for u in units if any(o['decision_id'] in cohort for o in u['owners'])],
             'linked_decision_views': [{'decision_id': r['decision_id'], 'edges': r['edges'],
                                       'nonadditive': True, 'task_cost': None} for r in rows if r['edges']],
@@ -449,7 +544,7 @@ def make_report(receipts, outcome_rows, observations, calls, outside, sources, *
                           'numerator': 'all_attributed_attempts_including_failed_repaired_rejected',
                           'time': 'decision_latency_is_receipt_to_close; parallel_elapsed_not_summed',
                           'money': 'USD_and_credits_unknown_and_separate',
-                          'task': 'no_whole_task_cost_or_acceptance_linkage',
+                          'task': 'observed_explicit_whole_result_claims_separate_from_unknown_population_and_cost',
                           'comparisons': 'descriptive_not_causal'}}
 
 
@@ -478,6 +573,28 @@ def markdown(report):
     lines += ['', 'Coverage: ' + canonical(report['coverage']),
               'Source gaps: ' + ', '.join(report['source_gaps']),
               'See reconciliation.json for per-turn missingness, conflicts, current closes, lineage and provenance.', '']
+    tasks = report.get('consumer_tasks')
+    if tasks is not None:
+        lines += ['', '## Observed consumer tasks',
+                  'Confirmed accepted whole-result claims in observed cohort: '
+                  + str(tasks['observed_cohort_confirmed_accepted_count']) + '. Cost: unknown.',
+                  'First observed linkage is not actual task start; bounds are [since,as_of).',
+                  'Judgments are current source-snapshot claims, not historical state at the cutoff.',
+                  'This incomplete observed subset is not a population success rate. Missing links do not mean no tasks or no cost.',
+                  'Legacy task accepted-result count remains an unknown population total.',
+                  'Coverage: ' + canonical(tasks['coverage']), '',
+                  '| Consumer task | First linked UTC | Workflows | State / reason | Current close | Judgment | Accepted count |',
+                  '|---|---|---|---|---|---|---:|']
+        for row in tasks['rows']:
+            lines.append('| ' + ' | '.join(str(value) for value in (
+                row['consumer_task_id'], row['first_observed_linkage_at'], ', '.join(row['workflow_ids']),
+                row['state'] + ' / ' + row['reason'], row['current_close_id'],
+                row['terminal_judgment'], row['accepted_count'])) + ' |')
+        for row in tasks['rows']:
+            lines += ['', '### ' + row['consumer_task_id'], '']
+            lines.append('Linked decisions (roles and provenance): ' + canonical(row['linked_decisions']))
+            lines.append('Current whole-result judge/check/evidence provenance: '
+                         + canonical(row['current_close_provenance']))
     return '\n'.join(lines)
 
 

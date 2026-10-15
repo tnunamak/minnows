@@ -104,7 +104,26 @@ count zero. Absent, malformed, conflicting, or forked task metadata is unknown.
 Legacy decision/outcome readers keep their existing semantics. The projection
 does not rewrite history, and every total_cost remains null because parent,
 native, planning, and other coverage gaps prevent complete cost accounting.
-It is not wired into the legacy report formatter.
+The report adds a separate consumer_tasks section using this full-source helper;
+legacy decision rows and daily aggregates remain unchanged; integer schema/report
+versions stay 1.
+Tasks enter the observed cohort by their earliest linked receipt.recorded_at in
+[since, as_of), not by an inferred actual start. All source history remains
+available for corrections and cross-boundary stages. Current judgments describe
+the source snapshot, not historical state at the cohort cutoff. Task rows retain
+exact consumer IDs, linked decisions/roles, all workflow IDs, and compact current
+judge/check/evidence-index provenance without evidence bodies or paths.
+
+observed_cohort_confirmed_accepted_count counts only explicit current accepted
+whole-result claims in this observed subset. It is not a population success rate
+or a replacement for legacy task_accepted_result_count, which stays null.
+Coverage reconciles source receipts into valid/missing/malformed task links and
+observed tasks into in/out-cohort or unknown-first-linkage groups, with declared
+and unknown judgments counted separately. Missing linkage does not imply no task
+or no cost. Unresolvable first linkage is excluded and counted, never assigned an
+invented date; malformed mandatory timestamps still fail existing input validation.
+Malformed/conflicting metadata retains the helper's unknown result. Composite
+results are not attributed to a single model or operating point; costs stay null.
 
 ## Read-only decision reconciliation
 
@@ -193,7 +212,9 @@ Provenance and interpretation:
   decision latency. Available historical run timestamps are labeled as such;
   parallel run durations are never summed into wall time.
 - Pricing scenarios are deliberately not implemented. USD, credits, task cost,
-  and task accepted-result counts remain null. A token price or benchmark prior
+  and legacy population task accepted-result counts remain null. The separate
+  observed consumer subset only counts explicit current whole-result claims.
+  A token price or benchmark prior
   cannot establish an invoice, subscription allocation, historical billed rate,
   or predicted task cost. Missing price bindings/regimes are explicit gaps.
 - With the same pinned inputs and cohort bounds, reconciliation is deterministic;
