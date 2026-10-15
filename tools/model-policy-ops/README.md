@@ -53,6 +53,8 @@ schedule:{"state":"selected_waiting","candidate":"dot","reason":{"code":"busy"}}
 Schedule states are immediate or selected_waiting. This is a caller claim:
 old launchers do not enforce it, the parent must withhold dispatch, and there is
 no queue mechanism. The underlying model dispatch recommendation is unchanged.
+Compact output exposes the claim under `waiting` and sets `dispatch` to null.
+With either output format, check this claim before using any launch recipe below.
 Explicit workflow_candidate/schedule names also appear among considered workflows.
 
 The exact supplied choice is kept in choice.caller; derived entries and source
@@ -110,7 +112,8 @@ It is not wired into the legacy report formatter.
 2. Run `resolve`. Read `policy_context`, evidence, gaps, account choices, quota,
    and alternatives. Choose an account explicitly when more than one matches.
 3. Record the decision with caller-supplied parent metadata and a unique decision
-   ID. Pass the returned `target` unchanged and `decision_id` as
+   ID. If `choice.warning` (or compact `waiting`) asks to withhold dispatch, wait.
+   Otherwise pass the returned `target` unchanged and `decision_id` as
    `delegate_task.clientRequestId`. Supply the task separately to T3.
 4. When you integrate or discard the result, run `close` (see Outcomes). Later
    rework goes in `followup`.
@@ -159,7 +162,8 @@ request = {
 }
 ```
 
-Do not submit a null target. `launch_ready` means the exact model and explicit
+Do not submit a null target or a decision whose `choice.warning` (compact `waiting`)
+requires withholding dispatch. `launch_ready` means the exact model and explicit
 supported effort are present in a runnable catalog account. It does not attest
 authentication, quota, or suitability. An unresolved choice has `target: null`.
 Alternatives are linked policy arms, with their complete contexts; they are never
@@ -266,7 +270,8 @@ work and it does not learn from outcomes. The full spec is
 ### Procedure
 
 1. Run `route` in place of `resolve`. Pass the same recording flags.
-2. Read `routing.judgment_required` and `routing.judgment_reasons`. When it is
+2. Check `choice.warning` (compact `waiting`) first and withhold dispatch when it
+   records a waiting claim. Otherwise read `routing.judgment_required` and `routing.judgment_reasons`. When it is
    `false`, pass `target` unchanged to `delegate_task`, with `decision_id` as
    `clientRequestId`. When it is `true`, you decide. Accept the target, or use
    `--override ... --reason`. A recorded override keeps the routed choice and the
@@ -364,8 +369,9 @@ model-policy-ops route implement.quota-tight --brief \
 
 The compact object contains:
 
-- `decision_id`, `target`, `destination`, `launch_ready`, `launch_readiness_basis`, and `dispatch`. Pass the
-  exact target and dispatch fields unchanged. Destination dispatch keeps its root
+- `decision_id`, `target`, `destination`, `launch_ready`, `launch_readiness_basis`, and `dispatch`. First check
+  `waiting`: when present, withhold dispatch even if the target is runnable. Otherwise pass
+  the exact target and dispatch fields unchanged. Destination dispatch keeps its root
   decision ID and first-line token; a model dispatch uses the decision ID.
 - All `judgment_reasons`, including routed/final and informational tags, and
   `judgment_required` (null for resolve, which does not provide that judgment).
@@ -386,7 +392,8 @@ The compact object contains:
 
 This is only a print projection: execution, ranking, validation, errors and ledger
 bytes are unchanged. Large catalog, quota, source and candidate-trace snapshots
-stay in the full receipt. Required targets, dispatch identity and judgment reasons
+stay in the full receipt. Waiting claims suppress the compact launch tuple and expose
+the caller warning; the full receipt retains the underlying target. Required targets, dispatch identity and judgment reasons
 are never truncated, so output size still depends on those exact fields.
 Simulations retain `simulation` and `simulated_target`, with null targets,
 false launch readiness and no dispatch; an existing real receipt is not presented

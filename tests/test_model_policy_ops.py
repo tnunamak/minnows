@@ -605,3 +605,42 @@ def test_legacy_top_level_compatibility_and_malformed_projection_unknown(ledger)
     duplicate = row | {"decision_id": "other", "close_id": "other-close"}
     result = outcomes.task_projection(receipts.read_receipts(ledger[0]), [row, duplicate])
     assert result["tasks"]["t1"]["state"] == "unknown" and result["accepted_count"] == 0
+
+
+@pytest.mark.parametrize("command", ["route", "resolve"])
+@pytest.mark.parametrize("claim", ["schedule", "considered"])
+def test_compact_waiting_claim_prevents_launch_recipe(world, command, claim):
+    import json
+
+    caller = {"v": 1, "reason": {"code": "wait_for_whole_result"}}
+    if claim == "schedule":
+        caller["schedule"] = {"state": "selected_waiting", "candidate": "dot", "reason": {"code": "busy"}}
+    else:
+        caller["considered"] = [{"kind": "workflow", "candidate": "dot", "disposition": "selected_waiting", "reason": {"code": "busy"}}]
+    extra = [] if command == "route" else ["--account-hint", "claude-work"]
+    argv = [command, "implement.quota-tight", *world.args(), *record_flags("waiting-compact"), *extra,
+            "--choice", json.dumps(caller)]
+    full_run, full = world.cli(*argv)
+    assert full_run.returncode == 0, full_run.stderr
+    assert full["target"] is not None and full["launch_ready"] is True
+    original = world.receipts.read_bytes()
+    for replay_flags in (["--choice", json.dumps(caller)], []):
+        replay_argv = argv[:-2] + replay_flags
+        result, brief = world.cli(*replay_argv, "--brief")
+        assert result.returncode == 0, result.stderr
+        assert brief["target"] == full["target"]
+        assert brief["dispatch"] is None
+        assert brief["waiting"]["state"] == "selected_waiting"
+        assert brief["waiting"]["assertion"] == "caller_claim"
+        assert "withhold dispatch" in brief["waiting"]["warning"]
+        assert brief["receipt"]["stored"] is True
+        assert world.receipts.read_bytes() == original
+    fresh = argv[:-2]
+    fresh[fresh.index("waiting-compact")] = "waiting-unrecorded"
+    fresh.remove("--record")
+    result, brief = world.cli(*fresh, "--choice", json.dumps(caller), "--brief")
+    assert result.returncode == 0, result.stderr
+    assert brief["target"] == full["target"] and brief["dispatch"] is None
+    assert brief["waiting"]["state"] == "selected_waiting"
+    assert brief["receipt"]["stored"] is False
+    assert world.receipts.read_bytes() == original
