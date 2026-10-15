@@ -1,7 +1,7 @@
 {
   "id": "model-choice-policy",
   "schema_version": 1,
-  "policy_version": "0.2.5",
+  "policy_version": "0.2.6",
   "generated_at": "2026-10-15",
   "catalog_ref": "data-model-catalog-v0.5.15",
   "doctrine": [
@@ -782,13 +782,36 @@
       "model": "opencode/deepseek-v4.1-flash-free",
       "account": "opencode",
       "status": "temporary_free_as_of_2026-10-15",
-      "qualified_operations": [],
+      "qualified_operations": [
+        {
+          "id": "implement.oracle-bounded",
+          "proof_classes": [
+            "oracle"
+          ],
+          "efforts": [
+            "high"
+          ],
+          "scope": "small_public_source_change_full_deterministic_oracle",
+          "evidence_ref": "evidence/deepseek-public-eval-2026-10-15.json"
+        },
+        {
+          "id": "docs.lookup",
+          "proof_classes": [
+            "oracle"
+          ],
+          "efforts": [
+            "high"
+          ],
+          "scope": "known_public_source_lookup_structured_fact_oracle",
+          "evidence_ref": "evidence/deepseek-public-eval-2026-10-15.json"
+        }
+      ],
       "expires_at_utc": "2026-10-22T00:00:00Z",
       "expiry_basis": "local_policy_horizon_7_days_after_source_review; not_a_vendor_end_date",
       "t3_transport": {
         "enabled": true,
         "authorization": "owner_public_experimental_2026-10-15",
-        "scope": "fanout.explore_or_resolve_no_op_exact_overrides_public_only",
+        "scope": "qualified_operations_or_fanout.explore_or_resolve_no_op_exact_overrides_public_only",
         "known_risks": [
           "shared_server_host_tools",
           "injected_t3_thread_read_private_thread_access"

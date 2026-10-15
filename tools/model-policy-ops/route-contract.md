@@ -1,6 +1,6 @@
-# `route` delivery contract (v1, revision 24)
+# `route` delivery contract (v1, revision 25)
 
-Status: revision 24, 2026-10-15. Revision 24 authorizes every actual returned target through one fresh/replay boundary, including destination replacements and nested targets. Revoked declarations cannot authorize old receipts. New effort surfaces require an explicit policy tuple. Revision 23 records owner authorization for public-only experimental T3 evaluation of the exact OpenCode DeepSeek route; sensitive and unknown inputs, undeclared models, and ordinary operations remain refused. Sandbox and MCP isolation remain future hardening. Revision 22 refuses undeclared OpenCode `variant` models and requires unexpired route evidence at evaluation time. The expiry is a local seven-day policy horizon, not a vendor end date; `--now` remains a non-dispatchable simulation. It records that public classification is a caller assertion and shares one durable validator. Revision 21 adds exact, public-input-only experimental free routes. Revision 20 lets a destination return its own T3 target (see the changelog). Revision 19 ties each quota constraint to one quota window, so a constraint never crosses a reset (see the changelog). Revision 18 fixes independence without a maker, defers quota-state commits until acceptance and requires timezone-aware observation timestamps. Revision 17 moves quota-substitution thresholds out of the shipped pack into a per-user overlay (see the changelog). Revision 16 adds quota-aware substitution to `route` (see the changelog). Revision 15 adds observation notes to `route` (see the changelog). Revision 13 applies the observe round-3 review (see the changelog). Revision 12 applies the observe round-2 review (see the changelog). Revision 11 applies the observe review (see the changelog). Revision 10 adds `observe` (see the changelog). Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
+Status: revision 25, 2026-10-15. Revision 25 adds optional public-source qualification for implement.oracle-bounded and docs.lookup with oracle proof and high effort. It preserves primary recommendations and generic governed destination refusal. Current qualification is checked on fresh selection and both replay paths. Revision 24 authorizes every actual returned target through one fresh/replay boundary, including destination replacements and nested targets. Revoked declarations cannot authorize old receipts. New effort surfaces require an explicit policy tuple. Revision 23 records owner authorization for public-only experimental T3 evaluation of the exact OpenCode DeepSeek route; sensitive and unknown inputs, undeclared models, and ordinary operations remain refused. Sandbox and MCP isolation remain future hardening. Revision 22 refuses undeclared OpenCode `variant` models and requires unexpired route evidence at evaluation time. The expiry is a local seven-day policy horizon, not a vendor end date; `--now` remains a non-dispatchable simulation. It records that public classification is a caller assertion and shares one durable validator. Revision 21 adds exact, public-input-only experimental free routes. Revision 20 lets a destination return its own T3 target (see the changelog). Revision 19 ties each quota constraint to one quota window, so a constraint never crosses a reset (see the changelog). Revision 18 fixes independence without a maker, defers quota-state commits until acceptance and requires timezone-aware observation timestamps. Revision 17 moves quota-substitution thresholds out of the shipped pack into a per-user overlay (see the changelog). Revision 16 adds quota-aware substitution to `route` (see the changelog). Revision 15 adds observation notes to `route` (see the changelog). Revision 13 applies the observe round-3 review (see the changelog). Revision 12 applies the observe round-2 review (see the changelog). Revision 11 applies the observe review (see the changelog). Revision 10 adds `observe` (see the changelog). Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
 child runs of a maker, the directive cap on write and on read, and final-pair judgment after an
 override (see the changelog). Revision 4 applies the independent checker's
 findings (report r1): maker provenance from the T3 child run, a model line key for
@@ -95,43 +95,54 @@ no preferences. The **policy** is the pack data. Each op has an optional
 
 ### Experimental free route gate
 
-An optional root `experimental_free_routes` pack entry is exact metadata; it
-does not join candidate ranking. The route is usable only under `fanout.explore`
-or `resolve --no-op`, when the caller sets `--experimental-route`, provides explicit `provider`, `model`, `effort`, and
-`account` overrides that match the entry, gives a reason, and sets
-`--data-classification public`. This flag is a caller assertion, not content
-scanning or attestation. Current policy records the owner's narrow public-only
-experimental T3 authorization and keeps `qualified_operations: []`.
-`--sensitive` always refuses it. Missing or
-`sensitive` classification clears every nested target. `--inputs github` alone
-does not prove the contents are public. The free billing exception matches only
-the exact provider/model/account tuple, so paid or unknown models and account
-aliases do not inherit it. Effort option keys and values come from the live T3
-catalog; the resolver preserves the reported key and value in `target.options`.
+An optional root `experimental_free_routes` pack entry is exact metadata;
+it does not join candidate ranking. The optional route qualifies exactly
+`implement.oracle-bounded` and `docs.lookup`, requiring `--proof-class oracle`
+and high effort. Implementation is limited to small PUBLIC source changes whose
+full acceptance standard has a deterministic oracle. Lookup is limited to known
+PUBLIC sources with a structured fact oracle, excluding open-ended research.
+Primary recommendations are unchanged. `review.audit`, `implement.standard`,
+`advisor.deep` and judged or absent proof remain excluded.
+
+Both qualified operations support `route` and `resolve` with
+`--experimental-route`, exact provider/model/effort/account overrides, a reason
+and `--data-classification public`. The separately authorized `route
+fanout.explore` and `resolve --no-op` paths retain catalog-validated efforts
+without broader qualification. `--sensitive` always refuses. Public classification
+and proof class are caller assertions, not content scanning, proof certification
+or a runtime sandbox guarantee. `--inputs github` does not establish public
+contents. The free billing exception matches only the exact tuple; paid or
+unknown models and account aliases do not inherit it. Effort option keys and
+values come from the live T3 catalog and appear in `target.options`.
 
 The current entry is `opencode` / `opencode/deepseek-v4.1-flash-free` / account
-`opencode`, temporarily free at $0 as of 2026-10-15. The pack records auth as
-`none_observed_owner_smoke` with official docs inconclusive and numeric rate
-limits unknown. It records the upstream provider's zero-retention/no-training
-statement separately from OpenCode's unpaid-content service-improvement terms.
-Its expiry timestamp is the local seven-day recheck horizon after source review,
-not a vendor end date. Expired, missing, future-dated, or malformed evidence
-refuses the route; the timestamp is evaluated in UTC. Undeclared OpenCode models
-using the `variant` option are also refused before any target can be returned.
-The transport's known risks are shared OpenCode server host tools and injected
-`t3_thread_read` private-thread access. Receipt replay checks current public
-classification, explicit overrides, and expiry for every governed target, including
-destinations and nested selections. Stored governance metadata, selection arms,
-and legacy OpenCode targets identify governed receipts even after the current
-declaration is removed or renamed. Each target requires a current exact
-provider/model/account authorization; fallback approval does not authorize a
-replacement destination. A refusal clears every target and dispatch instruction.
-New `variant` resolution is limited to the provider/model tuple passed explicitly
-from policy; unrelated providers retain their existing effort surfaces. Ordinary
-historical receipts retain their existing replay behavior. Per-instance custom binary and
-MCP isolation remain future hardening.
-Private repositories, PDPP data, secrets, Jev text, and personal data are
-prohibited. This route has no earned operations and is not added to any op.
+`opencode`, temporarily free at $0 as of 2026-10-15. Auth is recorded as
+`none_observed_owner_smoke` with official docs inconclusive. Numeric rate limits
+remain unknown despite no observed throttles in the small matched benchmark.
+The pack records the upstream zero-retention/no-training attribution separately
+from OpenCode's unpaid-content service-improvement terms. Temporary source fees
+do not measure provider usage or complete workflow cost; both remain unknown.
+The bundled evidence records eight pairs across six contexts, 16 deterministic
+gate passes and one review inspection-scope failure. It does not establish broad
+audit quality or 16 whole-task acceptances.
+
+Missing, future-dated, malformed or expired source evidence refuses the route.
+The UTC expiry is a local seven-day recheck horizon, not a vendor end date.
+Undeclared OpenCode models using `variant` are refused. Shared OpenCode host
+tools and injected `t3_thread_read` private-thread access remain known risks;
+provider sandbox and MCP isolation remain later hardening. Private repositories,
+PDPP data, secrets, Jev text and personal data are prohibited.
+
+Fresh target authorization and receipt replay require current exact identity,
+operation, proof, effort and source evidence eligibility. Replay checks recorded
+launch facts on early lookup and locked append-race replay, without rewriting
+historical ledger bytes. Stored governance metadata and legacy OpenCode
+identities identify governed receipts after declarations are revoked or renamed.
+Generic governed destinations remain refused even when catalog resolution fails;
+fallback approval cannot authorize a replacement. Refusal recursively clears
+targets, dispatch, submit, how_to and manual readiness advice in full and brief
+output. Descriptive identity persists without submission authority. Ordinary
+destinations and unrelated providers retain their existing behavior.
 
 1. **Pack**: `candidates`, and an optional `routing` object with these declared
    parameters:
@@ -514,6 +525,8 @@ The two `task_benchmark_prior` substitutes cost more than their primaries. They
 protect quality, not quota.
 
 ## Changelog
+
+- Revision 25 (2026-10-15): admit optional oracle/high qualification for small public implementation and known-source lookup; share scope checks across selection and actual-target authorization. Recheck current eligibility on both replay paths. Preserve generic governed destination refusal and primary recommendations; bundle sanitized matched benchmark evidence.
 
 - Revision 24 (2026-10-15): apply current exact experimental authorization to every returned target on fresh decisions and replay, including destination replacements, nested selections, revoked routes and legacy OpenCode receipts. Clear dispatch instructions on refusal. Restrict new effort surfaces to a policy-declared provider/model tuple.
 

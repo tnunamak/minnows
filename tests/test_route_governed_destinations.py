@@ -86,6 +86,15 @@ def prior_tool(tmp_path_factory):
     return archive / 'tools/model-policy-ops/model-policy-ops'
 
 
+def write_prior_policy(world):
+    """The archived CLI requires the policy contract that existed with it."""
+    policy = copy.deepcopy(world.policy)
+    for route in policy['experimental_free_routes']:
+        route['qualified_operations'] = []
+        route['t3_transport']['scope'] = 'fanout.explore_or_resolve_no_op_exact_overrides_public_only'
+    (world.tmp / 'policy.json').write_text(json.dumps(policy))
+
+
 @pytest.mark.parametrize('brief', [False, True])
 @pytest.mark.parametrize('race', [False, True])
 @pytest.mark.parametrize('revoke', [False, True])
@@ -96,6 +105,7 @@ def test_authentic_public_offer_cannot_replay_submission(world, prior_tool, monk
              *deepseek_flags(classification='public'), '--record', '--decision-id', 'prior-offer',
              '--parent-model', 'parent', '--parent-provider-instance', 'parent', '--parent-thread', 'parent']
     world.write()
+    write_prior_policy(world)
     process = subprocess.run([sys.executable, str(prior_tool), *map(str, flags), '--no-user-policy'],
                              text=True, capture_output=True, cwd=REPO)
     assert process.returncode == 0, process.stderr
@@ -159,6 +169,7 @@ def test_legacy_catalog_miss_replay_uses_structured_config_identity(world, prior
              '--data-classification', 'sensitive', '--record', '--decision-id', 'old-catalog-miss',
              '--parent-model', 'parent', '--parent-provider-instance', 'parent', '--parent-thread', 'parent']
     world.write()
+    write_prior_policy(world)
     process = subprocess.run([sys.executable, str(prior_tool), *map(str, flags), '--no-user-policy'],
                              text=True, capture_output=True, cwd=REPO)
     assert process.returncode == 0, process.stderr

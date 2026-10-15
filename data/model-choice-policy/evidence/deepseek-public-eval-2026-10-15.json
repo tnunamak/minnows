@@ -1,0 +1,1504 @@
+{
+  "schema_version": "1.0",
+  "title": "DeepSeek V4.1 Flash Free matched public evaluation evidence",
+  "run_date": "2026-10-15",
+  "evidence_status": "bounded public benchmark evidence; no automatic policy change",
+  "frozen_inputs": {
+    "manifest_sha256": "9293904f039fb265737795b121d28d58f49a80b0f092bbd0afca0e185dc21312",
+    "protocol_sha256": "2f745ae875b7faa81ae5b503663b1c52426698f6bdf500ce7bcd8647595e0e6a",
+    "executor_sha256": "b4854dd33319b7fa78b16d0da3984d401a92d6d14192f21331a3c8b90a346253",
+    "trials_ledger_sha256": "9a14d67f7f34573802a52cd50fc476a7dbd3bd76876c8efe3955e0c6b2df1753",
+    "dispatch_ledger_sha256": "c61ef442aad06a2d29faa30be3a4f9ec829604f1c5925d5c2d4f537f32ec9c93"
+  },
+  "design": {
+    "matched_first_pass_pairs": 8,
+    "planned_first_passes": 16,
+    "completed_first_passes": 16,
+    "underlying_source_contexts": 6,
+    "context_overlap": [
+      "I1 and R1 share the hash-cap defect/source context",
+      "I3 and R2 share the mid-session-reply defect/source context"
+    ],
+    "each_task_arm_ran_once": true,
+    "repairs_run": 0,
+    "classification": "public snapshots and synthetic fixtures only",
+    "assignment": "one prepared public snapshot per task/arm; no reference snapshot or opponent context; deterministic trusted oracle evaluated after first pass",
+    "execution_isolation_limit": "No hard filesystem sandbox was established; T3 worktree separation is not a hard filesystem boundary. No bwrap canary was run under the later authorization."
+  },
+  "aggregate_results": {
+    "trusted_deterministic_gate_passes": 16,
+    "trusted_gate_rechecks_passed": 16,
+    "verified_artifacts": 64,
+    "provider_errors": 0,
+    "provider_throttles": 0,
+    "timeouts": 0,
+    "repairs": 0,
+    "paired_gate_ties": 8,
+    "whole_task_acceptance": "DeepSeek R2 exceeded permitted inspection scope by reading select_cands.py outside the cmd_run-only prompt. Its structured gate passed, but the whole task did not comply with scope. Therefore the set has 16 deterministic gate passes, not 16 unqualified task acceptances."
+  },
+  "proposed_eligibility": {
+    "eligible_operations": [
+      {
+        "operation": "implement.oracle-bounded",
+        "proof_class": "oracle",
+        "basis": "4/4 DeepSeek and 4/4 matched comparator implementation gates passed; finite deterministic oracle coverage only."
+      },
+      {
+        "operation": "docs.lookup",
+        "proof_class": "oracle",
+        "basis": "2/2 DeepSeek and 2/2 matched comparator structured-answer gates passed; known public facts with deterministic checks only."
+      }
+    ],
+    "excluded": [
+      "review.audit",
+      "implement.standard",
+      "advisor.deep",
+      "unbounded_research",
+      "private_or_personal_inputs",
+      "generic_destination_submission"
+    ],
+    "production_policy_changed": false,
+    "eligibility_is_proposed_not_automatic": true,
+    "qualification_status": "provisional; additional router checks and independent review remain pending",
+    "required_conditions": [
+      "explicit public classification",
+      "no sensitive inputs",
+      "exact provider/model and validated effort",
+      "current evidence for temporary free source pricing and terms",
+      "explicit route selection and reason"
+    ]
+  },
+  "source_price_and_cost": {
+    "source_price": {
+      "amount": 0,
+      "currency": "USD",
+      "status": "temporary free as listed by OpenCode",
+      "source_url": "https://opencode.ai/v2/docs/console/models/",
+      "distinction": "Source fee only; not an observation of provider usage or total workflow cost."
+    },
+    "provider_terms_context": {
+      "model_specific_statement_url": "https://opencode.ai/v2/docs/console/models/",
+      "terms_url": "https://opencode.ai/legal/terms-of-service",
+      "caveat": "The model listing describes provider zero retention/no training; OpenCode terms separately say content from unpaid service use may be used to improve OpenCode services."
+    },
+    "measured_provider_usage": null,
+    "measured_provider_cost": null,
+    "complete_workflow_cost": "unknown",
+    "interpretation": "Null means unreported/unknown, not zero."
+  },
+  "methodology": {
+    "first_pass": "First completed agent turn before acceptance feedback. Visible tests/tools were allowed. Every tool/test attempt was counted from transcript activity; tests include failed setup/baseline attempts.",
+    "implementation_oracle": "Frozen offline behavior tests plus edit-scope and fixture-integrity checks; finite suite pass is not proof of no regression.",
+    "review_oracle": "Strict JSON schema/enumerated expected facts and pinned source span checks; both probes are known-defect constrained classifications, not open-ended reviews.",
+    "docs_oracle": "Strict JSON schema/enumerated expected facts checked against pinned public README source snapshots; docs were first-pass-only.",
+    "timing": "Queue, model turn, and trusted oracle times measured separately in seconds; row-level measurements and per-arm/category medians included.",
+    "repairs": "At most one paired anonymous repair was allowed for implementation/review if needed; none was needed. No docs repair was authorized in this frozen design.",
+    "failure_handling": "All planned task/arm rows retained. All 16 completed; no missing arms, provider errors, throttles or timeouts."
+  },
+  "aggregate_measurements": [
+    {
+      "category": "implementation",
+      "arm": "experimental",
+      "planned_n": 4,
+      "gate_passes": 4,
+      "queue_median_seconds": 0.695,
+      "model_turn_median_seconds": 69.641,
+      "oracle_median_seconds": 1.763,
+      "tool_events_total": 77,
+      "test_attempts_total": 22
+    },
+    {
+      "category": "review",
+      "arm": "experimental",
+      "planned_n": 2,
+      "gate_passes": 2,
+      "queue_median_seconds": 1.099,
+      "model_turn_median_seconds": 34.995,
+      "oracle_median_seconds": 0.028,
+      "tool_events_total": 13,
+      "test_attempts_total": 0
+    },
+    {
+      "category": "docs_lookup",
+      "arm": "experimental",
+      "planned_n": 2,
+      "gate_passes": 2,
+      "queue_median_seconds": 1.372,
+      "model_turn_median_seconds": 7.633,
+      "oracle_median_seconds": 0.024,
+      "tool_events_total": 8,
+      "test_attempts_total": 0
+    },
+    {
+      "category": "all",
+      "arm": "experimental",
+      "planned_n": 8,
+      "gate_passes": 8,
+      "queue_median_seconds": 0.871,
+      "model_turn_median_seconds": 52.223,
+      "oracle_median_seconds": 0.36,
+      "tool_events_total": 98,
+      "test_attempts_total": 22
+    },
+    {
+      "category": "implementation",
+      "arm": "comparator",
+      "planned_n": 4,
+      "gate_passes": 4,
+      "queue_median_seconds": 0.607,
+      "model_turn_median_seconds": 48.622,
+      "oracle_median_seconds": 2.128,
+      "tool_events_total": 40,
+      "test_attempts_total": 13
+    },
+    {
+      "category": "review",
+      "arm": "comparator",
+      "planned_n": 2,
+      "gate_passes": 2,
+      "queue_median_seconds": 0.876,
+      "model_turn_median_seconds": 11.943,
+      "oracle_median_seconds": 0.025,
+      "tool_events_total": 5,
+      "test_attempts_total": 0
+    },
+    {
+      "category": "docs_lookup",
+      "arm": "comparator",
+      "planned_n": 2,
+      "gate_passes": 2,
+      "queue_median_seconds": 0.499,
+      "model_turn_median_seconds": 10.783,
+      "oracle_median_seconds": 0.025,
+      "tool_events_total": 5,
+      "test_attempts_total": 0
+    },
+    {
+      "category": "all",
+      "arm": "comparator",
+      "planned_n": 8,
+      "gate_passes": 8,
+      "queue_median_seconds": 0.607,
+      "model_turn_median_seconds": 27.435,
+      "oracle_median_seconds": 0.329,
+      "tool_events_total": 50,
+      "test_attempts_total": 13
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "I1-hash-read-cap",
+      "category": "implementation",
+      "operation": "implement.oracle-bounded",
+      "public_source_url": "https://github.com/tnunamak/minnows",
+      "source_sha": "4c603346f939651a83b83b156e9a31b08d3cc9cd",
+      "pinned_source_url": "https://github.com/tnunamak/minnows/tree/4c603346f939651a83b83b156e9a31b08d3cc9cd",
+      "reference_fix_sha": "3a7f87c5c9ecba2701a45d6f40097cf106465950",
+      "allowed_paths": [
+        "tools/model-policy-ops/lib/outcomes.py"
+      ],
+      "full_prompt": "In the public minnows repository at the assigned source SHA, fix file_hash_state so MAX_HASH_BYTES bounds bytes actually read, including when a file grows while it is being read. When the next read would exceed the cap, read at most one byte past the remaining allowance and return too_large. Preserve hash_matches behavior for files at or below the cap. Edit only tools/model-policy-ops/lib/outcomes.py; do not commit. The acceptance fixture is tests/test_policy_outcomes.py and the required command is `uv run pytest tests/test_policy_outcomes.py -q`. Preserve all fixtures and other files. The trusted gate also checks edit scope and fixture integrity, and runs the frozen supplemental boundary/preservation cases. Use the v2 behavior commands: python -m pytest -p no:cacheprovider -q tests/test_policy_outcomes.py tests/test_eval_hash_boundaries.py.",
+      "prompt_sha256_by_arm": {
+        "experimental": "7570bd7677bffc9f05de62c74e85262a97530f12060f4d9e1ad458dd18939416",
+        "comparator": "7570bd7677bffc9f05de62c74e85262a97530f12060f4d9e1ad458dd18939416"
+      },
+      "oracle": {
+        "type": "frozen-offline-behavior-tests-plus-scope-and-fixture-integrity",
+        "fixture_from_sha": "3a7f87c5c9ecba2701a45d6f40097cf106465950",
+        "fixture_path": "tests/test_policy_outcomes.py",
+        "command": "<eval-root>/.runtime/venv/bin/python <eval-root>/oracles/check_implementation.py I1-hash-read-cap <worktree>",
+        "pass": "Trusted gate exits 0: only allowed implementation files changed, frozen fixtures intact, all behavior commands exit 0; I2 copies identical.",
+        "behavior_commands": [
+          "python -m pytest -p no:cacheprovider -q tests/test_policy_outcomes.py tests/test_eval_hash_boundaries.py"
+        ]
+      },
+      "answer_schema": null,
+      "fixture_hashes": {
+        "tests/test_policy_outcomes.py": "3ab15a5e695f9c43b3c2e2f550d6226480634ae342bd9abe3284b8faee76bfef",
+        "tests/test_eval_hash_boundaries.py": "07bb975d2033f0837a64e5d0781acae6e5ec67ab0d6942559a461d02f85c7641"
+      },
+      "source_archive_sha256": "cc425bd21fe6888cab2a168b50011cb0633a78cf35193d7abac32f20622d494d",
+      "paired_result": "both trusted deterministic gates passed",
+      "arms": [
+        {
+          "arm": "experimental",
+          "model": "deepseek-v4.1-flash-free",
+          "effort": "high",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 1.757,
+            "model_turn": 59.767,
+            "trusted_oracle": 40.173813
+          },
+          "within_turn_tool_events": 12,
+          "within_turn_test_attempts": 4,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "I1-hash-read-cap/experimental/first-pass/raw-answer.txt",
+              "sha256": "ea317ee4c17cd9cdb37efe317ad7d2a6f76814ea77fbfa5bab82b3aba200eb5a"
+            },
+            "transcript": {
+              "artifact": "I1-hash-read-cap/experimental/first-pass/t3-raw.json",
+              "sha256": "2a4eea32441057f8272cf28da62e88b48c4ef108dcb86d2d0ee3fbac72aa6f97"
+            },
+            "diff": {
+              "artifact": "I1-hash-read-cap/experimental/first-pass/diff.patch",
+              "sha256": "9a7a0ae165e49dea87ec4fb06f45afe460b48d24327b47e7702a275624b3261d"
+            },
+            "oracle_log": {
+              "artifact": "I1-hash-read-cap/experimental/first-pass/oracle.json",
+              "sha256": "8b785220058865081d8ef9480fbffee31a7fbb95fa93b8ac84a4b1a471fb7d6c"
+            }
+          },
+          "prompt_sha256": "7570bd7677bffc9f05de62c74e85262a97530f12060f4d9e1ad458dd18939416",
+          "source_sha": "4c603346f939651a83b83b156e9a31b08d3cc9cd",
+          "scope_deviation": null,
+          "provider": "OpenCode"
+        },
+        {
+          "arm": "comparator",
+          "model": "gpt-6-luna",
+          "effort": "high",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 1.253,
+            "model_turn": 90.664,
+            "trusted_oracle": 45.523698
+          },
+          "within_turn_tool_events": 10,
+          "within_turn_test_attempts": 4,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "I1-hash-read-cap/comparator/first-pass/raw-answer.txt",
+              "sha256": "508aebf10bd7d7298e5113f1b8b4588e12c68cae1dbb79af639fc55487e65aac"
+            },
+            "transcript": {
+              "artifact": "I1-hash-read-cap/comparator/first-pass/t3-raw.json",
+              "sha256": "36668ef19bf78865979c9aa4b3db576142df400e514ea1f925078f17c1aaeba1"
+            },
+            "diff": {
+              "artifact": "I1-hash-read-cap/comparator/first-pass/diff.patch",
+              "sha256": "fa03ed1a3df8700d28b0060e397cc2e7831d91ebac532d1e987f50c33b9e16e9"
+            },
+            "oracle_log": {
+              "artifact": "I1-hash-read-cap/comparator/first-pass/oracle.json",
+              "sha256": "d25399b3b4e7e647d65253649d47134b2ce09363b0d6b8d01093a65328623b7d"
+            }
+          },
+          "prompt_sha256": "7570bd7677bffc9f05de62c74e85262a97530f12060f4d9e1ad458dd18939416",
+          "source_sha": "4c603346f939651a83b83b156e9a31b08d3cc9cd",
+          "scope_deviation": null,
+          "provider": "Codex"
+        }
+      ],
+      "reference_fix_url": "https://github.com/tnunamak/minnows/commit/3a7f87c5c9ecba2701a45d6f40097cf106465950",
+      "frozen_task_prompt_sha256": "7570bd7677bffc9f05de62c74e85262a97530f12060f4d9e1ad458dd18939416",
+      "dispatch_boundary_line": "Use only the assigned snapshot; do not access or request other paths, filesystems, tasks, threads, or personal data."
+    },
+    {
+      "task_id": "I2-transient-gateway-retry",
+      "category": "implementation",
+      "operation": "implement.oracle-bounded",
+      "public_source_url": "https://github.com/tnunamak/minnows",
+      "source_sha": "5b9bf5d34b335ee3cbdbac97770b05fb3b84aadf",
+      "pinned_source_url": "https://github.com/tnunamak/minnows/tree/5b9bf5d34b335ee3cbdbac97770b05fb3b84aadf",
+      "reference_fix_sha": "48306e76299820be32b6d5c839d45ebce7c663f8",
+      "allowed_paths": [
+        "tools/slopgate/semantic/loop_test.py",
+        "skills/slopgate/scripts/semantic/loop_test.py"
+      ],
+      "full_prompt": "In the public minnows repository at the assigned source SHA, make the Slopgate LLM loop retry transient gateway failures and timeouts, but fail immediately for permanent errors such as HTTP 401 or 400. Preserve gateway response text in errors so transient overload text can be classified. Keep tools/slopgate/semantic/loop_test.py and skills/slopgate/scripts/semantic/loop_test.py identical. Edit only those two files; do not commit. The acceptance fixture is tests/test_slopgate_loop_retry.py and the required command is `uv run pytest tests/test_slopgate_loop_retry.py -q`. Preserve all fixtures and other files. The trusted gate also checks edit scope and fixture integrity, and runs the frozen supplemental boundary/preservation cases. Use the v2 behavior commands: python -m pytest -p no:cacheprovider -q tests/test_slopgate_loop_retry.py.",
+      "prompt_sha256_by_arm": {
+        "experimental": "26936366c4aa224b7a6ea62adf2ab6dd7ddcfdad4ab12854d24d6196f379264b",
+        "comparator": "26936366c4aa224b7a6ea62adf2ab6dd7ddcfdad4ab12854d24d6196f379264b"
+      },
+      "oracle": {
+        "type": "frozen-offline-behavior-tests-plus-scope-and-fixture-integrity",
+        "fixture_from_sha": "48306e76299820be32b6d5c839d45ebce7c663f8",
+        "fixture_path": "tests/test_slopgate_loop_retry.py",
+        "command": "<eval-root>/.runtime/venv/bin/python <eval-root>/oracles/check_implementation.py I2-transient-gateway-retry <worktree>",
+        "pass": "Trusted gate exits 0: only allowed implementation files changed, frozen fixtures intact, all behavior commands exit 0; I2 copies identical.",
+        "behavior_commands": [
+          "python -m pytest -p no:cacheprovider -q tests/test_slopgate_loop_retry.py"
+        ]
+      },
+      "answer_schema": null,
+      "fixture_hashes": {
+        "tests/test_slopgate_loop_retry.py": "240f9e67859336ed2a0526c7fd08ee12f58fe1647269d324fc2b56e3305175e5"
+      },
+      "source_archive_sha256": "e7081d0ee4b030d29c7416fef5630f51df12f67892c33d93e112690a41f6e775",
+      "paired_result": "both trusted deterministic gates passed",
+      "arms": [
+        {
+          "arm": "experimental",
+          "model": "deepseek-v4.1-flash-free",
+          "effort": "high",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 0.769,
+            "model_turn": 122.641,
+            "trusted_oracle": 0.689641
+          },
+          "within_turn_tool_events": 23,
+          "within_turn_test_attempts": 10,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "I2-transient-gateway-retry/experimental/first-pass/raw-answer.txt",
+              "sha256": "6ea6c7a848d2c4ab35d71c6dbe7cf05d57a8bc446f53ff061303ac02e35a5297"
+            },
+            "transcript": {
+              "artifact": "I2-transient-gateway-retry/experimental/first-pass/t3-raw.json",
+              "sha256": "e9ef0cba20f289017cca00b49df0174845b6445559bc52a9e6ccc51c50f18e4d"
+            },
+            "diff": {
+              "artifact": "I2-transient-gateway-retry/experimental/first-pass/diff.patch",
+              "sha256": "05837bfce1c057f190d90f17b544fb26c4f0dcf4c84f38cea4cb14d44fb2e887"
+            },
+            "oracle_log": {
+              "artifact": "I2-transient-gateway-retry/experimental/first-pass/oracle.json",
+              "sha256": "4a89ebaec1d4b364119fe6a468e742a3d444ac8f0b5133342db65796c98d3f39"
+            }
+          },
+          "prompt_sha256": "26936366c4aa224b7a6ea62adf2ab6dd7ddcfdad4ab12854d24d6196f379264b",
+          "source_sha": "5b9bf5d34b335ee3cbdbac97770b05fb3b84aadf",
+          "scope_deviation": null,
+          "provider": "OpenCode"
+        },
+        {
+          "arm": "comparator",
+          "model": "gpt-6-luna",
+          "effort": "high",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 0.436,
+            "model_turn": 53.458,
+            "trusted_oracle": 0.630554
+          },
+          "within_turn_tool_events": 10,
+          "within_turn_test_attempts": 4,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "I2-transient-gateway-retry/comparator/first-pass/raw-answer.txt",
+              "sha256": "0ec0f442ecc733cb60f7f7583d6be95de1694f97ac25e7dc35565bb467f0b538"
+            },
+            "transcript": {
+              "artifact": "I2-transient-gateway-retry/comparator/first-pass/t3-raw.json",
+              "sha256": "fa416487eaa21cf7829cb5c6f4095347d35353891b5f8ff85153d5556022564d"
+            },
+            "diff": {
+              "artifact": "I2-transient-gateway-retry/comparator/first-pass/diff.patch",
+              "sha256": "c312b36fab6b70ee842afe7784df47462f7363b3b50f6900f926ff21c53a1d49"
+            },
+            "oracle_log": {
+              "artifact": "I2-transient-gateway-retry/comparator/first-pass/oracle.json",
+              "sha256": "4bcde10a3d369a35795bc68d0bf280d22cde3d78768782f8b110710a589af0b2"
+            }
+          },
+          "prompt_sha256": "26936366c4aa224b7a6ea62adf2ab6dd7ddcfdad4ab12854d24d6196f379264b",
+          "source_sha": "5b9bf5d34b335ee3cbdbac97770b05fb3b84aadf",
+          "scope_deviation": null,
+          "provider": "Codex"
+        }
+      ],
+      "reference_fix_url": "https://github.com/tnunamak/minnows/commit/48306e76299820be32b6d5c839d45ebce7c663f8",
+      "frozen_task_prompt_sha256": "26936366c4aa224b7a6ea62adf2ab6dd7ddcfdad4ab12854d24d6196f379264b",
+      "dispatch_boundary_line": "Use only the assigned snapshot; do not access or request other paths, filesystems, tasks, threads, or personal data."
+    },
+    {
+      "task_id": "I3-mid-session-reply-scoring",
+      "category": "implementation",
+      "operation": "implement.oracle-bounded",
+      "public_source_url": "https://github.com/tnunamak/minnows",
+      "source_sha": "d9a5da7f2cdac17ff9e4cfa5276fe0bfbf11e266",
+      "pinned_source_url": "https://github.com/tnunamak/minnows/tree/d9a5da7f2cdac17ff9e4cfa5276fe0bfbf11e266",
+      "reference_fix_sha": "43b4ac985b7d1af2932c9d06e1bd7db7a02cd7fc",
+      "allowed_paths": [
+        "tools/unfinished/unfinished"
+      ],
+      "full_prompt": "In the public minnows repository at the assigned source SHA, ensure the normal unfinished run sends every reply segment through the decision-model pass before candidate selection. A reply can contain unanswered asks even when the next user message arrives in less than six hours. Edit only tools/unfinished/unfinished; do not commit. The acceptance fixture is tools/unfinished/tests/test_mid_asks.py plus tests/test_unfinished_mid_asks_regression.py; run `uv run pytest tests/test_unfinished_mid_asks_regression.py -q`. Preserve all fixtures and other files. The trusted gate also checks edit scope and fixture integrity, and runs the frozen supplemental boundary/preservation cases. Use the v2 behavior commands: python -m pytest -p no:cacheprovider -q tests/test_unfinished_mid_asks_regression.py tests/test_eval_reply_selection.py.",
+      "prompt_sha256_by_arm": {
+        "experimental": "9f44b4057dec77dbb273d54f23ce5dfca80ad5012f39d7c17aee8631c8d86af8",
+        "comparator": "9f44b4057dec77dbb273d54f23ce5dfca80ad5012f39d7c17aee8631c8d86af8"
+      },
+      "oracle": {
+        "type": "frozen-offline-behavior-tests-plus-scope-and-fixture-integrity",
+        "fixture_from_sha": "43b4ac985b7d1af2932c9d06e1bd7db7a02cd7fc",
+        "fixture_paths": [
+          "tools/unfinished/tests/test_mid_asks.py",
+          "tests/test_unfinished_mid_asks_regression.py"
+        ],
+        "command": "<eval-root>/.runtime/venv/bin/python <eval-root>/oracles/check_implementation.py I3-mid-session-reply-scoring <worktree>",
+        "pass": "Trusted gate exits 0: only allowed implementation files changed, frozen fixtures intact, all behavior commands exit 0; I2 copies identical.",
+        "behavior_commands": [
+          "python -m pytest -p no:cacheprovider -q tests/test_unfinished_mid_asks_regression.py tests/test_eval_reply_selection.py"
+        ]
+      },
+      "answer_schema": null,
+      "fixture_hashes": {
+        "tools/unfinished/tests/test_mid_asks.py": "ea08897a7af636dab5cd9d2845afe4921db9425c3e7ed49123c960cf25eab94e",
+        "tests/test_unfinished_mid_asks_regression.py": "aa68ea0b86a6fa8bbf60334c8240fa340f2fbcab5a2b95577577c47eff58c344",
+        "tests/test_eval_reply_selection.py": "24e247218f312211c43e7775a27f88b7f4951db5a9268d9153b992b6d6644828"
+      },
+      "source_archive_sha256": "9c53604ee3788d55287505bc902691da4d799ab8bfcb9781c5f25c9a91c9d8b4",
+      "paired_result": "both trusted deterministic gates passed",
+      "arms": [
+        {
+          "arm": "experimental",
+          "model": "deepseek-v4.1-flash-free",
+          "effort": "high",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 0.581,
+            "model_turn": 49.362,
+            "trusted_oracle": 1.55678
+          },
+          "within_turn_tool_events": 21,
+          "within_turn_test_attempts": 5,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "I3-mid-session-reply-scoring/experimental/first-pass/raw-answer.txt",
+              "sha256": "e1f2659af9cbaeeac57479116023b01ebb0de55f7cab5b0ff18c6785385cfea9"
+            },
+            "transcript": {
+              "artifact": "I3-mid-session-reply-scoring/experimental/first-pass/t3-raw.json",
+              "sha256": "b73aca6f836d3afc3f5abc3c4dabfa6f04b8b773aa4ea11f083745f78da7afa8"
+            },
+            "diff": {
+              "artifact": "I3-mid-session-reply-scoring/experimental/first-pass/diff.patch",
+              "sha256": "eefa5c2e2b8ae8b600228e77d0742a8cc0b7373ca1db87068aed4a9102fa1f65"
+            },
+            "oracle_log": {
+              "artifact": "I3-mid-session-reply-scoring/experimental/first-pass/oracle.json",
+              "sha256": "3a710fe48c05bba58d831b99d394fafd6cc324fec03b8575cd002b9f7415fd1c"
+            }
+          },
+          "prompt_sha256": "9f44b4057dec77dbb273d54f23ce5dfca80ad5012f39d7c17aee8631c8d86af8",
+          "source_sha": "d9a5da7f2cdac17ff9e4cfa5276fe0bfbf11e266",
+          "scope_deviation": null,
+          "provider": "OpenCode"
+        },
+        {
+          "arm": "comparator",
+          "model": "gpt-6-luna",
+          "effort": "high",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 0.523,
+            "model_turn": 39.037,
+            "trusted_oracle": 1.487858
+          },
+          "within_turn_tool_events": 9,
+          "within_turn_test_attempts": 3,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "I3-mid-session-reply-scoring/comparator/first-pass/raw-answer.txt",
+              "sha256": "bcac929c8a36e5902f6f4659ed931f39c122aebb1f56e6cc6993e945b8b7c608"
+            },
+            "transcript": {
+              "artifact": "I3-mid-session-reply-scoring/comparator/first-pass/t3-raw.json",
+              "sha256": "429b208fb52fd0c54b05782b6d762b16fc528a659f7bd93722036979bfdc4294"
+            },
+            "diff": {
+              "artifact": "I3-mid-session-reply-scoring/comparator/first-pass/diff.patch",
+              "sha256": "d3520a013706e55b9c9d8052cfcbee06ce438c3ac53e705339946a7aae0dcad4"
+            },
+            "oracle_log": {
+              "artifact": "I3-mid-session-reply-scoring/comparator/first-pass/oracle.json",
+              "sha256": "1ba80d176b5bd1a8457b3840706b0856952d7f4e235e655d529c7f2c9b15b52e"
+            }
+          },
+          "prompt_sha256": "9f44b4057dec77dbb273d54f23ce5dfca80ad5012f39d7c17aee8631c8d86af8",
+          "source_sha": "d9a5da7f2cdac17ff9e4cfa5276fe0bfbf11e266",
+          "scope_deviation": null,
+          "provider": "Codex"
+        }
+      ],
+      "reference_fix_url": "https://github.com/tnunamak/minnows/commit/43b4ac985b7d1af2932c9d06e1bd7db7a02cd7fc",
+      "frozen_task_prompt_sha256": "9f44b4057dec77dbb273d54f23ce5dfca80ad5012f39d7c17aee8631c8d86af8",
+      "dispatch_boundary_line": "Use only the assigned snapshot; do not access or request other paths, filesystems, tasks, threads, or personal data."
+    },
+    {
+      "task_id": "I4-money-only-unknown-reset",
+      "category": "implementation",
+      "operation": "implement.oracle-bounded",
+      "public_source_url": "https://github.com/tnunamak/clawmeter",
+      "source_sha": "f9433e3c961ec14c5ddf252b1e378a8c8aded97e",
+      "pinned_source_url": "https://github.com/tnunamak/clawmeter/tree/f9433e3c961ec14c5ddf252b1e378a8c8aded97e",
+      "reference_fix_sha": "465ef5afe92371e5235883299e9d0186d98a582e",
+      "allowed_paths": [
+        "internal/cli/status.go",
+        "internal/tray/tray.go"
+      ],
+      "full_prompt": "In the public Clawmeter repository at the assigned source SHA, when a usage window has money detail and no reset time or reset policy, show the money amount without a redundant percentage in both plain CLI output and tray status. Preserve existing output for windows with reset information or without money detail. Edit only internal/cli/status.go and internal/tray/tray.go; do not commit. Run `go test -tags tray -count=1 ./internal/cli ./internal/tray`. Preserve all fixtures and other files. The trusted gate also checks edit scope and fixture integrity, and runs the frozen supplemental boundary/preservation cases. Use the v2 behavior commands: go test -tags tray -count=1 ./internal/cli ./internal/tray.",
+      "prompt_sha256_by_arm": {
+        "experimental": "a9beef9322baf393a59c85b7f02633916db6ca2705bcb538522a90424551f62b",
+        "comparator": "a9beef9322baf393a59c85b7f02633916db6ca2705bcb538522a90424551f62b"
+      },
+      "oracle": {
+        "type": "frozen-offline-behavior-tests-plus-scope-and-fixture-integrity",
+        "fixture_from_sha": "465ef5afe92371e5235883299e9d0186d98a582e",
+        "command": "<eval-root>/.runtime/venv/bin/python <eval-root>/oracles/check_implementation.py I4-money-only-unknown-reset <worktree>",
+        "pass": "Trusted gate exits 0: only allowed implementation files changed, frozen fixtures intact, all behavior commands exit 0; I2 copies identical.",
+        "behavior_commands": [
+          "go test -tags tray -count=1 ./internal/cli ./internal/tray"
+        ]
+      },
+      "answer_schema": null,
+      "fixture_hashes": {
+        "internal/cli/status_test.go": "207d23717e82f417d8bebe815ed3d2cb329abc920870c7075377ba7f8353c653",
+        "internal/tray/tray_test.go": "66a0e5334a4c1ccfdc3f0b1628897a34c008f27fc230bfb2c32a985b2f7c3891",
+        "internal/cli/eval_money_test.go": "7fbcdee6b7b0eda9f6b054e809add1e5f9536bddd4b34e8c65fa8308d6cf7a92",
+        "internal/tray/eval_money_test.go": "723c4ec0c8663fd30ad780779eaa95f8b407035f3e32c787896cda2ec92c56a6"
+      },
+      "source_archive_sha256": "50cf4d49c29e7729566e7f3d9a350717ab55ead8f009cc9450126eb1867e5f6c",
+      "paired_result": "both trusted deterministic gates passed",
+      "arms": [
+        {
+          "arm": "experimental",
+          "model": "deepseek-v4.1-flash-free",
+          "effort": "high",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 0.621,
+            "model_turn": 79.514,
+            "trusted_oracle": 1.970126
+          },
+          "within_turn_tool_events": 21,
+          "within_turn_test_attempts": 3,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "I4-money-only-unknown-reset/experimental/first-pass/raw-answer.txt",
+              "sha256": "22037d3e8b336f4cf890a250920aa9050d3d1e41b0217bf9ce571f5a6799c53d"
+            },
+            "transcript": {
+              "artifact": "I4-money-only-unknown-reset/experimental/first-pass/t3-raw.json",
+              "sha256": "a2b5265afb45df8014df6137959facb746e691b12ea73f88663a0542f918422e"
+            },
+            "diff": {
+              "artifact": "I4-money-only-unknown-reset/experimental/first-pass/diff.patch",
+              "sha256": "0654088c96af72c1c21feab790b24f3580acbca152cbb8ffd45a06a63fd6327c"
+            },
+            "oracle_log": {
+              "artifact": "I4-money-only-unknown-reset/experimental/first-pass/oracle.json",
+              "sha256": "03cda07b4442e185c76f47c58f395847de2b6e94ab593e4a9d8255ebda37e347"
+            }
+          },
+          "prompt_sha256": "a9beef9322baf393a59c85b7f02633916db6ca2705bcb538522a90424551f62b",
+          "source_sha": "f9433e3c961ec14c5ddf252b1e378a8c8aded97e",
+          "scope_deviation": null,
+          "provider": "OpenCode"
+        },
+        {
+          "arm": "comparator",
+          "model": "gpt-6-luna",
+          "effort": "high",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 0.69,
+            "model_turn": 43.786,
+            "trusted_oracle": 2.767238
+          },
+          "within_turn_tool_events": 11,
+          "within_turn_test_attempts": 2,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "I4-money-only-unknown-reset/comparator/first-pass/raw-answer.txt",
+              "sha256": "9e46b1db3ff156ce54ccfd02a2fa522773f79f9f1d402985980c153b5d800f79"
+            },
+            "transcript": {
+              "artifact": "I4-money-only-unknown-reset/comparator/first-pass/t3-raw.json",
+              "sha256": "50f7476a6764f61475ce399b99114c3a9f3b7a839aa58c2c308a260e5d7a3024"
+            },
+            "diff": {
+              "artifact": "I4-money-only-unknown-reset/comparator/first-pass/diff.patch",
+              "sha256": "ae0ddb893f8a052ece975b9858ac9c338fa3b24ed547c39905b50b934b48fbfa"
+            },
+            "oracle_log": {
+              "artifact": "I4-money-only-unknown-reset/comparator/first-pass/oracle.json",
+              "sha256": "0796f3317874bb37058ddf5b140d1beef9e63433d715e944cce8901febaa66f9"
+            }
+          },
+          "prompt_sha256": "a9beef9322baf393a59c85b7f02633916db6ca2705bcb538522a90424551f62b",
+          "source_sha": "f9433e3c961ec14c5ddf252b1e378a8c8aded97e",
+          "scope_deviation": null,
+          "provider": "Codex"
+        }
+      ],
+      "reference_fix_url": "https://github.com/tnunamak/clawmeter/commit/465ef5afe92371e5235883299e9d0186d98a582e",
+      "frozen_task_prompt_sha256": "a9beef9322baf393a59c85b7f02633916db6ca2705bcb538522a90424551f62b",
+      "dispatch_boundary_line": "Use only the assigned snapshot; do not access or request other paths, filesystems, tasks, threads, or personal data."
+    },
+    {
+      "task_id": "R1-review-hash-cap",
+      "category": "review",
+      "operation": "review.known-defect-probe",
+      "public_source_url": "https://github.com/tnunamak/minnows",
+      "source_sha": "4c603346f939651a83b83b156e9a31b08d3cc9cd",
+      "pinned_source_url": "https://github.com/tnunamak/minnows/tree/4c603346f939651a83b83b156e9a31b08d3cc9cd",
+      "reference_fix_sha": null,
+      "allowed_paths": [
+        "tools/model-policy-ops/lib/outcomes.py"
+      ],
+      "full_prompt": "Inspect only file_hash_state in tools/model-policy-ops/lib/outcomes.py at the assigned public source SHA. Classify the concrete bounded correctness defect using the schema below. This is a constrained known-defect probe, not an open-ended audit. Choose one finding and one consistent correction; use none for both if no defect exists. Evidence is a 1-based inclusive span of 1-8 lines within the symbol that includes the defect-bearing expression. Do not edit files. Return ONLY one JSON object, with every requested field and no extra keys, prose or fences. Schema: {\"type\":\"object\",\"properties\":{\"file\":{\"type\":\"string\",\"enum\":[\"tools/model-policy-ops/lib/outcomes.py\"]},\"symbol\":{\"type\":\"string\",\"enum\":[\"file_hash_state\"]},\"finding\":{\"type\":\"string\",\"enum\":[\"fixed_read_can_exceed_byte_cap\",\"hash_ignores_last_block\",\"missing_file_error_unhandled\",\"none\"]},\"correction\":{\"type\":\"string\",\"enum\":[\"bound_read_by_remaining_plus_one\",\"ignore_cap\",\"none\",\"stat_size_only\"]},\"evidence\":{\"type\":\"object\",\"properties\":{\"start_line\":{\"type\":\"integer\"},\"end_line\":{\"type\":\"integer\"}},\"required\":[\"start_line\",\"end_line\"],\"additionalProperties\":false}},\"required\":[\"file\",\"symbol\",\"finding\",\"correction\",\"evidence\"],\"additionalProperties\":false}",
+      "prompt_sha256_by_arm": {
+        "experimental": "e396497f5dd7575e4954b0a845096372d60a5ca190e6cca1f01a9caa17e1b496",
+        "comparator": "e7f99eb6eb071fff06b5cc182e012a61db2f52fff21368249c9adbd5134ab851"
+      },
+      "oracle": {
+        "type": "explicit-schema-and-pinned-facts",
+        "expected_fields": {
+          "file": "tools/model-policy-ops/lib/outcomes.py",
+          "symbol": "file_hash_state",
+          "finding": "fixed_read_can_exceed_byte_cap",
+          "correction": "bound_read_by_remaining_plus_one"
+        },
+        "command_template": "<eval-root>/.runtime/venv/bin/python <eval-root>/oracles/check_structured_answer.py R1-review-hash-cap <answer-file>",
+        "pass": "One strict JSON object satisfies explicitly requested types/enums and grounded facts; supporting code span where requested. No free-prose equality or keyword heuristics.",
+        "source_span": {
+          "path": "evidence/v2-2026-10-15/source/R1-review-hash-cap/tools/model-policy-ops/lib/outcomes.py",
+          "sha256": "17463d09da347845dd70c6d0cb6a975c3734364b8169e4ee7537ad1d6f7397aa",
+          "required_lines": [
+            135
+          ],
+          "symbol_lines": [
+            120,
+            140
+          ]
+        }
+      },
+      "answer_schema": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "enum": [
+              "tools/model-policy-ops/lib/outcomes.py"
+            ]
+          },
+          "symbol": {
+            "type": "string",
+            "enum": [
+              "file_hash_state"
+            ]
+          },
+          "finding": {
+            "type": "string",
+            "enum": [
+              "fixed_read_can_exceed_byte_cap",
+              "hash_ignores_last_block",
+              "missing_file_error_unhandled",
+              "none"
+            ]
+          },
+          "correction": {
+            "type": "string",
+            "enum": [
+              "bound_read_by_remaining_plus_one",
+              "ignore_cap",
+              "none",
+              "stat_size_only"
+            ]
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "start_line": {
+                "type": "integer"
+              },
+              "end_line": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "start_line",
+              "end_line"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "file",
+          "symbol",
+          "finding",
+          "correction",
+          "evidence"
+        ],
+        "additionalProperties": false
+      },
+      "fixture_hashes": {},
+      "source_archive_sha256": "cc425bd21fe6888cab2a168b50011cb0633a78cf35193d7abac32f20622d494d",
+      "paired_result": "both trusted deterministic gates passed",
+      "arms": [
+        {
+          "arm": "experimental",
+          "model": "deepseek-v4.1-flash-free",
+          "effort": "high",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 0.715,
+            "model_turn": 14.905,
+            "trusted_oracle": 0.025596965104341507
+          },
+          "within_turn_tool_events": 2,
+          "within_turn_test_attempts": 0,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "R1-review-hash-cap/experimental/first-pass/raw-answer.json",
+              "sha256": "a43745ea1c1ceab585321451ba2ccdd0af972c04f57f03e08875e90790180941"
+            },
+            "transcript": {
+              "artifact": "R1-review-hash-cap/experimental/first-pass/t3-raw.json",
+              "sha256": "d0d1be39c2cf66215380fc74d750ce9ef3b06448aa4246021a23ac99cc037849"
+            },
+            "diff": {
+              "artifact": "R1-review-hash-cap/experimental/first-pass/diff.patch",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "oracle_log": {
+              "artifact": "R1-review-hash-cap/experimental/first-pass/oracle.json",
+              "sha256": "0116facd04145f1b44abe6da4edda2f292932aca2ab071b26a0ef8c357e1750c"
+            }
+          },
+          "prompt_sha256": "e396497f5dd7575e4954b0a845096372d60a5ca190e6cca1f01a9caa17e1b496",
+          "source_sha": "4c603346f939651a83b83b156e9a31b08d3cc9cd",
+          "scope_deviation": null,
+          "provider": "OpenCode"
+        },
+        {
+          "arm": "comparator",
+          "model": "gpt-6-luna",
+          "effort": "high",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 1.325,
+            "model_turn": 8.053,
+            "trusted_oracle": 0.02260947902686894
+          },
+          "within_turn_tool_events": 2,
+          "within_turn_test_attempts": 0,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "R1-review-hash-cap/comparator/first-pass/raw-answer.json",
+              "sha256": "a43745ea1c1ceab585321451ba2ccdd0af972c04f57f03e08875e90790180941"
+            },
+            "transcript": {
+              "artifact": "R1-review-hash-cap/comparator/first-pass/t3-raw.json",
+              "sha256": "b7f69ce74bbbe931918218624cde19d0efe61726a669db6a450e616a38495b4a"
+            },
+            "diff": {
+              "artifact": "R1-review-hash-cap/comparator/first-pass/diff.patch",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "oracle_log": {
+              "artifact": "R1-review-hash-cap/comparator/first-pass/oracle.json",
+              "sha256": "83a872e444b174318c6fec8f45650cbce8bec81658a15c80ba3aa5a8b5ef2f13"
+            }
+          },
+          "prompt_sha256": "e7f99eb6eb071fff06b5cc182e012a61db2f52fff21368249c9adbd5134ab851",
+          "source_sha": "4c603346f939651a83b83b156e9a31b08d3cc9cd",
+          "scope_deviation": null,
+          "provider": "Codex"
+        }
+      ],
+      "reference_fix_url": null,
+      "frozen_task_prompt_sha256": "e396497f5dd7575e4954b0a845096372d60a5ca190e6cca1f01a9caa17e1b496",
+      "dispatch_boundary_line": "Use only the assigned snapshot; do not access or request other paths, filesystems, tasks, threads, or personal data."
+    },
+    {
+      "task_id": "R2-review-mid-session-replies",
+      "category": "review",
+      "operation": "review.known-defect-probe",
+      "public_source_url": "https://github.com/tnunamak/minnows",
+      "source_sha": "d9a5da7f2cdac17ff9e4cfa5276fe0bfbf11e266",
+      "pinned_source_url": "https://github.com/tnunamak/minnows/tree/d9a5da7f2cdac17ff9e4cfa5276fe0bfbf11e266",
+      "reference_fix_sha": null,
+      "allowed_paths": [
+        "tools/unfinished/unfinished"
+      ],
+      "full_prompt": "Inspect only cmd_run in tools/unfinished/unfinished at the assigned public source SHA. Classify the concrete bounded correctness defect using the schema below. This is a constrained known-defect probe, not an open-ended audit. Choose one finding and one consistent correction; use none for both if no defect exists. Evidence is a 1-based inclusive span of 1-8 lines within the symbol that includes the defect-bearing expression. Do not edit files. Return ONLY one JSON object, with every requested field and no extra keys, prose or fences. Schema: {\"type\":\"object\",\"properties\":{\"file\":{\"type\":\"string\",\"enum\":[\"tools/unfinished/unfinished\"]},\"symbol\":{\"type\":\"string\",\"enum\":[\"cmd_run\"]},\"finding\":{\"type\":\"string\",\"enum\":[\"all_user_segments_skipped\",\"missing_run_lock\",\"none\",\"quick_reply_excluded\"]},\"correction\":{\"type\":\"string\",\"enum\":[\"increase_wait_threshold\",\"none\",\"remove_all_reply_scoring\",\"score_all_replies_before_selection\"]},\"evidence\":{\"type\":\"object\",\"properties\":{\"start_line\":{\"type\":\"integer\"},\"end_line\":{\"type\":\"integer\"}},\"required\":[\"start_line\",\"end_line\"],\"additionalProperties\":false}},\"required\":[\"file\",\"symbol\",\"finding\",\"correction\",\"evidence\"],\"additionalProperties\":false}",
+      "prompt_sha256_by_arm": {
+        "experimental": "5d4ec9b852f263e2e561b49fad5a3c5e54659f24d9c334e39f733d0ca7041952",
+        "comparator": "36c8b743c55da74861e92efc69e9c070c57d155cf1f609cdaa87e7a266881565"
+      },
+      "oracle": {
+        "type": "explicit-schema-and-pinned-facts",
+        "expected_fields": {
+          "file": "tools/unfinished/unfinished",
+          "symbol": "cmd_run",
+          "finding": "quick_reply_excluded",
+          "correction": "score_all_replies_before_selection"
+        },
+        "command_template": "<eval-root>/.runtime/venv/bin/python <eval-root>/oracles/check_structured_answer.py R2-review-mid-session-replies <answer-file>",
+        "pass": "One strict JSON object satisfies explicitly requested types/enums and grounded facts; supporting code span where requested. No free-prose equality or keyword heuristics.",
+        "source_span": {
+          "path": "evidence/v2-2026-10-15/source/R2-review-mid-session-replies/tools/unfinished/unfinished",
+          "sha256": "d52c4cf63aaaa0efa70597e0d781a55537bd08f2059d78841328f414750ed1de",
+          "required_lines": [
+            84,
+            85
+          ],
+          "symbol_lines": [
+            50,
+            99
+          ]
+        }
+      },
+      "answer_schema": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "enum": [
+              "tools/unfinished/unfinished"
+            ]
+          },
+          "symbol": {
+            "type": "string",
+            "enum": [
+              "cmd_run"
+            ]
+          },
+          "finding": {
+            "type": "string",
+            "enum": [
+              "all_user_segments_skipped",
+              "missing_run_lock",
+              "none",
+              "quick_reply_excluded"
+            ]
+          },
+          "correction": {
+            "type": "string",
+            "enum": [
+              "increase_wait_threshold",
+              "none",
+              "remove_all_reply_scoring",
+              "score_all_replies_before_selection"
+            ]
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "start_line": {
+                "type": "integer"
+              },
+              "end_line": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "start_line",
+              "end_line"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "file",
+          "symbol",
+          "finding",
+          "correction",
+          "evidence"
+        ],
+        "additionalProperties": false
+      },
+      "fixture_hashes": {},
+      "source_archive_sha256": "9c53604ee3788d55287505bc902691da4d799ab8bfcb9781c5f25c9a91c9d8b4",
+      "paired_result": "both trusted deterministic gates passed",
+      "arms": [
+        {
+          "arm": "experimental",
+          "model": "deepseek-v4.1-flash-free",
+          "effort": "high",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 1.483,
+            "model_turn": 55.084,
+            "trusted_oracle": 0.029663547058589756
+          },
+          "within_turn_tool_events": 11,
+          "within_turn_test_attempts": 0,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "R2-review-mid-session-replies/experimental/first-pass/raw-answer.json",
+              "sha256": "51b5664cbd961c2f946be3575600bba2433f0b705eaec8bd2ff4556a35c080fa"
+            },
+            "transcript": {
+              "artifact": "R2-review-mid-session-replies/experimental/first-pass/t3-raw.json",
+              "sha256": "3e910119f90c58fa615a7e7c59e7eadb5ae16b5cfbda4cc249ccc2e6b080ec8e"
+            },
+            "diff": {
+              "artifact": "R2-review-mid-session-replies/experimental/first-pass/diff.patch",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "oracle_log": {
+              "artifact": "R2-review-mid-session-replies/experimental/first-pass/oracle.json",
+              "sha256": "1a370b7d3ad1432c3d0282ef685cc80b6ea7c874ff303cb0c5e106b36d849c1e"
+            }
+          },
+          "prompt_sha256": "5d4ec9b852f263e2e561b49fad5a3c5e54659f24d9c334e39f733d0ca7041952",
+          "source_sha": "d9a5da7f2cdac17ff9e4cfa5276fe0bfbf11e266",
+          "scope_deviation": "Inspected tools/unfinished/lib/select_cands.py outside cmd_run-only instruction scope.",
+          "provider": "OpenCode"
+        },
+        {
+          "arm": "comparator",
+          "model": "gpt-6-luna",
+          "effort": "high",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 0.427,
+            "model_turn": 15.833,
+            "trusted_oracle": 0.02767587103880942
+          },
+          "within_turn_tool_events": 3,
+          "within_turn_test_attempts": 0,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "R2-review-mid-session-replies/comparator/first-pass/raw-answer.json",
+              "sha256": "b664844ad99b0c7b0e882aee7cda759b94dc17984298fb24e97ceb33b6b2d2c3"
+            },
+            "transcript": {
+              "artifact": "R2-review-mid-session-replies/comparator/first-pass/t3-raw.json",
+              "sha256": "6a499c15b03302d6b2a633879b4b167460f5d126c18f4b71b5fb98af9345d5b6"
+            },
+            "diff": {
+              "artifact": "R2-review-mid-session-replies/comparator/first-pass/diff.patch",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "oracle_log": {
+              "artifact": "R2-review-mid-session-replies/comparator/first-pass/oracle.json",
+              "sha256": "cbf66df3bec031ec061772211fa98e76fa5437fe67def358a47d13f5f9367d9c"
+            }
+          },
+          "prompt_sha256": "36c8b743c55da74861e92efc69e9c070c57d155cf1f609cdaa87e7a266881565",
+          "source_sha": "d9a5da7f2cdac17ff9e4cfa5276fe0bfbf11e266",
+          "scope_deviation": null,
+          "provider": "Codex"
+        }
+      ],
+      "reference_fix_url": null,
+      "frozen_task_prompt_sha256": "4c799353a46b033c14d1c6bbdfb9cde8e493c7dd2b14ce7cec1f9d5fb2338cae",
+      "dispatch_boundary_line": "Use only the assigned snapshot; do not access or request other paths, filesystems, tasks, threads, or personal data."
+    },
+    {
+      "task_id": "D1-docs-minnows-data-packs",
+      "category": "docs_lookup",
+      "operation": "docs.lookup",
+      "public_source_url": "https://github.com/tnunamak/minnows",
+      "source_sha": "6d9467f6768595487ffd4c99cf3ebca3d0f53d89",
+      "pinned_source_url": "https://github.com/tnunamak/minnows/tree/6d9467f6768595487ffd4c99cf3ebca3d0f53d89",
+      "reference_fix_sha": null,
+      "allowed_paths": [
+        "README.md"
+      ],
+      "full_prompt": "Using only README.md at the assigned public source SHA, report the product facts using the schema below. mcp_default is true if MCP is the default for local tool minnows, false otherwise. Directory and required-file fields request literal identifiers; other strings request enums, not prose. Do not edit files. Return ONLY one JSON object, with every requested field and no extra keys, prose or fences. Schema: {\"type\":\"object\",\"properties\":{\"tool_interface\":{\"type\":\"string\",\"enum\":[\"cli\",\"http_service\",\"mcp\"]},\"skill_wrapper\":{\"type\":\"string\",\"enum\":[\"optional\",\"required\",\"unsupported\"]},\"data_pack_format\":{\"type\":\"string\",\"enum\":[\"json\",\"sqlite\",\"yaml\"]},\"data_pack_directory\":{\"type\":\"string\",\"enum\":[\"data/<pack-name>/\",\"packs/<pack-name>/\",\"tools/<pack-name>/\"]},\"data_pack_required_file\":{\"type\":\"string\",\"enum\":[\"README.md\",\"index.json\",\"pack.json\"]},\"mcp_default\":{\"type\":\"boolean\"}},\"required\":[\"tool_interface\",\"skill_wrapper\",\"data_pack_format\",\"data_pack_directory\",\"data_pack_required_file\",\"mcp_default\"],\"additionalProperties\":false}",
+      "prompt_sha256_by_arm": {
+        "experimental": "fb87e6e785af73f47f16c998521a8ad2b189a7162b067d3d5e5292340308de75",
+        "comparator": "9948a29c5c37cfe413398ed24cec9372942e0d1e538e63b2090814850a8e905c"
+      },
+      "oracle": {
+        "type": "explicit-schema-and-pinned-facts",
+        "expected_fields": {
+          "tool_interface": "cli",
+          "skill_wrapper": "optional",
+          "data_pack_format": "json",
+          "data_pack_directory": "data/<pack-name>/",
+          "data_pack_required_file": "pack.json",
+          "mcp_default": false
+        },
+        "command_template": "<eval-root>/.runtime/venv/bin/python <eval-root>/oracles/check_structured_answer.py D1-docs-minnows-data-packs <answer-file>",
+        "pass": "One strict JSON object satisfies explicitly requested types/enums and grounded facts; supporting code span where requested. No free-prose equality or keyword heuristics.",
+        "fact_source": {
+          "path": "evidence/v2-2026-10-15/source/D1-docs-minnows-data-packs/README.md",
+          "sha256": "1139a12914f8a00e34f0745ccca14007124c87d9cc5d14dd903bf84994b2e700"
+        }
+      },
+      "answer_schema": {
+        "type": "object",
+        "properties": {
+          "tool_interface": {
+            "type": "string",
+            "enum": [
+              "cli",
+              "http_service",
+              "mcp"
+            ]
+          },
+          "skill_wrapper": {
+            "type": "string",
+            "enum": [
+              "optional",
+              "required",
+              "unsupported"
+            ]
+          },
+          "data_pack_format": {
+            "type": "string",
+            "enum": [
+              "json",
+              "sqlite",
+              "yaml"
+            ]
+          },
+          "data_pack_directory": {
+            "type": "string",
+            "enum": [
+              "data/<pack-name>/",
+              "packs/<pack-name>/",
+              "tools/<pack-name>/"
+            ]
+          },
+          "data_pack_required_file": {
+            "type": "string",
+            "enum": [
+              "README.md",
+              "index.json",
+              "pack.json"
+            ]
+          },
+          "mcp_default": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "tool_interface",
+          "skill_wrapper",
+          "data_pack_format",
+          "data_pack_directory",
+          "data_pack_required_file",
+          "mcp_default"
+        ],
+        "additionalProperties": false
+      },
+      "fixture_hashes": {},
+      "source_archive_sha256": "1e78cb3a948c1d2e1ec285e6c2d86778674b0e29e2efecf58b231f6e6c165dfc",
+      "paired_result": "both trusted deterministic gates passed",
+      "arms": [
+        {
+          "arm": "experimental",
+          "model": "deepseek-v4.1-flash-free",
+          "effort": "high",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 0.973,
+            "model_turn": 5.954,
+            "trusted_oracle": 0.024245758075267076
+          },
+          "within_turn_tool_events": 3,
+          "within_turn_test_attempts": 0,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "D1-docs-minnows-data-packs/experimental/first-pass/raw-answer.json",
+              "sha256": "c3c70980ea4a124743452bd48c75cc9b51de70e47011bc563cb8ca501c0c001d"
+            },
+            "transcript": {
+              "artifact": "D1-docs-minnows-data-packs/experimental/first-pass/t3-raw.json",
+              "sha256": "ad4ae82cd6a656cb7c8335529cfe1e363d3c758e63dfea8fa0021747aa92af7a"
+            },
+            "diff": {
+              "artifact": "D1-docs-minnows-data-packs/experimental/first-pass/diff.patch",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "oracle_log": {
+              "artifact": "D1-docs-minnows-data-packs/experimental/first-pass/oracle.json",
+              "sha256": "d9bfd1c7dff2826f2a1e3f26d4b54d3b5dac62db824fedabde30c1dc5dbf3eea"
+            }
+          },
+          "prompt_sha256": "fb87e6e785af73f47f16c998521a8ad2b189a7162b067d3d5e5292340308de75",
+          "source_sha": "6d9467f6768595487ffd4c99cf3ebca3d0f53d89",
+          "scope_deviation": null,
+          "provider": "OpenCode"
+        },
+        {
+          "arm": "comparator",
+          "model": "claude-haiku-5-5",
+          "effort": "medium",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 0.716,
+            "model_turn": 9.903,
+            "trusted_oracle": 0.024518353049643338
+          },
+          "within_turn_tool_events": 2,
+          "within_turn_test_attempts": 0,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "D1-docs-minnows-data-packs/comparator/first-pass/raw-answer.json",
+              "sha256": "c3c70980ea4a124743452bd48c75cc9b51de70e47011bc563cb8ca501c0c001d"
+            },
+            "transcript": {
+              "artifact": "D1-docs-minnows-data-packs/comparator/first-pass/t3-raw.json",
+              "sha256": "070ba12e02cdf81acc5d045496d5f5a8e192cdbfcc45b658dfbbdc5d76721123"
+            },
+            "diff": {
+              "artifact": "D1-docs-minnows-data-packs/comparator/first-pass/diff.patch",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "oracle_log": {
+              "artifact": "D1-docs-minnows-data-packs/comparator/first-pass/oracle.json",
+              "sha256": "abdec68fadf443e1dd2998b3d495f96242786f284a00b2182cf861552fd11a8e"
+            }
+          },
+          "prompt_sha256": "9948a29c5c37cfe413398ed24cec9372942e0d1e538e63b2090814850a8e905c",
+          "source_sha": "6d9467f6768595487ffd4c99cf3ebca3d0f53d89",
+          "scope_deviation": null,
+          "provider": "Claude"
+        }
+      ],
+      "reference_fix_url": null,
+      "frozen_task_prompt_sha256": "f54a991f841acce823044f844901da3e6e651e46f4ccad48c0a60cf584b53436",
+      "dispatch_boundary_line": "Use only the assigned snapshot; do not access or request other paths, filesystems, tasks, threads, or personal data."
+    },
+    {
+      "task_id": "D2-docs-waspflow-provider-matrix",
+      "category": "docs_lookup",
+      "operation": "docs.lookup",
+      "public_source_url": "https://github.com/tnunamak/waspflow",
+      "source_sha": "a9097e0a2b800eb6d77eb8db6590add1d063d396",
+      "pinned_source_url": "https://github.com/tnunamak/waspflow/tree/a9097e0a2b800eb6d77eb8db6590add1d063d396",
+      "reference_fix_sha": null,
+      "allowed_paths": [
+        "README.md"
+      ],
+      "full_prompt": "Using only the README.md provider support matrix at the assigned public source SHA, report the DeepSeek (dsh) statuses. Use only supported/partial/unsupported for status fields; disregard explanatory text after the status. For deepseek_revise_action use new_lane if the README directs starting a new lane, steer_existing_lane if it supports revising that lane, otherwise not_documented. Do not edit files. Return ONLY one JSON object, with every requested field and no extra keys, prose or fences. Schema: {\"type\":\"object\",\"properties\":{\"deepseek_spawn\":{\"type\":\"string\",\"enum\":[\"partial\",\"supported\",\"unsupported\"]},\"deepseek_wait\":{\"type\":\"string\",\"enum\":[\"partial\",\"supported\",\"unsupported\"]},\"deepseek_revise\":{\"type\":\"string\",\"enum\":[\"partial\",\"supported\",\"unsupported\"]},\"deepseek_exec\":{\"type\":\"string\",\"enum\":[\"partial\",\"supported\",\"unsupported\"]},\"deepseek_revise_action\":{\"type\":\"string\",\"enum\":[\"new_lane\",\"not_documented\",\"steer_existing_lane\"]}},\"required\":[\"deepseek_spawn\",\"deepseek_wait\",\"deepseek_revise\",\"deepseek_exec\",\"deepseek_revise_action\"],\"additionalProperties\":false}",
+      "prompt_sha256_by_arm": {
+        "experimental": "7265cf853b7c86b5cf7b8372252710f96071500663be9360253c7a6c6836b121",
+        "comparator": "98c14765f37a47a4e3b4b9f483dd10a49e4a6371ad0946c025e19cf5fc76f17e"
+      },
+      "oracle": {
+        "type": "explicit-schema-and-pinned-facts",
+        "expected_fields": {
+          "deepseek_spawn": "supported",
+          "deepseek_wait": "supported",
+          "deepseek_revise": "unsupported",
+          "deepseek_exec": "supported",
+          "deepseek_revise_action": "new_lane"
+        },
+        "command_template": "<eval-root>/.runtime/venv/bin/python <eval-root>/oracles/check_structured_answer.py D2-docs-waspflow-provider-matrix <answer-file>",
+        "pass": "One strict JSON object satisfies explicitly requested types/enums and grounded facts; supporting code span where requested. No free-prose equality or keyword heuristics.",
+        "fact_source": {
+          "path": "evidence/v2-2026-10-15/source/D2-docs-waspflow-provider-matrix/README.md",
+          "sha256": "40ea26a773625a1ff6aa75be42f828eca0a3186a3987355deb8604ef83458810"
+        }
+      },
+      "answer_schema": {
+        "type": "object",
+        "properties": {
+          "deepseek_spawn": {
+            "type": "string",
+            "enum": [
+              "partial",
+              "supported",
+              "unsupported"
+            ]
+          },
+          "deepseek_wait": {
+            "type": "string",
+            "enum": [
+              "partial",
+              "supported",
+              "unsupported"
+            ]
+          },
+          "deepseek_revise": {
+            "type": "string",
+            "enum": [
+              "partial",
+              "supported",
+              "unsupported"
+            ]
+          },
+          "deepseek_exec": {
+            "type": "string",
+            "enum": [
+              "partial",
+              "supported",
+              "unsupported"
+            ]
+          },
+          "deepseek_revise_action": {
+            "type": "string",
+            "enum": [
+              "new_lane",
+              "not_documented",
+              "steer_existing_lane"
+            ]
+          }
+        },
+        "required": [
+          "deepseek_spawn",
+          "deepseek_wait",
+          "deepseek_revise",
+          "deepseek_exec",
+          "deepseek_revise_action"
+        ],
+        "additionalProperties": false
+      },
+      "fixture_hashes": {},
+      "source_archive_sha256": "17ed5e5dfcda7ef3b12da3c3d0d06515bbac34a918b0cce972e13ff59a70b3a8",
+      "paired_result": "both trusted deterministic gates passed",
+      "arms": [
+        {
+          "arm": "experimental",
+          "model": "deepseek-v4.1-flash-free",
+          "effort": "high",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 1.771,
+            "model_turn": 9.312,
+            "trusted_oracle": 0.022795701981522143
+          },
+          "within_turn_tool_events": 5,
+          "within_turn_test_attempts": 0,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "D2-docs-waspflow-provider-matrix/experimental/first-pass/raw-answer.json",
+              "sha256": "d42d580b585ac065d9a3e3111fc14f5f90b59a0de9a60ec44b86f530f575f372"
+            },
+            "transcript": {
+              "artifact": "D2-docs-waspflow-provider-matrix/experimental/first-pass/t3-raw.json",
+              "sha256": "56a8d6ec995d02bc08d7a2ebef61efcd71be3d6039a9893a8689e6f7743fc7e8"
+            },
+            "diff": {
+              "artifact": "D2-docs-waspflow-provider-matrix/experimental/first-pass/diff.patch",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "oracle_log": {
+              "artifact": "D2-docs-waspflow-provider-matrix/experimental/first-pass/oracle.json",
+              "sha256": "c492f2e550a444b13f76813f9200c44d079f223b910fdc0fc003f97875e5d1d0"
+            }
+          },
+          "prompt_sha256": "7265cf853b7c86b5cf7b8372252710f96071500663be9360253c7a6c6836b121",
+          "source_sha": "a9097e0a2b800eb6d77eb8db6590add1d063d396",
+          "scope_deviation": null,
+          "provider": "OpenCode"
+        },
+        {
+          "arm": "comparator",
+          "model": "claude-haiku-5-5",
+          "effort": "medium",
+          "status": "completed",
+          "trusted_gate_pass": true,
+          "oracle_exit_code": 0,
+          "timings_seconds": {
+            "queue": 0.282,
+            "model_turn": 11.663,
+            "trusted_oracle": 0.0256372329313308
+          },
+          "within_turn_tool_events": 3,
+          "within_turn_test_attempts": 0,
+          "cache_state": null,
+          "usage": null,
+          "usage_status": "provider did not report usage",
+          "measured_provider_cost": null,
+          "artifact_hashes": {
+            "raw_answer": {
+              "artifact": "D2-docs-waspflow-provider-matrix/comparator/first-pass/raw-answer.json",
+              "sha256": "d42d580b585ac065d9a3e3111fc14f5f90b59a0de9a60ec44b86f530f575f372"
+            },
+            "transcript": {
+              "artifact": "D2-docs-waspflow-provider-matrix/comparator/first-pass/t3-raw.json",
+              "sha256": "4838514f980a902671acc3412cece07cb0f0b8bc1a433119a6a7fed430d6c6ba"
+            },
+            "diff": {
+              "artifact": "D2-docs-waspflow-provider-matrix/comparator/first-pass/diff.patch",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "oracle_log": {
+              "artifact": "D2-docs-waspflow-provider-matrix/comparator/first-pass/oracle.json",
+              "sha256": "3968e579b37da76491f21f6f3c164b3053ed3a81f75d5fd3c16ae387d934ad00"
+            }
+          },
+          "prompt_sha256": "98c14765f37a47a4e3b4b9f483dd10a49e4a6371ad0946c025e19cf5fc76f17e",
+          "source_sha": "a9097e0a2b800eb6d77eb8db6590add1d063d396",
+          "scope_deviation": null,
+          "provider": "Claude"
+        }
+      ],
+      "reference_fix_url": null,
+      "frozen_task_prompt_sha256": "80f0f649206456bf7b46229a31b61ffc15a8ec2f5019097d5caeba0714e43b8c",
+      "dispatch_boundary_line": "Use only the assigned snapshot; do not access or request other paths, filesystems, tasks, threads, or personal data."
+    }
+  ],
+  "limitations": [
+    "Eight purposively selected public tasks cover six source contexts; no statistical generalization.",
+    "I1/R1 and I3/R2 are overlapping contexts and must not be treated as independent replications.",
+    "Known prompts, historical tests, reference fixes and visible tests are public and may be memorized; no hidden holdout.",
+    "Two review probes have enumerated answers and known defects; no clean-code controls, open-ended defect discovery, or audit false-positive estimate.",
+    "DeepSeek R2 violated the requested cmd_run-only inspection scope despite passing structured answer oracle.",
+    "No hard runtime filesystem sandbox proof; public-only execution boundary was accepted for this run.",
+    "Task and proof-class labels are caller-declared; not content scanning or proof certification.",
+    "One run per arm per task; no repeated-run variance estimate.",
+    "Provider usage and workflow costs were not reported; source price is not an observed cost."
+  ],
+  "privacy_exclusions": [
+    "private account names and identifiers",
+    "quota figures",
+    "T3 thread/run/node/task IDs",
+    "home/scratch filesystem paths",
+    "personal information unrelated to the public benchmark",
+    "route receipt contents that expose private routing or quota metadata"
+  ],
+  "public_hash_provenance": {
+    "hash_algorithm": "SHA-256",
+    "source_commit_pins": "GitHub repository URL plus exact source commit SHA per task",
+    "manifest_fixture_archive_and_prompt_hashes": "Included per task above",
+    "raw_answers_transcripts_diffs_and_oracle_logs": "Included as logical evidence artifact identifiers plus ledger SHA-256 values; raw evidence is retained in the private evidence store and is not embedded here."
+  },
+  "source_provenance": {
+    "manifest_sha256": "9293904f039fb265737795b121d28d58f49a80b0f092bbd0afca0e185dc21312",
+    "protocol_sha256": "2f745ae875b7faa81ae5b503663b1c52426698f6bdf500ce7bcd8647595e0e6a",
+    "results_report_sha256": "6552e029c29b14eb2854334403e70ed1a5e08b1ec418bb76ec3144972017893b",
+    "integrity_audit": {
+      "rows": 16,
+      "unique_tasks": 8,
+      "verified_artifacts": 64,
+      "errors": []
+    },
+    "owner_gate_recheck": {
+      "passed": 16,
+      "total": 16,
+      "all_exit_codes_zero": true
+    },
+    "qualification_record": {
+      "eligible_operations": [
+        {
+          "id": "implement.oracle-bounded",
+          "proof_classes": [
+            "oracle"
+          ],
+          "scope": "Small public-source code changes whose full acceptance standard is covered by a deterministic oracle.",
+          "experimental_first_pass": "4/4",
+          "comparator_first_pass": "4/4"
+        },
+        {
+          "id": "docs.lookup",
+          "proof_classes": [
+            "oracle"
+          ],
+          "scope": "Known public-source lookups with structured facts checked by a deterministic oracle; not open-ended research.",
+          "experimental_first_pass": "2/2",
+          "comparator_first_pass": "2/2"
+        }
+      ],
+      "excluded": [
+        "review.audit",
+        "implement.standard",
+        "advisor.deep",
+        "unbounded_research",
+        "private_or_personal_inputs",
+        "generic_destination_submission"
+      ],
+      "source_price_and_cost": {
+        "source_price": "Temporary free tier per OpenCode source; distinct from measured total workflow cost.",
+        "measured_provider_cost": null,
+        "measured_token_usage": null,
+        "complete_workflow_cost": "unknown"
+      },
+      "review_scope_deviation": "DeepSeek R2 inspected select_cands.py outside cmd_run-only instructions; structured gate passed, full task scope did not."
+    },
+    "pricing_policy_sources": [
+      {
+        "url": "https://opencode.ai/v2/docs/console/models/",
+        "accessed": "2026-10-15",
+        "used_for": "temporary free source fee and model-specific provider statement"
+      },
+      {
+        "url": "https://opencode.ai/legal/terms-of-service",
+        "accessed": "2026-10-15",
+        "used_for": "separate OpenCode-side unpaid-service content caveat"
+      }
+    ]
+  }
+}

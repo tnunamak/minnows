@@ -10,14 +10,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.2.5](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.5) — published by CI on push to main |
+| **This version** | [data-model-choice-policy-v0.2.6](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.6) — unreleased; published by CI after merge to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.2.5
+TAG=data-model-choice-policy-v0.2.6
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -34,27 +34,48 @@ curl -fsSL -L \
 
 ## Experimental free routes
 
-The OpenCode DeepSeek V4.1 Flash Free route is experimental, not an
-operating-point candidate, and has no qualified production operations. The
-owner authorized public-only experimental T3 use on 2026-10-15. Use it only
-with `--experimental-route`, exact
-provider/model/effort/account overrides, a reason, and
-`--data-classification public`, under `fanout.explore` or `resolve --no-op` to
-produce its dispatch target for public evaluation tasks.
-`--sensitive` refuses the route. `public` is the caller's classification
-assertion; the router does not scan or attest to the content. A GitHub input
-location alone does not establish that its contents are public. Public code
-stored locally can still be classified public by its caller. The route stays
-bound to the exact `opencode` provider, model, and account in this pack. The
-route's $0 status expires at its local verification deadline, which is a
-seven-day recheck horizon rather than a vendor end date. Missing, malformed,
-or expired evidence refuses dispatch.
+The OpenCode DeepSeek V4.1 Flash Free route is an optional experimental
+candidate for exactly two operations. Primary model recommendations stay unchanged.
 
+| Operation | Qualified scope | Required proof and effort |
+|-----------|-----------------|---------------------------|
+| `implement.oracle-bounded` | Small PUBLIC source changes whose full acceptance standard has a deterministic oracle | `oracle`, `high` |
+| `docs.lookup` | Known PUBLIC sources with a structured fact oracle; excludes open-ended research | `oracle`, `high` |
+
+Use `route` or `resolve` with the selected operation, `--proof-class oracle`,
+`--experimental-route`, exact provider/model/account/effort overrides, a reason,
+and `--data-classification public`. High is the only benchmark-tested effort.
+The separately authorized `route fanout.explore` and `resolve --no-op` paths
+remain available with catalog-validated effort values. They confer no broader
+operation qualification. `review.audit`, `implement.standard`, `advisor.deep`,
+judged or absent proof, and generic destination submission remain excluded.
+
+`--sensitive` refuses the route. Public classification and proof class are caller
+assertions; the router does not scan content or certify oracle coverage. A GitHub
+input location alone does not establish public contents. Public code stored
+locally can still be classified public by its caller. The route stays bound to
+the exact `opencode` provider, model, and account in this pack. Missing,
+malformed, future-dated or expired source evidence refuses dispatch. The seven-day
+expiry is a local recheck horizon, not a vendor end date. Historical receipts
+must still meet current operation, proof, effort, identity and evidence rules.
+
+The [matched public benchmark](evidence/deepseek-public-eval-2026-10-15.json)
+records eight task pairs across six source contexts: all 16 deterministic gates
+passed, with no repairs or observed provider throttles. The review probe R2
+exceeded its inspection scope despite a passing structured gate. These are 16
+gate passes, not 16 whole-task acceptances. Implementation gates passed 4/4 per
+arm; known-source lookup gates passed 2/2 per arm. This small purposive sample,
+with public tests and reference fixes, does not establish broad quality or audit
+qualification. Temporary $0 source fees are distinct from unreported provider
+usage and unknown complete workflow cost. Rate limits remain unknown.
+
+OpenCode attributes zero retention and no training to the upstream provider;
+its unpaid-service terms separately permit content use to improve OpenCode
+services. The sensitive-input prohibition covers both processing layers.
 The shared OpenCode server exposes host tools, and injected `t3_thread_read`
-can access private thread content. The owner accepts these risks for the
-public-only experimental evaluation scope. Per-instance custom binary and MCP
-isolation checks remain future hardening; no shared T3 or provider settings
-change here.
+can access private thread content. No hard runtime sandbox or content-scanning
+guarantee was established. Per-instance provider sandbox and MCP isolation
+remain later hardening; shared T3 and provider settings are unchanged.
 
 ## Read operating points
 
@@ -102,6 +123,12 @@ not silently route by model name.
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.2.6 — unreleased
+
+- Admit optional `implement.oracle-bounded` and `docs.lookup` overrides only for the reviewed public scopes, oracle proof and high effort. Primary recommendations stay unchanged.
+- Recheck qualification on fresh targets and both historical replay paths. Keep generic governed destinations refused and preserve the public-only exploration paths.
+- Bundle sanitized paired benchmark evidence, including the review scope failure, small-sample limits and unknown measured costs and rate limits.
 
 ### v0.2.5 — 2026-10-15
 

@@ -92,3 +92,55 @@ def test_both_pack_checkers_use_the_same_experimental_route_contract(tmp_path):
     )
     assert result.returncode == 1
     assert all(message in result.stderr for message in shared_errors)
+
+
+@pytest.mark.parametrize("change", [
+    lambda items: items.append(copy.deepcopy(items[0])),
+    lambda items: items[0].update(id="review.audit"),
+    lambda items: items[0].update(id=["implement.oracle-bounded"]),
+    lambda items: items[0].update(proof_classes=["judged"]),
+    lambda items: items[0].update(proof_classes=["oracle", "judged"]),
+    lambda items: items[0].update(efforts=["low"]),
+    lambda items: items[0].update(efforts=["high", "max"]),
+    lambda items: items[0].update(scope="open_ended_research"),
+    lambda items: items[0].update(scope="known_public_source_lookup_structured_fact_oracle"),
+    lambda items: items[0].update(evidence_ref="unreviewed.json"),
+    lambda items: items[0].pop("evidence_ref"),
+    lambda items: items[0].update(extra="arbitrary"),
+])
+def test_qualification_contract_agrees_in_both_cli_and_pack_validator(tmp_path, change):
+    pack_dir = tmp_path / "model-choice-policy"
+    shutil.copytree(REPO / "data/model-choice-policy", pack_dir)
+    policy_path = pack_dir / "operating-points.json"
+    policy = json.loads(policy_path.read_text())
+    change(policy["experimental_free_routes"][0]["qualified_operations"])
+    policy_path.write_text(json.dumps(policy))
+    shared = check_experimental_free_routes(policy["experimental_free_routes"])
+    assert shared
+    errors = VALIDATOR.Errors()
+    VALIDATOR.validate_policy_pack(pack_dir, errors)
+    assert all(any(message in item for item in errors.items) for message in shared)
+    result = subprocess.run([str(REPO / "tools/model-policy-ops/model-policy-ops"), "check",
+                             "--policy", str(policy_path), "--no-user-policy"],
+                            text=True, capture_output=True, cwd=REPO)
+    assert result.returncode == 1
+    assert all(message in result.stderr for message in shared)
+
+
+def test_pack_admits_exact_reviewed_scopes_without_changing_primary_arms():
+    route = BASE_ROUTE
+    assert {item['id'] for item in route['qualified_operations']} == {'implement.oracle-bounded', 'docs.lookup'}
+    for item in route['qualified_operations']:
+        assert item['proof_classes'] == ['oracle'] and item['efforts'] == ['high']
+        evidence = REPO / 'data/model-choice-policy' / item['evidence_ref']
+        assert evidence.is_file()
+    policy = json.loads((REPO / 'data/model-choice-policy/operating-points.json').read_text())
+    baseline = json.loads(subprocess.check_output(['git', 'show', 'c2414ded:data/model-choice-policy/operating-points.json'], cwd=REPO))
+    assert policy['operating_points'] == baseline['operating_points']
+    assert policy['catalog_ref'] == baseline['catalog_ref']
+
+
+def test_empty_proof_list_revokes_eligibility_without_admitting_another_proof():
+    route = copy.deepcopy(BASE_ROUTE)
+    route['qualified_operations'][0]['proof_classes'] = []
+    assert check_experimental_free_routes([route]) == []

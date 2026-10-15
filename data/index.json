@@ -14,13 +14,13 @@
       "tree": "https://github.com/tnunamak/minnows/tree/data-model-catalog-v0.5.15/data/model-catalog"
     },
     "model-choice-policy": {
-      "latest_tag": "data-model-choice-policy-v0.2.5",
-      "description": "Operating points; medium confidence; pins catalog v0.5.4. Retains an exact public-only OpenCode DeepSeek V4.1 Flash Free candidate with zero qualified operations and owner-authorized public-only experimental T3 transport.",
+      "latest_tag": "data-model-choice-policy-v0.2.6",
+      "description": "Operating points; pins catalog v0.5.15. Optional public-only OpenCode DeepSeek V4.1 Flash Free qualification for implement.oracle-bounded and docs.lookup with oracle proof and high effort; primary recommendations unchanged.",
       "readme": "https://github.com/tnunamak/minnows/blob/main/data/model-choice-policy/README.md",
       "releases": "https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true",
-      "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-model-choice-policy-v0.2.5/data/model-choice-policy/pack.json",
-      "tarball": "https://github.com/tnunamak/minnows/releases/download/data-model-choice-policy-v0.2.5/data-model-choice-policy-v0.2.5.tar.gz",
-      "tree": "https://github.com/tnunamak/minnows/tree/data-model-choice-policy-v0.2.5/data/model-choice-policy"
+      "pack_json": "https://raw.githubusercontent.com/tnunamak/minnows/data-model-choice-policy-v0.2.6/data/model-choice-policy/pack.json",
+      "tarball": "https://github.com/tnunamak/minnows/releases/download/data-model-choice-policy-v0.2.6/data-model-choice-policy-v0.2.6.tar.gz",
+      "tree": "https://github.com/tnunamak/minnows/tree/data-model-choice-policy-v0.2.6/data/model-choice-policy"
     },
     "local-evals": {
       "latest_tag": "data-local-evals-v0.1.3",

@@ -12,6 +12,52 @@ _REQUIRED_PROHIBITED_INPUTS = {
 _REQUIRED_T3_RISKS = {
     "shared_server_host_tools", "injected_t3_thread_read_private_thread_access",
 }
+QUALIFICATION_EVIDENCE = "evidence/deepseek-public-eval-2026-10-15.json"
+QUALIFIED_SCOPES = {
+    "implement.oracle-bounded": "small_public_source_change_full_deterministic_oracle",
+    "docs.lookup": "known_public_source_lookup_structured_fact_oracle",
+}
+_TRANSPORT_SCOPE = "qualified_operations_or_fanout.explore_or_resolve_no_op_exact_overrides_public_only"
+_EXPLORATORY_SCOPE = "fanout.explore_or_resolve_no_op_exact_overrides_public_only"
+
+
+def operation_refusal(route, op, *, routed, no_op, proof_class, effort):
+    """Check declared qualification, keeping the separately authorized exploration paths."""
+    if (routed and op == "fanout.explore") or (not routed and no_op):
+        return None
+    if check_qualified_operations(route.get("qualified_operations"), "qualified_operations"):
+        return "operation_qualification_invalid"
+    qualified = next((item for item in route.get("qualified_operations", []) if item["id"] == op), None)
+    if qualified is None:
+        return "operation_not_qualified"
+    if proof_class not in qualified["proof_classes"]:
+        return "qualified_operation_requires_oracle_proof"
+    if effort not in qualified["efforts"]:
+        return "qualified_operation_requires_high_effort"
+    return None
+
+
+def check_qualified_operations(qualified, label):
+    """Accept only the two reviewed scopes; an empty list revokes qualification."""
+    if not isinstance(qualified, list):
+        return [f"{label} must be a list"]
+    errors, seen = [], set()
+    for item in qualified:
+        if not isinstance(item, dict) or set(item) != {"id", "proof_classes", "efforts", "scope", "evidence_ref"}:
+            errors.append(f"{label} entries need id, proof_classes, efforts, scope and evidence_ref only")
+            continue
+        op = item["id"]
+        if not isinstance(op, str) or op not in QUALIFIED_SCOPES:
+            errors.append(f"{label} has an unknown or unqualified operation")
+            continue
+        if op in seen:
+            errors.append(f"{label} duplicates {op}")
+        seen.add(op)
+        if (item["proof_classes"] not in ([], ["oracle"]) or item["efforts"] != ["high"]
+                or item["scope"] != QUALIFIED_SCOPES[op]
+                or item["evidence_ref"] != QUALIFICATION_EVIDENCE):
+            errors.append(f"{label}.{op} requires oracle proof, high effort, its reviewed public scope and qualification evidence")
+    return errors
 
 
 def _iso_date(value):
@@ -87,13 +133,13 @@ def check_experimental_free_routes(routes):
             errors.append(f"{label}.cost_usd must be 0")
 
         qualified = route.get("qualified_operations")
-        if qualified != []:
-            errors.append(f"{label}.qualified_operations must remain empty until production qualification")
+        errors.extend(check_qualified_operations(qualified, f"{label}.qualified_operations"))
         transport = route.get("t3_transport")
         risks = transport.get("known_risks") if isinstance(transport, dict) else None
+        allowed_scopes = [_TRANSPORT_SCOPE] if qualified else [_TRANSPORT_SCOPE, _EXPLORATORY_SCOPE]
         if (not isinstance(transport, dict) or transport.get("enabled") is not True
                 or transport.get("authorization") != "owner_public_experimental_2026-10-15"
-                or transport.get("scope") != "fanout.explore_or_resolve_no_op_exact_overrides_public_only"
+                or transport.get("scope") not in allowed_scopes
                 or not isinstance(risks, list)
                 or any(not isinstance(risk, str) for risk in risks)
                 or not _REQUIRED_T3_RISKS.issubset(risks)):

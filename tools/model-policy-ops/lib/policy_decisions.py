@@ -7,7 +7,7 @@ from contextlib import ExitStack
 from datetime import datetime, timezone
 from pathlib import Path
 
-from experimental_routes import has_current_evidence, parse_utc_timestamp
+from experimental_routes import has_current_evidence, parse_utc_timestamp, operation_refusal
 from runtime_sources import digest, read_source, providers, provider_instance, driver_family, resolve_arm, quota_context
 from decision_receipts import read_receipts, find_receipt, append_receipt, validate_id, replay_receipt, validate_escalation_source
 from decision_receipts import receipt_extensions, capture_choice
@@ -103,13 +103,9 @@ def quota_authorized_by(args):
     return 'pack routing.quota_substitution'
 
 
-def experimental_route_scope(args):
-    return (args.command == 'route' and args.op == 'fanout.explore') or (args.command == 'resolve' and args.no_op)
-
-
 def authorized_experimental_route(args, policy):
     """Return only an exact, explicitly requested public route; no account map is needed."""
-    if not experimental_route_scope(args) or not args.experimental_route or args.data_classification != 'public' or args.sensitive:
+    if not args.experimental_route or args.data_classification != 'public' or args.sensitive:
         return None
     supplied = {}
     for item in args.override:
@@ -118,7 +114,9 @@ def authorized_experimental_route(args, policy):
             supplied[key] = value
     for route in policy.get('experimental_free_routes', []):
         expected = {'provider': route['provider'], 'model': route['model'], 'account': route['account']}
-        if all(supplied.get(key) == value for key, value in expected.items()) and 'effort' in supplied:
+        if (all(supplied.get(key) == value for key, value in expected.items()) and 'effort' in supplied
+                and operation_refusal(route, args.op, routed=args.command == 'route', no_op=args.no_op,
+                                      proof_class=args.proof_class, effort=supplied['effort']) is None):
             return route
     return None
 
@@ -613,7 +611,7 @@ def dispatch_identities(result, available=None, destination_target=None):
     return identities
 
 
-def experimental_target_refusal(identity, request, sensitive, routes, evaluated_at, *, generic_destination=False):
+def experimental_target_refusal(identity, request, sensitive, routes, evaluated_at, *, proof_class=None, generic_destination=False):
     """One current exact authorization is required for each governed identity."""
     declared = next((row for row in routes if row['provider'] == identity['provider']
                      and row['model'] == identity['model']), None)
@@ -630,14 +628,17 @@ def experimental_target_refusal(identity, request, sensitive, routes, evaluated_
     if generic_destination:
         return route, 'governed_destination_unsupported'
     overrides = request.get('overrides') or {}
-    scope = ((request.get('route') is True and request.get('op') == 'fanout.explore')
-             or (not request.get('route') and request.get('no_op') is True))
-    explicit = (scope and request.get('experimental_route') is True
+    explicit = (request.get('experimental_route') is True
                 and bool((request.get('reason') or '').strip())
                 and all(overrides.get(key) == identity[key] == route[key] for key in ('provider', 'model', 'account'))
                 and overrides.get('effort') is not None and overrides['effort'] == identity['effort'])
     if not explicit:
         return route, 'exact_experimental_override_required'
+    scope_refusal = operation_refusal(route, request.get('op'), routed=request.get('route') is True,
+                                      no_op=request.get('no_op') is True, proof_class=proof_class,
+                                      effort=identity['effort'])
+    if scope_refusal:
+        return route, scope_refusal
     expires_at = parse_utc_timestamp(route.get('expires_at_utc'))
     if expires_at is None:
         return route, 'verification_expiry_missing_or_invalid'
@@ -673,6 +674,7 @@ def apply_experimental_route_policy(result, policy, evaluated_at, *, available=N
     sensitive = bool(request.get('sensitive') or (result.get('launch_facts') or {}).get('sensitive'))
     for identity in governed:
         route, refusal = experimental_target_refusal(identity, request, sensitive, routes, evaluated_at,
+                                                     proof_class=(result.get('launch_facts') or {}).get('proof_class'),
                                                      generic_destination=bool(result.get('destination')))
         if refusal:
             break

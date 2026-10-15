@@ -314,8 +314,9 @@ Reason and handoff text must be short explanations, without prompts or secrets.
 
 An entry in the pack's root `experimental_free_routes` metadata is never an
 operating-point candidate. It is usable only through an explicit experimental
-override under `fanout.explore` or `resolve --no-op`, with exact provider, model,
-effort, and account flags. `--data-classification public` is required; omission
+override for the two qualified operations, or under the separately authorized
+`fanout.explore` and `resolve --no-op` paths, with exact provider, model, effort
+and account flags. `--data-classification public` is required; omission
 means unknown, and `--sensitive` always refuses the
 route. `--inputs github` does not classify its contents. The exact route below is
 bound to OpenCode's `opencode` provider and account plus
@@ -341,23 +342,40 @@ deadline, refuses dispatch. The seven-day deadline is local policy and does not
 claim a vendor end date. Undeclared OpenCode models with a `variant` option are
 refused; this metadata does not make paid or other free OpenCode models
 launchable.
-The route also records `qualified_operations: []` and the owner's
-public-only experimental T3 authorization from 2026-10-15. Shared OpenCode
-server host tools and injected `t3_thread_read` private-thread access remain
-known risks accepted for this evaluation scope. The authorization does not
-qualify an ordinary operation, permit sensitive or unknown inputs, or enable
-undeclared OpenCode models. Per-instance custom binary and MCP isolation checks
-remain future hardening. The router does not change shared T3 or provider
-settings.
+The route qualifies exactly `implement.oracle-bounded` and `docs.lookup`, each
+with `--proof-class oracle` and `--override effort=high`. Implementation covers
+small PUBLIC source changes whose full acceptance standard has a deterministic
+oracle. Lookup covers known PUBLIC sources with a structured fact oracle;
+open-ended research and judged or absent proof are excluded. High is the only
+benchmark-tested effort. Primary operating-point recommendations stay unchanged.
+The exploratory paths retain other catalog-validated efforts, without admitting
+other operations. Historical replay uses recorded proof facts and current
+qualification; removed operations or changed proof eligibility refuse dispatch
+on both replay paths without rewriting stored receipts.
+
+The pack includes [sanitized benchmark evidence](../../data/model-choice-policy/evidence/deepseek-public-eval-2026-10-15.json):
+eight task pairs from six source contexts, 16 deterministic gate passes and one
+review inspection-scope failure. No repairs or throttles were observed. Rate
+limits, measured provider cost and total workflow cost remain unknown; the $0
+fee is temporary source pricing. These visible public tests establish only the
+bounded admitted scopes, not general review or fleet quality.
+
+Public classification and proof class are caller assertions, not oracle
+certification or a runtime sandbox guarantee. Shared OpenCode server host tools
+and injected `t3_thread_read` private-thread access remain known risks. Provider
+sandbox and MCP isolation checks remain later hardening. The router does not
+change shared T3 or provider settings. The data-policy record retains the upstream
+zero-retention/no-training attribution separately from OpenCode's unpaid-service
+content-improvement terms.
 
 ```bash
-./tools/model-policy-ops/model-policy-ops route fanout.explore \
+./tools/model-policy-ops/model-policy-ops route implement.oracle-bounded \
   --policy data/model-choice-policy/operating-points.json --available auto \
-  --experimental-route --data-classification public \
+  --proof-class oracle --experimental-route --data-classification public \
   --override provider=opencode \
   --override model=opencode/deepseek-v4.1-flash-free \
   --override effort=high --override account=opencode \
-  --reason 'Experimental exploration using explicitly public inputs' \
+  --reason 'Small public patch with a full deterministic acceptance oracle' \
   --decision-id deepseek-public-exploration-001 --record \
   --parent-model PARENT_MODEL --parent-provider-instance PARENT_INSTANCE \
   --parent-thread PARENT_THREAD
