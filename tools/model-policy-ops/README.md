@@ -310,6 +310,81 @@ when selected by the pack. Parent model, provider instance, and thread are alway
 caller-supplied; unrelated environment variables are not evidence of the parent.
 Reason and handoff text must be short explanations, without prompts or secrets.
 
+### Experimental free routes
+
+An entry in the pack's root `experimental_free_routes` metadata is never an
+operating-point candidate. It is usable only through an explicit experimental
+override for the two qualified operations, or under the separately authorized
+`fanout.explore` and `resolve --no-op` paths, with exact provider, model, effort
+and account flags. `--data-classification public` is required; omission
+means unknown, and `--sensitive` always refuses the
+route. `--inputs github` does not classify its contents. The exact route below is
+bound to OpenCode's `opencode` provider and account plus
+`opencode/deepseek-v4.1-flash-free`; other OpenCode models and provider/account
+aliases do not inherit its zero-cost metadata. The effort option key is read from
+the live T3 catalog and remains `variant`; an authorized public experimental
+request can emit its T3 target.
+
+This model-arm path validates and emits the actual effort option, such as
+`options.variant: high`. Generic destination submission does not support governed
+OpenCode routes: its options-free target cannot carry that validation. A chosen
+governed destination refuses even with exact public experimental overrides, and
+even when its configured target is absent from the catalog. Refusal removes all
+targets, dispatch metadata, `submit`, `how_to`, and manual submission readiness
+advice from full and brief output, including nested copies and receipt replay.
+Receipts retain descriptive governed identity for current-policy checks; that
+identity does not authorize submission. Ordinary destinations keep their existing
+dispatch and manual submission behavior.
+
+`public` is the caller's assertion, not content scanning or attestation. Missing
+or invalid expiry evidence, and evidence at or beyond its local UTC recheck
+deadline, refuses dispatch. The seven-day deadline is local policy and does not
+claim a vendor end date. Undeclared OpenCode models with a `variant` option are
+refused; this metadata does not make paid or other free OpenCode models
+launchable.
+The route qualifies exactly `implement.oracle-bounded` and `docs.lookup`, each
+with `--proof-class oracle` and `--override effort=high`. Implementation covers
+small PUBLIC source changes whose full acceptance standard has a deterministic
+oracle. Lookup covers known PUBLIC sources with a structured fact oracle;
+open-ended research and judged or absent proof are excluded. High is the only
+benchmark-tested effort. Primary operating-point recommendations stay unchanged.
+The exploratory paths retain other catalog-validated efforts, without admitting
+other operations. Historical replay uses recorded proof facts and current
+qualification; removed operations or changed proof eligibility refuse dispatch
+on both replay paths without rewriting stored receipts.
+
+The pack includes [sanitized benchmark evidence](../../data/model-choice-policy/evidence/deepseek-public-eval-2026-10-15.json):
+eight task pairs from six source contexts, 16 deterministic gate passes and one
+review inspection-scope failure. No repairs or throttles were observed. Rate
+limits, measured provider cost and total workflow cost remain unknown; the $0
+fee is temporary source pricing. These visible public tests establish only the
+bounded admitted scopes, not general review or fleet quality.
+
+Public classification and proof class are caller assertions, not oracle
+certification or a runtime sandbox guarantee. Shared OpenCode server host tools
+and injected `t3_thread_read` private-thread access remain known risks. Provider
+sandbox and MCP isolation checks remain later hardening. The router does not
+change shared T3 or provider settings. The data-policy record retains the upstream
+zero-retention/no-training attribution separately from OpenCode's unpaid-service
+content-improvement terms.
+
+```bash
+./tools/model-policy-ops/model-policy-ops route implement.oracle-bounded \
+  --policy data/model-choice-policy/operating-points.json --available auto \
+  --proof-class oracle --experimental-route --data-classification public \
+  --override provider=opencode \
+  --override model=opencode/deepseek-v4.1-flash-free \
+  --override effort=high --override account=opencode \
+  --reason 'Small public patch with a full deterministic acceptance oracle' \
+  --decision-id deepseek-public-exploration-001 --record \
+  --parent-model PARENT_MODEL --parent-provider-instance PARENT_INSTANCE \
+  --parent-thread PARENT_THREAD
+```
+
+Do not dispatch if the result is refused or `target` is null. A sensitive
+negative check adds `--sensitive`; the result must have `launch_ready: false`
+and `target: null`.
+
 ## Receipts and escalation
 
 Default resolve is read-only. `--record` requires a caller decision ID plus all
@@ -880,7 +955,7 @@ except that `routing.destination` is `{chosen: "model", considered: []}` when a
 destinations file exists. `--override` does not suppress the destination; add
 `--skip-destination` as well to dispatch the override.
 
-When a destination is chosen, the output is a valid receipt with `target: null`,
+When an ordinary destination is chosen, the output is a valid receipt with `target: null`,
 `launch_ready: false`, every nested `target` key null, a top-level `destination: NAME`
 and `destination_offer`: `{name, request_id, purpose, how_to, submit, capacity}`.
 `request_id` is the `decision_id`, so the worker's reports join to the receipt. When
@@ -904,7 +979,12 @@ line holding `<root_decision_id>` once, and `max_chain_failures` (1–10) is req
 its own request ID. These values describe one machine's setup and belong in the local
 config, not in the pack.
 
-When such a destination is chosen, and the live catalog (`--available`) lists the instance,
+Governed OpenCode routes are unsupported through this generic destination contract.
+Use the validated model-arm override described under experimental free routes.
+An unsupported destination returns `data_policy.state: refused` and suppresses
+its manual offer instructions as well as its T3 dispatch target.
+
+When an ordinary destination with a target is chosen, and the live catalog (`--available`) lists the instance,
 the driver kind and the model, and both the instance and the model can run a child task now, the output also has:
 
 - `target`: the destination's target, unchanged, and `launch_ready: true`;

@@ -23,6 +23,48 @@ Root also carries:
 - `policy_version` — pack semver
 - `doctrine` — short non-goals
 
+The optional root `experimental_free_routes` array declares exact temporary
+free routes. Each entry binds billing, provider, model and T3 account identity.
+It adds no operating-point candidate and changes no primary recommendation.
+Entries carry dated source evidence, authentication and rate-limit state, an
+expiry, the public-data requirement and the mandatory prohibited-input list.
+
+`qualified_operations` is a list of strict records with these fields:
+
+| Field | Allowed value |
+|-------|---------------|
+| `id` | `implement.oracle-bounded` or `docs.lookup`; no duplicates |
+| `proof_classes` | `["oracle"]`; `[]` revokes proof eligibility |
+| `efforts` | Exactly `["high"]`; the only benchmark-tested effort |
+| `scope` | `small_public_source_change_full_deterministic_oracle` for implementation; `known_public_source_lookup_structured_fact_oracle` for lookup |
+| `evidence_ref` | `evidence/deepseek-public-eval-2026-10-15.json`, shipped in the pack |
+
+Unknown fields and mismatched scope or evidence references refuse validation.
+An empty operation list or removal of an entry revokes qualification. An empty
+`proof_classes` list revokes every proof for that entry; no other proof value is
+valid. Both CLI and
+pack validation use the same contract. Qualification is an owner decision based
+on the referenced evidence, not certification by the shape validator.
+
+For either qualified op, `route` and `resolve` require `--proof-class oracle`,
+`--experimental-route`, exact provider/model/account/effort overrides, a reason
+and `--data-classification public`. The separately authorized `route
+fanout.explore` and `resolve --no-op` paths retain catalog-validated efforts.
+They admit no other operations. Generic governed destination submission refuses.
+Historical replay rechecks current eligibility using the recorded proof class;
+revocation suppresses targets and submission instructions on early and locked
+append replay without rewriting the historical ledger.
+
+Public classification and proof class are caller assertions, not content scans,
+proof certification or a sandbox guarantee. `--sensitive` always refuses the
+route, and `--inputs github` does not establish public contents.
+`expires_at_utc` is a local recheck deadline, not a vendor end date. Missing,
+invalid, future-dated or expired source evidence refuses dispatch.
+The data policy retains upstream zero-retention/no-training attribution
+separately from OpenCode's unpaid-content service-improvement caveat.
+Shared provider host tools and injected `t3_thread_read` private-thread access
+remain known risks; provider sandbox and MCP isolation remain later hardening.
+
 ## `op-requirements.json` (DRAFT — owner review pending)
 
 The recommender reads this policy and the catalog; it never edits `operating-points.json`.

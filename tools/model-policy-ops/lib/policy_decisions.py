@@ -7,7 +7,8 @@ from contextlib import ExitStack
 from datetime import datetime, timezone
 from pathlib import Path
 
-from runtime_sources import digest, read_source, providers, resolve_arm, quota_context
+from experimental_routes import has_current_evidence, parse_utc_timestamp, operation_refusal
+from runtime_sources import digest, read_source, providers, provider_instance, driver_family, resolve_arm, quota_context
 from decision_receipts import read_receipts, find_receipt, append_receipt, validate_id, replay_receipt, validate_escalation_source
 from decision_receipts import receipt_extensions, capture_choice
 import outcomes
@@ -51,6 +52,8 @@ def add_arguments(parser):
     parser.add_argument('--urgent', action='store_true', help='launch fact; absent means unknown')
     parser.add_argument('--irreversible', action='store_true', help='launch fact; absent means unknown')
     parser.add_argument('--inputs', choices=outcomes.INPUTS, help='launch fact: where the task inputs are; absent means unknown')
+    parser.add_argument('--data-classification', choices=['public', 'sensitive'], help='experimental free routes require an explicit public declaration')
+    parser.add_argument('--experimental-route', action='store_true', help='explicitly request a policy-declared experimental free route')
     parser.add_argument('--sensitive', action='store_true', help='launch fact: the task touches credential or signing code; absent means unknown')
     parser.add_argument('--skip-destination', action='append', default=[], choices=destinations.SKIP_REASONS, metavar='REASON',
                         help='route: decline the destination (local-inputs|synchronous|credential|unavailable|other); repeatable; requires --reason')
@@ -100,6 +103,24 @@ def quota_authorized_by(args):
     return 'pack routing.quota_substitution'
 
 
+def authorized_experimental_route(args, policy):
+    """Return only an exact, explicitly requested public route; no account map is needed."""
+    if not args.experimental_route or args.data_classification != 'public' or args.sensitive:
+        return None
+    supplied = {}
+    for item in args.override:
+        key, separator, value = item.partition('=')
+        if separator:
+            supplied[key] = value
+    for route in policy.get('experimental_free_routes', []):
+        expected = {'provider': route['provider'], 'model': route['model'], 'account': route['account']}
+        if (all(supplied.get(key) == value for key, value in expected.items()) and 'effort' in supplied
+                and operation_refusal(route, args.op, routed=args.command == 'route', no_op=args.no_op,
+                                      proof_class=args.proof_class, effort=supplied['effort']) is None):
+            return route
+    return None
+
+
 def route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack):
     """Run the router and add the evidence snapshot and calibration notes. No state commit."""
     params = policy.get('routing', {})
@@ -119,6 +140,7 @@ def route_choice(args, policy, op, available, available_meta, quota, quota_meta,
                                accounts=accounts, directives=directive_store.active(records, at, max_days), maker=maker,
                                independence=args.independence, proof_class=args.proof_class, line_of=line_of,
                                failures=failures, freshness=fresh, now=at,
+                               experimental_route=authorized_experimental_route(args, policy),
                                substitution=routing.substitution_context(params, accounts, quota, quota_meta, at, args.quota_state, write=not args.now,
                                                               authorized_by=quota_authorized_by(args), stack=stack))
     block = routing.route(op, params, ctx)
@@ -166,12 +188,27 @@ def run_calibrate(args, policy, at):
                             model_catalog=model_catalog, db=args.db, since=since, at=at, params=policy.get('routing', {}))
 
 
-def clear_targets(value):
-    """Null every `target` key inside a simulation result, so no nested copy is dispatchable."""
+REFUSED_READINESS = 'experimental route refused by its current public-input data policy'
+
+
+def clear_targets(value, *, refuse_submission=False):
+    """Clear nested targets; a refusal also removes every submission channel."""
     if isinstance(value, dict):
-        return {k: None if k == 'target' else clear_targets(v) for k, v in value.items()}
+        cleared = {}
+        for key, child in value.items():
+            if refuse_submission and key in ('dispatch', 'submit', 'how_to', 'simulated_target'):
+                continue
+            if key == 'target':
+                cleared[key] = None
+            elif refuse_submission and key == 'launch_ready':
+                cleared[key] = False
+            elif refuse_submission and key == 'launch_readiness_basis':
+                cleared[key] = REFUSED_READINESS
+            else:
+                cleared[key] = clear_targets(child, refuse_submission=refuse_submission)
+        return cleared
     if isinstance(value, list):
-        return [clear_targets(v) for v in value]
+        return [clear_targets(v, refuse_submission=refuse_submission) for v in value]
     return value
 
 
@@ -303,6 +340,11 @@ def execute_locked(args, policy, stack):
                'reason': args.reason, 'parent': {'model': args.parent_model, 'provider_instance_id': args.parent_provider_instance, 'thread_id': args.parent_thread},
                'escalate_from': args.escalate_from, 'why': args.why, 'handoff_boundary': args.handoff_boundary,
                'relaunch_of': args.relaunch_of}
+    if args.experimental_route:
+        request['experimental_route'] = True
+        request['sensitive'] = args.sensitive
+    if args.data_classification is not None:
+        request['data_classification'] = args.data_classification
     if route:
         request |= {'route': True, 'maker': args.maker, 'maker_model': args.maker_model, 'independence': args.independence}
         # Added only when a destinations file or a skip exists, so a route without them keeps its old request shape.
@@ -310,7 +352,10 @@ def execute_locked(args, policy, stack):
             request |= {'skip_destination': skip, 'destinations_sha256': dest_meta['sha256']}
     old = None if simulation else find_receipt(args.receipts, decision_id)
     if old:
-        return replay_receipt(old, request, facts, extensions)
+        replayed = replay_receipt(old, request, facts, extensions)
+        proposed = next((entry.get('target') for entry in dest_entries if entry['name'] == replayed.get('destination')), None)
+        apply_experimental_route_policy(replayed, policy, datetime.now(timezone.utc), replay=True, destination_target=proposed)
+        return replayed
     # Exact historical replay wins. Validate known fresh routes (including simulations)
     # before reading runtime sources, running probes or acquiring writable quota state.
     # Unknown ops retain the existing unknown-op path; resolve/escalation is unchanged.
@@ -352,6 +397,8 @@ def execute_locked(args, policy, stack):
             raise ValueError('same-arm quality retry is not escalation')
         escalation = {'from': args.escalate_from, 'to_op': args.op, 'why': args.why,
                       'handoff_boundary': args.handoff_boundary}
+    declared_route = next((row for row in policy.get('experimental_free_routes', [])
+                           if (row['provider'], row['model']) == (arm['provider'], arm['model'])), None)
     routing_block = None
     if route:
         routing_block, accounts, ctx = route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack)
@@ -367,14 +414,15 @@ def execute_locked(args, policy, stack):
             selection = {'arm': arm, 'accounts': routing.catalog_instances(available, arm['provider']), 'state': 'no_route_target',
                          'target': None, 'authentication': 'not_attested'}
         else:
-            selection = resolve_arm(arm, available, available_meta, account)
+            selection = resolve_arm(arm, available, available_meta, account, experimental_route=declared_route)
         final_instance = selection['target']['providerInstanceId'] if selection['target'] else account
         entry = accounts.get(final_instance) or {}
         quota_info = quota_context(quota, quota_meta, arm, entry.get('quota_provider'), entry.get('quota_source'), at)
         final_arm = {k: arm[k] for k in ('provider', 'model', 'effort')}
         routing.finalize(routing_block, ctx, op, final_arm, final_instance, selection, routed=routed, overridden=bool(overrides))
     else:
-        selection = resolve_arm(arm, available, available_meta, overrides.get('account', args.account_hint))
+        selection = resolve_arm(arm, available, available_meta, overrides.get('account', args.account_hint),
+                                experimental_route=declared_route)
         quota_info = quota_context(quota, quota_meta, arm, args.quota_provider, args.quota_source)
     context = dict(op) if op else {'id': None, 'known_gaps': ['No policy operating point selected'], 'evidence_refs': [], 'escalate_to': []}
     alternatives = []
@@ -421,6 +469,7 @@ def execute_locked(args, policy, stack):
             has_observe_command=any('observe_command' in e for e in dest_entries))
         if found:
             routing_block['calibration_notes'] = routing_block['calibration_notes'] | {'observations': found}
+    proposed_destination = None
     if offer:
         # The model pair is only a fallback now: its reasons stay visible and no longer need judgment.
         for reason in routing_block['judgment_reasons']:
@@ -437,6 +486,9 @@ def execute_locked(args, policy, stack):
         return_value['launch_ready'] = False
         return_value['launch_readiness_basis'] = 'destination chosen; no model target to dispatch'
         dispatch = offer.pop('_dispatch', None)
+        # Keep the chosen structured proposal until authorization, even if no
+        # catalog target can be emitted. It is not the fallback arm's identity.
+        proposed_destination = dispatch['target'] if dispatch else None
         return_value['destination_offer'] = offer
         # Assembled in full first, then cleared once: no offer, capacity or submit field can bring a model target back.
         return_value = clear_targets(return_value)
@@ -457,6 +509,8 @@ def execute_locked(args, policy, stack):
             else:
                 return_value['launch_readiness_basis'] = ('destination chosen; the root decision ID does not match its request_id_pattern; '
                                                           'submit by hand or re-route with a matching decision ID')
+    apply_experimental_route_policy(return_value, policy, at, available=available, destination_target=proposed_destination)
+
     if simulation:
         simulated = return_value['target']
         return_value = clear_targets(return_value)
@@ -489,8 +543,161 @@ def execute_locked(args, policy, stack):
         if route and ctx['substitution']:
             return_value['routing']['quota_substitution']['state_commit'] = 'after_receipt'
         recorded = append_receipt(args.receipts, return_value, extensions)
-        if not recorded.get('replayed'):
+        if recorded.get('replayed'):
+            proposed = next((entry.get('target') for entry in dest_entries if entry['name'] == recorded.get('destination')), None)
+            apply_experimental_route_policy(recorded, policy, datetime.now(timezone.utc), replay=True, destination_target=proposed)
+        else:
             commit_quota()
         return recorded
     commit_quota()
     return return_value
+
+
+def dispatch_identities(result, available=None, destination_target=None):
+    """Identify every returned target, retaining provider identity across receipt replay.
+
+    Old receipts have selection arms but no identity list. Destination targets need
+    the catalog driver on fresh evaluation; store it so replay never needs live I/O.
+    """
+    nodes = []
+
+    def visit(value):
+        if isinstance(value, dict):
+            nodes.append(value)
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    visit(result)
+    if destination_target:
+        nodes.append({'target': destination_target})
+    stored = (result.get('data_policy') or {}).get('targets', [])
+    known = {(row['account'], row['model']): row['provider'] for row in stored}
+    for node in nodes:
+        arm, target = node.get('arm'), node.get('target')
+        if isinstance(arm, dict) and isinstance(target, dict) and arm.get('model') == target.get('model'):
+            known[(target.get('providerInstanceId'), target.get('model'))] = arm.get('provider')
+    live = {provider_instance(row): driver_family(row) for row in providers(available or {})}
+    # Refused destinations have no remaining targets. Their descriptive identities
+    # must still be governed on replay after declarations or catalog rows disappear.
+    identities = list(stored) if result.get('destination') else []
+    overrides = (result.get('request') or {}).get('overrides') or {}
+    for node in nodes:
+        target = node.get('target')
+        if not isinstance(target, dict):
+            continue
+        account, model = target.get('providerInstanceId'), target.get('model')
+        provider = live.get(account, known.get((account, model), target.get('driverKind')))
+        # Legacy OpenCode receipts/destinations can predate stored provider identity.
+        if provider is None and account == 'opencode':
+            provider = 'opencode'
+        options = target.get('options') or {}
+        effort = next((options[key] for key in ('effort', 'reasoningEffort', 'thinking', 'variant') if key in options),
+                      None)
+        identity = {'provider': provider, 'model': model, 'account': account, 'effort': effort}
+        if identity not in identities:
+            identities.append(identity)
+    # A failed direct resolution must still explain a governed request's refusal.
+    # A destination replaces this selection, so its fallback cannot authorize it.
+    if not result.get('destination'):
+        selection = result.get('selection') or {}
+        arm = selection.get('arm') or {}
+        if arm and selection.get('target') is None:
+            identities.append({'provider': arm.get('provider'), 'model': arm.get('model'),
+                               'account': overrides.get('account') or (result.get('request') or {}).get('account'),
+                               'effort': arm.get('effort')})
+    return identities
+
+
+def experimental_target_refusal(identity, request, sensitive, routes, evaluated_at, *, proof_class=None, generic_destination=False):
+    """One current exact authorization is required for each governed identity."""
+    declared = next((row for row in routes if row['provider'] == identity['provider']
+                     and row['model'] == identity['model']), None)
+    model_alias = next((row for row in routes if row['model'] == identity['model']), None)
+    route = declared or model_alias
+    if route is None:
+        return None, 'model_not_declared_for_experimental_route'
+    if declared is None:
+        return route, 'provider_alias_not_allowed'
+    if sensitive:
+        return route, 'sensitive_inputs'
+    if request.get('data_classification') != 'public':
+        return route, 'public_classification_required'
+    if generic_destination:
+        return route, 'governed_destination_unsupported'
+    overrides = request.get('overrides') or {}
+    explicit = (request.get('experimental_route') is True
+                and bool((request.get('reason') or '').strip())
+                and all(overrides.get(key) == identity[key] == route[key] for key in ('provider', 'model', 'account'))
+                and overrides.get('effort') is not None and overrides['effort'] == identity['effort'])
+    if not explicit:
+        return route, 'exact_experimental_override_required'
+    scope_refusal = operation_refusal(route, request.get('op'), routed=request.get('route') is True,
+                                      no_op=request.get('no_op') is True, proof_class=proof_class,
+                                      effort=identity['effort'])
+    if scope_refusal:
+        return route, scope_refusal
+    expires_at = parse_utc_timestamp(route.get('expires_at_utc'))
+    if expires_at is None:
+        return route, 'verification_expiry_missing_or_invalid'
+    if not has_current_evidence(route, evaluated_at):
+        return route, 'verification_evidence_from_future_or_invalid'
+    if evaluated_at >= expires_at:
+        return route, 'verification_expired'
+    if (route.get('t3_transport') or {}).get('enabled') is not True:
+        return route, 't3_transport_disabled'
+    return route, None
+
+
+def apply_experimental_route_policy(result, policy, evaluated_at, *, available=None, replay=False, destination_target=None):
+    """Authorize actual targets once, for both fresh decisions and historical replay.
+
+    Identification is intentionally independent of current declarations: revoking
+    a route cannot turn its old receipts into ordinary authorized dispatches.
+    OpenCode's legacy namespace identifies governed targets; it grants no permission.
+    """
+    routes = policy.get('experimental_free_routes', [])
+    previous = result.get('data_policy') or {}
+    governed_models = ({row['model'] for row in routes} | {previous.get('route')}
+                       | {row['model'] for row in previous.get('targets', [])})
+    governed = [identity for identity in dispatch_identities(result, available, destination_target)
+                if (identity['provider'] == 'opencode' or identity['account'] == 'opencode'
+                    or (identity['model'] or '').startswith('opencode/')
+                    or identity['model'] in governed_models)]
+    request = result.get('request') or {}
+    if not governed:
+        if request.get('experimental_route') and not result.get('destination') and not replay:
+            raise ValueError('--experimental-route must resolve to an exact policy-declared provider, model, and account override')
+        return
+    sensitive = bool(request.get('sensitive') or (result.get('launch_facts') or {}).get('sensitive'))
+    for identity in governed:
+        route, refusal = experimental_target_refusal(identity, request, sensitive, routes, evaluated_at,
+                                                     proof_class=(result.get('launch_facts') or {}).get('proof_class'),
+                                                     generic_destination=bool(result.get('destination')))
+        if refusal:
+            break
+    if replay and refusal is None:
+        return  # Preserve an authorized historical snapshot byte-for-byte.
+    result['data_policy'] = {'route': identity['model'], 'account': identity['account'],
+                             'classification': request.get('data_classification') or 'unknown',
+                             't3_transport': (route or {}).get('t3_transport') or {},
+                             'targets': governed,
+                             'state': 'refused' if refusal else 'allowed_public_experimental',
+                             'refusal': ('experimental_route_receipt_not_currently_authorized' if replay and refusal else refusal)}
+    if refusal is None:
+        return
+    cleared = clear_targets(result, refuse_submission=True)
+    result.clear()
+    result.update(cleared)
+    if isinstance(result.get('selection'), dict):
+        result['selection'] |= {'state': 'data_policy_refused', 'target': None}
+    result['launch_ready'] = False
+    result['launch_readiness_basis'] = REFUSED_READINESS
+    result.pop('simulated_target', None)
+    if result.get('routing'):
+        result['routing']['judgment_reasons'].append({'code': 'experimental_data_policy_refused',
+                                                      'detail': result['data_policy']['refusal'],
+                                                      'applies_to': 'final'})
+        result['routing']['judgment_required'] = True

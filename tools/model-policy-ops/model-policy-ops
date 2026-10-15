@@ -12,6 +12,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 PACK = REPO / "data" / "model-choice-policy"
 OPERATING_POINTS = PACK / "operating-points.json"
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from experimental_routes import check_experimental_free_routes
 
 
 def select_policy(explicit_path):
@@ -140,6 +142,7 @@ def check_policy(policy: dict) -> list[str]:
                 errors.append(f"{where}: missing expands_to.{key}")
         errors.extend(check_candidates(op, where))
     errors.extend(check_routing(policy.get("routing")))
+    errors.extend(check_experimental_free_routes(policy.get("experimental_free_routes")))
     if not policy.get("catalog_ref"):
         errors.append("missing catalog_ref")
     if not policy.get("policy_version"):
@@ -258,6 +261,8 @@ def brief_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
     }
     if waiting:
         brief["waiting"] = {"state": "selected_waiting", "assertion": "caller_claim", "warning": waiting}
+    if "data_policy" in result:
+        brief["data_policy"] = result["data_policy"]
     if destination == "model":
         brief["routed"] = routed
     else:
@@ -281,7 +286,6 @@ def main() -> int:
     parser.add_argument("command", nargs="?", choices=("check", "list", "show", "resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe", "report"))
     parser.add_argument("op", nargs="?")
     parser.add_argument("--brief", action="store_true", help="compact one-line JSON for route/resolve; full receipts are unchanged")
-    sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
     from policy_decisions import add_arguments, execute
     import user_policy
     from runtime_sources import digest
