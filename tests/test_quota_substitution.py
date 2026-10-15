@@ -243,8 +243,14 @@ def test_quota_tight_stays_on_its_claude_primary(world):
 
 
 def test_other_judgment_reasons_still_apply_to_a_substitute(world):
-    assert codes(world.route('implement.oracle-bounded')) == ['requires_unknown']
-    assert codes(world.route('implement.oracle-bounded', '--proof-class', 'oracle')) == []
+    # Candidate proof filtering still applies; use a nonimplementation fixture so
+    # an omitted declaration reaches the filter rather than the implementation guard.
+    source = next(o for o in world.policy['operating_points'] if o['id'] == 'implement.oracle-bounded')
+    fixture = next(o for o in world.policy['operating_points'] if o['id'] == 'fanout.dollar-tight')
+    fixture['expands_to'] = dict(source['expands_to'])
+    fixture['candidates'] = json.loads(json.dumps(source['candidates']))
+    assert codes(world.route('fanout.dollar-tight')) == ['requires_unknown']
+    assert codes(world.route('fanout.dollar-tight', '--proof-class', 'oracle')) == []
     assert codes(world.route('review.audit')) == ['review_without_maker']
 
 

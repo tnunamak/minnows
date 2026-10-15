@@ -617,7 +617,7 @@ def test_compact_waiting_claim_prevents_launch_recipe(world, command, claim):
         caller["schedule"] = {"state": "selected_waiting", "candidate": "dot", "reason": {"code": "busy"}}
     else:
         caller["considered"] = [{"kind": "workflow", "candidate": "dot", "disposition": "selected_waiting", "reason": {"code": "busy"}}]
-    extra = [] if command == "route" else ["--account-hint", "claude-work"]
+    extra = ["--proof-class", "judged"] if command == "route" else ["--account-hint", "claude-work"]
     argv = [command, "implement.quota-tight", *world.args(), *record_flags("waiting-compact"), *extra,
             "--choice", json.dumps(caller)]
     full_run, full = world.cli(*argv)
