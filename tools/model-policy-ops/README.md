@@ -127,7 +127,8 @@ empty. Missing or malformed optional observations are explicitly unavailable.
 Malformed mandatory input fails before publishing artifacts.
 
 --since accepts a timezone-bearing ISO timestamp. The default cohort starts
-14 rolling days before collection, includes both boundaries, and uses the
+14 rolling days before collection, includes the lower bound and excludes the
+upper bound (`[since, as_of)`), and uses the
 receipt's recorded_at (UTC launch day), not call or close time. All current
 closes are considered, including late closes. An explicit superseding rejection
 removes an earlier acceptance. Completed runs and destination acceptance events
@@ -151,7 +152,7 @@ Provenance and interpretation:
 - The DB reader uses its existing read transaction. Its hash is explicitly a
   canonical hash of the projected transaction, not a DB-file or WAL hash. No
   raw database copy is made. Collection metadata, cohort bounds, schema/report
-  version, and the verified T3 runtime-semantics version are explicit.
+  version, and the T3 counter-interpretation version are explicit.
 - Rows use the top-level receipt target. A dot destination's selection.arm is
   only a model fallback. Caller account hints are never reported as known
   dispatch accounts. Model versions and supported requested options retain
@@ -168,12 +169,19 @@ Provenance and interpretation:
   Export-backed report usage is therefore explicitly unknown_not_in_export.
   Use a DB projection for unique-turn usage. Extra export usage fields are not
   silently treated as an extension to the audit contract.
-- Verified claude/codex runtime semantics are
+- The interpretation uses the inspected current Claude/Codex adapter version
   v0.0.46-nightly.20261014.3105: input includes cache reads and cache creation;
   fresh input is input minus those caches, and output already includes reasoning.
   Invalid partitions remain invalid, and missing fields are never zero-filled.
   Unknown provider semantics do not gain derived totals. Codex turn counters
-  already include resets; the report never sums historical snapshots.
+  already include resets; the report never sums historical snapshots. This is
+  an interpretation assumption, not attestation of the producing runtime for
+  historical turns. That runtime and historical applicability remain unknown.
+  Provider-instance IDs do not establish driver identity: custom instance
+  mappings remain unknown rather than guessed from names.
+- Only explicitly main-agent scope enters main-agent token aggregates and derived
+  totals. Missing or unrecognized scope retains raw reported counters per turn,
+  but contributes missing values and explicit scope-unverified coverage there.
 - Complete main-agent usage does not mean complete nested or procedure usage.
   Parent overhead and native subagents remain unknown/unallocated. Explicit
   relaunch, escalation, and maker edges are nonadditive decision views, including
@@ -1402,3 +1410,8 @@ Top-level keys: `schema_version`, `scope`, `coverage`, `counts`, `effort_explici
   - `followups`: `{"state": "observed"|"not_checked", "items": [...]}`; each item also has
     `commit_verification`, as for a close.
   - `launch_facts`, `observed_child_usage`, `parent_overhead_usage`, `quota`.
+
+The DB path currently loads all delegation history and hydrates usage per call.
+Small fixtures do not establish scalability; measure the actual collection run
+before scheduling it. Unknown usage scopes, named-instance driver mappings and
+historical adapter versions remain coverage limits, not zero usage.

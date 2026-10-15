@@ -198,6 +198,27 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(r['daily'][0]['nested_unknown_units'], 1)
         self.assertEqual(r['parent_overhead_usage'], 'unknown_unallocated')
 
+
+    def test_unverified_usage_scope_preserved_but_excluded_from_main_totals(self):
+        for scope in (None, 'all_agents'):
+            with self.subTest(scope=scope):
+                r = self.make(calls=[call(turns=[turn(usage_scope=scope)])])
+                t = r['usage'][0]['turn']
+                self.assertEqual(t['input_tokens'], 150)
+                self.assertIsNone(t['fresh_input_tokens'])
+                self.assertIsNone(t['total_tokens'])
+                self.assertIsNone(r['daily'][0]['tokens']['input_tokens']['observed_sum'])
+                self.assertEqual(r['daily'][0]['tokens']['input_tokens']['missing_units'], 1)
+                self.assertEqual(r['daily'][0]['scope_unverified_units'], 1)
+                self.assertEqual(r['rows'][0]['scope_unverified_units'], 1)
+
+    def test_runtime_interpretation_is_not_historical_attestation(self):
+        r = self.make()
+        self.assertEqual(r['usage'][0]['turn']['semantics_basis'], 'current_adapter_interpretation_assumption')
+        self.assertEqual(r['usage'][0]['turn']['producing_runtime'], 'unattested')
+        self.assertEqual(r['usage'][0]['turn']['historical_applicability'], 'unknown')
+        self.assertIn('provider_instance_driver_mapping_unavailable', r['source_gaps'])
+
     def test_invalid_missing_unknown_semantics_and_no_money(self):
         for t in (turn(cached_input_tokens=151), turn(cache_creation_tokens=None),
                   turn(input_tokens=-1), turn(input_tokens=True), turn(reasoning_tokens=41)):
@@ -230,13 +251,13 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(r['rows'][0]['calls'][0]['child_requested_configuration']['model'], MODEL)
         self.assertEqual(r['rows'][0]['calls'][0]['child_requested_configuration']['effort'], 'xhigh')
 
-    def test_rolling_cohort_inclusive_boundary_and_outside_lineage(self):
+    def test_rolling_cohort_half_open_boundary_and_outside_lineage(self):
         records = [receipt('older', at='2026-10-01T11:59:59.999999Z'), receipt('edge', at=START),
                    receipt('end', at=NOW), receipt('future', at='2026-10-15T12:00:00.000001Z'),
                    receipt(relaunch={'from': 'older'}, escalation={'from': 'edge'})]
         records[-1]['request']['maker'] = 'older'
         r = self.make(receipts=records)
-        self.assertEqual({x['decision_id'] for x in r['rows']}, {'edge', 'end', 'd1'})
+        self.assertEqual({x['decision_id'] for x in r['rows']}, {'edge', 'd1'})
         row = next(x for x in r['rows'] if x['decision_id'] == 'd1')
         self.assertEqual({x['kind'] for x in row['edges']}, {'relaunch', 'escalate', 'maker'})
         self.assertFalse(row['edges'][0]['in_launch_cohort'])

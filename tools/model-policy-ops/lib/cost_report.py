@@ -31,7 +31,8 @@ OPTION_VALUES = {'minimal', 'none', 'low', 'medium', 'high', 'xhigh', 'max', 'de
 MAX_SOURCE_BYTES = 256 * 1024 * 1024
 GAPS = ['no_price_binding', 'served_model_unattested', 'parent_overhead_unallocated',
         'native_subagent_usage_unknown', 'whole_task_linkage_and_acceptance_unavailable',
-        'observation_order_is_not_source_revision']
+        'observation_order_is_not_source_revision', 'provider_instance_driver_mapping_unavailable',
+        'producing_runtime_and_historical_interpretation_unattested']
 
 
 def canonical(value):
@@ -91,16 +92,17 @@ def project_turn(turn, provider):
     if status not in ('complete', 'partial'):
         values = dict.fromkeys(TOKEN_FIELDS)
     known = provider in ('codex', 'claudeAgent', 'claude')
+    main_scope = turn.get('usage_scope') == 'main_agent'
     a, b, c = (values[k] for k in ('input_tokens', 'cached_input_tokens', 'cache_creation_tokens'))
     output, reasoning = values['output_tokens'], values['reasoning_tokens']
-    partition = 'unknown_semantics' if not known else 'missing'
+    partition = 'unverified_scope' if not main_scope else 'unknown_semantics' if not known else 'missing'
     fresh = total = None
-    if known and all(v is not None for v in (a, b, c)):
+    if known and main_scope and all(v is not None for v in (a, b, c)):
         partition = 'valid' if b + c <= a else 'invalid'
         fresh = a - b - c if partition == 'valid' else None
     if known and output is not None and reasoning is not None and reasoning > output:
         invalid.append('reasoning_exceeds_output')
-    if known and a is not None and output is not None and partition != 'invalid' and not invalid:
+    if known and main_scope and a is not None and output is not None and partition != 'invalid' and not invalid:
         total = a + output  # output already includes reasoning; input already includes caches.
     subagents = turn.get('has_subagents') if type(turn.get('has_subagents')) is bool else None
     return {'provider_turn_id': identifier(turn.get('provider_turn_id')),
@@ -111,6 +113,8 @@ def project_turn(turn, provider):
             **values, 'fresh_input_tokens': fresh, 'total_tokens': total,
             'partition_state': partition, 'invalid_fields': sorted(invalid),
             'semantics': RUNTIME_SEMANTICS if known else 'unknown',
+            'semantics_basis': 'current_adapter_interpretation_assumption' if known else 'unknown_instance_driver_mapping',
+            'producing_runtime': 'unattested', 'historical_applicability': 'unknown',
             'total_usd': None, 'credits': None, 'pricing_state': 'unpriced',
             'pricing_reasons': ['no_price_binding'] + ([] if known else ['unknown_provider_semantics'])}
 
@@ -198,11 +202,13 @@ def usage_units(calls, namespace):
 
 def token_summary(units):
     turns = [u['turn'] for u in units if u['state'] == 'attributed']
-    return {name: {'observed_sum': sum(t[name] for t in turns if t[name] is not None)
-                                  if any(t[name] is not None for t in turns) else None,
-                   'known_units': sum(t[name] is not None for t in turns),
-                   'missing_units': sum(t[name] is None for t in turns)}
-            for name in CATEGORIES}
+    result = {}
+    for name in CATEGORIES:
+        values = [t[name] if t['usage_scope'] == 'main_agent' else None for t in turns]
+        known = [value for value in values if value is not None]
+        result[name] = {'observed_sum': sum(known) if known else None,
+                        'known_units': len(known), 'missing_units': len(values) - len(known)}
+    return result
 
 
 def source_snapshot(paths, directory):
@@ -329,7 +335,7 @@ def make_report(receipts, outcome_rows, observations, calls, outside, sources, *
     start = audit.stamp(since) if since else as_of - timedelta(days=14)
     if start > as_of:
         raise ValueError('--since must not be after collection time')
-    cohort = {d for d, r in by_id.items() if start <= audit.stamp(r['recorded_at']) <= as_of}
+    cohort = {d for d, r in by_id.items() if start <= audit.stamp(r['recorded_at']) < as_of}
     closes, followups = outcomes.split_rows(outcome_rows)
     heads = outcomes.chain_heads(closes)
     source = sources.get('db') or sources.get('export')
@@ -375,6 +381,7 @@ def make_report(receipts, outcome_rows, observations, calls, outside, sources, *
                                               'finding': f['finding'], 'observed_at': timestamp(f['observed_at']),
                                               'on_current_close': bool(close and f['close_id'] == close['close_id'])} for f in fs]},
                      'tokens': token_summary(attributed), 'usage_units': len(attributed),
+                     'scope_unverified_units': sum(u['turn']['usage_scope'] != 'main_agent' for u in attributed),
                      'conflicting_units': sum(u['state'] != 'attributed' for u in own_units),
                      'decision_latency_seconds': latency if latency is not None and latency >= 0 else None,
                      'decision_latency_state': 'unknown' if latency is None else 'invalid' if latency < 0 else 'receipt_to_close_only',
@@ -401,6 +408,7 @@ def make_report(receipts, outcome_rows, observations, calls, outside, sources, *
                       'repairs_observed_sum': sum(c['repairs'] for c in current if c['repairs'] is not None)
                                               if any(c['repairs'] is not None for c in current) else None,
                       'calls': sum(len(r['calls']) for r in members), 'unique_usage_units': len(owned),
+                      'scope_unverified_units': sum(u['turn']['usage_scope'] != 'main_agent' for u in owned),
                       'tokens': token_summary(owned), 'priced_units': 0, 'unpriced_units': len(owned),
                       'conflicting_units': len(conflicts),
                       'nested_unknown_units': sum(u['turn']['has_subagents'] is not False for u in owned),
@@ -412,9 +420,10 @@ def make_report(receipts, outcome_rows, observations, calls, outside, sources, *
                       'total_usd': None, 'credits': None, 'task_cost': None, 'task_accepted_result_count': None,
                       'wall_time_seconds': None})
     return {'schema_version': SCHEMA_VERSION, 'report_version': REPORT_VERSION, 'runtime_semantics_version': RUNTIME_SEMANTICS,
+            'runtime_semantics_basis': 'interpretation_assumption_not_producing_runtime_attestation',
             'collection': {'as_of_utc': as_of.isoformat()},
             'cohort': {'since_utc': start.isoformat(), 'through_utc': as_of.isoformat(),
-                       'anchor': 'receipt.recorded_at', 'boundaries': 'inclusive',
+                       'anchor': 'receipt.recorded_at', 'boundaries': '[since,as_of)',
                        'default_window': 'rolling_14_days' if since is None else None},
             'sources': sources, 'source_gaps': GAPS + (['export_usage_not_projected'] if 'export' in sources else [])
                        + (['optional_observations_unavailable'] if sources.get('observations', {}).get('state') == 'unavailable' else []),
@@ -461,7 +470,8 @@ def markdown(report):
         lines += ['', '## ' + d['launch_day_utc'] + ' / ' + d['op'] + ' / ' + d['destination'],
                   '- Judge mix: ' + canonical(d['judged_by']) + '; check mix: ' + canonical(d['check']),
                   '- Repairs known / missing: ' + str(d['repairs_known']) + ' / ' + str(d['repairs_missing']),
-                  '- Tokens: ' + '; '.join(k + '=' + str(v['observed_sum']) + ' / ' + str(v['missing_units'])
+                  '- Unverified usage scope units: ' + str(d['scope_unverified_units']),
+                  '- Main-agent tokens: ' + '; '.join(k + '=' + str(v['observed_sum']) + ' / ' + str(v['missing_units'])
                                           for k, v in d['tokens'].items()),
                   '- Calls without usage: ' + str(d['calls_without_usage']) + '; decisions without calls: ' + str(d['decisions_without_calls'])
                   + '; shared parent: ' + str(d['shared_parent_decisions']) + '; parent unknown: ' + str(d['parent_unknown_decisions']), '']
