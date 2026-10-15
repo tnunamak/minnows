@@ -2,7 +2,7 @@
   "$schema": "schemas/metrics-v1.schema.json",
   "id": "model-catalog-metrics",
   "schema_version": 1,
-  "generated_at": "2026-10-13",
+  "generated_at": "2026-10-15",
   "notes": [
     "Metric registry — distinct metric_ids are not comparable unless same id.",
     "Official boards, re-runs, and vendor tables must not share an id.",
@@ -2952,6 +2952,16 @@
       "steward": "third_party_board",
       "unit_default": "accuracy",
       "notes": "An agent builds and runs a space program in Kerbal Space Program (Vals AI)."
+    },
+    {
+      "id": "chatbot-arena-text-score",
+      "name": "Arena Text Overall Score",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other",
+      "comparable": false,
+      "notes": "Arena labels this measure Score. Keep it separate from historical Chatbot Arena Text Elo rows; do not infer the scale or merge publisher metric names."
     }
   ]
 }

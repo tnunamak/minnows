@@ -2,7 +2,7 @@
   "$schema": "schemas/sources-v1.schema.json",
   "schema_version": 1,
   "id": "model-catalog-sources",
-  "retrieved_at": "2026-09-29",
+  "retrieved_at": "2026-10-15",
   "description": "Canonical provenance registry. Every pricing/performance/capabilities payload should reference these ids via source_ids[].",
   "sources": [
     {
@@ -5068,6 +5068,156 @@
       "retrieved_at": "2026-10-13",
       "kind": "third_party_eval",
       "notes": "HTTP 404 on 2026-10-13. Harvey LAB readings exist only on AA (Harvey LAB-AA) and Vals (HLAB)."
+    },
+    {
+      "id": "deepseek-v41-model-list-2026-10-15",
+      "url": "https://api-docs.deepseek.com/api/list-models/",
+      "title": "DeepSeek API model list",
+      "publisher": "DeepSeek",
+      "published": null,
+      "retrieved_at": "2026-10-15",
+      "kind": "vendor_docs",
+      "notes": "Documented example lists V4.1-Flash and V4-Pro; no live account query. Gives context, output, modalities and effort fields."
+    },
+    {
+      "id": "deepseek-v41-pricing-2026-10-15",
+      "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "title": "DeepSeek API pricing",
+      "publisher": "DeepSeek",
+      "published": null,
+      "retrieved_at": "2026-10-15",
+      "kind": "vendor_docs",
+      "notes": "Per-million-token API rates, exact peak windows, cache-hit/miss rates, context/output, concurrency, and price-page version labels. No separate cache-write rate listed."
+    },
+    {
+      "id": "deepseek-v41-chat-completions-2026-10-15",
+      "url": "https://api-docs.deepseek.com/api/create-chat-completion/",
+      "title": "DeepSeek Chat Completions API",
+      "publisher": "DeepSeek",
+      "published": null,
+      "retrieved_at": "2026-10-15",
+      "kind": "vendor_docs",
+      "notes": "max_tokens limit and defaults for non-thinking, thinking, and max effort. No live requests."
+    },
+    {
+      "id": "deepseek-v41-rate-limit-2026-10-15",
+      "url": "https://api-docs.deepseek.com/quick_start/rate_limit/",
+      "title": "DeepSeek API rate limits",
+      "publisher": "DeepSeek",
+      "published": null,
+      "retrieved_at": "2026-10-15",
+      "kind": "vendor_docs",
+      "notes": "Account-wide concurrent request ceilings and 429 behavior; no RPM/TPM/daily numeric quota found on reviewed page."
+    },
+    {
+      "id": "deepseek-v41-thinking-mode-2026-10-15",
+      "url": "https://api-docs.deepseek.com/guides/thinking_mode/",
+      "title": "DeepSeek thinking mode",
+      "publisher": "DeepSeek",
+      "published": null,
+      "retrieved_at": "2026-10-15",
+      "kind": "vendor_docs",
+      "notes": "Thinking defaults enabled/high; low/high/max and compatibility mappings; documented parameter behavior."
+    },
+    {
+      "id": "arena-v41-flash-2026-10-15",
+      "url": "https://arena.ai/leaderboard/chat/text",
+      "title": "Arena Text Overall leaderboard",
+      "publisher": "Arena",
+      "published": null,
+      "retrieved_at": "2026-10-15",
+      "kind": "third_party_eval",
+      "notes": "Arena Text Overall row deepseek-v4.1-flash-max, Score 1475, rank 38 (spread 21–57), displayed ±6, 12,793 votes. Confidence level and harness controls unknown."
+    },
+    {
+      "id": "vals-index-v41-flash-2026-10-15",
+      "url": "https://www.vals.ai/benchmarks/vals_index",
+      "title": "Vals Index",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-15",
+      "kind": "third_party_eval",
+      "notes": "Vals Index v2.1 Accuracy 51.32%, rank 26/48, displayed ±1.13; board updated 2026-10-13. Effort per score row unknown."
+    },
+    {
+      "id": "vals-finance-v41-flash-2026-10-15",
+      "url": "https://www.vals.ai/benchmarks/fabv2",
+      "title": "Vals Finance Agent v2",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-15",
+      "kind": "third_party_eval",
+      "notes": "Primary Partial Credit 53.48%, rank 32/78, standard error 0.39 percentage points over three runs; board updated 2026-10-12. Effort per score row unknown."
+    },
+    {
+      "id": "vals-terminal-bench-v41-flash-2026-10-15",
+      "url": "https://www.vals.ai/benchmarks/terminal-bench-4",
+      "title": "Vals Terminal-Bench 4.0",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-15",
+      "kind": "third_party_eval",
+      "notes": "avg@3 of pass@1 19.70%, rank 26/48, standard error 1.75 percentage points over three runs; 66 tasks; board updated 2026-10-13. Effort per row unknown."
+    },
+    {
+      "id": "arc-v41-flash-2026-10-15",
+      "url": "https://arcprize.org/leaderboard",
+      "title": "ARC Prize leaderboard",
+      "publisher": "ARC Prize",
+      "published": null,
+      "retrieved_at": "2026-10-15",
+      "kind": "third_party_eval",
+      "notes": "Direct retrieval exposed the leaderboard shell without model rows. Indexed candidates were not verifiable and are not catalog scores."
+    },
+    {
+      "id": "vals-swebench-v41-flash-2026-10-15",
+      "url": "https://www.vals.ai/benchmarks/swebench",
+      "title": "Vals SWE-bench Verified",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-15",
+      "kind": "third_party_eval",
+      "notes": "Benchmark is archived for new model releases; no V4.1 row found on the reviewed page."
+    },
+    {
+      "id": "aa-v41-flash-2026-10-15",
+      "url": "https://artificialanalysis.ai/models/deepseek-v4-1-flash",
+      "title": "Artificial Analysis DeepSeek V4.1 Flash page",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-15",
+      "kind": "third_party_eval",
+      "notes": "Structured AA data is not republished here because redistribution permission basis is unresolved; existing dated historical catalog records are retained unchanged."
+    },
+    {
+      "id": "deepseek-v41-change-log-2026-10-15",
+      "url": "https://api-docs.deepseek.com/updates/",
+      "title": "DeepSeek API change log",
+      "publisher": "DeepSeek",
+      "published": null,
+      "retrieved_at": "2026-10-15",
+      "kind": "vendor_docs",
+      "notes": "2026-09-10 change-log entry releases V4.1-Flash under API id deepseek-flash and says deepseek-v4-flash and deepseek-v4-flash-vision-exp temporarily route to it."
+    },
+    {
+      "id": "deepseek-v41-release-announcement-2026-10-15",
+      "url": "https://api-docs.deepseek.com/news/news260910/",
+      "title": "Introducing DeepSeek-V4.1-Flash",
+      "publisher": "DeepSeek",
+      "published": "2026-09-10",
+      "retrieved_at": "2026-10-15",
+      "kind": "vendor_blog",
+      "notes": "Release announcement says deepseek-v4-pro requests route to V4.1-Flash at Flash rates until V4.1-Pro launches."
+    },
+    {
+      "id": "vals-model-detail-v41-flash-2026-10-15",
+      "url": "https://www.vals.ai/models/deepseek_deepseek-v4.1-flash",
+      "title": "Vals DeepSeek V4.1 Flash model detail",
+      "publisher": "Vals AI",
+      "published": null,
+      "retrieved_at": "2026-10-15",
+      "kind": "third_party_eval",
+      "notes": "Current model detail shows default effort=max. The page also retains a September 10 evaluation announcement labeled high. These do not establish the effort for individual current benchmark rows."
     }
   ]
 }

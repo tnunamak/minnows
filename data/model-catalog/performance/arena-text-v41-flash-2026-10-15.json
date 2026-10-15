@@ -1,0 +1,34 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "arena-text-v41-flash-2026-10-15",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://arena.ai/leaderboard/chat/text"
+  ],
+  "source_ids": [
+    "arena-v41-flash-2026-10-15"
+  ],
+  "notes": "Arena Text Overall, accessed 2026-10-15. Source labels the measure Score, not Elo. The displayed ±6 confidence level is unknown; rank spread is 21–57. This user-preference board is not a coding-agent result.",
+  "claims": [],
+  "scores": [
+    {
+      "model": "deepseek-v4-1-flash",
+      "metric": "Arena Text Overall Score",
+      "metric_id": "chatbot-arena-text-score",
+      "score": 1475,
+      "unit": "other",
+      "effort": "max",
+      "harness": "Arena Text Overall; configuration details not established",
+      "source_id": "arena-v41-flash-2026-10-15",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "task_family": "mixed",
+      "comparability_group": "arena-text-overall-2026-10-15",
+      "snapshot_id": "arena-text-overall-2026-10-15",
+      "caveat": "Exact publisher row deepseek-v4.1-flash-max; rank 38 (spread 21–57); displayed ±6 (confidence level unknown); 12,793 votes. Effort comes from row label only. No source cross-comparison made."
+    }
+  ]
+}

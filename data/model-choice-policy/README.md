@@ -10,14 +10,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.2.6](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.6) — unreleased; published by CI after merge to main |
+| **This version** | [data-model-choice-policy-v0.2.7](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.7) — unreleased; published by CI after merge to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.2.6
+TAG=data-model-choice-policy-v0.2.7
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -123,6 +123,10 @@ not silently route by model name.
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.2.7 — unreleased
+
+- Repin to model-catalog v0.5.16. No operating-point recommendation or route qualification changed.
 
 ### v0.2.6 — unreleased
 

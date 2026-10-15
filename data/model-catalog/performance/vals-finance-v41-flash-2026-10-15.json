@@ -1,0 +1,35 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "vals-finance-v41-flash-2026-10-15",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://www.vals.ai/benchmarks/fabv2"
+  ],
+  "source_ids": [
+    "vals-finance-v41-flash-2026-10-15"
+  ],
+  "notes": "Vals Finance Agent v2. Page updated 2026-10-12; accessed 2026-10-15. The score is primary severity-weighted Partial Credit, not All-Pass. Per-row effort unknown. No cross-source comparison is made.",
+  "claims": [],
+  "scores": [
+    {
+      "model": "deepseek-v4-1-flash",
+      "metric": "Finance Agent v2 Partial Credit",
+      "metric_id": "vals-finance-agent-v2",
+      "score": 0.5348,
+      "unit": "other",
+      "effort": null,
+      "harness": "Vals Finance Agent v2",
+      "source_id": "vals-finance-v41-flash-2026-10-15",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "task_family": "agentic",
+      "comparability_group": "vals-finance-agent-v2-2026-10-12",
+      "snapshot_id": "vals-finance-agent-v2-2026-10-12",
+      "caveat": "Primary Partial Credit 53.48%, rank 32/78; standard error 0.39 percentage points over three runs. Test split 450 questions; shared default tool harness. Effort per row UNKNOWN.",
+      "comparable": false
+    }
+  ]
+}

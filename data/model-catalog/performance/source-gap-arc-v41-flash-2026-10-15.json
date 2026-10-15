@@ -1,0 +1,28 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "source-gap-arc-v41-flash-2026-10-15",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://arcprize.org/leaderboard"
+  ],
+  "source_ids": [
+    "arc-v41-flash-2026-10-15"
+  ],
+  "notes": "Direct retrieval showed the board shell without model rows. Indexed candidate tuples were not verifiable and are not promoted to scores.",
+  "claims": [
+    {
+      "models": [
+        "deepseek-v4-1-flash"
+      ],
+      "statement": "Direct retrieval showed the board shell without model rows. Indexed candidate tuples were not verifiable and are not promoted to scores.",
+      "source_id": "arc-v41-flash-2026-10-15"
+    }
+  ],
+  "scores": [],
+  "missing": [
+    "Direct retrieval showed the board shell without model rows. Indexed candidate tuples were not verifiable and are not promoted to scores."
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "deepseek-api-pricing-2026-10-15",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "deepseek",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://api-docs.deepseek.com/quick_start/pricing/"
+  ],
+  "source_ids": [
+    "deepseek-v41-pricing-2026-10-15"
+  ],
+  "notes": "API rates, units, peak schedule and unlisted cache-write state as displayed on the pricing page accessed 2026-10-15. The V4-Pro-0813 label is retained as a page label; current routing is recorded from the separate release-announcement source.",
+  "claims": [
+    {
+      "models": [
+        "deepseek-v4-1-flash"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "As accessed 2026-10-15, DeepSeek API rates per 1M tokens are USD cache-hit input $0.006 peak/$0.003 off-peak, cache-miss input $0.30/$0.15, and output $1.20/$0.60. The page lists no separate cache-write rate; its value is unknown here, not zero. These rates describe DeepSeek API billing, not OpenCode’s separate route.",
+      "source_id": "deepseek-v41-pricing-2026-10-15"
+    },
+    {
+      "models": [
+        "deepseek-v4-1-flash"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "Peak pricing applies 01:00–04:00 and 06:00–10:00 UTC Monday–Friday except Chinese public holidays; other periods are off-peak at half the peak rate.",
+      "source_id": "deepseek-v41-pricing-2026-10-15"
+    }
+  ],
+  "scores": []
+}

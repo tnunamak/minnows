@@ -1,0 +1,48 @@
+{
+  "$schema": "schemas/capabilities-v1.schema.json",
+  "id": "deepseek-api-thinking-mode-2026-10-15",
+  "schema_version": 1,
+  "kind": "capabilities",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://api-docs.deepseek.com/guides/thinking_mode/"
+  ],
+  "source_ids": [
+    "deepseek-v41-thinking-mode-2026-10-15"
+  ],
+  "notes": "OpenAI-compatible DeepSeek API. Thinking is enabled by default. API docs describe compatibility inputs that map to supported effort levels; they are not separate levels.",
+  "surfaces": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-v4-1-flash",
+      "surface": "api",
+      "valid_efforts": [
+        "low",
+        "high",
+        "max"
+      ],
+      "default_effort": "high",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {
+        "minimal": "low",
+        "medium": "high",
+        "xhigh": "high",
+        "ultra": "max"
+      },
+      "modes": [
+        {
+          "mode_id": "thinking-enabled",
+          "notes": "Thinking is enabled by default."
+        },
+        {
+          "mode_id": "thinking-disabled",
+          "notes": "The API documents an explicit disable setting."
+        }
+      ],
+      "source_ids": [
+        "deepseek-v41-thinking-mode-2026-10-15"
+      ],
+      "notes": "Thinking-mode parameter restrictions and tool-turn reasoning_content requirements are in the dated performance claim file. The schema requires an unsupported_behavior value; hard_fail follows the finite documented effort enum, but invalid-effort error handling was not independently probed."
+    }
+  ]
+}

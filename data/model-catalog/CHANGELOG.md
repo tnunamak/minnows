@@ -1,5 +1,14 @@
 # Model catalog changelog
 
+## v0.5.16 — 2026-10-15
+
+- Keep V4.1-Flash as the only publicly released V4.1 member. Clarify the current `deepseek-flash` API id, temporary compatibility ids, and the distinct historical V4 board identities. Preserve the V4 Pro pricing-label versus current runtime-route disagreement.
+- Add dated DeepSeek API source claims for context/output limits, peak/off-peak rates, concurrency, thinking defaults and effort compatibility. The price schema requires a numeric cache-write field, but the vendor does not list a separate cache-write rate; the refreshed evidence therefore records it as unknown in a sourced claim instead of writing a new numeric value.
+- Add source-scoped Arena Text Overall, Vals Index v2.1, Finance Agent v2 Partial Credit and Terminal-Bench 4.0 observations. Keep unresolved per-row Vals effort unknown and preserve publisher metrics, units, harness and uncertainty in caveats.
+- Record AA redistribution-permission uncertainty and ARC/SWE-bench source gaps without adding unverified values. Retain all prior dated board records.
+- No router/default recommendation changed. The policy catalog pin advances to v0.5.16.
+# Model catalog changelog
+
 Newest first. The README links here; this file is the single record.
 
 ## v0.5.15 — 2026-10-13

@@ -1,0 +1,28 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "deepseek-chat-limits-2026-10-15",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "deepseek",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://api-docs.deepseek.com/api/create-chat-completion/"
+  ],
+  "source_ids": [
+    "deepseek-v41-chat-completions-2026-10-15"
+  ],
+  "claims": [
+    {
+      "models": [
+        "deepseek-v4-1-flash"
+      ],
+      "axes": [
+        "tokens",
+        "effort"
+      ],
+      "statement": "Chat Completions max_tokens accepts up to 393,216. Documented defaults are 8,192 tokens in non-thinking mode, 65,536 in thinking mode, and 131,072 with max effort; input plus output remains bounded by model context.",
+      "source_id": "deepseek-v41-chat-completions-2026-10-15"
+    }
+  ],
+  "scores": []
+}

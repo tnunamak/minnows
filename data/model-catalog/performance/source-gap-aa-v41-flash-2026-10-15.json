@@ -1,0 +1,28 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "source-gap-aa-v41-flash-2026-10-15",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://artificialanalysis.ai/models/deepseek-v4-1-flash"
+  ],
+  "source_ids": [
+    "aa-v41-flash-2026-10-15"
+  ],
+  "notes": "Artificial Analysis structured values are not republished. The permission basis for bulk or new structured-data redistribution is unresolved; existing dated historical catalog records are retained unchanged.",
+  "claims": [
+    {
+      "models": [
+        "deepseek-v4-1-flash"
+      ],
+      "statement": "Artificial Analysis structured values are not republished. The permission basis for bulk or new structured-data redistribution is unresolved; existing dated historical catalog records are retained unchanged.",
+      "source_id": "aa-v41-flash-2026-10-15"
+    }
+  ],
+  "scores": [],
+  "missing": [
+    "Artificial Analysis structured values are not republished. The permission basis for bulk or new structured-data redistribution is unresolved; existing dated historical catalog records are retained unchanged."
+  ]
+}

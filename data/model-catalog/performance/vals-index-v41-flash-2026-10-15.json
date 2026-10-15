@@ -1,0 +1,34 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "vals-index-v41-flash-2026-10-15",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://www.vals.ai/benchmarks/vals_index"
+  ],
+  "source_ids": [
+    "vals-index-v41-flash-2026-10-15"
+  ],
+  "notes": "Vals Index v2.1. Page updated 2026-10-13; accessed 2026-10-15. Row effort is unknown. The current max default and historical high announcement are recorded separately in vals-model-detail-v41-flash-2026-10-15.json; neither establishes effort for this row. The displayed ±1.13 definition is unresolved. No cross-version or cross-source comparison is made.",
+  "claims": [],
+  "scores": [
+    {
+      "model": "deepseek-v4-1-flash",
+      "metric": "Vals Index v2.1 Accuracy",
+      "metric_id": "vals-index",
+      "score": 0.5132,
+      "unit": "accuracy",
+      "effort": null,
+      "source_id": "vals-index-v41-flash-2026-10-15",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "task_family": "mixed",
+      "comparability_group": "vals-index-v2-1-2026-10-13",
+      "snapshot_id": "vals-index-v2-1-2026-10-13",
+      "caveat": "Publisher row DeepSeek V4.1 Flash; 51.32%, rank 26/48, displayed ±1.13 (definition unresolved). Effort per row UNKNOWN. Current model-detail default=max conflicts with historical release announcement=high; neither is assigned to this row.",
+      "comparable": false
+    }
+  ]
+}

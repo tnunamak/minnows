@@ -2,7 +2,7 @@
   "$schema": "schemas/models-v1.schema.json",
   "id": "model-catalog-models",
   "schema_version": 1,
-  "generated_at": "2026-10-13",
+  "generated_at": "2026-10-15",
   "notes": [
     "L0 model registry — THE join key for pricing, performance, capabilities, and policy.",
     "Harness-suffixed score ids (model@harness) resolve to the base id.",
@@ -241,11 +241,13 @@
       "status": "ga",
       "tier": "flash",
       "aliases": [
+        "DeepSeek-V4.1-Flash",
         "deepseek-flash",
-        "DeepSeek-V4.1-Flash"
+        "deepseek-v4-flash-vision-exp"
       ],
       "released": "2026-09-10",
-      "release_source_id": "deepseek-updates-2026-09-23"
+      "release_source_id": "deepseek-v41-change-log-2026-10-15",
+      "notes": "Canonical catalog identity for the released V4.1-Flash model. Current documented API id: deepseek-flash. The API accepts deepseek-v4-flash and deepseek-v4-flash-vision-exp temporarily and routes both to V4.1-Flash. The exact catalog id deepseek-v4-flash remains a separate historical board identity; it is not a current API target. No other public V4.1 member or V4.1-Pro launch is documented as of 2026-10-15."
     },
     {
       "id": "deepseek-v4-flash",
@@ -254,7 +256,7 @@
       "status": "historical",
       "tier": "flash",
       "aliases": [],
-      "notes": "Historical DeepSeek V4 Flash board identity. Kept distinct from V4-Flash-0731 because DeepSeek describes 0731 as a retrained preview variant, and the legacy API id deepseek-v4-flash now routes to V4.1-Flash."
+      "notes": "Historical DeepSeek V4 Flash board identity. Kept distinct from V4-Flash-0731 because DeepSeek describes 0731 as a retrained preview variant. The exact string deepseek-v4-flash is also a temporary current API compatibility id that routes to V4.1-Flash; an exact catalog-id match continues to mean this historical board identity."
     },
     {
       "id": "deepseek-v4-flash-0731",
@@ -276,7 +278,7 @@
         "deepseek-v4-pro",
         "DeepSeek-V4-Pro-0813"
       ],
-      "notes": "Historical/version-pinned identity for DeepSeek V4 Pro GA 2026-08-13; retain the alias deepseek-v4-pro for source rows. DeepSeek pricing labels that API id V4-Pro-0813, but its updates log says requests began routing to V4.1-Flash on 2026-09-14, pending V4.1-Pro. Do not treat this catalog alias as a guarantee of current endpoint identity."
+      "notes": "Historical/version-pinned identity for DeepSeek V4 Pro GA 2026-08-13; retain the alias deepseek-v4-pro for source rows. The pricing page still labels deepseek-v4-pro as V4-Pro-0813, while the release log says current requests route to V4.1-Flash and bill at Flash rates until V4.1-Pro launches. Do not treat this catalog alias as a guarantee of current endpoint identity. No V4.1-Pro member or launch date is recorded."
     },
     {
       "id": "gemini-2.5-flash",

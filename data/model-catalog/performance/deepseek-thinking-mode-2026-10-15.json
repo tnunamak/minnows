@@ -1,0 +1,37 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "deepseek-thinking-mode-2026-10-15",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "deepseek",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://api-docs.deepseek.com/guides/thinking_mode/"
+  ],
+  "source_ids": [
+    "deepseek-v41-thinking-mode-2026-10-15"
+  ],
+  "claims": [
+    {
+      "models": [
+        "deepseek-v4-1-flash"
+      ],
+      "axes": [
+        "effort"
+      ],
+      "statement": "Thinking is enabled by default and default effort is high. Supported effort levels are low, high and max. Compatibility inputs map minimal→low, medium→high, xhigh→high and ultra→max.",
+      "source_id": "deepseek-v41-thinking-mode-2026-10-15"
+    },
+    {
+      "models": [
+        "deepseek-v4-1-flash"
+      ],
+      "axes": [
+        "effort"
+      ],
+      "statement": "In thinking mode, temperature, presence_penalty and frequency_penalty have no effect; top_p below 0.95 is treated as 0.95. Tool follow-up requests must return prior reasoning_content or the API returns HTTP 400.",
+      "source_id": "deepseek-v41-thinking-mode-2026-10-15"
+    }
+  ],
+  "scores": []
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "deepseek-release-log-2026-10-15",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "deepseek",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://api-docs.deepseek.com/updates/"
+  ],
+  "source_ids": [
+    "deepseek-v41-change-log-2026-10-15"
+  ],
+  "notes": "Source page accessed 2026-10-15; the relevant update is dated 2026-09-10. The log also has earlier V4 generation entries; no additional V4.1 member is introduced by this source.",
+  "claims": [
+    {
+      "models": [
+        "deepseek-v4-1-flash"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "DeepSeek released V4.1-Flash on 2026-09-10 under the current API id deepseek-flash. The retired deepseek-v4-flash and deepseek-v4-flash-vision-exp names remain temporarily accepted and route to V4.1-Flash; the compatibility duration is unspecified.",
+      "source_id": "deepseek-v41-change-log-2026-10-15"
+    }
+  ],
+  "scores": []
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "deepseek-api-concurrency-2026-10-15",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "deepseek",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://api-docs.deepseek.com/quick_start/rate_limit/"
+  ],
+  "source_ids": [
+    "deepseek-v41-rate-limit-2026-10-15"
+  ],
+  "claims": [
+    {
+      "models": [
+        "deepseek-v4-1-flash"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "DeepSeek documents a 2,500 concurrent-request ceiling for deepseek-flash per account, shared across API keys; a request counts until its response completes and exceeding the ceiling returns HTTP 429. The reviewed page gives no numeric RPM, TPM, daily request or daily token quota. These are DeepSeek API limits and do not establish OpenCode limits.",
+      "source_id": "deepseek-v41-rate-limit-2026-10-15"
+    }
+  ],
+  "scores": []
+}

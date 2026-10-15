@@ -1,0 +1,36 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "vals-terminal-bench-v41-flash-2026-10-15",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://www.vals.ai/benchmarks/terminal-bench-4"
+  ],
+  "source_ids": [
+    "vals-terminal-bench-v41-flash-2026-10-15"
+  ],
+  "notes": "Vals Terminal-Bench 4.0. Page updated 2026-10-13; accessed 2026-10-15. This is avg@3 of pass@1, distinct from older Terminal-Bench 2.1. Per-row effort unknown. No cross-version or cross-source comparison is made.",
+  "claims": [],
+  "scores": [
+    {
+      "model": "deepseek-v4-1-flash",
+      "metric": "Terminal-Bench 4.0 avg@3 of pass@1",
+      "metric_id": "terminal-bench-4-0",
+      "score": 0.197,
+      "unit": "pass_rate",
+      "effort": null,
+      "harness": "Mini-SWE-agent (Vals)",
+      "source_id": "vals-terminal-bench-v41-flash-2026-10-15",
+      "source_type": "third_party_board",
+      "evidence_grade": "B",
+      "task_family": "coding",
+      "comparability_group": "vals-terminal-bench-4-0-2026-10-13",
+      "snapshot_id": "vals-terminal-bench-4-0-2026-10-13",
+      "caveat": "Publisher row DeepSeek V4.1 Flash; avg@3 of pass@1 19.70%, rank 26/48, standard error 1.75 percentage points over three runs; 66 tasks. Vals mini-swe-agent in isolated Daytona sandboxes using upstream Harbor; eight-hour task limit. Effort per row UNKNOWN.",
+      "comparable": false,
+      "n": 66
+    }
+  ]
+}

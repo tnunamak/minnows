@@ -1,0 +1,28 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "source-gap-vals-swebench-v41-flash-2026-10-15",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://www.vals.ai/benchmarks/swebench"
+  ],
+  "source_ids": [
+    "vals-swebench-v41-flash-2026-10-15"
+  ],
+  "notes": "The reviewed SWE-bench Verified page says it no longer runs new model releases because the benchmark has saturated. No V4.1 row was found. Historical V4 Pro remains a separate identity.",
+  "claims": [
+    {
+      "models": [
+        "deepseek-v4-1-flash"
+      ],
+      "statement": "The reviewed SWE-bench Verified page says it no longer runs new model releases because the benchmark has saturated. No V4.1 row was found. Historical V4 Pro remains a separate identity.",
+      "source_id": "vals-swebench-v41-flash-2026-10-15"
+    }
+  ],
+  "scores": [],
+  "missing": [
+    "The reviewed SWE-bench Verified page says it no longer runs new model releases because the benchmark has saturated. No V4.1 row was found. Historical V4 Pro remains a separate identity."
+  ]
+}

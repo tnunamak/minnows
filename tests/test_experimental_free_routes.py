@@ -137,7 +137,8 @@ def test_pack_admits_exact_reviewed_scopes_without_changing_primary_arms():
     policy = json.loads((REPO / 'data/model-choice-policy/operating-points.json').read_text())
     baseline = json.loads(subprocess.check_output(['git', 'show', 'c2414ded:data/model-choice-policy/operating-points.json'], cwd=REPO))
     assert policy['operating_points'] == baseline['operating_points']
-    assert policy['catalog_ref'] == baseline['catalog_ref']
+    catalog = json.loads((REPO / 'data/model-catalog/pack.json').read_text())
+    assert policy['catalog_ref'] == catalog['tag']
 
 
 def test_empty_proof_list_revokes_eligibility_without_admitting_another_proof():

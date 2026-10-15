@@ -1,0 +1,28 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "vals-model-detail-v41-flash-2026-10-15",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "other",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://www.vals.ai/models/deepseek_deepseek-v4.1-flash"
+  ],
+  "source_ids": [
+    "vals-model-detail-v41-flash-2026-10-15"
+  ],
+  "notes": "Current model detail and its historical September 10 announcement are distinct observations. The current page setting does not recover per-row settings for the refreshed Vals Index, Finance Agent or Terminal-Bench rows.",
+  "claims": [
+    {
+      "models": [
+        "deepseek-v4-1-flash"
+      ],
+      "axes": [
+        "effort"
+      ],
+      "statement": "The current Vals model-detail panel shows default effort max. Its historical September 10 evaluation announcement labels high reasoning effort. These labels conflict by time and scope and neither identifies effort for each current benchmark row.",
+      "source_id": "vals-model-detail-v41-flash-2026-10-15"
+    }
+  ],
+  "scores": []
+}

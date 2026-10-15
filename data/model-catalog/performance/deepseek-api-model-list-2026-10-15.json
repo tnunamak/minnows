@@ -1,0 +1,38 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "deepseek-api-model-list-2026-10-15",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "deepseek",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://api-docs.deepseek.com/api/list-models/"
+  ],
+  "source_ids": [
+    "deepseek-v41-model-list-2026-10-15"
+  ],
+  "claims": [
+    {
+      "models": [
+        "deepseek-v4-1-flash"
+      ],
+      "axes": [
+        "tokens",
+        "effort"
+      ],
+      "statement": "DeepSeek’s documented /models example names the current API id deepseek-flash as DeepSeek-V4.1-Flash, with a 1,048,576-token context window, 393,216 maximum output tokens, text and image input, text output, and low/high/max effort with high default. The example shows no other V4.1 member; it is a documentation example, not an authenticated account query.",
+      "source_id": "deepseek-v41-model-list-2026-10-15"
+    },
+    {
+      "models": [
+        "deepseek-v4-pro-0813"
+      ],
+      "axes": [
+        "tokens"
+      ],
+      "statement": "The same documented /models example lists deepseek-v4-pro as DeepSeek-V4-Pro with 1,048,576 context and 393,216 maximum output tokens. This V4 Pro entry is not a V4.1-Pro member.",
+      "source_id": "deepseek-v41-model-list-2026-10-15"
+    }
+  ],
+  "scores": []
+}

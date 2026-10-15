@@ -1,0 +1,28 @@
+{
+  "$schema": "schemas/performance-v1.schema.json",
+  "id": "deepseek-release-announcement-2026-10-15",
+  "schema_version": 1,
+  "kind": "performance",
+  "provider": "deepseek",
+  "retrieved_at": "2026-10-15",
+  "source_urls": [
+    "https://api-docs.deepseek.com/news/news260910/"
+  ],
+  "source_ids": [
+    "deepseek-v41-release-announcement-2026-10-15"
+  ],
+  "notes": "DeepSeek V4.1-Flash release announcement, dated 2026-09-10; accessed 2026-10-15.",
+  "claims": [
+    {
+      "models": [
+        "deepseek-v4-pro-0813"
+      ],
+      "axes": [
+        "cost"
+      ],
+      "statement": "The announcement says requests using deepseek-v4-pro route to V4.1-Flash beginning 2026-09-14 and use V4.1-Flash rates until V4.1-Pro launches. The pricing page retains the V4-Pro-0813 version label; this announcement establishes runtime routing and billing scope, not a new V4.1-Pro release date or model row.",
+      "source_id": "deepseek-v41-release-announcement-2026-10-15"
+    }
+  ],
+  "scores": []
+}
