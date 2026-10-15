@@ -913,6 +913,7 @@ def run_tool(tool, *args):
 
 
 def test_legacy_commands_are_byte_identical_to_the_baseline(world, tmp_path):
+    """Legacy fields remain equal; new receipts also describe evaluated choices."""
     base = baseline_tree(tmp_path)
     old_tool = base / 'tools/model-policy-ops/model-policy-ops'
     pack = base / 'data/model-choice-policy/operating-points.json'
@@ -925,13 +926,15 @@ def test_legacy_commands_are_byte_identical_to_the_baseline(world, tmp_path):
         for extra in ([], ['--account-hint', 'claude-work', '--quota-provider', 'claude', '--quota-source', 'work'], ['--override', 'effort=high', '--reason', 'r']):
             old = run_tool(old_tool, 'resolve', op, *common, *extra, '--receipts', receipts_old, '--decision-id', 'same')
             new = run_tool(TOOL, 'resolve', op, *common, *extra, '--receipts', receipts_new, '--decision-id', 'same')
-            strip = lambda r: (r[0], {k: v for k, v in json.loads(r[1] or '{}').items() if k not in ('recorded_at', 'policy_path', 'effective_policy_sha256')}, r[2])
+            assert 'choice' not in json.loads(old[1])
+            assert json.loads(new[1])['choice']['reason']['code'] == 'explicit_resolution'
+            strip = lambda r: (r[0], {k: v for k, v in json.loads(r[1] or '{}').items() if k not in ('recorded_at', 'policy_path', 'effective_policy_sha256', 'choice')}, r[2])
             assert strip(old) == strip(new), (op, extra)
     flags = ['--record', '--parent-model', 'pm', '--parent-provider-instance', 'pp', '--parent-thread', 'pt', '--decision-id', 'rec1', '--purpose', 'review']
     old = run_tool(old_tool, 'resolve', 'review.audit', *common, *flags, '--account-hint', 'codex', '--receipts', receipts_old)
     new = run_tool(TOOL, 'resolve', 'review.audit', *common, *flags, '--account-hint', 'codex', '--receipts', receipts_new)
     assert json.loads(old[1])['request'] == json.loads(new[1])['request'] and old[0] == new[0] == 0
-    stored = lambda path: {k: v for k, v in json.loads(path.read_text().splitlines()[0]).items() if k not in ('recorded_at', 'policy_path', 'effective_policy_sha256')}
+    stored = lambda path: {k: v for k, v in json.loads(path.read_text().splitlines()[0]).items() if k not in ('recorded_at', 'policy_path', 'effective_policy_sha256', 'choice')}
     assert stored(receipts_old) == stored(receipts_new)
     close = ['--close-id', 'c1', '--outcome', 'accepted', '--judged-by', 'parent', '--check', 'none']
     a = run_tool(old_tool, 'close', 'rec1', '--receipts', receipts_old, *close)
@@ -1209,7 +1212,12 @@ def test_f11_directives_equal_to_receipts_names_the_directives_flag(world):
 
 def test_f11_trace_keeps_one_quota_view_per_account_not_one_per_row(world):
     out = world.route('review.audit', record='size')
-    assert world.receipts.stat().st_size < 18000, 'was 18556 bytes with the full quota view in every row'
+    # Keep the original payload budget: choice is a separate additive extension,
+    # and must point at trace rows rather than copy their quota snapshots.
+    original = {k: v for k, v in out.items() if k != 'choice'}
+    assert len(json.dumps(original, sort_keys=True, separators=(',', ':')).encode()) + 1 < 18000
+    for item in out['choice']['considered']:
+        assert 'quota' not in item and item['reason']['source'].startswith('#/')
     for row in out['routing']['trace']:
         assert set(row['quota']) == {'pace', 'pace_reason', 'exhausted', 'projected_pct', 'ref'}
         assert row['quota']['ref'] in out['routing']['quota']
