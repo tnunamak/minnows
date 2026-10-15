@@ -72,6 +72,22 @@ def launch_facts(args):
     return {'schema_version': 1, **facts} if facts else None
 
 
+def op_proof_assessment(op_id, proof_class):
+    """Describe only the declared op/proof relationship, without I/O or judging adequacy."""
+    if not isinstance(op_id, str) or not op_id.startswith('implement.'):
+        state = 'not_applicable'
+    elif proof_class is None:
+        state = 'missing_proof'
+    elif op_id == 'implement.standard' and proof_class == 'oracle':
+        state = 'standard_oracle_review_required'
+    elif op_id == 'implement.oracle-bounded' and proof_class != 'oracle':
+        state = 'oracle_bounded_requires_oracle'
+    else:
+        state = 'declared_consistent'
+    return {'state': state, 'op': op_id, 'proof_class': proof_class,
+            'meaning': 'declared op/proof relationship only; not proof adequacy, wrongdoing or acceptance'}
+
+
 def absolute(path, name):
     if not isinstance(path, str) or not os.path.isabs(path) or '\0' in path:
         raise ValueError(f'{name} must be an absolute path')
@@ -642,6 +658,12 @@ def write_close(args, receipt):
         if task_result is not None:
             record['task_result'] = task_result
         record['evidence_summary'] = evidence_summary(record['evidence'], check, outcome)
+        # Optional top-level metadata only: old readers compare evidence entries on replay.
+        # Use the receipt, never current flags/pack, and do not retrofit a replayed close.
+        assessment = op_proof_assessment((receipt.get('request') or {}).get('op'),
+                                         (receipt.get('launch_facts') or {}).get('proof_class'))
+        if assessment['state'] != 'not_applicable':
+            record['op_proof_assessment'] = assessment
         append_row(stream, record)
     return record
 

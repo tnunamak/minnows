@@ -59,7 +59,7 @@ def record_flags(decision_id):
 def test_brief_is_one_line_and_preserves_exact_target(world, command):
     import json
 
-    extra = [] if command == "route" else ["--account-hint", "claude-work"]
+    extra = ["--proof-class", "judged"] if command == "route" else ["--account-hint", "claude-work"]
     argv = [command, "implement.quota-tight", *world.args(),
             "--decision-id", "compact", *extra]
     full_run, full = world.cli(*argv)
@@ -87,7 +87,7 @@ def test_brief_is_one_line_and_preserves_exact_target(world, command):
 def test_brief_keeps_ledger_bytes_and_full_replay_unchanged(world, command):
     import json
 
-    extra = [] if command == "route" else ["--account-hint", "claude-work"]
+    extra = ["--proof-class", "judged"] if command == "route" else ["--account-hint", "claude-work"]
     argv = [command, "implement.quota-tight", *world.args(), *record_flags("stored"), *extra]
     result, brief = world.cli(*argv, "--brief")
     assert result.returncode == 0, result.stderr
@@ -122,7 +122,7 @@ def test_brief_relative_receipt_locator_survives_cwd_change(world, tmp_path, com
     caller = tmp_path / "caller"
     caller.mkdir()
     world.write()
-    extra = [] if command == "route" else ["--account-hint", "claude-work"]
+    extra = ["--proof-class", "judged"] if command == "route" else ["--account-hint", "claude-work"]
     argv = [str(TOOL), command, "implement.quota-tight", *world.args(),
             "--receipts", "state/decisions.jsonl", *record_flags("relative-locator"),
             *extra, "--brief"]
@@ -161,7 +161,7 @@ def test_brief_keeps_all_routed_and_final_judgment_reasons(world):
 
 def test_brief_no_eligible_pair_stays_unlaunchable(world):
     world.accounts["accounts"] = {}
-    result, brief = world.cli("route", "implement.quota-tight", *world.args(), "--brief")
+    result, brief = world.cli("route", "implement.quota-tight", "--proof-class", "judged", *world.args(), "--brief")
     assert result.returncode == 0, result.stderr
     assert brief["target"] is None and brief["launch_ready"] is False
     assert brief["dispatch"] is None
@@ -175,7 +175,7 @@ def test_brief_simulation_never_dispatches_or_claims_a_stored_simulation(world, 
 
     real = world.route("implement.quota-tight", record="simulation" if recorded else None)
     before = world.receipts.read_bytes() if recorded else None
-    result, brief = world.cli("route", "implement.quota-tight", *world.args(),
+    result, brief = world.cli("route", "implement.quota-tight", "--proof-class", "judged", *world.args(),
                               "--decision-id", "simulation", "--now", NOW, "--brief", raw=True)
     assert result.returncode == 0, result.stderr
     assert brief["target"] is None and brief["launch_ready"] is False
@@ -192,7 +192,7 @@ def test_brief_simulation_never_dispatches_or_claims_a_stored_simulation(world, 
     ["--now", "2026-10-10T00:30:00Z", *record_flags("invalid")],
 ])
 def test_brief_preserves_failures_and_exit_status(world, extra):
-    argv = ["route", "implement.quota-tight", *world.args(), *extra]
+    argv = ["route", "implement.quota-tight", "--proof-class", "judged", *world.args(), *extra]
     full, _ = world.cli(*argv, raw=True)
     brief, _ = world.cli(*argv, "--brief", raw=True)
     assert full.returncode == brief.returncode == 1
@@ -213,7 +213,7 @@ def test_brief_rejects_non_decision_commands(argv):
 
 
 def test_brief_and_json_are_explicitly_mutually_exclusive():
-    result = subprocess.run([str(TOOL), "route", "implement.standard", "--brief", "--json"],
+    result = subprocess.run([str(TOOL), "route", "implement.standard", "--proof-class", "judged", "--brief", "--json"],
                             cwd=REPO, text=True, capture_output=True)
     assert result.returncode == 2 and "--brief and --json are mutually exclusive" in result.stderr
 
@@ -296,7 +296,7 @@ def test_brief_real_destination_relaunch_preserves_root_dispatch(world):
     extra = ["--destinations", config, "--purpose", "research", "--inputs", "github"]
     root = world.route("implement.quota-tight", *extra, record="dot-root-original")
     assert root["destination"] == "dot" and root["launch_ready"] is True
-    argv = ["route", "implement.quota-tight", *world.args(), *extra,
+    argv = ["route", "implement.quota-tight", "--proof-class", "judged", *world.args(), *extra,
             *record_flags("dot-child-relaunch"), "--relaunch-of", "dot-root-original",
             "--why", "infra", "--reason", "fixture relaunch"]
     result, brief = world.cli(*argv, "--brief")
