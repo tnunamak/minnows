@@ -278,7 +278,7 @@ def main() -> int:
     parser.add_argument("--policy", type=Path, default=None)
     parser.add_argument("--user-policy", type=Path, default=None, help="per-user routing overlay; default ~/.config/model-policy/user-policy.json (a missing default means none; a missing named file is an error)")
     parser.add_argument("--no-user-policy", action="store_true", help="ignore the per-user overlay")
-    parser.add_argument("command", nargs="?", choices=("check", "list", "show", "resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe"))
+    parser.add_argument("command", nargs="?", choices=("check", "list", "show", "resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe", "report"))
     parser.add_argument("op", nargs="?")
     parser.add_argument("--brief", action="store_true", help="compact one-line JSON for route/resolve; full receipts are unchanged")
     sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
@@ -316,7 +316,7 @@ def main() -> int:
         return merged
     if args.target and args.command != "directive":
         parser.error(f"unrecognized arguments: {args.target}")
-    if args.command in ("resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe"):
+    if args.command in ("resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe", "report"):
         try:
             needs_policy = args.command in ("resolve", "route", "calibrate") or (args.command == "directive" and args.op in ("add", "list"))
             policy = load_policy(args.policy) if needs_policy else {}

@@ -20,6 +20,7 @@ import destinations
 import observations as observation_store
 import observation_notes
 import observe
+import cost_report
 from delegation_audit import read_db, read_export, audit, normalize_since
 
 
@@ -73,6 +74,7 @@ def add_arguments(parser):
     parser.add_argument('--json', action='store_true', help='resolve/audit always emit JSON')
     parser.add_argument('--db', type=Path)
     parser.add_argument('--export', type=Path)
+    parser.add_argument('--report-dir', type=Path, help='report: new private output directory, outside source directories')
     parser.add_argument('--since')
     parser.add_argument('--thread')
     parser.add_argument('target', nargs='?', help='directive end: the directive ID')
@@ -186,6 +188,15 @@ def execute_locked(args, policy, stack):
         raise ValueError('--task-link and --choice apply only to resolve or route')
     if getattr(args, 'task_result', None) is not None and args.command != 'close':
         raise ValueError('--task-result applies only to close')
+    if args.command == 'report':
+        # Independent read-only path: no router, observe execution, or state writes.
+        if args.outcomes is None:
+            args.outcomes = args.receipts.with_name('outcomes.jsonl')
+        if args.observations is None:
+            args.observations = args.receipts.with_name('observations.jsonl')
+        return cost_report.execute(args)
+    if getattr(args, 'report_dir', None) is not None:
+        raise ValueError('--report-dir applies to report only')
     if args.now is not None and not args.now.strip():
         raise ValueError('--now must not be empty')
     if args.directives is None:
