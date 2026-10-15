@@ -24,6 +24,8 @@ from typing import Any
 
 REPO = Path(__file__).resolve().parents[1]
 DATA = REPO / "data"
+sys.path.insert(0, str(REPO / "tools" / "model-policy-ops" / "lib"))
+from experimental_routes import check_experimental_free_routes
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 TAG_RE = re.compile(r"^data-[a-z][a-z0-9-]*-v\d+\.\d+\.\d+$")
 PACK_NAME_RE = re.compile(r"^[a-z][a-z0-9-]*$")
@@ -1181,55 +1183,8 @@ def validate_policy_pack(pack_dir: Path, errors: Errors) -> None:
     if not isinstance(data, dict):
         return
 
-    experimental_routes = data.get("experimental_free_routes")
-    if experimental_routes is not None:
-        if not isinstance(experimental_routes, list):
-            errors.add(p, "experimental_free_routes must be an array")
-        else:
-            seen_routes: set[tuple[str, str, str]] = set()
-            for i, route in enumerate(experimental_routes):
-                route_path = f"{p}#experimental_free_routes[{i}]"
-                if not isinstance(route, dict):
-                    errors.add(route_path, "must be an object")
-                    continue
-                key = (route.get("provider"), route.get("model"), route.get("account"))
-                if any(not isinstance(value, str) or not value for value in key):
-                    errors.add(route_path, "provider, model, and account must be non-empty strings")
-                    continue
-                if key in seen_routes:
-                    errors.add(route_path, "duplicate provider/model/account tuple")
-                seen_routes.add(key)
-                cost = route.get("cost_usd")
-                if (route.get("status") != "temporary_free_as_of_2026-10-15"
-                        or type(cost) not in (int, float) or cost != 0):
-                    errors.add(route_path, "temporary free routes need the dated status and cost_usd 0")
-                auth = route.get("authentication")
-                if (not isinstance(auth, dict) or auth.get("state") != "none_observed_owner_smoke"
-                        or auth.get("official_docs") != "inconclusive"):
-                    errors.add(route_path, "authentication must preserve the observed smoke and inconclusive-docs states")
-                if route.get("rate_limits") != "unknown":
-                    errors.add(route_path, "numeric rate limits must remain unknown until sourced")
-                if route.get("effort_option") != "variant" or route.get("effort_values_source") != "live_t3_catalog":
-                    errors.add(route_path, "effort must use the live T3 option key")
-                privacy = route.get("data_policy")
-                if (not isinstance(privacy, dict) or privacy.get("classification_required") != "public"
-                        or privacy.get("sensitive_flag_forces_refusal") is not True
-                        or not isinstance(privacy.get("provider_zero_retention"), str)
-                        or not isinstance(privacy.get("opencode_unpaid_processing"), str)):
-                    errors.add(route_path, "data_policy must require public inputs and record both processing layers")
-                prohibited = privacy.get("prohibited_inputs") if isinstance(privacy, dict) else None
-                required_prohibited = {"private_repositories", "PDPP_data", "secrets", "Jev_text", "personal_data"}
-                if not isinstance(prohibited, list) or not required_prohibited.issubset(prohibited):
-                    errors.add(route_path, "data_policy.prohibited_inputs must include private repos, PDPP, secrets, Jev text, and personal data")
-                evidence = route.get("evidence")
-                if not isinstance(evidence, list) or not evidence:
-                    errors.add(route_path, "evidence must be a non-empty array")
-                else:
-                    for j, item in enumerate(evidence):
-                        if (not isinstance(item, dict) or not isinstance(item.get("url"), str)
-                                or not item["url"].startswith("https://") or item.get("accessed") != "2026-10-15"
-                                or not isinstance(item.get("supports"), list) or not item["supports"]):
-                            errors.add(f"{route_path}.evidence[{j}]", "needs an HTTPS source, access date, and supported claims")
+    for message in check_experimental_free_routes(data.get("experimental_free_routes")):
+        errors.add(p, message)
 
     require_keys(
         data,

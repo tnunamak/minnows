@@ -12,6 +12,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 PACK = REPO / "data" / "model-choice-policy"
 OPERATING_POINTS = PACK / "operating-points.json"
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+from experimental_routes import check_experimental_free_routes
 
 
 def select_policy(explicit_path):
@@ -116,34 +118,6 @@ def check_routing(routing) -> list[str]:
     if "lineage_key" in routing and not (isinstance(lineage, dict) and lineage and all(
             isinstance(k, str) and k and v in LINEAGE_FIELDS for k, v in lineage.items())):
         errors.append(f"routing.lineage_key must map each provider to one of {', '.join(LINEAGE_FIELDS)}")
-    return errors
-
-
-def check_experimental_free_routes(experimental_routes) -> list[str]:
-    errors = []
-    if experimental_routes is None:
-        return errors
-    if not isinstance(experimental_routes, list):
-        return ["experimental_free_routes must be a list"]
-    else:
-        seen = set()
-        for index, route in enumerate(experimental_routes):
-            label = f"experimental_free_routes[{index}]"
-            if not isinstance(route, dict):
-                errors.append(f"{label} must be an object")
-                continue
-            identity = (route.get("provider"), route.get("model"), route.get("account"))
-            if any(not isinstance(value, str) or not value for value in identity):
-                errors.append(f"{label} needs exact provider, model and account strings")
-                continue
-            if identity in seen:
-                errors.append(f"{label} duplicates a provider/model/account tuple")
-            seen.add(identity)
-            privacy = route.get("data_policy")
-            if (route.get("cost_usd") != 0 or route.get("rate_limits") != "unknown"
-                    or not isinstance(privacy, dict) or privacy.get("classification_required") != "public"
-                    or privacy.get("sensitive_flag_forces_refusal") is not True):
-                errors.append(f"{label} must remain zero-cost, rate-limit unknown, and public-input-only")
     return errors
 
 
@@ -312,7 +286,6 @@ def main() -> int:
     parser.add_argument("command", nargs="?", choices=("check", "list", "show", "resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe", "report"))
     parser.add_argument("op", nargs="?")
     parser.add_argument("--brief", action="store_true", help="compact one-line JSON for route/resolve; full receipts are unchanged")
-    sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
     from policy_decisions import add_arguments, execute
     import user_policy
     from runtime_sources import digest

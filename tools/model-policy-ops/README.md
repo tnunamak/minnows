@@ -321,7 +321,22 @@ route. `--inputs github` does not classify its contents. The exact route below i
 bound to OpenCode's `opencode` provider and account plus
 `opencode/deepseek-v4.1-flash-free`; other OpenCode models and provider/account
 aliases do not inherit its zero-cost metadata. The effort option key is read from
-the live T3 catalog, so `variant=high` stays `variant=high` in the target.
+the live T3 catalog and remains `variant`; an authorized public experimental
+request can emit its T3 target.
+`public` is the caller's assertion, not content scanning or attestation. Missing
+or invalid expiry evidence, and evidence at or beyond its local UTC recheck
+deadline, refuses dispatch. The seven-day deadline is local policy and does not
+claim a vendor end date. Undeclared OpenCode models with a `variant` option are
+refused; this metadata does not make paid or other free OpenCode models
+launchable.
+The route also records `qualified_operations: []` and the owner's
+public-only experimental T3 authorization from 2026-10-15. Shared OpenCode
+server host tools and injected `t3_thread_read` private-thread access remain
+known risks accepted for this evaluation scope. The authorization does not
+qualify an ordinary operation, permit sensitive or unknown inputs, or enable
+undeclared OpenCode models. Per-instance custom binary and MCP isolation checks
+remain future hardening. The router does not change shared T3 or provider
+settings.
 
 ```bash
 ./tools/model-policy-ops/model-policy-ops route fanout.explore \

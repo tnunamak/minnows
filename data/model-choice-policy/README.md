@@ -10,14 +10,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.2.4](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.4) — published by CI on push to main |
+| **This version** | [data-model-choice-policy-v0.2.5](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.5) — published by CI on push to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.2.4
+TAG=data-model-choice-policy-v0.2.5
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -34,13 +34,27 @@ curl -fsSL -L \
 
 ## Experimental free routes
 
-The OpenCode DeepSeek V4.1 Flash Free route is not an operating-point candidate
-and has no earned operations. Use it only with `--experimental-route`, explicit
+The OpenCode DeepSeek V4.1 Flash Free route is experimental, not an
+operating-point candidate, and has no qualified production operations. The
+owner authorized public-only experimental T3 use on 2026-10-15. Use it only
+with `--experimental-route`, exact
 provider/model/effort/account overrides, a reason, and
-`--data-classification public`, under `fanout.explore` or `resolve --no-op`.
-`--sensitive` refuses the route. A GitHub input
-location alone does not establish that its contents are public. The route stays
-bound to the exact `opencode` provider, model, and account in this pack.
+`--data-classification public`, under `fanout.explore` or `resolve --no-op` to
+produce its dispatch target for public evaluation tasks.
+`--sensitive` refuses the route. `public` is the caller's classification
+assertion; the router does not scan or attest to the content. A GitHub input
+location alone does not establish that its contents are public. Public code
+stored locally can still be classified public by its caller. The route stays
+bound to the exact `opencode` provider, model, and account in this pack. The
+route's $0 status expires at its local verification deadline, which is a
+seven-day recheck horizon rather than a vendor end date. Missing, malformed,
+or expired evidence refuses dispatch.
+
+The shared OpenCode server exposes host tools, and injected `t3_thread_read`
+can access private thread content. The owner accepts these risks for the
+public-only experimental evaluation scope. Per-instance custom binary and MCP
+isolation checks remain future hardening; no shared T3 or provider settings
+change here.
 
 ## Read operating points
 
@@ -88,6 +102,11 @@ not silently route by model name.
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.2.5 — 2026-10-15
+
+- Refuse undeclared OpenCode `variant` models and require fresh source evidence for the exact temporary $0 route. Record the owner's public-only experimental T3 authorization and keep qualified operations empty. The seven-day expiry is a local recheck horizon, not a vendor end date.
+- Validate experimental route dates, evidence, authentication, rate-limit shape, expiry, and privacy floor through one shared contract. Document that `public` is a caller assertion.
 
 ### v0.2.4 — 2026-10-15
 

@@ -30,8 +30,17 @@ auth and rate-limit state, a data classification requirement, and prohibited
 input classes. The validator checks this shape and the router recognizes the
 entry only with `--experimental-route`, exact provider/model/account/effort
 overrides, a reason, and `--data-classification public` under `fanout.explore`
-or `resolve --no-op`. `--sensitive` always
-refuses it. `--inputs github` is not a public-data declaration.
+or `resolve --no-op`. The owner authorized only this public experimental T3
+scope on 2026-10-15, and matching requests can return a dispatchable target.
+`qualified_operations` is empty. `public` is a
+caller assertion, not content scanning or
+attestation. `--sensitive` always refuses it, and `--inputs github` is not a
+public-data declaration. `expires_at_utc` is a local policy recheck deadline,
+not a vendor end date; missing, invalid, or elapsed expiry evidence refuses
+dispatch. The route validator checks durable evidence shape and keeps the
+prohibited-input list fixed. The policy records shared OpenCode server host
+tools and injected `t3_thread_read` private-thread access as known risks;
+per-instance custom binary and MCP isolation are future hardening.
 
 ## `op-requirements.json` (DRAFT — owner review pending)
 
