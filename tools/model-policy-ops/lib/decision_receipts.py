@@ -187,12 +187,16 @@ def capture_choice(receipt, caller=None):
         for index, row in enumerate(destination.get('considered', [])):
             add('destination', 'selected' if row['state'] == 'chosen' else 'not_selected',
                 row['state'], f'#/routing/destination/considered/{index}', candidate=row['name'])
+        for index, row in enumerate(destination.get('not_eligible', [])):
+            add('destination', 'not_selected', row['reason'], f'#/routing/destination/not_eligible/{index}', candidate=row['name'])
         reason = {'code': 'routing_evaluation', 'source': '#/routing'}
     else:
         add('dispatch_arm', 'selected' if receipt['selection'].get('target') is not None else 'unresolved',
             receipt['selection']['state'], '#/selection')
         for index, entry in enumerate(receipt.get('alternatives', [])):
             add('dispatch_arm', 'alternative', entry['selection']['state'], f'#/alternatives/{index}/selection')
+        for index, row in enumerate((receipt.get('destination_skip') or {}).get('destinations', [])):
+            add('destination', 'not_selected', 'explicit_resolution', f'#/destination_skip/destinations/{index}', candidate=row['name'])
         reason = {'code': 'explicit_resolution', 'source': '#/selection'}
     value = {'v': 1, 'reason': reason, 'considered': considered}
     if caller is not None:

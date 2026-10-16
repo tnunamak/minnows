@@ -950,9 +950,8 @@ or model, which a destination cannot show), the destination can still be chosen,
 reason `destination_independence_unknown` is added.
 
 With `--now` (simulation) no probe runs. The destination state is `not_probed_in_simulation`
-and the output is today's simulation. A purpose that no destination lists is unchanged,
-except that `routing.destination` is `{chosen: "model", considered: []}` when a
-destinations file exists. `--override` does not suppress the destination; add
+and the output is today's simulation. A purpose that no destination lists is routed as before; `routing.destination` is
+`{chosen: "model", considered: [], not_eligible: [...]}`, which names each destination and why. `--override` does not suppress the destination; add
 `--skip-destination` as well to dispatch the override.
 
 When an ordinary destination is chosen, the output is a valid receipt with `target: null`,
@@ -1005,6 +1004,14 @@ failure, because a relaunch follows a child that did not deliver. When a destina
 `declined_by_chain`, with `chain_failures`), and when none is left, `fallback` =
 `{destination, reasons: ["chain_failures"], source: "chain", chain_failures}` and `route`
 picks a model. Routes to a model in the chain do not count.
+
+**Every receipt says why a destination was not used (revision 26).** `routing.destination.not_eligible` lists each
+destination whose `purposes` exclude the request: `{name, reason: purpose_not_listed|purpose_unknown, purpose}`. It is
+present even when another destination is chosen. When no config was read, `routing.destination` is
+`{chosen: "model", considered: [], not_considered: "destinations_missing"}`. `resolve` never consults a destination; its
+receipt has `destination_skip` `{reason: "explicit_resolution", destinations: [{name, listed_for_purpose}]}` when a config
+exists (`destinations_state: "unreadable"` for a bad file, which never blocks resolve). `choice.considered` repeats each
+of these as a `destination` row with the reason code.
 
 Judgment when a destination is chosen. The model-pair reasons (pace, unvalidated candidate,
 quota, auth_config, model independence, model freshness) stay in `judgment_reasons`, tagged
@@ -1502,6 +1509,11 @@ Top-level keys: `schema_version`, `scope`, `coverage`, `counts`, `effort_explici
   chosen destination is not `model`. Those receipts never appear in `unmatched_receipts`.
 - `spend_first`: `eligible` (route receipts whose purpose a destination listed at record time), `offered`
   (destination chosen), `fallback` (`facts`, `parent`, `capacity`, each `{REASON: count}`) and `meaning`.
+- `spend_first_daily`: one row per UTC day of `recorded_at`: `receipts`, `eligible`, `offered`,
+  `offered_share_of_eligible`, `fallback` (`{"SOURCE:REASON": n}`), `not_eligible`
+  (`{"REASON:PURPOSE:OP": n}`, for example `purpose_not_listed:execution:review.audit`), `resolve_explicit`
+  (resolve receipts for a purpose a destination lists), `not_considered` (`{"destinations_STATE": n}`) and
+  `unrecorded` (receipts that kept no reason; only receipts written before revision 26). Each receipt counts in one class.
 - `outcomes` (descriptive only, over distinct decisions):
   - `unit`, `descriptive_only`, `causal_claims`, `confounding`, `closes_are_claims`:
     fixed statements.

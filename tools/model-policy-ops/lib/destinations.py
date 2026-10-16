@@ -96,6 +96,17 @@ def validate_target(entry, where):
             raise ValueError(f'{where}.request_id_pattern must be a regular expression') from None
 
 
+def not_considered(state):
+    """`routing.destination` when no destination config was read: the state says why none was considered."""
+    return {'chosen': 'model', 'considered': [], 'not_considered': f'destinations_{state}'}
+
+
+def resolve_skip(entries, purpose):
+    """Why a `resolve` receipt names no destination: resolve is an explicit choice and never consults one."""
+    return {'reason': 'explicit_resolution',
+            'destinations': [{'name': e['name'], 'listed_for_purpose': purpose in e['purposes']} for e in entries]}
+
+
 def catalog_target(available, target):
     """True when the live catalog lists the target's instance, driver (when given) and model, and both can run a child task now (the rule model arms use)."""
     for row in providers(available):
@@ -263,6 +274,11 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
     """
     listed = [e for e in entries if purpose in e['purposes']]
     block = {'chosen': 'model', 'considered': []}
+    # Every destination the purpose excludes is named with the reason, so no receipt skips one silently.
+    unlisted = [{'name': e['name'], 'reason': 'purpose_unknown' if purpose is None else 'purpose_not_listed', 'purpose': purpose}
+                for e in entries if purpose not in e['purposes']]
+    if unlisted:
+        block['not_eligible'] = unlisted
     if not listed:
         return block, None
     first = listed[0]['name']

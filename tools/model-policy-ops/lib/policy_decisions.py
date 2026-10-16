@@ -331,7 +331,14 @@ def execute_locked(args, policy, stack):
         raise ValueError('--skip-destination applies to route only')
     if skip and not (args.reason and args.reason.strip()):
         raise ValueError('--skip-destination requires --reason')
-    dest_entries, dest_meta = destinations.read_destinations(args.destinations) if route else ([], {'state': 'missing', 'sha256': None})
+    if route:
+        dest_entries, dest_meta = destinations.read_destinations(args.destinations)
+    else:
+        # resolve never consults a destination; it reads the config only to name what it did not consider.
+        try:
+            dest_entries, dest_meta = destinations.read_destinations(args.destinations)
+        except ValueError:
+            dest_entries, dest_meta = [], {'state': 'unreadable', 'sha256': None}
     facts = outcomes.launch_facts(args)
     decision_id = args.decision_id or str(uuid.uuid4())
     validate_id(decision_id)
@@ -460,6 +467,11 @@ def execute_locked(args, policy, stack):
         routing_block['destination'], offer = destinations.decide(
             dest_entries, purpose=args.purpose, facts=facts, skip=skip, reason=args.reason, request_id=decision_id, simulate=simulation,
             independence=independence, lineage=lambda name: destinations.chain(receipt_rows, args.relaunch_of, name))
+    elif routing_block:
+        routing_block['destination'] = destinations.not_considered(dest_meta['state'])
+    if not route and dest_meta['state'] != 'missing':
+        return_value['destination_skip'] = (destinations.resolve_skip(dest_entries, args.purpose) if dest_meta['state'] == 'loaded'
+                                            else {'reason': 'explicit_resolution', 'destinations_state': dest_meta['state']})
     if routing_block:
         # Descriptive only: added once the destination is decided, so no ranking, target or judgment can depend on it.
         rows, state, _ = observation_store.read_observations(args.observations)

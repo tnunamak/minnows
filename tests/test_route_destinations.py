@@ -236,17 +236,50 @@ def test_only_destinations_that_list_the_purpose_are_considered(world, tmp_path)
 
 # ---- unchanged paths -------------------------------------------------------------------------------------------------
 
-def test_unlisted_purpose_and_unknown_purpose_stay_on_the_model(one, tmp_path):
-    for flags in (['--purpose', 'execution'], []):
+def test_unlisted_purpose_and_unknown_purpose_stay_on_the_model_and_say_why(one, tmp_path):
+    for flags, reason, purpose in ((['--purpose', 'execution'], 'purpose_not_listed', 'execution'), ([], 'purpose_unknown', None)):
         out = route(one, one.cfg, *flags)
-        assert dest(out) == {'chosen': 'model', 'considered': []} and out['launch_ready'] is True and 'destination' not in out
+        assert dest(out) == {'chosen': 'model', 'considered': [],
+                             'not_eligible': [{'name': 'worker', 'reason': reason, 'purpose': purpose}]}
+        assert out['launch_ready'] is True and 'destination' not in out
+        rows = [c for c in out['choice']['considered'] if c['kind'] == 'destination']
+        assert [(c['candidate'], c['disposition'], c['reason']['code']) for c in rows] == [('worker', 'not_selected', reason)]
     assert not ran(tmp_path, 'cap')
 
 
-def test_missing_config_changes_nothing(world, tmp_path):
+def test_a_destination_without_the_purpose_is_named_even_when_another_is_chosen(world, tmp_path):
+    cfg = config(tmp_path, entry(capacity(tmp_path, 'a'), name='review-only', purposes=['review']),
+                 entry(capacity(tmp_path, 'b'), name='research-only', purposes=['research']))
+    out = route(world, cfg, '--purpose', 'research', '--inputs', 'github')
+    assert out['destination'] == 'research-only'
+    assert dest(out)['not_eligible'] == [{'name': 'review-only', 'reason': 'purpose_not_listed', 'purpose': 'research'}]
+
+
+def test_missing_config_changes_only_the_recorded_reason(world, tmp_path):
     plain = world.route(OP, '--purpose', 'review')
     missing = route(world, tmp_path / 'absent.json', '--purpose', 'review')
-    assert stable(missing) == stable(plain) and 'destination' not in plain['routing'] and 'skip_destination' not in plain['request']
+    assert stable(missing) == stable(plain) and 'skip_destination' not in plain['request']
+    assert plain['routing']['destination'] == {'chosen': 'model', 'considered': [], 'not_considered': 'destinations_missing'}
+    assert plain['launch_ready'] is True and 'destination' not in plain
+
+
+def test_resolve_names_the_destinations_it_did_not_consider(one, tmp_path):
+    result, out = one.cli('resolve', OP, *one.args(), '--destinations', one.cfg, '--purpose', 'review', '--decision-id', 'res-1')
+    assert result.returncode == 0, result.stderr
+    assert out['destination_skip'] == {'reason': 'explicit_resolution', 'destinations': [{'name': 'worker', 'listed_for_purpose': True}]}
+    rows = [c for c in out['choice']['considered'] if c['kind'] == 'destination']
+    assert [(c['candidate'], c['reason']['code']) for c in rows] == [('worker', 'explicit_resolution')]
+    assert not ran(tmp_path, 'cap'), 'resolve never probes a destination'
+
+
+def test_resolve_without_a_config_and_with_a_bad_one(world, tmp_path):
+    result, out = world.cli('resolve', OP, *world.args(), '--destinations', tmp_path / 'absent.json', '--decision-id', 'res-2')
+    assert result.returncode == 0 and 'destination_skip' not in out
+    bad = tmp_path / 'bad.json'
+    bad.write_text('{')
+    result, out = world.cli('resolve', OP, *world.args(), '--destinations', bad, '--decision-id', 'res-3')
+    assert result.returncode == 0, 'a bad destinations file never blocks resolve'
+    assert out['destination_skip'] == {'reason': 'explicit_resolution', 'destinations_state': 'unreadable'}
 
 
 @pytest.mark.parametrize('text,message', [
@@ -614,3 +647,29 @@ def test_all_unknown_maker_runs_need_the_destination_judgment(world, tmp_path):
 def test_independence_level_source_is_reported(world):
     assert world.route(OP)['routing']['independence']['required_source'] == 'pack'
     assert world.route(OP, '--independence', 'model')['routing']['independence']['required_source'] == 'flag'
+
+
+def test_spend_first_daily_puts_each_receipt_in_one_class():
+    sys.path.insert(0, str(REPO / 'tools/model-policy-ops/lib'))
+    import delegation_audit
+
+    def routed(day, block, op='review.audit'):
+        return {'recorded_at': f'{day}T01:00:00+00:00', 'request': {'route': True, 'op': op}, 'routing': {'destination': block}}
+
+    rows = [
+        routed('2026-10-15', {'chosen': 'dot', 'considered': [{'name': 'dot', 'state': 'chosen'}]}),
+        routed('2026-10-15', {'chosen': 'model', 'considered': [{'name': 'dot', 'state': 'declined_by_facts'}],
+                              'fallback': {'destination': 'dot', 'reasons': ['local-inputs'], 'source': 'facts'}}),
+        routed('2026-10-15', {'chosen': 'model', 'considered': [],
+                              'not_eligible': [{'name': 'dot', 'reason': 'purpose_not_listed', 'purpose': 'execution'}]}),
+        routed('2026-10-15', {'chosen': 'model', 'considered': [], 'not_considered': 'destinations_missing'}),
+        routed('2026-10-15', {'chosen': 'model', 'considered': []}),
+        {'recorded_at': '2026-10-15T02:00:00+00:00', 'request': {'route': False, 'op': 'review.audit'},
+         'destination_skip': {'reason': 'explicit_resolution', 'destinations': [{'name': 'dot', 'listed_for_purpose': True}]}},
+        {'recorded_at': '2026-10-16T02:00:00+00:00', 'request': {'route': False, 'op': 'implement.standard'}},
+    ]
+    first, second = delegation_audit.spend_first_daily(rows)
+    assert first == {'day': '2026-10-15', 'receipts': 6, 'eligible': 2, 'offered': 1, 'offered_share_of_eligible': 0.5,
+                     'fallback': {'facts:local-inputs': 1}, 'not_eligible': {'purpose_not_listed:execution:review.audit': 1},
+                     'resolve_explicit': 1, 'not_considered': {'destinations_missing': 1}, 'unrecorded': 1}
+    assert second['receipts'] == 1 and second['unrecorded'] == 1 and second['offered_share_of_eligible'] is None
