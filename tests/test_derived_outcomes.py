@@ -37,9 +37,12 @@ def test_a_relaunch_is_not_a_rejection():
     assert (out['outcome'], out['reason']) == ('unknown', 'relaunched') and out['facts']['relaunched_by'] == ['r']
 
 
-def test_destination_owner_accept_accepts():
-    out = derive('d', [obs('d', 'destination_event', {'event_type': 'consumed'}), obs('d', 'destination_event', {'event_type': 'accepted'})])
+def test_destination_owner_accept_accepts_and_only_an_owner_counts():
+    out = derive('d', [obs('d', 'destination_event', {'event_type': 'consumed'}),
+                       obs('d', 'destination_event', {'event_type': 'accepted', 'actor_kind': 'owner'})])
     assert (out['outcome'], out['rule']) == ('accepted', 'destination_owner_accepted')
+    for actor in ('dot', 'system', 'redacted', None):
+        assert derive('d', [obs('d', 'destination_event', {'event_type': 'accepted', 'actor_kind': actor})])['outcome'] == 'unknown'
 
 
 def test_consumed_is_not_accepted():
@@ -53,6 +56,13 @@ def test_merged_pr_accepts_and_never_claims_after_repair():
     out = derive('d', facts)
     assert (out['outcome'], out['rule'], out['repairs']) == ('accepted', 'pull_request_merged', 'unknown')
     assert out['facts']['followup_messages'] == 3
+
+
+def test_a_shared_thread_or_unreadable_snapshot_never_accepts():
+    shared = derive('d', [obs('d', 't3_child_pull_requests', {'pull_requests': [{'state': 'merged'}], 'shared_with_decisions': 2})])
+    assert (shared['outcome'], shared['reason']) == ('unknown', 'pull_request_thread_shared')
+    unreadable = derive('d', [obs('d', 't3_child_pull_requests', {'state': 'unreadable', 'pull_requests': []})])
+    assert unreadable['reason'] == 'pull_requests_unreadable'
 
 
 def test_closed_unmerged_pr_is_unknown_not_rejected():

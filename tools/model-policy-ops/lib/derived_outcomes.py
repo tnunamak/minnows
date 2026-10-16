@@ -5,11 +5,12 @@ the outcome is `unknown` with the reason. Rules, first match wins:
 
 - `escalated_for_quality`: a later receipt escalates from this decision with `oracle_failed` or `judged_insufficient`
   -> rejected.
-- `destination_owner_accepted`: the destination recorded an owner `accepted` event -> accepted.
-- `pull_request_merged`: a pull request linked to the child thread is merged -> accepted. Repairs stay unknown: a
+- `destination_owner_accepted`: the destination recorded an `accepted` event with actor kind `owner` -> accepted.
+- `pull_request_merged`: in the latest snapshot of the child thread's linked pull requests (by the thread's projection
+  time), one is merged and no other decision ran in that thread -> accepted. Repairs stay unknown: a
   follow-up message to the same child is not a repair round (parents often repair through a new child), so a derived
   outcome is never `accepted_after_repair`.
-- otherwise unknown: `pull_request_closed_unmerged`, `relaunched`, `run_failed`, `run_cancelled`, `run_interrupted`,
+- otherwise unknown: `pull_request_thread_shared`, `pull_requests_unreadable`, `pull_request_closed_unmerged`, `relaunched`, `run_failed`, `run_cancelled`, `run_interrupted`,
   `completed_no_disposition`, `no_child_run` or `no_facts`.
 
 Completion is never acceptance, and a closed unmerged pull request is not a rejection (it may have been superseded).
@@ -59,9 +60,10 @@ def derive_one(decision_id, by, links):
     if followups:
         facts['followup_messages'] = followups['fact'].get('followup_messages')
     prs = latest(by.get((decision_id, 't3_child_pull_requests'), []))
+    pr_fact = (prs or {}).get('fact') or {}
     if prs:
-        facts['pull_requests'] = [p.get('state') for p in prs['fact'].get('pull_requests', [])]
-    facts['destination_accepted'] = any(row['fact'].get('event_type') == 'accepted'
+        facts['pull_requests'] = [p.get('state') for p in pr_fact.get('pull_requests', [])]
+    facts['destination_accepted'] = any(row['fact'].get('event_type') == 'accepted' and row['fact'].get('actor_kind') == 'owner'
                                         for row in by.get((decision_id, 'destination_event'), []))
 
     def result(outcome, rule=None, reason=None):
@@ -72,7 +74,11 @@ def derive_one(decision_id, by, links):
         return result('rejected', 'escalated_for_quality')
     if facts['destination_accepted']:
         return result('accepted', 'destination_owner_accepted')
+    if prs and pr_fact.get('state') == 'unreadable':
+        return result('unknown', reason='pull_requests_unreadable')
     if facts['pull_requests'] and 'merged' in facts['pull_requests']:
+        if (pr_fact.get('shared_with_decisions') or 1) > 1:
+            return result('unknown', reason='pull_request_thread_shared')
         return result('accepted', 'pull_request_merged')
     if facts['pull_requests'] and all(state == 'closed' for state in facts['pull_requests']):
         return result('unknown', reason='pull_request_closed_unmerged')

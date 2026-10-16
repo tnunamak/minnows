@@ -174,7 +174,44 @@ PR_STATES = ('open', 'merged', 'closed', 'draft')
 REPOSITORY = re.compile(r'[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}')
 
 
-def child_thread_facts(db, run_id, decision, ids):
+def pull_request_facts(db, thread, run_id, decision, ids, run_owner):
+    """One snapshot of the pull requests linked to the child thread, timed by the thread's projection update, so a link
+    that is later removed or becomes unreadable replaces the earlier snapshot. `shared_with_decisions` counts the
+    decisions whose delegate calls ran in this thread: thread-wide PRs cannot be attributed when it is above 1."""
+    columns = table_columns(db, 'threads')
+    updated = 'updated_at' if 'updated_at' in columns else 'NULL'
+    # Parsed here, not with json_extract: a malformed payload must not abort the whole T3 source.
+    row = db.execute(f"SELECT payload_json,{updated} FROM {PREFIX}threads WHERE thread_id=?", (thread,)).fetchone()
+    if row is None:
+        return []
+    runs = [r[0] for r in db.execute(f'SELECT run_id FROM {PREFIX}runs WHERE thread_id=?', (thread,))]
+    sharing = len({(run_owner or {}).get(r) for r in runs if (run_owner or {}).get(r)} | {decision})
+    stamps, why = timestamps(thread_updated_at=row[1])
+    fact = {'child_thread_id': thread, 'state': 'listed', 'pull_requests': [], 'dropped': 0, 'shared_with_decisions': sharing}
+    try:
+        payload = json.loads(row[0]) if row[0] else {}
+        linked = payload.get('pullRequests', []) if isinstance(payload, dict) else None
+        linked = [] if linked is None else linked
+    except (TypeError, ValueError):
+        linked = None
+    if not isinstance(linked, list):
+        fact['state'] = 'unreadable'
+        why = why | {'pull_requests': 'unreadable_projection'}
+    else:
+        for entry in linked:
+            entry = entry if isinstance(entry, dict) else {}
+            snap = entry.get('snapshot') if isinstance(entry.get('snapshot'), dict) else {}
+            repo, number = entry.get('repository'), entry.get('number')
+            if not (isinstance(repo, str) and REPOSITORY.fullmatch(repo) and type(number) is int and number > 0):
+                fact['dropped'] += 1
+                continue
+            pr_stamps, _ = timestamps(merged_at=snap.get('mergedAt'), closed_at=snap.get('closedAt'), synced_at=snap.get('syncedAt'))
+            fact['pull_requests'].append({'repository': repo, 'number': number, 'state': enum(snap.get('state'), PR_STATES), **pr_stamps})
+    return [store.make_observation('t3', run_id, decision, 't3_child_pull_requests', fact, source_ids=ids, source_timestamps=stamps,
+                                   unknown=why | ({'state': 'T3 snapshot; may lag GitHub'} if fact['pull_requests'] else {}))]
+
+
+def child_thread_facts(db, run_id, decision, ids, run_owner=None):
     """Follow-up messages and linked pull requests of the child thread that ran `run_id`. Counts and enums only, no text."""
     if not ({'run_id', 'thread_id'} <= table_columns(db, 'runs') and {'thread_id', 'payload_json'} <= table_columns(db, 'threads')
             and {'thread_id', 'type', 'updated_at'} <= table_columns(db, 'turn_items')):
@@ -194,31 +231,7 @@ def child_thread_facts(db, run_id, decision, ids):
         # parents often repair through a new child, and some follow-ups are questions (70 of 127 closes agreed, 2026-10-15).
         {'child_thread_id': thread, 'user_messages': messages, 'followup_messages': max(messages - 1, 0) if messages else None},
         source_ids=ids, source_timestamps=stamps, unknown=unknown | why | ({} if messages else {'followup_messages': 'no_user_messages'})))
-    raw = db.execute(f"SELECT json_extract(payload_json,'$.pullRequests') FROM {PREFIX}threads WHERE thread_id=?", (thread,)).fetchone()
-    try:
-        linked = json.loads(raw[0]) if raw and raw[0] else []
-    except ValueError:
-        linked = None
-    if linked:
-        prs, synced, dropped = [], [], 0
-        for entry in linked if isinstance(linked, list) else []:
-            snap = (entry or {}).get('snapshot') or {}
-            repo, number = (entry or {}).get('repository'), (entry or {}).get('number')
-            if not (isinstance(repo, str) and REPOSITORY.fullmatch(repo) and type(number) is int and number > 0):
-                dropped += 1
-                continue
-            pr_stamps, _ = timestamps(merged_at=snap.get('mergedAt'), closed_at=snap.get('closedAt'))
-            prs.append({'repository': repo, 'number': number, 'state': enum(snap.get('state'), PR_STATES), **pr_stamps})
-            if snap.get('syncedAt'):
-                synced.append(snap['syncedAt'])
-        stamps, why = timestamps(synced_at=max(synced) if synced else None)
-        found.append(store.make_observation(
-            't3', run_id, decision, 't3_child_pull_requests', {'child_thread_id': thread, 'pull_requests': prs, 'dropped': dropped},
-            source_ids=ids, source_timestamps=stamps, unknown=why | ({'state': 'T3 snapshot; may lag GitHub'} if prs else {})))
-    elif linked is None:
-        found.append(store.make_observation('t3', run_id, decision, 't3_child_pull_requests',
-                                            {'child_thread_id': thread, 'pull_requests': [], 'dropped': 0},
-                                            source_ids=ids, unknown={'pull_requests': 'unreadable_projection'}))
+    found += pull_request_facts(db, thread, run_id, decision, ids, run_owner)
     return found
 
 
@@ -250,6 +263,8 @@ def collect_t3(db_path, scope_ids, targets=None):
         calls, _ = read_db(db_path, None, None)
     except ValueError as error:
         return result('error', short(error))
+    # Every delegate call, not only those in scope, says which decision owns a child run (for shared-thread checks).
+    run_owner = {c['child_run_id']: c['decision_id'] for c in calls if c.get('child_run_id')}
     calls = [c for c in calls if c['decision_id'] in scope_ids]
     targets = targets or {}
     found, runs = [], {}
@@ -316,7 +331,7 @@ def collect_t3(db_path, scope_ids, targets=None):
                     't3', run_id, decision, 't3_terminal_failure',
                     {'turn_item_id': item_id, 'failure_class': classify_failure(message)},
                     source_ids=ids | ids_of(turn_item_id=item_id), source_timestamps=stamps, unknown=unknown))
-            found += child_thread_facts(db, run_id, decision, ids)
+            found += child_thread_facts(db, run_id, decision, ids, run_owner)
             found += usage_observations('t3', run_id, decision, call['observed_child_usage'])
         db.commit()
     except sqlite3.Error as error:

@@ -9,6 +9,7 @@ import json
 import os
 import secrets
 import stat
+import statistics
 import tempfile
 from collections import Counter, defaultdict
 from contextlib import ExitStack
@@ -357,8 +358,9 @@ def arm_summary(rows, units):
         tokens = token_summary(owned)
         per = {name: (tokens[name]['observed_sum'] / accepted if accepted and tokens[name]['observed_sum'] is not None else None)
                for name in ('input_tokens', 'fresh_input_tokens', 'output_tokens') if name in tokens}
-        elapsed = sorted(c['run_timing']['elapsed_seconds'] for r in members for c in r['calls']
-                         if c['run_timing'].get('elapsed_seconds') is not None)
+        # One duration per child run, even when several calls reference it.
+        elapsed = list({(r['decision_id'], c.get('child_run_id')): c['run_timing']['elapsed_seconds'] for r in members for c in r['calls']
+                        if c['run_timing'].get('elapsed_seconds') is not None}.values())
         out.append({'op': key[0], 'destination': key[1], 'model': key[2], 'effort': key[3],
                     'accounts': dict(sorted(Counter((r['receipt_target'] or {}).get('provider_instance_id') or '-' for r in members).items())),
                     'decisions': len(members),
@@ -370,7 +372,7 @@ def arm_summary(rows, units):
                         judged['accepted'] / (judged['accepted'] + judged['accepted_after_repair'])
                         if judged['accepted'] + judged['accepted_after_repair'] else None,
                     'tokens': tokens, 'tokens_per_accepted': per,
-                    'run_elapsed_seconds_p50': elapsed[len(elapsed) // 2] if elapsed else None, 'runs_timed': len(elapsed),
+                    'run_elapsed_seconds_p50': statistics.median(elapsed) if elapsed else None, 'runs_timed': len(elapsed),
                     'total_usd': None, 'usd_per_accepted': None})
     return out
 

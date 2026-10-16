@@ -993,19 +993,27 @@ def test_a_genuinely_absent_repository_is_still_a_skip(setup, repo_world):
     assert source['state'] == 'ok' and source['skipped'] == {'repo_missing': 1} and source['failed'] == {}
 
 
-def child_thread_world(setup, tmp_path, pull_requests, messages=3):
+def child_thread_world(setup, tmp_path, pull_requests, messages=3, raw=None):
     db = t3_world(setup, tmp_path)
     c = sqlite3.connect(db)
     c.execute(f'alter table {PREFIX}runs add column thread_id text')
     c.execute(f"update {PREFIX}runs set thread_id='child-thread' where run_id='child'")
-    c.execute(f'create table {PREFIX}threads (thread_id text, payload_json text)')
-    c.execute(f'insert into {PREFIX}threads values (?,?)', ('child-thread', json.dumps({'pullRequests': pull_requests, 'title': SECRET})))
+    c.execute(f'create table {PREFIX}threads (thread_id text, payload_json text, updated_at text)')
+    payload = raw if raw is not None else json.dumps({'pullRequests': pull_requests, 'title': SECRET})
+    c.execute(f'insert into {PREFIX}threads values (?,?,?)', ('child-thread', payload, '2026-10-08T01:00:00Z'))
     for i in range(messages):
         c.execute(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
                   (f'msg{i}', 'child-thread', 'child', f'2026-10-08T00:0{i}:00Z', 'completed', 'user_message', json.dumps({'text': SECRET})))
     c.commit()
     c.close()
     return db
+
+
+def set_thread(db, payload, updated_at):
+    c = sqlite3.connect(db)
+    c.execute(f"update {PREFIX}threads set payload_json=?, updated_at=? where thread_id='child-thread'", (payload, updated_at))
+    c.commit()
+    c.close()
 
 
 def pr(state, number=7, repo='owner/repo', **snap):
@@ -1022,16 +1030,60 @@ def test_child_thread_followups_and_pull_requests_are_counts_and_enums_only(setu
     assert followups[0]['source_timestamps'] == {'last_user_message_at': '2026-10-08T00:02:00+00:00'}
     prs = facts(setup, 't3', 't3_child_pull_requests')
     assert prs[0]['fact']['pull_requests'] == [
-        {'repository': 'owner/repo', 'number': 7, 'state': 'merged', 'merged_at': '2026-10-08T00:50:00+00:00'},
-        {'repository': 'owner/repo', 'number': 8, 'state': 'redacted'}]
-    assert prs[0]['fact']['dropped'] == 1 and prs[0]['source_timestamps'] == {'synced_at': '2026-10-08T01:00:00+00:00'}
+        {'repository': 'owner/repo', 'number': 7, 'state': 'merged', 'merged_at': '2026-10-08T00:50:00+00:00',
+         'synced_at': '2026-10-08T01:00:00+00:00'},
+        {'repository': 'owner/repo', 'number': 8, 'state': 'redacted', 'synced_at': '2026-10-08T01:00:00+00:00'}]
+    assert prs[0]['fact']['dropped'] == 1 and prs[0]['fact']['state'] == 'listed' and prs[0]['fact']['shared_with_decisions'] == 1
+    assert prs[0]['source_timestamps'] == {'thread_updated_at': '2026-10-08T01:00:00+00:00'}
     assert SECRET not in paths(setup)[1].read_text(), 'no titles or message text are copied'
     again = ok(setup, '--db', db)
     assert again['sources']['t3']['new_observations'] == 0, 'unchanged facts append nothing'
 
 
-def test_a_thread_without_pull_requests_records_followups_only(setup, tmp_path):
+def test_a_removed_or_unreadable_link_replaces_the_merged_snapshot(setup, tmp_path):
+    sys.path.insert(0, str(REPO / 'tools/model-policy-ops/lib'))
+    import derived_outcomes
+    db = child_thread_world(setup, tmp_path, [pr('merged')])
+    ok(setup, '--db', db)
+    receipts = [json.loads(line) for line in setup[3].read_text().splitlines()]
+    assert derived_outcomes.derive(['one'], receipts, rows(setup))['one']['outcome'] == 'accepted'
+    set_thread(db, json.dumps({'pullRequests': []}), '2026-10-08T02:00:00Z')
+    ok(setup, '--db', db)
+    assert derived_outcomes.derive(['one'], receipts, rows(setup))['one']['outcome'] == 'unknown', 'the link was removed'
+    set_thread(db, 'not json', '2026-10-08T03:00:00Z')
+    ok(setup, '--db', db)
+    assert derived_outcomes.derive(['one'], receipts, rows(setup))['one']['reason'] == 'pull_requests_unreadable'
+
+
+@pytest.mark.parametrize('raw', [json.dumps({'pullRequests': [1, 'x', None]}), json.dumps({'pullRequests': [{'repository': 'o/r', 'number': 3, 'snapshot': 'text'}]}),
+                                 json.dumps({'pullRequests': [pr('open', syncedAt=5), pr('open', 2, syncedAt='2026-10-08T00:00:00Z')]}),
+                                 json.dumps({'pullRequests': {'not': 'a list'}})])
+def test_malformed_pull_request_shapes_never_abort_collection(setup, tmp_path, raw):
+    db = child_thread_world(setup, tmp_path, None, raw=raw)
+    row = ok(setup, '--db', db)
+    assert row['sources']['t3']['state'] == 'ok'
+    assert facts(setup, 't3', 't3_run_status'), 'other facts are still recorded'
+    assert len(facts(setup, 't3', 't3_child_pull_requests')) == 1
+
+
+def test_a_thread_shared_by_two_decisions_is_flagged(setup, tmp_path):
+    db = child_thread_world(setup, tmp_path, [pr('merged')])
+    c = sqlite3.connect(db)
+    c.execute(f'insert into {PREFIX}runs (run_id, provider_instance_id, status, payload_json, requested_at, thread_id) values (?,?,?,?,?,?)',
+              ('child2', 'claude-one', 'completed', '{}', '2026-10-08T00:10:00Z', 'child-thread'))
+    call = json.loads(c.execute(f"select payload_json from {PREFIX}turn_items where turn_item_id='call'").fetchone()[0])
+    call['input']['clientRequestId'] = 'other-decision'
+    call['output']['structuredContent']['childRunId'] = 'child2'
+    c.execute(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)', ('call2', 'parent-thread', 'parent', '2026-10-08T00:10:00Z',
+                                                                       'completed', 'dynamic_tool', json.dumps(call)))
+    c.commit()
+    c.close()
+    ok(setup, '--db', db)
+    assert facts(setup, 't3', 't3_child_pull_requests')[0]['fact']['shared_with_decisions'] == 2
+
+
+def test_a_thread_without_pull_requests_records_an_empty_snapshot(setup, tmp_path):
     db = child_thread_world(setup, tmp_path, [], messages=1)
     ok(setup, '--db', db)
     assert facts(setup, 't3', 't3_child_followups')[0]['fact']['followup_messages'] == 0
-    assert facts(setup, 't3', 't3_child_pull_requests') == []
+    assert facts(setup, 't3', 't3_child_pull_requests')[0]['fact']['pull_requests'] == []

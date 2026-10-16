@@ -509,7 +509,8 @@ def test_arm_summary_keeps_judged_and_derived_apart_and_divides_tokens_by_accept
                 'receipt_target': {'provider_instance_id': account, 'model': model, 'effort': 'high'},
                 'outcome_state': 'closed' if outcome else 'unclosed', 'decision_outcome': outcome or 'unknown',
                 'derived_outcome': None if outcome else {'outcome': derived or 'unknown', 'reason': None if derived else 'completed_no_disposition'},
-                'calls': [{'run_timing': {'elapsed_seconds': 10.0}}]}
+                'calls': [{'child_run_id': 'run-' + decision, 'run_timing': {'elapsed_seconds': 10.0 if decision != 'b' else 30.0}},
+                          {'child_run_id': 'run-' + decision, 'run_timing': {'elapsed_seconds': 10.0 if decision != 'b' else 30.0}}]}
 
     def unit(decision, output):
         turn = {name: None for name in cost_report.CATEGORIES} | {'output_tokens': output, 'input_tokens': 10 * output,
@@ -527,5 +528,10 @@ def test_arm_summary_keeps_judged_and_derived_apart_and_divides_tokens_by_accept
     assert first['unknown_reasons'] == {'completed_no_disposition': 1}
     assert first['accepted'] == 3 and first['first_time_share_of_judged_accepted'] == 0.5
     assert first['tokens_per_accepted']['output_tokens'] == 500 / 3, 'rejected and unknown attempts stay in the numerator'
+    assert first['runs_timed'] == 5, 'one duration per child run, not per call'
     assert first['run_elapsed_seconds_p50'] == 10.0 and first['usd_per_accepted'] is None
+    _, _ = cost_report.arm_summary([row('x'), row('y')], [])[0], None
+    pair = cost_report.arm_summary([dict(row('x'), calls=[{'child_run_id': 'r1', 'run_timing': {'elapsed_seconds': 10.0}}]),
+                                    dict(row('y'), calls=[{'child_run_id': 'r2', 'run_timing': {'elapsed_seconds': 30.0}}])], [])[0]
+    assert pair['run_elapsed_seconds_p50'] == 20.0, 'the median of an even sample is the mean of the middle two'
     assert other['model'] == 'other' and other['tokens_per_accepted']['output_tokens'] == 7
