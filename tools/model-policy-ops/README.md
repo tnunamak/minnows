@@ -556,9 +556,16 @@ stored receipt and does not route again.
 
 ### Compact agent output
 
-Use `--brief` with `route` or `resolve` for one compact JSON line. The default
-and `--json` retain the existing full, indented receipt output. `--brief --json`
-is rejected, as is `--brief` on every other command.
+By default `route` and `resolve` print one small JSON line (revision 27): `decision_id`, `target`,
+`destination`, `launch_ready`, `dispatch`, `judgment_required`, `judgment` (each reason as
+`APPLIES_TO:CODE`), `reason` (one sentence: the chosen candidate and basis, any override, and why a
+destination was not used), `receipt` (the ledger path, or why nothing was stored) and `replayed`,
+plus `waiting`, `data_policy`, the simulation keys, and `destination_offer` only when a hand submit
+needs it. The ledger always keeps the full receipt. Use `--json` for the full receipt on stdout.
+
+Use `--brief` with `route` or `resolve` for the larger compact JSON line described below, with
+judgment details and calibration notes. `--brief --json` is rejected, as is `--brief` on every
+other command.
 
 ```bash
 model-policy-ops route implement.quota-tight --proof-class judged --brief \
@@ -950,9 +957,8 @@ or model, which a destination cannot show), the destination can still be chosen,
 reason `destination_independence_unknown` is added.
 
 With `--now` (simulation) no probe runs. The destination state is `not_probed_in_simulation`
-and the output is today's simulation. A purpose that no destination lists is unchanged,
-except that `routing.destination` is `{chosen: "model", considered: []}` when a
-destinations file exists. `--override` does not suppress the destination; add
+and the output is today's simulation. A purpose that no destination lists is routed as before; `routing.destination` is
+`{chosen: "model", considered: [], not_eligible: [...]}`, which names each destination and why. `--override` does not suppress the destination; add
 `--skip-destination` as well to dispatch the override.
 
 When an ordinary destination is chosen, the output is a valid receipt with `target: null`,
@@ -1005,6 +1011,15 @@ failure, because a relaunch follows a child that did not deliver. When a destina
 `declined_by_chain`, with `chain_failures`), and when none is left, `fallback` =
 `{destination, reasons: ["chain_failures"], source: "chain", chain_failures}` and `route`
 picks a model. Routes to a model in the chain do not count.
+
+**Every receipt says why a destination was not used (revision 26).** `routing.destination.not_eligible` lists each
+destination whose `purposes` exclude the request: `{name, reason: purpose_not_listed|purpose_unknown, purpose}`. It is
+present even when another destination is chosen. When an earlier destination is chosen, each later eligible one is in
+`considered` with state `not_probed_earlier_chosen` (it is not probed). When no config was read, `routing.destination`
+is `{chosen: "model", considered: [], not_considered: "destinations_missing"}`. `resolve` never consults a destination;
+its receipt always has `destination_skip` `{reason: "explicit_resolution", destinations: [{name, listed_for_purpose}]}`,
+or `{reason, destinations_state: missing|unreadable}` when no config was read. A bad or unreadable file never blocks
+resolve. `choice.considered` repeats each of these as a `destination` row with the reason code.
 
 Judgment when a destination is chosen. The model-pair reasons (pace, unvalidated candidate,
 quota, auth_config, model independence, model freshness) stay in `judgment_reasons`, tagged
@@ -1502,6 +1517,12 @@ Top-level keys: `schema_version`, `scope`, `coverage`, `counts`, `effort_explici
   chosen destination is not `model`. Those receipts never appear in `unmatched_receipts`.
 - `spend_first`: `eligible` (route receipts whose purpose a destination listed at record time), `offered`
   (destination chosen), `fallback` (`facts`, `parent`, `capacity`, each `{REASON: count}`) and `meaning`.
+- `spend_first_daily`: one row per UTC day of `recorded_at`: `receipts`; `classes`, which is exclusive and sums
+  to `receipts` (`offered`, `fallback`, `not_eligible`, `resolve_listed`, `resolve_not_listed`, `not_considered`,
+  `unrecorded`); `reasons` per class (`{"SOURCE:REASON": n}` for a fallback, `{"REASON:PURPOSE:OP": n}` for not
+  eligible, for example `purpose_not_listed:execution:review.audit`), counting each receipt once per reason; `eligible`
+  (`offered` + `fallback`), `offered` and `offered_share_of_eligible`. `unrecorded` holds receipts written before
+  revision 26 and route receipts with an empty block.
 - `outcomes` (descriptive only, over distinct decisions):
   - `unit`, `descriptive_only`, `causal_claims`, `confounding`, `closes_are_claims`:
     fixed statements.

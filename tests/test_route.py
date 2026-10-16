@@ -14,6 +14,8 @@ from pathlib import Path
 
 import pytest
 
+from cli_args import full_record
+
 REPO = Path(__file__).resolve().parents[1]
 TOOL = REPO / 'tools/model-policy-ops/model-policy-ops'
 FIX = REPO / 'tests/fixtures/route-live-20261010'
@@ -114,6 +116,7 @@ class World:
                 clock = args[at + 1]
                 del args[at:at + 2]
             env['PINNED_NOW'] = clock
+        args = full_record(args)
         result = subprocess.run([sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), *args], capture_output=True, text=True, env=env)
         return result, json.loads(result.stdout) if result.stdout.startswith('{') else None
 
@@ -1181,7 +1184,7 @@ def baseline_tree(tmp_path):
 
 def run_tool(tool, *args):
     env = dict(os.environ, XDG_CONFIG_HOME='/nonexistent-xdg')   # no real user-policy.json leaks in
-    result = subprocess.run([str(tool), *map(str, args)], capture_output=True, text=True, env=env)
+    result = subprocess.run([str(tool), *full_record(args)], capture_output=True, text=True, env=env)
     return result.returncode, result.stdout, result.stderr
 
 
@@ -1201,13 +1204,13 @@ def test_legacy_commands_are_byte_identical_to_the_baseline(world, tmp_path):
             new = run_tool(TOOL, 'resolve', op, *common, *extra, '--receipts', receipts_new, '--decision-id', 'same')
             assert 'choice' not in json.loads(old[1])
             assert json.loads(new[1])['choice']['reason']['code'] == 'explicit_resolution'
-            strip = lambda r: (r[0], {k: v for k, v in json.loads(r[1] or '{}').items() if k not in ('recorded_at', 'policy_path', 'effective_policy_sha256', 'choice')}, r[2])
+            strip = lambda r: (r[0], {k: v for k, v in json.loads(r[1] or '{}').items() if k not in ('recorded_at', 'policy_path', 'effective_policy_sha256', 'choice', 'destination_skip')}, r[2])
             assert strip(old) == strip(new), (op, extra)
     flags = ['--record', '--parent-model', 'pm', '--parent-provider-instance', 'pp', '--parent-thread', 'pt', '--decision-id', 'rec1', '--purpose', 'review']
     old = run_tool(old_tool, 'resolve', 'review.audit', *common, *flags, '--account-hint', 'codex', '--receipts', receipts_old)
     new = run_tool(TOOL, 'resolve', 'review.audit', *common, *flags, '--account-hint', 'codex', '--receipts', receipts_new)
     assert json.loads(old[1])['request'] == json.loads(new[1])['request'] and old[0] == new[0] == 0
-    stored = lambda path: {k: v for k, v in json.loads(path.read_text().splitlines()[0]).items() if k not in ('recorded_at', 'policy_path', 'effective_policy_sha256', 'choice')}
+    stored = lambda path: {k: v for k, v in json.loads(path.read_text().splitlines()[0]).items() if k not in ('recorded_at', 'policy_path', 'effective_policy_sha256', 'choice', 'destination_skip')}
     assert stored(receipts_old) == stored(receipts_new)
     close = ['--close-id', 'c1', '--outcome', 'accepted', '--judged-by', 'parent', '--check', 'none']
     a = run_tool(old_tool, 'close', 'rec1', '--receipts', receipts_old, *close)
@@ -1224,6 +1227,7 @@ def test_legacy_commands_are_byte_identical_to_the_baseline(world, tmp_path):
     audit_new['delegations'][0].pop('receipt_before_call', None)
     coverage = audit_new.pop('route_coverage')
     assert audit_new.pop('destination_routes') == {} and audit_new.pop('spend_first')['eligible'] == 0, 'destination keys are empty without destinations'
+    assert all(day['eligible'] == 0 for day in audit_new.pop('spend_first_daily')), 'the daily block has no eligible receipts here'
     assert audit_new.pop('observations')['state'] == 'absent', 'an absent observations file adds an empty section'
     assert coverage['resolve'] == 1 and coverage['route'] == 0, 'audit adds route_coverage and observations, nothing else'
     # Revision 14 adds commit verification (a close made without commit evidence reports an empty list and zero counts).
@@ -2064,7 +2068,7 @@ sys.argv = [sys.argv[2], *sys.argv[3:]]
 runpy.run_path(sys.argv[0], run_name='__main__')
 '''
     env = dict(os.environ, XDG_CONFIG_HOME=str(world.tmp / 'xdg'))
-    return subprocess.run([sys.executable, '-c', code, str(TOOL.parent / 'lib'), str(TOOL), *map(str, args)],
+    return subprocess.run([sys.executable, '-c', code, str(TOOL.parent / 'lib'), str(TOOL), *full_record(args)],
                           capture_output=True, text=True, env=env, timeout=30)
 
 

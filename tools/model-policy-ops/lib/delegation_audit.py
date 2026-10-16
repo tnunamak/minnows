@@ -390,6 +390,62 @@ def destination_summary(receipts):
         'meaning': 'descriptive; offered = destination chosen; not proof the work was submitted or used'}
 
 
+CLASSES = ('offered', 'fallback', 'not_eligible', 'resolve_listed', 'resolve_not_listed', 'not_considered', 'unrecorded')
+
+
+def receipt_class(receipt):
+    """(exclusive class, sorted reason keys). Every receipt has exactly one class; reasons explain it and may be several."""
+    block = destination_block(receipt)
+    op = (receipt.get('request') or {}).get('op')
+    if not (receipt.get('request') or {}).get('route'):
+        skip = receipt.get('destination_skip')
+        if not skip:
+            return 'unrecorded', []
+        if 'destinations_state' in skip:
+            return 'resolve_not_listed', [f"destinations_{skip['destinations_state']}"]
+        listed = any(row.get('listed_for_purpose') for row in skip.get('destinations', []))
+        return ('resolve_listed', ['explicit_resolution']) if listed else ('resolve_not_listed', ['purpose_not_listed'])
+    if block.get('considered'):
+        if destination_chosen(receipt) != 'model':
+            return 'offered', []
+        found = block.get('fallback') or {}
+        return 'fallback', sorted({f"{found.get('source', 'unknown')}:{reason}" for reason in found.get('reasons') or ['unrecorded']})
+    if block.get('not_eligible'):
+        return 'not_eligible', sorted({f"{row['reason']}:{row.get('purpose')}:{op}" for row in block['not_eligible']})
+    if block.get('not_considered'):
+        return 'not_considered', [block['not_considered']]
+    return 'unrecorded', []
+
+
+def spend_first_daily(receipts):
+    """Per UTC day of `recorded_at`: how many receipts a destination could take, how many it got, and why the rest did not.
+
+    `classes` is exclusive and sums to `receipts`. `reasons` counts receipts per reason within each class (a receipt with
+    two reasons counts under both, once each). `unrecorded` holds only receipts written before revision 26. Descriptive;
+    not proof of submission or use."""
+    days = {}
+    for receipt in receipts:
+        try:
+            day = stamp(receipt['recorded_at']).date().isoformat()
+        except (KeyError, TypeError, ValueError):
+            day = 'unknown'
+        row = days.setdefault(day, {'receipts': 0, 'classes': dict.fromkeys(CLASSES, 0), 'reasons': {}})
+        row['receipts'] += 1
+        name, reasons = receipt_class(receipt)
+        row['classes'][name] += 1
+        for reason in reasons:
+            bucket = row['reasons'].setdefault(name, {})
+            bucket[reason] = bucket.get(reason, 0) + 1
+    out = []
+    for day, row in sorted(days.items()):
+        eligible = row['classes']['offered'] + row['classes']['fallback']
+        out.append({'day': day, 'receipts': row['receipts'], 'eligible': eligible, 'offered': row['classes']['offered'],
+                    'offered_share_of_eligible': row['classes']['offered'] / eligible if eligible else None,
+                    'classes': row['classes'],
+                    'reasons': {name: dict(sorted(counts.items())) for name, counts in sorted(row['reasons'].items())}})
+    return out
+
+
 def audit(rows, receipts, since=None, thread=None, time_anchor='export.timestamp', out_of_scope=None, outcome_rows=(), observations=((), 'not_read', None)):
     start = stamp(since) if since else None
     rows = [r for r in rows if (not thread or r['thread_id'] == thread) and (not start or stamp(r['timestamp']) >= start)]
@@ -467,7 +523,7 @@ def audit(rows, receipts, since=None, thread=None, time_anchor='export.timestamp
             'unmatched_delegations': [r['call_id'] for r in reports if not r['matched_receipt']],
             'unmatched_receipts': [r['decision_id'] for r in scoped_receipts
                                    if r['decision_id'] not in matched_ids and destination_chosen(r) == 'model'],
-            'destination_routes': destination_routes, 'spend_first': spend_first,
+            'destination_routes': destination_routes, 'spend_first': spend_first, 'spend_first_daily': spend_first_daily(scoped_receipts),
             'observations': observation_store.section(observations[1], observations[2], observations[0], scoped_receipts, outcome_rows),
             'delegations': reports, 'limits': ['Coverage measures app-owned receipt coverage, not universal delegation compliance',
                 'Out-of-scope counts measure observed T3 projection records only; no universal native capture or decision-ID join',

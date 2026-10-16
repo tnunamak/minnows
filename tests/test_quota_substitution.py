@@ -196,7 +196,7 @@ def test_state_is_read_modify_written_under_an_exclusive_lock(world):
     fcntl.flock(lock, fcntl.LOCK_EX)
     env = dict(os.environ, XDG_CONFIG_HOME=str(world.tmp / 'xdg'), PINNED_NOW=NOW)
     process = subprocess.Popen([sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), 'route', 'review.audit', *map(str, world.args()),
-                                '--decision-id', 'locked'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
+                                '--decision-id', 'locked', '--json'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
     time.sleep(1.5)
     assert process.poll() is None, 'route waits for the lock'
     assert 'codex' in world.stored()

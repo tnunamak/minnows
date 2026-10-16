@@ -74,7 +74,7 @@ def add_arguments(parser):
     parser.add_argument('--note', help='one line, at most 280 characters; no prompts or secrets (not filtered)')
     parser.add_argument('--finding', choices=outcomes.FINDINGS)
     parser.add_argument('--checked-scope', help='what the follow-up looked at; no prompts or secrets (not filtered)')
-    parser.add_argument('--json', action='store_true', help='resolve/audit always emit JSON')
+    parser.add_argument('--json', action='store_true', help='route/resolve: print the full receipt instead of the one-line summary')
     parser.add_argument('--db', type=Path)
     parser.add_argument('--export', type=Path)
     parser.add_argument('--report-dir', type=Path, help='report: new private output directory, outside source directories')
@@ -331,7 +331,14 @@ def execute_locked(args, policy, stack):
         raise ValueError('--skip-destination applies to route only')
     if skip and not (args.reason and args.reason.strip()):
         raise ValueError('--skip-destination requires --reason')
-    dest_entries, dest_meta = destinations.read_destinations(args.destinations) if route else ([], {'state': 'missing', 'sha256': None})
+    if route:
+        dest_entries, dest_meta = destinations.read_destinations(args.destinations)
+    else:
+        # resolve never consults a destination; it reads the config only to name what it did not consider.
+        try:
+            dest_entries, dest_meta = destinations.read_destinations(args.destinations)
+        except (ValueError, OSError):
+            dest_entries, dest_meta = [], {'state': 'unreadable', 'sha256': None}
     facts = outcomes.launch_facts(args)
     decision_id = args.decision_id or str(uuid.uuid4())
     validate_id(decision_id)
@@ -460,6 +467,10 @@ def execute_locked(args, policy, stack):
         routing_block['destination'], offer = destinations.decide(
             dest_entries, purpose=args.purpose, facts=facts, skip=skip, reason=args.reason, request_id=decision_id, simulate=simulation,
             independence=independence, lineage=lambda name: destinations.chain(receipt_rows, args.relaunch_of, name))
+    elif routing_block:
+        routing_block['destination'] = destinations.not_considered(dest_meta['state'])
+    if not route:
+        return_value['destination_skip'] = destinations.resolve_skip(dest_entries, dest_meta, args.purpose)
     if routing_block:
         # Descriptive only: added once the destination is decided, so no ranking, target or judgment can depend on it.
         rows, state, _ = observation_store.read_observations(args.observations)

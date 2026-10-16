@@ -229,12 +229,12 @@ def brief_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
         receipt.update({
             "path": str(receipts.absolute()), "format": "jsonl",
             "replay": "Read the JSONL row matching decision_id for the exact stored receipt; "
-                      "or repeat identical caller-intent arguments without --brief (optionally --json) to replay.",
+                      "or repeat identical caller-intent arguments with --json (instead of --brief) to replay.",
         })
     else:
         receipt.update({
             "reason": "simulation" if simulation else "not_recorded",
-            "full_output": "No stored receipt for this evaluation. Rerun without --brief for full output; inputs may change.",
+            "full_output": "No stored receipt for this evaluation. Rerun with --json for full output; inputs may change.",
         })
 
     choice = result.get("choice") or {}
@@ -276,6 +276,55 @@ def brief_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
         if key in result:
             brief[key] = result[key]
     return brief
+
+
+def arm_text(arm, account=None):
+    if not arm:
+        return "none"
+    return f"{arm.get('provider')}/{arm.get('model')}/{arm.get('effort')}" + (f"@{account}" if account else "")
+
+
+def line_reason(result: dict) -> str:
+    """One short sentence: what was chosen and why, and why a destination was not used. Print only."""
+    routing = result.get("routing") or {}
+    block = routing.get("destination") or {}
+    if result.get("destination") and result["destination"] != "model":
+        state = block.get("target_state")
+        return f"destination {result['destination']} has capacity" + (f"; target {state}" if state else "; submit by hand")
+    if routing:
+        chosen, final = routing.get("chosen") or {}, routing.get("final") or {}
+        text = f"{chosen.get('basis') or 'unranked'} candidate {chosen.get('candidate')} {arm_text(chosen.get('arm'), chosen.get('instance'))}"
+        if final.get("overridden"):
+            text += f"; override to {arm_text(final.get('arm'), final.get('account'))}"
+    else:
+        selection = result.get("selection") or {}
+        text = f"explicit resolution ({selection.get('state')}) {arm_text(selection.get('arm'))}"
+    found = block.get("fallback")
+    if found:
+        text += f"; {found.get('destination')} not used: {found.get('source')} {','.join(found.get('reasons') or [])}"
+    elif block.get("not_eligible"):
+        text += "; " + ", ".join(f"{row['name']} not eligible: {row['reason']}" for row in block["not_eligible"])
+    elif block.get("not_considered"):
+        text += f"; no destination: {block['not_considered']}"
+    elif result.get("destination_skip"):
+        text += "; destinations not consulted (resolve)"
+    return text
+
+
+def line_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
+    """The default route/resolve output: one small line with what a caller needs to dispatch. Full record: --json."""
+    brief = brief_decision(result, receipts, recorded=recorded)
+    line = {key: brief[key] for key in ("decision_id", "target", "destination", "launch_ready", "dispatch", "judgment_required", "replayed")}
+    line["judgment"] = [f"{r.get('applies_to', '?')}:{r.get('code')}" for r in brief.get("judgment_reasons") or []]
+    line["reason"] = line_reason(result)
+    line["receipt"] = brief["receipt"].get("path") if brief["receipt"]["stored"] else brief["receipt"].get("reason")
+    for key in ("waiting", "data_policy", "simulation", "simulated_target"):
+        if key in brief:
+            line[key] = brief[key]
+    if result.get("target") is None and "destination_offer" in brief:
+        line["destination_offer"] = brief["destination_offer"]   # needed only for a hand submit
+    line["more"] = "--brief for judgment details and notes; --json for the full receipt"
+    return line
 
 
 def main() -> int:
@@ -338,6 +387,8 @@ def main() -> int:
             if args.brief:
                 print(json.dumps(brief_decision(result, args.receipts, recorded=args.record),
                                  separators=(",", ":"), sort_keys=True))
+            elif args.command in ("route", "resolve") and not args.json:
+                print(json.dumps(line_decision(result, args.receipts, recorded=args.record), separators=(",", ":"), sort_keys=True))
             else:
                 print(json.dumps(result, indent=2, sort_keys=True))
             return 0
