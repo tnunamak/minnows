@@ -1260,3 +1260,65 @@ runpy.run_path({str(REPO / 'tools/model-policy-ops/model-policy-ops')!r}, run_na
     out = json.loads(done.stdout)
     assert out.get('destination') != 'typed'
     assert out['routing']['destination']['considered'][0]['capacity']['reason'] == 'evaluation_required: evaluation_expired'
+
+
+# ---- mixed fallbacks name each destination's own reason; only a real independence decline says independence ----------
+
+@pytest.mark.parametrize('payload,state', [
+    ({'available': False, 'reason': 'down'}, 'unavailable'),
+    (evidence(evaluation__valid_until='2026-10-09T12:00:00Z'), 'evaluation_required'),
+    (evidence(evaluation__positive=4, evaluation__negative=0), 'evaluation_required'),
+])
+def test_plain_fact_decline_with_typed_unavailable_or_evaluation_required_never_names_independence(typed_world, tmp_path, payload, state):
+    # No --maker-model: no independence is required, so the reasons may only be the fact and the typed state.
+    cfg = config2(tmp_path, entry(capacity(tmp_path, 'plain'), name='plain'), typed_entry(tmp_path, payload))
+    out = route(typed_world, cfg, '--purpose', 'review', '--inputs', 'local', '--input-mode', 'caller-text', op=TYPED_OP)
+    fallback = dest(out)['fallback']
+    assert 'destination' not in out and not ran(tmp_path, 'plain') and 'destination_offer' not in out
+    assert fallback['source'] == 'capacity' and fallback['reasons'] == [state]
+    assert fallback['by_destination'] == {'plain': ['local-inputs'], 'typed': [state]}
+    assert {c['name']: c['state'] for c in dest(out)['considered']} == {'plain': 'declined_by_facts', 'typed': state}
+
+
+@pytest.mark.parametrize('flags,fact', [
+    (['--inputs', 'local', '--input-mode', 'caller-text'], 'local-inputs'),
+    (['--inputs', 'github', '--urgent'], 'synchronous'),
+])
+def test_mixed_fact_independence_and_unavailable_name_each_destinations_own_reason(typed_world, tmp_path, flags, fact):
+    plain = entry(capacity(tmp_path, 'plain'), name='plain')
+    same = typed_entry(tmp_path, name='same', vendor='claude')
+    other = typed_entry(tmp_path, {'available': False, 'reason': 'down'}, name='typed')
+    cfg = config2(tmp_path, plain, same, other)
+    out = route(typed_world, cfg, '--purpose', 'review', *flags, *MAKER, op=TYPED_OP)
+    fallback = dest(out)['fallback']
+    assert 'destination' not in out and not ran(tmp_path, 'plain') and not ran(tmp_path, 'same')
+    assert fallback['source'] == 'capacity' and fallback['reasons'] == ['independence', 'unavailable']
+    assert fallback['by_destination'] == {'plain': [fact], 'same': ['independence'], 'typed': ['unavailable']}
+    assert {c['name']: c['state'] for c in dest(out)['considered']} == {'plain': 'declined_by_facts', 'same': 'declined_by_independence', 'typed': 'unavailable'}
+
+
+def test_fact_decline_beside_a_real_independence_decline_keeps_both_destinations_reasons(typed_world, tmp_path):
+    plain = entry(capacity(tmp_path, 'plain'), name='plain')
+    same = typed_entry(tmp_path, name='same', vendor='claude')
+    cfg = config2(tmp_path, plain, same)
+    out = route(typed_world, cfg, '--purpose', 'review', '--inputs', 'local', '--input-mode', 'caller-text', *MAKER, op=TYPED_OP)
+    fallback = dest(out)['fallback']
+    assert 'destination' not in out and not ran(tmp_path, 'same') and not ran(tmp_path, 'plain')
+    assert fallback['reasons'] == ['independence'] and fallback['source'] == 'facts'
+    assert fallback['by_destination'] == {'plain': ['local-inputs'], 'same': ['independence']}
+
+
+def test_chain_decline_beside_an_independence_decline_names_each_reason(world, tmp_path):
+    token = '[pool-decision:<root_decision_id>]'
+    pool = entry(capacity(tmp_path, 'pool'), name='pool') | {'vendor': 'codex', 'brief_token': token, 'max_chain_failures': 1,
+                                                             'target': {'providerInstanceId': 'pool', 'driverKind': 'acpRegistry', 'model': 'pool'}}
+    same = entry(capacity(tmp_path, 'same'), name='same') | {'vendor': 'claude'}
+    cfg = config(tmp_path, same, pool)
+    first = route(world, cfg, '--purpose', 'review', '--inputs', 'github', *MAKER, record='d1')
+    assert first['destination'] == 'pool'
+    out = route(world, cfg, '--purpose', 'review', '--inputs', 'github', *MAKER, '--relaunch-of', 'd1', '--why', 'unavailable',
+                '--reason', 'pool child cancelled', record='d2')
+    fallback = dest(out)['fallback']
+    assert 'destination' not in out and out['target'] is not None
+    assert fallback['source'] == 'chain' and fallback['reasons'] == ['independence', 'chain_failures']
+    assert fallback['by_destination'] == {'same': ['independence'], 'pool': ['chain_failures']}

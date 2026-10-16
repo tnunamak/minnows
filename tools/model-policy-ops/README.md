@@ -965,7 +965,8 @@ level is `vendor`, the destination is not eligible and is not probed: `considere
 ["independence"], source: "facts"}`, then `route` picks a model as usual. When some are
 declined and the rest are unavailable, `fallback` = `{destination, reasons: ["independence",
 "unavailable"], source: "capacity", probe_reason, by_destination}`, where `by_destination` maps
-each name to its reason. A maker with several runs is checked against every known run vendor; one
+each name to its reason. A destination declined by a launch fact keeps that fact's reason there (for example `local-inputs`),
+and `independence` appears only for a destination that was actually declined for the maker's vendor. A maker with several runs is checked against every known run vendor; one
 run with an unknown vendor still adds the judgment reason. If the destination has
 no `vendor`, the maker vendor is unknown for any maker run, or the required level is finer than `vendor` (family
 or model, which a destination cannot show), the destination can still be chosen, and the judgment
