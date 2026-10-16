@@ -37,6 +37,20 @@ def operation_refusal(route, op, *, routed, no_op, proof_class, effort):
     return None
 
 
+def currency_refusal(route, evaluated_at):
+    """Refusal code when the route's own evidence, expiry or transport authorization no longer holds, else None."""
+    expires_at = parse_utc_timestamp(route.get('expires_at_utc'))
+    if expires_at is None:
+        return 'verification_expiry_missing_or_invalid'
+    if not has_current_evidence(route, evaluated_at):
+        return 'verification_evidence_from_future_or_invalid'
+    if evaluated_at >= expires_at:
+        return 'verification_expired'
+    if (route.get('t3_transport') or {}).get('enabled') is not True:
+        return 't3_transport_disabled'
+    return None
+
+
 def check_qualified_operations(qualified, label):
     """Accept only the two reviewed scopes; an empty list revokes qualification."""
     if not isinstance(qualified, list):

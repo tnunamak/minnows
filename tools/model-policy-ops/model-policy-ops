@@ -267,6 +267,10 @@ def brief_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
         brief["waiting"] = result["waiting"]
     if "data_policy" in result:
         brief["data_policy"] = result["data_policy"]
+    if routing.get("pacing"):
+        brief["pacing"] = routing["pacing"]
+    if (result.get("launch_facts") or {}).get("critical_path") is True:
+        brief["critical_path"] = True
     if destination == "model":
         brief["routed"] = routed
     else:
@@ -324,7 +328,7 @@ def line_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
     line["judgment"] = [f"{r.get('applies_to', '?')}:{r.get('code')}" for r in brief.get("judgment_reasons") or []]
     line["reason"] = line_reason(result)
     line["receipt"] = brief["receipt"].get("path") if brief["receipt"]["stored"] else brief["receipt"].get("reason")
-    for key in ("waiting", "data_policy", "simulation", "simulated_target", "historical_non_actionable"):
+    for key in ("critical_path", "pacing", "waiting", "data_policy", "simulation", "simulated_target", "historical_non_actionable"):
         if key in brief:
             line[key] = brief[key]
     if result.get("target") is None and "destination_offer" in brief:

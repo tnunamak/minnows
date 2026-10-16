@@ -68,6 +68,7 @@ def launch_facts(args):
     facts = {k: v for k, v in (('purpose', args.purpose), ('proof_class', args.proof_class),
                                ('urgent', True if args.urgent else None),
                                ('irreversible', True if args.irreversible else None),
+                               ('critical_path', True if getattr(args, 'critical_path', False) else None),
                                ('inputs', args.inputs), ('sensitive', True if args.sensitive else None)) if v is not None}
     return {'schema_version': 1, **facts} if facts else None
 

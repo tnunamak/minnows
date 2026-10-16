@@ -81,7 +81,7 @@ def read_failures(db_path, now, lookback_minutes):
     They join to the instance through the run. The database opens read-only and query-only, in one
     transaction. A missing database, table or column gives state `unknown` with a reason, never healthy.
     """
-    unknown = lambda reason: {'state': 'unknown', 'reason': reason, 'lookback_minutes': lookback_minutes, 'instances': {}, 'unjoined': None}
+    unknown = lambda reason: {'state': 'unknown', 'reason': reason, 'lookback_minutes': lookback_minutes, 'instances': {}, 'times': {}, 'unjoined': None}
     if not db_path:
         return unknown('not_supplied')
     if lookback_minutes is None:
@@ -102,7 +102,8 @@ def read_failures(db_path, now, lookback_minutes):
         since = (now - timedelta(minutes=lookback_minutes)).isoformat()
         rows = db.execute(f"""SELECT r.provider_instance_id,
               json_extract(i.payload_json,'$.failure.class'),
-              coalesce(json_extract(i.payload_json,'$.failure.message'),json_extract(i.payload_json,'$.title'),'')
+              coalesce(json_extract(i.payload_json,'$.failure.message'),json_extract(i.payload_json,'$.title'),''),
+              coalesce(json_extract(i.payload_json,'$.startedAt'),i.updated_at)
             FROM {PREFIX}turn_items i LEFT JOIN {PREFIX}runs r ON r.run_id=i.run_id
             WHERE i.turn_item_id LIKE '%terminal-failure%' AND i.status='failed'
               AND julianday(coalesce(json_extract(i.payload_json,'$.startedAt'),i.updated_at))>=julianday(?)
@@ -112,9 +113,9 @@ def read_failures(db_path, now, lookback_minutes):
         return unknown('read_error')
     finally:
         db.close()
-    instances = {}
+    instances, times = {}, {}
     unjoined = 0
-    for instance, native_class, message in rows:
+    for instance, native_class, message, started in rows:
         if str(native_class).lower() in CANCELLATIONS:
             continue
         if instance is None:
@@ -123,7 +124,8 @@ def read_failures(db_path, now, lookback_minutes):
         events = instances.setdefault(instance, {})
         name = classify_failure(message)
         events[name] = events.get(name, 0) + 1
-    return {'state': 'observed', 'reason': None, 'lookback_minutes': lookback_minutes, 'instances': instances, 'unjoined': unjoined}
+        times.setdefault(instance, {}).setdefault(name, []).append(started)
+    return {'state': 'observed', 'reason': None, 'lookback_minutes': lookback_minutes, 'instances': instances, 'times': times, 'unjoined': unjoined}
 
 
 def read_maker_runs(db_path, decision_id):
