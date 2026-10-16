@@ -288,7 +288,7 @@ def test_resolve_without_a_config_and_with_a_bad_one(world, tmp_path):
 
 
 @pytest.mark.parametrize('text,message', [
-    ('{', 'not valid JSON'), ('[]', 'schema_version 1'), ('{"schema_version": 2, "destinations": []}', 'schema_version 1'),
+    ('{', 'not valid JSON'), ('[]', 'schema_version 1'), ('{"schema_version": 3, "destinations": []}', 'schema_version 1'),
     ('{"schema_version": 1, "destinations": [1]}', 'must be an object')])
 def test_malformed_config_is_a_clear_error(world, tmp_path, text, message):
     bad = tmp_path / 'bad.json'
@@ -793,3 +793,223 @@ def test_an_out_of_scope_op_is_never_probed_and_scoped_builds_keep_every_gate(wo
                                    {'execution': 'implement.oracle-bounded'}, {'execution': [3]}, 'execution'])
 def test_op_scope_is_validated(world, tmp_path, scope):
     assert 'op_scope must map' in failing(world, config(tmp_path, build_entry(tmp_path, op_scope=scope)), '--purpose', 'review')
+
+
+# ---- typed destinations (schema_version 2, kind typed-http) -----------------------------------------------------------
+# Model names below are fixture data: the router only compares probe evidence with the entry's own evidence_contract.
+
+TYPED_OP = 'review.rule-check'
+SHA = 'a' * 64
+SAMPLE = 'b' * 64
+RULES = ['rule-1', 'rule-2']
+PROOF = {'evaluated_model': 'typed-model-1', 'baseline_model': 'baseline-model-1', 'baseline_effort': 'medium',
+         'typed_version': 'typed-v1', 'currency': 'USD', 'accepted_rule_ids': RULES}
+# The exact capacity JSON a typed adapter prints. It reports an evaluation already made, not the live serving model.
+EVIDENCE = {
+    'available': True, 'op': TYPED_OP, 'evaluated_model': 'typed-model-1', 'contract_sha256': SHA, 'accepted_rule_ids': RULES,
+    'evaluation': {
+        'cases': 4, 'positive': 2, 'negative': 2, 'definitive': 4, 'label_disagreements': 0, 'baseline_disagreements': 0,
+        'sample_sha256': SAMPLE, 'test_evidence_metadata': {'label_source': 'human-labelled', 'sample_sha256': SAMPLE},
+        'versions': {'baseline_model': 'baseline-model-1', 'baseline_effort': 'medium', 'typed_version': 'typed-v1'},
+        'evaluated_at': '2026-10-09T00:00:00Z', 'valid_until': '2026-10-20T00:00:00Z',
+        'cost': {'basis': 'api_equivalent', 'currency': 'USD', 'scope': 'all_candidates_upper_bound', 'priced_at': '2026-10-09T00:00:00Z',
+                 'per_decision': 0.002, 'baseline_per_decision': 0.02}}}
+
+
+def evidence(**changes):
+    value = json.loads(json.dumps(EVIDENCE))
+    for path, new in changes.items():
+        node = value
+        *head, last = path.split('__')
+        for key in head:
+            node = node[key]
+        node[last] = new
+    return value
+
+
+def typed_entry(tmp, payload=None, name='typed', **extra):
+    command = script(tmp, name + '.sh', f"touch '{tmp / (name + '.ran')}'\ncat <<'EOF'\n{json.dumps(payload or EVIDENCE)}\nEOF")
+    return {'name': name, 'kind': 'typed-http', 'purposes': ['review'], 'op_scope': {'review': [TYPED_OP]},
+            'contracts': {TYPED_OP: {'whole_answer': 'typed', 'revision': 'r1', 'sha256': SHA}},
+            'capability': {'caller_text': True, 'synchronous': True}, 'evidence_contract': PROOF,
+            'capacity_command': [str(command)], 'timeout_seconds': 5, 'how_to': '/abs/typed.md',
+            'submit': {'command': 'typed submit --op <op> --id <request_id>'}} | extra
+
+
+def config2(tmp, *entries):
+    path = tmp / 'destinations2.json'
+    path.write_text(json.dumps({'schema_version': 2, 'destinations': list(entries)}))
+    return path
+
+
+@pytest.fixture
+def typed_world(world):
+    world.policy['operating_points'].append(json.loads(json.dumps(next(o for o in world.policy['operating_points'] if o['id'] == OP))) | {'id': TYPED_OP})
+    return world
+
+
+def typed_route(world, tmp_path, *extra, payload=None, op=TYPED_OP, **entry_extra):
+    cfg = config2(tmp_path, typed_entry(tmp_path, payload, **entry_extra))
+    return route(world, cfg, '--purpose', 'review', *extra, op=op)
+
+
+def test_typed_eligible_offer_is_a_handoff_with_no_target_or_payload(typed_world, tmp_path):
+    out = typed_route(typed_world, tmp_path, '--inputs', 'github')
+    assert out['destination'] == 'typed' and out['target'] is None and out['launch_ready'] is False and 'dispatch' not in out
+    assert all(value is None for _, value in targets(out))
+    offer = out['destination_offer']
+    assert offer['submit'] == {'command': 'typed submit --op review.rule-check --id probe'}
+    assert offer['typed']['contract'] == {'whole_answer': 'typed', 'revision': 'r1', 'sha256': SHA}
+    assert offer['capacity']['evaluated_model'] == 'typed-model-1' and 'served_model' not in offer['capacity']
+    assert offer['capacity']['evaluation']['cost']['scope'] == 'all_candidates_upper_bound'
+    assert 'destination_inputs_unknown' not in [r['code'] for r in out['routing']['judgment_reasons']]
+
+
+@pytest.mark.parametrize('change,code', [
+    ({'evaluated_model': 'other-model'}, 'model_mismatch'),
+    ({'contract_sha256': 'c' * 64}, 'contract_mismatch'),
+    ({'accepted_rule_ids': ['rule-1']}, 'rule_mismatch'),
+    ({'op': 'review.audit'}, 'op_mismatch'),
+    ({'evaluation__valid_until': '2026-10-09T12:00:00Z'}, 'evaluation_expired'),
+    ({'evaluation__evaluated_at': '2026-10-11T00:00:00Z'}, 'evaluation_expired'),
+    ({'evaluation__valid_until': '2026-10-20T00:00:00'}, 'time_invalid'),
+    ({'evaluation__positive': 4, 'evaluation__negative': 0}, 'not_balanced_or_definitive'),
+    ({'evaluation__cases': 3, 'evaluation__negative': 1}, 'not_balanced_or_definitive'),
+    ({'evaluation__definitive': 3}, 'not_balanced_or_definitive'),
+    ({'evaluation__label_disagreements': 1}, 'disagreements'),
+    ({'evaluation__baseline_disagreements': 1}, 'disagreements'),
+    ({'evaluation__sample_sha256': 'zz'}, 'sample_unproven'),
+    ({'evaluation__versions': {'baseline_model': 'baseline-model-1', 'baseline_effort': 'high', 'typed_version': 'typed-v1'}}, 'version_mismatch'),
+    ({'evaluation__cost': {'basis': 'api_equivalent', 'currency': 'USD', 'scope': 'selected', 'priced_at': '2026-10-09T00:00:00Z', 'per_decision': 1, 'baseline_per_decision': 2}}, 'cost_unproven'),
+    ({'evaluation': None}, 'evaluation_missing'),
+])
+def test_typed_evidence_must_be_current_matching_and_balanced(typed_world, tmp_path, change, code):
+    out = typed_route(typed_world, tmp_path, '--inputs', 'github', payload=evidence(**change))
+    assert 'destination' not in out and out['target'] is not None, 'the model arm is the fallback'
+    row = dest(out)['considered'][0]
+    assert row['state'] == 'evaluation_required' and row['capacity']['reason'] == f'evaluation_required: {code}'
+    assert dest(out)['fallback']['reasons'] == ['evaluation_required'] and dest(out)['chosen'] == 'model'
+
+
+def test_typed_unavailable_probe_stays_unavailable_and_missing_evidence_requires_evaluation(typed_world, tmp_path):
+    out = typed_route(typed_world, tmp_path, '--inputs', 'github', payload={'available': False, 'reason': 'down'})
+    assert dest(out)['considered'][0]['state'] == 'unavailable'
+    out = typed_route(typed_world, tmp_path, '--inputs', 'github', payload={'available': True})
+    assert dest(out)['considered'][0]['capacity']['reason'] == 'evaluation_required: op_mismatch'
+
+
+def test_typed_rejects_review_audit_and_unscoped_purposes(typed_world, tmp_path):
+    out = typed_route(typed_world, tmp_path, '--inputs', 'github', op=OP)
+    assert dest(out)['not_eligible'] == [{'name': 'typed', 'reason': 'op_not_in_scope', 'purpose': 'review'}] and not ran(tmp_path, 'typed')
+    out = route(typed_world, config2(tmp_path, typed_entry(tmp_path)), '--purpose', 'research', '--inputs', 'github', op=TYPED_OP)
+    assert dest(out)['not_eligible'][0]['reason'] == 'purpose_not_listed' and not ran(tmp_path, 'typed')
+    # No automatic routing of implementation work either.
+    out = route(typed_world, config2(tmp_path, typed_entry(tmp_path)), '--purpose', 'execution', '--inputs', 'github', '--proof-class', 'judged', op='implement.standard')
+    assert dest(out)['not_eligible'][0]['reason'] == 'purpose_not_listed'
+
+
+@pytest.mark.parametrize('change,message', [
+    ({'op_scope': {}}, 'op_scope'),
+    ({'purposes': ['review', 'research']}, 'scope every purpose'),
+    ({'contracts': {}}, 'contracts must declare'),
+    ({'contracts': {TYPED_OP: {'whole_answer': 'partial', 'revision': 'r1', 'sha256': SHA}}}, 'contracts must declare'),
+    ({'contracts': {TYPED_OP: {'whole_answer': 'typed', 'revision': 'r1', 'sha256': 'abc'}}}, 'contracts must declare'),
+    ({'contracts': {TYPED_OP: {'whole_answer': 'typed', 'revision': 'r1', 'sha256': SHA}, 'review.audit': {'whole_answer': 'typed', 'revision': 'r1', 'sha256': SHA}}}, 'contracts must declare'),
+    ({'target': {'providerInstanceId': 'a', 'model': 'b'}, 'brief_token': 'x <root_decision_id>', 'max_chain_failures': 1}, 'is typed'),
+    ({'capability': {'caller_text': 'yes', 'synchronous': True}}, 'capability must be'),
+    ({'capability': {'caller_text': True}}, 'capability must be'),
+    ({'evidence_contract': {**PROOF, 'baseline_effort': ''}}, 'evidence_contract needs'),
+    ({'kind': 'other'}, 'kind must be'),
+])
+def test_typed_entries_with_unsafe_metadata_are_refused(typed_world, tmp_path, change, message):
+    cfg = config2(tmp_path, typed_entry(tmp_path) | change)
+    assert message in failing(typed_world, cfg, '--purpose', 'review', op=TYPED_OP)
+
+
+def test_schema_1_refuses_v2_keys_and_old_cli_rejects_schema_2(typed_world, tmp_path):
+    bad = config(tmp_path, typed_entry(tmp_path))
+    assert 'need schema_version 2' in failing(typed_world, bad, '--purpose', 'review', op=TYPED_OP)
+    # The committed tree is the "old CLI": it knows --destinations but only schema_version 1.
+    old = tmp_path / 'old'
+    old.mkdir()
+    archive = subprocess.run(['git', 'archive', 'HEAD', 'tools/model-policy-ops', 'data/model-choice-policy'], cwd=REPO, capture_output=True, check=True)
+    subprocess.run(['tar', '-x', '-C', str(old)], input=archive.stdout, check=True)
+    typed_world.write()
+    code, out, err = run_tool(old / 'tools/model-policy-ops/model-policy-ops', 'route', OP, *typed_world.args(), '--destinations', config2(tmp_path, typed_entry(tmp_path)),
+                              '--decision-id', 'old')
+    assert code != 0 and 'schema_version 1' in err
+
+
+def test_local_inputs_need_explicit_caller_text_and_the_typed_capability(typed_world, tmp_path):
+    out = typed_route(typed_world, tmp_path, '--inputs', 'local')
+    assert 'destination' not in out and dest(out)['fallback']['reasons'] == ['local-inputs'] and not ran(tmp_path, 'typed')
+    out = typed_route(typed_world, tmp_path, '--inputs', 'local', '--input-mode', 'caller-text')
+    assert out['destination'] == 'typed' and out['launch_facts'] == {'schema_version': 1, 'purpose': 'review', 'inputs': 'local', 'input_mode': 'caller-text'}
+    assert out['target'] is None and all(value is None for _, value in targets(out))
+    out = typed_route(typed_world, tmp_path, '--inputs', 'local', '--input-mode', 'caller-text', capability={'caller_text': False, 'synchronous': True})
+    assert 'destination' not in out and dest(out)['fallback']['reasons'] == ['local-inputs']
+    for extra in (['--input-mode', 'caller-text'], ['--inputs', 'github', '--input-mode', 'caller-text']):
+        assert 'input-mode' in failing(typed_world, config2(tmp_path, typed_entry(tmp_path)), '--purpose', 'review', *extra, op=TYPED_OP)
+    result, _ = typed_world.cli('route', TYPED_OP, *typed_world.args(), '--destinations', config2(tmp_path, typed_entry(tmp_path)),
+                                '--inputs', 'local', '--input-mode', 'tree')
+    assert result.returncode == 2 and 'invalid choice' in result.stderr, 'an unknown mode is refused'
+    resolved, _ = typed_world.cli('resolve', TYPED_OP, *typed_world.args(), '--inputs', 'local', '--input-mode', 'caller-text')
+    assert resolved.returncode == 1 and 'input-mode' in resolved.stderr
+
+
+def test_a_plain_destination_never_takes_caller_text_and_synchronous_lifts_only_urgent(typed_world, tmp_path):
+    plain = entry(capacity(tmp_path, 'plain'), name='plain')
+    cfg = config2(tmp_path, plain, typed_entry(tmp_path))
+    out = route(typed_world, cfg, '--purpose', 'review', '--inputs', 'local', '--input-mode', 'caller-text', op=TYPED_OP)
+    assert out['destination'] == 'typed' and dest(out)['considered'][0] == {'name': 'plain', 'state': 'declined_by_facts', 'reasons': ['local-inputs']}
+    assert not ran(tmp_path, 'plain')
+    urgent = route(typed_world, cfg, '--purpose', 'review', '--inputs', 'github', '--urgent', op=TYPED_OP)
+    assert urgent['destination'] == 'typed' and dest(urgent)['considered'][0]['reasons'] == ['synchronous']
+    both = typed_route(typed_world, tmp_path, '--inputs', 'github', '--urgent', capability={'caller_text': True, 'synchronous': False})
+    assert 'destination' not in both and dest(both)['fallback']['reasons'] == ['synchronous']
+
+
+@pytest.mark.parametrize('flags,key', [(['--sensitive'], 'sensitive'), (['--skip-destination', 'other', '--reason', 'parent says no'], 'skip')])
+def test_sensitive_and_parent_skip_never_bypass(typed_world, tmp_path, flags, key):
+    out = typed_route(typed_world, tmp_path, '--inputs', 'local', '--input-mode', 'caller-text', '--urgent', *flags)
+    assert 'destination' not in out and not ran(tmp_path, 'typed')
+    assert dest(out)['fallback']['source'] == ('facts' if key == 'sensitive' else 'parent')
+    cfg = config2(tmp_path, typed_entry(tmp_path))
+    result, simulated = typed_world.cli('route', TYPED_OP, *typed_world.args(), '--destinations', cfg, '--decision-id', 'sim', '--purpose', 'review',
+                                        '--inputs', 'local', '--input-mode', 'caller-text', *flags, '--now', '2026-10-10T00:30:00Z', raw=True)
+    assert result.returncode == 0, result.stderr
+    assert 'destination' not in simulated and not ran(tmp_path, 'typed')
+
+
+def test_vendor_independence_is_not_assumed_for_a_typed_worker(typed_world, tmp_path):
+    out = typed_route(typed_world, tmp_path, '--inputs', 'github', '--maker-model', 'codex:gpt-6.1-sol')
+    assert out['destination'] == 'typed' and 'vendor' not in {k: v for k, v in out['destination_offer'].items() if v}
+    assert 'destination_independence_unknown' in [r['code'] for r in out['routing']['judgment_reasons']] and out['routing']['judgment_required'] is True
+    same = typed_route(typed_world, tmp_path, '--inputs', 'github', '--maker-model', 'codex:gpt-6.1-sol', vendor='codex')
+    assert 'destination' not in same and dest(same)['considered'][0]['state'] == 'declined_by_independence'
+    other = typed_route(typed_world, tmp_path, '--inputs', 'github', '--maker-model', 'codex:gpt-6.1-sol', vendor='someone-else')
+    assert other['destination'] == 'typed' and 'destination_independence_unknown' not in [r['code'] for r in other['routing']['judgment_reasons']]
+
+
+def test_no_probe_in_simulation_resolve_or_replay(typed_world, tmp_path):
+    cfg = config2(tmp_path, typed_entry(tmp_path))
+    result, sim = typed_world.cli('route', TYPED_OP, *typed_world.args(), '--destinations', cfg, '--decision-id', 'sim', '--purpose', 'review',
+                                  '--inputs', 'github', '--now', '2026-10-10T00:30:00Z', raw=True)
+    assert result.returncode == 0, result.stderr
+    assert dest(sim)['considered'][0]['state'] == 'not_probed_in_simulation' and sim['target'] is None and not ran(tmp_path, 'typed')
+    result, out = typed_world.cli('resolve', TYPED_OP, *typed_world.args(), '--destinations', cfg, '--purpose', 'review', '--decision-id', 'res')
+    assert result.returncode == 0, result.stderr
+    assert out['destination_skip']['destinations'] == [{'name': 'typed', 'listed_for_purpose': True}] and not ran(tmp_path, 'typed')
+    first = route(typed_world, cfg, '--purpose', 'review', '--inputs', 'github', record='rec', op=TYPED_OP)
+    (tmp_path / 'typed.ran').unlink()
+    again = route(typed_world, cfg, '--purpose', 'review', '--inputs', 'github', record='rec', op=TYPED_OP)
+    assert again['replayed'] is True and again['destination_offer'] == first['destination_offer']
+    assert not ran(tmp_path, 'typed')
+
+
+def test_v1_config_behaves_as_before_beside_the_v2_tests(world, tmp_path):
+    cap = capacity(tmp_path, 'cap')
+    out = route(world, config(tmp_path, entry(cap)), '--purpose', 'review', '--inputs', 'local')
+    assert 'destination' not in out and dest(out)['fallback']['reasons'] == ['local-inputs'] and 'typed' not in json.dumps(out)
+    urgent = route(world, config(tmp_path, entry(cap)), '--purpose', 'review', '--inputs', 'github', '--urgent')
+    assert dest(urgent)['fallback']['reasons'] == ['synchronous']

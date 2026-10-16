@@ -1036,6 +1036,44 @@ changes on pushed code lists `"purposes": ["review", "research", "test-design", 
 (`implement.oracle-bounded` needs `--proof-class oracle`). The worker returns a patch; the caller applies it and runs
 the oracle.
 
+**Typed destinations (`schema_version` 2, `kind: "typed-http"`).** An opt-in entry for a whole-answer typed judgment
+worker. A schema 1 file is read exactly as before (and refuses the keys below); an older CLI rejects a schema 2 file.
+Router behavior: it offers a handoff (`destination_offer.submit` and `.typed.contract`), calls nothing, returns no model
+target (`launch_ready` false), and the model pair stays the fallback. The entry names no model in router code; everything
+below is the entry's own declaration:
+
+- `op_scope` covers every purpose, and its ops are exactly the keys of `contracts`:
+  `{op: {"whole_answer": "typed", "revision": "...", "sha256": "<64 hex>"}}`. Other ops (`review.audit`, `implement.*`) are
+  `not_eligible`; nothing is routed by semantic guess. No `target`, `brief_token`, `max_chain_failures` or `request_id_pattern`.
+- `capability`: `{"caller_text": bool, "synchronous": bool}`. `synchronous` true lifts `--urgent` for this entry only.
+  `caller_text` true lifts `--inputs local` only with `route --inputs local --input-mode caller-text` (stored as launch fact
+  `input_mode`; the one legal mode; not arbitrary file or tree access). `--sensitive` and every `--skip-destination` never lift.
+- `evidence_contract`: `{evaluated_model, baseline_model, baseline_effort, typed_version, currency, accepted_rule_ids}`.
+  `<op>` is also substituted in `submit`. The entry's `vendor` is optional; with none, required independence is
+  `destination_independence_unknown` (no vendor independence is claimed for it).
+
+`capacity_command` is the evidence gate (no second eval store): it reads the adapter's current manifest, makes no model call,
+and prints the evaluation already made. It reports `evaluated_model`, not a live serving model; the real adapter must validate
+the served model at dispatch. Healthy only when every field equals the contract and the clock (the route's evaluation clock,
+real for any dispatchable route; a simulation never probes) is in `[evaluated_at, valid_until)` with aware times. Otherwise the
+destination is `evaluation_required` (`capacity.reason: "evaluation_required: <code>"`, fallback reason `evaluation_required`).
+A probe with `available: false` stays `unavailable`. Example probe output:
+
+```json
+{"available": true, "op": "review.rule-check", "evaluated_model": "<evidence_contract.evaluated_model>",
+ "contract_sha256": "<contracts[op].sha256>", "accepted_rule_ids": ["<same list, same order>"],
+ "evaluation": {"cases": 4, "positive": 2, "negative": 2, "definitive": 4, "label_disagreements": 0, "baseline_disagreements": 0,
+  "sample_sha256": "<64 hex>", "test_evidence_metadata": {"label_source": "human-labelled", "sample_sha256": "<same>"},
+  "versions": {"baseline_model": "...", "baseline_effort": "...", "typed_version": "..."},
+  "evaluated_at": "2026-10-09T00:00:00Z", "valid_until": "2026-10-20T00:00:00Z",
+  "cost": {"basis": "api_equivalent", "currency": "USD", "scope": "all_candidates_upper_bound", "priced_at": "2026-10-09T00:00:00Z",
+           "per_decision": 0.002, "baseline_per_decision": 0.02}}}
+```
+
+Needs cases >= 4, positive and negative >= 2 summing to cases, every case definitive yes/no, zero label and baseline
+disagreements. `cost` is a dated, measured, all-candidates upper bound (`scope` must say so); the selected request itself is
+unmeasured and no precise task cost is claimed. A simulation, `resolve` and replay never probe.
+
 **Every receipt says why a destination was not used (revision 26).** `routing.destination.not_eligible` lists each
 destination whose `purposes` or `op_scope` exclude the request: `{name, reason: purpose_not_listed|purpose_unknown|op_not_in_scope, purpose}`. It is
 present even when another destination is chosen. When an earlier destination is chosen, each later eligible one is in

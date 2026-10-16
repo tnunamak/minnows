@@ -10,14 +10,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.2.6](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.6) — unreleased; published by CI after merge to main |
+| **This version** | [data-model-choice-policy-v0.2.7](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.7) — unreleased; published by CI after merge to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.2.6
+TAG=data-model-choice-policy-v0.2.7
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -118,11 +118,17 @@ not silently route by model name.
 | `implement.oracle-bounded` | codex / gpt-6-luna / high |
 | `implement.accuracy-first` | claude / opus-5-5 / high |
 | `review.audit` | codex / gpt-6.1-sol / high |
+| `review.rule-check` | validated typed destination when configured; fallback claude / haiku-5-5 / medium |
 | `advisor.deep` | claude / opus-5-5 / high |
 | `ui.computer-use` | codex / gpt-6.1-sol / medium |
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.2.7 — unreleased
+
+- Add `review.rule-check` for a whole answer consisting of a typed yes/no check against an explicit supplied rule. Configured typed destinations need fixed questions, model versions, labelled agreement evidence and measured cost. Haiku medium remains the fallback; broad audits stay on `review.audit`.
+- The local sample supports three narrow lead checks only. Classification, severity, triage and semantic duplicates need their own accepted evidence; exact facts remain code.
 
 ### v0.2.6 — unreleased
 
