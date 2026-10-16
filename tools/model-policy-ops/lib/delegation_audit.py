@@ -404,7 +404,11 @@ def receipt_class(receipt):
         if 'destinations_state' in skip:
             return 'resolve_not_listed', [f"destinations_{skip['destinations_state']}"]
         listed = any(row.get('listed_for_purpose') for row in skip.get('destinations', []))
-        return ('resolve_listed', ['explicit_resolution']) if listed else ('resolve_not_listed', ['purpose_not_listed'])
+        if listed:
+            return 'resolve_listed', ['explicit_resolution']
+        # Older receipts have no per-destination reason; their only possible cause was the purpose.
+        return 'resolve_not_listed', sorted({row.get('not_eligible', 'purpose_not_listed') for row in skip.get('destinations', [])}
+                                            or {'purpose_not_listed'})
     if block.get('considered'):
         if destination_chosen(receipt) != 'model':
             return 'offered', []

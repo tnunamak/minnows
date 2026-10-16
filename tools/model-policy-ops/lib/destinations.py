@@ -130,7 +130,8 @@ def resolve_skip(entries, meta, purpose, op=None):
     if meta['state'] != 'loaded':
         return {'reason': 'explicit_resolution', 'destinations_state': meta['state']}
     return {'reason': 'explicit_resolution',
-            'destinations': [{'name': e['name'], 'listed_for_purpose': eligibility(e, purpose, op) is None} for e in entries]}
+            'destinations': [{'name': e['name'], 'listed_for_purpose': eligibility(e, purpose, op) is None}
+                             | ({'not_eligible': eligibility(e, purpose, op)} if eligibility(e, purpose, op) else {}) for e in entries]}
 
 
 def catalog_target(available, target):

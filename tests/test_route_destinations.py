@@ -764,9 +764,32 @@ def test_resolve_accounts_for_op_scope(world, tmp_path):
     result, out = world.cli('resolve', 'implement.standard', *world.args(), '--destinations', cfg, '--purpose', 'execution',
                             '--proof-class', 'judged', '--decision-id', 'res-op')
     assert result.returncode == 0, result.stderr
-    assert out['destination_skip']['destinations'] == [{'name': 'dot', 'listed_for_purpose': False}]
+    assert out['destination_skip']['destinations'] == [{'name': 'dot', 'listed_for_purpose': False, 'not_eligible': 'op_not_in_scope'}]
+    sys.path.insert(0, str(REPO / 'tools/model-policy-ops/lib'))
+    import delegation_audit
+    assert delegation_audit.receipt_class(out) == ('resolve_not_listed', ['op_not_in_scope'])
 
 
-@pytest.mark.parametrize('scope', [{}, {'research': ['implement.oracle-bounded']}, {'execution': []}, {'execution': [''] }, []])
+def test_op_scope_eligibility_edges(tmp_path):
+    sys.path.insert(0, str(REPO / 'tools/model-policy-ops/lib'))
+    import destinations
+    row = build_entry(tmp_path)
+    assert destinations.eligibility(row, 'execution', None) == 'op_not_in_scope', 'resolve --no-op has no op'
+    assert destinations.eligibility(row, None, 'implement.oracle-bounded') == 'purpose_unknown'
+    assert destinations.eligibility(row, 'research', 'implement.standard') == 'purpose_not_listed'
+    assert destinations.eligibility(row, 'review', None) is None, 'an unscoped purpose keeps every op'
+
+
+def test_an_out_of_scope_op_is_never_probed_and_scoped_builds_keep_every_gate(world, tmp_path):
+    cfg = config(tmp_path, build_entry(tmp_path))
+    route(world, cfg, '--purpose', 'execution', '--inputs', 'github', '--proof-class', 'judged', op='implement.standard')
+    assert not ran(tmp_path, 'cap')
+    for flag, reason in (('--sensitive', 'credential'), ('--urgent', 'synchronous')):
+        out = route(world, cfg, '--purpose', 'execution', '--inputs', 'github', '--proof-class', 'oracle', flag, op='implement.oracle-bounded')
+        assert 'destination' not in out and reason in dest(out)['fallback']['reasons']
+
+
+@pytest.mark.parametrize('scope', [{}, {'research': ['implement.oracle-bounded']}, {'execution': []}, {'execution': ['']}, [],
+                                   {'execution': 'implement.oracle-bounded'}, {'execution': [3]}, 'execution'])
 def test_op_scope_is_validated(world, tmp_path, scope):
     assert 'op_scope must map' in failing(world, config(tmp_path, build_entry(tmp_path, op_scope=scope)), '--purpose', 'review')
