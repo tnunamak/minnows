@@ -265,3 +265,41 @@ def test_an_exact_override_onto_a_cooling_account_is_kept_and_reports_the_retry_
     assert out['target']['providerInstanceId'] == 'opencode' and out['launch_ready'] is True
     reason = next(r for r in out['routing']['judgment_reasons'] if r['code'] == 'final_account_cooling_down')
     assert reason['informational'] is True and reason['detail']['retry_after'] == '2026-10-16T01:10:00+00:00'
+
+
+def cool(world, *times):
+    add_opencode_fixture(world)
+    world.events = [event('opencode', RATE, at=at) for at in times]
+
+
+def free_row(world, clock):
+    return wait_at(world, clock)['waiting']['alternatives_considered']['free_routes'][0]['availability']
+
+
+def test_cooldown_orders_events_by_instant_not_by_text(world):
+    # 01:05+01:00 is 00:05Z, the oldest; text order would pick 00:10Z and report 01:10Z
+    cool(world, '2026-10-16T00:10:00.000Z', '2026-10-16T01:05:00.000+01:00', '2026-10-16T00:20:00.000Z')
+    assert free_row(world, '2026-10-16T00:30:00Z') == {'state': 'cooling_down', 'retry_after': '2026-10-16T01:05:00+00:00', 'events': 3}
+
+
+def test_cooldown_with_more_events_than_the_threshold_waits_for_enough_to_leave(world):
+    cool(world, *(f'2026-10-16T00:{m}:00.000Z' for m in ('05', '10', '15', '20')))  # 4 events, threshold 3: the 2nd oldest must leave
+    assert free_row(world, '2026-10-16T00:30:00Z')['retry_after'] == '2026-10-16T01:10:00+00:00'
+
+
+def test_cooldown_ends_just_after_retry_after_not_at_it(world):
+    cool(world, '2026-10-16T00:10:00.000Z', '2026-10-16T00:15:00.000Z', '2026-10-16T00:20:00.000Z')
+    assert free_row(world, '2026-10-16T01:10:00Z')['state'] == 'cooling_down'
+    assert free_row(world, '2026-10-16T01:10:01Z')['state'] == 'available'
+
+
+def test_cooldown_is_unknown_without_telemetry(world):
+    add_opencode_fixture(world)
+    world.with_db = False
+    assert free_row(world, '2026-10-16T00:30:00Z') == {'state': 'unknown', 'retry_after': None, 'events': 0}
+
+
+def test_a_prefer_directive_outranks_a_smaller_overshoot(world):
+    over_band(world)
+    world.add_directive('like-work', 'prefer', 'account=claude-work', until='2026-10-12T00:00:00Z')
+    assert pick(route(world, CRITICAL))[0] == 'claude-work'

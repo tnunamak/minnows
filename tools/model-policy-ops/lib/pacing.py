@@ -13,7 +13,7 @@ hysteresis hold. When the best pair cannot launch, in order:
 
 This module does not read a clock or a file. It never picks a pair that a filter removed.
 """
-from datetime import timedelta
+from datetime import timedelta, timezone
 
 from quota_substitution import parse_time
 
@@ -95,19 +95,20 @@ def retry_after(trace):
 def cooldown(failures, instance, demote_count, classes):
     """{state, retry_after, events} for an account's recent demoting failures.
 
-    `cooling_down` while the events inside the lookback reach `demote_count`. `retry_after` is the time the
-    (count - demote_count + 1)th oldest event leaves the lookback, so the account is reevaluated from fresh events
+    `cooling_down` while the events inside the lookback reach `demote_count`. `retry_after` is the instant at which
+    the (count - demote_count + 1)th oldest event is exactly one lookback old. The lookback is inclusive, so the
+    account is available again once the clock is later than `retry_after`, not at it. So the account is reevaluated from fresh events
     on every route and no cooldown is stored. `unknown` when the telemetry is unavailable.
     """
     if failures['state'] != 'observed' or demote_count is None or failures.get('unjoined'):
         return {'state': 'unknown', 'retry_after': None, 'events': 0}
-    times = sorted(t for name in classes for t in failures.get('times', {}).get(instance, {}).get(name, []))
+    raw = [t for name in classes for t in failures.get('times', {}).get(instance, {}).get(name, [])]
     count = sum(failures['instances'].get(instance, {}).get(name, 0) for name in classes)
     if count < demote_count:
         return {'state': 'available', 'retry_after': None, 'events': count}
-    parsed = [moment for moment in map(parse_time, times) if moment]
+    parsed = sorted(moment for moment in map(parse_time, raw) if moment)  # sort instants, not their text spelling
     anchor = parsed[count - demote_count] if len(parsed) == count else None
-    until = anchor + timedelta(minutes=failures['lookback_minutes']) if anchor else None
+    until = (anchor + timedelta(minutes=failures['lookback_minutes'])).astimezone(timezone.utc) if anchor else None
     return {'state': 'cooling_down', 'retry_after': until.isoformat() if until else None, 'events': count}
 
 

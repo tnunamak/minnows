@@ -731,7 +731,7 @@ scheduling policy; the pack has none and the code has no defaults. With bands se
   chosen for the caller, because public inputs are the caller's own assertion. The caller opts in with the exact flags
   in `opt_in`. A subscription is never picked for a discretionary wait.
 - **Cooldown.** An account with at least `failure_demote_count` rate-limit or transport failures inside
-  `failure_lookback_minutes` is `cooling_down`. `retry_after` is when enough events leave the lookback. Nothing is
+  `failure_lookback_minutes` is `cooling_down`. `retry_after` is when enough events leave the lookback: the account is available once the clock is later than it (the lookback is inclusive, so at the instant itself it still cools). Nothing is
   stored: every route reads the telemetry again, so a cooldown ends by itself and one failure never marks an account
   unavailable for longer than the lookback. An exact override onto a cooling account is kept and adds the
   informational reason `final_account_cooling_down` with the same `retry_after`.
