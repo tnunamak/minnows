@@ -14,6 +14,7 @@ import pytest
 from test_route import NOW, REPO, run_tool, stable, two_runs, world  # noqa: F401  (world is a fixture)
 
 BASELINE = '5fdc94d'
+TYPED_BASELINE = '04365b20dad5f070e458134911d93e0d7fd75469'
 OP = 'review.audit'
 SUBMIT = {'command': 'w submit --task-kind <purpose>', 'assignment': {'request_id': '<request_id>', 'inputs': [{'github_repo': 'o/r'}], 'list': ['<purpose>', 1, None]}}
 
@@ -931,10 +932,15 @@ def test_typed_entries_with_unsafe_metadata_are_refused(typed_world, tmp_path, c
 def test_schema_1_refuses_v2_keys_and_old_cli_rejects_schema_2(typed_world, tmp_path):
     bad = config(tmp_path, typed_entry(tmp_path))
     assert 'need schema_version 2' in failing(typed_world, bad, '--purpose', 'review', op=TYPED_OP)
-    # The committed tree is the "old CLI": it knows --destinations but only schema_version 1.
+    # Pin the pre-typed CLI; HEAD changes as this patch is committed.
+    probe = subprocess.run(['git', 'cat-file', '-e', f'{TYPED_BASELINE}^{{commit}}'], cwd=REPO, capture_output=True)
+    if probe.returncode:
+        if os.environ.get('MODEL_POLICY_REQUIRE_BASELINE') == '1':
+            pytest.fail('pinned pre-typed CLI is unavailable')
+        pytest.skip('pinned pre-typed CLI is not in this clone')
     old = tmp_path / 'old'
     old.mkdir()
-    archive = subprocess.run(['git', 'archive', 'HEAD', 'tools/model-policy-ops', 'data/model-choice-policy'], cwd=REPO, capture_output=True, check=True)
+    archive = subprocess.run(['git', 'archive', TYPED_BASELINE, 'tools/model-policy-ops', 'data/model-choice-policy'], cwd=REPO, capture_output=True, check=True)
     subprocess.run(['tar', '-x', '-C', str(old)], input=archive.stdout, check=True)
     typed_world.write()
     code, out, err = run_tool(old / 'tools/model-policy-ops/model-policy-ops', 'route', OP, *typed_world.args(), '--destinations', config2(tmp_path, typed_entry(tmp_path)),
