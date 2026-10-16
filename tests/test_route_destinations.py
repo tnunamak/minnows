@@ -495,7 +495,7 @@ def test_probe_stdin_is_closed_not_inherited(world, tmp_path):
     cfg = config(tmp_path, entry(cap))
     world.write()
     result = subprocess.run([sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), 'route', OP, *map(str, world.args()), '--destinations', str(cfg),
-                             '--decision-id', 'stdin', '--purpose', 'review', '--inputs', 'github'], input='data\n', capture_output=True, text=True,
+                             '--decision-id', 'stdin', '--purpose', 'review', '--inputs', 'github', '--json'], input='data\n', capture_output=True, text=True,
                             env=dict(os.environ, PINNED_NOW=NOW))
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout)['destination_offer']['capacity']['reason'] == 'eof'
@@ -673,3 +673,40 @@ def test_spend_first_daily_puts_each_receipt_in_one_class():
                      'fallback': {'facts:local-inputs': 1}, 'not_eligible': {'purpose_not_listed:execution:review.audit': 1},
                      'resolve_explicit': 1, 'not_considered': {'destinations_missing': 1}, 'unrecorded': 1}
     assert second['receipts'] == 1 and second['unrecorded'] == 1 and second['offered_share_of_eligible'] is None
+
+
+def line(world, cfg, *extra, record='line-1'):
+    """The default output, without the harness's --json."""
+    world.write()
+    flags = ['route', OP, *map(str, world.args()), '--destinations', str(cfg), *extra]
+    if record:
+        flags += ['--decision-id', record, '--record', '--parent-model', 'pm', '--parent-provider-instance', 'pp', '--parent-thread', 'pt']
+    result = subprocess.run([sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), *flags], capture_output=True, text=True,
+                            env=dict(os.environ, XDG_CONFIG_HOME=str(world.tmp / 'xdg'), PINNED_NOW=NOW))
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.count('\n') == 1, 'one line'
+    return json.loads(result.stdout), len(result.stdout)
+
+
+def test_default_output_is_one_line_with_the_dispatch_fields(world, tmp_path):
+    cfg = config(tmp_path, entry(capacity(tmp_path, 'cap', available=False, reason='busy')))
+    out, size = line(world, cfg, '--purpose', 'review', '--inputs', 'github')
+    assert set(out) >= {'decision_id', 'target', 'destination', 'launch_ready', 'dispatch', 'judgment', 'reason', 'receipt', 'more'}
+    assert out['decision_id'] == 'line-1' and out['target'] and out['launch_ready'] is True
+    assert out['dispatch'] == {'clientRequestId': 'line-1', 'mode': 'async'}
+    assert 'worker not used: capacity unavailable' in out['reason']
+    assert out['receipt'].endswith('.jsonl') and 'calibration_notes' not in out and 'routing' not in out
+    full = json.loads(world.receipts.read_text().splitlines()[-1])
+    assert out['target'] == full['target'] and size < len(json.dumps(full)) / 3, 'the ledger keeps the full record'
+
+
+def test_default_output_for_a_hand_submit_destination_keeps_the_offer(world, tmp_path):
+    out, _ = line(world, config(tmp_path, entry(capacity(tmp_path, 'cap'))), '--purpose', 'review', '--inputs', 'github')
+    assert out['destination'] == 'worker' and out['target'] is None and out['launch_ready'] is False
+    assert out['destination_offer']['name'] == 'worker' and 'capacity' not in out['destination_offer']
+    assert out['reason'].startswith('destination worker has capacity')
+
+
+def test_default_output_names_an_ineligible_destination(world, tmp_path):
+    out, _ = line(world, config(tmp_path, entry(capacity(tmp_path, 'cap'))), '--purpose', 'execution', record=None)
+    assert 'worker not eligible: purpose_not_listed' in out['reason'] and out['receipt'] == 'not_recorded'

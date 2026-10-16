@@ -74,7 +74,7 @@ def add_arguments(parser):
     parser.add_argument('--note', help='one line, at most 280 characters; no prompts or secrets (not filtered)')
     parser.add_argument('--finding', choices=outcomes.FINDINGS)
     parser.add_argument('--checked-scope', help='what the follow-up looked at; no prompts or secrets (not filtered)')
-    parser.add_argument('--json', action='store_true', help='resolve/audit always emit JSON')
+    parser.add_argument('--json', action='store_true', help='route/resolve: print the full receipt instead of the one-line summary')
     parser.add_argument('--db', type=Path)
     parser.add_argument('--export', type=Path)
     parser.add_argument('--report-dir', type=Path, help='report: new private output directory, outside source directories')

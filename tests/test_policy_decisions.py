@@ -8,6 +8,8 @@ from pathlib import Path
 
 import pytest
 
+from cli_args import full_record
+
 REPO = Path(__file__).resolve().parents[1]
 TOOL = REPO / 'tools/model-policy-ops/model-policy-ops'
 POLICY = REPO / 'data/model-choice-policy/operating-points.json'
@@ -19,7 +21,7 @@ def isolate_selected_policy(monkeypatch):
 
 
 def run(*args, **kwargs):
-    result = subprocess.run([str(TOOL), *map(str, args)], capture_output=True, text=True, **kwargs)
+    result = subprocess.run([str(TOOL), *full_record(args)], capture_output=True, text=True, **kwargs)
     return result, json.loads(result.stdout) if result.returncode == 0 and result.stdout.startswith('{') else None
 
 

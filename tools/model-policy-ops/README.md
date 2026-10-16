@@ -556,9 +556,16 @@ stored receipt and does not route again.
 
 ### Compact agent output
 
-Use `--brief` with `route` or `resolve` for one compact JSON line. The default
-and `--json` retain the existing full, indented receipt output. `--brief --json`
-is rejected, as is `--brief` on every other command.
+By default `route` and `resolve` print one small JSON line (revision 27): `decision_id`, `target`,
+`destination`, `launch_ready`, `dispatch`, `judgment_required`, `judgment` (each reason as
+`APPLIES_TO:CODE`), `reason` (one sentence: the chosen candidate and basis, any override, and why a
+destination was not used), `receipt` (the ledger path, or why nothing was stored) and `replayed`,
+plus `waiting`, `data_policy`, the simulation keys, and `destination_offer` only when a hand submit
+needs it. The ledger always keeps the full receipt. Use `--json` for the full receipt on stdout.
+
+Use `--brief` with `route` or `resolve` for the larger compact JSON line described below, with
+judgment details and calibration notes. `--brief --json` is rejected, as is `--brief` on every
+other command.
 
 ```bash
 model-policy-ops route implement.quota-tight --proof-class judged --brief \

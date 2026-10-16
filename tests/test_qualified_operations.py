@@ -8,6 +8,8 @@ from pathlib import Path
 
 import pytest
 
+from cli_args import full_record
+
 from test_route import DEEPSEEK_FREE, add_opencode_fixture, deepseek_flags, world  # noqa: F401
 from test_route_authorization import CLOCK, destination, refused, run
 import directives
@@ -158,7 +160,7 @@ def test_current_qualification_is_required_on_both_replay_paths(world, op, race,
         monkeypatch.setattr(pd, 'read_source', lambda *args: pytest.fail('early replay read live runtime data'))
     monkeypatch.setattr(directives, 'now', lambda: datetime.fromisoformat(CLOCK.replace('Z', '+00:00')))
     tool = str(Path(__file__).resolve().parents[1] / 'tools/model-policy-ops/model-policy-ops')
-    monkeypatch.setattr(sys, 'argv', [tool, *map(str, argv), '--no-user-policy'])
+    monkeypatch.setattr(sys, 'argv', [tool, *full_record(argv), '--no-user-policy'])
     with pytest.raises(SystemExit) as exited:
         runpy.run_path(tool, run_name='__main__')
     captured = capsys.readouterr()

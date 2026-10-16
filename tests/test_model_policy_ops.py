@@ -494,7 +494,7 @@ def resolve_cli(tmp_path, decision="d", *flags):
     return subprocess.run([str(TOOL), "resolve", "implement.standard", "--reason", "Synthetic fixture",
                            "--receipts", str(tmp_path / "receipts.jsonl"), "--record", "--decision-id", decision,
                            "--parent-model", "fixture", "--parent-provider-instance", "fixture", "--parent-thread", "fixture",
-                           *flags], cwd=REPO, capture_output=True, text=True)
+                           *flags, *([] if "--brief" in flags else ["--json"])], cwd=REPO, capture_output=True, text=True)
 
 
 def test_cli_fresh_choice_and_early_replay_identity(tmp_path):
