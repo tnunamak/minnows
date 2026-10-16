@@ -224,7 +224,8 @@
       ],
       "constraints": [],
       "cost_basis": "usd_per_task",
-      "rationale": "Finite explicit-rule yes/no fallback. Typed API destination eligibility is evaluated separately on its own fixed questions and labelled comparison; general-model boards do not validate that API destination."
+      "rationale": "Finite explicit-rule yes/no fallback. Typed API destination eligibility is evaluated separately on its own fixed questions and labelled comparison; general-model boards do not validate that API destination. Reuses recover.report's provisional $2 undetected-failure prior because this recommender requires a finite value; not measured on this op and not a production loss estimate.",
+      "silent_failure_cost_usd": 2
     }
   ],
   "task_families": {

@@ -844,6 +844,8 @@ def config2(tmp, *entries):
 
 @pytest.fixture
 def typed_world(world):
+    # Pin the fixture arm independently of the shipped operation's fallback.
+    world.policy['operating_points'] = [o for o in world.policy['operating_points'] if o['id'] != TYPED_OP]
     world.policy['operating_points'].append(json.loads(json.dumps(next(o for o in world.policy['operating_points'] if o['id'] == OP))) | {'id': TYPED_OP})
     return world
 
