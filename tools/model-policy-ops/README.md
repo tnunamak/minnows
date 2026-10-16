@@ -325,80 +325,67 @@ when selected by the pack. Parent model, provider instance, and thread are alway
 caller-supplied; unrelated environment variables are not evidence of the parent.
 Reason and handoff text must be short explanations, without prompts or secrets.
 
-### Experimental free routes
+### Free routes
 
-An entry in the pack's root `experimental_free_routes` metadata is never an
-operating-point candidate. It is usable only through an explicit experimental
-override for the two qualified operations, or under the separately authorized
-`fanout.explore` and `resolve --no-op` paths, with exact provider, model, effort
-and account flags. `--data-classification public` is required; omission
-means unknown, and `--sensitive` always refuses the
-route. `--inputs github` does not classify its contents. The exact route below is
-bound to OpenCode's `opencode` provider and account plus
+An entry in the pack's root `free_routes` metadata declares a temporarily free
+arm. It is a normal arm and earns operations by measured quality, like any other.
+`route` prefers it automatically for a qualified op with `--proof-class oracle`
+while its dated evidence is current: no flag or override is needed, and the
+result carries `basis: measured_free`. The same exact override
+(`provider`, `model`, `effort`, `account` and a reason) is also accepted and is
+checked against the same qualification. Nothing about where the input lives
+(`--inputs`) or the launch facts changes eligibility, and no data classification
+exists. The universal secret and credential path denies apply to every provider.
+The exact route below is bound to OpenCode's `opencode` provider and account plus
 `opencode/deepseek-v4.1-flash-free`; other OpenCode models and provider/account
 aliases do not inherit its zero-cost metadata. The effort option key is read from
-the live T3 catalog and remains `variant`; an authorized public experimental
-request can emit its T3 target.
+the live T3 catalog and remains `variant`.
 
 This model-arm path validates and emits the actual effort option, such as
 `options.variant: high`. Generic destination submission does not support governed
 OpenCode routes: its options-free target cannot carry that validation. A chosen
-governed destination refuses even with exact public experimental overrides, and
-even when its configured target is absent from the catalog. Refusal removes all
-targets, dispatch metadata, `submit`, `how_to`, and manual submission readiness
-advice from full and brief output, including nested copies and receipt replay.
-Receipts retain descriptive governed identity for current-policy checks; that
-identity does not authorize submission. Ordinary destinations keep their existing
-dispatch and manual submission behavior.
+governed destination is refused, even when its configured target is absent from
+the catalog. Refusal removes all targets, dispatch metadata, `submit`, `how_to`,
+and manual submission readiness advice from full and brief output, including
+nested copies and receipt replay. Receipts retain descriptive governed identity
+for current-policy checks; that identity does not authorize submission. Ordinary
+destinations keep their existing dispatch and manual submission behavior.
 
-`public` is the caller's assertion, not content scanning or attestation. Missing
-or invalid expiry evidence, and evidence at or beyond its local UTC recheck
-deadline, refuses dispatch. The seven-day deadline is local policy and does not
-claim a vendor end date. Undeclared OpenCode models with a `variant` option are
-refused; this metadata does not make paid or other free OpenCode models
-launchable.
+Missing or invalid expiry evidence, and evidence at or beyond its local UTC
+recheck deadline, removes the arm from routing and refuses an override to it. The
+seven-day deadline is local policy and does not claim a vendor end date.
+Undeclared OpenCode models with a `variant` option are refused; this metadata
+does not make paid or other free OpenCode models launchable. A rate-limited or
+transport-failing free arm is demoted like any arm and the primary arm takes over.
 The route qualifies exactly `implement.oracle-bounded` and `docs.lookup`, each
-with `--proof-class oracle` and `--override effort=high`. Implementation covers
-small PUBLIC source changes whose full acceptance standard has a deterministic
-oracle. Lookup covers known PUBLIC sources with a structured fact oracle;
-open-ended research and judged or absent proof are excluded. High is the only
-benchmark-tested effort. Primary operating-point recommendations stay unchanged.
-The exploratory paths retain other catalog-validated efforts, without admitting
-other operations. Historical replay uses recorded proof facts and current
-qualification; removed operations or changed proof eligibility refuse dispatch
-on both replay paths without rewriting stored receipts.
+with `--proof-class oracle` and effort `high`. Implementation covers small source
+changes whose full acceptance standard has a deterministic oracle. Lookup covers
+known sources with a structured fact oracle; open-ended research and judged or
+absent proof are excluded. High is the only benchmark-tested effort. Review,
+test-design, research, `fanout.explore`, `resolve --no-op` and other efforts are
+not qualified; they were never measured. Primary operating-point recommendations
+stay unchanged. Historical replay uses recorded proof facts and the actual
+returned target; removed operations or changed proof eligibility refuse dispatch
+on both replay paths without rewriting stored receipts. Receipts written with the
+retired `--experimental-route` and `--data-classification` flags still replay.
 
 The pack includes [sanitized benchmark evidence](../../data/model-choice-policy/evidence/deepseek-public-eval-2026-10-15.json):
 eight task pairs from six source contexts, 16 deterministic gate passes and one
 review inspection-scope failure. No repairs or throttles were observed. Rate
 limits, measured provider cost and total workflow cost remain unknown; the $0
-fee is temporary source pricing. These visible public tests establish only the
-bounded admitted scopes, not general review or fleet quality.
-
-Public classification and proof class are caller assertions, not oracle
-certification or a runtime sandbox guarantee. Shared OpenCode server host tools
-and injected `t3_thread_read` private-thread access remain known risks. Provider
-sandbox and MCP isolation checks remain later hardening. The router does not
-change shared T3 or provider settings. The data-policy record retains the upstream
-zero-retention/no-training attribution separately from OpenCode's unpaid-service
-content-improvement terms.
+fee is temporary source pricing. These tests establish only the bounded admitted
+scopes, not general review or fleet quality. Proof class is a caller assertion,
+not oracle certification or a runtime sandbox guarantee.
 
 ```bash
 ./tools/model-policy-ops/model-policy-ops route implement.oracle-bounded \
   --policy data/model-choice-policy/operating-points.json --available auto \
-  --proof-class oracle --experimental-route --data-classification public \
-  --override provider=opencode \
-  --override model=opencode/deepseek-v4.1-flash-free \
-  --override effort=high --override account=opencode \
-  --reason 'Small public patch with a full deterministic acceptance oracle' \
-  --decision-id deepseek-public-exploration-001 --record \
+  --proof-class oracle --decision-id free-arm-001 --record \
   --parent-model PARENT_MODEL --parent-provider-instance PARENT_INSTANCE \
   --parent-thread PARENT_THREAD
 ```
 
-Do not dispatch if the result is refused or `target` is null. A sensitive
-negative check adds `--sensitive`; the result must have `launch_ready: false`
-and `target: null`.
+Do not dispatch if the result is refused or `target` is null.
 
 ## Receipts and escalation
 
@@ -575,7 +562,7 @@ By default `route` and `resolve` print one small JSON line (revision 27): `decis
 `destination`, `launch_ready`, `dispatch`, `judgment_required`, `judgment` (each reason as
 `APPLIES_TO:CODE`), `reason` (one sentence: the chosen candidate and basis, any override, and why a
 destination was not used), `receipt` (the ledger path, or why nothing was stored) and `replayed`,
-plus `waiting`, `data_policy`, the simulation keys, and `destination_offer` only when a hand submit
+plus `waiting`, `free_route`, the simulation keys, and `destination_offer` only when a hand submit
 needs it. The ledger always keeps the full receipt. Use `--json` for the full receipt on stdout.
 
 Use `--brief` with `route` or `resolve` for the larger compact JSON line described below, with
@@ -633,6 +620,7 @@ no alternates. `resolve`, `list` and `show` ignore `candidates`.
 |---|---|---|
 | `primary` | The op's own arm | `selection_basis: primary` |
 | `task_benchmark_prior` | A prior: a board that the pack cites for this task family, the same effort, a clear margin. Not proof of fitness. The board harness is not T3, Claude Code or Codex | Automatic, `selection_basis: evidence_prior`, `evidence: prior` |
+| `measured_free` | Not a pack candidate: `route` adds it first for a current declared free route that is qualified for the op and proof class | Automatic, `selection_basis: measured_free`, `evidence: measured` |
 | `unvalidated` | Weaker arms, no comparable evidence, aggregate-only support, mixed boards, or another task family | Needs judgment, unless an `authorize` directive covers it |
 
 A `task_benchmark_prior` candidate needs a `prior` object (`board`,
@@ -1001,8 +989,8 @@ its own request ID. These values describe one machine's setup and belong in the 
 config, not in the pack.
 
 Governed OpenCode routes are unsupported through this generic destination contract.
-Use the validated model-arm override described under experimental free routes.
-An unsupported destination returns `data_policy.state: refused` and suppresses
+Use the model-arm path described under free routes.
+An unsupported destination returns `free_route.state: refused` and suppresses
 its manual offer instructions as well as its T3 dispatch target.
 
 When an ordinary destination with a target is chosen, and the live catalog (`--available`) lists the instance,
@@ -1081,6 +1069,22 @@ model-catalog pack. It prints proposals, and it writes nothing. It prints:
   stands and needs a reviewed pack release.
 - `stale_pack`: pack models missing from the live catalog, and newer GA models. `unchecked`
   lists pack models whose line or release date is unknown, and the state is then `partial`.
+- `retro`: unique-task quality, for every arm alike. The unit is the receipt's
+  `task_link.consumer_task_id`, so retries, repairs and revisions add no task; the
+  extra decisions are counted and excluded, and decisions without a task link are
+  counted but not used. Each (op, effort, arm) cohort shows its tasks by state
+  (`accepted` first pass, `accepted_after_repair`, `rejected`, `unclosed`,
+  `not_a_verdict`), repairs reported against unknown, how many closes rest on an
+  oracle or independent check, and rework as `none_found`, `found` or `unchecked`
+  (a missing follow-up is never zero rework). A task's judgment is its explicit
+  whole-result close when it has one, else the current close of its first
+  decision; a provider's terminal state is never a close. `comparison` is `matched`
+  only when another arm has at least one closed task at the same op and effort,
+  and then lists those arms; a receipt without a close never matches, and
+  `unmatched` says so. `signals` has one deterministic key per cohort and each
+  further 50 closed tasks, `retro:v1:OP:EFFORT:PROVIDER/MODEL:STEP`. The same
+  ledgers give the same keys, so a scheduler that runs `calibrate` after a close
+  can dedupe on the key and hand the parent a retro. Descriptive only.
 - `quality_signals`: per op and exact arm, closes by outcome, check type and launch
   `purpose` (`unknown` when absent), and `rejections`. Only the outcome `rejected`
   is a rejection; `abandoned_by_choice` and `superseded` are never counted as

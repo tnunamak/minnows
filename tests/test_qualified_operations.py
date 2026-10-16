@@ -20,7 +20,7 @@ OPS = ['implement.oracle-bounded', 'docs.lookup']
 
 
 def flags(world, op, command='route', proof='oracle', effort='high'):
-    selected = deepseek_flags(classification='public')
+    selected = deepseek_flags()
     selected[selected.index('effort=high')] = 'effort=' + effort
     return [command, op, *world.args(), '--destinations', world.tmp / 'no-destinations.json',
             *selected, *(['--proof-class', proof] if proof else [])]
@@ -28,15 +28,24 @@ def flags(world, op, command='route', proof='oracle', effort='high'):
 
 @pytest.mark.parametrize('op', OPS)
 @pytest.mark.parametrize('command', ['route', 'resolve'])
-def test_qualified_public_oracle_high_returns_exact_target(world, op, command):
+def test_qualified_oracle_high_returns_exact_target(world, op, command):
     add_opencode_fixture(world)
     out = run(world, *flags(world, op, command))
     assert out['launch_ready'] is True
     assert out['target'] == {'providerInstanceId': 'opencode', 'model': DEEPSEEK_FREE,
                              'options': {'variant': 'high'}}
-    assert out['data_policy']['state'] == 'allowed_public_experimental'
+    assert out['free_route']['state'] == 'allowed'
     if command == 'route':
         assert out['routing']['final']['billing'] == 'free'
+
+
+@pytest.mark.parametrize('op', OPS)
+def test_route_prefers_the_free_arm_for_oracle_checked_work_without_overrides(world, op):
+    add_opencode_fixture(world)
+    out = run(world, 'route', op, *world.args(), '--proof-class', 'oracle')
+    assert out['launch_ready'] is True and out['target']['model'] == DEEPSEEK_FREE
+    assert out['routing']['chosen']['basis'] == 'measured_free' and out['routing']['final']['overridden'] is False
+    assert out['free_route']['state'] == 'allowed'
 
 
 @pytest.mark.parametrize('op', OPS)
@@ -50,7 +59,7 @@ def test_missing_or_nonoracle_proof_cannot_dispatch(world, op, command, proof):
     else:
         assert process.returncode == 0, process.stderr
         refused(out)
-        assert out['data_policy']['refusal'] == 'qualified_operation_requires_oracle_proof'
+        assert out['free_route']['refusal'] == 'qualified_operation_requires_oracle_proof'
 
 
 @pytest.mark.parametrize('op', OPS)
@@ -66,25 +75,17 @@ def test_other_ops_do_not_inherit_qualification(world, op):
     add_opencode_fixture(world)
     out = run(world, *flags(world, op, proof='judged'))
     refused(out)
-    assert out['data_policy']['refusal'] == 'operation_not_qualified'
+    assert out['free_route']['refusal'] == 'operation_not_qualified'
 
 
 @pytest.mark.parametrize('op', OPS)
-@pytest.mark.parametrize('case', ['unknown', 'sensitive-class', 'sensitive-flag', 'account-alias',
-                                 'provider-alias', 'sibling', 'expired', 'missing-evidence',
-                                 'disabled-transport', 'no-experimental', 'missing-account', 'missing-expiry'])
-def test_qualification_keeps_security_floor(world, op, case):
+@pytest.mark.parametrize('case', ['account-alias', 'provider-alias', 'sibling', 'expired', 'missing-evidence',
+                                 'disabled-transport', 'missing-expiry'])
+def test_qualification_keeps_identity_and_availability_floor(world, op, case):
     add_opencode_fixture(world)
-    argv = flags(world, op)
-    route = world.policy['experimental_free_routes'][0]
-    if case == 'unknown':
-        argv.remove('--data-classification')
-        argv.remove('public')
-    elif case == 'sensitive-class':
-        argv[argv.index('public')] = 'sensitive'
-    elif case == 'sensitive-flag':
-        argv.append('--sensitive')
-    elif case == 'account-alias':
+    argv = flags(world, op, 'resolve')
+    route = world.policy['free_routes'][0]
+    if case == 'account-alias':
         world.catalog['data']['providers'][-1]['instanceId'] = 'opencode-alias'
         argv[argv.index('account=opencode')] = 'account=opencode-alias'
     elif case == 'provider-alias':
@@ -100,11 +101,6 @@ def test_qualification_keeps_security_floor(world, op, case):
         route.pop('expires_at_utc')
     elif case == 'disabled-transport':
         route['t3_transport']['enabled'] = False
-    elif case == 'no-experimental':
-        argv.remove('--experimental-route')
-    elif case == 'missing-account':
-        index = argv.index('account=opencode')
-        del argv[index - 1:index + 1]
     process, out = world.cli(*argv, evaluation_time=CLOCK)
     if case in ('missing-evidence', 'missing-expiry', 'disabled-transport'):
         assert process.returncode == 1 and not out
@@ -114,10 +110,10 @@ def test_qualification_keeps_security_floor(world, op, case):
 
 
 @pytest.mark.parametrize('op', OPS)
-@pytest.mark.parametrize('missing', ['provider', 'model', 'effort', 'reason'])
-def test_qualification_requires_every_explicit_override_and_reason(world, op, missing):
+@pytest.mark.parametrize('missing', ['provider', 'model', 'reason'])
+def test_resolve_requires_every_explicit_override_and_reason(world, op, missing):
     add_opencode_fixture(world)
-    argv = flags(world, op)
+    argv = flags(world, op, 'resolve')
     index = argv.index('--reason') if missing == 'reason' else next(
         n - 1 for n, value in enumerate(argv) if isinstance(value, str) and value.startswith(missing + '='))
     del argv[index:index + 2]
@@ -134,7 +130,7 @@ def test_generic_destination_remains_refused_for_qualified_ops(world, op):
     add_opencode_fixture(world)
     out = run(world, *flags(world, op), *destination(world, DEEPSEEK_FREE))
     refused(out)
-    assert out['data_policy']['refusal'] == 'governed_destination_unsupported'
+    assert out['free_route']['refusal'] == 'governed_destination_unsupported'
 
 
 @pytest.mark.parametrize('op', OPS)
@@ -148,7 +144,7 @@ def test_current_qualification_is_required_on_both_replay_paths(world, op, race,
     assert first['launch_ready']
     ledger = world.receipts.read_bytes()
     if revoke:
-        route = world.policy['experimental_free_routes'][0]
+        route = world.policy['free_routes'][0]
         if revoke == 'operation':
             route['qualified_operations'] = [entry for entry in route['qualified_operations'] if entry['id'] != op]
         else:
@@ -168,7 +164,7 @@ def test_current_qualification_is_required_on_both_replay_paths(world, op, race,
     out = json.loads(captured.out)
     if revoke:
         refused(out)
-        assert out['data_policy']['refusal'] == 'experimental_route_receipt_not_currently_authorized'
+        assert out['free_route']['refusal'] == 'free_route_receipt_not_currently_authorized'
     else:
         assert out == first | {'replayed': True}
     assert world.receipts.read_bytes() == ledger
@@ -180,23 +176,24 @@ def test_actual_target_replay_uses_current_proof_and_effort_eligibility(world, o
     add_opencode_fixture(world)
     out = run(world, *flags(world, op))
     policy = copy.deepcopy(world.policy)
-    entry = next(item for item in policy['experimental_free_routes'][0]['qualified_operations'] if item['id'] == op)
+    entry = next(item for item in policy['free_routes'][0]['qualified_operations'] if item['id'] == op)
     if change.startswith('proof'):
         entry['proof_classes'] = [] if change == 'proof-removed' else ['judged']
     elif change == 'effort':
         entry['efforts'] = []
     else:
         entry['scope'] = 'open_ended_research'
-    pd.apply_experimental_route_policy(out, policy, datetime.fromisoformat(CLOCK.replace('Z', '+00:00')), replay=True)
+    pd.apply_free_route_policy(out, policy, datetime.fromisoformat(CLOCK.replace('Z', '+00:00')), replay=True)
     refused(out)
 
 
-@pytest.mark.parametrize('effort', ['low', 'max'])
-def test_exploratory_paths_retain_catalog_validated_efforts(world, effort):
+@pytest.mark.parametrize('effort', ['low', 'high', 'max'])
+def test_unmeasured_paths_are_not_eligible_at_any_effort(world, effort):
     add_opencode_fixture(world)
     for command, op in [('route', 'fanout.explore'), ('resolve', '--no-op')]:
         out = run(world, *flags(world, op, command, proof=None, effort=effort))
-        assert out['target']['options'] == {'variant': effort}
+        refused(out)
+        assert out['free_route']['refusal'] == 'operation_not_qualified'
 
 
 @pytest.mark.parametrize('op', OPS)

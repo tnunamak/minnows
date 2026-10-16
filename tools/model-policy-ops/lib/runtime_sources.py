@@ -76,7 +76,7 @@ def runnable(row):
                 or row.get('status', 'ready') not in ('ready', 'available'))
 
 
-def resolve_arm(arm, available, metadata, account=None, *, experimental_route=None):
+def resolve_arm(arm, available, metadata, account=None, *, free_route=None):
     candidates = []
     for provider in providers(available):
         if driver_family(provider) != arm['provider']:
@@ -107,9 +107,9 @@ def resolve_arm(arm, available, metadata, account=None, *, experimental_route=No
                 result['state'] = 'unavailable_model'
                 return result
             effort_keys = ('effort', 'reasoningEffort', 'thinking')
-            if (experimental_route and experimental_route['provider'] == arm['provider']
-                    and experimental_route['model'] == arm['model']):
-                effort_keys += (experimental_route['effort_option'],)
+            if (free_route and free_route['provider'] == arm['provider']
+                    and free_route['model'] == arm['model']):
+                effort_keys += (free_route['effort_option'],)
             options = [o for o in model.get('options') or [] if o.get('id') in effort_keys]
             if len(options) != 1:
                 result['state'] = 'unknown_effort_surface'

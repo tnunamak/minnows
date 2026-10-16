@@ -25,7 +25,7 @@ from typing import Any
 REPO = Path(__file__).resolve().parents[1]
 DATA = REPO / "data"
 sys.path.insert(0, str(REPO / "tools" / "model-policy-ops" / "lib"))
-from experimental_routes import check_experimental_free_routes
+from free_routes import check_free_routes
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 TAG_RE = re.compile(r"^data-[a-z][a-z0-9-]*-v\d+\.\d+\.\d+$")
 PACK_NAME_RE = re.compile(r"^[a-z][a-z0-9-]*$")
@@ -1183,7 +1183,7 @@ def validate_policy_pack(pack_dir: Path, errors: Errors) -> None:
     if not isinstance(data, dict):
         return
 
-    for message in check_experimental_free_routes(data.get("experimental_free_routes")):
+    for message in check_free_routes(data.get("free_routes")):
         errors.add(p, message)
 
     require_keys(

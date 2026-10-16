@@ -7,7 +7,7 @@ from datetime import timedelta
 
 import directives as directive_store
 import observations as observation_store
-from outcomes import chain_heads, commit_verification_summary, split_rows
+from outcomes import chain_heads, commit_verification_summary, split_rows, task_projection
 from route_inputs import freshness, read_failures
 from routing import ARM_KEYS, expand_candidates
 
@@ -18,6 +18,7 @@ OUTCOME_SCOPE = ('a close describes the delegated result only. For purpose=revie
 # These outcomes record a choice, not a verdict on the arm. They never count as a rejection or an arm failure.
 NOT_ARM_FAILURES = ('abandoned_by_choice', 'superseded')
 INDEPENDENT_CHECKS = ('oracle', 'independent_judged')
+RETRO_MIN_CLOSED_TASKS = 50
 MIN_CLUSTER = 2
 MAX_REASONS = 5
 MAX_IDS = 20
@@ -127,6 +128,78 @@ def quality_signals(receipts, outcome_rows, op_id=None):
     return result
 
 
+def retro_task(head, followups):
+    """One unique consumer task, judged by its current close. Retries and repairs add no task."""
+    if head is None:
+        return {'state': 'unclosed', 'repairs': None, 'rework': 'unchecked', 'independent': False}
+    state = head['outcome'] if head['outcome'] in ('accepted', 'accepted_after_repair', 'rejected') else 'not_a_verdict'
+    found = {f['finding'] for f in followups.get(head['decision_id'], []) if f['close_id'] == head['close_id']}
+    rework = 'unchecked' if not found else 'none_found' if found == {'no_rework_found'} else 'found'
+    return {'state': state, 'repairs': head['repairs'], 'rework': rework, 'independent': head['check'] in INDEPENDENT_CHECKS}
+
+
+def retro_cohort(tasks):
+    """Counts for one (op, effort, arm). Unknown repairs and unchecked rework are never counted as zero."""
+    closed = [t for t in tasks if t['state'] in ('accepted', 'accepted_after_repair', 'rejected')]
+    return {'unique_tasks': len(tasks), 'closed_tasks': len(closed), 'by_state': tally(t['state'] for t in tasks),
+            'closed_with_independent_check': sum(t['independent'] for t in closed),
+            'repairs_reported_sum': sum(t['repairs'] for t in closed if t['repairs'] is not None),
+            'repairs_unknown': sum(t['repairs'] is None for t in closed),
+            'rework': tally(t['rework'] for t in closed)}
+
+
+def retro(receipts, outcome_rows):
+    """Unique-task quality by (op, effort, arm), each against closed tasks of other arms at the same op and effort.
+
+    A task is a `task_link.consumer_task_id`; its arm is the arm of its first recorded decision. Its judgment is the
+    explicit whole-result close when the task declares one, else the current close of that first decision. Decisions
+    without a task link cannot be de-duplicated and are only counted. A comparison is `matched` only when another arm has at least
+    one closed task at that op and effort; a receipt without a close never makes a match. `signals` carries one
+    deterministic key per cohort and threshold step (`RETRO_MIN_CLOSED_TASKS`): the same ledgers give the same keys, so
+    an external scheduler can dedupe on them. Descriptive only; arms are not assigned at random.
+    """
+    closes, followups = split_rows(list(outcome_rows))
+    heads = {d: rows[0] for d, rows in chain_heads(closes).items() if len(rows) == 1}
+    by_decision = {}
+    for row in followups:
+        by_decision.setdefault(row['decision_id'], []).append(row)
+    by_close = {c['close_id']: c for c in closes}
+    declared = {t: by_close.get(v['current_close_id']) for t, v in task_projection(receipts, list(outcome_rows))['tasks'].items()
+                if v['state'] == 'declared'}
+    firsts, extra, unlinked = {}, 0, 0
+    for receipt in receipts:
+        if receipt['request'].get('op') is None:
+            continue
+        task = (receipt.get('task_link') or {}).get('consumer_task_id')
+        if not task:
+            unlinked += 1
+        elif task in firsts:
+            extra += 1
+        else:
+            firsts[task] = receipt
+    groups = {}
+    for task, receipt in firsts.items():
+        arm = final_arm(receipt)
+        groups.setdefault((receipt['request']['op'], arm['effort'], arm['provider'], arm['model']), []).append(
+            retro_task(declared.get(task) or heads.get(receipt['decision_id']), by_decision))
+    cohorts = {key: retro_cohort(tasks) for key, tasks in groups.items()}
+    result, signals = [], []
+    for key, stats in sorted(cohorts.items()):
+        op, effort, provider, model = key
+        others = [{'arm': {'provider': p, 'model': m, 'effort': effort}, 'closed_tasks': c['closed_tasks']}
+                  for (o, e, p, m), c in sorted(cohorts.items()) if (o, e) == (op, effort) and (p, m) != (provider, model) and c['closed_tasks']]
+        step = stats['closed_tasks'] // RETRO_MIN_CLOSED_TASKS * RETRO_MIN_CLOSED_TASKS
+        comparison = ({'state': 'matched', 'basis': 'closed_tasks_of_other_arms_at_same_op_and_effort', 'comparators': others} if others
+                      else {'state': 'unmatched', 'reason': 'no_closed_task_of_another_arm_at_this_op_and_effort'})
+        result.append({'op': op, 'arm': {'provider': provider, 'model': model, 'effort': effort}} | stats | {'comparison': comparison})
+        if step:
+            signals.append({'key': f'retro:v1:{op}:{effort}:{provider}/{model}:{step}', 'closed_tasks': stats['closed_tasks'],
+                            'threshold': RETRO_MIN_CLOSED_TASKS, 'comparison': comparison['state']})
+    return {'label': 'descriptive_only', 'unit': 'task_link.consumer_task_id',
+            'extra_decisions_in_linked_tasks_excluded': extra, 'unlinked_decisions_not_counted': unlinked,
+            'cohorts': result, 'signals': signals}
+
+
 def evidence_snapshot(receipts, outcome_rows, op_id, arm, instance, failures):
     """Decision support for the chosen exact arm in this op. Never changes the ranking."""
     match = next((s for s in quality_signals(receipts, outcome_rows, op_id) if s['arm'] == arm), None)
@@ -178,6 +251,7 @@ def report(*, receipts, outcome_rows, policy, records, available_providers, mode
     return {'schema_version': 1, 'applies_changes': False, 'observations': observed, 'scope': {'since': since.isoformat() if since else None, 'now': at.isoformat()},
             'override_clusters': override_clusters(receipts, policy),
             'stale_pack': fresh,
+            'retro': retro(receipts, outcome_rows),
             'quality_signals': {'label': 'descriptive_only', 'confounding': CONFOUNDING, 'outcome_scope': OUTCOME_SCOPE,
                                 'not_arm_failures': list(NOT_ARM_FAILURES),
                                 'oracle_and_independent_checks_are_separate_from_maker_or_parent_claims': True,

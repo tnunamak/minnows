@@ -234,9 +234,14 @@ def supplied_extensions(receipt):
     return supplied
 
 
+# Request keys of the retired experimental-route flags; a receipt written with them still replays.
+RETIRED_REQUEST_KEYS = ('experimental_route', 'data_classification', 'sensitive')
+
+
 def caller_intent(request):
     # Runtime observations are pinned evidence, not caller identity. Accept old receipts.
-    return {k: v for k, v in request.items() if k not in ('available', 'quota') and not (k == 'relaunch_of' and v is None)}
+    return {k: v for k, v in request.items() if k not in ('available', 'quota', *RETIRED_REQUEST_KEYS)
+            and not (k == 'relaunch_of' and v is None)}
 
 
 def replay_receipt(old, request, launch_facts=None, extensions=None):

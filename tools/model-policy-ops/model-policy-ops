@@ -13,7 +13,7 @@ REPO = Path(__file__).resolve().parents[2]
 PACK = REPO / "data" / "model-choice-policy"
 OPERATING_POINTS = PACK / "operating-points.json"
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
-from experimental_routes import check_experimental_free_routes
+from free_routes import check_free_routes
 
 
 def select_policy(explicit_path):
@@ -142,7 +142,7 @@ def check_policy(policy: dict) -> list[str]:
                 errors.append(f"{where}: missing expands_to.{key}")
         errors.extend(check_candidates(op, where))
     errors.extend(check_routing(policy.get("routing")))
-    errors.extend(check_experimental_free_routes(policy.get("experimental_free_routes")))
+    errors.extend(check_free_routes(policy.get("free_routes")))
     if not policy.get("catalog_ref"):
         errors.append("missing catalog_ref")
     if not policy.get("policy_version"):
@@ -261,8 +261,8 @@ def brief_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
     }
     if waiting:
         brief["waiting"] = {"state": "selected_waiting", "assertion": "caller_claim", "warning": waiting}
-    if "data_policy" in result:
-        brief["data_policy"] = result["data_policy"]
+    if "free_route" in result or "data_policy" in result:
+        brief["free_route"] = result.get("free_route") or result.get("data_policy")
     if destination == "model":
         brief["routed"] = routed
     else:
@@ -318,7 +318,7 @@ def line_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
     line["judgment"] = [f"{r.get('applies_to', '?')}:{r.get('code')}" for r in brief.get("judgment_reasons") or []]
     line["reason"] = line_reason(result)
     line["receipt"] = brief["receipt"].get("path") if brief["receipt"]["stored"] else brief["receipt"].get("reason")
-    for key in ("waiting", "data_policy", "simulation", "simulated_target"):
+    for key in ("waiting", "free_route", "simulation", "simulated_target"):
         if key in brief:
             line[key] = brief[key]
     if result.get("target") is None and "destination_offer" in brief:

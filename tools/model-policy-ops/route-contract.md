@@ -1,6 +1,6 @@
 # `route` delivery contract (v1, revision 28)
 
-Status: revision 28, 2026-10-16. Revision 28 adds an optional per-purpose op scope to destination entries (see the changelog). Revision 27 makes the default route/resolve stdout one small line; `--json` prints the full receipt (see the changelog). Revision 26 records why each destination was not used on every route and resolve receipt (see the changelog). Revision 25 adds optional public-source qualification for implement.oracle-bounded and docs.lookup with oracle proof and high effort. It preserves primary recommendations and generic governed destination refusal. Current qualification is checked on fresh selection and both replay paths. Revision 24 authorizes every actual returned target through one fresh/replay boundary, including destination replacements and nested targets. Revoked declarations cannot authorize old receipts. New effort surfaces require an explicit policy tuple. Revision 23 records owner authorization for public-only experimental T3 evaluation of the exact OpenCode DeepSeek route; sensitive and unknown inputs, undeclared models, and ordinary operations remain refused. Sandbox and MCP isolation remain future hardening. Revision 22 refuses undeclared OpenCode `variant` models and requires unexpired route evidence at evaluation time. The expiry is a local seven-day policy horizon, not a vendor end date; `--now` remains a non-dispatchable simulation. It records that public classification is a caller assertion and shares one durable validator. Revision 21 adds exact, public-input-only experimental free routes. Revision 20 lets a destination return its own T3 target (see the changelog). Revision 19 ties each quota constraint to one quota window, so a constraint never crosses a reset (see the changelog). Revision 18 fixes independence without a maker, defers quota-state commits until acceptance and requires timezone-aware observation timestamps. Revision 17 moves quota-substitution thresholds out of the shipped pack into a per-user overlay (see the changelog). Revision 16 adds quota-aware substitution to `route` (see the changelog). Revision 15 adds observation notes to `route` (see the changelog). Revision 13 applies the observe round-3 review (see the changelog). Revision 12 applies the observe round-2 review (see the changelog). Revision 11 applies the observe review (see the changelog). Revision 10 adds `observe` (see the changelog). Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
+Status: revision 29, 2026-10-16. Revision 29 treats the free arm as a normal measured arm and adds a `retro` section to `calibrate` (see the changelog). Revision 28 adds an optional per-purpose op scope to destination entries (see the changelog). Revision 27 makes the default route/resolve stdout one small line; `--json` prints the full receipt (see the changelog). Revision 26 records why each destination was not used on every route and resolve receipt (see the changelog). Revision 25 adds optional public-source qualification for implement.oracle-bounded and docs.lookup with oracle proof and high effort. It preserves primary recommendations and generic governed destination refusal. Current qualification is checked on fresh selection and both replay paths. Revision 24 authorizes every actual returned target through one fresh/replay boundary, including destination replacements and nested targets. Revoked declarations cannot authorize old receipts. New effort surfaces require an explicit policy tuple. Revision 23 records owner authorization for public-only experimental T3 evaluation of the exact OpenCode DeepSeek route; sensitive and unknown inputs, undeclared models, and ordinary operations remain refused. Sandbox and MCP isolation remain future hardening. Revision 22 refuses undeclared OpenCode `variant` models and requires unexpired route evidence at evaluation time. The expiry is a local seven-day policy horizon, not a vendor end date; `--now` remains a non-dispatchable simulation. It records that public classification is a caller assertion and shares one durable validator. Revision 21 adds exact, public-input-only experimental free routes. Revision 20 lets a destination return its own T3 target (see the changelog). Revision 19 ties each quota constraint to one quota window, so a constraint never crosses a reset (see the changelog). Revision 18 fixes independence without a maker, defers quota-state commits until acceptance and requires timezone-aware observation timestamps. Revision 17 moves quota-substitution thresholds out of the shipped pack into a per-user overlay (see the changelog). Revision 16 adds quota-aware substitution to `route` (see the changelog). Revision 15 adds observation notes to `route` (see the changelog). Revision 13 applies the observe round-3 review (see the changelog). Revision 12 applies the observe round-2 review (see the changelog). Revision 11 applies the observe review (see the changelog). Revision 10 adds `observe` (see the changelog). Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
 child runs of a maker, the directive cap on write and on read, and final-pair judgment after an
 override (see the changelog). Revision 4 applies the independent checker's
 findings (report r1): maker provenance from the T3 child run, a model line key for
@@ -93,47 +93,50 @@ no preferences. The **policy** is the pack data. Each op has an optional
 
 ## Inputs
 
-### Experimental free route gate
+### Free route gate
 
-An optional root `experimental_free_routes` pack entry is exact metadata;
-it does not join candidate ranking. The optional route qualifies exactly
-`implement.oracle-bounded` and `docs.lookup`, requiring `--proof-class oracle`
-and high effort. Implementation is limited to small PUBLIC source changes whose
-full acceptance standard has a deterministic oracle. Lookup is limited to known
-PUBLIC sources with a structured fact oracle, excluding open-ended research.
-Primary recommendations are unchanged. `review.audit`, `implement.standard`,
-`advisor.deep` and judged or absent proof remain excluded.
+An optional root `free_routes` pack entry is exact metadata about a temporarily
+free arm. It is a normal arm: earned operations come from measured quality, the
+same standard as any other arm, and nothing else is special. It qualifies
+exactly `implement.oracle-bounded` and `docs.lookup`, requiring
+`--proof-class oracle` and high effort. Implementation is limited to small
+source changes whose full acceptance standard has a deterministic oracle. Lookup
+is limited to known sources with a structured fact oracle, excluding open-ended
+research. Primary recommendations are unchanged. `review.audit`,
+`implement.standard`, `advisor.deep`, `fanout.explore`, `resolve --no-op` and
+judged or absent proof are not qualified. Their broader trial use was never
+measured.
 
-Both qualified operations support `route` and `resolve` with
-`--experimental-route`, exact provider/model/effort/account overrides, a reason
-and `--data-classification public`. The separately authorized `route
-fanout.explore` and `resolve --no-op` paths retain catalog-validated efforts
-without broader qualification. `--sensitive` always refuses. Public classification
-and proof class are caller assertions, not content scanning, proof certification
-or a runtime sandbox guarantee. `--inputs github` does not establish public
-contents. The free billing exception matches only the exact tuple; paid or
-unknown models and account aliases do not inherit it. Effort option keys and
-values come from the live T3 catalog and appear in `target.options`.
+`route` prefers the arm for a qualified op with oracle proof when its dated
+evidence is current and its transport is enabled. It enters as the first
+candidate (`basis: measured_free`, `selection_basis: measured_free`,
+`evidence: measured`) with no flag and no override, and pace counts as on track
+because it has no quota. The routing filters, availability demotion and
+fallback to the primary arm apply as for any arm: three rate-limit or transport
+failures in the lookback demote it, which ranks the pair `at_risk` with the
+reason `free_route_demoted`. An exact override to the arm is allowed for the
+same operations and is checked against the same qualification. Where the input
+lives, `--inputs`, `--sensitive` and `--urgent` do not change eligibility. The
+universal secret and credential path denies apply to every provider. The free
+billing exception matches only the exact provider, model and account tuple;
+paid or unknown models and account aliases do not inherit it. Effort option keys
+and values come from the live T3 catalog and appear in `target.options`.
 
 The current entry is `opencode` / `opencode/deepseek-v4.1-flash-free` / account
 `opencode`, temporarily free at $0 as of 2026-10-15. Auth is recorded as
 `none_observed_owner_smoke` with official docs inconclusive. Numeric rate limits
 remain unknown despite no observed throttles in the small matched benchmark.
-The pack records the upstream zero-retention/no-training attribution separately
-from OpenCode's unpaid-content service-improvement terms. Temporary source fees
-do not measure provider usage or complete workflow cost; both remain unknown.
-The bundled evidence records eight pairs across six contexts, 16 deterministic
-gate passes and one review inspection-scope failure. It does not establish broad
-audit quality or 16 whole-task acceptances.
+Temporary source fees do not measure provider usage or complete workflow cost;
+both remain unknown. The bundled evidence records eight pairs across six
+contexts, 16 deterministic gate passes and one review inspection-scope failure.
+It does not establish broad audit quality or 16 whole-task acceptances.
 
-Missing, future-dated, malformed or expired source evidence refuses the route.
-The UTC expiry is a local seven-day recheck horizon, not a vendor end date.
-Undeclared OpenCode models using `variant` are refused. Shared OpenCode host
-tools and injected `t3_thread_read` private-thread access remain known risks;
-provider sandbox and MCP isolation remain later hardening. Private repositories,
-PDPP data, secrets, Jev text and personal data are prohibited.
+Missing, future-dated, malformed or expired source evidence removes the arm from
+routing and refuses an override to it. The UTC expiry is a local seven-day
+recheck horizon, not a vendor end date. Undeclared OpenCode models using
+`variant` are refused.
 
-Fresh target authorization and receipt replay require current exact identity,
+Fresh target authorization and receipt replay require the actual target's current exact identity,
 operation, proof, effort and source evidence eligibility. Replay checks recorded
 launch facts on early lookup and locked append-race replay, without rewriting
 historical ledger bytes. Stored governance metadata and legacy OpenCode
@@ -526,6 +529,7 @@ protect quality, not quota.
 
 ## Changelog
 
+- Revision 29 (2026-10-16): the declared free arm is an ordinary measured arm. Remove the experimental flag, `--data-classification`, the public-only gate, the sensitive refusal and the exploration paths (`fanout.explore`, `resolve --no-op`); the arm is eligible only for its two measured operations. `route` prefers a current qualified free arm for oracle-checked work without flags or overrides (`basis: measured_free`). Authorization checks the actual returned target. Receipts written with the retired flags still replay. `calibrate` gains `retro`: unique `task_link` tasks by op, effort and arm with first-pass, repaired, rejected and unclosed counts, rework missingness, a same-op-and-effort closed comparator and deterministic threshold signal keys.
 - Revision 28 (2026-10-16): destination op scope. A destination entry may add `op_scope` `{PURPOSE: [OP, ...]}`; a listed purpose is eligible only for those ops, other purposes keep every op. Out-of-scope requests are `not_eligible` with `op_not_in_scope`, and resolve's `listed_for_purpose` applies the same rule. Facts, proof rules, ranking and dispatch are unchanged.
 - Revision 27 (2026-10-15): default stdout. `route` and `resolve` print one small JSON line: `decision_id`, `target`, `destination`, `launch_ready`, `dispatch`, `judgment_required`, `judgment` (`APPLIES_TO:CODE`), `reason`, `receipt`, `replayed`, and when present `waiting`, `data_policy`, the simulation keys and (target null only) `destination_offer`. `--json` prints the full receipt; `--brief` is unchanged. The ledger, validation, ranking and dispatch are unchanged.
 - Revision 26 (2026-10-15): destination skip reasons. `routing.destination.not_eligible` names each destination whose purposes exclude the request (`purpose_not_listed` or `purpose_unknown`, with the purpose). Later eligible destinations after a chosen one are in `considered` as `not_probed_earlier_chosen`. With no config read, `routing.destination` is `{chosen: model, considered: [], not_considered: destinations_<state>}`. Every resolve receipt has `destination_skip` `{reason: explicit_resolution, destinations: [{name, listed_for_purpose}]}` or `{reason, destinations_state: missing|unreadable}`; resolve reads the file but never probes, and a bad or unreadable file never blocks it. `choice.considered` repeats these as destination rows. Audit adds `spend_first_daily` with exclusive classes. No ranking, target or dispatch changes.

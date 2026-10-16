@@ -1,4 +1,4 @@
-"""Shared validation for policy-declared experimental free routes."""
+"""Shared validation for policy-declared free routes."""
 from datetime import date, datetime
 import re
 
@@ -6,25 +6,16 @@ import re
 _TEMPORARY_STATUS = re.compile(r"^temporary_free_as_of_(\d{4}-\d{2}-\d{2})$")
 _AUTH_STATES = {"none_observed_owner_smoke", "required", "unknown"}
 _AUTH_DOC_STATES = {"inconclusive", "none_documented", "required_documented"}
-_REQUIRED_PROHIBITED_INPUTS = {
-    "private_repositories", "PDPP_data", "secrets", "Jev_text", "personal_data",
-}
-_REQUIRED_T3_RISKS = {
-    "shared_server_host_tools", "injected_t3_thread_read_private_thread_access",
-}
 QUALIFICATION_EVIDENCE = "evidence/deepseek-public-eval-2026-10-15.json"
 QUALIFIED_SCOPES = {
-    "implement.oracle-bounded": "small_public_source_change_full_deterministic_oracle",
-    "docs.lookup": "known_public_source_lookup_structured_fact_oracle",
+    "implement.oracle-bounded": "small_source_change_full_deterministic_oracle",
+    "docs.lookup": "known_source_lookup_structured_fact_oracle",
 }
-_TRANSPORT_SCOPE = "qualified_operations_or_fanout.explore_or_resolve_no_op_exact_overrides_public_only"
-_EXPLORATORY_SCOPE = "fanout.explore_or_resolve_no_op_exact_overrides_public_only"
+_TRANSPORT_SCOPE = "qualified_operations"
 
 
-def operation_refusal(route, op, *, routed, no_op, proof_class, effort):
-    """Check declared qualification, keeping the separately authorized exploration paths."""
-    if (routed and op == "fanout.explore") or (not routed and no_op):
-        return None
+def operation_refusal(route, op, *, proof_class, effort):
+    """Check declared qualification. Only measured operations are eligible."""
     if check_qualified_operations(route.get("qualified_operations"), "qualified_operations"):
         return "operation_qualification_invalid"
     qualified = next((item for item in route.get("qualified_operations", []) if item["id"] == op), None)
@@ -35,6 +26,36 @@ def operation_refusal(route, op, *, routed, no_op, proof_class, effort):
     if effort not in qualified["efforts"]:
         return "qualified_operation_requires_high_effort"
     return None
+
+
+def availability_refusal(route, evaluated_at):
+    """Refuse a route whose dated evidence is missing, future-dated or expired, or whose T3 transport is off."""
+    expires_at = parse_utc_timestamp(route.get('expires_at_utc'))
+    if expires_at is None:
+        return 'verification_expiry_missing_or_invalid'
+    if not has_current_evidence(route, evaluated_at):
+        return 'verification_evidence_from_future_or_invalid'
+    if evaluated_at >= expires_at:
+        return 'verification_expired'
+    if (route.get('t3_transport') or {}).get('enabled') is not True:
+        return 't3_transport_disabled'
+    return None
+
+
+def preferred_route(routes, op, proof_class, evaluated_at):
+    """The first current route whose measured qualification covers this op and proof class, with its qualified effort.
+
+    Returns (route, effort) or (None, None). This is the one place a free route becomes a routing candidate.
+    """
+    for route in routes or []:
+        qualified = next((item for item in route.get('qualified_operations', []) if item.get('id') == op), None)
+        if qualified is None or not qualified['efforts']:
+            continue
+        effort = qualified['efforts'][0]
+        if (operation_refusal(route, op, proof_class=proof_class, effort=effort) is None
+                and availability_refusal(route, evaluated_at) is None):
+            return route, effort
+    return None, None
 
 
 def check_qualified_operations(qualified, label):
@@ -56,7 +77,7 @@ def check_qualified_operations(qualified, label):
         if (item["proof_classes"] not in ([], ["oracle"]) or item["efforts"] != ["high"]
                 or item["scope"] != QUALIFIED_SCOPES[op]
                 or item["evidence_ref"] != QUALIFICATION_EVIDENCE):
-            errors.append(f"{label}.{op} requires oracle proof, high effort, its reviewed public scope and qualification evidence")
+            errors.append(f"{label}.{op} requires oracle proof, high effort, its measured scope and qualification evidence")
     return errors
 
 
@@ -102,17 +123,17 @@ def has_current_evidence(route, evaluated_at):
     return status_date <= evaluated_at.date() and all(accessed <= evaluated_at.date() for accessed in accessed_dates)
 
 
-def check_experimental_free_routes(routes):
-    """Validate durable evidence shape while enforcing the fixed public-data floor."""
+def check_free_routes(routes):
+    """Validate the declared free-route shape, its qualification and its temporary-availability evidence."""
     if routes is None:
         return []
     if not isinstance(routes, list):
-        return ["experimental_free_routes must be a list"]
+        return ["free_routes must be a list"]
 
     errors = []
     seen = set()
     for index, route in enumerate(routes):
-        label = f"experimental_free_routes[{index}]"
+        label = f"free_routes[{index}]"
         if not isinstance(route, dict):
             errors.append(f"{label} must be an object")
             continue
@@ -135,15 +156,10 @@ def check_experimental_free_routes(routes):
         qualified = route.get("qualified_operations")
         errors.extend(check_qualified_operations(qualified, f"{label}.qualified_operations"))
         transport = route.get("t3_transport")
-        risks = transport.get("known_risks") if isinstance(transport, dict) else None
-        allowed_scopes = [_TRANSPORT_SCOPE] if qualified else [_TRANSPORT_SCOPE, _EXPLORATORY_SCOPE]
         if (not isinstance(transport, dict) or transport.get("enabled") is not True
-                or transport.get("authorization") != "owner_public_experimental_2026-10-15"
-                or transport.get("scope") not in allowed_scopes
-                or not isinstance(risks, list)
-                or any(not isinstance(risk, str) for risk in risks)
-                or not _REQUIRED_T3_RISKS.issubset(risks)):
-            errors.append(f"{label}.t3_transport must record the owner's public-only experimental authorization and both known isolation risks")
+                or transport.get("authorization") != "owner_free_route_trial_2026-10-15"
+                or transport.get("scope") != _TRANSPORT_SCOPE):
+            errors.append(f"{label}.t3_transport must record the owner's free-route authorization and its qualified-operation scope")
 
         authentication = route.get("authentication")
         if (not isinstance(authentication, dict)
@@ -167,19 +183,6 @@ def check_experimental_free_routes(routes):
         expiry_basis = route.get("expiry_basis")
         if not isinstance(expiry_basis, str) or "local_policy_horizon" not in expiry_basis:
             errors.append(f"{label}.expiry_basis must state the local_policy_horizon")
-
-        privacy = route.get("data_policy")
-        if (not isinstance(privacy, dict)
-                or privacy.get("classification_required") != "public"
-                or privacy.get("sensitive_flag_forces_refusal") is not True
-                or not isinstance(privacy.get("provider_zero_retention"), str)
-                or not privacy["provider_zero_retention"].strip()
-                or not isinstance(privacy.get("opencode_unpaid_processing"), str)
-                or not privacy["opencode_unpaid_processing"].strip()):
-            errors.append(f"{label}.data_policy must require public inputs and record both processing layers")
-        prohibited = privacy.get("prohibited_inputs") if isinstance(privacy, dict) else None
-        if not isinstance(prohibited, list) or not _REQUIRED_PROHIBITED_INPUTS.issubset(prohibited):
-            errors.append(f"{label}.data_policy.prohibited_inputs must include private repos, PDPP, secrets, Jev text, and personal data")
 
         evidence = route.get("evidence")
         if not isinstance(evidence, list) or not evidence:

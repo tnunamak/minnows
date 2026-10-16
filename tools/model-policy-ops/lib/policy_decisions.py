@@ -7,7 +7,7 @@ from contextlib import ExitStack
 from datetime import datetime, timezone
 from pathlib import Path
 
-from experimental_routes import has_current_evidence, parse_utc_timestamp, operation_refusal
+from free_routes import availability_refusal, operation_refusal, preferred_route
 from runtime_sources import digest, read_source, providers, provider_instance, driver_family, resolve_arm, quota_context
 from decision_receipts import read_receipts, find_receipt, append_receipt, validate_id, replay_receipt, validate_escalation_source
 from decision_receipts import receipt_extensions, capture_choice
@@ -52,8 +52,6 @@ def add_arguments(parser):
     parser.add_argument('--urgent', action='store_true', help='launch fact; absent means unknown')
     parser.add_argument('--irreversible', action='store_true', help='launch fact; absent means unknown')
     parser.add_argument('--inputs', choices=outcomes.INPUTS, help='launch fact: where the task inputs are; absent means unknown')
-    parser.add_argument('--data-classification', choices=['public', 'sensitive'], help='experimental free routes require an explicit public declaration')
-    parser.add_argument('--experimental-route', action='store_true', help='explicitly request a policy-declared experimental free route')
     parser.add_argument('--sensitive', action='store_true', help='launch fact: the task touches credential or signing code; absent means unknown')
     parser.add_argument('--skip-destination', action='append', default=[], choices=destinations.SKIP_REASONS, metavar='REASON',
                         help='route: decline the destination (local-inputs|synchronous|credential|unavailable|other); repeatable; requires --reason')
@@ -103,22 +101,12 @@ def quota_authorized_by(args):
     return 'pack routing.quota_substitution'
 
 
-def authorized_experimental_route(args, policy):
-    """Return only an exact, explicitly requested public route; no account map is needed."""
-    if not args.experimental_route or args.data_classification != 'public' or args.sensitive:
+def candidate_free_route(args, policy, at):
+    """The current free route whose measured qualification covers this op and proof class; no flag or override is needed."""
+    if args.command != 'route':
         return None
-    supplied = {}
-    for item in args.override:
-        key, separator, value = item.partition('=')
-        if separator:
-            supplied[key] = value
-    for route in policy.get('experimental_free_routes', []):
-        expected = {'provider': route['provider'], 'model': route['model'], 'account': route['account']}
-        if (all(supplied.get(key) == value for key, value in expected.items()) and 'effort' in supplied
-                and operation_refusal(route, args.op, routed=args.command == 'route', no_op=args.no_op,
-                                      proof_class=args.proof_class, effort=supplied['effort']) is None):
-            return route
-    return None
+    route, effort = preferred_route(policy.get('free_routes'), args.op, args.proof_class, at)
+    return dict(route, effort=effort) if route else None
 
 
 def route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack):
@@ -140,7 +128,7 @@ def route_choice(args, policy, op, available, available_meta, quota, quota_meta,
                                accounts=accounts, directives=directive_store.active(records, at, max_days), maker=maker,
                                independence=args.independence, proof_class=args.proof_class, line_of=line_of,
                                failures=failures, freshness=fresh, now=at,
-                               experimental_route=authorized_experimental_route(args, policy),
+                               free_route=candidate_free_route(args, policy, at),
                                substitution=routing.substitution_context(params, accounts, quota, quota_meta, at, args.quota_state, write=not args.now,
                                                               authorized_by=quota_authorized_by(args), stack=stack))
     block = routing.route(op, params, ctx)
@@ -188,7 +176,7 @@ def run_calibrate(args, policy, at):
                             model_catalog=model_catalog, db=args.db, since=since, at=at, params=policy.get('routing', {}))
 
 
-REFUSED_READINESS = 'experimental route refused by its current public-input data policy'
+REFUSED_READINESS = 'free route refused by its current qualification, evidence or transport state'
 
 
 def clear_targets(value, *, refuse_submission=False):
@@ -347,11 +335,6 @@ def execute_locked(args, policy, stack):
                'reason': args.reason, 'parent': {'model': args.parent_model, 'provider_instance_id': args.parent_provider_instance, 'thread_id': args.parent_thread},
                'escalate_from': args.escalate_from, 'why': args.why, 'handoff_boundary': args.handoff_boundary,
                'relaunch_of': args.relaunch_of}
-    if args.experimental_route:
-        request['experimental_route'] = True
-        request['sensitive'] = args.sensitive
-    if args.data_classification is not None:
-        request['data_classification'] = args.data_classification
     if route:
         request |= {'route': True, 'maker': args.maker, 'maker_model': args.maker_model, 'independence': args.independence}
         # Added only when a destinations file or a skip exists, so a route without them keeps its old request shape.
@@ -361,7 +344,7 @@ def execute_locked(args, policy, stack):
     if old:
         replayed = replay_receipt(old, request, facts, extensions)
         proposed = next((entry.get('target') for entry in dest_entries if entry['name'] == replayed.get('destination')), None)
-        apply_experimental_route_policy(replayed, policy, datetime.now(timezone.utc), replay=True, destination_target=proposed)
+        apply_free_route_policy(replayed, policy, datetime.now(timezone.utc), replay=True, destination_target=proposed)
         return replayed
     # Exact historical replay wins. Validate known fresh routes (including simulations)
     # before reading runtime sources, running probes or acquiring writable quota state.
@@ -404,8 +387,8 @@ def execute_locked(args, policy, stack):
             raise ValueError('same-arm quality retry is not escalation')
         escalation = {'from': args.escalate_from, 'to_op': args.op, 'why': args.why,
                       'handoff_boundary': args.handoff_boundary}
-    declared_route = next((row for row in policy.get('experimental_free_routes', [])
-                           if (row['provider'], row['model']) == (arm['provider'], arm['model'])), None)
+    declared = lambda: next((row for row in policy.get('free_routes', [])
+                             if (row['provider'], row['model']) == (arm['provider'], arm['model'])), None)
     routing_block = None
     if route:
         routing_block, accounts, ctx = route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack)
@@ -421,7 +404,7 @@ def execute_locked(args, policy, stack):
             selection = {'arm': arm, 'accounts': routing.catalog_instances(available, arm['provider']), 'state': 'no_route_target',
                          'target': None, 'authentication': 'not_attested'}
         else:
-            selection = resolve_arm(arm, available, available_meta, account, experimental_route=declared_route)
+            selection = resolve_arm(arm, available, available_meta, account, free_route=declared())
         final_instance = selection['target']['providerInstanceId'] if selection['target'] else account
         entry = accounts.get(final_instance) or {}
         quota_info = quota_context(quota, quota_meta, arm, entry.get('quota_provider'), entry.get('quota_source'), at)
@@ -429,7 +412,7 @@ def execute_locked(args, policy, stack):
         routing.finalize(routing_block, ctx, op, final_arm, final_instance, selection, routed=routed, overridden=bool(overrides))
     else:
         selection = resolve_arm(arm, available, available_meta, overrides.get('account', args.account_hint),
-                                experimental_route=declared_route)
+                                free_route=declared())
         quota_info = quota_context(quota, quota_meta, arm, args.quota_provider, args.quota_source)
     context = dict(op) if op else {'id': None, 'known_gaps': ['No policy operating point selected'], 'evidence_refs': [], 'escalate_to': []}
     alternatives = []
@@ -520,7 +503,7 @@ def execute_locked(args, policy, stack):
             else:
                 return_value['launch_readiness_basis'] = ('destination chosen; the root decision ID does not match its request_id_pattern; '
                                                           'submit by hand or re-route with a matching decision ID')
-    apply_experimental_route_policy(return_value, policy, at, available=available, destination_target=proposed_destination)
+    apply_free_route_policy(return_value, policy, at, available=available, destination_target=proposed_destination)
 
     if simulation:
         simulated = return_value['target']
@@ -556,12 +539,19 @@ def execute_locked(args, policy, stack):
         recorded = append_receipt(args.receipts, return_value, extensions)
         if recorded.get('replayed'):
             proposed = next((entry.get('target') for entry in dest_entries if entry['name'] == recorded.get('destination')), None)
-            apply_experimental_route_policy(recorded, policy, datetime.now(timezone.utc), replay=True, destination_target=proposed)
+            apply_free_route_policy(recorded, policy, datetime.now(timezone.utc), replay=True, destination_target=proposed)
         else:
             commit_quota()
         return recorded
     commit_quota()
     return return_value
+
+
+def stored_free_route(result):
+    """The receipt's stored free-route record; old receipts used the legacy `data_policy` key."""
+    if not isinstance(result, dict):
+        return {}
+    return result.get('free_route') or result.get('data_policy') or {}
 
 
 def dispatch_identities(result, available=None, destination_target=None):
@@ -584,7 +574,7 @@ def dispatch_identities(result, available=None, destination_target=None):
     visit(result)
     if destination_target:
         nodes.append({'target': destination_target})
-    stored = (result.get('data_policy') or {}).get('targets', [])
+    stored = stored_free_route(result).get('targets', [])
     known = {(row['account'], row['model']): row['provider'] for row in stored}
     for node in nodes:
         arm, target = node.get('arm'), node.get('target')
@@ -622,55 +612,35 @@ def dispatch_identities(result, available=None, destination_target=None):
     return identities
 
 
-def experimental_target_refusal(identity, request, sensitive, routes, evaluated_at, *, proof_class=None, generic_destination=False):
+def free_route_target_refusal(identity, request, routes, evaluated_at, *, proof_class=None, generic_destination=False):
     """One current exact authorization is required for each governed identity."""
     declared = next((row for row in routes if row['provider'] == identity['provider']
                      and row['model'] == identity['model']), None)
     model_alias = next((row for row in routes if row['model'] == identity['model']), None)
     route = declared or model_alias
     if route is None:
-        return None, 'model_not_declared_for_experimental_route'
+        return None, 'model_not_declared_for_free_route'
     if declared is None:
         return route, 'provider_alias_not_allowed'
-    if sensitive:
-        return route, 'sensitive_inputs'
-    if request.get('data_classification') != 'public':
-        return route, 'public_classification_required'
     if generic_destination:
         return route, 'governed_destination_unsupported'
-    overrides = request.get('overrides') or {}
-    explicit = (request.get('experimental_route') is True
-                and bool((request.get('reason') or '').strip())
-                and all(overrides.get(key) == identity[key] == route[key] for key in ('provider', 'model', 'account'))
-                and overrides.get('effort') is not None and overrides['effort'] == identity['effort'])
-    if not explicit:
-        return route, 'exact_experimental_override_required'
-    scope_refusal = operation_refusal(route, request.get('op'), routed=request.get('route') is True,
-                                      no_op=request.get('no_op') is True, proof_class=proof_class,
-                                      effort=identity['effort'])
+    if not all(identity[key] == route[key] for key in ('provider', 'model', 'account')):
+        return route, 'target_identity_mismatch'
+    scope_refusal = operation_refusal(route, request.get('op'), proof_class=proof_class, effort=identity['effort'])
     if scope_refusal:
         return route, scope_refusal
-    expires_at = parse_utc_timestamp(route.get('expires_at_utc'))
-    if expires_at is None:
-        return route, 'verification_expiry_missing_or_invalid'
-    if not has_current_evidence(route, evaluated_at):
-        return route, 'verification_evidence_from_future_or_invalid'
-    if evaluated_at >= expires_at:
-        return route, 'verification_expired'
-    if (route.get('t3_transport') or {}).get('enabled') is not True:
-        return route, 't3_transport_disabled'
-    return route, None
+    return route, availability_refusal(route, evaluated_at)
 
 
-def apply_experimental_route_policy(result, policy, evaluated_at, *, available=None, replay=False, destination_target=None):
+def apply_free_route_policy(result, policy, evaluated_at, *, available=None, replay=False, destination_target=None):
     """Authorize actual targets once, for both fresh decisions and historical replay.
 
     Identification is intentionally independent of current declarations: revoking
     a route cannot turn its old receipts into ordinary authorized dispatches.
     OpenCode's legacy namespace identifies governed targets; it grants no permission.
     """
-    routes = policy.get('experimental_free_routes', [])
-    previous = result.get('data_policy') or {}
+    routes = policy.get('free_routes', [])
+    previous = stored_free_route(result)
     governed_models = ({row['model'] for row in routes} | {previous.get('route')}
                        | {row['model'] for row in previous.get('targets', [])})
     governed = [identity for identity in dispatch_identities(result, available, destination_target)
@@ -679,36 +649,32 @@ def apply_experimental_route_policy(result, policy, evaluated_at, *, available=N
                     or identity['model'] in governed_models)]
     request = result.get('request') or {}
     if not governed:
-        if request.get('experimental_route') and not result.get('destination') and not replay:
-            raise ValueError('--experimental-route must resolve to an exact policy-declared provider, model, and account override')
         return
-    sensitive = bool(request.get('sensitive') or (result.get('launch_facts') or {}).get('sensitive'))
     for identity in governed:
-        route, refusal = experimental_target_refusal(identity, request, sensitive, routes, evaluated_at,
-                                                     proof_class=(result.get('launch_facts') or {}).get('proof_class'),
-                                                     generic_destination=bool(result.get('destination')))
+        route, refusal = free_route_target_refusal(identity, request, routes, evaluated_at,
+                                                   proof_class=(result.get('launch_facts') or {}).get('proof_class'),
+                                                   generic_destination=bool(result.get('destination')))
         if refusal:
             break
     if replay and refusal is None:
         return  # Preserve an authorized historical snapshot byte-for-byte.
-    result['data_policy'] = {'route': identity['model'], 'account': identity['account'],
-                             'classification': request.get('data_classification') or 'unknown',
-                             't3_transport': (route or {}).get('t3_transport') or {},
-                             'targets': governed,
-                             'state': 'refused' if refusal else 'allowed_public_experimental',
-                             'refusal': ('experimental_route_receipt_not_currently_authorized' if replay and refusal else refusal)}
+    result['free_route'] = {'route': identity['model'], 'account': identity['account'],
+                            't3_transport': (route or {}).get('t3_transport') or {},
+                            'targets': governed,
+                            'state': 'refused' if refusal else 'allowed',
+                            'refusal': ('free_route_receipt_not_currently_authorized' if replay and refusal else refusal)}
     if refusal is None:
         return
     cleared = clear_targets(result, refuse_submission=True)
     result.clear()
     result.update(cleared)
     if isinstance(result.get('selection'), dict):
-        result['selection'] |= {'state': 'data_policy_refused', 'target': None}
+        result['selection'] |= {'state': 'free_route_refused', 'target': None}
     result['launch_ready'] = False
     result['launch_readiness_basis'] = REFUSED_READINESS
     result.pop('simulated_target', None)
     if result.get('routing'):
-        result['routing']['judgment_reasons'].append({'code': 'experimental_data_policy_refused',
-                                                      'detail': result['data_policy']['refusal'],
+        result['routing']['judgment_reasons'].append({'code': 'free_route_refused',
+                                                      'detail': result['free_route']['refusal'],
                                                       'applies_to': 'final'})
         result['routing']['judgment_required'] = True

@@ -158,6 +158,7 @@ def chosen(out):
 
 
 DEEPSEEK_FREE = 'opencode/deepseek-v4.1-flash-free'
+ORACLE_OP = 'implement.oracle-bounded'
 
 
 def add_opencode_fixture(world):
@@ -168,14 +169,10 @@ def add_opencode_fixture(world):
     ]})
 
 
-def deepseek_flags(*, classification=None, sensitive=False):
-    flags = ['--experimental-route', '--override', 'provider=opencode', '--override', f'model={DEEPSEEK_FREE}',
-             '--override', 'effort=high', '--override', 'account=opencode', '--reason', 'Experimental exploration on a public task']
-    if classification:
-        flags += ['--data-classification', classification]
-    if sensitive:
-        flags += ['--sensitive']
-    return flags
+def deepseek_flags():
+    """Exact overrides to the free arm. They are optional for a qualified op: `route` prefers the arm by itself."""
+    return ['--override', 'provider=opencode', '--override', f'model={DEEPSEEK_FREE}',
+            '--override', 'effort=high', '--override', 'account=opencode', '--reason', 'Explicit free-arm choice']
 
 
 def all_target_values(value):
@@ -187,30 +184,57 @@ def all_target_values(value):
     return []
 
 
-def test_experimental_opencode_route_needs_public_classification_and_preserves_variant_target(world):
+def test_qualified_op_prefers_the_free_arm_without_flags_or_overrides(world):
     add_opencode_fixture(world)
-    result, out = world.cli('route', 'fanout.explore', *world.args(), *deepseek_flags(classification='public'),
-                            '--inputs', 'github', evaluation_time='2026-10-15T00:30:00Z')
+    result, out = world.cli('route', ORACLE_OP, *world.args(), '--proof-class', 'oracle', evaluation_time='2026-10-15T00:30:00Z')
     assert result.returncode == 0, result.stderr
     assert out['target'] == {'providerInstanceId': 'opencode', 'model': DEEPSEEK_FREE,
                              'options': {'variant': 'high'}}
     assert out['launch_ready'] is True
-    assert out['data_policy']['state'] == 'allowed_public_experimental'
-    assert out['data_policy']['refusal'] is None
-    assert out['data_policy']['t3_transport']['enabled'] is True
-    assert out['routing']['final']['billing'] == 'free'
-    assert out['routing']['final']['account'] == 'opencode'
+    assert out['free_route']['state'] == 'allowed'
+    assert out['free_route']['refusal'] is None
+    assert out['routing']['chosen']['basis'] == 'measured_free'
+    assert out['routing']['chosen']['evidence'] == 'measured'
+    assert out['routing']['judgment_required'] is False
+    assert out['routing']['final']['billing'] == 'free' and out['routing']['final']['overridden'] is False
+    assert 'free_route' not in out['request'] and 'data_policy' not in out
 
 
-def test_resolve_no_op_can_return_only_the_exact_public_experimental_target(world):
+@pytest.mark.parametrize('inputs', [None, 'github', 'local'])
+@pytest.mark.parametrize('extra', [[], ['--sensitive']])
+def test_input_location_and_launch_facts_do_not_gate_the_free_arm(world, inputs, extra):
     add_opencode_fixture(world)
-    result, out = world.cli('resolve', '--no-op', *world.args(), *deepseek_flags(classification='public'),
+    flags = ['--inputs', inputs] if inputs else []
+    result, out = world.cli('route', ORACLE_OP, *world.args(), '--proof-class', 'oracle', *flags, *extra,
+                            evaluation_time='2026-10-15T00:30:00Z')
+    assert result.returncode == 0, result.stderr
+    assert out['target']['model'] == DEEPSEEK_FREE and out['free_route']['state'] == 'allowed'
+
+
+@pytest.mark.parametrize('proof', ['judged', None])
+def test_free_arm_is_not_preferred_without_oracle_proof(world, proof):
+    add_opencode_fixture(world)
+    out = world.route('docs.lookup', *(['--proof-class', proof] if proof else []))
+    assert out['target']['model'] != DEEPSEEK_FREE and 'free_route' not in out
+
+
+def test_resolve_with_exact_overrides_returns_the_free_target_for_a_qualified_op(world):
+    add_opencode_fixture(world)
+    result, out = world.cli('resolve', ORACLE_OP, *world.args(), '--proof-class', 'oracle', *deepseek_flags(),
                             evaluation_time='2026-10-15T00:30:00Z')
     assert result.returncode == 0, result.stderr
     assert out['target'] == {'providerInstanceId': 'opencode', 'model': DEEPSEEK_FREE,
                              'options': {'variant': 'high'}}
     assert out['launch_ready'] is True
-    assert out['data_policy']['state'] == 'allowed_public_experimental'
+    assert out['free_route']['state'] == 'allowed'
+
+
+def test_resolve_no_op_cannot_use_the_free_arm(world):
+    add_opencode_fixture(world)
+    result, out = world.cli('resolve', '--no-op', *world.args(), *deepseek_flags(), evaluation_time='2026-10-15T00:30:00Z')
+    assert result.returncode == 0, result.stderr
+    assert out['launch_ready'] is False and out['target'] is None
+    assert out['free_route']['refusal'] == 'operation_not_qualified'
 
 
 @pytest.mark.parametrize('model', [
@@ -219,8 +243,7 @@ def test_resolve_no_op_can_return_only_the_exact_public_experimental_target(worl
     'opencode/paid-model',
 ])
 @pytest.mark.parametrize('command', ['resolve', 'route'])
-@pytest.mark.parametrize('classification,sensitive', [(None, False), ('public', False), ('public', True), ('sensitive', False)])
-def test_undeclared_opencode_variant_is_refused_instead_of_launchable(world, model, command, classification, sensitive):
+def test_undeclared_opencode_variant_is_refused_instead_of_launchable(world, model, command):
     add_opencode_fixture(world)
     opencode = next(provider for provider in world.catalog['data']['providers']
                     if provider.get('instanceId') == 'opencode')
@@ -228,16 +251,12 @@ def test_undeclared_opencode_variant_is_refused_instead_of_launchable(world, mod
         {'slug': model, 'options': [{'id': 'variant', 'values': [{'id': 'high'}]}]})
     flags = ['--override', 'provider=opencode', '--override', f'model={model}', '--override',
              'effort=high', '--override', 'account=opencode', '--reason', 'Probe an undeclared OpenCode model']
-    if classification:
-        flags += ['--data-classification', classification]
-    if sensitive:
-        flags += ['--sensitive']
     op_args = ['--no-op'] if command == 'resolve' else ['fanout.explore']
     result, out = world.cli(command, *op_args, *world.args(), *flags)
     assert result.returncode == 0, result.stderr
     assert out['launch_ready'] is False and out['target'] is None
-    assert out['data_policy']['state'] == 'refused'
-    assert out['data_policy']['refusal'] == 'model_not_declared_for_experimental_route'
+    assert out['free_route']['state'] == 'refused'
+    assert out['free_route']['refusal'] == 'model_not_declared_for_free_route'
     assert all(target is None for target in all_target_values(out))
 
 
@@ -246,46 +265,46 @@ def test_undeclared_opencode_variant_is_refused_instead_of_launchable(world, mod
     ('2026-10-15T00:30:00Z', 'verification_expired'),
     ('2026-10-15T00:30:01Z', 'verification_expired'),
 ])
-def test_experimental_route_expiry_boundary_is_exclusive(world, evaluation_time, expected_refusal):
+def test_free_route_expiry_boundary_is_exclusive(world, evaluation_time, expected_refusal):
     add_opencode_fixture(world)
-    route = world.policy['experimental_free_routes'][0]
+    route = world.policy['free_routes'][0]
     route['expires_at_utc'] = '2026-10-15T00:30:00Z'
     route['status'] = 'temporary_free_as_of_2026-10-15'
     for source in route['evidence']:
         source['accessed'] = '2026-10-15'
-    result, out = world.cli('route', 'fanout.explore', *world.args(), *deepseek_flags(classification='public'),
+    result, out = world.cli('route', ORACLE_OP, *world.args(), '--proof-class', 'oracle', *deepseek_flags(),
                             evaluation_time=evaluation_time)
     assert result.returncode == 0, result.stderr
     if expected_refusal is None:
         assert out['launch_ready'] is True and out['target']['model'] == DEEPSEEK_FREE
     else:
         assert out['launch_ready'] is False and out['target'] is None
-    assert out['data_policy']['refusal'] == expected_refusal
+    assert out['free_route']['refusal'] == expected_refusal
 
 
 @pytest.mark.parametrize('expiry', [None, 'not-a-date', '2026-10-15T00:30:00+01:00'])
 def test_missing_or_malformed_route_expiry_refuses_dispatch(world, expiry):
     add_opencode_fixture(world)
-    route = world.policy['experimental_free_routes'][0]
+    route = world.policy['free_routes'][0]
     if expiry is None:
         route.pop('expires_at_utc')
     else:
         route['expires_at_utc'] = expiry
-    result, out = world.cli('route', 'fanout.explore', *world.args(), *deepseek_flags(classification='public'))
+    result, out = world.cli('route', ORACLE_OP, *world.args(), '--proof-class', 'oracle', *deepseek_flags())
     assert result.returncode == 1 and out is None
     assert 'expires_at_utc' in result.stderr
 
 
 def test_future_dated_route_evidence_refuses_dispatch(world):
     add_opencode_fixture(world)
-    route = world.policy['experimental_free_routes'][0]
+    route = world.policy['free_routes'][0]
     route['status'] = 'temporary_free_as_of_2026-10-16'
     route['evidence'][0]['accessed'] = '2026-10-16'
-    result, out = world.cli('route', 'fanout.explore', *world.args(), *deepseek_flags(classification='public'),
+    result, out = world.cli('route', ORACLE_OP, *world.args(), '--proof-class', 'oracle', *deepseek_flags(),
                             evaluation_time='2026-10-15T23:59:59Z')
     assert result.returncode == 0, result.stderr
     assert out['launch_ready'] is False and out['target'] is None
-    assert out['data_policy']['refusal'] == 'verification_evidence_from_future_or_invalid'
+    assert out['free_route']['refusal'] == 'verification_evidence_from_future_or_invalid'
 
 
 def test_undeclared_variant_refusal_clears_destination_loaded_target(world):
@@ -304,17 +323,17 @@ def test_undeclared_variant_refusal_clears_destination_loaded_target(world):
     result, out = world.cli('route', 'fanout.explore', *world.args(), '--destinations', destinations,
                             '--purpose', 'research', '--inputs', 'github', '--override', 'provider=opencode',
                             '--override', f'model={model}', '--override', 'effort=high',
-                            '--override', 'account=opencode', '--data-classification', 'public',
-                            '--reason', 'Explore a public research task')
+                            '--override', 'account=opencode',
+                            '--reason', 'Explore a research task')
     assert result.returncode == 0, result.stderr
     assert out['launch_ready'] is False and out['target'] is None
-    assert out['data_policy']['refusal'] == 'model_not_declared_for_experimental_route'
+    assert out['free_route']['refusal'] == 'model_not_declared_for_free_route'
     assert all(target is None for target in all_target_values(out))
 
 
-def test_route_now_simulation_never_dispatches_experimental_free_arm(world):
+def test_route_now_simulation_never_dispatches_the_free_arm(world):
     add_opencode_fixture(world)
-    result, out = world.cli('route', 'fanout.explore', *world.args(), *deepseek_flags(classification='public'),
+    result, out = world.cli('route', ORACLE_OP, *world.args(), '--proof-class', 'oracle', *deepseek_flags(),
                             '--now', '2026-10-20T00:30:00Z', raw=True)
     assert result.returncode == 0, result.stderr
     assert out['launch_ready'] is False and out['target'] is None
@@ -323,89 +342,84 @@ def test_route_now_simulation_never_dispatches_experimental_free_arm(world):
 
 def test_expired_route_cannot_be_bypassed_by_a_recorded_receipt(world):
     add_opencode_fixture(world)
-    flags = ['route', 'fanout.explore', *world.args(), '--decision-id', 'experimental-route-receipt', '--record',
+    flags = ['route', ORACLE_OP, *world.args(), '--proof-class', 'oracle', '--decision-id', 'free-route-receipt', '--record',
              '--parent-model', 'parent', '--parent-provider-instance', 'parent-instance', '--parent-thread', 'parent-thread',
-             *deepseek_flags(classification='public')]
+             *deepseek_flags()]
     first_result, first = world.cli(*flags, evaluation_time='2026-10-15T00:30:00Z')
     assert first_result.returncode == 0, first_result.stderr
     assert first['target']['model'] == DEEPSEEK_FREE and first['launch_ready'] is True
-    world.policy['experimental_free_routes'][0]['expires_at_utc'] = '2026-10-14T00:00:00Z'
+    world.policy['free_routes'][0]['expires_at_utc'] = '2026-10-14T00:00:00Z'
 
     replay_result, replay = world.cli(*flags, evaluation_time='2026-10-15T00:30:00Z')
     assert replay_result.returncode == 0, replay_result.stderr
     assert replay['replayed'] is True
     assert replay['launch_ready'] is False and replay['target'] is None
-    assert replay['data_policy']['refusal'] == 'experimental_route_receipt_not_currently_authorized'
+    assert replay['free_route']['refusal'] == 'free_route_receipt_not_currently_authorized'
     assert 'dispatch' not in replay
     assert all(target is None for target in all_target_values(replay))
 
 
-def test_experimental_data_policy_is_visible_in_brief_output(world):
+def test_free_route_state_is_visible_in_brief_output(world):
     add_opencode_fixture(world)
-    result, out = world.cli('route', 'fanout.explore', *world.args(), *deepseek_flags(classification='public'),
+    result, out = world.cli('route', ORACLE_OP, *world.args(), '--proof-class', 'oracle', *deepseek_flags(),
                             '--brief', evaluation_time='2026-10-15T00:30:00Z')
     assert result.returncode == 0, result.stderr
-    assert out['data_policy']['state'] == 'allowed_public_experimental'
-    assert out['data_policy']['refusal'] is None
+    assert out['free_route']['state'] == 'allowed'
+    assert out['free_route']['refusal'] is None
     assert out['launch_ready'] is True and out['target']['model'] == DEEPSEEK_FREE
 
 
-@pytest.mark.parametrize('command,classification,sensitive,inputs', [
-    ('route', None, False, None),
-    ('route', None, False, 'github'),
-    ('route', 'sensitive', False, None),
-    ('route', 'public', True, None),
-    ('resolve', None, False, None),
-    ('resolve', 'public', True, None),
-])
-def test_experimental_opencode_route_refuses_unknown_or_sensitive_even_with_override(world, command, classification, sensitive, inputs):
-    add_opencode_fixture(world)
-    op_args = ['fanout.explore'] if command == 'route' else ['--no-op']
-    flags = deepseek_flags(classification=classification, sensitive=sensitive)
-    if inputs:
-        flags += ['--inputs', inputs]
-    result, out = world.cli(command, *op_args, *world.args(), *flags)
+FREE_CLOCK = '2026-10-15T00:30:00Z'
+
+
+def oracle_route(world, evaluation_time=FREE_CLOCK):
+    result, out = world.cli('route', ORACLE_OP, *world.args(), '--proof-class', 'oracle', evaluation_time=evaluation_time)
     assert result.returncode == 0, result.stderr
-    assert out['launch_ready'] is False and out['target'] is None
-    assert out['data_policy']['state'] == 'refused'
-    assert out['selection']['target'] is None
-    assert all(target is None for target in all_target_values(out))
+    return out
 
 
-def test_opencode_free_arm_is_never_selected_by_default(world):
+@pytest.mark.parametrize('clock', ['2026-10-22T00:00:00Z', '2026-10-14T23:59:59Z'])
+def test_expired_or_future_evidence_removes_the_free_candidate_instead_of_refusing_the_route(world, clock):
+    add_opencode_fixture(world)
+    assert oracle_route(world)['target']['model'] == DEEPSEEK_FREE
+    out = oracle_route(world, clock)
+    assert out['target']['model'] != DEEPSEEK_FREE and 'free_route' not in out and out['launch_ready'] is True
+    assert all(row['arm']['model'] != DEEPSEEK_FREE for row in out['routing']['trace'])
+
+
+def test_free_arm_is_never_selected_for_an_unqualified_op(world):
     add_opencode_fixture(world)
     out = world.route('fanout.explore')
     assert out['target']['model'] != DEEPSEEK_FREE
 
 
-def test_experimental_free_route_cannot_replace_an_ordinary_operation(world):
+@pytest.mark.parametrize('op,proof', [('implement.standard', 'judged'), ('fanout.explore', None), ('review.audit', None)])
+def test_explicit_override_cannot_extend_the_free_arm_beyond_measured_ops(world, op, proof):
     add_opencode_fixture(world)
-    result, out = world.cli('route', 'implement.standard', *world.args(), '--proof-class', 'judged',
-                            *deepseek_flags(classification='public'))
+    result, out = world.cli('route', op, *world.args(), *(['--proof-class', proof] if proof else []), *deepseek_flags())
     assert result.returncode == 0, result.stderr
     assert out['launch_ready'] is False and out['target'] is None
-    assert out['data_policy']['state'] == 'refused'
+    assert out['free_route']['state'] == 'refused'
+    assert out['free_route']['refusal'] == 'operation_not_qualified'
 
 
-def test_other_opencode_model_remains_unmapped_not_free(world):
+def test_rate_limited_free_arm_falls_back_to_the_primary_arm(world):
     add_opencode_fixture(world)
-    result, out = world.cli('route', 'fanout.explore', *world.args(), '--override', 'provider=opencode',
-                            '--override', 'model=opencode/paid-model', '--override', 'effort=high',
-                            '--override', 'account=opencode', '--reason', 'Explicit paid-model probe')
-    assert result.returncode == 0, result.stderr
-    assert out['target'] is None and out['launch_ready'] is False
-    assert out['data_policy']['refusal'] == 'model_not_declared_for_experimental_route'
+    world.events += [event('opencode', RATE, at='2026-10-15T00:20:00.000Z') for _ in range(3)]
+    out = oracle_route(world)
+    assert out['target']['model'] != DEEPSEEK_FREE and 'free_route' not in out
+    row = next(t for t in out['routing']['trace'] if t['instance'] == 'opencode' and t['removed_by'] is None)
+    assert row['availability']['class'] == 'demoted'
 
 
 def test_opencode_free_metadata_does_not_follow_account_alias(world):
     add_opencode_fixture(world)
-    flags = deepseek_flags(classification='public')
+    flags = deepseek_flags()
     flags[flags.index('account=opencode')] = 'account=opencode-alias'
-    result, out = world.cli('resolve', '--no-op', *world.args(), *flags)
+    result, out = world.cli('resolve', ORACLE_OP, *world.args(), '--proof-class', 'oracle', *flags)
     assert result.returncode == 0, result.stderr
     assert out['launch_ready'] is False and out['target'] is None
-    assert out['data_policy']['state'] == 'refused'
-    assert out['data_policy']['refusal'] == 'exact_experimental_override_required'
+    assert out['free_route']['state'] == 'refused'
 
 
 def test_same_model_id_under_another_provider_does_not_inherit_free_billing(world):
@@ -418,7 +432,7 @@ def test_same_model_id_under_another_provider_does_not_inherit_free_billing(worl
                             '--override', 'account=other', '--reason', 'Probe the separately configured provider')
     assert result.returncode == 0, result.stderr
     assert out['target'] is None and out['launch_ready'] is False
-    assert out['data_policy']['refusal'] == 'provider_alias_not_allowed'
+    assert out['free_route']['refusal'] == 'provider_alias_not_allowed'
 
 
 def codes(out):

@@ -14,8 +14,8 @@ ARM_KEYS = ('provider', 'model', 'effort')
 PACE_RANK = {'on_track': 0, 'unknown': 1, 'at_risk': 2}
 AVAILABILITY_RANK = {'healthy': 0, 'unknown': 1, 'demoted': 2}
 DEMOTING = ('rate_limit', 'transport')
-SELECTION_BASIS = {'primary': 'primary', 'task_benchmark_prior': 'evidence_prior'}
-EVIDENCE_LABEL = {'primary': 'primary', 'task_benchmark_prior': 'prior', 'unvalidated': 'unvalidated'}
+SELECTION_BASIS = {'primary': 'primary', 'task_benchmark_prior': 'evidence_prior', 'measured_free': 'measured_free'}
+EVIDENCE_LABEL = {'primary': 'primary', 'task_benchmark_prior': 'prior', 'unvalidated': 'unvalidated', 'measured_free': 'measured'}
 INDEPENDENCE_LEVELS = ('vendor', 'family', 'model')
 EFFECTS = ('avoid', 'prefer', 'authorize', 'allow-metered')
 # The filter that removes a pair, in the order the contract applies them, and the reason that a bypass of it raises.
@@ -25,9 +25,21 @@ FINAL_REASONS = {'not_runnable': 'final_not_runnable', 'requires_not_met': 'fina
 SUBSTITUTED = 'quota_substitution_exception'
 
 
-def expand_candidates(op):
-    """Ordered candidates: the op's `expands_to` as the primary, then the pack's `candidates` as alternates."""
+FREE_GAPS = ['Measured on a small matched benchmark; costs for the complete workflow and rate limits are unknown',
+             'The price is temporary and the route carries a local recheck expiry']
+
+
+def expand_candidates(op, free_route=None):
+    """Ordered candidates: a current measured free route first, then the op's `expands_to` as the primary, then the pack's `candidates`.
+
+    `free_route` is a policy-declared route that the caller found current and qualified for this op and proof class.
+    """
     rows = [dict(op['expands_to'], basis='primary'), *op.get('candidates', [])]
+    if free_route:
+        qualified = next(item for item in free_route['qualified_operations'] if item['id'] == op['id'])
+        rows.insert(0, {'provider': free_route['provider'], 'model': free_route['model'], 'effort': free_route['effort'],
+                        'basis': 'measured_free', 'known_gaps': FREE_GAPS, 'evidence_refs': [qualified['evidence_ref']],
+                        'requires': {'proof_class': qualified['proof_classes']}})
     return [{'arm': {k: row[k] for k in ARM_KEYS}, 'basis': row['basis'], 'prior': row.get('prior'),
              'known_gaps': row.get('known_gaps', []), 'evidence_refs': row.get('evidence_refs', []),
              'requires': row.get('requires')} for row in rows]
@@ -180,7 +192,7 @@ def assess_pair(ctx, op_id, arm, instance, requires):
     entry = ctx['accounts'].get(instance)
     billing = entry['billing'] if entry else 'unmapped'
     selection = resolve_arm(arm, ctx['available'], ctx['available_meta'], instance,
-                            experimental_route=ctx.get('experimental_route'))
+                            free_route=ctx.get('free_route'))
     view = quota_view(ctx['quota'], ctx['quota_meta'], arm, entry, ctx['pace_windows'], ctx['now'])
     proof_class = ctx['proof_class']
     hits = []
@@ -188,12 +200,16 @@ def assess_pair(ctx, op_id, arm, instance, requires):
         hits.append(('not_runnable', {'state': selection['state']}))
     if requires and proof_class is not None and proof_class not in requires:
         hits.append(('requires_not_met', {'proof_class': proof_class, 'requires': requires}))
-    exact_experimental_free = (ctx.get('experimental_route') is not None
-                               and ctx['experimental_route']['provider'] == arm['provider']
-                               and ctx['experimental_route']['model'] == arm['model']
-                               and ctx['experimental_route']['account'] == instance)
-    if exact_experimental_free:
+    exact_free_route = (ctx.get('free_route') is not None
+                        and ctx['free_route']['provider'] == arm['provider']
+                        and ctx['free_route']['model'] == arm['model']
+                        and ctx['free_route']['account'] == instance)
+    if exact_free_route:
         billing = 'free'
+        if view['pace_reason'] == 'unmapped_account':
+            # No quota to pace: the arm is on track unless rate limits or transport failures have demoted it.
+            demoted = availability_view(ctx['failures'], ctx['demote_count'], instance)['class'] == 'demoted'
+            view = view | {'pace': 'at_risk' if demoted else 'on_track', 'pace_reason': 'free_route_demoted' if demoted else None}
     if billing not in ('subscription', 'free') and not matched['allow-metered']:
         hits.append(('billing_not_subscription', {'billing': billing}))
     if matched['avoid']:
@@ -238,7 +254,7 @@ def is_review(op, params):
 
 
 def make_context(op, params, *, available, available_meta, quota, quota_meta, accounts, directives, maker, independence,
-                 proof_class, line_of, failures, freshness, now, experimental_route=None, substitution=None):
+                 proof_class, line_of, failures, freshness, now, free_route=None, substitution=None):
     """The inputs that every pair assessment shares. A review op without a pack `independence_default` requires `vendor`.
 
     `level_source` says where the level came from: the `flag`, the `pack` or the `mechanism_default`.
@@ -254,7 +270,8 @@ def make_context(op, params, *, available, available_meta, quota, quota_meta, ac
     return {'available': available, 'available_meta': available_meta, 'quota': quota, 'quota_meta': quota_meta,
             'accounts': accounts, 'directives': directives, 'maker': maker, 'level': level, 'level_source': source, 'review': review,
             'proof_class': proof_class, 'line_of': line_of, 'failures': failures, 'freshness': freshness,
-            'pace_windows': params.get('pace_windows', []), 'now': now, 'experimental_route': experimental_route,
+            'pace_windows': params.get('pace_windows', []), 'demote_count': params.get('failure_demote_count'),
+            'now': now, 'free_route': free_route,
             'substitution': substitution}
 
 
@@ -272,7 +289,7 @@ def final_view(ctx, op, arm, instance, views):
     `unvalidated`.
     """
     key = ('provider', 'model', 'effort')
-    candidate = next((c for c in expand_candidates(op) if all(c['arm'][k] == arm[k] for k in key)),
+    candidate = next((c for c in expand_candidates(op, ctx['free_route']) if all(c['arm'][k] == arm[k] for k in key)),
                      {'basis': 'unvalidated', 'requires': None})
     found = assess_pair(ctx, op['id'], arm, instance, (candidate['requires'] or {}).get('proof_class'))
     view = found['view']
@@ -298,7 +315,7 @@ def route(op, params, ctx):
     conflicts = []
     applied = set()
     views = {}
-    candidates = expand_candidates(op)
+    candidates = expand_candidates(op, ctx['free_route'])
     for index, candidate in enumerate(candidates):
         arm = candidate['arm']
         instances = catalog_instances(ctx['available'], arm['provider'])
