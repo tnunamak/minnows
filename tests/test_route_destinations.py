@@ -828,8 +828,9 @@ def evidence(**changes):
     return value
 
 
-def typed_entry(tmp, payload=None, name='typed', **extra):
-    command = script(tmp, name + '.sh', f"touch '{tmp / (name + '.ran')}'\ncat <<'EOF'\n{json.dumps(payload or EVIDENCE)}\nEOF")
+def typed_entry(tmp, payload=None, name='typed', raw=None, **extra):
+    text = raw if raw is not None else json.dumps(payload or EVIDENCE)
+    command = script(tmp, name + '.sh', f"touch '{tmp / (name + '.ran')}'\ncat <<'EOF'\n{text}\nEOF")
     return {'name': name, 'kind': 'typed-http', 'purposes': ['review'], 'op_scope': {'review': [TYPED_OP]},
             'contracts': {TYPED_OP: {'whole_answer': 'typed', 'revision': 'r1', 'sha256': SHA}},
             'capability': {'caller_text': True, 'synchronous': True}, 'evidence_contract': PROOF,
@@ -851,9 +852,9 @@ def typed_world(world):
     return world
 
 
-def typed_route(world, tmp_path, *extra, payload=None, op=TYPED_OP, **entry_extra):
+def typed_route(world, tmp_path, *extra, payload=None, op=TYPED_OP, record=None, **entry_extra):
     cfg = config2(tmp_path, typed_entry(tmp_path, payload, **entry_extra))
-    return route(world, cfg, '--purpose', 'review', *extra, op=op)
+    return route(world, cfg, '--purpose', 'review', *extra, op=op, record=record)
 
 
 def test_typed_eligible_offer_is_a_handoff_with_no_target_or_payload(typed_world, tmp_path):
@@ -1011,7 +1012,8 @@ def test_no_probe_in_simulation_resolve_or_replay(typed_world, tmp_path):
     first = route(typed_world, cfg, '--purpose', 'review', '--inputs', 'github', record='rec', op=TYPED_OP)
     (tmp_path / 'typed.ran').unlink()
     again = route(typed_world, cfg, '--purpose', 'review', '--inputs', 'github', record='rec', op=TYPED_OP)
-    assert again['replayed'] is True and again['destination_offer'] == first['destination_offer']
+    assert again['replayed'] is True and 'destination_offer' not in again and again['launch_ready'] is False
+    assert again['historical_destination_offer']['request_id'] == first['destination_offer']['request_id']
     assert not ran(tmp_path, 'typed')
 
 
@@ -1021,3 +1023,138 @@ def test_v1_config_behaves_as_before_beside_the_v2_tests(world, tmp_path):
     assert 'destination' not in out and dest(out)['fallback']['reasons'] == ['local-inputs'] and 'typed' not in json.dumps(out)
     urgent = route(world, config(tmp_path, entry(cap)), '--purpose', 'review', '--inputs', 'github', '--urgent')
     assert dest(urgent)['fallback']['reasons'] == ['synchronous']
+
+
+# ---- typed evidence is projected, never echoed; offers are current only at validation; replay is historical -----------
+
+CANARY = 'CANARY-PRIVATE-7f3a'
+
+
+def everywhere(out, world):
+    return json.dumps(out) + (world.receipts.read_text() if world.receipts.exists() else '')
+
+
+def test_typed_success_projects_every_nesting_and_drops_canaries(typed_world, tmp_path):
+    loaded = evidence()
+    loaded['response_body'] = CANARY
+    loaded['evaluation']['debug_payload'] = {'prompt': CANARY}
+    loaded['evaluation']['cost']['debug'] = CANARY
+    loaded['evaluation']['test_evidence_metadata']['extra'] = {'deep': [CANARY]}
+    out = typed_route(typed_world, tmp_path, '--inputs', 'github', payload=loaded, record='canary')
+    assert out['destination'] == 'typed', out['routing']
+    assert CANARY not in everywhere(out, typed_world)
+    assert out['destination_offer']['capacity'] == EVIDENCE
+
+
+@pytest.mark.parametrize('payload', [
+    {'available': False, 'reason': CANARY, 'response_body': 'SECRET-' + CANARY},
+    {'available': False, 'reason': {'nested': CANARY}},
+    {'available': False},
+])
+def test_typed_unavailable_reason_is_enumerated(typed_world, tmp_path, payload):
+    out = typed_route(typed_world, tmp_path, '--inputs', 'github', payload=payload, record='unavail')
+    row = dest(out)['considered'][0]
+    assert row['state'] == 'unavailable' and row['capacity']['available'] is False
+    assert set(row['capacity']) == {'available', 'reason'} and row['capacity']['reason'] == 'adapter_reported_unavailable'
+    assert 'SECRET' not in everywhere(out, typed_world) and CANARY not in everywhere(out, typed_world)
+
+
+def test_typed_model_reviewed_labels_keep_their_provenance(typed_world, tmp_path):
+    out = typed_route(typed_world, tmp_path, '--inputs', 'github', payload=evidence(evaluation__test_evidence_metadata={'label_source': 'model-reviewed-synthetic', 'sample_sha256': SAMPLE}))
+    assert out['destination'] == 'typed'
+    assert out['destination_offer']['capacity']['evaluation']['test_evidence_metadata']['label_source'] == 'model-reviewed-synthetic'
+
+
+def test_typed_label_source_is_an_enum(typed_world, tmp_path):
+    out = typed_route(typed_world, tmp_path, '--inputs', 'github', payload=evidence(evaluation__test_evidence_metadata={'label_source': CANARY, 'sample_sha256': SAMPLE}))
+    assert dest(out)['considered'][0]['capacity']['reason'] == 'evaluation_required: sample_unproven'
+    assert CANARY not in json.dumps(out)
+
+
+@pytest.mark.parametrize('token,state,reason', [
+    ('Infinity', 'unavailable', 'capacity_probe_error: invalid_json'),
+    ('-Infinity', 'unavailable', 'capacity_probe_error: invalid_json'),
+    ('NaN', 'unavailable', 'capacity_probe_error: invalid_json'),
+    ('1e309', 'evaluation_required', 'evaluation_required: cost_unproven'),
+])
+@pytest.mark.parametrize('field', ['per_decision', 'baseline_per_decision'])
+def test_typed_cost_rejects_nonfinite_numbers(typed_world, tmp_path, token, state, reason, field):
+    old = {'per_decision': '0.002', 'baseline_per_decision': '0.02'}[field]
+    raw = json.dumps(EVIDENCE).replace(f'"{field}": {old}', f'"{field}": {token}')
+    assert token in raw
+    out = typed_route(typed_world, tmp_path, '--inputs', 'github', raw=raw)
+    row = dest(out)['considered'][0]
+    assert row['state'] == state and row['capacity']['reason'] == reason and 'destination' not in out
+
+
+def test_v1_probe_still_passes_its_own_fields_through_unchanged(one):
+    out = route(one, one.cfg, '--purpose', 'review', '--inputs', 'github')
+    assert out['destination_offer']['capacity'] == {'available': True, 'reason': 'ok', 'free': 7}
+
+
+def test_typed_offer_expires_by_monotonic_probe_time_not_only_the_passed_clock(tmp_path):
+    sys.path.insert(0, str(REPO / 'tools/model-policy-ops/lib'))
+    import destinations
+    from datetime import datetime, timezone
+    typed = typed_entry(tmp_path) | {'capacity_command': ['/abs/x']}
+    facts = {'schema_version': 1, 'purpose': 'review', 'inputs': 'github'}
+    near_end = datetime(2026, 10, 19, 23, 59, 58, tzinfo=timezone.utc)   # valid_until is 2026-10-20T00:00:00Z
+
+    def probe(_entry):
+        return json.loads(json.dumps(EVIDENCE))
+
+    def decide(clock):
+        return destinations.decide([typed], purpose='review', facts=facts, skip=[], reason=None, request_id='r', simulate=False,
+                                   op=TYPED_OP, now=near_end, run_probe=probe, monotonic=clock)
+    ticks = iter([100.0, 107.0, 107.0, 107.0, 107.0])
+    block, offer = decide(lambda: next(ticks))
+    assert offer is None and block['considered'][0]['capacity']['reason'] == 'evaluation_required: evaluation_expired'
+    block, offer = decide(lambda: 100.0)
+    assert offer is not None
+
+
+def historical(out, first):
+    assert out['replayed'] is True and 'destination_offer' not in out and out['launch_ready'] is False and 'dispatch' not in out
+    assert out['historical_non_actionable'] is True and out['target'] is None
+    held = out['historical_destination_offer']
+    assert held['historical'] is True and 'submit' not in held and held['request_id'] == first['destination_offer']['request_id']
+
+
+def test_typed_replay_is_historical_non_actionable_probes_nothing_and_rewrites_nothing(typed_world, tmp_path):
+    cfg = config2(tmp_path, typed_entry(tmp_path))
+    flags = ['--purpose', 'review', '--inputs', 'github']
+    first = route(typed_world, cfg, *flags, record='hist', op=TYPED_OP)
+    assert first['destination_offer']['submit']['command'].startswith('typed submit')
+    stored = typed_world.receipts.read_bytes()
+    (tmp_path / 'typed.ran').unlink()
+    historical(route(typed_world, cfg, *flags, record='hist', op=TYPED_OP), first)
+    assert not ran(tmp_path, 'typed') and typed_world.receipts.read_bytes() == stored
+    assert json.loads(typed_world.receipts.read_text())['destination_offer']['submit']['command'].startswith('typed submit')
+
+
+def test_typed_late_replay_race_is_historical_too(typed_world, tmp_path):
+    cfg = config2(tmp_path, typed_entry(tmp_path))
+    flags = ['--purpose', 'review', '--inputs', 'github']
+    first = route(typed_world, cfg, *flags, record='race', op=TYPED_OP)
+    stored = typed_world.receipts.read_bytes()
+    launcher = tmp_path / 'race_launcher.py'
+    launcher.write_text(f"""import runpy, sys
+sys.path.insert(0, {str(REPO / 'tools/model-policy-ops/lib')!r})
+import policy_decisions as pd
+real, state = pd.find_receipt, {{'n': 0}}
+def once_blind(path, decision_id):
+    state['n'] += 1
+    return None if state['n'] == 1 and decision_id == 'race' else real(path, decision_id)
+pd.find_receipt = once_blind
+sys.argv = [{str(REPO / 'tools/model-policy-ops/model-policy-ops')!r}, *sys.argv[1:]]
+runpy.run_path(sys.argv[0], run_name='__main__')
+""")
+    typed_world.write()
+    args = ['route', TYPED_OP, *typed_world.args(), '--destinations', cfg, '--decision-id', 'race', '--record', '--parent-model', 'pm',
+            '--parent-provider-instance', 'pp', '--parent-thread', 'pt', *flags]
+    from test_route import full_record
+    done = subprocess.run([sys.executable, str(launcher), *full_record(list(map(str, args)))], capture_output=True, text=True,
+                          env=dict(os.environ, XDG_CONFIG_HOME=str(tmp_path / 'xdg'), PINNED_NOW=NOW))
+    assert done.returncode == 0, done.stderr
+    historical(json.loads(done.stdout), first)
+    assert typed_world.receipts.read_bytes() == stored

@@ -367,7 +367,7 @@ def execute_locked(args, policy, stack):
         replayed = replay_receipt(old, request, facts, extensions)
         proposed = next((entry.get('target') for entry in dest_entries if entry['name'] == replayed.get('destination')), None)
         apply_experimental_route_policy(replayed, policy, datetime.now(timezone.utc), replay=True, destination_target=proposed)
-        return replayed
+        return destinations.historical_handoff(replayed)
     # Exact historical replay wins. Validate known fresh routes (including simulations)
     # before reading runtime sources, running probes or acquiring writable quota state.
     # Unknown ops retain the existing unknown-op path; resolve/escalation is unchanged.
@@ -562,8 +562,8 @@ def execute_locked(args, policy, stack):
         if recorded.get('replayed'):
             proposed = next((entry.get('target') for entry in dest_entries if entry['name'] == recorded.get('destination')), None)
             apply_experimental_route_policy(recorded, policy, datetime.now(timezone.utc), replay=True, destination_target=proposed)
-        else:
-            commit_quota()
+            return destinations.historical_handoff(recorded)
+        commit_quota()
         return recorded
     commit_quota()
     return return_value

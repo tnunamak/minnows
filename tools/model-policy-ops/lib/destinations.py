@@ -1,12 +1,13 @@
 """Destinations: external workers that `route` offers before it picks a model. A destination is an adapter, not a chooser."""
 import json
+import math
 import os
 import re
 import selectors
 import signal
 import subprocess
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from outcomes import PURPOSES
@@ -26,6 +27,10 @@ TYPED = 'typed-http'
 # Keys that only mean something in a schema 2 file; a schema 1 file refuses them rather than half-honoring them.
 V2_KEYS = ('kind', 'contracts', 'capability', 'evidence_contract')
 INPUT_MODES = ('caller-text',)
+# Typed evidence is projected field by field. Free text from a probe (reasons, labels, extras) is never stored.
+LABEL_SOURCES = ('human-labelled', 'oracle-labelled', 'model-reviewed-synthetic')
+PROBE_ERROR_KINDS = ('missing_binary', 'os_error', 'timeout', 'output_too_large', 'nonzero_exit', 'invalid_json', 'invalid_shape')
+UNAVAILABLE_REASONS = tuple(f'capacity_probe_error: {kind}' for kind in PROBE_ERROR_KINDS) + ('adapter_reported_unavailable',)
 COST_SCOPE = 'all_candidates_upper_bound'
 
 
@@ -298,6 +303,10 @@ def run_bounded(argv, timeout, stdin_bytes=None, limit=MAX_PROBE_BYTES, env=None
     return stdout, process.returncode, failure
 
 
+def reject_constant(name):
+    raise ValueError(f'nonstandard JSON constant: {name}')
+
+
 def probe(entry):
     """Run the capacity command. Every failure maps to available false.
 
@@ -309,7 +318,8 @@ def probe(entry):
     if returncode != 0:
         return probe_error('nonzero_exit')
     try:
-        value = json.loads(stdout.decode('utf-8'))
+        # A typed adapter's numbers feed a cost claim: Infinity, -Infinity and NaN are not JSON and fail closed.
+        value = json.loads(stdout.decode('utf-8'), **({'parse_constant': reject_constant} if is_typed(entry) else {}))
     except ValueError:
         return probe_error('invalid_json')
     if not isinstance(value, dict) or type(value.get('available')) is not bool:
@@ -330,14 +340,22 @@ def count(value, minimum):
 
 
 def price(value):
-    return type(value) in (int, float) and value > 0
+    return type(value) in (int, float) and math.isfinite(value) and value > 0
 
 
-def typed_evidence(entry, op, capacity, now):
+def typed_unavailable(capacity):
+    """Only `available: false` and an enumerated reason survive; an adapter's own text and extra fields never do."""
+    reason = capacity.get('reason')
+    return {'available': False, 'reason': reason if reason in UNAVAILABLE_REASONS else 'adapter_reported_unavailable'}
+
+
+def typed_evidence(entry, op, capacity, now, until=None):
     """(None, summary) when the probe carries current, matching evidence for this op, else (reason_code, None).
 
     The probe only reports an evaluation already made; it is not a live attestation of the serving model. Time comes from
-    the caller's evaluation clock, which is the real clock for every dispatchable route (a simulation never probes)."""
+    the caller's evaluation clock, which is the real clock for every dispatchable route (a simulation never probes).
+    `until` is that clock plus the monotonic time the probe took: the evidence must be current at both ends, so an offer
+    never expires while it is being validated. The summary is rebuilt from validated fields only; nothing else is echoed."""
     proof, contract = entry['evidence_contract'], entry['contracts'][op]
     if capacity.get('available') is not True:
         return 'unavailable', None
@@ -361,7 +379,7 @@ def typed_evidence(entry, op, capacity, now):
     metadata = evaluation.get('test_evidence_metadata')
     sample = evaluation.get('sample_sha256')
     if (not isinstance(sample, str) or not HEX64.fullmatch(sample) or not isinstance(metadata, dict)
-            or metadata.get('sample_sha256') != sample or not isinstance(metadata.get('label_source'), str) or not metadata['label_source']):
+            or metadata.get('sample_sha256') != sample or metadata.get('label_source') not in LABEL_SOURCES):
         return 'sample_unproven', None
     versions = {'baseline_model': proof['baseline_model'], 'baseline_effort': proof['baseline_effort'], 'typed_version': proof['typed_version']}
     if evaluation.get('versions') != versions:
@@ -376,10 +394,31 @@ def typed_evidence(entry, op, capacity, now):
         return 'time_invalid', None
     if now is None or now.tzinfo is None:
         return 'clock_unavailable', None
-    if not evaluated_at <= now < valid_until:
+    if not evaluated_at <= now < valid_until or not (until or now) < valid_until:
         return 'evaluation_expired', None
+    projected = {
+        **{key: evaluation[key] for key in ('cases', 'positive', 'negative', 'definitive', 'label_disagreements', 'baseline_disagreements')},
+        'sample_sha256': sample, 'test_evidence_metadata': {'label_source': metadata['label_source'], 'sample_sha256': sample},
+        'versions': versions, 'evaluated_at': evaluation['evaluated_at'], 'valid_until': evaluation['valid_until'],
+        'cost': {'basis': 'api_equivalent', 'currency': proof['currency'], 'scope': COST_SCOPE, 'priced_at': cost['priced_at'],
+                 'per_decision': cost['per_decision'], 'baseline_per_decision': cost['baseline_per_decision']}}
     return None, {'available': True, 'op': op, 'evaluated_model': proof['evaluated_model'], 'contract_sha256': contract['sha256'],
-                  'accepted_rule_ids': list(proof['accepted_rule_ids']), 'evaluation': evaluation}
+                  'accepted_rule_ids': list(proof['accepted_rule_ids']), 'evaluation': projected}
+
+
+def historical_handoff(result):
+    """A replayed typed receipt is a record, not a live offer: its evidence was current only when it was validated.
+
+    Returns a copy for output; the stored receipt is never touched. The offer moves to `historical_destination_offer`
+    without its submit command, so nothing under the normal dispatch keys can be run from an old receipt. Other
+    destinations and receipts without a typed offer come back unchanged."""
+    offer = result.get('destination_offer')
+    if not isinstance(offer, dict) or 'typed' not in offer:
+        return result
+    held = {key: value for key, value in offer.items() if key != 'submit'} | {'historical': True}
+    changed = {key: value for key, value in result.items() if key != 'destination_offer'}
+    return changed | {'historical_destination_offer': held, 'historical_non_actionable': True, 'launch_ready': False,
+                      'launch_readiness_basis': 'historical typed destination offer; evidence was current only when validated; re-route for a current offer'}
 
 
 def substitute(value, mapping):
@@ -421,7 +460,7 @@ def independence_unknown(entry, independence):
     return bool(independence) and (not entry.get('vendor') or not independence['maker_complete'] or independence['level'] != 'vendor')
 
 
-def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, independence=None, run_probe=probe, lineage=None, op=None, now=None):
+def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, independence=None, run_probe=probe, lineage=None, op=None, now=None, monotonic=time.monotonic):
     """Return (`routing.destination` block, offer or None). Facts first, then the parent's skip, then independence, then capacity.
 
     `independence` is None when none is required, else {level, maker_vendors, maker_complete}; `maker_complete` is false when any maker run has an unknown vendor.
@@ -461,6 +500,7 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
     if not listed:
         return block | {'considered': considered,
                         'fallback': {'destination': first, 'reasons': ['independence'], 'source': 'facts'}}, None
+    started = monotonic()
     spent = {}
     for entry in listed:
         root, failures = (lineage or (lambda name: (None, 0)))(entry['name'])
@@ -474,9 +514,12 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
                         'fallback': {'destination': first, 'reasons': reasons, 'source': 'chain', 'chain_failures': spent}}, None
     for position, entry in enumerate(listed):
         capacity = run_probe(entry)
-        if is_typed(entry) and op is not None and capacity['available']:
+        if is_typed(entry) and not capacity['available']:
+            capacity = typed_unavailable(capacity)
+        elif is_typed(entry):
             # A typed worker is healthy only with current evidence that equals its declared contract; else evaluation is required.
-            problem, summary = typed_evidence(entry, op, capacity, now)
+            until = now + timedelta(seconds=max(monotonic() - started, 0)) if now is not None and now.tzinfo is not None else now
+            problem, summary = typed_evidence(entry, op, capacity, now, until)
             capacity = summary if summary else {'available': False, 'reason': f'evaluation_required: {problem}'}
             if summary is None:
                 considered.append({'name': entry['name'], 'state': 'evaluation_required', 'capacity': capacity})

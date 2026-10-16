@@ -1070,6 +1070,16 @@ A probe with `available: false` stays `unavailable`. Example probe output:
            "per_decision": 0.002, "baseline_per_decision": 0.02}}}
 ```
 
+Only the fields above are kept: the router rebuilds `destination_offer.capacity` and the receipt from validated fields, so
+extra or nested probe text (`debug_payload`, `response_body`, extra metadata) is never stored. `label_source` must be
+`human-labelled`, `oracle-labelled` or `model-reviewed-synthetic`; these describe provenance, not a quality guarantee. An `available: false` probe keeps only `{available: false, reason}` with `reason` one of
+`capacity_probe_error: <kind>` or `adapter_reported_unavailable` (never adapter text). A typed probe's numbers must be standard
+JSON: `Infinity`, `-Infinity` and `NaN` are `invalid_json`, and a cost that overflows to infinity (`1e309`) is `cost_unproven`.
+An offer is current only as of validation: the evidence must be in its window at the route clock and again at the route clock
+plus the monotonic time the probe took. A replayed typed receipt is a historical record, never a live offer: the stored row is
+unchanged, but the output moves the offer to `historical_destination_offer` (no `submit`, `historical: true`), sets
+`historical_non_actionable: true` and `launch_ready: false`, and has no `destination_offer`; re-route for a current one.
+
 Needs cases >= 4, positive and negative >= 2 summing to cases, every case definitive yes/no, zero label and baseline
 disagreements. `cost` is a dated, measured, all-candidates upper bound (`scope` must say so); the selected request itself is
 unmeasured and no precise task cost is claimed. A simulation, `resolve` and replay never probe.
