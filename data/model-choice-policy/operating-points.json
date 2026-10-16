@@ -1,14 +1,14 @@
 {
   "id": "model-choice-policy",
   "schema_version": 1,
-  "policy_version": "0.2.6",
-  "generated_at": "2026-10-15",
+  "policy_version": "0.2.7",
+  "generated_at": "2026-10-16",
   "catalog_ref": "data-model-catalog-v0.5.15",
   "doctrine": [
     "Task-shaped operating points, not cheap/default/max ladders",
     "Enumerate and explain; no silent auto-routing",
     "Quota and API dollars are non-fungible",
-    "Missing evidence stays missing — never invent Grok quality curves",
+    "Missing evidence stays missing \u2014 never invent Grok quality curves",
     "explicit_flags_win over --op expansion"
   ],
   "operating_points": [
@@ -767,12 +767,54 @@
       ],
       "known_gaps": [
         "Re-checked 2026-10-07: grok-4.7 is still the newest GA xAI model in catalog v0.5.12. AA lists it only at xhigh (Intelligence Index 46.5 at $3.74 per task).",
-        "No repo-repair quality curve — deliberately not invented",
+        "No repo-repair quality curve \u2014 deliberately not invented",
         "grok-4.7 chosen by rule 1, not by benchmark ranking: it is the only model the authenticated grok CLI offers (grok-4.6 and grok-4.5 left the list on 2026-09-23), and the newest GA model in xAI's flagship tier. Effort medium is rule 1's default; the vendor default is high.",
         "Signed off by an independent Claude Opus 5.5 review (rounds 1 and 2, 2026-09-23)."
       ],
       "override_policy": "explicit_flags_win",
       "notes": "Visible exploration point; not a recommended default."
+    },
+    {
+      "id": "review.rule-check",
+      "task_family": "review",
+      "constraint_family": "dollar-tight",
+      "expands_to": {
+        "provider": "claude",
+        "model": "claude-haiku-5-5",
+        "effort": "medium",
+        "mode": "standard"
+      },
+      "frontier_assumption": {
+        "cost_basis": "low",
+        "quota_basis": "low",
+        "expected_strength": "bounded_explicit_rule_judgment_with_validated_typed_destination",
+        "evidence_confidence": "low",
+        "frontier_status": "unknown_locally"
+      },
+      "evidence_refs": [
+        "catalog://pricing/anthropic-api-2026-07"
+      ],
+      "use_when": [
+        "The entire answer is a typed yes/no judgment about an explicit rule and supplied text",
+        "Prefer an exact-op typed destination only after its pinned question, model and labelled evidence pass the configured acceptance gate"
+      ],
+      "avoid_when": [
+        "Open-ended code review, investigation, explanations, repairs or policy completeness",
+        "A deterministic fact lookup or comparison gives the exact answer",
+        "Untested classification/triage/duplicate domains; each requires its own evidence"
+      ],
+      "escalate_to": [
+        "review.audit"
+      ],
+      "deescalate_to": [],
+      "known_gaps": [
+        "Owner-approved narrow op; Haiku medium is a fallback, not a substitute for audit-grade review. No broad benchmark establishes this op.",
+        "Local 2026-10-16 acceptance sample: 26 labelled judgments on 12 generic drafts. Three Jev questions matched labels and Haiku on 16 judgments; two lacked definitive yes and remain disabled. This is synthetic, small and not a production error-rate estimate.",
+        "Exact Jev version/question hashes, contract evidence, expiry, cost scope and usable local adapter must be supplied by destination configuration; Jev is not registered as a T3 chat model.",
+        "Classification, triage, severity, duplicates and preclassification are candidate typed domains, not accepted operations merely because their output is typed.",
+        "Evidence and limitations: https://github.com/tnunamak/divan/tree/35b8851/case-studies/personal-workflow/2026-10-16-jev-lead-rule-checks"
+      ],
+      "override_policy": "explicit_flags_win"
     }
   ],
   "preferred_over": [],
@@ -816,7 +858,10 @@
           "shared_server_host_tools",
           "injected_t3_thread_read_private_thread_access"
         ],
-        "future_hardening": ["per_instance_custom_binary", "disabled_mcp_tools"]
+        "future_hardening": [
+          "per_instance_custom_binary",
+          "disabled_mcp_tools"
+        ]
       },
       "cost_usd": 0,
       "authentication": {
@@ -843,22 +888,34 @@
         {
           "url": "https://opencode.ai/docs/zen/",
           "accessed": "2026-10-15",
-          "supports": ["model_id", "temporary_free_price", "provider_zero_retention", "provider_no_training"]
+          "supports": [
+            "model_id",
+            "temporary_free_price",
+            "provider_zero_retention",
+            "provider_no_training"
+          ]
         },
         {
           "url": "https://opencode.ai/legal/terms-of-service",
           "accessed": "2026-10-15",
-          "supports": ["unpaid_content_service_improvement"]
+          "supports": [
+            "unpaid_content_service_improvement"
+          ]
         },
         {
           "url": "https://opencode.ai/legal/privacy-policy",
           "accessed": "2026-10-15",
-          "supports": ["prompt_pass_through", "prompt_not_stored"]
+          "supports": [
+            "prompt_pass_through",
+            "prompt_not_stored"
+          ]
         },
         {
           "url": "https://opencode.ai/docs/providers/",
           "accessed": "2026-10-15",
-          "supports": ["auth_docs_inconclusive_for_free_route"]
+          "supports": [
+            "auth_docs_inconclusive_for_free_route"
+          ]
         }
       ]
     }

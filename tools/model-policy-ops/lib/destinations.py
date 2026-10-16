@@ -1,11 +1,13 @@
 """Destinations: external workers that `route` offers before it picks a model. A destination is an adapter, not a chooser."""
 import json
+import math
 import os
 import re
 import selectors
 import signal
 import subprocess
 import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from outcomes import PURPOSES
@@ -20,6 +22,18 @@ MAX_STDIN_BYTES = 32 * 1024
 CHUNK = 8192
 KILL_GRACE = 1.0
 MAX_TIMEOUT = 60
+HEX64 = re.compile(r'[0-9a-f]{64}')
+TYPED = 'typed-http'
+# Keys that only mean something in a schema 2 file; a schema 1 file refuses them rather than half-honoring them.
+V2_KEYS = ('kind', 'contracts', 'capability', 'evidence_contract')
+INPUT_MODES = ('caller-text',)
+# Typed evidence is projected field by field. Free text from a probe (reasons, labels, extras) is never stored.
+LABEL_SOURCES = ('human-labelled', 'oracle-labelled', 'model-reviewed-synthetic')
+PROBE_ERROR_KINDS = ('missing_binary', 'os_error', 'timeout', 'output_too_large', 'nonzero_exit', 'invalid_json', 'invalid_shape')
+UNAVAILABLE_REASONS = tuple(f'capacity_probe_error: {kind}' for kind in PROBE_ERROR_KINDS) + ('adapter_reported_unavailable',)
+COST_SCOPE = 'all_candidates_sample_mean'
+# The sample mean is not a bound on the selected rule set's cost, so those per-decision costs are reported as unknown (null).
+UNKNOWN_COSTS = ('selected_rule_set_per_decision', 'baseline_selected_rule_set_per_decision')
 
 
 def default_destinations_path():
@@ -35,8 +49,9 @@ def read_destinations(path):
     except ValueError as error:
         raise ValueError('destinations file is not valid JSON') from error
     rows = value.get('destinations') if isinstance(value, dict) else None
-    if not isinstance(rows, list) or value.get('schema_version') != 1:
-        raise ValueError('destinations file needs schema_version 1 and a "destinations" list')
+    version = value.get('schema_version') if isinstance(value, dict) else None
+    if not isinstance(rows, list) or version not in (1, 2):
+        raise ValueError('destinations file needs schema_version 1 or 2 and a "destinations" list')
     seen = set()
     for number, entry in enumerate(rows):
         where = f'destinations[{number}]'
@@ -61,8 +76,11 @@ def read_destinations(path):
             raise ValueError(f'{where}.vendor must be a non-empty string when present')
         if not isinstance(entry.get('submit'), dict):
             raise ValueError(f'{where}.submit must be an object')
+        if version == 1 and any(k in entry for k in V2_KEYS):
+            raise ValueError(f'{where} uses {", ".join(k for k in V2_KEYS if k in entry)}, which need schema_version 2')
         validate_target(entry, where)
         validate_op_scope(entry, where)
+        validate_typed(entry, where)
     # observe_command belongs to `observe`; adding it must not change the identity that a route request records.
     return rows, {'state': 'loaded', 'sha256': digest([{k: v for k, v in e.items() if k != 'observe_command'} for e in rows])}
 
@@ -76,6 +94,48 @@ def validate_op_scope(entry, where):
             or any(purpose not in entry['purposes'] or not isinstance(ops, list) or not ops
                    or not all(isinstance(op, str) and op for op in ops) for purpose, ops in scope.items())):
         raise ValueError(f'{where}.op_scope must map listed purposes to non-empty lists of op IDs')
+
+
+def is_typed(entry):
+    return entry.get('kind') == TYPED
+
+
+def validate_typed(entry, where):
+    """Schema 2 `kind: typed-http`: a whole-answer typed judgment worker. It offers a handoff, never a model target.
+
+    `op_scope` must cover every listed purpose, and its ops are exactly the ops `contracts` declares `whole_answer: typed`
+    ({op: {whole_answer, revision, sha256}}). `capability` is {caller_text, synchronous} booleans. `evidence_contract` is what
+    a probe's labelled evaluation must equal: the evaluated model, the baseline model and effort, the typed version, accepted
+    rule IDs and the cost currency. No model name is known to the router; all of them come from here."""
+    if 'kind' in entry and entry['kind'] != TYPED:
+        raise ValueError(f'{where}.kind must be "{TYPED}" when present')
+    if not is_typed(entry):
+        if any(k in entry for k in V2_KEYS[1:]):
+            raise ValueError(f'{where} declares contracts, capability or evidence_contract without kind "{TYPED}"')
+        return
+    if any(k in entry for k in ('target', 'brief_token', 'max_chain_failures', 'request_id_pattern')):
+        raise ValueError(f'{where} is typed: no target, brief_token, max_chain_failures or request_id_pattern')
+    scope = entry.get('op_scope')
+    if not isinstance(scope, dict) or set(scope) != set(entry['purposes']):
+        raise ValueError(f'{where}.op_scope must scope every purpose of a typed destination')
+    contracts = entry.get('contracts')
+    scoped_ops = {op for ops in scope.values() for op in ops}
+    if (not isinstance(contracts, dict) or set(contracts) != scoped_ops
+            or not all(isinstance(c, dict) and set(c) == {'whole_answer', 'revision', 'sha256'} and c['whole_answer'] == 'typed'
+                       and isinstance(c['revision'], str) and c['revision'] and isinstance(c['sha256'], str)
+                       and HEX64.fullmatch(c['sha256']) for c in contracts.values())):
+        raise ValueError(f'{where}.contracts must declare each scoped op as {{whole_answer: "typed", revision, sha256: 64 hex}} and nothing else')
+    capability = entry.get('capability')
+    if (not isinstance(capability, dict) or set(capability) != {'caller_text', 'synchronous'}
+            or not all(type(v) is bool for v in capability.values())):
+        raise ValueError(f'{where}.capability must be {{caller_text, synchronous}} booleans')
+    proof = entry.get('evidence_contract')
+    texts = ('evaluated_model', 'baseline_model', 'baseline_effort', 'typed_version', 'currency')
+    if (not isinstance(proof, dict) or set(proof) != set(texts) | {'accepted_rule_ids'}
+            or not all(isinstance(proof[k], str) and proof[k].strip() for k in texts)
+            or not isinstance(proof['accepted_rule_ids'], list) or not proof['accepted_rule_ids']
+            or not all(isinstance(r, str) and r for r in proof['accepted_rule_ids'])):
+        raise ValueError(f'{where}.evidence_contract needs non-empty {", ".join(texts)} and accepted_rule_ids')
 
 
 def eligibility(entry, purpose, op):
@@ -245,6 +305,10 @@ def run_bounded(argv, timeout, stdin_bytes=None, limit=MAX_PROBE_BYTES, env=None
     return stdout, process.returncode, failure
 
 
+def reject_constant(name):
+    raise ValueError(f'nonstandard JSON constant: {name}')
+
+
 def probe(entry):
     """Run the capacity command. Every failure maps to available false.
 
@@ -256,12 +320,114 @@ def probe(entry):
     if returncode != 0:
         return probe_error('nonzero_exit')
     try:
-        value = json.loads(stdout.decode('utf-8'))
+        # A typed adapter's numbers feed a cost claim: Infinity, -Infinity and NaN are not JSON and fail closed.
+        value = json.loads(stdout.decode('utf-8'), **({'parse_constant': reject_constant} if is_typed(entry) else {}))
     except ValueError:
         return probe_error('invalid_json')
     if not isinstance(value, dict) or type(value.get('available')) is not bool:
         return probe_error('invalid_shape')
     return value
+
+
+def aware_time(value):
+    try:
+        parsed = datetime.fromisoformat(value[:-1] + '+00:00' if isinstance(value, str) and value.endswith('Z') else value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if parsed.tzinfo is not None and parsed.utcoffset() is not None else None
+
+
+def count(value, minimum):
+    return type(value) is int and value >= minimum
+
+
+def price(value):
+    if type(value) not in (int, float):
+        return False
+    try:
+        return math.isfinite(value) and value > 0
+    except OverflowError:   # a valid JSON integer too large for a float is not a usable price
+        return False
+
+
+def typed_unavailable(capacity):
+    """Only `available: false` and an enumerated reason survive; an adapter's own text and extra fields never do."""
+    reason = capacity.get('reason')
+    return {'available': False, 'reason': reason if reason in UNAVAILABLE_REASONS else 'adapter_reported_unavailable'}
+
+
+def typed_evidence(entry, op, capacity, now, until=None):
+    """(None, summary) when the probe carries current, matching evidence for this op, else (reason_code, None).
+
+    The probe only reports an evaluation already made; it is not a live attestation of the serving model. Time comes from
+    the caller's evaluation clock, which is the real clock for every dispatchable route (a simulation never probes).
+    `until` is that clock plus the monotonic time the probe took: the evidence must be current at both ends, so an offer
+    never expires while it is being validated. The summary is rebuilt from validated fields only; nothing else is echoed."""
+    proof, contract = entry['evidence_contract'], entry['contracts'][op]
+    if capacity.get('available') is not True:
+        return 'unavailable', None
+    if capacity.get('op') != op:
+        return 'op_mismatch', None
+    if capacity.get('evaluated_model') != proof['evaluated_model']:
+        return 'model_mismatch', None
+    if capacity.get('contract_sha256') != contract['sha256']:
+        return 'contract_mismatch', None
+    if capacity.get('accepted_rule_ids') != proof['accepted_rule_ids']:
+        return 'rule_mismatch', None
+    evaluation = capacity.get('evaluation')
+    if not isinstance(evaluation, dict):
+        return 'evaluation_missing', None
+    cases, positive, negative = (evaluation.get(k) for k in ('cases', 'positive', 'negative'))
+    if not (count(cases, 4) and count(positive, 2) and count(negative, 2) and positive + negative == cases
+            and evaluation.get('definitive') == cases):
+        return 'not_balanced_or_definitive', None
+    if any(type(evaluation.get(k)) is not int or evaluation[k] != 0 for k in ('label_disagreements', 'baseline_disagreements')):
+        return 'disagreements', None
+    metadata = evaluation.get('test_evidence_metadata')
+    sample = evaluation.get('sample_sha256')
+    if (not isinstance(sample, str) or not HEX64.fullmatch(sample) or not isinstance(metadata, dict)
+            or metadata.get('sample_sha256') != sample or metadata.get('label_source') not in LABEL_SOURCES):
+        return 'sample_unproven', None
+    versions = {'baseline_model': proof['baseline_model'], 'baseline_effort': proof['baseline_effort'], 'typed_version': proof['typed_version']}
+    if evaluation.get('versions') != versions:
+        return 'version_mismatch', None
+    cost = evaluation.get('cost')
+    if (not isinstance(cost, dict) or cost.get('basis') != 'api_equivalent' or cost.get('currency') != proof['currency']
+            or cost.get('scope') != COST_SCOPE or not price(cost.get('per_decision')) or not price(cost.get('baseline_per_decision'))
+            or any(key not in cost or cost[key] is not None for key in UNKNOWN_COSTS)
+            or aware_time(cost.get('priced_at')) is None):
+        return 'cost_unproven', None
+    evaluated_at, valid_until = aware_time(evaluation.get('evaluated_at')), aware_time(evaluation.get('valid_until'))
+    if evaluated_at is None or valid_until is None or valid_until <= evaluated_at:
+        return 'time_invalid', None
+    if now is None or now.tzinfo is None:
+        return 'clock_unavailable', None
+    if not evaluated_at <= now < valid_until or not (until or now) < valid_until:
+        return 'evaluation_expired', None
+    projected = {
+        **{key: evaluation[key] for key in ('cases', 'positive', 'negative', 'definitive', 'label_disagreements', 'baseline_disagreements')},
+        'sample_sha256': sample, 'test_evidence_metadata': {'label_source': metadata['label_source'], 'sample_sha256': sample},
+        'versions': versions, 'evaluated_at': evaluation['evaluated_at'], 'valid_until': evaluation['valid_until'],
+        'cost': {'basis': 'api_equivalent', 'currency': proof['currency'], 'scope': COST_SCOPE, 'priced_at': cost['priced_at'],
+                 'per_decision': cost['per_decision'], 'baseline_per_decision': cost['baseline_per_decision'],
+                 **dict.fromkeys(UNKNOWN_COSTS)}}
+    return None, {'available': True, 'op': op, 'evaluated_model': proof['evaluated_model'], 'contract_sha256': contract['sha256'],
+                  'accepted_rule_ids': list(proof['accepted_rule_ids']), 'evaluation': projected}
+
+
+def historical_handoff(result):
+    """A replayed typed receipt is a record, not a live offer: its evidence was current only when it was validated.
+
+    Returns a copy for output; the stored receipt is never touched. The offer moves to `historical_destination_offer`
+    without its submit command, so nothing under the normal dispatch keys can be run from an old receipt. Other
+    destinations and receipts without a typed offer come back unchanged."""
+    offer = result.get('destination_offer')
+    if not isinstance(offer, dict) or 'typed' not in offer:
+        return result
+    held = {key: value for key, value in offer.items() if key != 'submit'} | {'historical': True}
+    changed = {key: value for key, value in result.items() if key != 'destination_offer'}
+    return changed | {'historical_destination_offer': held, 'historical_non_actionable': True, 'launch_ready': False,
+                      'launch_readiness_basis': 'historical typed destination offer; evidence was current only when validated; re-route for a current offer'}
 
 
 def substitute(value, mapping):
@@ -276,11 +442,20 @@ def substitute(value, mapping):
     return value
 
 
-def fact_reasons(facts):
-    """Skip reasons that the recorded launch facts imply."""
+def fact_reasons(facts, entry=None):
+    """Skip reasons that the recorded launch facts imply for this entry (none given: a plain destination).
+
+    Only a typed destination can lift a reason, and only its own declared capability: `caller_text` lifts local inputs for
+    the exact `input_mode` caller-text, `synchronous` lifts urgent. Credential and every parent skip never lift."""
     facts = facts or {}
-    return [reason for reason, applies in (('local-inputs', facts.get('inputs') == 'local'),
-                                           ('synchronous', facts.get('urgent') is True),
+    mode = facts.get('input_mode')
+    if mode is not None and mode not in INPUT_MODES:
+        raise ValueError(f'unknown input mode: {mode}')
+    capability = (entry or {}).get('capability') if entry is not None and is_typed(entry) else None
+    capability = capability or {}
+    local = facts.get('inputs') == 'local' and not (capability.get('caller_text') is True and mode == 'caller-text')
+    urgent = facts.get('urgent') is True and capability.get('synchronous') is not True
+    return [reason for reason, applies in (('local-inputs', local), ('synchronous', urgent),
                                            ('credential', facts.get('sensitive') is True)) if applies]
 
 
@@ -294,7 +469,7 @@ def independence_unknown(entry, independence):
     return bool(independence) and (not entry.get('vendor') or not independence['maker_complete'] or independence['level'] != 'vendor')
 
 
-def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, independence=None, run_probe=probe, lineage=None, op=None):
+def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, independence=None, run_probe=probe, lineage=None, op=None, now=None, monotonic=time.monotonic, at_monotonic=None):
     """Return (`routing.destination` block, offer or None). Facts first, then the parent's skip, then independence, then capacity.
 
     `independence` is None when none is required, else {level, maker_vendors, maker_complete}; `maker_complete` is false when any maker run has an unknown vendor.
@@ -313,21 +488,30 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
     def declined(state):
         return [{'name': e['name'], 'state': state} for e in listed]
 
-    implied = fact_reasons(facts)
-    if implied:
+    implied = {e['name']: fact_reasons(facts, e) for e in listed}
+    pre = []
+    if all(implied.values()):
         return block | {'considered': declined('declined_by_facts'),
-                        'fallback': {'destination': first, 'reasons': implied, 'source': 'facts'}}, None
+                        'fallback': {'destination': first, 'reasons': implied[first], 'source': 'facts'}}, None
+    if any(implied.values()):
+        # Only a typed destination's own capability lifts a fact: the others are named, the rest go on.
+        pre = [{'name': e['name'], 'state': 'declined_by_facts', 'reasons': implied[e['name']]} for e in listed if implied[e['name']]]
+        listed = [e for e in listed if not implied[e['name']]]
+        first = listed[0]['name']
     if skip:
-        return block | {'considered': declined('declined_by_parent'),
+        return block | {'considered': pre + declined('declined_by_parent'),
                         'fallback': {'destination': first, 'reasons': list(skip), 'source': 'parent', 'reason': reason}}, None
     if simulate:
-        return block | {'considered': declined('not_probed_in_simulation')}, None
-    considered = [{'name': e['name'], 'state': 'declined_by_independence'} for e in listed if same_vendor(e, independence)]
+        return block | {'considered': pre + declined('not_probed_in_simulation')}, None
+    considered = pre + [{'name': e['name'], 'state': 'declined_by_independence'} for e in listed if same_vendor(e, independence)]
     declined_names = [row['name'] for row in considered]
     listed = [e for e in listed if not same_vendor(e, independence)]
     if not listed:
         return block | {'considered': considered,
                         'fallback': {'destination': first, 'reasons': ['independence'], 'source': 'facts'}}, None
+    # `now` was sampled earlier by the caller (before runtime sources and quota reads); `at_monotonic` is the monotonic
+    # reading taken with it, so the time between that sample and this probe also counts against the evidence.
+    started = at_monotonic if at_monotonic is not None else monotonic()
     spent = {}
     for entry in listed:
         root, failures = (lineage or (lambda name: (None, 0)))(entry['name'])
@@ -341,6 +525,16 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
                         'fallback': {'destination': first, 'reasons': reasons, 'source': 'chain', 'chain_failures': spent}}, None
     for position, entry in enumerate(listed):
         capacity = run_probe(entry)
+        if is_typed(entry) and not capacity['available']:
+            capacity = typed_unavailable(capacity)
+        elif is_typed(entry):
+            # A typed worker is healthy only with current evidence that equals its declared contract; else evaluation is required.
+            until = now + timedelta(seconds=max(monotonic() - started, 0)) if now is not None and now.tzinfo is not None else now
+            problem, summary = typed_evidence(entry, op, capacity, now, until)
+            capacity = summary if summary else {'available': False, 'reason': f'evaluation_required: {problem}'}
+            if summary is None:
+                considered.append({'name': entry['name'], 'state': 'evaluation_required', 'capacity': capacity})
+                continue
         if capacity['available']:
             considered.append({'name': entry['name'], 'state': 'chosen', 'capacity': capacity})
             # Later destinations are named, not probed: the first with capacity wins.
@@ -348,6 +542,11 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
             offer = {'name': entry['name'], 'request_id': request_id, 'purpose': purpose, 'how_to': entry['how_to'],
                      'submit': substitute(entry['submit'], {'<request_id>': request_id, '<purpose>': purpose}), 'capacity': capacity,
                      'vendor': entry.get('vendor')}
+            if is_typed(entry):
+                offer['submit'] = substitute(offer['submit'], {'<op>': op})
+                offer['typed'] = {'op': op, 'contract': dict(entry['contracts'][op]), 'caller_text': entry['capability']['caller_text'],
+                                  'synchronous': entry['capability']['synchronous'], 'evidence': 'current',
+                                  'handoff': 'typed submit command and contract; the router calls nothing and returns no model target'}
             if 'target' in entry:
                 root = (lineage or (lambda name: (None, 0)))(entry['name'])[0] or request_id
                 pattern = entry.get('request_id_pattern')
@@ -356,12 +555,15 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
                                       'root_accepted': pattern is None or re.fullmatch(pattern, root) is not None}
             return block | {'chosen': entry['name'], 'considered': considered}, offer
         considered.append({'name': entry['name'], 'state': 'unavailable', 'capacity': capacity})
-    probed = [row for row in considered if row['state'] == 'unavailable']
-    fallback = {'destination': first, 'reasons': ['unavailable'], 'source': 'capacity', 'probe_reason': probed[0]['capacity'].get('reason')}
+    probed = [row for row in considered if row['state'] in ('unavailable', 'evaluation_required')]
+    states = {row['state'] for row in probed}
+    kinds = [k for k in ('unavailable', 'evaluation_required') if k in states]
+    fallback = {'destination': first, 'reasons': kinds, 'source': 'capacity', 'probe_reason': probed[0]['capacity'].get('reason')}
     if declined_names:
         # Some destinations were declined and the rest were unavailable: both reasons hold, each tied to its destination.
-        fallback |= {'reasons': ['independence', 'unavailable'],
-                     'by_destination': {row['name']: ['independence'] if row['name'] in declined_names else ['unavailable'] for row in considered}}
+        fallback |= {'reasons': ['independence'] + kinds,
+                     'by_destination': {row['name']: ['independence'] if row['name'] in declined_names else [row['state']]
+                                        for row in considered if row['state'] != 'declined_by_facts'}}
     return block | {'considered': considered, 'fallback': fallback}, None
 
 

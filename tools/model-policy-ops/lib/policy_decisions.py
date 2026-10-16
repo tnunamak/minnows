@@ -2,6 +2,7 @@
 import json
 import os
 import sys
+import time
 import uuid
 from contextlib import ExitStack
 from datetime import datetime, timezone
@@ -54,6 +55,7 @@ def add_arguments(parser):
     parser.add_argument('--inputs', choices=outcomes.INPUTS, help='launch fact: where the task inputs are; absent means unknown')
     parser.add_argument('--data-classification', choices=['public', 'sensitive'], help='experimental free routes require an explicit public declaration')
     parser.add_argument('--experimental-route', action='store_true', help='explicitly request a policy-declared experimental free route')
+    parser.add_argument('--input-mode', choices=destinations.INPUT_MODES, help='route: how a typed destination gets local inputs; only caller-text, only with --inputs local')
     parser.add_argument('--sensitive', action='store_true', help='launch fact: the task touches credential or signing code; absent means unknown')
     parser.add_argument('--skip-destination', action='append', default=[], choices=destinations.SKIP_REASONS, metavar='REASON',
                         help='route: decline the destination (local-inputs|synchronous|credential|unavailable|other); repeatable; requires --reason')
@@ -252,6 +254,7 @@ def execute_locked(args, policy, stack):
         raise ValueError('--now must not be empty')
     if args.directives is None:
         args.directives = args.receipts.with_name('directives.jsonl')
+    at_monotonic = time.monotonic()   # sample first so a pause around the wall clock can only make the evidence older
     at = directive_store.parse_time(args.now, '--now') if args.now else directive_store.now()
     if args.now and not (args.command in ('route', 'calibrate') or (args.command == 'directive' and args.op == 'list')):
         name = args.command + (f' {args.op}' if args.command == 'directive' else '')
@@ -340,6 +343,10 @@ def execute_locked(args, policy, stack):
         except (ValueError, OSError):
             dest_entries, dest_meta = [], {'state': 'unreadable', 'sha256': None}
     facts = outcomes.launch_facts(args)
+    if getattr(args, 'input_mode', None):
+        if not route or args.inputs != 'local':
+            raise ValueError('--input-mode applies to route with an explicit --inputs local')
+        facts = (facts or {'schema_version': 1}) | {'input_mode': args.input_mode}
     decision_id = args.decision_id or str(uuid.uuid4())
     validate_id(decision_id)
     request = {'op': args.op, 'no_op': args.no_op, 'overrides': overrides, 'account': args.account_hint,
@@ -362,7 +369,7 @@ def execute_locked(args, policy, stack):
         replayed = replay_receipt(old, request, facts, extensions)
         proposed = next((entry.get('target') for entry in dest_entries if entry['name'] == replayed.get('destination')), None)
         apply_experimental_route_policy(replayed, policy, datetime.now(timezone.utc), replay=True, destination_target=proposed)
-        return replayed
+        return destinations.historical_handoff(replayed)
     # Exact historical replay wins. Validate known fresh routes (including simulations)
     # before reading runtime sources, running probes or acquiring writable quota state.
     # Unknown ops retain the existing unknown-op path; resolve/escalation is unchanged.
@@ -466,7 +473,7 @@ def execute_locked(args, policy, stack):
         receipt_rows = read_receipts(args.receipts) if args.relaunch_of else []
         routing_block['destination'], offer = destinations.decide(
             dest_entries, purpose=args.purpose, facts=facts, skip=skip, reason=args.reason, request_id=decision_id, simulate=simulation,
-            independence=independence, lineage=lambda name: destinations.chain(receipt_rows, args.relaunch_of, name), op=args.op)
+            independence=independence, lineage=lambda name: destinations.chain(receipt_rows, args.relaunch_of, name), op=args.op, now=at, at_monotonic=at_monotonic)
     elif routing_block:
         routing_block['destination'] = destinations.not_considered(dest_meta['state'])
     if not route:
@@ -488,7 +495,7 @@ def execute_locked(args, policy, stack):
                 reason |= {'applies_to': 'model_fallback', 'informational': True}
             else:
                 reason['applies_to'] = 'destination'
-        if (facts or {}).get('inputs') is None:
+        if (facts or {}).get('inputs') is None and 'typed' not in offer:
             routing_block['judgment_reasons'].append(destinations.INPUTS_UNKNOWN)
         if destinations.independence_unknown(offer, independence):
             routing_block['judgment_reasons'].append(destinations.INDEPENDENCE_UNKNOWN)
@@ -557,8 +564,8 @@ def execute_locked(args, policy, stack):
         if recorded.get('replayed'):
             proposed = next((entry.get('target') for entry in dest_entries if entry['name'] == recorded.get('destination')), None)
             apply_experimental_route_policy(recorded, policy, datetime.now(timezone.utc), replay=True, destination_target=proposed)
-        else:
-            commit_quota()
+            return destinations.historical_handoff(recorded)
+        commit_quota()
         return recorded
     commit_quota()
     return return_value

@@ -136,7 +136,9 @@ def test_pack_admits_exact_reviewed_scopes_without_changing_primary_arms():
         assert evidence.is_file()
     policy = json.loads((REPO / 'data/model-choice-policy/operating-points.json').read_text())
     baseline = json.loads(subprocess.check_output(['git', 'show', 'c2414ded:data/model-choice-policy/operating-points.json'], cwd=REPO))
-    assert policy['operating_points'] == baseline['operating_points']
+    # This guard protects every pre-existing arm; independently added ops have their own tests.
+    old_ops = {op['id']: op for op in baseline['operating_points']}
+    assert {op['id']: op for op in policy['operating_points'] if op['id'] in old_ops} == old_ops
     assert policy['catalog_ref'] == baseline['catalog_ref']
 
 

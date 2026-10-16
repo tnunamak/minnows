@@ -272,7 +272,7 @@ def brief_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
         brief["destination_offer"] = {
             key: value for key, value in result["destination_offer"].items() if key != "capacity"
         }
-    for key in ("simulation", "simulated_target"):
+    for key in ("simulation", "simulated_target", "historical_non_actionable"):
         if key in result:
             brief[key] = result[key]
     return brief
@@ -288,6 +288,8 @@ def line_reason(result: dict) -> str:
     """One short sentence: what was chosen and why, and why a destination was not used. Print only."""
     routing = result.get("routing") or {}
     block = routing.get("destination") or {}
+    if result.get("historical_non_actionable") is True:
+        return "historical typed destination; re-route for current evidence; do not dispatch"
     if result.get("destination") and result["destination"] != "model":
         state = block.get("target_state")
         return f"destination {result['destination']} has capacity" + (f"; target {state}" if state else "; submit by hand")
@@ -318,7 +320,7 @@ def line_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
     line["judgment"] = [f"{r.get('applies_to', '?')}:{r.get('code')}" for r in brief.get("judgment_reasons") or []]
     line["reason"] = line_reason(result)
     line["receipt"] = brief["receipt"].get("path") if brief["receipt"]["stored"] else brief["receipt"].get("reason")
-    for key in ("waiting", "data_policy", "simulation", "simulated_target"):
+    for key in ("waiting", "data_policy", "simulation", "simulated_target", "historical_non_actionable"):
         if key in brief:
             line[key] = brief[key]
     if result.get("target") is None and "destination_offer" in brief:
