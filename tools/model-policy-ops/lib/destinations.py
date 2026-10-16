@@ -459,6 +459,21 @@ def fact_reasons(facts, entry=None):
                                            ('credential', facts.get('sensitive') is True)) if applies]
 
 
+def by_destination(considered):
+    """Each declined or probed destination's own reason(s), by name: a fact keeps its fact, a probe keeps its state."""
+    out = {}
+    for row in considered:
+        if row['state'] == 'declined_by_facts':
+            out[row['name']] = row['reasons']
+        elif row['state'] == 'declined_by_independence':
+            out[row['name']] = ['independence']
+        elif row['state'] == 'declined_by_chain':
+            out[row['name']] = ['chain_failures']
+        elif row['state'] in ('unavailable', 'evaluation_required'):
+            out[row['name']] = [row['state']]
+    return out
+
+
 def same_vendor(entry, independence):
     """True when the destination provably shares the maker's vendor and the required level is `vendor`."""
     return bool(independence) and independence['level'] == 'vendor' and entry.get('vendor') in independence['maker_vendors']
@@ -503,12 +518,15 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
                         'fallback': {'destination': first, 'reasons': list(skip), 'source': 'parent', 'reason': reason}}, None
     if simulate:
         return block | {'considered': pre + declined('not_probed_in_simulation')}, None
-    considered = pre + [{'name': e['name'], 'state': 'declined_by_independence'} for e in listed if same_vendor(e, independence)]
-    declined_names = [row['name'] for row in considered]
+    # Only a destination that shares the maker's vendor is an independence decline; a fact decline keeps its own reason.
+    independence_declined = [e['name'] for e in listed if same_vendor(e, independence)]
+    considered = pre + [{'name': name, 'state': 'declined_by_independence'} for name in independence_declined]
     listed = [e for e in listed if not same_vendor(e, independence)]
     if not listed:
-        return block | {'considered': considered,
-                        'fallback': {'destination': first, 'reasons': ['independence'], 'source': 'facts'}}, None
+        fallback = {'destination': first, 'reasons': ['independence'], 'source': 'facts'}
+        if pre:
+            fallback['by_destination'] = by_destination(considered)
+        return block | {'considered': considered, 'fallback': fallback}, None
     # `now` was sampled earlier by the caller (before runtime sources and quota reads); `at_monotonic` is the monotonic
     # reading taken with it, so the time between that sample and this probe also counts against the evidence.
     started = at_monotonic if at_monotonic is not None else monotonic()
@@ -520,9 +538,11 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
             considered.append({'name': entry['name'], 'state': 'declined_by_chain', 'chain_failures': failures})
     listed = [e for e in listed if e['name'] not in spent]
     if not listed:
-        reasons = (['independence'] if declined_names else []) + ['chain_failures']
-        return block | {'considered': considered,
-                        'fallback': {'destination': first, 'reasons': reasons, 'source': 'chain', 'chain_failures': spent}}, None
+        reasons = (['independence'] if independence_declined else []) + ['chain_failures']
+        fallback = {'destination': first, 'reasons': reasons, 'source': 'chain', 'chain_failures': spent}
+        if pre or independence_declined:
+            fallback['by_destination'] = by_destination(considered)
+        return block | {'considered': considered, 'fallback': fallback}, None
     for position, entry in enumerate(listed):
         capacity = run_probe(entry)
         if is_typed(entry) and not capacity['available']:
@@ -559,11 +579,11 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
     states = {row['state'] for row in probed}
     kinds = [k for k in ('unavailable', 'evaluation_required') if k in states]
     fallback = {'destination': first, 'reasons': kinds, 'source': 'capacity', 'probe_reason': probed[0]['capacity'].get('reason')}
-    if declined_names:
-        # Some destinations were declined and the rest were unavailable: both reasons hold, each tied to its destination.
-        fallback |= {'reasons': ['independence'] + kinds,
-                     'by_destination': {row['name']: ['independence'] if row['name'] in declined_names else [row['state']]
-                                        for row in considered if row['state'] != 'declined_by_facts'}}
+    if independence_declined or pre:
+        # Mixed destinations: each declined or probed one names its own reason, and independence only if it was declined for it.
+        fallback['by_destination'] = by_destination(considered)
+        if independence_declined:
+            fallback['reasons'] = ['independence'] + kinds
     return block | {'considered': considered, 'fallback': fallback}, None
 
 
