@@ -1,7 +1,7 @@
 {
   "id": "model-choice-policy",
   "schema_version": 1,
-  "policy_version": "0.2.6",
+  "policy_version": "0.2.7",
   "generated_at": "2026-10-15",
   "catalog_ref": "data-model-catalog-v0.5.15",
   "doctrine": [
@@ -789,23 +789,92 @@
             "oracle"
           ],
           "efforts": [
-            "high"
+            "high",
+            "low",
+            "max"
           ],
           "scope": "small_public_source_change_full_deterministic_oracle",
           "evidence_ref": "evidence/deepseek-public-eval-2026-10-15.json"
         },
         {
-          "id": "docs.lookup",
+          "id": "implement.oracle-bounded",
           "proof_classes": [
-            "oracle"
+            "judged"
           ],
           "efforts": [
-            "high"
+            "high",
+            "low",
+            "max"
+          ],
+          "purposes": [
+            "test-design"
+          ],
+          "scope": "bounded_public_test_design_checked_by_independent_checker",
+          "evidence_ref": "evidence/deepseek-public-eval-2026-10-15.json"
+        },
+        {
+          "id": "docs.lookup",
+          "proof_classes": [
+            "oracle",
+            "judged"
+          ],
+          "efforts": [
+            "high",
+            "low",
+            "max"
           ],
           "scope": "known_public_source_lookup_structured_fact_oracle",
           "evidence_ref": "evidence/deepseek-public-eval-2026-10-15.json"
+        },
+        {
+          "id": "fanout.dollar-tight",
+          "proof_classes": [
+            "oracle",
+            "judged"
+          ],
+          "efforts": [
+            "high",
+            "low",
+            "max"
+          ],
+          "purposes": [
+            "research"
+          ],
+          "scope": "bounded_public_research_checked_by_ci_or_independent_checker",
+          "evidence_ref": "evidence/deepseek-public-eval-2026-10-15.json"
+        },
+        {
+          "id": "recover.report",
+          "proof_classes": [
+            "oracle",
+            "judged"
+          ],
+          "efforts": [
+            "high",
+            "low",
+            "max"
+          ],
+          "scope": "bounded_public_status_report_checked_by_independent_checker",
+          "evidence_ref": "evidence/deepseek-public-eval-2026-10-15.json"
         }
       ],
+      "selection": {
+        "mode": "preferred_normal_candidate",
+        "authorization": "owner_authorized_trial_2026-10-15",
+        "benchmark": "evidence/deepseek-public-eval-2026-10-15.json",
+        "retrospective": true,
+        "authority_note": "Owner authorized this expansion on 2026-10-15 as a trial. The 2026-10-15 matched public benchmark is immutable and does not qualify these operations: it covered implementation with a deterministic oracle and public documentation lookup only. The owner separately authorized the bounded checked scopes declared here (bounded test design, bounded status reports and research fanout), each with an explicit checker. The trial is measured retrospectively against the outcome ledger.",
+        "threshold": 50
+      },
+      "input_policy": {
+        "allowed_github_owners": ["tnunamak"],
+        "excluded_github_owners": ["vana-com"],
+        "other_owners": "public_with_explicit_provenance",
+        "prohibited_content": ["secrets", "PDPP_data", "Jev_text", "personal_data"],
+        "credential_paths_denied": true,
+        "caller_assertion_limit": "structured caller declarations only: they do not prove content scanning, verify repository visibility, prove that credential paths are the only sensitive files, read no credential contents, and give no runtime or OS isolation guarantee"
+      },
+      "cost_note": "zero source fee only; provider usage, checking and complete workflow cost remain unknown",
       "expires_at_utc": "2026-10-22T00:00:00Z",
       "expiry_basis": "local_policy_horizon_7_days_after_source_review; not_a_vendor_end_date",
       "t3_transport": {

@@ -76,7 +76,9 @@ def test_r2_replay_requires_current_exact_authorization(world, change):
     route = world.policy['experimental_free_routes'][0]
     route['expires_at_utc'] = (now + timedelta(days=1)).isoformat()
     flags = ['resolve', '--no-op', *world.args(), *deepseek_flags(classification='public'),
-             '--record', '--decision-id', 'current-exact', '--parent-model', 'parent',
+             '--record', '--decision-id', 'current-exact', '--task-link',
+             '{"v":1,"consumer_task_id":"task-current-exact","workflow_id":"wf","stage_id":"s1","role":"maker"}',
+             '--parent-model', 'parent',
              '--parent-provider-instance', 'parent', '--parent-thread', 'parent']
     first = run(world, *flags)
     assert first['launch_ready'] is True

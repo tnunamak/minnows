@@ -9,13 +9,19 @@ import quota_substitution
 from directives import matching
 from runtime_sources import digest, driver_family, provider_instance, providers, quota_context, quota_forecast, resolve_arm
 
-ROUTER_VERSION = 1
+ROUTER_VERSION = 2
 ARM_KEYS = ('provider', 'model', 'effort')
 PACE_RANK = {'on_track': 0, 'unknown': 1, 'at_risk': 2}
 AVAILABILITY_RANK = {'healthy': 0, 'unknown': 1, 'demoted': 2}
 DEMOTING = ('rate_limit', 'transport')
-SELECTION_BASIS = {'primary': 'primary', 'task_benchmark_prior': 'evidence_prior'}
-EVIDENCE_LABEL = {'primary': 'primary', 'task_benchmark_prior': 'prior', 'unvalidated': 'unvalidated'}
+SELECTION_BASIS = {'primary': 'primary', 'task_benchmark_prior': 'evidence_prior',
+                   'owner_authorized_trial': 'owner_authorized_trial'}
+EVIDENCE_LABEL = {'primary': 'primary', 'task_benchmark_prior': 'prior', 'unvalidated': 'unvalidated',
+                  'owner_authorized_trial': 'trial'}
+# The trial candidate ranks ahead of every ordinary candidate while it survives every filter. An
+# owner-authorized trial is not a quality preorder: the owner accepted the trade, and the paid arms
+# stay visible as fallbacks whenever a filter removes the trial pair.
+TRIAL_BASIS = 'owner_authorized_trial'
 INDEPENDENCE_LEVELS = ('vendor', 'family', 'model')
 EFFECTS = ('avoid', 'prefer', 'authorize', 'allow-metered')
 # The filter that removes a pair, in the order the contract applies them, and the reason that a bypass of it raises.
@@ -25,12 +31,13 @@ FINAL_REASONS = {'not_runnable': 'final_not_runnable', 'requires_not_met': 'fina
 SUBSTITUTED = 'quota_substitution_exception'
 
 
-def expand_candidates(op):
-    """Ordered candidates: the op's `expands_to` as the primary, then the pack's `candidates` as alternates."""
+def expand_candidates(op, trial_candidate=None):
+    """Ordered candidates: the trial candidate when supplied, then the op's `expands_to`, then the alternates."""
     rows = [dict(op['expands_to'], basis='primary'), *op.get('candidates', [])]
-    return [{'arm': {k: row[k] for k in ARM_KEYS}, 'basis': row['basis'], 'prior': row.get('prior'),
-             'known_gaps': row.get('known_gaps', []), 'evidence_refs': row.get('evidence_refs', []),
-             'requires': row.get('requires')} for row in rows]
+    expanded = [{'arm': {k: row[k] for k in ARM_KEYS}, 'basis': row['basis'], 'prior': row.get('prior'),
+                 'known_gaps': row.get('known_gaps', []), 'evidence_refs': row.get('evidence_refs', []),
+                 'requires': row.get('requires')} for row in rows]
+    return ([trial_candidate] + expanded) if trial_candidate else expanded
 
 
 def catalog_instances(available, family):
@@ -238,11 +245,13 @@ def is_review(op, params):
 
 
 def make_context(op, params, *, available, available_meta, quota, quota_meta, accounts, directives, maker, independence,
-                 proof_class, line_of, failures, freshness, now, experimental_route=None, substitution=None):
+                 proof_class, line_of, failures, freshness, now, experimental_route=None, substitution=None,
+                 trial_candidate=None):
     """The inputs that every pair assessment shares. A review op without a pack `independence_default` requires `vendor`.
 
     `level_source` says where the level came from: the `flag`, the `pack` or the `mechanism_default`.
     `substitution` is None when the pack does not enable quota substitution, else {thresholds, state, ranks}.
+    `trial_candidate` is the owner-authorized free-route candidate, or None.
     """
     review = is_review(op, params)
     if independence:
@@ -255,7 +264,7 @@ def make_context(op, params, *, available, available_meta, quota, quota_meta, ac
             'accounts': accounts, 'directives': directives, 'maker': maker, 'level': level, 'level_source': source, 'review': review,
             'proof_class': proof_class, 'line_of': line_of, 'failures': failures, 'freshness': freshness,
             'pace_windows': params.get('pace_windows', []), 'now': now, 'experimental_route': experimental_route,
-            'substitution': substitution}
+            'trial_candidate': trial_candidate, 'substitution': substitution}
 
 
 def tag(reasons, applies_to):
@@ -272,7 +281,8 @@ def final_view(ctx, op, arm, instance, views):
     `unvalidated`.
     """
     key = ('provider', 'model', 'effort')
-    candidate = next((c for c in expand_candidates(op) if all(c['arm'][k] == arm[k] for k in key)),
+    candidate = next((c for c in expand_candidates(op, ctx.get('trial_candidate'))
+                      if all(c['arm'][k] == arm[k] for k in key)),
                      {'basis': 'unvalidated', 'requires': None})
     found = assess_pair(ctx, op['id'], arm, instance, (candidate['requires'] or {}).get('proof_class'))
     view = found['view']
@@ -298,7 +308,8 @@ def route(op, params, ctx):
     conflicts = []
     applied = set()
     views = {}
-    candidates = expand_candidates(op)
+    candidates = expand_candidates(op, ctx.get('trial_candidate'))
+    trial = ctx.get('trial_candidate')
     for index, candidate in enumerate(candidates):
         arm = candidate['arm']
         instances = catalog_instances(ctx['available'], arm['provider'])
@@ -321,9 +332,13 @@ def route(op, params, ctx):
                 continue
             klass, selection_basis, reasons = eligibility(candidate, matched['authorize'], ctx['proof_class'])
             health = availability_view(failures, demote_count, instance)
+            is_trial = (trial is not None and candidate['basis'] == TRIAL_BASIS
+                        and trial['arm'] == arm and health['class'] != 'demoted')
             rank = {'eligibility': klass, 'prefer': 0 if matched['prefer'] else 1, 'pace': PACE_RANK[view['pace']],
                     'availability': AVAILABILITY_RANK[health['class']], 'candidate_order': index,
                     'projected_pct': view['binding']['projected_pct'] if view['binding'] else None, 'instance': instance}
+            if is_trial:
+                rank['preference'] = 0
             trace.append(row | {'removed_by': None, 'availability': health, 'eligibility_reasons': reasons,
                                 'selection_basis': selection_basis, 'requested_only_independence': found['requested_only'], 'rank': rank,
                                 '_target': found['selection']['target'], '_authorizers': matched['authorize'], '_view': view})
@@ -345,7 +360,8 @@ def route(op, params, ctx):
             'independence': {'required': ctx['level'], 'required_source': ctx['level_source'], 'maker': ctx['maker']},
             'directives_applied': sorted(applied), 'directives_unmatched': sorted(d['id'] for d in ctx['directives'] if d['id'] not in applied),
             'conflicts': conflicts,
-            'rank_keys': ['eligibility', 'prefer', 'pace', 'availability', 'candidate_order', 'projected_pct (load-balancing heuristic)', 'instance'],
+            'rank_keys': ['preference (trial first)', 'eligibility', 'prefer', 'pace', 'availability',
+                          'candidate_order', 'projected_pct (load-balancing heuristic)', 'instance'],
             'quota': views, 'trace': trace, 'chosen': chosen, 'judgment_required': judgment_needed(reasons), 'judgment_reasons': reasons}
     if ctx['substitution']:
         block['quota_substitution'] = quota_substitution.summary(ctx['substitution'], move=move)
@@ -396,18 +412,23 @@ def judgment_needed(reasons):
 
 
 def rank_tuple(rank):
-    return (rank['eligibility'], rank['prefer'], rank['pace'], rank['availability'], rank['candidate_order'],
+    return (rank.get('preference', 1), rank['eligibility'], rank['prefer'], rank['pace'], rank['availability'],
+            rank['candidate_order'],
             float('inf') if rank['projected_pct'] is None else rank['projected_pct'], rank['instance'])
 
 
 def chosen_view(row, candidates):
     candidate = candidates[row['candidate']]
     authorizers = row['_authorizers'] if row['selection_basis'] == 'authorized_exception' else []
-    return {'candidate': row['candidate'], 'arm': row['arm'], 'instance': row['instance'], 'target': row['_target'],
-            'basis': candidate['basis'], 'selection_basis': row['selection_basis'], 'evidence': EVIDENCE_LABEL[candidate['basis']],
+    view = {'candidate': row['candidate'], 'arm': row['arm'], 'instance': row['instance'], 'target': row['_target'],
+            'basis': candidate['basis'],
+            'selection_basis': row['selection_basis'], 'evidence': EVIDENCE_LABEL[candidate['basis']],
             'prior': candidate['prior'], 'known_gaps': candidate['known_gaps'], 'evidence_refs': candidate['evidence_refs'],
             'authorized_by': [{'id': d['id'], 'source': d['source'], 'until': d['until']} for d in authorizers],
             'pace': row['quota']['pace'], 'quota_binding': row['_view']['binding'], 'availability': row['availability']['class']}
+    if candidate['basis'] == TRIAL_BASIS:
+        view['trial'] = True
+    return view
 
 
 def routed_reasons(ctx, chosen, row, conflicts, unknown_line):

@@ -98,15 +98,20 @@ def test_both_pack_checkers_use_the_same_experimental_route_contract(tmp_path):
     lambda items: items.append(copy.deepcopy(items[0])),
     lambda items: items[0].update(id="review.audit"),
     lambda items: items[0].update(id=["implement.oracle-bounded"]),
-    lambda items: items[0].update(proof_classes=["judged"]),
-    lambda items: items[0].update(proof_classes=["oracle", "judged"]),
-    lambda items: items[0].update(efforts=["low"]),
-    lambda items: items[0].update(efforts=["high", "max"]),
+    lambda items: items[0].update(proof_classes=["none"]),
+    lambda items: items[0].update(proof_classes=["maker_judged"]),
+    lambda items: items[0].update(efforts=["medium"]),
+    lambda items: items[0].update(efforts=[]),
+    lambda items: items[0].update(purposes=["invalid-purpose"]),
+    lambda items: items[0].update(purposes=[]),
     lambda items: items[0].update(scope="open_ended_research"),
     lambda items: items[0].update(scope="known_public_source_lookup_structured_fact_oracle"),
     lambda items: items[0].update(evidence_ref="unreviewed.json"),
     lambda items: items[0].pop("evidence_ref"),
     lambda items: items[0].update(extra="arbitrary"),
+    lambda items: items.append({**copy.deepcopy(items[0]), "scope": "bounded_public_test_design_checked_by_independent_checker",
+                                "proof_classes": ["judged"]}),
+    lambda items: items.append({**copy.deepcopy(items[1]), "scope": items[0]["scope"]}),
 ])
 def test_qualification_contract_agrees_in_both_cli_and_pack_validator(tmp_path, change):
     pack_dir = tmp_path / "model-choice-policy"
@@ -127,17 +132,74 @@ def test_qualification_contract_agrees_in_both_cli_and_pack_validator(tmp_path, 
     assert all(message in result.stderr for message in shared)
 
 
-def test_pack_admits_exact_reviewed_scopes_without_changing_primary_arms():
+def test_pack_admits_the_expanded_trial_scopes_without_changing_primary_arms():
     route = BASE_ROUTE
-    assert {item['id'] for item in route['qualified_operations']} == {'implement.oracle-bounded', 'docs.lookup'}
-    for item in route['qualified_operations']:
-        assert item['proof_classes'] == ['oracle'] and item['efforts'] == ['high']
+    items = route['qualified_operations']
+    assert {item['id'] for item in items} == {
+        'implement.oracle-bounded', 'docs.lookup', 'fanout.dollar-tight', 'recover.report'}
+    for item in items:
+        assert item['efforts'] == ['high', 'low', 'max']
+        assert item['proof_classes'] and set(item['proof_classes']) <= {'oracle', 'judged'}
+        assert item['evidence_ref'] == 'evidence/deepseek-public-eval-2026-10-15.json'
         evidence = REPO / 'data/model-choice-policy' / item['evidence_ref']
         assert evidence.is_file()
+    # The source-change scope keeps the deterministic oracle; bounded test design is its own entry,
+    # limited to one purpose and checked by an independent checker, never the maker.
+    source_change = [item for item in items if item['id'] == 'implement.oracle-bounded']
+    assert len(source_change) == 2 and sum('purposes' not in item for item in source_change) == 1
+    assert [item['scope'] for item in source_change] == [
+        'small_public_source_change_full_deterministic_oracle',
+        'bounded_public_test_design_checked_by_independent_checker']
+    assert [item['proof_classes'] for item in source_change] == [['oracle'], ['judged']]
+    assert next(item for item in source_change if 'purposes' in item)['purposes'] == ['test-design']
+    assert next(i for i in items if i['id'] == 'fanout.dollar-tight')['purposes'] == ['research']
+    assert next(i for i in items if i['id'] == 'recover.report')['scope'] == \
+        'bounded_public_status_report_checked_by_independent_checker'
+    assert sum('purposes' not in item for item in items) == 3, 'one unrestricted entry per operation'
+    assert route['selection'] == {
+        'mode': 'preferred_normal_candidate', 'authorization': 'owner_authorized_trial_2026-10-15',
+        'benchmark': 'evidence/deepseek-public-eval-2026-10-15.json', 'retrospective': True,
+        'authority_note': route['selection']['authority_note'], 'threshold': 50}
+    assert 'owner authorized' in route['selection']['authority_note'].lower()
+    assert 'does not qualify these operations' in route['selection']['authority_note']
     policy = json.loads((REPO / 'data/model-choice-policy/operating-points.json').read_text())
     baseline = json.loads(subprocess.check_output(['git', 'show', 'c2414ded:data/model-choice-policy/operating-points.json'], cwd=REPO))
     assert policy['operating_points'] == baseline['operating_points']
     assert policy['catalog_ref'] == baseline['catalog_ref']
+
+
+@pytest.mark.parametrize("change", [
+    lambda route: route.pop("selection"),
+    lambda route: route["selection"].update(mode="automatic"),
+    lambda route: route["selection"].update(authorization="invented"),
+    lambda route: route["selection"].update(benchmark="evidence/other.json"),
+    lambda route: route["selection"].update(retrospective=False),
+    lambda route: route["selection"].update(authority_note=""),
+    lambda route: route["selection"].update(threshold=0),
+    lambda route: route["selection"].update(threshold="50"),
+    lambda route: route["selection"].update(extra="arbitrary"),
+    lambda route: route.pop("input_policy"),
+    lambda route: route["input_policy"].update(allowed_github_owners=[]),
+    lambda route: route["input_policy"].update(allowed_github_owners=["Tnunamak"]),
+    lambda route: route["input_policy"].update(other_owners="trust-the-caller"),
+    lambda route: route["input_policy"].update(credential_paths_denied=False),
+    lambda route: route["input_policy"].update(prohibited_content=["secrets"]),
+    lambda route: route["input_policy"].update(company_private="allowed"),
+    lambda route: route["input_policy"].update(excluded_github_owners=["tnunamak"]),
+    lambda route: route["input_policy"].update(excluded_github_owners=[]),
+])
+def test_selection_and_input_policy_are_validated_in_both_checkers(tmp_path, change):
+    pack_dir = tmp_path / "model-choice-policy"
+    shutil.copytree(REPO / "data/model-choice-policy", pack_dir)
+    policy_path = pack_dir / "operating-points.json"
+    policy = json.loads(policy_path.read_text())
+    change(policy["experimental_free_routes"][0])
+    policy_path.write_text(json.dumps(policy))
+    shared = check_experimental_free_routes(policy["experimental_free_routes"])
+    assert shared
+    errors = VALIDATOR.Errors()
+    VALIDATOR.validate_policy_pack(pack_dir, errors)
+    assert all(any(message in item for item in errors.items) for message in shared)
 
 
 def test_empty_proof_list_revokes_eligibility_without_admitting_another_proof():

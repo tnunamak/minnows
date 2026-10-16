@@ -102,7 +102,7 @@ def test_authentic_public_offer_cannot_replay_submission(world, prior_tool, monk
                                                        brief, race, revoke):
     add_opencode_fixture(world)
     flags = ['route', 'fanout.explore', *world.args(), *destination(world, DEEPSEEK_FREE),
-             *deepseek_flags(classification='public'), '--record', '--decision-id', 'prior-offer',
+             *deepseek_flags(classification='public', provenance=None), '--record', '--decision-id', 'prior-offer',
              '--parent-model', 'parent', '--parent-provider-instance', 'parent', '--parent-thread', 'parent']
     world.write()
     write_prior_policy(world)

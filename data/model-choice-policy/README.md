@@ -10,14 +10,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.2.6](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.6) — unreleased; published by CI after merge to main |
+| **This version** | [data-model-choice-policy-v0.2.7](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.7) — unreleased; published by CI after merge to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.2.6
+TAG=data-model-choice-policy-v0.2.7
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -34,30 +34,59 @@ curl -fsSL -L \
 
 ## Experimental free routes
 
-The OpenCode DeepSeek V4.1 Flash Free route is an optional experimental
-candidate for exactly two operations. Primary model recommendations stay unchanged.
+The OpenCode DeepSeek V4.1 Flash Free route is an owner-authorized trial: on the
+reviewed public scopes below it is the **preferred normal candidate** for checked
+cheap-tier work. It is a preference, never a forced route. Primary model
+recommendations stay unchanged, and every fallback to a paid arm states its reason.
 
-| Operation | Qualified scope | Required proof and effort |
-|-----------|-----------------|---------------------------|
-| `implement.oracle-bounded` | Small PUBLIC source changes whose full acceptance standard has a deterministic oracle | `oracle`, `high` |
-| `docs.lookup` | Known PUBLIC sources with a structured fact oracle; excludes open-ended research | `oracle`, `high` |
+| Operation | Qualified scope | Allowed proof and effort |
+|-----------|-----------------|--------------------------|
+| `implement.oracle-bounded` | Small PUBLIC source changes whose full acceptance standard has a deterministic oracle | `oracle`; `low`, `high`, `max` |
+| `implement.oracle-bounded` (purpose `test-design`) | Bounded PUBLIC test design checked by an independent checker | `judged`; `low`, `high`, `max` |
+| `docs.lookup` | Known PUBLIC sources with a structured fact oracle; excludes open-ended research | `oracle` or `judged`; `low`, `high`, `max` |
+| `fanout.dollar-tight` (purpose `research`) | Bounded PUBLIC research checked by CI or an independent checker | `oracle` or `judged`; `low`, `high`, `max` |
+| `recover.report` | Bounded PUBLIC status reports checked by an independent checker | `oracle` or `judged`; `low`, `high`, `max` |
 
-Use `route` or `resolve` with the selected operation, `--proof-class oracle`,
-`--experimental-route`, exact provider/model/account/effort overrides, a reason,
-and `--data-classification public`. High is the only benchmark-tested effort.
-The separately authorized `route fanout.explore` and `resolve --no-op` paths
-remain available with catalog-validated effort values. They confer no broader
-operation qualification. `review.audit`, `implement.standard`, `advisor.deep`,
-judged or absent proof, and generic destination submission remain excluded.
+Use `route` or `resolve` with the selected operation, `--proof-class`, a
+structured `--input-provenance` manifest, and `--data-classification public`.
+`--experimental-route` and exact provider/model/account overrides are no longer
+required, and no reason is needed. `low`, `high` and `max` are the live catalog's
+effort values; absent or `none` checking never qualifies. A `judged` step must be
+closed by an independent judge, not the maker. The separately authorized `route
+fanout.explore` and `resolve --no-op` paths remain available with
+catalog-validated effort values. They confer no broader operation qualification.
+`review.audit`, `implement.standard`, `advisor.deep`, a judged source change, and
+generic destination submission remain excluded.
 
-`--sensitive` refuses the route. Public classification and proof class are caller
-assertions; the router does not scan content or certify oracle coverage. A GitHub
-input location alone does not establish public contents. Public code stored
-locally can still be classified public by its caller. The route stays bound to
-the exact `opencode` provider, model, and account in this pack. Missing,
-malformed, future-dated or expired source evidence refuses dispatch. The seven-day
-expiry is a local recheck horizon, not a vendor end date. Historical receipts
-must still meet current operation, proof, effort, identity and evidence rules.
+A caller-pinned provider, model or account disables the trial preference: the
+pinned arm is authorized only when the same gates hold, and the free route stays
+bound to the exact `opencode` account in this pack. An effort override does not
+disable it. If a direct owner directive prefers another arm for one of these
+operations, pin that provider and model explicitly; the trial's preference key
+otherwise ranks ahead of a `prefer` directive for these ops.
+
+Inputs must pass a structured manifest. Public repositories and the owner's own
+repositories under GitHub owner `tnunamak` (including non-public code in that
+namespace) are allowed; the `vana-com` company namespace is excluded, as are
+credential and secret paths, PDPP data, Jev text and personal data. Any other
+owner requires explicit public provenance. Unknown or ambiguous provenance is
+refused. The manifest is a caller declaration: it does not prove content
+scanning, verify repository visibility, prove that credential paths are the only
+sensitive files, or give any runtime or OS isolation. Credential contents are
+never read; paths are normalized and an existing symlink is resolved without
+opening the target. `--sensitive` always refuses the route.
+
+Every free-route result needs an explicit close (`accepted`,
+`accepted_after_repair` or `rejected`), an explicit repairs count and a later
+rework observation, so a recorded free-route decision must carry a `task_link`.
+The trial's threshold is measured over unique consumer tasks, not receipts,
+revisions, checker closes or repair receipts. Absent later observation is
+reported `unknown`, never zero, and no provider terminal status closes a task on
+its own. Receipts without a task link stay a separate legacy decision-level
+cohort. Missing, malformed, future-dated or expired source evidence refuses
+dispatch. The seven-day expiry is a local recheck horizon, not a vendor end date.
+Historical receipts must still meet current operation, proof, effort, identity,
+input and evidence rules.
 
 The [matched public benchmark](evidence/deepseek-public-eval-2026-10-15.json)
 records eight task pairs across six source contexts: all 16 deterministic gates
@@ -66,8 +95,11 @@ exceeded its inspection scope despite a passing structured gate. These are 16
 gate passes, not 16 whole-task acceptances. Implementation gates passed 4/4 per
 arm; known-source lookup gates passed 2/2 per arm. This small purposive sample,
 with public tests and reference fixes, does not establish broad quality or audit
-qualification. Temporary $0 source fees are distinct from unreported provider
-usage and unknown complete workflow cost. Rate limits remain unknown.
+qualification, and it is **not** the authority for this expansion: the owner
+authorized the trial separately, on 2026-10-15, and the trial is measured
+retrospectively against the outcome ledger. Temporary $0 source fees are distinct
+from unreported provider usage and unknown complete workflow cost. Rate limits
+remain unknown.
 
 OpenCode attributes zero retention and no training to the upstream provider;
 its unpaid-service terms separately permit content use to improve OpenCode
@@ -124,7 +156,16 @@ not silently route by model name.
 
 ## Changelog
 
-### v0.2.6 — unreleased
+### v0.2.7 — unreleased
+
+- **Owner-authorized trial.** Make OpenCode DeepSeek V4.1 Flash Free the preferred normal candidate for checked cheap-tier work on `implement.oracle-bounded`, `docs.lookup`, purpose-`research` `fanout.dollar-tight` and bounded status reports (`recover.report`). Paid cheap arms stay visible as fallbacks and every fallback states its reason. No primary operating point changes.
+- Add a required structured `input_policy` and `selection` authority record. Inputs must pass a manifest: public repos and owner `tnunamak` repos are allowed, `vana-com` and credential, PDPP, Jev and personal-data paths are refused, other owners need explicit public provenance. The `vana-com` exclusion is a code floor a pack edit can only extend, never relax, and a credential path is refused by name before any target is resolved or opened.
+- Accept the live catalog's `low`, `high` and `max` efforts and checked `oracle` or `judged` proof; absent or `none` checking never qualifies. The 2026-10-15 readability benchmark qualified `implement.oracle-bounded` and `docs.lookup` only; the owner separately authorized the bounded test-design, research-fanout and status-report scopes, each with an explicit checker.
+- Qualify a bounded test-design task through the `test-design` purpose on `implement.oracle-bounded`, and a bounded status report through `recover.report`. A judged close must record `--check independent_judged --judged-by independent`, refusing a maker self-check.
+- Require a `task_link` and an explicit `--repairs` count on every recorded free-route decision, and require a later rework observation. Closing with `--task-result` is a workflow-completion claim that refuses while any sibling decision of the same consumer task still owes a close; every free-route close records its task's completion state as-of-close. The threshold is measured over unique consumer tasks with a deterministic, idempotent signal; unmatched live aggregates stay distinct from matched tasks.
+- Stated authority: the immutable 2026-10-15 matched benchmark does not qualify these operations, and `cost_usd: 0` is a zero source fee only.
+
+### v0.2.6 — 2026-10-15
 
 - Admit optional `implement.oracle-bounded` and `docs.lookup` overrides only for the reviewed public scopes, oracle proof and high effort. Primary recommendations stay unchanged.
 - Recheck qualification on fresh targets and both historical replay paths. Keep generic governed destinations refused and preserve the public-only exploration paths.

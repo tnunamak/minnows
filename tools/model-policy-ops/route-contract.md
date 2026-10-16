@@ -1,6 +1,6 @@
-# `route` delivery contract (v1, revision 25)
+# `route` delivery contract (v1, revision 27)
 
-Status: revision 25, 2026-10-15. Revision 25 adds optional public-source qualification for implement.oracle-bounded and docs.lookup with oracle proof and high effort. It preserves primary recommendations and generic governed destination refusal. Current qualification is checked on fresh selection and both replay paths. Revision 24 authorizes every actual returned target through one fresh/replay boundary, including destination replacements and nested targets. Revoked declarations cannot authorize old receipts. New effort surfaces require an explicit policy tuple. Revision 23 records owner authorization for public-only experimental T3 evaluation of the exact OpenCode DeepSeek route; sensitive and unknown inputs, undeclared models, and ordinary operations remain refused. Sandbox and MCP isolation remain future hardening. Revision 22 refuses undeclared OpenCode `variant` models and requires unexpired route evidence at evaluation time. The expiry is a local seven-day policy horizon, not a vendor end date; `--now` remains a non-dispatchable simulation. It records that public classification is a caller assertion and shares one durable validator. Revision 21 adds exact, public-input-only experimental free routes. Revision 20 lets a destination return its own T3 target (see the changelog). Revision 19 ties each quota constraint to one quota window, so a constraint never crosses a reset (see the changelog). Revision 18 fixes independence without a maker, defers quota-state commits until acceptance and requires timezone-aware observation timestamps. Revision 17 moves quota-substitution thresholds out of the shipped pack into a per-user overlay (see the changelog). Revision 16 adds quota-aware substitution to `route` (see the changelog). Revision 15 adds observation notes to `route` (see the changelog). Revision 13 applies the observe round-3 review (see the changelog). Revision 12 applies the observe round-2 review (see the changelog). Revision 11 applies the observe review (see the changelog). Revision 10 adds `observe` (see the changelog). Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
+Status: revision 27, 2026-10-15. Revision 27 repairs the revision 26 trial to bind every input to an authorized repository or explicit public source, so unknown, omitted or mixed provenance refuses and a credential path is refused by name before any target is resolved or opened; the company-namespace exclusion becomes a code-enforced floor a pack edit can only widen. It expands the reviewed public scopes to bounded test design (purpose `test-design` on `implement.oracle-bounded`) and bounded status reports (`recover.report`), lets one operation hold more than one entry only with a distinct scope and at most one unrestricted entry, and prefers a stated purpose's entry over the general one. A judged close must record an independent judge, every new free-route close must carry an explicit repairs count, and a `--task-result` completion claim is refused while a sibling decision of the same consumer task still owes a close. Revision 26 records the owner-authorized trial: on the reviewed public scopes, the OpenCode DeepSeek V4.1 Flash Free route becomes the preferred normal candidate for checked cheap-tier work, injected as a leading candidate with the first rank key `preference` and disabled by any caller-pinned provider, model or account. It replaces the revision 25 opt-in with structured input provenance, checked oracle-or-judged proof, live low/high/max efforts, required close/repairs/rework accounting, and a deterministic unique-consumer-task threshold. Paid arms stay visible as fallbacks with a stated reason; primary recommendations and generic governed destination refusal are unchanged. Revision 25 adds optional public-source qualification for implement.oracle-bounded and docs.lookup with oracle proof and high effort. It preserves primary recommendations and generic governed destination refusal. Current qualification is checked on fresh selection and both replay paths. Revision 24 authorizes every actual returned target through one fresh/replay boundary, including destination replacements and nested targets. Revoked declarations cannot authorize old receipts. New effort surfaces require an explicit policy tuple. Revision 23 records owner authorization for public-only experimental T3 evaluation of the exact OpenCode DeepSeek route; sensitive and unknown inputs, undeclared models, and ordinary operations remain refused. Sandbox and MCP isolation remain future hardening. Revision 22 refuses undeclared OpenCode `variant` models and requires unexpired route evidence at evaluation time. The expiry is a local seven-day policy horizon, not a vendor end date; `--now` remains a non-dispatchable simulation. It records that public classification is a caller assertion and shares one durable validator. Revision 21 adds exact, public-input-only experimental free routes. Revision 20 lets a destination return its own T3 target (see the changelog). Revision 19 ties each quota constraint to one quota window, so a constraint never crosses a reset (see the changelog). Revision 18 fixes independence without a maker, defers quota-state commits until acceptance and requires timezone-aware observation timestamps. Revision 17 moves quota-substitution thresholds out of the shipped pack into a per-user overlay (see the changelog). Revision 16 adds quota-aware substitution to `route` (see the changelog). Revision 15 adds observation notes to `route` (see the changelog). Revision 13 applies the observe round-3 review (see the changelog). Revision 12 applies the observe round-2 review (see the changelog). Revision 11 applies the observe review (see the changelog). Revision 10 adds `observe` (see the changelog). Revision 9 applies the destinations round-2 review (see the changelog). Revision 8 applies the destinations review (see the changelog). Revision 7 adds destinations (see the changelog). Revision 5 applies the checker's round-2 findings (report r2): all
 child runs of a maker, the directive cap on write and on read, and final-pair judgment after an
 override (see the changelog). Revision 4 applies the independent checker's
 findings (report r1): maker provenance from the T3 child run, a model line key for
@@ -93,56 +93,134 @@ no preferences. The **policy** is the pack data. Each op has an optional
 
 ## Inputs
 
-### Experimental free route gate
+### Experimental free route trial
 
-An optional root `experimental_free_routes` pack entry is exact metadata;
-it does not join candidate ranking. The optional route qualifies exactly
-`implement.oracle-bounded` and `docs.lookup`, requiring `--proof-class oracle`
-and high effort. Implementation is limited to small PUBLIC source changes whose
-full acceptance standard has a deterministic oracle. Lookup is limited to known
-PUBLIC sources with a structured fact oracle, excluding open-ended research.
-Primary recommendations are unchanged. `review.audit`, `implement.standard`,
-`advisor.deep` and judged or absent proof remain excluded.
+An optional root `experimental_free_routes` pack entry is exact metadata. On the
+reviewed public scopes it also *injects* a leading routing candidate with basis
+`owner_authorized_trial`; it never changes a primary operating point.
 
-Both qualified operations support `route` and `resolve` with
-`--experimental-route`, exact provider/model/effort/account overrides, a reason
-and `--data-classification public`. The separately authorized `route
+The owner-authorized trial of 2026-10-15 makes
+`opencode` / `opencode/deepseek-v4.1-flash-free` / account `opencode` the
+**preferred normal candidate** for checked cheap-tier work on five reviewed
+scopes:
+
+| Operation | Scope | Allowed proof | Allowed effort |
+|-----------|-------|---------------|----------------|
+| `implement.oracle-bounded` | Small PUBLIC source changes whose full acceptance standard has a deterministic oracle | `oracle` | `low`, `high`, `max` |
+| `implement.oracle-bounded`, purpose `test-design` | Bounded PUBLIC test design checked by an independent checker | `judged` | `low`, `high`, `max` |
+| `docs.lookup` | Known PUBLIC sources with a structured fact oracle | `oracle`, `judged` | `low`, `high`, `max` |
+| `fanout.dollar-tight`, purpose `research` | Bounded PUBLIC research checked by CI or an independent checker | `oracle`, `judged` | `low`, `high`, `max` |
+| `recover.report` | Bounded PUBLIC status reports checked by an independent checker | `oracle`, `judged` | `low`, `high`, `max` |
+
+`low`, `high` and `max` are the live catalog's effort values. Absent or `none`
+checking is never eligible. An operation may hold more than one entry only when
+each names a distinct scope and at most one is unrestricted; a stated `purpose`
+selects the purpose entry (the bounded test-design entry) over the operation's
+general entry, and its own proof classes and scope then apply. `review.audit`,
+`implement.standard`, `advisor.deep`, a judged source change, and other purposes
+remain excluded.
+
+The trial candidate carries `requires.proof_class` from its entry and ranks with
+a new leading key `preference` (0 for the trial, absent otherwise). It is
+eligible only when every gate holds: no `--sensitive`, `--data-classification
+public`, no caller-pinned provider, model or account override, an allowed
+`--input-provenance` manifest, a qualified operation for the stated purpose, a
+recorded proof class the entry allows, an allowed effort, current unexpired
+evidence and enabled transport. Each failed gate produces one reason in
+`routing.trial`, so a fallback to a paid arm is always visible. A caller-pinned
+provider, model or account disables the preference and is authorized only when
+the same gates hold; the free billing exception matches only the exact tuple, so
+account aliases and undeclared models never inherit it. An effort override does
+not disable the trial. Because `preference` precedes `prefer`, an owner directive
+that prefers another arm for these operations must pin its provider and model.
+
+`--experimental-route`, exact overrides and a reason are no longer required for
+these operations, and are still honored. The separately authorized `route
 fanout.explore` and `resolve --no-op` paths retain catalog-validated efforts
-without broader qualification. `--sensitive` always refuses. Public classification
-and proof class are caller assertions, not content scanning, proof certification
-or a runtime sandbox guarantee. `--inputs github` does not establish public
-contents. The free billing exception matches only the exact tuple; paid or
-unknown models and account aliases do not inherit it. Effort option keys and
-values come from the live T3 catalog and appear in `target.options`.
+without broader qualification. `--sensitive` always refuses.
 
-The current entry is `opencode` / `opencode/deepseek-v4.1-flash-free` / account
-`opencode`, temporarily free at $0 as of 2026-10-15. Auth is recorded as
-`none_observed_owner_smoke` with official docs inconclusive. Numeric rate limits
-remain unknown despite no observed throttles in the small matched benchmark.
-The pack records the upstream zero-retention/no-training attribution separately
-from OpenCode's unpaid-content service-improvement terms. Temporary source fees
-do not measure provider usage or complete workflow cost; both remain unknown.
-The bundled evidence records eight pairs across six contexts, 16 deterministic
-gate passes and one review inspection-scope failure. It does not establish broad
-audit quality or 16 whole-task acceptances.
+`input_provenance` is a structured caller manifest
+(`{"v":1,"inputs":[…]}`, at most 64 entries). Every entry is bound to an
+authorized repository or an explicit public source. A `github_repo` entry names a
+repository owner and name: the `tnunamak` owner (including non-public code in that
+namespace) and any other owner with explicit public provenance are allowed, the
+`vana-com` namespace is refused, and any other owner needs explicit public
+provenance. A local entry must name the root it lives under; the path is
+normalized against that root with strict `realpath` symlink resolution, which
+stats but never opens a target, so a `..` traversal or an escaping symlink
+refuses. An explicit `public` entry names its source. Credential and secret paths
+are refused by name (`credential_path`) before any target is resolved, including
+an always-refused directory, name or extension (`.ssh`, `.aws`, `id_rsa`,
+`.netrc`, `auth.json`, `.env*`, `.pem`, `.key`, `.p12`, `.pfx`, `.jks`, `.ppk`,
+`.token` and peers) and an ambiguous word (`token`, `oauth`, `api_key`, `secret`,
+`password`, `credential`, `pwd`) unless it carries an ordinary source or docs
+extension. `sensitive` classification and typed `contains` markers (`secrets`,
+`PDPP_data`, `Jev_text`, `personal_data`) are refused. Omitted, unknown,
+malformed or mixed provenance is never allowed; the refusal reason names the
+cause (`input_provenance_required`, `repo_binding_required`,
+`company_private_namespace`, `public_provenance_required`, `path_escapes_root`,
+`credential_path`, `classification_required` and peers). The company-namespace
+exclusion is a code-enforced floor (`MANDATORY_EXCLUDED_OWNERS`) that a pack edit
+can only widen. The manifest is a caller declaration: it does not prove content
+scanning, verify repository visibility, prove that credential paths are the only
+sensitive files, or give any runtime or OS isolation guarantee. `--inputs github`
+does not establish public contents.
+
+Every allowed free-route result reports
+`data_policy.close_required` and needs an explicit close (`accepted`,
+`accepted_after_repair` or `rejected`), an explicit `repairs` count and a later
+rework observation. A **new** free-route close is refused without an explicit
+`--repairs`, and a close whose `launch_facts.proof_class` is `judged` is refused
+unless it records `--check independent_judged --judged-by independent`: the trial
+requires an independent checker as the judge, never the maker that produced the
+work. Closing with `--task-result` is a workflow-completion claim that is refused
+while any sibling decision of the same consumer task still owes a close; a close
+that stages an incomplete whole-task claim is allowed but records
+`free_route.completion.state == 'incomplete'`. Every free-route close records its
+task's completion state as of that close. These checks gate **new** closes only,
+so a historical close row replays byte-identically. `route --record` therefore
+requires `--task-link`, and `routing.trial.pending_closes` is scoped to that
+request's consumer task. The trial threshold (`selection.threshold`, 50) is
+measured by `outcomes.free_route_trial_retro` over **unique consumer tasks**: a
+superseded revision, checker close or repair receipt never adds a task, receipts
+without a task link stay a separate legacy decision-level cohort, and matched
+versus unmatched live aggregates stay distinct. Missing later observation is
+reported `unknown`, never zero. No provider terminal status closes a task. The
+retro output carries the trial's `enforcement_boundary` (the close transition
+that refuses an incomplete whole-task claim) and `scheduler_trigger` (a
+deterministic, idempotent `free_route_trial_due` `due` signal that starts no
+recurring paid work and needs no webhook or secret).
+
+Auth is recorded as `none_observed_owner_smoke` with official docs inconclusive.
+Numeric rate limits remain unknown despite no observed throttles in the small
+matched benchmark. The pack records the upstream zero-retention/no-training
+attribution separately from OpenCode's unpaid-content service-improvement terms.
+Temporary source fees do not measure provider usage or complete workflow cost;
+both remain unknown. The bundled evidence records eight pairs across six
+contexts, 16 deterministic gate passes and one review inspection-scope failure.
+It is immutable and does **not** authorize this trial: the owner authorized the
+expansion separately, and the trial is measured retrospectively against the
+outcome ledger. It does not establish broad audit quality or 16 whole-task
+acceptances.
 
 Missing, future-dated, malformed or expired source evidence refuses the route.
 The UTC expiry is a local seven-day recheck horizon, not a vendor end date.
 Undeclared OpenCode models using `variant` are refused. Shared OpenCode host
 tools and injected `t3_thread_read` private-thread access remain known risks;
-provider sandbox and MCP isolation remain later hardening. Private repositories,
-PDPP data, secrets, Jev text and personal data are prohibited.
+provider sandbox and MCP isolation remain later hardening.
 
 Fresh target authorization and receipt replay require current exact identity,
-operation, proof, effort and source evidence eligibility. Replay checks recorded
-launch facts on early lookup and locked append-race replay, without rewriting
-historical ledger bytes. Stored governance metadata and legacy OpenCode
-identities identify governed receipts after declarations are revoked or renamed.
-Generic governed destinations remain refused even when catalog resolution fails;
-fallback approval cannot authorize a replacement. Refusal recursively clears
-targets, dispatch, submit, how_to and manual readiness advice in full and brief
-output. Descriptive identity persists without submission authority. Ordinary
-destinations and unrelated providers retain their existing behavior.
+operation, proof, effort, input manifest and source evidence eligibility. Replay
+checks recorded launch facts on early lookup and locked append-race replay,
+without rewriting historical ledger bytes. Stored governance metadata and legacy
+OpenCode identities identify governed receipts after declarations are revoked or
+renamed. A revoked receipt therefore keeps no actionable launch or manual
+recipe. Generic governed destinations remain refused even when catalog
+resolution fails; fallback approval cannot authorize a replacement. Refusal
+recursively clears targets, dispatch, submit, how_to and manual readiness advice
+in full and brief output. Descriptive identity persists without submission
+authority. Ordinary destinations and unrelated providers retain their existing
+behavior.
 
 1. **Pack**: `candidates`, and an optional `routing` object with these declared
    parameters:
@@ -291,16 +369,21 @@ A final pair with no target raises `final_target_null`. A final pair on a quota-
 
 **Rank** is lexicographic, and every key is printed:
 
-1. Eligibility. `primary` and `task_benchmark_prior` (with `requires` met), and
-   `authorize`-d exceptions, rank first. Candidates that need judgment rank after
+1. Preference. The owner-authorized trial's candidate carries `preference: 0`
+   when its identity is not demoted; every other candidate is 1. Revision 26
+   makes this the first key, so the trial outranks a paid arm whenever its gates
+   hold. A caller who wants a different arm for a qualified operation pins its
+   provider and model, which disables the trial rather than being outranked.
+2. Eligibility. `primary` and `task_benchmark_prior` (with `requires` met), and
+   `authorize`d exceptions, rank first. Candidates that need judgment rank after
    them.
-2. A `prefer` directive.
-3. Pace class: `on_track`, then `unknown`, then `at_risk`.
-4. Availability: healthy, then unknown, then demoted.
-5. Pack candidate order.
-6. Load balancing: lower `projected_pct` on the binding pace window first.
+3. A `prefer` directive.
+4. Pace class: `on_track`, then `unknown`, then `at_risk`.
+5. Availability: healthy, then unknown, then demoted.
+6. Pack candidate order.
+7. Load balancing: lower `projected_pct` on the binding pace window first.
    Unknown sorts last.
-7. Instance ID.
+8. Instance ID.
 
 **Quota substitution** (revision 16) runs after the rank, and only when the effective
 `routing` object (the pack, with the per-user overlay of revision 17 merged in; the pack
@@ -525,6 +608,9 @@ The two `task_benchmark_prior` substitutes cost more than their primaries. They
 protect quality, not quota.
 
 ## Changelog
+
+- Revision 27 (2026-10-15): repair the revision 26 trial. Bind every input to an authorized repository owner or an explicit public source: a `github_repo` entry carries its owner, a local entry must name a root, and unknown or omitted provenance refuses. Refuse a credential or secret path by name before any resolution and enforce the `vana-com` exclusion as a code floor a pack edit can only widen. Admit the bounded test-design purpose on `implement.oracle-bounded` and the bounded `recover.report` status scope, each behind a checked proof; require the purpose entry over the general entry and hold at most one unrestricted entry per operation. Require an explicit repairs count on every new free-route close, refuse a judged close without an independent judge, and refuse a `--task-result` completion claim while a sibling decision of the same consumer task still owes a close, recording each close's task completion state. Scope `routing.trial.pending_closes` to the request's consumer task and record the retro's enforcement boundary and idempotent scheduler trigger.
+- Revision 26 (2026-10-15): owner-authorized trial. Inject the free DeepSeek candidate as the preferred normal candidate for checked cheap-tier work on `implement.oracle-bounded`, `docs.lookup` and purpose-`research` `fanout.dollar-tight`, ranked by a new first key `preference`. Add a structured `input_policy` and required `selection` authority record, accept the live catalog's `low`/`high`/`max` efforts and checked `oracle`/`judged` proof, and enable `fanout.dollar-tight` for research. Require `--task-link` on recorded free-route decisions and add close, repairs and rework-observation accounting over unique consumer tasks with a deterministic threshold signal. Disable the trial on any caller-pinned provider, model or account; keep paid arms as visible fallbacks; state the authority limits and the zero-source-fee caveat.
 
 - Revision 25 (2026-10-15): admit optional oracle/high qualification for small public implementation and known-source lookup; share scope checks across selection and actual-target authorization. Recheck current eligibility on both replay paths. Preserve generic governed destination refusal and primary recommendations; bundle sanitized matched benchmark evidence.
 

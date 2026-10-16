@@ -7,7 +7,9 @@ from datetime import timedelta
 
 import directives as directive_store
 import observations as observation_store
-from outcomes import chain_heads, commit_verification_summary, split_rows
+from outcomes import (chain_heads, commit_verification_summary, free_route_pending, free_route_trial_due,
+                      free_route_trial_retro,
+                      split_rows)
 from route_inputs import freshness, read_failures
 from routing import ARM_KEYS, expand_candidates
 
@@ -188,4 +190,7 @@ def report(*, receipts, outcome_rows, policy, records, available_providers, mode
             'coverage': {'decisions': len(receipts), 'routed_decisions': routed, 'resolved_decisions': len(receipts) - routed,
                          'decisions_with_a_close': sum(r['decision_id'] in heads for r in receipts),
                          'overrides': sum(bool(r.get('overrides')) for r in receipts),
-                         'directives': directive_coverage(records, receipts, at, params.get('directive_max_days'))}}
+                         'directives': directive_coverage(records, receipts, at, params.get('directive_max_days'))},
+             'free_route_trial': free_route_trial_retro(receipts, outcome_rows, policy),
+             'free_route_trial_due': free_route_trial_due(receipts, outcome_rows, policy),
+             'free_route_pending_closes': free_route_pending(receipts, outcome_rows)}

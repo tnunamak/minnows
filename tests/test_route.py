@@ -157,6 +157,22 @@ def chosen(out):
 DEEPSEEK_FREE = 'opencode/deepseek-v4.1-flash-free'
 
 
+def manifest(*entries):
+    """A bound provenance manifest. Every entry is bound to an authorized repository and, for local
+    files, to the root it is read under and the path inside that root."""
+    return json.dumps({'v': 1, 'inputs': list(entries)})
+
+
+def local_input(path='tools/model-policy-ops/lib/input_provenance.py', classification='code', **extra):
+    return {'kind': 'local', 'repo': 'tnunamak/minnows', 'root': str(REPO), 'path': path,
+            'classification': classification, **extra}
+
+
+# An allowed manifest: one private repository under the allowed owner, one bound local code input.
+PROVENANCE = manifest({'kind': 'github', 'repo': 'tnunamak/minnows', 'visibility': 'private'},
+                      local_input())
+
+
 def add_opencode_fixture(world):
     providers = world.catalog['data']['providers']
     providers.append({'driver': 'opencode', 'enabled': True, 'instanceId': 'opencode', 'models': [
@@ -165,9 +181,11 @@ def add_opencode_fixture(world):
     ]})
 
 
-def deepseek_flags(*, classification=None, sensitive=False):
+def deepseek_flags(*, classification=None, sensitive=False, provenance=PROVENANCE):
     flags = ['--experimental-route', '--override', 'provider=opencode', '--override', f'model={DEEPSEEK_FREE}',
              '--override', 'effort=high', '--override', 'account=opencode', '--reason', 'Experimental exploration on a public task']
+    if provenance:
+        flags += ['--input-provenance', provenance]
     if classification:
         flags += ['--data-classification', classification]
     if sensitive:
@@ -322,6 +340,7 @@ def test_expired_route_cannot_be_bypassed_by_a_recorded_receipt(world):
     add_opencode_fixture(world)
     flags = ['route', 'fanout.explore', *world.args(), '--decision-id', 'experimental-route-receipt', '--record',
              '--parent-model', 'parent', '--parent-provider-instance', 'parent-instance', '--parent-thread', 'parent-thread',
+             '--task-link', '{"v":1,"consumer_task_id":"task-expired","workflow_id":"wf-expired","stage_id":"s1","role":"maker"}',
              *deepseek_flags(classification='public')]
     first_result, first = world.cli(*flags, evaluation_time='2026-10-15T00:30:00Z')
     assert first_result.returncode == 0, first_result.stderr
@@ -402,7 +421,7 @@ def test_opencode_free_metadata_does_not_follow_account_alias(world):
     assert result.returncode == 0, result.stderr
     assert out['launch_ready'] is False and out['target'] is None
     assert out['data_policy']['state'] == 'refused'
-    assert out['data_policy']['refusal'] == 'exact_experimental_override_required'
+    assert out['data_policy']['refusal'] == 'account_alias_not_allowed'
 
 
 def test_same_model_id_under_another_provider_does_not_inherit_free_billing(world):
@@ -950,7 +969,7 @@ def test_receipt_is_a_valid_resolve_receipt_with_route_fields(world):
     out = world.route('implement.quota-tight', record='r1')
     stored = json.loads(world.receipts.read_text().splitlines()[0])
     assert stored['request']['route'] is True and stored['request']['maker'] is None
-    assert stored['routing']['router_version'] == 1 and len(stored['routing']['params_sha256']) == 64
+    assert stored['routing']['router_version'] == 2 and len(stored['routing']['params_sha256']) == 64
     assert stored['routing']['routed'] == {'arm': {'effort': 'medium', 'model': 'claude-sonnet-5-5', 'provider': 'claude'}, 'account': 'claudeAgent'}
     assert stored['routing']['final']['overridden'] is False and stored['routing']['evidence']['label'] == 'descriptive_only'
     assert stored['routing']['calibration_notes']['applies_changes'] is False

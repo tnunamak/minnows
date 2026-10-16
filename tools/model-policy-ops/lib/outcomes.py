@@ -72,14 +72,23 @@ def launch_facts(args):
     return {'schema_version': 1, **facts} if facts else None
 
 
-def op_proof_assessment(op_id, proof_class):
-    """Describe only the declared op/proof relationship, without I/O or judging adequacy."""
+def op_proof_assessment(op_id, proof_class, purpose=None):
+    """Describe only the declared op/proof relationship, without I/O or judging adequacy.
+
+    `implement.oracle-bounded` normally declares a change whose whole standard a deterministic oracle
+    accepts or rejects. Its one bounded exception is the `test-design` purpose: a test suite's
+    acceptance standard is a checker's judgment, so an explicit oracle or judged declaration is
+    consistent there. The purpose is used to decide the state but is not part of the description,
+    which stays a function of the recorded op and proof class.
+    """
     if not isinstance(op_id, str) or not op_id.startswith('implement.'):
         state = 'not_applicable'
     elif proof_class is None:
         state = 'missing_proof'
     elif op_id == 'implement.standard' and proof_class == 'oracle':
         state = 'standard_oracle_review_required'
+    elif op_id == 'implement.oracle-bounded' and purpose == 'test-design':
+        state = 'declared_consistent'
     elif op_id == 'implement.oracle-bounded' and proof_class != 'oracle':
         state = 'oracle_bounded_requires_oracle'
     else:
@@ -645,8 +654,19 @@ def write_close(args, receipt):
                 raise ValueError('--supersedes must name the current close of this decision')
         elif heads:
             raise ValueError('decision already closed; correct it with --supersedes CURRENT_CLOSE_ID and --reason')
+        # Free-route close obligations gate a *new* close only, so replaying a historical close row
+        # stays byte-identical. The trial requires an explicit repairs count on every free-route close
+        # and, for a judged proof class, a named independent judge rather than a maker self-check.
+        free_route = is_free_route_receipt(receipt)
+        proof_class = (receipt.get('launch_facts') or {}).get('proof_class')
+        if free_route and args.repairs is None:
+            raise ValueError('a free-route close requires an explicit --repairs count '
+                             '(0 is a value; an absent count is unknown and cannot settle a trial task)')
+        if free_route and proof_class == 'judged' and not (check == 'independent_judged' and judged_by == 'independent'):
+            raise ValueError('a judged free-route close requires --check independent_judged --judged-by independent: '
+                             'the trial requires an independent checker as the judge, not the maker')
+        receipt_rows = read_receipts(args.receipts) if (task_result is not None or free_route) else []
         if task_result is not None:
-            receipt_rows = read_receipts(args.receipts)
             matches = [row for row in receipt_rows if row.get('decision_id') == decision_id]
             if len(matches) != 1:
                 raise ValueError('task result requires exactly one matching receipt')
@@ -661,9 +681,22 @@ def write_close(args, receipt):
         # Optional top-level metadata only: old readers compare evidence entries on replay.
         # Use the receipt, never current flags/pack, and do not retrofit a replayed close.
         assessment = op_proof_assessment((receipt.get('request') or {}).get('op'),
-                                         (receipt.get('launch_facts') or {}).get('proof_class'))
+                                         (receipt.get('launch_facts') or {}).get('proof_class'),
+                                         (receipt.get('launch_facts') or {}).get('purpose'))
         if assessment['state'] != 'not_applicable':
             record['op_proof_assessment'] = assessment
+        # The scoped completion state is written on every free-route close, and a whole-task
+        # completion claim (--task-result) is refused while the task still owes an obligation.
+        # Only this consumer task is inspected, so unrelated receipts and in-flight work are untouched.
+        link = receipt.get('task_link')
+        task = link.get('consumer_task_id') if isinstance(link, dict) else None
+        if free_route and isinstance(task, str):
+            completion = free_route_completion(receipt_rows, list(rows) + [record], task)
+            if task_result is not None and completion['state'] != 'complete':
+                raise ValueError('free-route completion claim refused: consumer task ' + task + ' still owes '
+                                 + json.dumps(completion['open'], sort_keys=True)
+                                 + '; close each obligation, or record a stage close without --task-result')
+            record['free_route'] = {'consumer_task_id': task, 'completion': completion}
         append_row(stream, record)
     return record
 
@@ -713,3 +746,217 @@ def execute(args):
     if receipt is None:
         raise ValueError('decision receipt not found; outcomes attach only to recorded decisions')
     return write_close(args, receipt) if args.command == 'close' else write_followup(args, receipt)
+
+
+# The close outcomes that count an owner-authorized trial task as settled. `abandoned_by_choice`,
+# `superseded` and `unknown` are not task outcomes, and a rejected close is a settled decision, so it
+# counts here as a measured negative result.
+FREE_ROUTE_OUTCOMES = ('accepted', 'accepted_after_repair', 'rejected')
+# The state `apply_experimental_route_policy` stores on a receipt that the free route was allowed to
+# launch. It is the receipt's own evidence of a free-route decision, so identity survives a later
+# revocation, expiry or policy edit.
+FREE_ROUTE_POLICY_STATE = 'allowed_public_experimental'
+
+
+def is_free_route_receipt(receipt):
+    """True when this receipt records a free-route launch, by its own stored data policy."""
+    return isinstance(receipt, dict) and (receipt.get('data_policy') or {}).get('state') == FREE_ROUTE_POLICY_STATE
+
+
+def free_route_decisions(receipts):
+    """Free-route decision summaries, identified by the state stored inside each receipt."""
+    found = []
+    for receipt in receipts:
+        if not is_free_route_receipt(receipt):
+            continue
+        state = receipt.get('data_policy') or {}
+        link = receipt.get('task_link')
+        task = link.get('consumer_task_id') if isinstance(link, dict) else None
+        found.append({'decision_id': receipt.get('decision_id'), 'model': state.get('route'),
+                      'account': state.get('account'), 'op': (receipt.get('request') or {}).get('op'),
+                      'effort': ((receipt.get('selection') or {}).get('arm') or {}).get('effort'),
+                      'purpose': (receipt.get('launch_facts') or {}).get('purpose'),
+                      'proof_class': (receipt.get('launch_facts') or {}).get('proof_class'),
+                      'task_link': link if isinstance(link, dict) else None,
+                      'consumer_task_id': task if isinstance(task, str) else None,
+                      'recorded_at': receipt.get('recorded_at')})
+    return found
+
+
+def close_obligations(decision, rows):
+    """What one free-route decision's close chain still owes: [] when its close is complete.
+
+    A decision owes its close, an explicit `repairs` count on that close, and -- when it launched
+    with a judged proof class -- a close that names an independent judge. The chain is followed by
+    supersede links, never by timestamp, so a revision cannot hide an unmet obligation.
+    """
+    closes, _ = split_rows(rows)
+    heads = chain_heads([row for row in closes if row.get('decision_id') == decision.get('decision_id')])
+    current = heads.get(decision.get('decision_id'), [])
+    if not current:
+        return ['close']
+    if len(current) > 1:
+        return ['unambiguous_close']
+    head = current[0]
+    missing = []
+    if head.get('repairs') is None:
+        missing.append('repairs')
+    if (decision.get('proof_class') == 'judged'
+            and not (head.get('check') == 'independent_judged' and head.get('judged_by') == 'independent')):
+        missing.append('independent_judge_check')
+    return missing
+
+
+def free_route_completion(receipts, rows, consumer_task_id):
+    """The completion state of one consumer task's free-route obligations, scoped to that task.
+
+    This is the enforcement boundary a completion claim is checked against: `complete` only when
+    every free-route decision of this consumer task is closed with an explicit repairs count and,
+    for a judged proof class, an independent judge. Unrelated historical receipts and other tasks'
+    in-flight work are outside the scope and are never touched.
+    """
+    decisions = [d for d in free_route_decisions(receipts) if d['consumer_task_id'] == consumer_task_id]
+    open_items = [{'decision_id': d['decision_id'], 'missing': close_obligations(d, rows)} for d in decisions]
+    open_items = [item for item in open_items if item['missing']]
+    return {'scope': 'consumer_task', 'consumer_task_id': consumer_task_id,
+            'state': 'complete' if not open_items else 'incomplete',
+            'checked_decisions': len(decisions), 'open': open_items,
+            'note': 'one consumer task only; unrelated receipts and other in-flight tasks are untouched'}
+
+
+def free_route_pending(receipts, rows, consumer_task_id=None):
+    """Free-route decisions whose required close, repairs, judge, or rework observation is outstanding.
+
+    `close_obligations` is the hard boundary. A missing rework observation is listed here too, but it
+    is soft: absence is reported unknown, never no rework, and it never blocks a close.
+    """
+    closes, followups = split_rows(rows)
+    heads = chain_heads(closes)
+    observed = {f['close_id'] for f in followups}
+    entries = []
+    for decision in free_route_decisions(receipts):
+        if consumer_task_id is not None and decision['consumer_task_id'] != consumer_task_id:
+            continue
+        current = heads.get(decision['decision_id'], [])
+        missing = close_obligations(decision, rows)
+        if len(current) == 1:
+            if current[0]['close_id'] not in observed:
+                missing = missing + ['rework_observation']
+        elif not current:
+            missing = missing + ['rework_observation']
+        if not missing:
+            continue
+        entries.append({'decision_id': decision['decision_id'], 'op': decision['op'], 'effort': decision['effort'],
+                        'purpose': decision['purpose'], 'consumer_task_id': decision['consumer_task_id'],
+                        'missing': missing})
+    return {'count': len(entries), 'decisions': entries}
+
+
+def free_route_trial_retro(receipts, rows, policy, threshold=None):
+    """The deterministic, idempotent trial retro and its threshold signal.
+
+    Counting is by `task_projection`, so a superseded revision, a checker close or a repair receipt
+    never adds a task. Free-route receipts without a task link are a separate legacy decision-level
+    cohort and never enter the task count. Missing later-rework observation is reported `unknown`,
+    never zero, and a task with conflicting or malformed metadata is reported `broken` rather than
+    merged with an unclosed task. The result is a pure function of the two ledgers and the policy,
+    so repeated calls are identical.
+    """
+    authority = (next(iter((policy or {}).get('experimental_free_routes') or []), {}) or {}).get('selection') or {}
+    limit = threshold or authority.get('threshold') or 50
+    decisions = free_route_decisions(receipts)
+    projection = task_projection(receipts, rows)
+    closes, followups = split_rows(rows)
+    closes_by_id = {close['close_id']: close for close in closes if isinstance(close.get('close_id'), str)}
+    observed = {f['close_id'] for f in followups}
+    tasks, legacy = {}, []
+    for decision in decisions:
+        if decision['consumer_task_id'] is None:
+            legacy.append(decision['decision_id'])
+        else:
+            tasks.setdefault(decision['consumer_task_id'], []).append(decision)
+    paid_by_task = {}
+    for receipt in receipts:
+        if (receipt.get('data_policy') or {}).get('state') == 'allowed_public_experimental':
+            continue
+        link = receipt.get('task_link')
+        if isinstance(link, dict) and isinstance(link.get('consumer_task_id'), str):
+            paid_by_task.setdefault(link['consumer_task_id'], []).append(receipt.get('decision_id'))
+    counts = {name: 0 for name in FREE_ROUTE_OUTCOMES}
+    by_op_effort, counted, matched, unmatched = {}, [], [], []
+    other_closed = unclosed = broken = repairs_missing = 0
+    rework = {'observed': 0, 'unknown': 0}
+    for task, members in sorted(tasks.items()):
+        key = ' + '.join(sorted({f'{m["op"]}@{m["effort"]}' for m in members}))
+        bucket = by_op_effort.setdefault(key, {'tasks': 0, **{name: 0 for name in FREE_ROUTE_OUTCOMES},
+                                               'other_closed_tasks': 0, 'unclosed_tasks': 0, 'broken_tasks': 0})
+        state = projection['tasks'].get(task)
+        if not state or state['state'] != 'declared':
+            # A fork, malformed metadata or missing close is never a counted task, and never merged
+            # with the other: a caller needs to know which obligation is unmet.
+            if state and state.get('reason') == 'conflicting_or_malformed_metadata':
+                broken += 1
+                bucket['broken_tasks'] += 1
+            else:
+                unclosed += 1
+                bucket['unclosed_tasks'] += 1
+            continue
+        bucket['tasks'] += 1
+        terminal = state['terminal_judgment']
+        if terminal not in counts:
+            other_closed += 1
+            bucket['other_closed_tasks'] += 1
+            continue
+        counts[terminal] += 1
+        bucket[terminal] += 1
+        head = closes_by_id.get(state['current_close_id']) or {}
+        rework['observed' if head.get('close_id') in observed else 'unknown'] += 1
+        repairs_missing += 1 if head.get('repairs') is None else 0
+        entry = {'consumer_task_id': task, 'terminal_judgment': terminal, 'current_close_id': state['current_close_id'],
+                 'decisions': sorted(m['decision_id'] for m in members), 'op_effort': key}
+        counted.append(entry)
+        (matched if paid_by_task.get(task) else unmatched).append(entry)
+    unique_closed = sum(counts.values())
+    return {'scope': 'unique consumer tasks with a declared whole-result close of a free-route receipt',
+            'authorization': authority.get('authorization'), 'authority_note': authority.get('authority_note'),
+            'benchmark': authority.get('benchmark'), 'threshold': limit,
+            'unique_closed_tasks': unique_closed, 'due': unique_closed >= limit,
+            **counts,
+            'other_closed_tasks': other_closed, 'unclosed_tasks': unclosed, 'broken_tasks': broken,
+            'rework_observed': rework['observed'], 'rework_unknown': rework['unknown'],
+            'repairs_missing': repairs_missing,
+            'legacy_decision_level': {'decisions': len(legacy),
+                                      'cohort': 'free-route receipts without a task link; excluded from the task count'},
+            'by_op_effort': by_op_effort, 'counted_tasks': counted,
+            'comparator': {'matched_task_ids': [e['consumer_task_id'] for e in matched],
+                           'unmatched_task_ids': [e['consumer_task_id'] for e in unmatched],
+                           'note': 'matched means a paid receipt shares the consumer task; the frozen 2026-10-15 '
+                                   'benchmark compared public docs lookup against Haiku, not against the paid cheap arm'},
+            'enforcement_boundary': {
+                'close': 'a free-route close is refused without an explicit --repairs count and, for a judged '
+                         'proof class, --check independent_judged --judged-by independent',
+                'completion': 'a free-route completion claim (--task-result) is refused while any free-route '
+                              'decision of that consumer task owes a close, a repairs count or an independent judge',
+                'scope': 'one consumer task; unrelated historical receipts and other in-flight tasks are untouched',
+                'authority': 'the router authorizes the launch and the outcome ledger proves the close; neither '
+                             'one alone settles a task'},
+            'scheduler_trigger': {
+                'signal': 'free_route_trial_due',
+                'due_when': f'unique_closed_tasks >= threshold ({limit})',
+                'contract': 'a pure function of the receipt ledger, the outcome ledger and the policy: identical '
+                            'inputs give identical output, so a scheduler may run `model-policy-ops calibrate` on any '
+                            'cadence and trigger on due=true. This tool schedules nothing itself and holds no secret.'},
+            'signal': 'deterministic and idempotent: a pure function of the receipt ledger, the outcome ledger and '
+                      'the policy, keyed by unique consumer tasks'}
+
+
+def free_route_trial_due(receipts, rows, policy, threshold=None):
+    """The single deterministic signal a scheduler may trigger on: `due` once enough tasks are closed.
+
+    It is a pure function of the two ledgers and the pack, so any run at any cadence agrees. The tool
+    starts no recurring job and holds no secret; the caller decides whether to act on `due`.
+    """
+    retro = free_route_trial_retro(receipts, rows, policy, threshold=threshold)
+    return {'signal': retro['scheduler_trigger']['signal'], 'due': retro['due'],
+            'unique_closed_tasks': retro['unique_closed_tasks'], 'threshold': retro['threshold'],
+            'idempotent': True, 'contract': retro['scheduler_trigger']['contract']}

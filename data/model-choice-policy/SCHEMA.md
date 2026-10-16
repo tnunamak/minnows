@@ -33,37 +33,103 @@ expiry, the public-data requirement and the mandatory prohibited-input list.
 
 | Field | Allowed value |
 |-------|---------------|
-| `id` | `implement.oracle-bounded` or `docs.lookup`; no duplicates |
-| `proof_classes` | `["oracle"]`; `[]` revokes proof eligibility |
-| `efforts` | Exactly `["high"]`; the only benchmark-tested effort |
-| `scope` | `small_public_source_change_full_deterministic_oracle` for implementation; `known_public_source_lookup_structured_fact_oracle` for lookup |
+| `id` | `implement.oracle-bounded`, `docs.lookup`, `fanout.dollar-tight` or `recover.report` |
+| `proof_classes` | A non-empty subset of `oracle`, `judged`; `[]` revokes proof eligibility |
+| `efforts` | A non-empty subset of the live catalog's `low`, `high`, `max` |
+| `scope` | The reviewed public scope of that entry (`small_public_source_change_full_deterministic_oracle`; `bounded_public_test_design_checked_by_independent_checker`; `known_public_source_lookup_structured_fact_oracle`; `bounded_public_research_checked_by_ci_or_independent_checker`; `bounded_public_status_report_checked_by_independent_checker`) |
+| `purposes` | Optional; restricts the entry to those launch purposes (`fanout.dollar-tight` is `["research"]`; the bounded test-design entry is `["test-design"]`) |
 | `evidence_ref` | `evidence/deepseek-public-eval-2026-10-15.json`, shipped in the pack |
 
-Unknown fields and mismatched scope or evidence references refuse validation.
+An operation may hold more than one entry only when each entry names a distinct
+`scope`, and at most one of them omits `purposes` (the unrestricted entry). A
+caller that states a listed `purpose` gets the purpose entry; every other caller
+gets the unrestricted entry. Unknown fields and mismatched scope or evidence
+references refuse validation.
 An empty operation list or removal of an entry revokes qualification. An empty
-`proof_classes` list revokes every proof for that entry; no other proof value is
-valid. Both CLI and
-pack validation use the same contract. Qualification is an owner decision based
-on the referenced evidence, not certification by the shape validator.
+`proof_classes` list revokes every proof for that entry. Absent or `none`
+checking never qualifies: a trial step must be checked by a deterministic
+oracle or an independent judge. Both CLI and pack validation use the same
+contract. Qualification is an owner decision based on the referenced evidence,
+not certification by the shape validator.
 
-For either qualified op, `route` and `resolve` require `--proof-class oracle`,
-`--experimental-route`, exact provider/model/account/effort overrides, a reason
-and `--data-classification public`. The separately authorized `route
-fanout.explore` and `resolve --no-op` paths retain catalog-validated efforts.
-They admit no other operations. Generic governed destination submission refuses.
-Historical replay rechecks current eligibility using the recorded proof class;
-revocation suppresses targets and submission instructions on early and locked
-append replay without rewriting the historical ledger.
+`selection` records the trial's authority honestly, and is required whenever
+`qualified_operations` is non-empty:
 
-Public classification and proof class are caller assertions, not content scans,
-proof certification or a sandbox guarantee. `--sensitive` always refuses the
-route, and `--inputs github` does not establish public contents.
+| Field | Allowed value |
+|-------|---------------|
+| `mode` | `preferred_normal_candidate` — a preference, never a forced route |
+| `authorization` | `owner_authorized_trial_2026-10-15` |
+| `benchmark` | The immutable qualification evidence; it does not qualify these operations |
+| `retrospective` | `true`; the trial is measured against the outcome ledger |
+| `authority_note` | Non-empty prose stating the authority and its limits |
+| `threshold` | Positive integer; unique closed consumer tasks before the retro is due |
+
+`input_policy` is a required structured manifest policy for each free route:
+`allowed_github_owners`, `excluded_github_owners` (the company namespace is
+always excluded by a code-enforced floor a pack edit can only widen),
+`other_owners` (`public_with_explicit_provenance`),
+`prohibited_content` (must include `secrets`, `PDPP_data`, `Jev_text`,
+`personal_data`), `credential_paths_denied` (`true`) and `caller_assertion_limit`.
+
+Every input must be bound to an authorized repository or an explicit public
+source. A `github_repo` entry names a repository owner and name; the owner's own
+namespace and any other owner with explicit public provenance are allowed, and
+the company namespace is refused. An explicit `public` entry names its source.
+A local file entry must name the root it lives under; the path is normalized
+against that root with strict symlink resolution, so a traversal or an escaping
+symlink refuses, and a credential or secret path is refused by name before any
+target is resolved or opened. Omitted, unknown or mixed provenance refuses:
+`input_provenance_required`, `repo_binding_required`, `company_private_namespace`,
+`public_provenance_required`, `path_escapes_root`, `credential_path`,
+`classification_required` and their peers name the refusal.
+
+The retrospective report (`outcomes.free_route_trial_retro`) carries the trial's
+enforcement contract: the close boundary (`enforcement_boundary`) and the
+scheduler trigger (`scheduler_trigger`) that a retrospective run uses to find
+overdue tasks. The trigger is a deterministic, idempotent `due` signal; it starts
+no recurring paid work and needs no webhook or secret.
+
+For a qualified operation, `route` and `resolve` prefer the free route without
+`--experimental-route`, without exact overrides and without a reason, and fall
+back to a paid arm whenever a gate fails. The caller must still declare a
+checked proof class and pass a structured `--input-provenance` manifest and
+`--data-classification public`. A caller-pinned provider, model or account
+override disables the preference and is authorized only when the same gates
+hold; an effort override does not disable it. The separately authorized
+`route fanout.explore` and `resolve --no-op` paths retain catalog-validated
+efforts. They admit no other operations. Generic governed destination
+submission refuses. Historical replay rechecks current eligibility using the
+recorded proof class and input manifest; revocation suppresses targets and
+submission instructions on early and locked append replay without rewriting the
+historical ledger.
+
+A recorded free-route decision must carry a `task_link`, because the trial
+counts unique consumer tasks rather than receipts. Every free-route result also
+requires an explicit close (`accepted`, `accepted_after_repair` or `rejected`),
+an explicit repairs count and a later rework observation. A new free-route close
+is refused without `--repairs`, and a judged close is refused unless it records
+`--check independent_judged --judged-by independent`: the trial requires an
+independent checker as the judge, not the maker. Closing with `--task-result` is
+a workflow-completion claim that is refused while a sibling decision of the same
+consumer task still owes a close; every free-route close records its task's
+completion state as of that close. These checks gate new closes only, so a
+historical close row still replays byte-identically. Absent later observation is
+reported as `unknown`, never as no rework, and no provider terminal status closes
+a task on its own.
+
+Public classification, proof class and the input manifest are caller
+assertions, not content scans, proof certification or a sandbox guarantee.
+They do not prove repository visibility, prove that credential paths are the
+only sensitive files, or give any runtime or OS isolation. `--sensitive` always
+refuses the route, and `--inputs github` does not establish public contents.
 `expires_at_utc` is a local recheck deadline, not a vendor end date. Missing,
 invalid, future-dated or expired source evidence refuses dispatch.
 The data policy retains upstream zero-retention/no-training attribution
 separately from OpenCode's unpaid-content service-improvement caveat.
 Shared provider host tools and injected `t3_thread_read` private-thread access
 remain known risks; provider sandbox and MCP isolation remain later hardening.
+`cost_usd` of 0 is a zero source fee only: provider usage, checking effort and
+complete workflow cost remain unknown.
 
 ## `op-requirements.json` (DRAFT — owner review pending)
 

@@ -313,17 +313,79 @@ Reason and handoff text must be short explanations, without prompts or secrets.
 ### Experimental free routes
 
 An entry in the pack's root `experimental_free_routes` metadata is never an
-operating-point candidate. It is usable only through an explicit experimental
-override for the two qualified operations, or under the separately authorized
-`fanout.explore` and `resolve --no-op` paths, with exact provider, model, effort
-and account flags. `--data-classification public` is required; omission
-means unknown, and `--sensitive` always refuses the
-route. `--inputs github` does not classify its contents. The exact route below is
-bound to OpenCode's `opencode` provider and account plus
+operating-point candidate. Since revision 26 (repaired in revision 27) it
+*injects* one leading candidate for the operations the entry declares, so the
+exact temporary free arm is the preferred normal candidate there, and every
+fallback to a paid arm carries a reason in `routing.trial`. Primary
+operating-point recommendations are unchanged.
+
+Four gates still hold on every call. `--data-classification public` is required;
+omission means unknown, and `--sensitive` always refuses. A structured
+`--input-provenance` manifest must be allowed. A checked `--proof-class` must be
+one the entry allows; absent or `none` never qualifies. The effort must be one the
+entry and the live catalog both allow (`low`, `high`, `max`). The exact route
+below is bound to OpenCode's `opencode` provider and account plus
 `opencode/deepseek-v4.1-flash-free`; other OpenCode models and provider/account
 aliases do not inherit its zero-cost metadata. The effort option key is read from
 the live T3 catalog and remains `variant`; an authorized public experimental
-request can emit its T3 target.
+request can emit its T3 target. Pinning provider, model or account disables the
+preference and is authorized only when the same gates hold; an effort override
+does not disable it. Because the trial's `preference` rank key comes first, an
+owner directive that prefers another arm for these operations must pin that
+provider and model.
+
+`--input-provenance` is a JSON manifest:
+`{"v":1,"inputs":[{"kind":"github_repo","owner":"tnunamak","repo":"minnows"},
+{"kind":"local","root":"/srv/tree","path":"src/","classification":"code"}]}`.
+Every entry is bound to an authorized repository or an explicit public source.
+A `github_repo` input allows the `tnunamak` owner, including non-public code in
+that namespace, and any other owner with an explicit non-empty
+`public_provenance`. The `vana-com` namespace is excluded by a code-enforced
+floor a pack edit can only widen. A local input must name the `root` it lives
+under; the path is normalized against that root and resolved with `realpath`,
+which stats but never opens a target, so `..` traversal or an escaping symlink
+refuses. A credential or secret path (`~/.ssh`, `.aws`, `.netrc`, `.env`,
+`id_rsa`, `auth.json`, keystores, `.pem`/`.key`/`.token` and similar) is refused
+by name before any resolution, and an ambiguous word such as `token`, `secret`,
+`credential`, `password` or `api_key` is refused unless it carries an ordinary
+source or docs extension. `classification: sensitive` and typed `contains`
+markers (`secrets`, `PDPP_data`, `Jev_text`, `personal_data`) are refused.
+Omitted, unknown, malformed or mixed provenance is never allowed; the refusal
+reason names the cause. The manifest is a caller declaration: it is not content
+scanning, does not verify repository visibility, does not prove that credential
+paths are the only sensitive files, and gives no runtime or OS isolation.
+`--inputs github` does not classify its contents.
+
+The route qualifies `implement.oracle-bounded` (`oracle`), the bounded
+`test-design` purpose on `implement.oracle-bounded` (`judged`), `docs.lookup`
+(`oracle` or `judged`), purpose-`research` `fanout.dollar-tight` (`oracle` or
+`judged`) and `recover.report` (`oracle` or `judged`). Implementation covers
+small PUBLIC source changes whose full acceptance standard has a deterministic
+oracle; the test-design purpose covers bounded PUBLIC test design checked by an
+independent checker; lookup covers known PUBLIC sources with a structured fact
+oracle, and open-ended research is excluded. An operation may hold more than one
+entry only when each names a distinct scope and at most one is unrestricted; a
+stated `purpose` selects the purpose entry over the general one. The separately
+authorized `fanout.explore` and `resolve --no-op` paths retain other
+catalog-validated efforts, without admitting other operations. Historical replay
+uses recorded proof and input facts and current qualification; removed
+operations, changed proof eligibility or a changed input policy refuse dispatch
+on both replay paths without rewriting stored receipts, and leave no actionable
+launch or manual recipe.
+
+An allowed free-route result states `data_policy.close_required`: give it an
+explicit close (`accepted`, `accepted_after_repair` or `rejected`), an explicit
+`repairs` count and a later rework observation. A new close is refused without
+`--repairs`; a `judged` close must record `--check independent_judged --judged-by
+independent`, never the maker. Closing with `--task-result` is a
+workflow-completion claim that refuses while a sibling decision of the same
+consumer task still owes a close, and every close records its task's completion
+state as of that close. These checks gate only new closes, so a historical row
+replays byte-identically. `route --record` therefore requires `--task-link`, and
+`routing.trial.pending_closes` is scoped to that request's consumer task. The
+trial's threshold counts unique consumer tasks, so a superseded revision, checker
+close or repair receipt never adds one; absent later observation is reported
+`unknown`, never zero.
 
 This model-arm path validates and emits the actual effort option, such as
 `options.variant: high`. Generic destination submission does not support governed
@@ -336,54 +398,46 @@ Receipts retain descriptive governed identity for current-policy checks; that
 identity does not authorize submission. Ordinary destinations keep their existing
 dispatch and manual submission behavior.
 
-`public` is the caller's assertion, not content scanning or attestation. Missing
-or invalid expiry evidence, and evidence at or beyond its local UTC recheck
-deadline, refuses dispatch. The seven-day deadline is local policy and does not
-claim a vendor end date. Undeclared OpenCode models with a `variant` option are
-refused; this metadata does not make paid or other free OpenCode models
-launchable.
-The route qualifies exactly `implement.oracle-bounded` and `docs.lookup`, each
-with `--proof-class oracle` and `--override effort=high`. Implementation covers
-small PUBLIC source changes whose full acceptance standard has a deterministic
-oracle. Lookup covers known PUBLIC sources with a structured fact oracle;
-open-ended research and judged or absent proof are excluded. High is the only
-benchmark-tested effort. Primary operating-point recommendations stay unchanged.
-The exploratory paths retain other catalog-validated efforts, without admitting
-other operations. Historical replay uses recorded proof facts and current
-qualification; removed operations or changed proof eligibility refuse dispatch
-on both replay paths without rewriting stored receipts.
+Missing or invalid expiry evidence, and evidence at or beyond its local UTC
+recheck deadline, refuses dispatch. The seven-day deadline is local policy and
+does not claim a vendor end date. Undeclared OpenCode models with a `variant`
+option are refused; this metadata does not make paid or other free OpenCode
+models launchable.
 
 The pack includes [sanitized benchmark evidence](../../data/model-choice-policy/evidence/deepseek-public-eval-2026-10-15.json):
 eight task pairs from six source contexts, 16 deterministic gate passes and one
 review inspection-scope failure. No repairs or throttles were observed. Rate
 limits, measured provider cost and total workflow cost remain unknown; the $0
-fee is temporary source pricing. These visible public tests establish only the
-bounded admitted scopes, not general review or fleet quality.
+fee is temporary source pricing. That evidence is immutable and does not
+authorize the trial: the owner authorized the expansion on 2026-10-15, and the
+trial is measured retrospectively against the outcome ledger.
 
-Public classification and proof class are caller assertions, not oracle
-certification or a runtime sandbox guarantee. Shared OpenCode server host tools
-and injected `t3_thread_read` private-thread access remain known risks. Provider
-sandbox and MCP isolation checks remain later hardening. The router does not
-change shared T3 or provider settings. The data-policy record retains the upstream
-zero-retention/no-training attribution separately from OpenCode's unpaid-service
-content-improvement terms.
+Public classification, proof class and the input manifest are caller assertions,
+not oracle certification or a runtime sandbox guarantee. Shared OpenCode server
+host tools and injected `t3_thread_read` private-thread access remain known risks.
+Provider sandbox and MCP isolation checks remain later hardening. The router does
+not change shared T3 or provider settings. The data-policy record retains the
+upstream zero-retention/no-training attribution separately from OpenCode's
+unpaid-service content-improvement terms.
 
 ```bash
-./tools/model-policy-ops/model-policy-ops route implement.oracle-bounded \
+./tools/model-policy-ops/model-policy-ops route docs.lookup \
   --policy data/model-choice-policy/operating-points.json --available auto \
-  --proof-class oracle --experimental-route --data-classification public \
-  --override provider=opencode \
-  --override model=opencode/deepseek-v4.1-flash-free \
-  --override effort=high --override account=opencode \
-  --reason 'Small public patch with a full deterministic acceptance oracle' \
-  --decision-id deepseek-public-exploration-001 --record \
+  --proof-class oracle --data-classification public \
+  --input-provenance '{"v":1,"inputs":[{"kind":"github_repo","owner":"tnunamak","repo":"minnows"}]}' \
+  --reason 'Known public source lookup with a structured fact oracle' \
+  --decision-id deepseek-public-trial-001 --record \
+  --task-link '{"v":1,"consumer_task_id":"task-001","workflow_id":"wf-001","stage_id":"lookup","role":"maker"}' \
   --parent-model PARENT_MODEL --parent-provider-instance PARENT_INSTANCE \
   --parent-thread PARENT_THREAD
 ```
 
-Do not dispatch if the result is refused or `target` is null. A sensitive
-negative check adds `--sensitive`; the result must have `launch_ready: false`
-and `target: null`.
+Exact `--override provider=opencode --override model=opencode/deepseek-v4.1-flash-free
+--override effort=high --override account=opencode` flags (with or without
+`--experimental-route`) still work for these operations and remain the way to
+probe the exploratory paths. Do not dispatch if the result is refused or `target`
+is null. A sensitive negative check adds `--sensitive`; the result must have
+`launch_ready: false` and `target: null`.
 
 ## Receipts and escalation
 
@@ -491,9 +545,10 @@ standard. Use `implement.oracle-bounded --proof-class oracle` for that bounded c
 swapped to another op or model. If checks cover only part of the standard, declare
 `judged`. For deliberate broader, long-running or security-sensitive oracle work,
 use explicit `resolve` with a `--reason` explaining why the selected op fits.
-`implement.oracle-bounded` refuses `judged` and `none`; `implement.standard` accepts
-both declarations. Other implementation ops require a declaration without gaining
-an automatic classification or new model ranking.
+`implement.oracle-bounded` refuses `judged` and `none`; a stated `--purpose
+test-design` selects the bounded test-design entry instead and accepts `judged`.
+`implement.standard` accepts both declarations. Other implementation ops require
+a declaration without gaining an automatic classification or new model ranking.
 
 This validates the declared task fit, not proof adequacy or whether the chosen
 workflow is cheapest. `resolve` and linked escalation retain their existing rules.
@@ -510,7 +565,14 @@ ops retain their existing behavior. Request and launch-fact shapes stay unchange
 - `request.route` (`true`), `request.maker`, `request.maker_model` and
   `request.independence`.
 - `routing`:
-  - `router_version`, `params` (the pack `routing` object) and `params_sha256`;
+  - `router_version` (2 since the revision 26 free-route trial), `params` (the pack `routing` object) and `params_sha256`;
+  - `trial` (only for an operation the owner-authorized trial declares): `state`
+    (`selected`, `not_selected` or `not_qualified`), `reason`, the declared
+    `route`, `selected`, `effort`, the authority (`mode`, `authorization`,
+    `threshold`, `authority_note`), the entry's `evidence_ref` and `scope`,
+    `evidence_expires_at_utc`, the `provenance` summary, `refusal_semantics`, and
+    `pending_closes` (outstanding free-route closes) whenever it is selected. An
+    ordinary operation carries no `trial` block;
   - `independence`: `required` level, `required_source` (`flag`, `pack` or
     `mechanism_default`) and `maker` (`provenance`, `vendor` `{value, basis}`,
     `requested`, `served_model: unattested`). A maker whose decision ID started several
