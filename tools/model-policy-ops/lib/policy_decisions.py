@@ -243,9 +243,9 @@ def withhold_without_headroom(value):
                     {'instance': chosen['instance'], 'pace': chosen['pace'], 'held_constrained': held})
 
 
-def withhold_unfunded(value, accounts, at):
-    """The funding check for the final target, whoever chose it: the router, an override or a destination."""
-    target = value.get('target')
+def withhold_unfunded(value, accounts, at, target):
+    """The funding check for the final target, whoever chose it: the router, an override or a destination. A
+    destination's proposed target counts even when the catalog does not list it and the caller would submit by hand."""
     entry = accounts.get((target or {}).get('providerInstanceId')) or {}
     if entry.get('billing') != 'metered' or 'funding' not in entry or routing.funded(entry['funding'], at):
         return value
@@ -568,8 +568,8 @@ def execute_locked(args, policy, stack):
                                                           'submit by hand or re-route with a matching decision ID')
     if routing_block and not offer:
         return_value = withhold_without_headroom(return_value)
-    if routing_block and return_value.get('target'):
-        return_value = withhold_unfunded(return_value, accounts, at)
+    if routing_block and (return_value.get('target') or proposed_destination):
+        return_value = withhold_unfunded(return_value, accounts, at, return_value.get('target') or proposed_destination)
     apply_experimental_route_policy(return_value, policy, at, available=available, destination_target=proposed_destination)
 
     if simulation:
