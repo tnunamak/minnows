@@ -9,6 +9,7 @@ import json
 import os
 import secrets
 import stat
+import statistics
 import tempfile
 from collections import Counter, defaultdict
 from contextlib import ExitStack
@@ -16,6 +17,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from decision_receipts import read_receipts, validate_id
+import derived_outcomes
 import outcomes
 import observations as observation_store
 import delegation_audit as audit
@@ -329,6 +331,52 @@ def edges_for(receipt, known, cohort):
                     'in_launch_cohort': edge['decision_id'] in cohort} for edge in result]
 
 
+def arm_key(row):
+    target = row['receipt_target'] or {}
+    # Accounts are not part of the arm: the same model and effort on another account is the same arm.
+    return (row['op'] or 'unknown', row['destination'], target.get('model') or '-', target.get('effort') or '-')
+
+
+def arm_summary(rows, units):
+    """Per op, destination and receipt arm (model and effort; accounts are counted, not split) over the cohort: judged and derived outcomes kept apart, and tokens per accepted.
+
+    `accepted` counts a judged accepted or accepted_after_repair close, or a derived accepted outcome. Tokens are the
+    observed main-agent sums over every attributed attempt, failed and rejected ones included; per-accepted values are
+    null when nothing was accepted or no tokens are known. Descriptive, confounded by task mix."""
+    groups = defaultdict(list)
+    for row in rows:
+        groups[arm_key(row)].append(row)
+    out = []
+    for key, members in sorted(groups.items()):
+        ids = {r['decision_id'] for r in members}
+        owned = [u for u in units if u['state'] == 'attributed' and u['decision_id'] in ids]
+        judged = Counter(r['decision_outcome'] for r in members if r['outcome_state'] == 'closed')
+        derived = Counter(r['derived_outcome']['outcome'] for r in members if r['derived_outcome'])
+        reasons = Counter(r['derived_outcome']['reason'] for r in members
+                          if r['derived_outcome'] and r['derived_outcome']['outcome'] == 'unknown')
+        accepted = judged['accepted'] + judged['accepted_after_repair'] + derived['accepted']
+        tokens = token_summary(owned)
+        per = {name: (tokens[name]['observed_sum'] / accepted if accepted and tokens[name]['observed_sum'] is not None else None)
+               for name in ('input_tokens', 'fresh_input_tokens', 'output_tokens') if name in tokens}
+        # One duration per child run, even when several calls reference it.
+        elapsed = list({(r['decision_id'], c.get('child_run_id')): c['run_timing']['elapsed_seconds'] for r in members for c in r['calls']
+                        if c['run_timing'].get('elapsed_seconds') is not None}.values())
+        out.append({'op': key[0], 'destination': key[1], 'model': key[2], 'effort': key[3],
+                    'accounts': dict(sorted(Counter((r['receipt_target'] or {}).get('provider_instance_id') or '-' for r in members).items())),
+                    'decisions': len(members),
+                    'judged': {name: judged[name] for name in ('accepted', 'accepted_after_repair', 'rejected')}
+                              | {'other': sum(v for k, v in judged.items() if k not in ('accepted', 'accepted_after_repair', 'rejected'))},
+                    'derived': {name: derived[name] for name in ('accepted', 'rejected')},
+                    'unknown': derived['unknown'], 'unknown_reasons': dict(sorted(reasons.items())),
+                    'accepted': accepted, 'first_time_share_of_judged_accepted':
+                        judged['accepted'] / (judged['accepted'] + judged['accepted_after_repair'])
+                        if judged['accepted'] + judged['accepted_after_repair'] else None,
+                    'tokens': tokens, 'tokens_per_accepted': per,
+                    'run_elapsed_seconds_p50': statistics.median(elapsed) if elapsed else None, 'runs_timed': len(elapsed),
+                    'total_usd': None, 'usd_per_accepted': None})
+    return out
+
+
 def make_report(receipts, outcome_rows, observations, calls, outside, sources, *, as_of, since=None):
     by_id = validate_receipts(receipts)
     as_of = audit.stamp(as_of) if isinstance(as_of, str) else as_of.astimezone(timezone.utc)
@@ -346,6 +394,7 @@ def make_report(receipts, outcome_rows, observations, calls, outside, sources, *
         parent = identifier((r.get('parent') or {}).get('thread_id'))
         if parent:
             parent_decisions[parent].add(d)
+    derived = derived_outcomes.derive(cohort, receipts, observations)
     rows = []
     for d in sorted(cohort, key=lambda k: (audit.stamp(by_id[k]['recorded_at']), k)):
         r = by_id[d]
@@ -374,6 +423,8 @@ def make_report(receipts, outcome_rows, observations, calls, outside, sources, *
                      'usage_keys': [u['key'] for u in own_units],
                      'outcome_state': 'closed' if close else 'broken_chain' if current else 'unclosed',
                      'decision_outcome': close['outcome'] if close else 'unknown',
+                     # Facts-only fallback for an unclosed decision; never a close and never mixed into decision_outcome.
+                     'derived_outcome': None if close else derived[d],
                      'current_close': current_view, 'superseded_closes': sum(c['decision_id'] == d for c in closes) - bool(close),
                      'repairs_state': 'known' if close and count(close.get('repairs')) is not None else 'missing',
                      'followups': {'state': 'observed' if fs else 'not_checked',
@@ -419,6 +470,7 @@ def make_report(receipts, outcome_rows, observations, calls, outside, sources, *
                       'accepted_denominator': accepted, 'known_components_usd_per_accepted': None,
                       'total_usd': None, 'credits': None, 'task_cost': None, 'task_accepted_result_count': None,
                       'wall_time_seconds': None})
+    by_arm = arm_summary(rows, units)
     return {'schema_version': SCHEMA_VERSION, 'report_version': REPORT_VERSION, 'runtime_semantics_version': RUNTIME_SEMANTICS,
             'runtime_semantics_basis': 'interpretation_assumption_not_producing_runtime_attestation',
             'collection': {'as_of_utc': as_of.isoformat()},
@@ -427,7 +479,7 @@ def make_report(receipts, outcome_rows, observations, calls, outside, sources, *
                        'default_window': 'rolling_14_days' if since is None else None},
             'sources': sources, 'source_gaps': GAPS + (['export_usage_not_projected'] if 'export' in sources else [])
                        + (['optional_observations_unavailable'] if sources.get('observations', {}).get('state') == 'unavailable' else []),
-            'rows': rows, 'daily': daily,
+            'rows': rows, 'daily': daily, 'by_arm': by_arm,
             'usage': [u for u in units if any(o['decision_id'] in cohort for o in u['owners'])],
             'linked_decision_views': [{'decision_id': r['decision_id'], 'edges': r['edges'],
                                       'nonadditive': True, 'task_cost': None} for r in rows if r['edges']],
@@ -475,6 +527,20 @@ def markdown(report):
                                           for k, v in d['tokens'].items()),
                   '- Calls without usage: ' + str(d['calls_without_usage']) + '; decisions without calls: ' + str(d['decisions_without_calls'])
                   + '; shared parent: ' + str(d['shared_parent_decisions']) + '; parent unknown: ' + str(d['parent_unknown_decisions']), '']
+    lines += ['', '## Outcomes by op and arm', '',
+              'Judged = a current close (caller claim). Derived = a rule over recorded facts for an unclosed decision',
+              '(destination owner accepted, merged linked pull request, quality escalation); completion is never acceptance.',
+              'Tokens per accepted divide every attributed attempt, failed and rejected ones included, by accepted results.', '',
+              '| Op | Destination | Arm | Decisions | Judged acc / after repair / rejected / other | Derived acc / rejected | Unknown |'
+              ' Input tok per acc (incl. cache) | Fresh input per acc | Output tok per acc | Run p50 s |',
+              '|---|---|---|---:|---|---|---:|---:|---:|---:|---:|']
+    for a in report.get('by_arm', []):
+        j, dv, per = a['judged'], a['derived'], a['tokens_per_accepted']
+        fmt = lambda v: '-' if v is None else str(round(v))
+        lines.append(f"| {a['op']} | {a['destination']} | {a['model']}/{a['effort']} | {a['decisions']} | "
+                     f"{j['accepted']} / {j['accepted_after_repair']} / {j['rejected']} / {j['other']} | {dv['accepted']} / {dv['rejected']} | "
+                     f"{a['unknown']} | {fmt(per.get('input_tokens'))} | {fmt(per.get('fresh_input_tokens'))} | {fmt(per.get('output_tokens'))} | "
+                     f"{fmt(a['run_elapsed_seconds_p50'])} |")
     lines += ['', 'Coverage: ' + canonical(report['coverage']),
               'Source gaps: ' + ', '.join(report['source_gaps']),
               'See reconciliation.json for per-turn missingness, conflicts, current closes, lineage and provenance.', '']

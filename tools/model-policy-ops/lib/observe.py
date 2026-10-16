@@ -170,6 +170,71 @@ def run_details(db, run_id):
     return row, attempts, failures
 
 
+PR_STATES = ('open', 'merged', 'closed', 'draft')
+REPOSITORY = re.compile(r'[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}')
+
+
+def pull_request_facts(db, thread, run_id, decision, ids, run_owner):
+    """One snapshot of the pull requests linked to the child thread, timed by the thread's projection update, so a link
+    that is later removed or becomes unreadable replaces the earlier snapshot. `shared_with_decisions` counts the
+    decisions whose delegate calls ran in this thread: thread-wide PRs cannot be attributed when it is above 1."""
+    columns = table_columns(db, 'threads')
+    updated = 'updated_at' if 'updated_at' in columns else 'NULL'
+    # Parsed here, not with json_extract: a malformed payload must not abort the whole T3 source.
+    row = db.execute(f"SELECT payload_json,{updated} FROM {PREFIX}threads WHERE thread_id=?", (thread,)).fetchone()
+    if row is None:
+        return []
+    runs = [r[0] for r in db.execute(f'SELECT run_id FROM {PREFIX}runs WHERE thread_id=?', (thread,))]
+    sharing = len({(run_owner or {}).get(r) for r in runs if (run_owner or {}).get(r)} | {decision})
+    stamps, why = timestamps(thread_updated_at=row[1])
+    fact = {'child_thread_id': thread, 'state': 'listed', 'pull_requests': [], 'dropped': 0, 'shared_with_decisions': sharing}
+    try:
+        payload = json.loads(row[0]) if row[0] else {}
+        linked = payload.get('pullRequests', []) if isinstance(payload, dict) else None
+        linked = [] if linked is None else linked
+    except (TypeError, ValueError):
+        linked = None
+    if not isinstance(linked, list):
+        fact['state'] = 'unreadable'
+        why = why | {'pull_requests': 'unreadable_projection'}
+    else:
+        for entry in linked:
+            entry = entry if isinstance(entry, dict) else {}
+            snap = entry.get('snapshot') if isinstance(entry.get('snapshot'), dict) else {}
+            repo, number = entry.get('repository'), entry.get('number')
+            if not (isinstance(repo, str) and REPOSITORY.fullmatch(repo) and type(number) is int and number > 0):
+                fact['dropped'] += 1
+                continue
+            pr_stamps, _ = timestamps(merged_at=snap.get('mergedAt'), closed_at=snap.get('closedAt'), synced_at=snap.get('syncedAt'))
+            fact['pull_requests'].append({'repository': repo, 'number': number, 'state': enum(snap.get('state'), PR_STATES), **pr_stamps})
+    return [store.make_observation('t3', run_id, decision, 't3_child_pull_requests', fact, source_ids=ids, source_timestamps=stamps,
+                                   unknown=why | ({'state': 'T3 snapshot; may lag GitHub'} if fact['pull_requests'] else {}))]
+
+
+def child_thread_facts(db, run_id, decision, ids, run_owner=None):
+    """Follow-up messages and linked pull requests of the child thread that ran `run_id`. Counts and enums only, no text."""
+    if not ({'run_id', 'thread_id'} <= table_columns(db, 'runs') and {'thread_id', 'payload_json'} <= table_columns(db, 'threads')
+            and {'thread_id', 'type', 'updated_at'} <= table_columns(db, 'turn_items')):
+        return []
+    row = db.execute(f'SELECT thread_id FROM {PREFIX}runs WHERE run_id=?', (run_id,)).fetchone()
+    unknown = {}
+    thread = checked_id(row[0], 'child_thread_id', unknown) if row and row[0] else None
+    if not thread:
+        return []
+    found = []
+    messages, last = db.execute(f"SELECT count(*), max(updated_at) FROM {PREFIX}turn_items WHERE thread_id=? AND type='user_message'",
+                                (thread,)).fetchone()
+    stamps, why = timestamps(last_user_message_at=last)
+    found.append(store.make_observation(
+        't3', run_id, decision, 't3_child_followups',
+        # The first user message is the brief; later ones are follow-ups sent to the same child. They are not repair rounds:
+        # parents often repair through a new child, and some follow-ups are questions (70 of 127 closes agreed, 2026-10-15).
+        {'child_thread_id': thread, 'user_messages': messages, 'followup_messages': max(messages - 1, 0) if messages else None},
+        source_ids=ids, source_timestamps=stamps, unknown=unknown | why | ({} if messages else {'followup_messages': 'no_user_messages'})))
+    found += pull_request_facts(db, thread, run_id, decision, ids, run_owner)
+    return found
+
+
 def usage_observations(source, run_id, decision_id, usage):
     """One row per reported turn, labelled as reported. Never a sum: scopes can overlap. Ids arrive validated or None."""
     turns = [(a['attempt_id'], a['attempt_ordinal'], t) for a in usage['attempts'] for t in a['turns']]
@@ -198,6 +263,8 @@ def collect_t3(db_path, scope_ids, targets=None):
         calls, _ = read_db(db_path, None, None)
     except ValueError as error:
         return result('error', short(error))
+    # Every delegate call, not only those in scope, says which decision owns a child run (for shared-thread checks).
+    run_owner = {c['child_run_id']: c['decision_id'] for c in calls if c.get('child_run_id')}
     calls = [c for c in calls if c['decision_id'] in scope_ids]
     targets = targets or {}
     found, runs = [], {}
@@ -264,6 +331,7 @@ def collect_t3(db_path, scope_ids, targets=None):
                     't3', run_id, decision, 't3_terminal_failure',
                     {'turn_item_id': item_id, 'failure_class': classify_failure(message)},
                     source_ids=ids | ids_of(turn_item_id=item_id), source_timestamps=stamps, unknown=unknown))
+            found += child_thread_facts(db, run_id, decision, ids, run_owner)
             found += usage_observations('t3', run_id, decision, call['observed_child_usage'])
         db.commit()
     except sqlite3.Error as error:
