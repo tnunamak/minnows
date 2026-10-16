@@ -5,6 +5,7 @@ The pack carries the policy: candidate arms with their evidence basis, and the r
 rejects, ranks the rest by a lexicographic key, and explains each step in a trace. It never learns
 from outcomes and it never dispatches work.
 """
+import pacing
 import quota_bands
 import quota_substitution
 from directives import matching
@@ -265,11 +266,12 @@ def is_review(op, params):
 
 
 def make_context(op, params, *, available, available_meta, quota, quota_meta, accounts, directives, maker, independence,
-                 proof_class, line_of, failures, freshness, now, experimental_route=None, substitution=None):
+                 proof_class, line_of, failures, freshness, now, experimental_route=None, substitution=None, critical_path=False):
     """The inputs that every pair assessment shares. A review op without a pack `independence_default` requires `vendor`.
 
     `level_source` says where the level came from: the `flag`, the `pack` or the `mechanism_default`.
     `substitution` is None when the pack does not enable quota substitution, else {thresholds, state, ranks}.
+    `critical_path` is the caller's launch fact (see `pacing`); it changes nothing without forecast bands.
     """
     review = is_review(op, params)
     if independence:
@@ -282,7 +284,7 @@ def make_context(op, params, *, available, available_meta, quota, quota_meta, ac
             'accounts': accounts, 'directives': directives, 'maker': maker, 'level': level, 'level_source': source, 'review': review,
             'proof_class': proof_class, 'line_of': line_of, 'failures': failures, 'freshness': freshness,
             'pace_windows': params.get('pace_windows', []), 'bands': params.get('quota_bands'), 'now': now, 'experimental_route': experimental_route,
-            'substitution': substitution}
+            'substitution': substitution, 'critical_path': critical_path is True, 'demote_count': params.get('failure_demote_count')}
 
 
 def tag(reasons, applies_to):
@@ -314,6 +316,10 @@ def final_view(ctx, op, arm, instance, views):
         constrained = sub['state']['constrained'][instance]
         reasons.append({'code': 'final_account_quota_constrained',
                         'detail': {'instance': instance, 'projected_pct': constrained['projected_pct'], 'window': constrained['window']}})
+    cooling = pacing.cooldown(ctx['failures'], instance, ctx['demote_count'], DEMOTING)
+    if cooling['state'] == 'cooling_down':
+        # The override stays exact. The caller learns when recent failures leave the lookback.
+        reasons.append({'code': 'final_account_cooling_down', 'informational': True, 'detail': {'instance': instance} | cooling})
     return {'billing': found['billing'], 'filters_bypassed': bypassed, 'pace': view['pace'], 'quota_ref': ref}, tag(reasons, 'final')
 
 
@@ -359,6 +365,9 @@ def route(op, params, ctx):
                                 '_target': found['selection']['target'], '_authorizers': matched['authorize'], '_view': view})
     survivors = sorted((t for t in trace if t['removed_by'] is None), key=lambda t: rank_tuple(t['rank']))
     picked, move, unavailable = substituted_row(ctx, survivors)
+    held = {instance for instance, row in (((ctx['substitution'] or {}).get('state') or {}).get('report') or {}).items()
+            if row.get('state') in quota_substitution.ACTIVE_STATES} if ctx['bands'] else set()
+    picked, pace_decision = pacing.pick(survivors, picked, held, ctx['critical_path']) if ctx['bands'] else (picked, None)
     chosen = chosen_view(picked, candidates) if picked else None
     for position, row in enumerate(survivors):
         row['rank_position'] = position
@@ -371,6 +380,7 @@ def route(op, params, ctx):
         reasons += tag([{'code': 'quota_substitution_unavailable',
                          'detail': {'constrained': {instance: {k: row[k] for k in ('projected_pct', 'window')}
                                                     for instance, row in ctx['substitution']['state']['constrained'].items()}}}], 'routed')
+    reasons = pacing.relax_pacing_reasons(reasons, pace_decision)
     block = {'router_version': ROUTER_VERSION, 'params': params, 'params_sha256': digest(params),
             'independence': {'required': ctx['level'], 'required_source': ctx['level_source'], 'maker': ctx['maker']},
             'directives_applied': sorted(applied), 'directives_unmatched': sorted(d['id'] for d in ctx['directives'] if d['id'] not in applied),
@@ -380,6 +390,8 @@ def route(op, params, ctx):
             'quota': views, 'trace': trace, 'chosen': chosen, 'judgment_required': judgment_needed(reasons), 'judgment_reasons': reasons}
     if ctx['substitution']:
         block['quota_substitution'] = quota_substitution.summary(ctx['substitution'], move=move)
+    if pace_decision:
+        block['pacing'] = pace_decision
     return block
 
 

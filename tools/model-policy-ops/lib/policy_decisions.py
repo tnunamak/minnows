@@ -8,7 +8,7 @@ from contextlib import ExitStack
 from datetime import datetime, timezone
 from pathlib import Path
 
-from experimental_routes import has_current_evidence, parse_utc_timestamp, operation_refusal
+from experimental_routes import currency_refusal, operation_refusal
 from runtime_sources import digest, read_source, providers, provider_instance, driver_family, resolve_arm, quota_context
 from decision_receipts import read_receipts, find_receipt, append_receipt, validate_id, replay_receipt, validate_escalation_source
 from decision_receipts import receipt_extensions, capture_choice
@@ -22,6 +22,7 @@ import destinations
 import observations as observation_store
 import observation_notes
 import observe
+import pacing
 import cost_report
 from delegation_audit import read_db, read_export, audit, normalize_since
 
@@ -52,6 +53,7 @@ def add_arguments(parser):
     parser.add_argument('--proof-class', choices=outcomes.PROOF_CLASSES, help='launch fact: how the result is checked')
     parser.add_argument('--urgent', action='store_true', help='launch fact; absent means unknown')
     parser.add_argument('--irreversible', action='store_true', help='launch fact; absent means unknown')
+    parser.add_argument('--critical-path', action='store_true', help='route launch fact: this work must not wait on quota pacing; with forecast bands and no other launchable pair, take the subscription with the least overshoot above its own band. Exhausted, unknown, avoided, unfunded and independence-failing pairs stay excluded')
     parser.add_argument('--inputs', choices=outcomes.INPUTS, help='launch fact: where the task inputs are; absent means unknown')
     parser.add_argument('--data-classification', choices=['public', 'sensitive'], help='experimental free routes require an explicit public declaration')
     parser.add_argument('--experimental-route', action='store_true', help='explicitly request a policy-declared experimental free route')
@@ -141,7 +143,7 @@ def route_choice(args, policy, op, available, available_meta, quota, quota_meta,
     ctx = routing.make_context(op, params, available=available, available_meta=available_meta, quota=quota, quota_meta=quota_meta,
                                accounts=accounts, directives=directive_store.active(records, at, max_days), maker=maker,
                                independence=args.independence, proof_class=args.proof_class, line_of=line_of,
-                               failures=failures, freshness=fresh, now=at,
+                               failures=failures, freshness=fresh, now=at, critical_path=args.critical_path,
                                experimental_route=authorized_experimental_route(args, policy),
                                substitution=routing.substitution_context(params, accounts, quota, quota_meta, at, args.quota_state, write=not args.now,
                                                               authorized_by=quota_authorized_by(args, params), stack=stack))
@@ -218,29 +220,52 @@ WAIT_BASIS = 'no eligible arm has forecast headroom below its band; wait for a f
 UNFUNDED_BASIS = 'the target account declares funding and its verified_until is missing or past; verify the credit and route again'
 
 
-def withheld(value, state, basis, code, detail):
+def withheld(value, state, basis, code, detail, extra=None):
     """The receipt with every target cleared, `launch_ready` false and a `waiting` state. The evidence stays."""
     value['routing']['judgment_reasons'].append({'code': code, 'applies_to': 'routed', 'detail': detail})
     value['routing']['judgment_required'] = True
     value = clear_targets(value, refuse_submission=True)
     return value | {'launch_ready': False, 'launch_readiness_basis': basis,
-                    'waiting': {'state': state, 'assertion': 'router_evidence', 'reason': basis}}
+                    'waiting': {'state': state, 'assertion': 'router_evidence', 'reason': basis} | (extra or {})}
 
 
-def withhold_without_headroom(value):
+def wait_detail(block, critical_path, free_routes):
+    """What a pacing wait adds to `waiting`: its real semantics and every alternative that was considered first.
+
+    The wait dispatches nothing and no timer retries it. `retry_after` is the earliest reset of an eligible
+    subscription account; a fresh reading can change the answer sooner. A caller routes again to find out.
+    """
+    trace = block['trace']
+    destination = block.get('destination') or {}
+    detail = {'dispatches': False, 'retry_after': pacing.retry_after(trace),
+              'retry': 'route again with fresh facts; this wait neither dispatches nor schedules a retry',
+              'alternatives_considered': {
+                  'destination': {k: destination[k] for k in ('chosen', 'considered', 'not_eligible', 'fallback', 'not_considered') if k in destination},
+                  'prepaid': pacing.prepaid_summary(trace), 'free_routes': free_routes()}}
+    if critical_path:
+        detail['critical_path'] = {'requested': True, 'satisfied': False,
+                                   'why': 'no eligible subscription has a known forecast overshoot (unknown, stale and exhausted accounts have none)'}
+    return detail
+
+
+def withhold_without_headroom(value, critical_path=False, free_routes=lambda: []):
     """With forecast bands, a routed subscription pair is dispatchable only with known positive headroom on an
-    account that is not held constrained. Unknown, stale, at-risk and hysteresis-held pairs wait. A metered pair
-    (verified overflow) and an explicit override are not judged here."""
+    account that is not held constrained, unless `pacing` already picked a launchable alternative or the caller's
+    critical-path exception. Unknown, stale, at-risk and hysteresis-held pairs wait. A metered pair (verified
+    overflow) and an explicit override are not judged here."""
     block = value['routing']
     chosen = block['chosen']
     if not block['params'].get('quota_bands') or block['final']['overridden'] or not chosen:
+        return value
+    if (block.get('pacing') or {}).get('state') in (pacing.ALTERNATIVE_BEFORE_WAIT, pacing.CRITICAL_EXCEPTION):
         return value
     row = next(t for t in block['trace'] if t['removed_by'] is None and t['candidate'] == chosen['candidate'] and t['instance'] == chosen['instance'])
     held = (((block.get('quota_substitution') or {}).get('active_accounts') or {}).get(chosen['instance']) or {}).get('state') in quota_substitution.ACTIVE_STATES
     if row['billing'] != 'subscription' or (chosen['pace'] == 'on_track' and not held):
         return value
     return withheld(value, 'no_forecast_headroom', WAIT_BASIS, 'wait_no_forecast_headroom',
-                    {'instance': chosen['instance'], 'pace': chosen['pace'], 'held_constrained': held})
+                    {'instance': chosen['instance'], 'pace': chosen['pace'], 'held_constrained': held},
+                    wait_detail(block, critical_path, free_routes))
 
 
 def withhold_unfunded(value, accounts, at, target):
@@ -251,6 +276,17 @@ def withhold_unfunded(value, accounts, at, target):
         return value
     return withheld(value, 'funding_unverified', UNFUNDED_BASIS, 'wait_funding_unverified',
                     {'account': target['providerInstanceId'], 'verified_until': entry['funding']['verified_until']})
+
+
+def free_route_rows(args, policy, ctx, at):
+    """The declared experimental free routes judged for this request, as evidence in a wait. Nothing here selects one:
+    the caller opts in with exact flags because public inputs are the caller's own assertion."""
+    def qualify(route):
+        qualified = next((item for item in route.get('qualified_operations', []) if item['id'] == args.op), None)
+        effort = qualified['efforts'][0] if qualified and qualified['efforts'] else '<effort from the live catalog>'
+        refusal = operation_refusal(route, args.op, routed=True, no_op=False, proof_class=args.proof_class, effort=effort)
+        return effort, refusal or currency_refusal(route, at)
+    return pacing.free_routes(policy.get('experimental_free_routes', []), qualify, ctx['failures'], ctx['demote_count'], routing.DEMOTING)
 
 
 def validate_route_proof(op_id, proof_class):
@@ -368,6 +404,8 @@ def execute_locked(args, policy, stack):
         raise ValueError('relaunch requires --why infra, config or unavailable')
     if args.record and not all((args.decision_id, args.parent_model, args.parent_provider_instance, args.parent_thread)):
         raise ValueError('--record requires --decision-id and explicit --parent-model/--parent-provider-instance/--parent-thread')
+    if args.critical_path and not route:
+        raise ValueError('--critical-path applies to route only')
     skip = list(dict.fromkeys(args.skip_destination))
     if skip and not route:
         raise ValueError('--skip-destination applies to route only')
@@ -567,7 +605,7 @@ def execute_locked(args, policy, stack):
                 return_value['launch_readiness_basis'] = ('destination chosen; the root decision ID does not match its request_id_pattern; '
                                                           'submit by hand or re-route with a matching decision ID')
     if routing_block and not offer:
-        return_value = withhold_without_headroom(return_value)
+        return_value = withhold_without_headroom(return_value, args.critical_path, lambda: free_route_rows(args, policy, ctx, at))
     if routing_block and (return_value.get('target') or proposed_destination):
         return_value = withhold_unfunded(return_value, accounts, at, return_value.get('target') or proposed_destination)
     apply_experimental_route_policy(return_value, policy, at, available=available, destination_target=proposed_destination)
@@ -700,16 +738,7 @@ def experimental_target_refusal(identity, request, sensitive, routes, evaluated_
                                       effort=identity['effort'])
     if scope_refusal:
         return route, scope_refusal
-    expires_at = parse_utc_timestamp(route.get('expires_at_utc'))
-    if expires_at is None:
-        return route, 'verification_expiry_missing_or_invalid'
-    if not has_current_evidence(route, evaluated_at):
-        return route, 'verification_evidence_from_future_or_invalid'
-    if evaluated_at >= expires_at:
-        return route, 'verification_expired'
-    if (route.get('t3_transport') or {}).get('enabled') is not True:
-        return route, 't3_transport_disabled'
-    return route, None
+    return route, currency_refusal(route, evaluated_at)
 
 
 def apply_experimental_route_policy(result, policy, evaluated_at, *, available=None, replay=False, destination_target=None):

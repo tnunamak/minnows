@@ -720,6 +720,33 @@ scheduling policy; the pack has none and the code has no defaults. With bands se
   Route again after a fresh reading or a reset. An explicit `--override` is the caller's own intent and is not
   withheld for quota; its bypassed filters stay in `routing.final`. A verified metered overflow pair is not judged by
   headroom;
+- **Order before a wait.** The wait comes last. A destination offer (for example dot) is decided first. Then, among
+  the pairs that passed every filter, the first ranked pair that can launch wins: a funded prepaid or free account, or
+  a subscription with headroom. `routing.pacing.state` is `alternative_before_wait` when that replaced a subscription
+  pair that could not launch (unknown forecast, at risk, held), with the skipped pair in `skipped`. Only when no pair
+  can launch does the route wait. `waiting` then says what a wait is: `dispatches: false`, `retry_after` (the earliest
+  reset of an eligible subscription account, or null), a note that nothing retries on a timer, and
+  `alternatives_considered` (the destination block, every metered pair with the filter that removed it, and each
+  declared experimental free route with its qualification and cooldown). The free route is evidence only: it is never
+  chosen for the caller, because public inputs are the caller's own assertion. The caller opts in with the exact flags
+  in `opt_in`. A subscription is never picked for a discretionary wait.
+- **Cooldown.** An account with at least `failure_demote_count` rate-limit or transport failures inside
+  `failure_lookback_minutes` is `cooling_down`. `retry_after` is when enough events leave the lookback. Nothing is
+  stored: every route reads the telemetry again, so a cooldown ends by itself and one failure never marks an account
+  unavailable for longer than the lookback. An exact override onto a cooling account is kept and adds the
+  informational reason `final_account_cooling_down` with the same `retry_after`.
+- **`--critical-path`** (route only; a launch fact, `launch_facts.critical_path: true`; absent means false and old
+  receipts stay valid; the flag takes no value). Work that must not wait on pacing sets it. It changes nothing unless
+  bands are set. When no pair can launch, the router picks, among pairs that passed every filter, the subscription with
+  the least overshoot: projected percent minus the band upper limit of the window that binds that account's pace, in
+  percentage points, so each account is held to its own band and days left. Order: eligibility class, `prefer`,
+  availability (healthy before unknown before demoted), overshoot, candidate order, earliest reset, instance ID. An
+  unknown, stale or exhausted account has no overshoot and is never picked. Avoid, independence, `requires`, funding
+  and privacy filters are unchanged, because they run first. The receipt records `routing.pacing` (`state`
+  `critical_path_exception`, the skipped pair, the ordered `candidates` with overshoot, band, window, reset and
+  `quota_ref` into `routing.quota`) and the informational reason `critical_path_pacing_exception`. If no account has a
+  known overshoot, the route still waits and `waiting.critical_path.satisfied` is false. `--now` simulations never
+  launch, with or without the flag. `--brief` and the default line print `critical_path` and `pacing`.
 - a free arm that the caller chose by explicit override or `--experimental-route` stays exact. After it fails
   (for example, rate limited), route again without the override: the pack's subscription arms then compete, and the
   one above (adequate arm, then most headroom) wins, or the route waits.
@@ -1430,7 +1457,8 @@ timer or cron entry). Disable it by stopping that schedule. Roll back by deletin
 `resolve` accepts these optional facts about the task: `--purpose
 execution|review|research|exploration|test-design`, `--proof-class oracle|judged|none`,
 `--urgent`, `--irreversible`, `--inputs github|local` (where the task inputs are) and
-`--sensitive` (the task touches credential or signing code). Absent means unknown, never false. They are stored
+`--sensitive` (the task touches credential or signing code). `route` also accepts `--critical-path` (work that must
+not wait on quota pacing; see the wait order under forecast bands). Absent means unknown, never false. They are stored
 in a top-level `launch_facts` object (with its own `schema_version`) and never in
 `request`, so `request` keeps the 4ce5a3e shape and an older CLI can still replay a
 new receipt with the base flags. A replay checks `request` and `launch_facts`
