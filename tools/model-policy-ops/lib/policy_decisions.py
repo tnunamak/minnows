@@ -466,11 +466,11 @@ def execute_locked(args, policy, stack):
         receipt_rows = read_receipts(args.receipts) if args.relaunch_of else []
         routing_block['destination'], offer = destinations.decide(
             dest_entries, purpose=args.purpose, facts=facts, skip=skip, reason=args.reason, request_id=decision_id, simulate=simulation,
-            independence=independence, lineage=lambda name: destinations.chain(receipt_rows, args.relaunch_of, name))
+            independence=independence, lineage=lambda name: destinations.chain(receipt_rows, args.relaunch_of, name), op=args.op)
     elif routing_block:
         routing_block['destination'] = destinations.not_considered(dest_meta['state'])
     if not route:
-        return_value['destination_skip'] = destinations.resolve_skip(dest_entries, dest_meta, args.purpose)
+        return_value['destination_skip'] = destinations.resolve_skip(dest_entries, dest_meta, args.purpose, args.op)
     if routing_block:
         # Descriptive only: added once the destination is decided, so no ranking, target or judgment can depend on it.
         rows, state, _ = observation_store.read_observations(args.observations)
