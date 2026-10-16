@@ -50,6 +50,7 @@ def add_arguments(parser):
     parser.add_argument('--purpose', choices=outcomes.PURPOSES, help='launch fact, stored outside request')
     parser.add_argument('--proof-class', choices=outcomes.PROOF_CLASSES, help='launch fact: how the result is checked')
     parser.add_argument('--urgent', action='store_true', help='launch fact; absent means unknown')
+    parser.add_argument('--critical-path', choices=('yes', 'no'), help='launch fact: whether other work waits on this task; required with --record')
     parser.add_argument('--irreversible', action='store_true', help='launch fact; absent means unknown')
     parser.add_argument('--inputs', choices=outcomes.INPUTS, help='launch fact: where the task inputs are; absent means unknown')
     parser.add_argument('--data-classification', choices=['public', 'sensitive'], help='experimental free routes require an explicit public declaration')
@@ -212,6 +213,20 @@ def clear_targets(value, *, refuse_submission=False):
     return value
 
 
+REQUIRED_FACTS = (('purpose', '--purpose execution|review|research|exploration|test-design'),
+                  ('proof_class', '--proof-class oracle|judged|none'),
+                  ('inputs', '--inputs github|local'),
+                  ('critical_path', '--critical-path yes|no'))
+
+
+def require_launch_facts(args):
+    """A recorded decision must say what the task is, how it is checked, where its inputs are and whether other work waits on it."""
+    missing = [flag for name, flag in REQUIRED_FACTS if getattr(args, name, None) is None]
+    if missing:
+        raise ValueError('--record requires the launch facts ' + ', '.join(missing)
+                         + '; each is a declaration (none, local and no are valid answers), not an omitted flag')
+
+
 def validate_route_proof(op_id, proof_class):
     """Fresh route task-fit guard; explicit resolve/escalation retains its existing behavior."""
     state = outcomes.op_proof_assessment(op_id, proof_class)['state']
@@ -363,6 +378,8 @@ def execute_locked(args, policy, stack):
         proposed = next((entry.get('target') for entry in dest_entries if entry['name'] == replayed.get('destination')), None)
         apply_experimental_route_policy(replayed, policy, datetime.now(timezone.utc), replay=True, destination_target=proposed)
         return replayed
+    if args.record and args.command in ('route', 'resolve'):
+        require_launch_facts(args)
     # Exact historical replay wins. Validate known fresh routes (including simulations)
     # before reading runtime sources, running probes or acquiring writable quota state.
     # Unknown ops retain the existing unknown-op path; resolve/escalation is unchanged.
