@@ -268,10 +268,14 @@ def test_a_receipt_rebound_to_another_account_is_refused_on_replay(world):
     assert selected(first)
     receipts = world.receipts
     row = json.loads(receipts.read_text().splitlines()[-1])
-    text = json.dumps(row).replace('"providerInstanceId": "opencode"', '"providerInstanceId": "opencode-alt"')
+    text = json.dumps(row)
+    for key in ('providerInstanceId', 'instance', 'account'):  # consistent on the other account: target, chosen pair, final pair
+        text = text.replace(f'"{key}": "opencode"', f'"{key}": "opencode-alt"')
+    assert text.count('opencode-alt') >= 3
     receipts.write_text(text + '\n')
     again = route_at(world, LATER, *PUBLIC, record='bind-1')
     assert again['target'] is None and again['launch_ready'] is False
+    assert FREE_TARGET['model'] not in json.dumps(all_target_values(again))
 
 
 def test_the_free_tuple_is_not_withheld_for_its_account_map_funding(world):
