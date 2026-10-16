@@ -643,7 +643,7 @@ When it is known and not listed, the candidate is removed. `check` validates all
 this. The pack `routing` object holds `pace_windows`, `failure_lookback_minutes`,
 `failure_demote_count`, `review_task_families`, `independence_default`,
 `directive_max_days`, `observation_max_age_hours` (default 3), `observation_window_days`
-(default 14), `quota_substitution` (see Quota substitution; the shipped pack leaves it out) and `lineage_key`. `lineage_key` maps a provider to the
+(default 14), `quota_substitution` and `quota_bands` (see Quota substitution; the shipped pack leaves both out) and `lineage_key`. `lineage_key` maps a provider to the
 model-catalog field that names a model line (`{"claude": "family", "codex": "tier",
 "grok": "family"}`). Absent fields turn the matching feature off: no pace, no
 demotion, no directive lifetime cap, no model line. A review op with no
@@ -691,6 +691,34 @@ The numbers above are an example, not a recommendation. A pack that sets the sam
 also enables it, and the overlay value replaces the pack value.
 
 `check` requires `0 < release_projected_pct < activate_projected_pct <= 200`.
+
+**Forecast bands** (revision 29) replace the fixed pair with the user's own thermostat bands. A user
+sets `routing.quota_bands` in the overlay: an ordered list, widest first, of
+`{min_days_left, exclusive?, low, high}`. The first rule that matches the days left before the account's
+window resets gives the band `{low, high}`: a far reset gets a wide band and a near reset a narrow one. The
+last rule must have `min_days_left` 0 and not be `exclusive`. The values come from the user's own
+scheduling policy; the pack has none and the code has no defaults. With bands set, they replace
+`quota_substitution`, and:
+
+- headroom is `high - projected_pct` for the pace window with the least headroom. Pace is `on_track` with
+  positive headroom and `at_risk` without it, so an account inside its band is not `at_risk` just because it
+  is projected above 100%;
+- an account is constrained at `projected_pct >= high` and released below `low`, with the same per-window
+  memory as the fixed thresholds;
+- a substitute needs a known, positive headroom. Order: pack candidate order, availability, the most
+  headroom, the earliest reset, the instance ID. `substitution_rank` does not apply. Among accounts of one arm
+  with no substitution, the same headroom order replaces the lower-projection order;
+- an unknown forecast, an expired window or an unusable reset time is never headroom (`pace_reason`
+  `no_band_for_window`). An account is never a target when an `avoid` directive, a failed hard filter or
+  independence removes it. The bands only schedule among pairs that the pack already qualifies for the op and
+  effort: a model or effort never changes with budget;
+- trace rows and `routing.quota[ref].binding` carry `band`, `days_left` and `headroom`. When no account has
+  headroom, the normal choice stays and `quota_substitution_unavailable` plus `pace_not_on_track` ask the parent
+  to decide or wait. A free arm that the caller chose by override never reaches `route`; use `route` after
+  that arm fails.
+
+`route` does not read prepaid credit. An unmapped metered account that an `allow-metered` directive
+permits has pace `unknown`, which ranks after any subscription with headroom and before one without.
 
 Per mapped subscription account, `route` takes the binding pace-window `projected_pct`
 (the same value as the pace class). The account is **constrained** when that value is at
@@ -776,7 +804,7 @@ A user tunes a few `routing` parameters without editing the pack. `~/.config/mod
 {"schema_version": 1, "routing": {"quota_substitution": {"activate_projected_pct": 97, "release_projected_pct": 85}}}
 ```
 
-(example values). `routing` may set only `quota_substitution`, `observation_max_age_hours` and
+(example values). `routing` may set only `quota_substitution`, `quota_bands`, `observation_max_age_hours` and
 `observation_window_days`. Candidates, `basis`, independence, `lineage_key` and every other
 evidence policy stay in the pack. Each key replaces the pack value whole (no deep merge). A
 missing file at the default path means no overlay; a file named with `--user-policy` that does
