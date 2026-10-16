@@ -813,8 +813,9 @@ EVIDENCE = {
         'sample_sha256': SAMPLE, 'test_evidence_metadata': {'label_source': 'human-labelled', 'sample_sha256': SAMPLE},
         'versions': {'baseline_model': 'baseline-model-1', 'baseline_effort': 'medium', 'typed_version': 'typed-v1'},
         'evaluated_at': '2026-10-09T00:00:00Z', 'valid_until': '2026-10-20T00:00:00Z',
-        'cost': {'basis': 'api_equivalent', 'currency': 'USD', 'scope': 'all_candidates_upper_bound', 'priced_at': '2026-10-09T00:00:00Z',
-                 'per_decision': 0.002, 'baseline_per_decision': 0.02}}}
+        'cost': {'basis': 'api_equivalent', 'currency': 'USD', 'scope': 'all_candidates_sample_mean', 'priced_at': '2026-10-09T00:00:00Z',
+                 'per_decision': 0.002, 'baseline_per_decision': 0.02,
+                 'selected_rule_set_per_decision': None, 'baseline_selected_rule_set_per_decision': None}}}
 
 
 def evidence(**changes):
@@ -865,7 +866,10 @@ def test_typed_eligible_offer_is_a_handoff_with_no_target_or_payload(typed_world
     assert offer['submit'] == {'command': 'typed submit --op review.rule-check --id probe'}
     assert offer['typed']['contract'] == {'whole_answer': 'typed', 'revision': 'r1', 'sha256': SHA}
     assert offer['capacity']['evaluated_model'] == 'typed-model-1' and 'served_model' not in offer['capacity']
-    assert offer['capacity']['evaluation']['cost']['scope'] == 'all_candidates_upper_bound'
+    cost = offer['capacity']['evaluation']['cost']
+    assert cost['scope'] == 'all_candidates_sample_mean'
+    assert cost['selected_rule_set_per_decision'] is None and cost['baseline_selected_rule_set_per_decision'] is None
+    assert cost['per_decision'] == 0.002 and cost['baseline_per_decision'] == 0.02
     assert 'destination_inputs_unknown' not in [r['code'] for r in out['routing']['judgment_reasons']]
 
 
@@ -885,6 +889,9 @@ def test_typed_eligible_offer_is_a_handoff_with_no_target_or_payload(typed_world
     ({'evaluation__sample_sha256': 'zz'}, 'sample_unproven'),
     ({'evaluation__versions': {'baseline_model': 'baseline-model-1', 'baseline_effort': 'high', 'typed_version': 'typed-v1'}}, 'version_mismatch'),
     ({'evaluation__cost': {'basis': 'api_equivalent', 'currency': 'USD', 'scope': 'selected', 'priced_at': '2026-10-09T00:00:00Z', 'per_decision': 1, 'baseline_per_decision': 2}}, 'cost_unproven'),
+    ({'evaluation__cost__scope': 'all_candidates_upper_bound'}, 'cost_unproven'),
+    ({'evaluation__cost__selected_rule_set_per_decision': 0.001}, 'cost_unproven'),
+    ({'evaluation__cost__baseline_selected_rule_set_per_decision': 0.01}, 'cost_unproven'),
     ({'evaluation': None}, 'evaluation_missing'),
 ])
 def test_typed_evidence_must_be_current_matching_and_balanced(typed_world, tmp_path, change, code):
@@ -1087,6 +1094,24 @@ def test_typed_cost_rejects_nonfinite_numbers(typed_world, tmp_path, token, stat
     assert row['state'] == state and row['capacity']['reason'] == reason and 'destination' not in out
 
 
+@pytest.mark.parametrize('field', ['per_decision', 'baseline_per_decision'])
+def test_typed_cost_huge_json_integer_fails_closed_not_a_trace(typed_world, tmp_path, field):
+    old = {'per_decision': '0.002', 'baseline_per_decision': '0.02'}[field]
+    raw = json.dumps(EVIDENCE).replace(f'"{field}": {old}', f'"{field}": 1' + '0' * 400)
+    assert '0' * 400 in raw
+    out = typed_route(typed_world, tmp_path, '--inputs', 'github', raw=raw)
+    row = dest(out)['considered'][0]
+    assert row['state'] == 'evaluation_required' and row['capacity']['reason'] == 'evaluation_required: cost_unproven'
+    assert 'destination' not in out
+
+
+def test_typed_cost_null_selected_fields_must_be_present(typed_world, tmp_path):
+    cost = json.loads(json.dumps(EVIDENCE['evaluation']['cost']))
+    del cost['selected_rule_set_per_decision']
+    out = typed_route(typed_world, tmp_path, '--inputs', 'github', payload=evidence(evaluation__cost=cost))
+    assert dest(out)['considered'][0]['capacity']['reason'] == 'evaluation_required: cost_unproven'
+
+
 def test_v1_probe_still_passes_its_own_fields_through_unchanged(one):
     out = route(one, one.cfg, '--purpose', 'review', '--inputs', 'github')
     assert out['destination_offer']['capacity'] == {'available': True, 'reason': 'ok', 'free': 7}
@@ -1110,6 +1135,26 @@ def test_typed_offer_expires_by_monotonic_probe_time_not_only_the_passed_clock(t
     block, offer = decide(lambda: next(ticks))
     assert offer is None and block['considered'][0]['capacity']['reason'] == 'evaluation_required: evaluation_expired'
     block, offer = decide(lambda: 100.0)
+    assert offer is not None
+
+
+def test_typed_offer_counts_delay_before_decide_from_the_sampled_clock(tmp_path):
+    """The route clock is sampled before runtime sources and quota reads; time spent there counts against the evidence."""
+    sys.path.insert(0, str(REPO / 'tools/model-policy-ops/lib'))
+    import destinations
+    from datetime import datetime, timezone
+    typed = typed_entry(tmp_path) | {'capacity_command': ['/abs/x']}
+    facts = {'schema_version': 1, 'purpose': 'review', 'inputs': 'github'}
+    near_end = datetime(2026, 10, 19, 23, 59, 58, tzinfo=timezone.utc)   # valid_until is 2026-10-20T00:00:00Z
+
+    def decide(at_monotonic):
+        # The probe itself is instant (monotonic never advances inside decide); only the pre-probe delay differs.
+        return destinations.decide([typed], purpose='review', facts=facts, skip=[], reason=None, request_id='r', simulate=False,
+                                   op=TYPED_OP, now=near_end, run_probe=lambda _e: json.loads(json.dumps(EVIDENCE)),
+                                   monotonic=lambda: 107.0, at_monotonic=at_monotonic)
+    block, offer = decide(100.0)   # `now` was sampled 7s before decide began
+    assert offer is None and block['considered'][0]['capacity']['reason'] == 'evaluation_required: evaluation_expired'
+    block, offer = decide(106.0)
     assert offer is not None
 
 
@@ -1180,3 +1225,38 @@ def test_typed_replay_compact_outputs_warn_instead_of_inviting_submit(typed_worl
     if not style:
         assert out['reason'] == 'historical typed destination; re-route for current evidence; do not dispatch'
     assert typed_world.receipts.read_bytes() == before
+
+
+def test_cli_counts_runtime_source_delay_against_typed_evidence(typed_world, tmp_path):
+    from datetime import datetime, timedelta
+    end = (datetime.fromisoformat(NOW.replace('Z', '+00:00')) + timedelta(seconds=2)).isoformat()
+    cfg = config2(tmp_path, typed_entry(tmp_path, payload=evidence(evaluation__valid_until=end)))
+    typed_world.write()
+    launcher = tmp_path / 'delayed_route.py'
+    launcher.write_text(f"""import runpy, sys, types
+sys.path.insert(0, {str(REPO / 'tools/model-policy-ops/lib')!r})
+import policy_decisions as pd, destinations, directives
+clock = {{'now': 0.0}}
+pd.time = types.SimpleNamespace(monotonic=lambda: clock['now'])
+directives.now = lambda: directives.parse_time({NOW!r}, 'test')
+real_choice = pd.route_choice
+def delayed_choice(*args, **kwargs):
+    value = real_choice(*args, **kwargs)
+    clock['now'] = 3.0
+    return value
+pd.route_choice = delayed_choice
+real_decide = destinations.decide
+def checked_decide(*args, **kwargs):
+    return real_decide(*args, monotonic=lambda: clock['now'], **kwargs)
+destinations.decide = checked_decide
+sys.argv = [{str(REPO / 'tools/model-policy-ops/model-policy-ops')!r}, *sys.argv[1:]]
+runpy.run_path({str(REPO / 'tools/model-policy-ops/model-policy-ops')!r}, run_name='__main__')
+""")
+    args = ['route', TYPED_OP, *map(str, typed_world.args()), '--destinations', str(cfg),
+            '--purpose', 'review', '--inputs', 'github', '--json']
+    done = subprocess.run([sys.executable, str(launcher), *args], capture_output=True, text=True,
+                          env=dict(os.environ, XDG_CONFIG_HOME=str(tmp_path / 'xdg')))
+    assert done.returncode == 0, done.stderr
+    out = json.loads(done.stdout)
+    assert out.get('destination') != 'typed'
+    assert out['routing']['destination']['considered'][0]['capacity']['reason'] == 'evaluation_required: evaluation_expired'

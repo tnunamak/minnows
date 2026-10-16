@@ -1066,8 +1066,9 @@ A probe with `available: false` stays `unavailable`. Example probe output:
   "sample_sha256": "<64 hex>", "test_evidence_metadata": {"label_source": "human-labelled", "sample_sha256": "<same>"},
   "versions": {"baseline_model": "...", "baseline_effort": "...", "typed_version": "..."},
   "evaluated_at": "2026-10-09T00:00:00Z", "valid_until": "2026-10-20T00:00:00Z",
-  "cost": {"basis": "api_equivalent", "currency": "USD", "scope": "all_candidates_upper_bound", "priced_at": "2026-10-09T00:00:00Z",
-           "per_decision": 0.002, "baseline_per_decision": 0.02}}}
+  "cost": {"basis": "api_equivalent", "currency": "USD", "scope": "all_candidates_sample_mean", "priced_at": "2026-10-09T00:00:00Z",
+           "per_decision": 0.002, "baseline_per_decision": 0.02,
+           "selected_rule_set_per_decision": null, "baseline_selected_rule_set_per_decision": null}}}
 ```
 
 Only the fields above are kept: the router rebuilds `destination_offer.capacity` and the receipt from validated fields, so
@@ -1076,13 +1077,16 @@ extra or nested probe text (`debug_payload`, `response_body`, extra metadata) is
 `capacity_probe_error: <kind>` or `adapter_reported_unavailable` (never adapter text). A typed probe's numbers must be standard
 JSON: `Infinity`, `-Infinity` and `NaN` are `invalid_json`, and a cost that overflows to infinity (`1e309`) is `cost_unproven`.
 An offer is current only as of validation: the evidence must be in its window at the route clock and again at the route clock
-plus the monotonic time the probe took. A replayed typed receipt is a historical record, never a live offer: the stored row is
+plus all monotonic time elapsed since that clock was sampled (runtime-source, quota and routing reads before the probe, and the probe itself). A replayed typed receipt is a historical record, never a live offer: the stored row is
 unchanged, but the output moves the offer to `historical_destination_offer` (no `submit`, `historical: true`), sets
 `historical_non_actionable: true` and `launch_ready: false`, and has no `destination_offer`; re-route for a current one.
 
 Needs cases >= 4, positive and negative >= 2 summing to cases, every case definitive yes/no, zero label and baseline
-disagreements. `cost` is a dated, measured, all-candidates upper bound (`scope` must say so); the selected request itself is
-unmeasured and no precise task cost is claimed. A simulation, `resolve` and replay never probe.
+disagreements. `cost` is a dated, measured, all-candidates sample mean (`scope` must say so): an average over the whole saved sample, not
+a bound on any decision or on the selected rules. `selected_rule_set_per_decision` and `baseline_selected_rule_set_per_decision`
+must be present and `null` (unknown) and are echoed as `null`; an adapter claiming a number there is `cost_unproven`. A price
+must be a finite positive number; a JSON integer too large for a float (`1` followed by 400 zeros) is `cost_unproven`, not a
+crash. The selected request itself is unmeasured and no precise task cost is claimed. A simulation, `resolve` and replay never probe.
 
 **Every receipt says why a destination was not used (revision 26).** `routing.destination.not_eligible` lists each
 destination whose `purposes` or `op_scope` exclude the request: `{name, reason: purpose_not_listed|purpose_unknown|op_not_in_scope, purpose}`. It is

@@ -31,7 +31,9 @@ INPUT_MODES = ('caller-text',)
 LABEL_SOURCES = ('human-labelled', 'oracle-labelled', 'model-reviewed-synthetic')
 PROBE_ERROR_KINDS = ('missing_binary', 'os_error', 'timeout', 'output_too_large', 'nonzero_exit', 'invalid_json', 'invalid_shape')
 UNAVAILABLE_REASONS = tuple(f'capacity_probe_error: {kind}' for kind in PROBE_ERROR_KINDS) + ('adapter_reported_unavailable',)
-COST_SCOPE = 'all_candidates_upper_bound'
+COST_SCOPE = 'all_candidates_sample_mean'
+# The sample mean is not a bound on the selected rule set's cost, so those per-decision costs are reported as unknown (null).
+UNKNOWN_COSTS = ('selected_rule_set_per_decision', 'baseline_selected_rule_set_per_decision')
 
 
 def default_destinations_path():
@@ -340,7 +342,12 @@ def count(value, minimum):
 
 
 def price(value):
-    return type(value) in (int, float) and math.isfinite(value) and value > 0
+    if type(value) not in (int, float):
+        return False
+    try:
+        return math.isfinite(value) and value > 0
+    except OverflowError:   # a valid JSON integer too large for a float is not a usable price
+        return False
 
 
 def typed_unavailable(capacity):
@@ -387,6 +394,7 @@ def typed_evidence(entry, op, capacity, now, until=None):
     cost = evaluation.get('cost')
     if (not isinstance(cost, dict) or cost.get('basis') != 'api_equivalent' or cost.get('currency') != proof['currency']
             or cost.get('scope') != COST_SCOPE or not price(cost.get('per_decision')) or not price(cost.get('baseline_per_decision'))
+            or any(key not in cost or cost[key] is not None for key in UNKNOWN_COSTS)
             or aware_time(cost.get('priced_at')) is None):
         return 'cost_unproven', None
     evaluated_at, valid_until = aware_time(evaluation.get('evaluated_at')), aware_time(evaluation.get('valid_until'))
@@ -401,7 +409,8 @@ def typed_evidence(entry, op, capacity, now, until=None):
         'sample_sha256': sample, 'test_evidence_metadata': {'label_source': metadata['label_source'], 'sample_sha256': sample},
         'versions': versions, 'evaluated_at': evaluation['evaluated_at'], 'valid_until': evaluation['valid_until'],
         'cost': {'basis': 'api_equivalent', 'currency': proof['currency'], 'scope': COST_SCOPE, 'priced_at': cost['priced_at'],
-                 'per_decision': cost['per_decision'], 'baseline_per_decision': cost['baseline_per_decision']}}
+                 'per_decision': cost['per_decision'], 'baseline_per_decision': cost['baseline_per_decision'],
+                 **dict.fromkeys(UNKNOWN_COSTS)}}
     return None, {'available': True, 'op': op, 'evaluated_model': proof['evaluated_model'], 'contract_sha256': contract['sha256'],
                   'accepted_rule_ids': list(proof['accepted_rule_ids']), 'evaluation': projected}
 
@@ -460,7 +469,7 @@ def independence_unknown(entry, independence):
     return bool(independence) and (not entry.get('vendor') or not independence['maker_complete'] or independence['level'] != 'vendor')
 
 
-def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, independence=None, run_probe=probe, lineage=None, op=None, now=None, monotonic=time.monotonic):
+def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, independence=None, run_probe=probe, lineage=None, op=None, now=None, monotonic=time.monotonic, at_monotonic=None):
     """Return (`routing.destination` block, offer or None). Facts first, then the parent's skip, then independence, then capacity.
 
     `independence` is None when none is required, else {level, maker_vendors, maker_complete}; `maker_complete` is false when any maker run has an unknown vendor.
@@ -500,7 +509,9 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
     if not listed:
         return block | {'considered': considered,
                         'fallback': {'destination': first, 'reasons': ['independence'], 'source': 'facts'}}, None
-    started = monotonic()
+    # `now` was sampled earlier by the caller (before runtime sources and quota reads); `at_monotonic` is the monotonic
+    # reading taken with it, so the time between that sample and this probe also counts against the evidence.
+    started = at_monotonic if at_monotonic is not None else monotonic()
     spent = {}
     for entry in listed:
         root, failures = (lineage or (lambda name: (None, 0)))(entry['name'])

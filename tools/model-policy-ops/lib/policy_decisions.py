@@ -2,6 +2,7 @@
 import json
 import os
 import sys
+import time
 import uuid
 from contextlib import ExitStack
 from datetime import datetime, timezone
@@ -253,6 +254,7 @@ def execute_locked(args, policy, stack):
         raise ValueError('--now must not be empty')
     if args.directives is None:
         args.directives = args.receipts.with_name('directives.jsonl')
+    at_monotonic = time.monotonic()   # sample first so a pause around the wall clock can only make the evidence older
     at = directive_store.parse_time(args.now, '--now') if args.now else directive_store.now()
     if args.now and not (args.command in ('route', 'calibrate') or (args.command == 'directive' and args.op == 'list')):
         name = args.command + (f' {args.op}' if args.command == 'directive' else '')
@@ -471,7 +473,7 @@ def execute_locked(args, policy, stack):
         receipt_rows = read_receipts(args.receipts) if args.relaunch_of else []
         routing_block['destination'], offer = destinations.decide(
             dest_entries, purpose=args.purpose, facts=facts, skip=skip, reason=args.reason, request_id=decision_id, simulate=simulation,
-            independence=independence, lineage=lambda name: destinations.chain(receipt_rows, args.relaunch_of, name), op=args.op, now=at)
+            independence=independence, lineage=lambda name: destinations.chain(receipt_rows, args.relaunch_of, name), op=args.op, now=at, at_monotonic=at_monotonic)
     elif routing_block:
         routing_block['destination'] = destinations.not_considered(dest_meta['state'])
     if not route:
