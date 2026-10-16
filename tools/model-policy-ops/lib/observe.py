@@ -170,6 +170,58 @@ def run_details(db, run_id):
     return row, attempts, failures
 
 
+PR_STATES = ('open', 'merged', 'closed', 'draft')
+REPOSITORY = re.compile(r'[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}')
+
+
+def child_thread_facts(db, run_id, decision, ids):
+    """Follow-up messages and linked pull requests of the child thread that ran `run_id`. Counts and enums only, no text."""
+    if not ({'run_id', 'thread_id'} <= table_columns(db, 'runs') and {'thread_id', 'payload_json'} <= table_columns(db, 'threads')
+            and {'thread_id', 'type', 'updated_at'} <= table_columns(db, 'turn_items')):
+        return []
+    row = db.execute(f'SELECT thread_id FROM {PREFIX}runs WHERE run_id=?', (run_id,)).fetchone()
+    unknown = {}
+    thread = checked_id(row[0], 'child_thread_id', unknown) if row and row[0] else None
+    if not thread:
+        return []
+    found = []
+    messages, last = db.execute(f"SELECT count(*), max(updated_at) FROM {PREFIX}turn_items WHERE thread_id=? AND type='user_message'",
+                                (thread,)).fetchone()
+    stamps, why = timestamps(last_user_message_at=last)
+    found.append(store.make_observation(
+        't3', run_id, decision, 't3_child_followups',
+        # The first user message is the brief; later ones are follow-ups sent to the same child. They are not repair rounds:
+        # parents often repair through a new child, and some follow-ups are questions (70 of 127 closes agreed, 2026-10-15).
+        {'child_thread_id': thread, 'user_messages': messages, 'followup_messages': max(messages - 1, 0) if messages else None},
+        source_ids=ids, source_timestamps=stamps, unknown=unknown | why | ({} if messages else {'followup_messages': 'no_user_messages'})))
+    raw = db.execute(f"SELECT json_extract(payload_json,'$.pullRequests') FROM {PREFIX}threads WHERE thread_id=?", (thread,)).fetchone()
+    try:
+        linked = json.loads(raw[0]) if raw and raw[0] else []
+    except ValueError:
+        linked = None
+    if linked:
+        prs, synced, dropped = [], [], 0
+        for entry in linked if isinstance(linked, list) else []:
+            snap = (entry or {}).get('snapshot') or {}
+            repo, number = (entry or {}).get('repository'), (entry or {}).get('number')
+            if not (isinstance(repo, str) and REPOSITORY.fullmatch(repo) and type(number) is int and number > 0):
+                dropped += 1
+                continue
+            pr_stamps, _ = timestamps(merged_at=snap.get('mergedAt'), closed_at=snap.get('closedAt'))
+            prs.append({'repository': repo, 'number': number, 'state': enum(snap.get('state'), PR_STATES), **pr_stamps})
+            if snap.get('syncedAt'):
+                synced.append(snap['syncedAt'])
+        stamps, why = timestamps(synced_at=max(synced) if synced else None)
+        found.append(store.make_observation(
+            't3', run_id, decision, 't3_child_pull_requests', {'child_thread_id': thread, 'pull_requests': prs, 'dropped': dropped},
+            source_ids=ids, source_timestamps=stamps, unknown=why | ({'state': 'T3 snapshot; may lag GitHub'} if prs else {})))
+    elif linked is None:
+        found.append(store.make_observation('t3', run_id, decision, 't3_child_pull_requests',
+                                            {'child_thread_id': thread, 'pull_requests': [], 'dropped': 0},
+                                            source_ids=ids, unknown={'pull_requests': 'unreadable_projection'}))
+    return found
+
+
 def usage_observations(source, run_id, decision_id, usage):
     """One row per reported turn, labelled as reported. Never a sum: scopes can overlap. Ids arrive validated or None."""
     turns = [(a['attempt_id'], a['attempt_ordinal'], t) for a in usage['attempts'] for t in a['turns']]
@@ -264,6 +316,7 @@ def collect_t3(db_path, scope_ids, targets=None):
                     't3', run_id, decision, 't3_terminal_failure',
                     {'turn_item_id': item_id, 'failure_class': classify_failure(message)},
                     source_ids=ids | ids_of(turn_item_id=item_id), source_timestamps=stamps, unknown=unknown))
+            found += child_thread_facts(db, run_id, decision, ids)
             found += usage_observations('t3', run_id, decision, call['observed_child_usage'])
         db.commit()
     except sqlite3.Error as error:

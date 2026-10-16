@@ -196,6 +196,20 @@ Provenance and interpretation:
   and task accepted-result counts remain null. A token price or benchmark prior
   cannot establish an invoice, subscription allocation, historical billed rate,
   or predicted task cost. Missing price bindings/regimes are explicit gaps.
+- **Derived outcomes.** Each unclosed row has `derived_outcome`: a rule over recorded facts, never a close and never
+  mixed into `decision_outcome`. First match wins: a later receipt escalates from it with `oracle_failed` or
+  `judged_insufficient` -> `rejected` (`escalated_for_quality`); the destination recorded an owner `accepted` event ->
+  `accepted` (`destination_owner_accepted`); a pull request linked to the child thread is merged -> `accepted`
+  (`pull_request_merged`). Otherwise `unknown` with a reason: `pull_request_closed_unmerged`, `relaunched`,
+  `run_failed`, `run_cancelled`, `run_interrupted`, `completed_no_disposition`, `no_child_run` or `no_facts`.
+  Repairs stay `unknown`: a follow-up message to the same child is not a repair round (on 2026-10-15 the counts agreed
+  with the parent's recorded `repairs` in 70 of 127 closes, because parents often repair through a new child), so a
+  derived outcome is never `accepted_after_repair`. A judged close always replaces the derived outcome.
+- **Outcomes by op and arm.** `by_arm` (and the last table in daily.md) groups the cohort by op, destination, model
+  and effort; accounts are counted, not split. It shows judged and derived outcomes apart, `unknown` with reasons,
+  `accepted` (judged accepted or accepted_after_repair, or derived accepted), the first-time share of judged
+  acceptances, token sums, tokens per accepted (every attributed attempt, failed and rejected ones included, over
+  accepted results; null when none) and the median run time. Descriptive and confounded by task mix.
 - With the same pinned inputs and cohort bounds, reconciliation is deterministic;
   collection timestamps are separate metadata.
 
@@ -1177,7 +1191,8 @@ coverage. T3 export evidence is caller-supplied; the tool cannot attest its orig
 
 `observe` records **facts** that other systems already hold about recorded decisions. It
 needs no action from the parent. `close` stays the only judged record: an observation
-never creates, changes or implies a close, an outcome label or a quality verdict, and
+never creates or changes a close or a quality verdict (`report` derives labelled, facts-only outcomes
+from observations for unclosed decisions; see Report), and
 `audit` keeps `outcome_distribution` and every other existing key as before.
 
 ```bash
@@ -1223,6 +1238,11 @@ Sources:
   instance, model and options/effort (with `served_model: unattested`), attempt statuses,
   terminal failures classed with `classify_failure` (the message is not copied), and
   per-turn token usage as T3 reports it. Usage is never summed; scopes can overlap.
+  For the child run's thread it also records `t3_child_followups` `{child_thread_id, user_messages,
+  followup_messages}` (messages after the brief; not repair rounds) and, when the thread has linked pull requests,
+  `t3_child_pull_requests` `{child_thread_id, pull_requests: [{repository, number, state, merged_at?, closed_at?}],
+  dropped}` from T3's own snapshot, which may lag GitHub. States are `open merged closed draft`, else `redacted`.
+  No titles or message text are copied. An older T3 schema without these columns records neither fact.
   Requested config is a projection, not a copy. Option ids are `effort`, `reasoningEffort`,
   `thinking`, `fastMode`, `serviceTier` and `contextWindow`; a value is a bool or one of
   `minimal none low medium high xhigh max default priority flex 200k 1m`. Anything else is

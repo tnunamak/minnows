@@ -991,3 +991,47 @@ def test_a_permission_error_on_the_repository_probe_is_operational_not_a_healthy
 def test_a_genuinely_absent_repository_is_still_a_skip(setup, repo_world):
     source = collect_one(repo_world['repo'] / 'does-not-exist', repo_world['sha'])
     assert source['state'] == 'ok' and source['skipped'] == {'repo_missing': 1} and source['failed'] == {}
+
+
+def child_thread_world(setup, tmp_path, pull_requests, messages=3):
+    db = t3_world(setup, tmp_path)
+    c = sqlite3.connect(db)
+    c.execute(f'alter table {PREFIX}runs add column thread_id text')
+    c.execute(f"update {PREFIX}runs set thread_id='child-thread' where run_id='child'")
+    c.execute(f'create table {PREFIX}threads (thread_id text, payload_json text)')
+    c.execute(f'insert into {PREFIX}threads values (?,?)', ('child-thread', json.dumps({'pullRequests': pull_requests, 'title': SECRET})))
+    for i in range(messages):
+        c.execute(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
+                  (f'msg{i}', 'child-thread', 'child', f'2026-10-08T00:0{i}:00Z', 'completed', 'user_message', json.dumps({'text': SECRET})))
+    c.commit()
+    c.close()
+    return db
+
+
+def pr(state, number=7, repo='owner/repo', **snap):
+    return {'repository': repo, 'number': number, 'url': f'https://github.com/{repo}/pull/{number}',
+            'snapshot': {'state': state, 'title': SECRET, 'syncedAt': '2026-10-08T01:00:00Z', **snap}}
+
+
+def test_child_thread_followups_and_pull_requests_are_counts_and_enums_only(setup, tmp_path):
+    db = child_thread_world(setup, tmp_path, [pr('merged', mergedAt='2026-10-08T00:50:00Z'), pr('weird', 8), {'repository': 'bad repo', 'number': 9}])
+    ok(setup, '--db', db)
+    followups = facts(setup, 't3', 't3_child_followups')
+    assert [f['fact'] for f in followups] == [{'type': 't3_child_followups', 'child_thread_id': 'child-thread',
+                                              'user_messages': 3, 'followup_messages': 2}]
+    assert followups[0]['source_timestamps'] == {'last_user_message_at': '2026-10-08T00:02:00+00:00'}
+    prs = facts(setup, 't3', 't3_child_pull_requests')
+    assert prs[0]['fact']['pull_requests'] == [
+        {'repository': 'owner/repo', 'number': 7, 'state': 'merged', 'merged_at': '2026-10-08T00:50:00+00:00'},
+        {'repository': 'owner/repo', 'number': 8, 'state': 'redacted'}]
+    assert prs[0]['fact']['dropped'] == 1 and prs[0]['source_timestamps'] == {'synced_at': '2026-10-08T01:00:00+00:00'}
+    assert SECRET not in paths(setup)[1].read_text(), 'no titles or message text are copied'
+    again = ok(setup, '--db', db)
+    assert again['sources']['t3']['new_observations'] == 0, 'unchanged facts append nothing'
+
+
+def test_a_thread_without_pull_requests_records_followups_only(setup, tmp_path):
+    db = child_thread_world(setup, tmp_path, [], messages=1)
+    ok(setup, '--db', db)
+    assert facts(setup, 't3', 't3_child_followups')[0]['fact']['followup_messages'] == 0
+    assert facts(setup, 't3', 't3_child_pull_requests') == []
