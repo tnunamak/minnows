@@ -328,8 +328,10 @@ Reason and handoff text must be short explanations, without prompts or secrets.
 ### Experimental free routes
 
 An entry in the pack's root `experimental_free_routes` metadata is never an
-operating-point candidate. It is usable only through an explicit experimental
-override for the two qualified operations, or under the separately authorized
+operating-point candidate in the pack. `route` adds it as a candidate itself, with no override, when the
+caller asserts `--data-classification public` for one of the two qualified operations with the qualified
+proof class and the evidence is current (see "Qualified free candidates" in the contract). Otherwise it is usable only
+through an explicit experimental override, or under the separately authorized
 `fanout.explore` and `resolve --no-op` paths, with exact provider, model, effort
 and account flags. `--data-classification public` is required; omission
 means unknown, and `--sensitive` always refuses the
@@ -727,9 +729,10 @@ scheduling policy; the pack has none and the code has no defaults. With bands se
   can launch does the route wait. `waiting` then says what a wait is: `dispatches: false`, `retry_after` (the earliest
   reset of an eligible subscription account, or null), a note that nothing retries on a timer, and
   `alternatives_considered` (the destination block, every metered pair with the filter that removed it, and each
-  declared experimental free route with its qualification and cooldown). The free route is evidence only: it is never
-  chosen for the caller, because public inputs are the caller's own assertion. The caller opts in with the exact flags
-  in `opt_in`. A subscription is never picked for a discretionary wait.
+  declared experimental free route with its qualification and cooldown). A qualified free route (public classification
+  asserted, qualified op, proof class and effort, current evidence) is already a candidate and launches here before any
+  wait; it is removed as `cooling_down` while its account cools and reconsidered by the next route. A route that does not qualify is
+  evidence only, and the caller may opt in with the exact flags in `opt_in`. A subscription is never picked for a discretionary wait.
 - **Cooldown.** An account with at least `failure_demote_count` rate-limit or transport failures inside
   `failure_lookback_minutes` is `cooling_down`. `retry_after` is when enough events leave the lookback: the account is available once the clock is later than it (the lookback is inclusive, so at the instant itself it still cools). Nothing is
   stored: every route reads the telemetry again, so a cooldown ends by itself and one failure never marks an account
@@ -747,6 +750,8 @@ scheduling policy; the pack has none and the code has no defaults. With bands se
   `quota_ref` into `routing.quota`) and the informational reason `critical_path_pacing_exception`. If no account has a
   known overshoot, the route still waits and `waiting.critical_path.satisfied` is false. `--now` simulations never
   launch, with or without the flag. `--brief` and the default line print `critical_path` and `pacing`.
+- a qualified free arm that the router chose (no override) is routed again on the next route: it is removed while it
+  cools down and chosen again after the cooldown.
 - a free arm that the caller chose by explicit override or `--experimental-route` stays exact. After it fails
   (for example, rate limited), route again without the override: the pack's subscription arms then compete, and the
   one above (adequate arm, then most headroom) wins, or the route waits.
