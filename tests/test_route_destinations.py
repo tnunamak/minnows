@@ -1158,3 +1158,25 @@ runpy.run_path(sys.argv[0], run_name='__main__')
     assert done.returncode == 0, done.stderr
     historical(json.loads(done.stdout), first)
     assert typed_world.receipts.read_bytes() == stored
+
+
+@pytest.mark.parametrize('style', [[], ['--brief']])
+def test_typed_replay_compact_outputs_warn_instead_of_inviting_submit(typed_world, tmp_path, style):
+    cfg = config2(tmp_path, typed_entry(tmp_path))
+    flags = ['--purpose', 'review', '--inputs', 'local', '--input-mode', 'caller-text', '--proof-class', 'judged']
+    first = route(typed_world, cfg, *flags, record='compact-hist', op=TYPED_OP)
+    assert first['destination'] == 'typed'
+    before = typed_world.receipts.read_bytes()
+    env = dict(os.environ, XDG_CONFIG_HOME=str(tmp_path / 'xdg'), PINNED_NOW=NOW)
+    args = ['route', TYPED_OP, *map(str, typed_world.args()), '--destinations', str(cfg),
+            '--decision-id', 'compact-hist', '--record', '--parent-model', 'pm',
+            '--parent-provider-instance', 'pp', '--parent-thread', 'pt', *flags, *style]
+    done = subprocess.run([sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), *args], env=env, capture_output=True, text=True)
+    assert done.returncode == 0, done.stderr
+    out = json.loads(done.stdout)
+    assert out['historical_non_actionable'] is True
+    assert out['target'] is None and out['dispatch'] is None and out['launch_ready'] is False
+    assert 'destination_offer' not in out
+    if not style:
+        assert out['reason'] == 'historical typed destination; re-route for current evidence; do not dispatch'
+    assert typed_world.receipts.read_bytes() == before

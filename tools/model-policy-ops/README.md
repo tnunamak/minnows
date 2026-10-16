@@ -1637,3 +1637,5 @@ Top-level keys: `schema_version`, `scope`, `coverage`, `counts`, `effort_explici
     `commit_verification`, as for a close.
   - `launch_facts`, `observed_child_usage`, `parent_overhead_usage`, `quota`.
 
+
+Typed historical replays also expose `historical_non_actionable: true` in default and `--brief` output; the default reason instructs callers to re-route for current evidence. The stored receipt is unchanged.
