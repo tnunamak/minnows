@@ -132,7 +132,6 @@ def decide(memory, observed, thresholds, at):
     without it). Returns the new memory, the account rows that appear in the receipt, and the account facts that
     ranking uses. `utilization` is observed use and `projected_pct` is the source's forecast; rows carry both.
     """
-    activate, release = thresholds['activate_projected_pct'], thresholds['release_projected_pct']
     accounts = dict(memory or {})
     report, constrained, known, unknown = {}, {}, {}, []
     for instance, binding in sorted(observed.items()):
@@ -154,6 +153,9 @@ def decide(memory, observed, thresholds, at):
             report[instance] = constrained[instance] = row
             continue
         projected, window = binding['projected_pct'], binding['window']
+        # with forecast bands, each account's own band for its days left gives the limits; else the pack thresholds
+        band = binding.get('band')
+        activate, release = (band['high'], band['low']) if band else (thresholds['activate_projected_pct'], thresholds['release_projected_pct'])
         facts = {'projected_pct': projected, 'utilization': binding.get('utilization'), 'window': window,
                  'resets_at': binding.get('resets_at')}
         reset_from = None
@@ -208,7 +210,7 @@ def evaluate(path, thresholds, observed, at, *, write, stack=None):
         memory, state, issue = None, 'unreadable', error.strerror or str(error)
     accounts, report, constrained, known, unknown = decide(memory, observed, thresholds, at)
     return {'state': state, 'issue': issue, 'written': False, 'write_error': None, 'report': report,
-            'constrained': constrained, 'known': known, 'unknown': unknown,
+            'constrained': constrained, 'known': known, 'unknown': unknown, 'seen': observed,
             '_accounts': accounts, '_changed': state == 'missing' or accounts != memory}
 
 
@@ -232,17 +234,24 @@ def substitute(survivors, sub):
     A substitute sits on an account that is not constrained and whose projection is known and below the
     activation threshold. Order: pack candidate order, then availability (healthy, then unknown, then demoted for
     recent rate-limit or transport failures), then the account's `substitution_rank` (lower first; none last), then
-    the lower projection, then the instance ID.
+    the lower projection, then the instance ID. With forecast bands the limit is the account's band upper limit
+    for its days left, and the order after availability is the most headroom, then the earliest reset, then the
+    instance ID (see `quota_bands`); `substitution_rank` does not apply.
     """
-    state, ranks, limit = sub['state'], sub['ranks'], sub['thresholds']['activate_projected_pct']
-    known = state['known']
+    state, ranks, bands = sub['state'], sub['ranks'], 'quota_bands' in sub['thresholds']
+    known, seen = state['known'], state.get('seen')
+    limit = lambda instance: seen[instance]['band']['high'] if bands else sub['thresholds']['activate_projected_pct']
     eligible = [row for row in survivors
-                if row['instance'] in known and row['instance'] not in state['constrained'] and known[row['instance']] < limit]
+                if row['instance'] in known and row['instance'] not in state['constrained'] and known[row['instance']] < limit(row['instance'])]
 
     def key(row):
-        rank = ranks.get(row['instance'])
+        instance = row['instance']
         availability = (row.get('rank') or {}).get('availability', 1)
-        return (row['candidate'], availability, float('inf') if rank is None else rank, known[row['instance']], row['instance'])
+        if bands:
+            reset = parse_time(seen[instance]['resets_at'])
+            return (row['candidate'], availability, -seen[instance]['headroom'], float('inf') if reset is None else reset.timestamp(), instance)
+        rank = ranks.get(instance)
+        return (row['candidate'], availability, float('inf') if rank is None else rank, known[instance], instance)
 
     return min(eligible, key=key) if eligible else None
 

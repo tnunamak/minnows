@@ -123,3 +123,27 @@ def test_target_needs_its_token_and_limit(world, tmp_path):
     row = pool_entry(tmp_path)
     del row['brief_token']
     assert 'brief_token must be' in failing(world, config(tmp_path, row), *FLAGS)
+
+
+def test_a_destination_target_on_an_unverified_funded_account_is_withheld(pool):
+    pool.accounts['accounts']['pool'] = {'billing': 'metered', 'quota_provider': None, 'quota_source': None, 'funding': {'verified_until': None}}
+    out = route(pool, pool.cfg, *FLAGS)
+    assert out['target'] is None and out['launch_ready'] is False and 'dispatch' not in out
+    assert out['waiting']['state'] == 'funding_unverified' and nonnull_targets(out) == []
+    pool.accounts['accounts']['pool']['funding']['verified_until'] = '2099-01-01T00:00:00Z'
+    assert route(pool, pool.cfg, *FLAGS)['target'] == TARGET
+
+
+@pytest.mark.parametrize('case', ['not_in_catalog', 'decision_id_not_accepted'])
+def test_an_unverified_funded_destination_gets_no_hand_submit_offer_either(world, tmp_path, case):
+    add_catalog_row(world, **({'enabled': False} if case == 'not_in_catalog' else {}))
+    world.accounts['accounts']['pool'] = {'billing': 'metered', 'quota_provider': None, 'quota_source': None, 'funding': {'verified_until': None}}
+    row = pool_entry(tmp_path, **({'request_id_pattern': r'[-\w]{8,120}'} if case != 'not_in_catalog' else {}))
+    out = route(world, config(tmp_path, row), *FLAGS, record='a.b:c' if case != 'not_in_catalog' else None)
+    assert out['target'] is None and out['launch_ready'] is False and out['waiting']['state'] == 'funding_unverified'
+
+    def keys(value):
+        if isinstance(value, dict):
+            return set(value) | set().union(*map(keys, value.values()), set())
+        return set().union(*map(keys, value), set()) if isinstance(value, list) else set()
+    assert not keys(out) & {'submit', 'how_to', 'dispatch'}

@@ -98,11 +98,11 @@ def add_arguments(parser):
     parser.add_argument('--source', choices=directive_store.SOURCES, help='directive add: who instructed it')
 
 
-def quota_authorized_by(args):
+def quota_authorized_by(args, params):
     info = getattr(args, 'user_policy_info', None)
-    if info and 'quota_substitution' in info['keys']:
+    if info and {'quota_substitution', 'quota_bands'} & set(info['keys']):
         return f"user policy overlay {info['path']}"
-    return 'pack routing.quota_substitution'
+    return 'pack routing.quota_bands' if params.get('quota_bands') else 'pack routing.quota_substitution'
 
 
 def authorized_experimental_route(args, policy):
@@ -144,7 +144,7 @@ def route_choice(args, policy, op, available, available_meta, quota, quota_meta,
                                failures=failures, freshness=fresh, now=at,
                                experimental_route=authorized_experimental_route(args, policy),
                                substitution=routing.substitution_context(params, accounts, quota, quota_meta, at, args.quota_state, write=not args.now,
-                                                              authorized_by=quota_authorized_by(args), stack=stack))
+                                                              authorized_by=quota_authorized_by(args, params), stack=stack))
     block = routing.route(op, params, ctx)
     try:
         outcome_rows = outcomes.read_outcomes(args.outcomes)
@@ -212,6 +212,45 @@ def clear_targets(value, *, refuse_submission=False):
     if isinstance(value, list):
         return [clear_targets(v, refuse_submission=refuse_submission) for v in value]
     return value
+
+
+WAIT_BASIS = 'no eligible arm has forecast headroom below its band; wait for a fresh reading or a reset, or decide explicitly'
+UNFUNDED_BASIS = 'the target account declares funding and its verified_until is missing or past; verify the credit and route again'
+
+
+def withheld(value, state, basis, code, detail):
+    """The receipt with every target cleared, `launch_ready` false and a `waiting` state. The evidence stays."""
+    value['routing']['judgment_reasons'].append({'code': code, 'applies_to': 'routed', 'detail': detail})
+    value['routing']['judgment_required'] = True
+    value = clear_targets(value, refuse_submission=True)
+    return value | {'launch_ready': False, 'launch_readiness_basis': basis,
+                    'waiting': {'state': state, 'assertion': 'router_evidence', 'reason': basis}}
+
+
+def withhold_without_headroom(value):
+    """With forecast bands, a routed subscription pair is dispatchable only with known positive headroom on an
+    account that is not held constrained. Unknown, stale, at-risk and hysteresis-held pairs wait. A metered pair
+    (verified overflow) and an explicit override are not judged here."""
+    block = value['routing']
+    chosen = block['chosen']
+    if not block['params'].get('quota_bands') or block['final']['overridden'] or not chosen:
+        return value
+    row = next(t for t in block['trace'] if t['removed_by'] is None and t['candidate'] == chosen['candidate'] and t['instance'] == chosen['instance'])
+    held = (((block.get('quota_substitution') or {}).get('active_accounts') or {}).get(chosen['instance']) or {}).get('state') in quota_substitution.ACTIVE_STATES
+    if row['billing'] != 'subscription' or (chosen['pace'] == 'on_track' and not held):
+        return value
+    return withheld(value, 'no_forecast_headroom', WAIT_BASIS, 'wait_no_forecast_headroom',
+                    {'instance': chosen['instance'], 'pace': chosen['pace'], 'held_constrained': held})
+
+
+def withhold_unfunded(value, accounts, at, target):
+    """The funding check for the final target, whoever chose it: the router, an override or a destination. A
+    destination's proposed target counts even when the catalog does not list it and the caller would submit by hand."""
+    entry = accounts.get((target or {}).get('providerInstanceId')) or {}
+    if entry.get('billing') != 'metered' or 'funding' not in entry or routing.funded(entry['funding'], at):
+        return value
+    return withheld(value, 'funding_unverified', UNFUNDED_BASIS, 'wait_funding_unverified',
+                    {'account': target['providerInstanceId'], 'verified_until': entry['funding']['verified_until']})
 
 
 def validate_route_proof(op_id, proof_class):
@@ -527,6 +566,10 @@ def execute_locked(args, policy, stack):
             else:
                 return_value['launch_readiness_basis'] = ('destination chosen; the root decision ID does not match its request_id_pattern; '
                                                           'submit by hand or re-route with a matching decision ID')
+    if routing_block and not offer:
+        return_value = withhold_without_headroom(return_value)
+    if routing_block and (return_value.get('target') or proposed_destination):
+        return_value = withhold_unfunded(return_value, accounts, at, return_value.get('target') or proposed_destination)
     apply_experimental_route_policy(return_value, policy, at, available=available, destination_target=proposed_destination)
 
     if simulation:

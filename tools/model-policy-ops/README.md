@@ -643,7 +643,7 @@ When it is known and not listed, the candidate is removed. `check` validates all
 this. The pack `routing` object holds `pace_windows`, `failure_lookback_minutes`,
 `failure_demote_count`, `review_task_families`, `independence_default`,
 `directive_max_days`, `observation_max_age_hours` (default 3), `observation_window_days`
-(default 14), `quota_substitution` (see Quota substitution; the shipped pack leaves it out) and `lineage_key`. `lineage_key` maps a provider to the
+(default 14), `quota_substitution` and `quota_bands` (see Quota substitution; the shipped pack leaves both out) and `lineage_key`. `lineage_key` maps a provider to the
 model-catalog field that names a model line (`{"claude": "family", "codex": "tier",
 "grok": "family"}`). Absent fields turn the matching feature off: no pace, no
 demotion, no directive lifetime cap, no model line. A review op with no
@@ -691,6 +691,53 @@ The numbers above are an example, not a recommendation. A pack that sets the sam
 also enables it, and the overlay value replaces the pack value.
 
 `check` requires `0 < release_projected_pct < activate_projected_pct <= 200`.
+
+**Forecast bands** (revision 29) replace the fixed pair with the user's own thermostat bands. A user
+sets `routing.quota_bands` in the overlay: an ordered list, widest first, of
+`{min_days_left, exclusive?, low, high}`. The first rule that matches the days left before the account's
+window resets gives the band `{low, high}`: a far reset gets a wide band and a near reset a narrow one. The
+last rule must have `min_days_left` 0 and not be `exclusive`. The values come from the user's own
+scheduling policy; the pack has none and the code has no defaults. With bands set, they replace
+`quota_substitution`, and:
+
+- headroom is `high - projected_pct` for the pace window with the least headroom. Pace is `on_track` with
+  positive headroom and `at_risk` without it, so an account inside its band is not `at_risk` just because it
+  is projected above 100%;
+- an account is constrained at `projected_pct >= high` and released below `low`, with the same per-window
+  memory as the fixed thresholds;
+- a substitute needs a known, positive headroom. Order: pack candidate order, availability, the most
+  headroom, the earliest reset, the instance ID. `substitution_rank` does not apply. Among accounts of one arm
+  with no substitution, the same headroom order replaces the lower-projection order;
+- an unknown forecast, an expired window or an unusable reset time is never headroom (`pace_reason`
+  `no_band_for_window`). An account is never a target when an `avoid` directive, a failed hard filter or
+  independence removes it. The bands only schedule among pairs that the pack already qualifies for the op and
+  effort: a model or effort never changes with budget;
+- trace rows and `routing.quota[ref].binding` carry `band`, `days_left` and `headroom`. When the routed subscription
+  pair has no known positive headroom (at risk, unknown or stale forecast, or an account still held constrained by
+  hysteresis), the receipt is a **wait**: `target` is null (every nested target too), `launch_ready` is
+  false, there is no `dispatch`, `waiting` is `{state: no_forecast_headroom, assertion: router_evidence}` and the
+  judgment reasons add `wait_no_forecast_headroom` to `pace_not_on_track`. The router withholds; it does not queue.
+  Route again after a fresh reading or a reset. An explicit `--override` is the caller's own intent and is not
+  withheld for quota; its bypassed filters stay in `routing.final`. A verified metered overflow pair is not judged by
+  headroom;
+- a free arm that the caller chose by explicit override or `--experimental-route` stays exact. After it fails
+  (for example, rate limited), route again without the override: the pack's subscription arms then compete, and the
+  one above (adequate arm, then most headroom) wins, or the route waits.
+
+**Funding evidence.** `route` cannot read prepaid credit, and an `allow-metered` directive is permission, not proof
+of funds. An account-map entry may carry `funding: {"verified_until": "<zoned ISO time>"}`: the time until which the
+owner's own check of that account's credit holds, written by whoever did the check. An account with a `funding`
+key is a target only while `verified_until` is in the future; `null`, a past time or a malformed value removes it
+(`funding_unverified`). The same check runs on the final target whoever chose it: an override or a destination
+target on an account with null or past `verified_until` is a wait (`waiting.state` `funding_unverified`, reason
+`wait_funding_unverified`; `final_funding_unverified` records the bypass). A malformed `funding` value fails the
+whole accounts file. A recorded receipt that was ready replays as a historical receipt and is not a current funding
+check: the consumer re-checks `verified_until` at dispatch. The router does not verify the claim, cannot
+bound other spenders or an auto-reload, and a balance never reserves a task budget. An account with no `funding`
+key keeps the directive-only rule, so declare `funding` on every prepaid account that the guarantee should cover. Keep funding data in the local account map, never in the public pack.
+
+An unmapped metered account with a current `funding` check and an `allow-metered` directive has pace `unknown`,
+which ranks after any subscription with headroom and before one without. It can be overflow work only that way.
 
 Per mapped subscription account, `route` takes the binding pace-window `projected_pct`
 (the same value as the pace class). The account is **constrained** when that value is at
@@ -776,7 +823,7 @@ A user tunes a few `routing` parameters without editing the pack. `~/.config/mod
 {"schema_version": 1, "routing": {"quota_substitution": {"activate_projected_pct": 97, "release_projected_pct": 85}}}
 ```
 
-(example values). `routing` may set only `quota_substitution`, `observation_max_age_hours` and
+(example values). `routing` may set only `quota_substitution`, `quota_bands`, `observation_max_age_hours` and
 `observation_window_days`. Candidates, `basis`, independence, `lineage_key` and every other
 evidence policy stay in the pack. Each key replaces the pack value whole (no deep merge). A
 missing file at the default path means no overlay; a file named with `--user-policy` that does

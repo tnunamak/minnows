@@ -941,7 +941,8 @@ def test_the_previous_cli_still_works_on_a_state_dir_with_observations(setup, tm
         pytest.skip('baseline archive unavailable')
 
     def old_cli(*args):
-        result = subprocess.run([str(tool), *map(str, args)], capture_output=True, text=True)
+        env = dict(os.environ, XDG_CONFIG_HOME=str(tmp_path / 'xdg'))  # no real destinations, accounts or user policy leaks in
+        result = subprocess.run([str(tool), *map(str, args)], capture_output=True, text=True, env=env)
         return result, json.loads(result.stdout) if result.returncode == 0 and result.stdout.startswith('{') else None
 
     db = t3_world(setup, tmp_path)

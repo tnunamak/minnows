@@ -5,6 +5,7 @@ The pack carries the policy: candidate arms with their evidence basis, and the r
 rejects, ranks the rest by a lexicographic key, and explains each step in a trace. It never learns
 from outcomes and it never dispatches work.
 """
+import quota_bands
 import quota_substitution
 from directives import matching
 from runtime_sources import digest, driver_family, provider_instance, providers, quota_context, quota_forecast, resolve_arm
@@ -20,7 +21,8 @@ INDEPENDENCE_LEVELS = ('vendor', 'family', 'model')
 EFFECTS = ('avoid', 'prefer', 'authorize', 'allow-metered')
 # The filter that removes a pair, in the order the contract applies them, and the reason that a bypass of it raises.
 FINAL_REASONS = {'not_runnable': 'final_not_runnable', 'requires_not_met': 'final_requires_not_met',
-                 'billing_not_subscription': 'final_metered_without_directive', 'avoid_directive': 'final_avoided',
+                 'billing_not_subscription': 'final_metered_without_directive', 'funding_unverified': 'final_funding_unverified',
+                 'avoid_directive': 'final_avoided',
                  'quota_exhausted': 'final_quota_exhausted', 'independence': 'final_independence_bypassed'}
 SUBSTITUTED = 'quota_substitution_exception'
 
@@ -38,14 +40,18 @@ def catalog_instances(available, family):
                    if isinstance(instance := provider_instance(provider), str) and driver_family(provider) == family})
 
 
-def quota_view(quota, quota_meta, arm, entry, pace_windows, now):
+def quota_view(quota, quota_meta, arm, entry, pace_windows, now, bands=None):
     """Quota facts for one account: exhaustion, pace class, and the window that binds the pace.
 
     Pace is `unknown` for an unmapped account, a quota source that is not a plain snapshot, a pace
     window with no forecast, an expired window, or no pace window at all. Unknown is never headroom.
+    With `bands` (see `quota_bands`), the pace window with the least headroom binds, and the pace is `at_risk`
+    when that headroom is not positive; a reset time that is unusable makes the pace `unknown`.
     """
     view = {'state': 'unmapped', 'provider_id': None, 'source_id': None, 'fetched_at': None, 'cache': None,
             'windows': [], 'exhausted': False, 'pace': 'unknown', 'pace_reason': 'unmapped_account', 'binding': None}
+    if bands:
+        view['banded'] = True
     if not entry or not entry.get('quota_provider'):
         return view
     provider_id, source_id = entry['quota_provider'], entry.get('quota_source')
@@ -66,11 +72,19 @@ def quota_view(quota, quota_meta, arm, entry, pace_windows, now):
         return view | {'pace_reason': 'no_pace_window'}
     if any(name not in forecast or name not in by_name or by_name[name]['state'] == 'stale' for name in considered):
         return view | {'pace_reason': 'no_forecast_or_expired_window'}
-    binding = max(considered, key=lambda name: (forecast[name], name))
+    if bands:
+        banded = {name: quota_bands.headroom(bands, forecast[name], by_name[name]['resets_at'], now) for name in considered}
+        if any(found is None for found in banded.values()):
+            return view | {'pace_reason': 'no_band_for_window'}
+        binding = min(considered, key=lambda name: (banded[name]['headroom'], name))
+        pace = 'on_track' if banded[binding]['headroom'] > 0 else 'at_risk'
+    else:
+        binding = max(considered, key=lambda name: (forecast[name], name))
+        pace = 'at_risk' if forecast[binding] >= 100 else 'on_track'
     window = by_name[binding]
-    return view | {'pace': 'at_risk' if forecast[binding] >= 100 else 'on_track', 'pace_reason': None,
+    return view | {'pace': pace, 'pace_reason': None,
                    'binding': {'window': binding, 'projected_pct': forecast[binding], 'utilization': window['utilization'],
-                               'remaining_pct': window['remaining_pct'], 'resets_at': window['resets_at']}}
+                               'remaining_pct': window['remaining_pct'], 'resets_at': window['resets_at']} | (banded[binding] if bands else {})}
 
 
 def quota_summary(views, instance, arm, view):
@@ -87,8 +101,11 @@ def quota_summary(views, instance, arm, view):
 
 def quota_row(view, ref):
     """What a filter or rank key used from the quota view; the full view is in `routing.quota`[ref]."""
-    return {'pace': view['pace'], 'pace_reason': view['pace_reason'], 'exhausted': view['exhausted'],
-            'projected_pct': view['binding']['projected_pct'] if view['binding'] else None, 'ref': ref}
+    row = {'pace': view['pace'], 'pace_reason': view['pace_reason'], 'exhausted': view['exhausted'],
+           'projected_pct': view['binding']['projected_pct'] if view['binding'] else None, 'ref': ref}
+    if view.get('banded'):
+        row['headroom'] = view['binding']['headroom'] if view['binding'] else None
+    return row
 
 
 def availability_view(failures, demote_count, instance):
@@ -181,7 +198,7 @@ def assess_pair(ctx, op_id, arm, instance, requires):
     billing = entry['billing'] if entry else 'unmapped'
     selection = resolve_arm(arm, ctx['available'], ctx['available_meta'], instance,
                             experimental_route=ctx.get('experimental_route'))
-    view = quota_view(ctx['quota'], ctx['quota_meta'], arm, entry, ctx['pace_windows'], ctx['now'])
+    view = quota_view(ctx['quota'], ctx['quota_meta'], arm, entry, ctx['pace_windows'], ctx['now'], ctx['bands'])
     proof_class = ctx['proof_class']
     hits = []
     if selection['state'] != 'catalog_present':
@@ -196,6 +213,8 @@ def assess_pair(ctx, op_id, arm, instance, requires):
         billing = 'free'
     if billing not in ('subscription', 'free') and not matched['allow-metered']:
         hits.append(('billing_not_subscription', {'billing': billing}))
+    elif billing == 'metered' and 'funding' in entry and not funded(entry['funding'], ctx['now']):
+        hits.append(('funding_unverified', {'verified_until': entry['funding']['verified_until']}))
     if matched['avoid']:
         hits.append(('avoid_directive', {'directives': [d['id'] for d in matched['avoid']]}))
     if view['exhausted']:
@@ -208,6 +227,13 @@ def assess_pair(ctx, op_id, arm, instance, requires):
     return {'matched': matched, 'billing': billing, 'selection': selection, 'view': view, 'hits': hits, 'requested_only': requested_only}
 
 
+def funded(funding, now):
+    """True when the owner's own check of the account's credit still holds. The router cannot read a balance, so an
+    account that declares `funding` is metered work only until `verified_until`; null or a past time is unverified."""
+    until = quota_substitution.parse_time(funding['verified_until'])
+    return until is not None and until > now
+
+
 NEUTRAL_ARM = {'provider': None, 'model': '', 'effort': None}
 
 
@@ -218,15 +244,16 @@ def substitution_context(params, accounts, quota, quota_meta, now, state_path, *
     the same for every model, so the arm does not matter here. An account with no known projection is
     unknown: neither constrained nor a substitution target.
     """
-    thresholds = params.get('quota_substitution')
+    bands = params.get('quota_bands')
+    thresholds = {'quota_bands': bands} if bands else params.get('quota_substitution')
     if not thresholds:
         return None
     observed = {}
     for instance, entry in sorted(accounts.items()):
         if entry['billing'] != 'subscription' or not entry.get('quota_provider'):
             continue
-        binding = quota_view(quota, quota_meta, NEUTRAL_ARM, entry, params.get('pace_windows', []), now)['binding']
-        observed[instance] = ({k: binding[k] for k in ('projected_pct', 'window', 'resets_at', 'utilization')}
+        binding = quota_view(quota, quota_meta, NEUTRAL_ARM, entry, params.get('pace_windows', []), now, bands)['binding']
+        observed[instance] = ({k: binding[k] for k in ('projected_pct', 'window', 'resets_at', 'utilization', 'band', 'headroom') if k in binding}
                               if binding else None)
     return {'thresholds': thresholds, 'authorized_by': authorized_by,
             'state': quota_substitution.evaluate(state_path, thresholds, observed, now, write=write, stack=stack),
@@ -254,7 +281,7 @@ def make_context(op, params, *, available, available_meta, quota, quota_meta, ac
     return {'available': available, 'available_meta': available_meta, 'quota': quota, 'quota_meta': quota_meta,
             'accounts': accounts, 'directives': directives, 'maker': maker, 'level': level, 'level_source': source, 'review': review,
             'proof_class': proof_class, 'line_of': line_of, 'failures': failures, 'freshness': freshness,
-            'pace_windows': params.get('pace_windows', []), 'now': now, 'experimental_route': experimental_route,
+            'pace_windows': params.get('pace_windows', []), 'bands': params.get('quota_bands'), 'now': now, 'experimental_route': experimental_route,
             'substitution': substitution}
 
 
@@ -324,6 +351,9 @@ def route(op, params, ctx):
             rank = {'eligibility': klass, 'prefer': 0 if matched['prefer'] else 1, 'pace': PACE_RANK[view['pace']],
                     'availability': AVAILABILITY_RANK[health['class']], 'candidate_order': index,
                     'projected_pct': view['binding']['projected_pct'] if view['binding'] else None, 'instance': instance}
+            if ctx['bands']:
+                rank |= {'headroom': view['binding']['headroom'] if view['binding'] else None,
+                         'resets_at': view['binding']['resets_at'] if view['binding'] else None}
             trace.append(row | {'removed_by': None, 'availability': health, 'eligibility_reasons': reasons,
                                 'selection_basis': selection_basis, 'requested_only_independence': found['requested_only'], 'rank': rank,
                                 '_target': found['selection']['target'], '_authorizers': matched['authorize'], '_view': view})
@@ -345,7 +375,8 @@ def route(op, params, ctx):
             'independence': {'required': ctx['level'], 'required_source': ctx['level_source'], 'maker': ctx['maker']},
             'directives_applied': sorted(applied), 'directives_unmatched': sorted(d['id'] for d in ctx['directives'] if d['id'] not in applied),
             'conflicts': conflicts,
-            'rank_keys': ['eligibility', 'prefer', 'pace', 'availability', 'candidate_order', 'projected_pct (load-balancing heuristic)', 'instance'],
+            'rank_keys': ['eligibility', 'prefer', 'pace', 'availability', 'candidate_order',
+                          'headroom below band upper (most first), then earliest reset' if ctx['bands'] else 'projected_pct (load-balancing heuristic)', 'instance'],
             'quota': views, 'trace': trace, 'chosen': chosen, 'judgment_required': judgment_needed(reasons), 'judgment_reasons': reasons}
     if ctx['substitution']:
         block['quota_substitution'] = quota_substitution.summary(ctx['substitution'], move=move)
@@ -396,8 +427,12 @@ def judgment_needed(reasons):
 
 
 def rank_tuple(rank):
-    return (rank['eligibility'], rank['prefer'], rank['pace'], rank['availability'], rank['candidate_order'],
-            float('inf') if rank['projected_pct'] is None else rank['projected_pct'], rank['instance'])
+    if 'headroom' in rank:
+        reset = quota_bands.reset_time(rank['resets_at'])
+        load = (float('inf') if rank['headroom'] is None else -rank['headroom'], float('inf') if reset is None else reset)
+    else:
+        load = (float('inf') if rank['projected_pct'] is None else rank['projected_pct'],)
+    return (rank['eligibility'], rank['prefer'], rank['pace'], rank['availability'], rank['candidate_order'], load, rank['instance'])
 
 
 def chosen_view(row, candidates):

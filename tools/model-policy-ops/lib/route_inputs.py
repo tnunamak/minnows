@@ -7,6 +7,7 @@ from pathlib import Path
 
 from decision_receipts import find_receipt
 from delegation_audit import effort
+from quota_substitution import parse_time
 from runtime_sources import digest, driver_family, provider_instance, providers
 
 PREFIX = 'orchestration_v2_projection_'
@@ -21,6 +22,8 @@ def read_accounts(path):
     """Account map: {instance: {quota_provider, quota_source, billing[, substitution_rank]}}. A missing file maps nothing.
 
     `substitution_rank` is optional: the owner's order among accounts for quota substitution, lower first.
+    `funding` is optional: `{verified_until}` is the zoned time until which the owner's own check of the account's
+    credit holds (null: not verified). An account with a `funding` key is metered work only while it holds.
     """
     try:
         value = json.loads(Path(path).read_text(encoding='utf-8'))
@@ -40,6 +43,11 @@ def read_accounts(path):
         rank = entry.get('substitution_rank')
         if rank is not None and (type(rank) is not int or rank < 0):
             raise ValueError(f'accounts.{instance}.substitution_rank must be a non-negative integer')
+        if 'funding' in entry:
+            funding = entry['funding']
+            until = funding.get('verified_until') if isinstance(funding, dict) else 0
+            if not isinstance(funding, dict) or set(funding) != {'verified_until'} or (until is not None and parse_time(until) is None):
+                raise ValueError(f'accounts.{instance}.funding must be {{"verified_until": zoned ISO time or null}}')
     return rows, {'state': 'loaded', 'sha256': digest(rows)}
 
 
