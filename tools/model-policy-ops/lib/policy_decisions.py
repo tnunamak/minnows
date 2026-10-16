@@ -125,6 +125,30 @@ def authorized_experimental_route(args, policy):
     return None
 
 
+def qualified_free_candidates(args, policy, at):
+    """The declared free routes that this request may route to without an override, as pack-style candidates.
+
+    The caller's own assertions gate them: explicit public inputs, no sensitive flag, and the proof class the
+    qualification names. The declaration gates the rest: operation, effort and current evidence. The router then
+    applies its ordinary filters (catalog, effort surface, avoid, independence) and the account's cooldown.
+    """
+    if args.data_classification != 'public' or args.sensitive:
+        return []
+    found = []
+    for route in policy.get('experimental_free_routes', []):
+        for item in route.get('qualified_operations') or []:
+            efforts = item.get('efforts') if isinstance(item, dict) and item.get('id') == args.op else None
+            for effort in efforts if isinstance(efforts, list) else []:
+                if (operation_refusal(route, args.op, routed=True, no_op=False, proof_class=args.proof_class, effort=effort) is None
+                        and currency_refusal(route, at) is None):
+                    found.append({'arm': {'provider': route['provider'], 'model': route['model'], 'effort': effort}, 'basis': 'qualified_free',
+                                  'prior': None, 'free_route': route, 'requires': {'proof_class': item['proof_classes']},
+                                  'known_gaps': [f"Provisional bounded public evaluation, public inputs only, expires {route['expires_at_utc']}; "
+                                                 f"scope {item['scope']}."],
+                                  'evidence_refs': [item['evidence_ref']]})
+    return found
+
+
 def route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack):
     """Run the router and add the evidence snapshot and calibration notes. No state commit."""
     params = policy.get('routing', {})
@@ -145,6 +169,7 @@ def route_choice(args, policy, op, available, available_meta, quota, quota_meta,
                                independence=args.independence, proof_class=args.proof_class, line_of=line_of,
                                failures=failures, freshness=fresh, now=at, critical_path=args.critical_path,
                                experimental_route=authorized_experimental_route(args, policy),
+                               free_candidates=qualified_free_candidates(args, policy, at),
                                substitution=routing.substitution_context(params, accounts, quota, quota_meta, at, args.quota_state, write=not args.now,
                                                               authorized_by=quota_authorized_by(args, params), stack=stack))
     block = routing.route(op, params, ctx)
@@ -271,6 +296,9 @@ def withhold_without_headroom(value, critical_path=False, free_routes=lambda: []
 def withhold_unfunded(value, accounts, at, target):
     """The funding check for the final target, whoever chose it: the router, an override or a destination. A
     destination's proposed target counts even when the catalog does not list it and the caller would submit by hand."""
+    final = value['routing']['final']
+    if final['billing'] == 'free' and not value.get('destination') and final['account'] == (target or {}).get('providerInstanceId'):
+        return value  # the exact declared free tuple is not paid credit, whatever the account map says
     entry = accounts.get((target or {}).get('providerInstanceId')) or {}
     if entry.get('billing') != 'metered' or 'funding' not in entry or routing.funded(entry['funding'], at):
         return value
@@ -488,8 +516,11 @@ def execute_locked(args, policy, stack):
             raise ValueError('same-arm quality retry is not escalation')
         escalation = {'from': args.escalate_from, 'to_op': args.op, 'why': args.why,
                       'handoff_boundary': args.handoff_boundary}
-    declared_route = next((row for row in policy.get('experimental_free_routes', [])
-                           if (row['provider'], row['model']) == (arm['provider'], arm['model'])), None)
+    def declared_for(arm):
+        return next((row for row in policy.get('experimental_free_routes', [])
+                     if (row['provider'], row['model']) == (arm['provider'], arm['model'])), None)
+
+    declared_route = declared_for(arm)
     routing_block = None
     if route:
         routing_block, accounts, ctx = route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack)
@@ -505,7 +536,7 @@ def execute_locked(args, policy, stack):
             selection = {'arm': arm, 'accounts': routing.catalog_instances(available, arm['provider']), 'state': 'no_route_target',
                          'target': None, 'authentication': 'not_attested'}
         else:
-            selection = resolve_arm(arm, available, available_meta, account, experimental_route=declared_route)
+            selection = resolve_arm(arm, available, available_meta, account, experimental_route=declared_for(arm))  # the routed arm may be a qualified free one
         final_instance = selection['target']['providerInstanceId'] if selection['target'] else account
         entry = accounts.get(final_instance) or {}
         quota_info = quota_context(quota, quota_meta, arm, entry.get('quota_provider'), entry.get('quota_source'), at)
@@ -710,8 +741,19 @@ def dispatch_identities(result, available=None, destination_target=None):
     return identities
 
 
-def experimental_target_refusal(identity, request, sensitive, routes, evaluated_at, *, proof_class=None, generic_destination=False):
-    """One current exact authorization is required for each governed identity."""
+def routed_free_choice(identity, request, routed, route):
+    """True when the router itself chose this exact governed identity: a route with no override and no destination,
+    whose chosen arm and account are the identity and the declared route's own account. The caller's public assertion and the declared scope are still checked."""
+    arm = (routed or {}).get('arm') or {}
+    return (request.get('route') is True and not request.get('overrides')
+            and all(arm.get(key) == identity[key] for key in ('provider', 'model', 'effort'))
+            and (routed or {}).get('instance') == identity['account'] == route['account']
+            and (routed or {}).get('selection_basis') == 'qualified_free_route')
+
+
+def experimental_target_refusal(identity, request, sensitive, routes, evaluated_at, *, proof_class=None, generic_destination=False, routed=None):
+    """One current exact authorization is required for each governed identity: the exact manual override,
+    or the router's own choice of a qualified free candidate."""
     declared = next((row for row in routes if row['provider'] == identity['provider']
                      and row['model'] == identity['model']), None)
     model_alias = next((row for row in routes if row['model'] == identity['model']), None)
@@ -731,7 +773,7 @@ def experimental_target_refusal(identity, request, sensitive, routes, evaluated_
                 and bool((request.get('reason') or '').strip())
                 and all(overrides.get(key) == identity[key] == route[key] for key in ('provider', 'model', 'account'))
                 and overrides.get('effort') is not None and overrides['effort'] == identity['effort'])
-    if not explicit:
+    if not (explicit or routed_free_choice(identity, request, routed, route)):
         return route, 'exact_experimental_override_required'
     scope_refusal = operation_refusal(route, request.get('op'), routed=request.get('route') is True,
                                       no_op=request.get('no_op') is True, proof_class=proof_class,
@@ -765,7 +807,8 @@ def apply_experimental_route_policy(result, policy, evaluated_at, *, available=N
     for identity in governed:
         route, refusal = experimental_target_refusal(identity, request, sensitive, routes, evaluated_at,
                                                      proof_class=(result.get('launch_facts') or {}).get('proof_class'),
-                                                     generic_destination=bool(result.get('destination')))
+                                                     generic_destination=bool(result.get('destination')),
+                                                     routed=(result.get('routing') or {}).get('chosen'))
         if refusal:
             break
     if replay and refusal is None:

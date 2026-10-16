@@ -16,8 +16,8 @@ ARM_KEYS = ('provider', 'model', 'effort')
 PACE_RANK = {'on_track': 0, 'unknown': 1, 'at_risk': 2}
 AVAILABILITY_RANK = {'healthy': 0, 'unknown': 1, 'demoted': 2}
 DEMOTING = ('rate_limit', 'transport')
-SELECTION_BASIS = {'primary': 'primary', 'task_benchmark_prior': 'evidence_prior'}
-EVIDENCE_LABEL = {'primary': 'primary', 'task_benchmark_prior': 'prior', 'unvalidated': 'unvalidated'}
+SELECTION_BASIS = {'primary': 'primary', 'task_benchmark_prior': 'evidence_prior', 'qualified_free': 'qualified_free_route'}
+EVIDENCE_LABEL = {'primary': 'primary', 'task_benchmark_prior': 'prior', 'qualified_free': 'qualified', 'unvalidated': 'unvalidated'}
 INDEPENDENCE_LEVELS = ('vendor', 'family', 'model')
 EFFECTS = ('avoid', 'prefer', 'authorize', 'allow-metered')
 # The filter that removes a pair, in the order the contract applies them, and the reason that a bypass of it raises.
@@ -187,18 +187,20 @@ def eligibility(candidate, authorizers, proof_class):
     return (1 if reasons else 0), (None if reasons else selection), reasons
 
 
-def assess_pair(ctx, op_id, arm, instance, requires):
+def assess_pair(ctx, op_id, arm, instance, requires, free_route=None):
     """Every fact and every filter hit for one (arm, account) pair, in the contract's filter order.
 
     `route` removes a pair on its first hit. The final pair after an override gets the same assessment,
-    so the owner sees every filter that the override bypassed.
+    so the owner sees every filter that the override bypassed. `free_route` is the declared free route that
+    a qualified candidate came from; it makes the pair free only on the declared account.
     """
     facts = {'provider': arm['provider'], 'model': arm['model'], 'account': instance, 'op': op_id}
     matched = {effect: matching(ctx['directives'], effect, **facts) for effect in EFFECTS}
     entry = ctx['accounts'].get(instance)
     billing = entry['billing'] if entry else 'unmapped'
+    free_route = free_route if free_route and free_route['account'] == instance else None
     selection = resolve_arm(arm, ctx['available'], ctx['available_meta'], instance,
-                            experimental_route=ctx.get('experimental_route'))
+                            experimental_route=free_route or ctx.get('experimental_route'))
     view = quota_view(ctx['quota'], ctx['quota_meta'], arm, entry, ctx['pace_windows'], ctx['now'], ctx['bands'])
     proof_class = ctx['proof_class']
     hits = []
@@ -210,7 +212,7 @@ def assess_pair(ctx, op_id, arm, instance, requires):
                                and ctx['experimental_route']['provider'] == arm['provider']
                                and ctx['experimental_route']['model'] == arm['model']
                                and ctx['experimental_route']['account'] == instance)
-    if exact_experimental_free:
+    if exact_experimental_free or free_route:
         billing = 'free'
     if billing not in ('subscription', 'free') and not matched['allow-metered']:
         hits.append(('billing_not_subscription', {'billing': billing}))
@@ -266,12 +268,14 @@ def is_review(op, params):
 
 
 def make_context(op, params, *, available, available_meta, quota, quota_meta, accounts, directives, maker, independence,
-                 proof_class, line_of, failures, freshness, now, experimental_route=None, substitution=None, critical_path=False):
+                 proof_class, line_of, failures, freshness, now, experimental_route=None, substitution=None, critical_path=False,
+                 free_candidates=()):
     """The inputs that every pair assessment shares. A review op without a pack `independence_default` requires `vendor`.
 
     `level_source` says where the level came from: the `flag`, the `pack` or the `mechanism_default`.
     `substitution` is None when the pack does not enable quota substitution, else {thresholds, state, ranks}.
     `critical_path` is the caller's launch fact (see `pacing`); it changes nothing without forecast bands.
+    `free_candidates` are the declared free routes that this request qualifies for; `route` ranks them after the pack's candidates.
     """
     review = is_review(op, params)
     if independence:
@@ -284,14 +288,15 @@ def make_context(op, params, *, available, available_meta, quota, quota_meta, ac
             'accounts': accounts, 'directives': directives, 'maker': maker, 'level': level, 'level_source': source, 'review': review,
             'proof_class': proof_class, 'line_of': line_of, 'failures': failures, 'freshness': freshness,
             'pace_windows': params.get('pace_windows', []), 'bands': params.get('quota_bands'), 'now': now, 'experimental_route': experimental_route,
-            'substitution': substitution, 'critical_path': critical_path is True, 'demote_count': params.get('failure_demote_count')}
+            'substitution': substitution, 'critical_path': critical_path is True, 'demote_count': params.get('failure_demote_count'),
+            'free_candidates': list(free_candidates)}
 
 
 def tag(reasons, applies_to):
     return [r | {'applies_to': applies_to} for r in reasons]
 
 
-def final_view(ctx, op, arm, instance, views):
+def final_view(ctx, op, arm, instance, views, free_route=None):
     """The final pair after an override, through the same filters and judgment rules as a routed pair.
 
     The override stays allowed. The block records every filter that the override bypassed. The reasons
@@ -303,7 +308,7 @@ def final_view(ctx, op, arm, instance, views):
     key = ('provider', 'model', 'effort')
     candidate = next((c for c in expand_candidates(op) if all(c['arm'][k] == arm[k] for k in key)),
                      {'basis': 'unvalidated', 'requires': None})
-    found = assess_pair(ctx, op['id'], arm, instance, (candidate['requires'] or {}).get('proof_class'))
+    found = assess_pair(ctx, op['id'], arm, instance, (candidate['requires'] or {}).get('proof_class'), free_route)
     view = found['view']
     ref = quota_summary(views, instance, arm, view)
     bypassed = [{'filter': name, 'detail': detail} for name, detail in found['hits']]
@@ -331,15 +336,17 @@ def route(op, params, ctx):
     conflicts = []
     applied = set()
     views = {}
-    candidates = expand_candidates(op)
+    candidates = expand_candidates(op) + ctx['free_candidates']
     for index, candidate in enumerate(candidates):
         arm = candidate['arm']
         instances = catalog_instances(ctx['available'], arm['provider'])
+        if candidate.get('free_route'):
+            instances = [i for i in instances if i == candidate['free_route']['account']]  # a declaration is exact: other accounts are not it
         base = {'candidate': index, 'arm': arm, 'basis': candidate['basis']}
         if not instances:
             trace.append(base | {'instance': None, 'removed_by': 'no_catalog_account', 'detail': {'catalog': ctx['available_meta']['state']}})
         for instance in instances:
-            found = assess_pair(ctx, op['id'], arm, instance, (candidate['requires'] or {}).get('proof_class'))
+            found = assess_pair(ctx, op['id'], arm, instance, (candidate['requires'] or {}).get('proof_class'), candidate.get('free_route'))
             matched, view = found['matched'], found['view']
             applied.update(d['id'] for rows in matched.values() for d in rows)
             row = base | {'instance': instance, 'billing': found['billing'],
@@ -352,6 +359,11 @@ def route(op, params, ctx):
                 removed, detail = found['hits'][0]
                 trace.append(row | {'removed_by': removed, 'detail': detail})
                 continue
+            if candidate.get('free_route') and found['billing'] == 'free':
+                cooling = pacing.cooldown(failures, instance, demote_count, DEMOTING)
+                if cooling['state'] == 'cooling_down':
+                    trace.append(row | {'removed_by': 'cooling_down', 'detail': cooling})
+                    continue
             klass, selection_basis, reasons = eligibility(candidate, matched['authorize'], ctx['proof_class'])
             health = availability_view(failures, demote_count, instance)
             rank = {'eligibility': klass, 'prefer': 0 if matched['prefer'] else 1, 'pace': PACE_RANK[view['pace']],
@@ -423,7 +435,8 @@ def finalize(block, ctx, op, arm, instance, selection, *, routed, overridden):
     The routed reasons stay in the list, tagged `routed`. A final pair with no target needs judgment.
     """
     if instance:
-        facts, final_reasons = final_view(ctx, op, arm, instance, block['quota'])
+        free_route = None if overridden else next((c['free_route'] for c in ctx['free_candidates'] if c['arm'] == arm), None)
+        facts, final_reasons = final_view(ctx, op, arm, instance, block['quota'], free_route)
     else:
         facts, final_reasons = {'billing': None, 'filters_bypassed': [], 'pace': None, 'quota_ref': None}, []
     if selection['target'] is None and overridden:
@@ -465,20 +478,22 @@ def routed_reasons(ctx, chosen, row, conflicts, unknown_line):
     if chosen is None:
         return tag([{'code': 'no_eligible_pair', 'detail': 'every candidate pair was removed by a filter'}] + reasons, 'routed')
     reasons += pair_reasons(ctx, arm=chosen['arm'], instance=chosen['instance'], pace=chosen['pace'],
-                            eligibility_reasons=row['eligibility_reasons'], requested_only=row['requested_only_independence'])
+                            eligibility_reasons=row['eligibility_reasons'], requested_only=row['requested_only_independence'],
+                            paced=row['billing'] != 'free')
     if conflicts:
         reasons.append({'code': 'directive_conflict', 'detail': [c['avoid'] + c['overridden'] for c in conflicts]})
     return tag(reasons, 'routed')
 
 
-def pair_reasons(ctx, *, arm, instance, pace, eligibility_reasons, requested_only):
+def pair_reasons(ctx, *, arm, instance, pace, eligibility_reasons, requested_only, paced=True):
     """The judgment rules that depend on one (arm, account) pair; the routed pair and the final pair share them.
 
-    Each reason is {code, detail}. `informational` reasons keep the target.
+    Each reason is {code, detail}. `informational` reasons keep the target. A routed free pair has no quota
+    to pace, so it passes `paced=False`.
     """
     level, maker, failures = ctx['level'], ctx['maker'], ctx['failures']
     reasons = [{'code': code, 'detail': arm} for code in eligibility_reasons]
-    if pace != 'on_track':
+    if paced and pace != 'on_track':
         reasons.append({'code': 'pace_not_on_track', 'detail': pace})
     events = failures['instances'].get(instance, {}) if failures['state'] == 'observed' else {}
     if events.get('auth_config'):
