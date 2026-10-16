@@ -21,7 +21,8 @@ INDEPENDENCE_LEVELS = ('vendor', 'family', 'model')
 EFFECTS = ('avoid', 'prefer', 'authorize', 'allow-metered')
 # The filter that removes a pair, in the order the contract applies them, and the reason that a bypass of it raises.
 FINAL_REASONS = {'not_runnable': 'final_not_runnable', 'requires_not_met': 'final_requires_not_met',
-                 'billing_not_subscription': 'final_metered_without_directive', 'avoid_directive': 'final_avoided',
+                 'billing_not_subscription': 'final_metered_without_directive', 'funding_unverified': 'final_funding_unverified',
+                 'avoid_directive': 'final_avoided',
                  'quota_exhausted': 'final_quota_exhausted', 'independence': 'final_independence_bypassed'}
 SUBSTITUTED = 'quota_substitution_exception'
 
@@ -212,6 +213,8 @@ def assess_pair(ctx, op_id, arm, instance, requires):
         billing = 'free'
     if billing not in ('subscription', 'free') and not matched['allow-metered']:
         hits.append(('billing_not_subscription', {'billing': billing}))
+    elif billing == 'metered' and 'funding' in entry and not funded(entry['funding'], ctx['now']):
+        hits.append(('funding_unverified', {'verified_until': entry['funding']['verified_until']}))
     if matched['avoid']:
         hits.append(('avoid_directive', {'directives': [d['id'] for d in matched['avoid']]}))
     if view['exhausted']:
@@ -222,6 +225,13 @@ def assess_pair(ctx, op_id, arm, instance, requires):
         if not ok:
             hits.append(('independence', {'level': ctx['level'], 'why': why}))
     return {'matched': matched, 'billing': billing, 'selection': selection, 'view': view, 'hits': hits, 'requested_only': requested_only}
+
+
+def funded(funding, now):
+    """True when the owner's own check of the account's credit still holds. The router cannot read a balance, so an
+    account that declares `funding` is metered work only until `verified_until`; null or a past time is unverified."""
+    until = quota_substitution.parse_time(funding['verified_until'])
+    return until is not None and until > now
 
 
 NEUTRAL_ARM = {'provider': None, 'model': '', 'effort': None}

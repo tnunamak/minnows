@@ -12,7 +12,7 @@ import pytest
 
 import test_route
 from test_quota_substitution import CLAUDE, FIX, NOW, QuotaWorld, active, block, pick
-from test_route import REPO, codes
+from test_route import REPO, codes, entry
 
 BANDS = [{'min_days_left': 5, 'low': 70, 'high': 130},
          {'min_days_left': 2, 'exclusive': True, 'low': 80, 'high': 120},
@@ -49,9 +49,11 @@ def route(world, *extra):
     return world.route('implement.oracle-bounded', *ORACLE, *extra)
 
 
-def add_prepaid(world):
-    """A metered account with no quota mapping, allowed by an owner directive: pace unknown, credit unverified."""
-    world.accounts['accounts']['claude-api'] = {'billing': 'metered', 'quota_provider': None, 'quota_source': None}
+def add_prepaid(world, verified_until=None):
+    """A metered account with no quota mapping, allowed by an owner directive: pace unknown, and its credit is
+    unverified unless the account map holds a check that has not expired."""
+    world.accounts['accounts']['claude-api'] = {'billing': 'metered', 'quota_provider': None, 'quota_source': None,
+                                                'funding': {'verified_until': verified_until}}
     world.add_directive('allow-prepaid', 'allow-metered', 'account=claude-api', until='2026-10-12T00:00:00Z')
 
 
@@ -92,18 +94,69 @@ def test_a_subscription_with_headroom_replaces_a_constrained_primary_not_unverif
     assert pick(route(world)) == ('claude-alt', 'claude-sonnet-5-5')
 
 
-def test_no_subscription_with_headroom_leaves_unverified_prepaid_to_explicit_judgment(world):
-    add_prepaid(world)
+@pytest.mark.parametrize('verified_until', [None, '2026-10-10T00:00:00Z', '2026-10-11T00:25:00Z'])
+def test_unverified_or_expired_credit_is_never_a_target(world, verified_until):
+    add_prepaid(world, verified_until)
+    out = world.route('implement.quota-tight')
+    assert entry(out, 'claude-api')['removed_by'] == 'funding_unverified'
+    assert out['target'] is None and out['launch_ready'] is False
+    assert out['waiting']['state'] == 'no_forecast_headroom' and 'dispatch' not in out
+    assert 'wait_no_forecast_headroom' in codes(out)
+
+
+def test_verified_credit_is_overflow_when_no_subscription_has_headroom(world):
+    add_prepaid(world, '2026-10-12T00:00:00Z')
     out = world.route('implement.quota-tight')
     assert pick(out) == ('claude-api', 'claude-sonnet-5-5')
+    assert out['launch_ready'] is True and 'waiting' not in out
     assert out['routing']['judgment_required'] is True and 'pace_not_on_track' in codes(out)
 
 
-def test_no_headroom_and_no_prepaid_needs_judgment_not_a_silent_choice(world):
+def test_verified_credit_does_not_outrank_a_subscription_with_headroom(world):
+    add_prepaid(world, '2026-10-12T00:00:00Z')
+    world.set_claude(110, 'claude-alt')
+    assert pick(world.route('implement.quota-tight')) == ('claude-alt', 'claude-sonnet-5-5')
+
+
+def test_credit_without_a_funding_declaration_keeps_the_directive_behavior(world):
+    add_prepaid(world)
+    del world.accounts['accounts']['claude-api']['funding']
+    assert pick(world.route('implement.quota-tight')) == ('claude-api', 'claude-sonnet-5-5')
+
+
+def test_no_headroom_and_no_prepaid_waits_instead_of_dispatching(world):
     out = route(world)
     assert out['routing']['judgment_required'] is True
-    assert 'quota_substitution_unavailable' in codes(out)
+    assert 'quota_substitution_unavailable' in codes(out) and 'wait_no_forecast_headroom' in codes(out)
     assert block(out)['substituted'] is False
+    assert out['target'] is None and out['launch_ready'] is False and 'dispatch' not in out
+    assert out['waiting']['state'] == 'no_forecast_headroom'
+    assert all(row.get('target') is None for row in [out['routing']['chosen']])
+
+
+def test_an_explicit_override_is_not_withheld(world):
+    out = route(world, '--override', 'provider=claude', '--override', 'model=claude-sonnet-5-5', '--override', 'account=claude-alt', '--reason', 'caller intent')
+    assert out['launch_ready'] is True and 'waiting' not in out and out['target']['providerInstanceId'] == 'claude-alt'
+
+
+def test_a_recorded_wait_replays_without_a_target(world):
+    first = world.route('implement.oracle-bounded', *ORACLE, record='wait-1')
+    again = world.route('implement.oracle-bounded', *ORACLE, record='wait-1')
+    assert first['waiting'] == again['waiting'] and again['target'] is None and again['launch_ready'] is False
+
+
+@pytest.mark.parametrize('funding', [{}, {'verified_until': 'tomorrow'}, {'verified_until': '2026-10-12T00:00:00'}, 'yes',
+                                     {'verified_until': None, 'balance': 1}])
+def test_a_malformed_funding_declaration_is_refused(world, funding):
+    add_prepaid(world)
+    world.accounts['accounts']['claude-api']['funding'] = funding
+    result, _ = world.cli('route', 'implement.quota-tight', *world.args(), '--proof-class', 'judged', '--decision-id', 'bad')
+    assert result.returncode != 0 and 'funding' in result.stderr
+
+
+def test_the_brief_output_says_waiting_and_names_no_dispatch(world):
+    out = route(world, '--brief')
+    assert out['waiting']['state'] == 'no_forecast_headroom' and out['dispatch'] is None and out['target'] is None
 
 
 def test_a_healthy_primary_is_not_replaced(world):

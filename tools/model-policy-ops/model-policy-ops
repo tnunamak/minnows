@@ -242,7 +242,7 @@ def brief_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
     choice = result.get("choice") or {}
     waiting = choice.get("warning")
     dispatch = result.get("dispatch")
-    if simulation or waiting:
+    if simulation or waiting or "waiting" in result:
         dispatch = None
     elif dispatch is None and result.get("target") is not None and result.get("launch_ready") is True:
         dispatch = {"clientRequestId": result.get("decision_id"), "mode": "async"}
@@ -263,6 +263,8 @@ def brief_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
     }
     if waiting:
         brief["waiting"] = {"state": "selected_waiting", "assertion": "caller_claim", "warning": waiting}
+    elif "waiting" in result:
+        brief["waiting"] = result["waiting"]
     if "data_policy" in result:
         brief["data_policy"] = result["data_policy"]
     if destination == "model":

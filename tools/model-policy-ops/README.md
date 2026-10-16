@@ -712,13 +712,26 @@ scheduling policy; the pack has none and the code has no defaults. With bands se
   `no_band_for_window`). An account is never a target when an `avoid` directive, a failed hard filter or
   independence removes it. The bands only schedule among pairs that the pack already qualifies for the op and
   effort: a model or effort never changes with budget;
-- trace rows and `routing.quota[ref].binding` carry `band`, `days_left` and `headroom`. When no account has
-  headroom, the normal choice stays and `quota_substitution_unavailable` plus `pace_not_on_track` ask the parent
-  to decide or wait. A free arm that the caller chose by override never reaches `route`; use `route` after
-  that arm fails.
+- trace rows and `routing.quota[ref].binding` carry `band`, `days_left` and `headroom`. When the routed pair has
+  no positive headroom, the receipt is a **wait**: `target` is null (every nested target too), `launch_ready` is
+  false, there is no `dispatch`, `waiting` is `{state: no_forecast_headroom, assertion: router_evidence}` and the
+  judgment reasons add `wait_no_forecast_headroom` to `pace_not_on_track`. The router withholds; it does not queue.
+  Route again after a fresh reading or a reset. An explicit `--override` is the caller's own intent and is not
+  withheld; its bypassed filters stay in `routing.final`;
+- a free arm that the caller chose by explicit override or `--experimental-route` stays exact. After it fails
+  (for example, rate limited), route again without the override: the pack's subscription arms then compete, and the
+  one above (adequate arm, then most headroom) wins, or the route waits.
 
-`route` does not read prepaid credit. An unmapped metered account that an `allow-metered` directive
-permits has pace `unknown`, which ranks after any subscription with headroom and before one without.
+**Funding evidence.** `route` cannot read prepaid credit, and an `allow-metered` directive is permission, not proof
+of funds. An account-map entry may carry `funding: {"verified_until": "<zoned ISO time>"}`: the time until which the
+owner's own check of that account's credit holds, written by whoever did the check. An account with a `funding`
+key is a target only while `verified_until` is in the future; `null`, a past time or a malformed value removes it
+(`funding_unverified`, `final_funding_unverified` on an override). The router does not verify the claim, cannot
+bound other spenders or an auto-reload, and a balance never reserves a task budget. An account with no `funding`
+key keeps the directive-only rule. Keep funding data in the local account map, never in the public pack.
+
+An unmapped metered account with a current `funding` check and an `allow-metered` directive has pace `unknown`,
+which ranks after any subscription with headroom and before one without. It can be overflow work only that way.
 
 Per mapped subscription account, `route` takes the binding pace-window `projected_pct`
 (the same value as the pace class). The account is **constrained** when that value is at

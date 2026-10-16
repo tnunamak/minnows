@@ -214,6 +214,23 @@ def clear_targets(value, *, refuse_submission=False):
     return value
 
 
+WAIT_BASIS = 'no eligible arm has forecast headroom below its band; wait for a fresh reading or a reset, or decide explicitly'
+
+
+def withhold_without_headroom(value):
+    """With forecast bands, a routed pair whose pace is `at_risk` is not dispatchable: the receipt keeps the evidence
+    and `waiting`, and clears the target. An explicit override is the caller's own intent and is not withheld."""
+    block = value['routing']
+    chosen = block['chosen']
+    if not block['params'].get('quota_bands') or block['final']['overridden'] or not chosen or chosen['pace'] != 'at_risk':
+        return value
+    block['judgment_reasons'].append({'code': 'wait_no_forecast_headroom', 'applies_to': 'routed',
+                                      'detail': {'instance': chosen['instance'], 'pace': chosen['pace']}})
+    value = clear_targets(value)
+    return value | {'launch_ready': False, 'launch_readiness_basis': WAIT_BASIS,
+                    'waiting': {'state': 'no_forecast_headroom', 'assertion': 'router_evidence', 'reason': WAIT_BASIS}}
+
+
 def validate_route_proof(op_id, proof_class):
     """Fresh route task-fit guard; explicit resolve/escalation retains its existing behavior."""
     state = outcomes.op_proof_assessment(op_id, proof_class)['state']
@@ -527,6 +544,8 @@ def execute_locked(args, policy, stack):
             else:
                 return_value['launch_readiness_basis'] = ('destination chosen; the root decision ID does not match its request_id_pattern; '
                                                           'submit by hand or re-route with a matching decision ID')
+    if routing_block and not offer:
+        return_value = withhold_without_headroom(return_value)
     apply_experimental_route_policy(return_value, policy, at, available=available, destination_target=proposed_destination)
 
     if simulation:
