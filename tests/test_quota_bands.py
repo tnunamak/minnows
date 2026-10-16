@@ -139,6 +139,40 @@ def test_an_explicit_override_is_not_withheld(world):
     assert out['launch_ready'] is True and 'waiting' not in out and out['target']['providerInstanceId'] == 'claude-alt'
 
 
+def test_a_declared_unverified_account_is_withheld_even_by_an_explicit_override(world):
+    add_prepaid(world)
+    out = route(world, '--override', 'provider=claude', '--override', 'model=claude-sonnet-5-5', '--override', 'account=claude-api',
+                '--reason', 'caller intent')
+    assert out['target'] is None and out['launch_ready'] is False and out['waiting']['state'] == 'funding_unverified'
+    assert 'final_funding_unverified' in codes(out) and 'dispatch' not in out
+    assert route(world, '--override', 'provider=claude', '--override', 'model=claude-sonnet-5-5', '--override', 'account=claude-api',
+                 '--reason', 'caller intent', '--brief')['dispatch'] is None
+    world.accounts['accounts']['claude-api']['funding']['verified_until'] = '2026-10-12T00:00:00Z'  # a current check lets it through
+    out = route(world, '--override', 'provider=claude', '--override', 'model=claude-sonnet-5-5', '--override', 'account=claude-api',
+                '--reason', 'caller intent')
+    assert out['launch_ready'] is True and out['target']['providerInstanceId'] == 'claude-api'
+
+
+def test_unknown_forecasts_are_not_dispatchable_headroom(world):
+    for provider in world.quota['providers'].values():
+        for source in provider.get('sources', [provider]):
+            source['forecast']['windows'].clear()
+    out = route(world)
+    assert out['target'] is None and out['waiting']['state'] == 'no_forecast_headroom'
+
+
+def test_a_held_constrained_account_with_no_alternative_waits(world):
+    world.codex(120)
+    route(world)  # activates codex
+    world.codex(90)  # between low and high: held by hysteresis, claude has no headroom either
+    out = route(world)
+    assert active(out)['codex'] == 'held_by_hysteresis'
+    assert out['target'] is None and out['waiting']['state'] == 'no_forecast_headroom'
+    world.set_claude(50, 'claude-alt')  # an alternative with headroom is dispatchable again
+    out = route(world)
+    assert pick(out) == ('claude-alt', 'claude-sonnet-5-5') and out['launch_ready'] is True
+
+
 def test_a_recorded_wait_replays_without_a_target(world):
     first = world.route('implement.oracle-bounded', *ORACLE, record='wait-1')
     again = world.route('implement.oracle-bounded', *ORACLE, record='wait-1')
