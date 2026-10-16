@@ -390,45 +390,60 @@ def destination_summary(receipts):
         'meaning': 'descriptive; offered = destination chosen; not proof the work was submitted or used'}
 
 
+CLASSES = ('offered', 'fallback', 'not_eligible', 'resolve_listed', 'resolve_not_listed', 'not_considered', 'unrecorded')
+
+
+def receipt_class(receipt):
+    """(exclusive class, sorted reason keys). Every receipt has exactly one class; reasons explain it and may be several."""
+    block = destination_block(receipt)
+    op = (receipt.get('request') or {}).get('op')
+    if not (receipt.get('request') or {}).get('route'):
+        skip = receipt.get('destination_skip')
+        if not skip:
+            return 'unrecorded', []
+        if 'destinations_state' in skip:
+            return 'resolve_not_listed', [f"destinations_{skip['destinations_state']}"]
+        listed = any(row.get('listed_for_purpose') for row in skip.get('destinations', []))
+        return ('resolve_listed', ['explicit_resolution']) if listed else ('resolve_not_listed', ['purpose_not_listed'])
+    if block.get('considered'):
+        if destination_chosen(receipt) != 'model':
+            return 'offered', []
+        found = block.get('fallback') or {}
+        return 'fallback', sorted({f"{found.get('source', 'unknown')}:{reason}" for reason in found.get('reasons') or ['unrecorded']})
+    if block.get('not_eligible'):
+        return 'not_eligible', sorted({f"{row['reason']}:{row.get('purpose')}:{op}" for row in block['not_eligible']})
+    if block.get('not_considered'):
+        return 'not_considered', [block['not_considered']]
+    return 'unrecorded', []
+
+
 def spend_first_daily(receipts):
     """Per UTC day of `recorded_at`: how many receipts a destination could take, how many it got, and why the rest did not.
 
-    Every receipt lands in exactly one class: offered, a fallback reason, not eligible (purpose), resolve (explicit), not
-    considered (no config) or `unrecorded` (an older receipt that kept no reason). Descriptive; not proof of submission or use."""
+    `classes` is exclusive and sums to `receipts`. `reasons` counts receipts per reason within each class (a receipt with
+    two reasons counts under both, once each). `unrecorded` holds only receipts written before revision 26. Descriptive;
+    not proof of submission or use."""
     days = {}
     for receipt in receipts:
-        day = days.setdefault((receipt.get('recorded_at') or '')[:10] or 'unknown',
-                              {'receipts': 0, 'eligible': 0, 'offered': 0, 'fallback': {}, 'not_eligible': {},
-                               'resolve_explicit': 0, 'not_considered': {}, 'unrecorded': 0})
-        day['receipts'] += 1
-        block = destination_block(receipt)
-        if not (receipt.get('request') or {}).get('route'):
-            skip = receipt.get('destination_skip') or {}
-            if any(row.get('listed_for_purpose') for row in skip.get('destinations', [])):
-                day['resolve_explicit'] += 1
-            elif not skip:
-                day['unrecorded'] += 1
-            continue
-        if block.get('considered'):
-            day['eligible'] += 1
-            if destination_chosen(receipt) != 'model':
-                day['offered'] += 1
-            else:
-                found = block.get('fallback') or {}
-                for reason in found.get('reasons') or ['unrecorded']:
-                    key = f"{found.get('source', 'unknown')}:{reason}"
-                    day['fallback'][key] = day['fallback'].get(key, 0) + 1
-        elif block.get('not_eligible'):
-            for row in block['not_eligible']:
-                key = f"{row['reason']}:{row.get('purpose')}:{(receipt.get('request') or {}).get('op')}"
-                day['not_eligible'][key] = day['not_eligible'].get(key, 0) + 1
-        elif block.get('not_considered'):
-            day['not_considered'][block['not_considered']] = day['not_considered'].get(block['not_considered'], 0) + 1
-        else:
-            day['unrecorded'] += 1
-    return [{'day': name, **row, 'offered_share_of_eligible': row['offered'] / row['eligible'] if row['eligible'] else None,
-             'fallback': dict(sorted(row['fallback'].items())), 'not_eligible': dict(sorted(row['not_eligible'].items()))}
-            for name, row in sorted(days.items())]
+        try:
+            day = stamp(receipt['recorded_at']).date().isoformat()
+        except (KeyError, TypeError, ValueError):
+            day = 'unknown'
+        row = days.setdefault(day, {'receipts': 0, 'classes': dict.fromkeys(CLASSES, 0), 'reasons': {}})
+        row['receipts'] += 1
+        name, reasons = receipt_class(receipt)
+        row['classes'][name] += 1
+        for reason in reasons:
+            bucket = row['reasons'].setdefault(name, {})
+            bucket[reason] = bucket.get(reason, 0) + 1
+    out = []
+    for day, row in sorted(days.items()):
+        eligible = row['classes']['offered'] + row['classes']['fallback']
+        out.append({'day': day, 'receipts': row['receipts'], 'eligible': eligible, 'offered': row['classes']['offered'],
+                    'offered_share_of_eligible': row['classes']['offered'] / eligible if eligible else None,
+                    'classes': row['classes'],
+                    'reasons': {name: dict(sorted(counts.items())) for name, counts in sorted(row['reasons'].items())}})
+    return out
 
 
 def audit(rows, receipts, since=None, thread=None, time_anchor='export.timestamp', out_of_scope=None, outcome_rows=(), observations=((), 'not_read', None)):

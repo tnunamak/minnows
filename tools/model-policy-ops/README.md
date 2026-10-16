@@ -1014,11 +1014,12 @@ picks a model. Routes to a model in the chain do not count.
 
 **Every receipt says why a destination was not used (revision 26).** `routing.destination.not_eligible` lists each
 destination whose `purposes` exclude the request: `{name, reason: purpose_not_listed|purpose_unknown, purpose}`. It is
-present even when another destination is chosen. When no config was read, `routing.destination` is
-`{chosen: "model", considered: [], not_considered: "destinations_missing"}`. `resolve` never consults a destination; its
-receipt has `destination_skip` `{reason: "explicit_resolution", destinations: [{name, listed_for_purpose}]}` when a config
-exists (`destinations_state: "unreadable"` for a bad file, which never blocks resolve). `choice.considered` repeats each
-of these as a `destination` row with the reason code.
+present even when another destination is chosen. When an earlier destination is chosen, each later eligible one is in
+`considered` with state `not_probed_earlier_chosen` (it is not probed). When no config was read, `routing.destination`
+is `{chosen: "model", considered: [], not_considered: "destinations_missing"}`. `resolve` never consults a destination;
+its receipt always has `destination_skip` `{reason: "explicit_resolution", destinations: [{name, listed_for_purpose}]}`,
+or `{reason, destinations_state: missing|unreadable}` when no config was read. A bad or unreadable file never blocks
+resolve. `choice.considered` repeats each of these as a `destination` row with the reason code.
 
 Judgment when a destination is chosen. The model-pair reasons (pace, unvalidated candidate,
 quota, auth_config, model independence, model freshness) stay in `judgment_reasons`, tagged
@@ -1516,11 +1517,12 @@ Top-level keys: `schema_version`, `scope`, `coverage`, `counts`, `effort_explici
   chosen destination is not `model`. Those receipts never appear in `unmatched_receipts`.
 - `spend_first`: `eligible` (route receipts whose purpose a destination listed at record time), `offered`
   (destination chosen), `fallback` (`facts`, `parent`, `capacity`, each `{REASON: count}`) and `meaning`.
-- `spend_first_daily`: one row per UTC day of `recorded_at`: `receipts`, `eligible`, `offered`,
-  `offered_share_of_eligible`, `fallback` (`{"SOURCE:REASON": n}`), `not_eligible`
-  (`{"REASON:PURPOSE:OP": n}`, for example `purpose_not_listed:execution:review.audit`), `resolve_explicit`
-  (resolve receipts for a purpose a destination lists), `not_considered` (`{"destinations_STATE": n}`) and
-  `unrecorded` (receipts that kept no reason; only receipts written before revision 26). Each receipt counts in one class.
+- `spend_first_daily`: one row per UTC day of `recorded_at`: `receipts`; `classes`, which is exclusive and sums
+  to `receipts` (`offered`, `fallback`, `not_eligible`, `resolve_listed`, `resolve_not_listed`, `not_considered`,
+  `unrecorded`); `reasons` per class (`{"SOURCE:REASON": n}` for a fallback, `{"REASON:PURPOSE:OP": n}` for not
+  eligible, for example `purpose_not_listed:execution:review.audit`), counting each receipt once per reason; `eligible`
+  (`offered` + `fallback`), `offered` and `offered_share_of_eligible`. `unrecorded` holds receipts written before
+  revision 26 and route receipts with an empty block.
 - `outcomes` (descriptive only, over distinct decisions):
   - `unit`, `descriptive_only`, `causal_claims`, `confounding`, `closes_are_claims`:
     fixed statements.

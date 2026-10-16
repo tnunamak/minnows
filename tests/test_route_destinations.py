@@ -274,7 +274,12 @@ def test_resolve_names_the_destinations_it_did_not_consider(one, tmp_path):
 
 def test_resolve_without_a_config_and_with_a_bad_one(world, tmp_path):
     result, out = world.cli('resolve', OP, *world.args(), '--destinations', tmp_path / 'absent.json', '--decision-id', 'res-2')
-    assert result.returncode == 0 and 'destination_skip' not in out
+    assert result.returncode == 0 and out['destination_skip'] == {'reason': 'explicit_resolution', 'destinations_state': 'missing'}
+    directory = tmp_path / 'a-directory'
+    directory.mkdir()
+    result, out = world.cli('resolve', OP, *world.args(), '--destinations', directory, '--decision-id', 'res-4')
+    assert result.returncode == 0, 'an unreadable path (OSError) never blocks resolve'
+    assert out['destination_skip'] == {'reason': 'explicit_resolution', 'destinations_state': 'unreadable'}
     bad = tmp_path / 'bad.json'
     bad.write_text('{')
     result, out = world.cli('resolve', OP, *world.args(), '--destinations', bad, '--decision-id', 'res-3')
@@ -649,31 +654,51 @@ def test_independence_level_source_is_reported(world):
     assert world.route(OP, '--independence', 'model')['routing']['independence']['required_source'] == 'flag'
 
 
-def test_spend_first_daily_puts_each_receipt_in_one_class():
+def test_spend_first_daily_classes_are_exclusive_and_reasons_deduplicated():
     sys.path.insert(0, str(REPO / 'tools/model-policy-ops/lib'))
     import delegation_audit
 
-    def routed(day, block, op='review.audit'):
-        return {'recorded_at': f'{day}T01:00:00+00:00', 'request': {'route': True, 'op': op}, 'routing': {'destination': block}}
+    def routed(at, block, op='review.audit'):
+        return {'recorded_at': at, 'request': {'route': True, 'op': op}, 'routing': {'destination': block}}
 
+    def resolved(at, skip):
+        return {'recorded_at': at, 'request': {'route': False, 'op': 'review.audit'}, **({'destination_skip': skip} if skip else {})}
+
+    day = '2026-10-15T01:00:00+00:00'
     rows = [
-        routed('2026-10-15', {'chosen': 'dot', 'considered': [{'name': 'dot', 'state': 'chosen'}]}),
-        routed('2026-10-15', {'chosen': 'model', 'considered': [{'name': 'dot', 'state': 'declined_by_facts'}],
-                              'fallback': {'destination': 'dot', 'reasons': ['local-inputs'], 'source': 'facts'}}),
-        routed('2026-10-15', {'chosen': 'model', 'considered': [],
-                              'not_eligible': [{'name': 'dot', 'reason': 'purpose_not_listed', 'purpose': 'execution'}]}),
-        routed('2026-10-15', {'chosen': 'model', 'considered': [], 'not_considered': 'destinations_missing'}),
-        routed('2026-10-15', {'chosen': 'model', 'considered': []}),
-        {'recorded_at': '2026-10-15T02:00:00+00:00', 'request': {'route': False, 'op': 'review.audit'},
-         'destination_skip': {'reason': 'explicit_resolution', 'destinations': [{'name': 'dot', 'listed_for_purpose': True}]}},
-        {'recorded_at': '2026-10-16T02:00:00+00:00', 'request': {'route': False, 'op': 'implement.standard'}},
+        routed(day, {'chosen': 'dot', 'considered': [{'name': 'dot', 'state': 'chosen'}]}),
+        routed(day, {'chosen': 'model', 'considered': [{'name': 'dot', 'state': 'declined_by_facts'}],
+                     'fallback': {'destination': 'dot', 'reasons': ['local-inputs', 'credential', 'local-inputs'], 'source': 'facts'}}),
+        routed(day, {'chosen': 'model', 'considered': [], 'not_eligible': [
+            {'name': 'dot', 'reason': 'purpose_not_listed', 'purpose': 'execution'},
+            {'name': 'pool', 'reason': 'purpose_not_listed', 'purpose': 'execution'}]}),
+        routed(day, {'chosen': 'model', 'considered': [], 'not_considered': 'destinations_missing'}),
+        routed(day, {'chosen': 'model', 'considered': []}),
+        resolved(day, {'reason': 'explicit_resolution', 'destinations': [{'name': 'dot', 'listed_for_purpose': True}]}),
+        resolved(day, {'reason': 'explicit_resolution', 'destinations': [{'name': 'dot', 'listed_for_purpose': False}]}),
+        resolved(day, {'reason': 'explicit_resolution', 'destinations_state': 'unreadable'}),
+        # An offset timestamp is placed by its UTC day: 00:30+02:00 on the 16th is the 15th in UTC.
+        resolved('2026-10-16T00:30:00+02:00', None),
+        {'request': {'route': True}, 'routing': {}},
     ]
-    first, second = delegation_audit.spend_first_daily(rows)
-    assert first == {'day': '2026-10-15', 'receipts': 6, 'eligible': 2, 'offered': 1, 'offered_share_of_eligible': 0.5,
-                     'fallback': {'facts:local-inputs': 1}, 'not_eligible': {'purpose_not_listed:execution:review.audit': 1},
-                     'resolve_explicit': 1, 'not_considered': {'destinations_missing': 1}, 'unrecorded': 1}
-    assert second['receipts'] == 1 and second['unrecorded'] == 1 and second['offered_share_of_eligible'] is None
+    first, unknown = delegation_audit.spend_first_daily(rows)
+    assert first['day'] == '2026-10-15' and first['receipts'] == 9 and sum(first['classes'].values()) == first['receipts']
+    assert first['classes'] == {'offered': 1, 'fallback': 1, 'not_eligible': 1, 'resolve_listed': 1, 'resolve_not_listed': 2,
+                                'not_considered': 1, 'unrecorded': 2}
+    assert first['eligible'] == 2 and first['offered_share_of_eligible'] == 0.5
+    assert first['reasons']['fallback'] == {'facts:credential': 1, 'facts:local-inputs': 1}, 'one count per receipt and reason'
+    assert first['reasons']['not_eligible'] == {'purpose_not_listed:execution:review.audit': 1}, 'two destinations, one receipt'
+    assert first['reasons']['resolve_not_listed'] == {'destinations_unreadable': 1, 'purpose_not_listed': 1}
+    assert unknown['day'] == 'unknown' and unknown['classes']['unrecorded'] == 1
 
+
+def test_later_destinations_are_named_when_an_earlier_one_wins(world, tmp_path):
+    cfg = config(tmp_path, entry(capacity(tmp_path, 'a'), name='first'), entry(capacity(tmp_path, 'b'), name='second'))
+    out = route(world, cfg, '--purpose', 'review', '--inputs', 'github')
+    assert out['destination'] == 'first' and not ran(tmp_path, 'b')
+    assert [(r['name'], r['state']) for r in dest(out)['considered']] == [('first', 'chosen'), ('second', 'not_probed_earlier_chosen')]
+    rows = [(c['candidate'], c['reason']['code']) for c in out['choice']['considered'] if c['kind'] == 'destination']
+    assert rows == [('first', 'chosen'), ('second', 'not_probed_earlier_chosen')]
 
 def line(world, cfg, *extra, record='line-1'):
     """The default output, without the harness's --json."""

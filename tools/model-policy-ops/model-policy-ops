@@ -229,12 +229,12 @@ def brief_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
         receipt.update({
             "path": str(receipts.absolute()), "format": "jsonl",
             "replay": "Read the JSONL row matching decision_id for the exact stored receipt; "
-                      "or repeat identical caller-intent arguments without --brief (optionally --json) to replay.",
+                      "or repeat identical caller-intent arguments with --json (instead of --brief) to replay.",
         })
     else:
         receipt.update({
             "reason": "simulation" if simulation else "not_recorded",
-            "full_output": "No stored receipt for this evaluation. Rerun without --brief for full output; inputs may change.",
+            "full_output": "No stored receipt for this evaluation. Rerun with --json for full output; inputs may change.",
         })
 
     choice = result.get("choice") or {}

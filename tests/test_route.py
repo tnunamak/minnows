@@ -1204,13 +1204,13 @@ def test_legacy_commands_are_byte_identical_to_the_baseline(world, tmp_path):
             new = run_tool(TOOL, 'resolve', op, *common, *extra, '--receipts', receipts_new, '--decision-id', 'same')
             assert 'choice' not in json.loads(old[1])
             assert json.loads(new[1])['choice']['reason']['code'] == 'explicit_resolution'
-            strip = lambda r: (r[0], {k: v for k, v in json.loads(r[1] or '{}').items() if k not in ('recorded_at', 'policy_path', 'effective_policy_sha256', 'choice')}, r[2])
+            strip = lambda r: (r[0], {k: v for k, v in json.loads(r[1] or '{}').items() if k not in ('recorded_at', 'policy_path', 'effective_policy_sha256', 'choice', 'destination_skip')}, r[2])
             assert strip(old) == strip(new), (op, extra)
     flags = ['--record', '--parent-model', 'pm', '--parent-provider-instance', 'pp', '--parent-thread', 'pt', '--decision-id', 'rec1', '--purpose', 'review']
     old = run_tool(old_tool, 'resolve', 'review.audit', *common, *flags, '--account-hint', 'codex', '--receipts', receipts_old)
     new = run_tool(TOOL, 'resolve', 'review.audit', *common, *flags, '--account-hint', 'codex', '--receipts', receipts_new)
     assert json.loads(old[1])['request'] == json.loads(new[1])['request'] and old[0] == new[0] == 0
-    stored = lambda path: {k: v for k, v in json.loads(path.read_text().splitlines()[0]).items() if k not in ('recorded_at', 'policy_path', 'effective_policy_sha256', 'choice')}
+    stored = lambda path: {k: v for k, v in json.loads(path.read_text().splitlines()[0]).items() if k not in ('recorded_at', 'policy_path', 'effective_policy_sha256', 'choice', 'destination_skip')}
     assert stored(receipts_old) == stored(receipts_new)
     close = ['--close-id', 'c1', '--outcome', 'accepted', '--judged-by', 'parent', '--check', 'none']
     a = run_tool(old_tool, 'close', 'rec1', '--receipts', receipts_old, *close)

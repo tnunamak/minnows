@@ -337,7 +337,7 @@ def execute_locked(args, policy, stack):
         # resolve never consults a destination; it reads the config only to name what it did not consider.
         try:
             dest_entries, dest_meta = destinations.read_destinations(args.destinations)
-        except ValueError:
+        except (ValueError, OSError):
             dest_entries, dest_meta = [], {'state': 'unreadable', 'sha256': None}
     facts = outcomes.launch_facts(args)
     decision_id = args.decision_id or str(uuid.uuid4())
@@ -469,9 +469,8 @@ def execute_locked(args, policy, stack):
             independence=independence, lineage=lambda name: destinations.chain(receipt_rows, args.relaunch_of, name))
     elif routing_block:
         routing_block['destination'] = destinations.not_considered(dest_meta['state'])
-    if not route and dest_meta['state'] != 'missing':
-        return_value['destination_skip'] = (destinations.resolve_skip(dest_entries, args.purpose) if dest_meta['state'] == 'loaded'
-                                            else {'reason': 'explicit_resolution', 'destinations_state': dest_meta['state']})
+    if not route:
+        return_value['destination_skip'] = destinations.resolve_skip(dest_entries, dest_meta, args.purpose)
     if routing_block:
         # Descriptive only: added once the destination is decided, so no ranking, target or judgment can depend on it.
         rows, state, _ = observation_store.read_observations(args.observations)

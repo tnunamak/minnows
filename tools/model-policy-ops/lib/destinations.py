@@ -101,8 +101,10 @@ def not_considered(state):
     return {'chosen': 'model', 'considered': [], 'not_considered': f'destinations_{state}'}
 
 
-def resolve_skip(entries, purpose):
+def resolve_skip(entries, meta, purpose):
     """Why a `resolve` receipt names no destination: resolve is an explicit choice and never consults one."""
+    if meta['state'] != 'loaded':
+        return {'reason': 'explicit_resolution', 'destinations_state': meta['state']}
     return {'reason': 'explicit_resolution',
             'destinations': [{'name': e['name'], 'listed_for_purpose': purpose in e['purposes']} for e in entries]}
 
@@ -312,10 +314,12 @@ def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, indep
         reasons = (['independence'] if declined_names else []) + ['chain_failures']
         return block | {'considered': considered,
                         'fallback': {'destination': first, 'reasons': reasons, 'source': 'chain', 'chain_failures': spent}}, None
-    for entry in listed:
+    for position, entry in enumerate(listed):
         capacity = run_probe(entry)
         if capacity['available']:
             considered.append({'name': entry['name'], 'state': 'chosen', 'capacity': capacity})
+            # Later destinations are named, not probed: the first with capacity wins.
+            considered += [{'name': later['name'], 'state': 'not_probed_earlier_chosen'} for later in listed[position + 1:]]
             offer = {'name': entry['name'], 'request_id': request_id, 'purpose': purpose, 'how_to': entry['how_to'],
                      'submit': substitute(entry['submit'], {'<request_id>': request_id, '<purpose>': purpose}), 'capacity': capacity,
                      'vendor': entry.get('vendor')}
