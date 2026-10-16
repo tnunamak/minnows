@@ -11,7 +11,7 @@ import test_route
 from test_critical_path import CRITICAL, over_band, pacing
 from test_quota_bands import ORACLE, BandWorld, add_prepaid
 from test_quota_substitution import NOW
-from test_route import DEEPSEEK_FREE, RATE, add_opencode_fixture, event
+from test_route import DEEPSEEK_FREE, RATE, add_opencode_fixture, all_target_values, event
 from test_route_destinations import config
 from test_route_dot_target import FLAGS, TARGET, add_catalog_row, pool_entry
 
@@ -112,8 +112,10 @@ def test_docs_lookup_is_qualified_too(world):
 def test_a_destination_precedes_the_free_route(world, tmp_path):
     add_catalog_row(world)
     cfg = config(tmp_path, pool_entry(tmp_path))
-    out = route_at(world, LATER, '--destinations', cfg, *FLAGS, *PUBLIC, op='review.audit', proof=())
-    assert out['destination'] == 'pool' and out['target'] == TARGET
+    out = route_at(world, LATER, '--destinations', cfg, *FLAGS, *PUBLIC)
+    assert out['destination'] == 'pool' and out['target'] == TARGET and out['routing']['chosen']['basis'] == 'qualified_free'
+    assert out['routing']['chosen']['target'] is None, 'the model fallback stays cleared'
+    assert FREE_TARGET not in all_target_values(out)
 
 
 def allow_prepaid(world, verified_until):
@@ -249,3 +251,31 @@ def test_the_manual_free_route_still_needs_its_exact_overrides(world):
     unflagged = route_at(world, LATER, *PUBLIC, '--override', 'provider=opencode', '--override', f'model={DEEPSEEK_FREE}', '--override', 'effort=high',
                          '--override', 'account=opencode', '--reason', 'no experimental flag')
     assert unflagged['target'] is None and unflagged['data_policy']['refusal'] == 'exact_experimental_override_required'
+
+
+def test_only_the_declared_account_can_carry_the_free_route(world):
+    second = json.loads(json.dumps(world.catalog['data']['providers'][-1]))
+    second['instanceId'] = 'opencode-alt'
+    world.catalog['data']['providers'].append(second)
+    world.accounts['accounts']['opencode-alt'] = {'billing': 'subscription', 'quota_provider': None, 'quota_source': None}
+    out = route_at(world, LATER, *PUBLIC)
+    assert selected(out)
+    assert not any(t.get('instance') == 'opencode-alt' for t in out['routing']['trace'] if t['arm']['provider'] == 'opencode')
+
+
+def test_a_receipt_rebound_to_another_account_is_refused_on_replay(world):
+    first = route_at(world, LATER, *PUBLIC, record='bind-1')
+    assert selected(first)
+    receipts = world.receipts
+    row = json.loads(receipts.read_text().splitlines()[-1])
+    text = json.dumps(row).replace('"providerInstanceId": "opencode"', '"providerInstanceId": "opencode-alt"')
+    receipts.write_text(text + '\n')
+    again = route_at(world, LATER, *PUBLIC, record='bind-1')
+    assert again['target'] is None and again['launch_ready'] is False
+
+
+def test_the_free_tuple_is_not_withheld_for_its_account_map_funding(world):
+    world.accounts['accounts']['opencode'] = {'billing': 'metered', 'quota_provider': None, 'quota_source': None,
+                                              'funding': {'verified_until': None}}
+    out = route_at(world, LATER, *PUBLIC)
+    assert selected(out) and out['routing']['final']['billing'] == 'free'

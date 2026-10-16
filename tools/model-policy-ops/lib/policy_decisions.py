@@ -296,6 +296,9 @@ def withhold_without_headroom(value, critical_path=False, free_routes=lambda: []
 def withhold_unfunded(value, accounts, at, target):
     """The funding check for the final target, whoever chose it: the router, an override or a destination. A
     destination's proposed target counts even when the catalog does not list it and the caller would submit by hand."""
+    final = value['routing']['final']
+    if final['billing'] == 'free' and not value.get('destination') and final['account'] == (target or {}).get('providerInstanceId'):
+        return value  # the exact declared free tuple is not paid credit, whatever the account map says
     entry = accounts.get((target or {}).get('providerInstanceId')) or {}
     if entry.get('billing') != 'metered' or 'funding' not in entry or routing.funded(entry['funding'], at):
         return value
@@ -738,13 +741,13 @@ def dispatch_identities(result, available=None, destination_target=None):
     return identities
 
 
-def routed_free_choice(identity, request, routed):
+def routed_free_choice(identity, request, routed, route):
     """True when the router itself chose this exact governed identity: a route with no override and no destination,
-    whose chosen arm and account are the identity. The caller's public assertion and the declared scope are still checked."""
+    whose chosen arm and account are the identity and the declared route's own account. The caller's public assertion and the declared scope are still checked."""
     arm = (routed or {}).get('arm') or {}
     return (request.get('route') is True and not request.get('overrides')
             and all(arm.get(key) == identity[key] for key in ('provider', 'model', 'effort'))
-            and (routed or {}).get('instance') == identity['account']
+            and (routed or {}).get('instance') == identity['account'] == route['account']
             and (routed or {}).get('selection_basis') == 'qualified_free_route')
 
 
@@ -770,7 +773,7 @@ def experimental_target_refusal(identity, request, sensitive, routes, evaluated_
                 and bool((request.get('reason') or '').strip())
                 and all(overrides.get(key) == identity[key] == route[key] for key in ('provider', 'model', 'account'))
                 and overrides.get('effort') is not None and overrides['effort'] == identity['effort'])
-    if not (explicit or routed_free_choice(identity, request, routed)):
+    if not (explicit or routed_free_choice(identity, request, routed, route)):
         return route, 'exact_experimental_override_required'
     scope_refusal = operation_refusal(route, request.get('op'), routed=request.get('route') is True,
                                       no_op=request.get('no_op') is True, proof_class=proof_class,

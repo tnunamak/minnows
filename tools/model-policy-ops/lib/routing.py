@@ -340,6 +340,8 @@ def route(op, params, ctx):
     for index, candidate in enumerate(candidates):
         arm = candidate['arm']
         instances = catalog_instances(ctx['available'], arm['provider'])
+        if candidate.get('free_route'):
+            instances = [i for i in instances if i == candidate['free_route']['account']]  # a declaration is exact: other accounts are not it
         base = {'candidate': index, 'arm': arm, 'basis': candidate['basis']}
         if not instances:
             trace.append(base | {'instance': None, 'removed_by': 'no_catalog_account', 'detail': {'catalog': ctx['available_meta']['state']}})
