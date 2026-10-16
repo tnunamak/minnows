@@ -62,8 +62,32 @@ def read_destinations(path):
         if not isinstance(entry.get('submit'), dict):
             raise ValueError(f'{where}.submit must be an object')
         validate_target(entry, where)
+        validate_op_scope(entry, where)
     # observe_command belongs to `observe`; adding it must not change the identity that a route request records.
     return rows, {'state': 'loaded', 'sha256': digest([{k: v for k, v in e.items() if k != 'observe_command'} for e in rows])}
+
+
+def validate_op_scope(entry, where):
+    """Optional `op_scope`: {PURPOSE: [OP, ...]}. A listed purpose is eligible only for those ops; other purposes are unscoped."""
+    if 'op_scope' not in entry:
+        return
+    scope = entry['op_scope']
+    if (not isinstance(scope, dict) or not scope
+            or any(purpose not in entry['purposes'] or not isinstance(ops, list) or not ops
+                   or not all(isinstance(op, str) and op for op in ops) for purpose, ops in scope.items())):
+        raise ValueError(f'{where}.op_scope must map listed purposes to non-empty lists of op IDs')
+
+
+def eligibility(entry, purpose, op):
+    """None when the entry may take this purpose and op, else the reason it may not."""
+    if purpose is None:
+        return 'purpose_unknown'
+    if purpose not in entry['purposes']:
+        return 'purpose_not_listed'
+    scoped = (entry.get('op_scope') or {}).get(purpose)
+    if scoped is not None and op not in scoped:
+        return 'op_not_in_scope'
+    return None
 
 
 ROOT = '<root_decision_id>'
@@ -101,12 +125,13 @@ def not_considered(state):
     return {'chosen': 'model', 'considered': [], 'not_considered': f'destinations_{state}'}
 
 
-def resolve_skip(entries, meta, purpose):
+def resolve_skip(entries, meta, purpose, op=None):
     """Why a `resolve` receipt names no destination: resolve is an explicit choice and never consults one."""
     if meta['state'] != 'loaded':
         return {'reason': 'explicit_resolution', 'destinations_state': meta['state']}
     return {'reason': 'explicit_resolution',
-            'destinations': [{'name': e['name'], 'listed_for_purpose': purpose in e['purposes']} for e in entries]}
+            'destinations': [{'name': e['name'], 'listed_for_purpose': eligibility(e, purpose, op) is None}
+                             | ({'not_eligible': eligibility(e, purpose, op)} if eligibility(e, purpose, op) else {}) for e in entries]}
 
 
 def catalog_target(available, target):
@@ -269,16 +294,16 @@ def independence_unknown(entry, independence):
     return bool(independence) and (not entry.get('vendor') or not independence['maker_complete'] or independence['level'] != 'vendor')
 
 
-def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, independence=None, run_probe=probe, lineage=None):
+def decide(entries, *, purpose, facts, skip, reason, request_id, simulate, independence=None, run_probe=probe, lineage=None, op=None):
     """Return (`routing.destination` block, offer or None). Facts first, then the parent's skip, then independence, then capacity.
 
     `independence` is None when none is required, else {level, maker_vendors, maker_complete}; `maker_complete` is false when any maker run has an unknown vendor.
     """
-    listed = [e for e in entries if purpose in e['purposes']]
+    listed = [e for e in entries if eligibility(e, purpose, op) is None]
     block = {'chosen': 'model', 'considered': []}
-    # Every destination the purpose excludes is named with the reason, so no receipt skips one silently.
-    unlisted = [{'name': e['name'], 'reason': 'purpose_unknown' if purpose is None else 'purpose_not_listed', 'purpose': purpose}
-                for e in entries if purpose not in e['purposes']]
+    # Every destination the purpose or op excludes is named with the reason, so no receipt skips one silently.
+    unlisted = [{'name': e['name'], 'reason': eligibility(e, purpose, op), 'purpose': purpose}
+                for e in entries if eligibility(e, purpose, op) is not None]
     if unlisted:
         block['not_eligible'] = unlisted
     if not listed:

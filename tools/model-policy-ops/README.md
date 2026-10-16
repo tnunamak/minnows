@@ -1027,8 +1027,17 @@ failure, because a relaunch follows a child that did not deliver. When a destina
 `{destination, reasons: ["chain_failures"], source: "chain", chain_failures}` and `route`
 picks a model. Routes to a model in the chain do not count.
 
+**Op scope (revision 28).** A destination entry may add `"op_scope": {"PURPOSE": ["OP", ...]}`. A purpose
+listed there is eligible only for those ops; purposes not in `op_scope` keep every op. Each key must be one of the
+entry's `purposes` and each list must be non-empty. For example a worker that may build only small, fully specified
+changes on pushed code lists `"purposes": ["review", "research", "test-design", "execution"]` with
+`"op_scope": {"execution": ["implement.oracle-bounded"]}`. A request outside the scope is `not_eligible` with reason
+`op_not_in_scope`. Launch facts still apply (`--inputs local` declines it), and the op's own proof rules still apply
+(`implement.oracle-bounded` needs `--proof-class oracle`). The worker returns a patch; the caller applies it and runs
+the oracle.
+
 **Every receipt says why a destination was not used (revision 26).** `routing.destination.not_eligible` lists each
-destination whose `purposes` exclude the request: `{name, reason: purpose_not_listed|purpose_unknown, purpose}`. It is
+destination whose `purposes` or `op_scope` exclude the request: `{name, reason: purpose_not_listed|purpose_unknown|op_not_in_scope, purpose}`. It is
 present even when another destination is chosen. When an earlier destination is chosen, each later eligible one is in
 `considered` with state `not_probed_earlier_chosen` (it is not probed). When no config was read, `routing.destination`
 is `{chosen: "model", considered: [], not_considered: "destinations_missing"}`. `resolve` never consults a destination;
