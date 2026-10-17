@@ -19,6 +19,19 @@ def test_offline_lane_refuses_live_provider_imports(args):
     assert 'discrimination test:' not in result.stdout
 
 
+@pytest.mark.parametrize('args', [['--live', '--provider', ''], ['--live', '--case', ''],
+                                 ['--live', '--provider'], ['--live', '--case'],
+                                 ['--live', '--provider', 'nope'], ['--live', '--case', 'nope']])
+def test_live_selectors_must_be_valid_and_non_empty(args):
+    # Validation must refuse before any provider module is imported.
+    env = dict(os.environ)
+    env.pop('MINNOWS_OFFLINE', None)
+    result = run_owned(['node', str(SCRIPT), *args], env=env)
+    assert result.returncode == 2, (result.stdout, result.stderr)
+    assert 'Unknown --' in result.stderr
+    assert 'discrimination test:' not in result.stdout
+
+
 def test_default_requires_opt_in_even_outside_offline_lane():
     env = dict(os.environ)
     env.pop('MINNOWS_OFFLINE', None)

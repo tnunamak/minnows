@@ -60,22 +60,30 @@ def test_unreaped_leader_group_is_signalled(monkeypatch):
     assert signalled == [child.pid]
 
 
+def _start_ticks(pid):
+    """Process start time (clock ticks) and state, or None if it is gone."""
+    try:
+        fields = open(f'/proc/{pid}/stat').read().rsplit(')', 1)[1].split()
+    except FileNotFoundError:
+        return None
+    return fields[19], fields[0]
+
+
 def test_run_owned_kills_a_child_that_outlives_its_leader():
-    # The leader exits at once; its same-group child has redirected streams.
+    # The leader prints the child's pid and start time, then exits at once; the
+    # same-group child has redirected streams. Identity is (pid, start time), so
+    # a reused PID is never mistaken for the child, let alone signalled.
     code = ('import subprocess, sys; '
             'c = subprocess.Popen(["sleep", "60"], stdout=subprocess.DEVNULL, '
-            'stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL); print(c.pid)')
+            'stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL); '
+            'print(c.pid, open(f"/proc/{c.pid}/stat").read().rsplit(")", 1)[1].split()[19])')
     result = run_owned([sys.executable, '-c', code])
-    pid = int(result.stdout)
+    pid, ticks = result.stdout.split()
     for _ in range(100):
-        try:
-            state = open(f'/proc/{pid}/stat').read().rsplit(')', 1)[1].split()[0]
-        except FileNotFoundError:
-            return
-        if state == 'Z':
+        now = _start_ticks(pid)
+        if now is None or now[0] != ticks or now[1] == 'Z':
             return
         time.sleep(0.05)
-    os.kill(pid, signal.SIGKILL)
     pytest.fail('same-group child survived run_owned')
 
 

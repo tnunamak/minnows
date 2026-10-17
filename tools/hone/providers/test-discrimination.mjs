@@ -87,21 +87,23 @@ if (!args.includes("--live") || process.env.MINNOWS_OFFLINE === "1") {
   console.error("Live evaluation disabled. Use --self-test offline, or explicitly authorize a --live run.");
   process.exit(2);
 }
-if (flag("provider") && !["claude", "codex"].includes(flag("provider"))) {
+// flag() is null only when absent: an empty or bare selector must be rejected, not
+// treated as "all".
+if (flag("provider") !== null && !["claude", "codex"].includes(flag("provider"))) {
   console.error("Unknown --provider");
   process.exit(2);
 }
-if (flag("case") && !CASES.some((c) => c.name === flag("case"))) {
+if (flag("case") !== null && !CASES.some((c) => c.name === flag("case"))) {
   console.error("Unknown --case");
   process.exit(2);
 }
 const providers = [];
 const wantProvider = flag("provider");
-if (!wantProvider || wantProvider === "claude") providers.push((await import("./claude.mjs")).default);
-if (!wantProvider || wantProvider === "codex") providers.push((await import("./codex.mjs")).default);
+if (wantProvider === null || wantProvider === "claude") providers.push((await import("./claude.mjs")).default);
+if (wantProvider === null || wantProvider === "codex") providers.push((await import("./codex.mjs")).default);
 
 const wantCase = flag("case");
-const cases = CASES.filter((c) => !wantCase || c.name === wantCase).map((c) => ({
+const cases = CASES.filter((c) => wantCase === null || c.name === wantCase).map((c) => ({
   ...c,
   diff: readFileSync(join(FIXTURES, c.name, "diff.patch"), "utf8"),
   evidence: readFileSync(join(FIXTURES, c.name, "evidence.txt"), "utf8"),
