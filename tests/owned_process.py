@@ -21,8 +21,11 @@ def owned_popen(argv, **kwargs):
         yield process
     finally:
         try:
-            # Also kill descendants when the leader has already exited.
-            os.killpg(process.pid, signal.SIGKILL)
+            # Signal the group only while this process still holds the leader's
+            # PID (returncode is None: not yet reaped). After a reap the PID can
+            # be reused, and killpg could hit an unrelated process group.
+            if process.returncode is None:
+                os.killpg(process.pid, signal.SIGKILL)
         except ProcessLookupError:
             pass
         finally:

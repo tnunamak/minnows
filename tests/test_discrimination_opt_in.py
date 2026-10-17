@@ -32,3 +32,4 @@ def test_offline_provider_self_test_still_runs():
                        env=dict(os.environ, MINNOWS_OFFLINE='1'))
     assert result.returncode == 0, result.stderr
     assert 'FAIL' not in result.stdout
+    assert result.stdout.count('ok   ') >= 11, result.stdout

@@ -41,6 +41,23 @@ def test_run_owned_preserves_exit_and_streams():
     assert (result.returncode, result.stdout, result.stderr) == (7, 'out\n', 'err\n')
 
 
+def test_reaped_leader_is_never_signalled(monkeypatch):
+    signalled = []
+    monkeypatch.setattr(os, 'killpg', lambda *args: signalled.append(args))
+    result = run_owned([sys.executable, '-c', 'pass'])
+    assert result.returncode == 0
+    assert signalled == []
+
+
+def test_unreaped_leader_group_is_signalled(monkeypatch):
+    signalled = []
+    real = os.killpg
+    monkeypatch.setattr(os, 'killpg', lambda pid, sig: (signalled.append(pid), real(pid, sig)))
+    with owned_popen([sys.executable, '-c', 'import time; time.sleep(60)']) as child:
+        pass
+    assert signalled == [child.pid]
+
+
 def test_run_owned_deadline():
     with pytest.raises(subprocess.TimeoutExpired):
         run_owned([sys.executable, '-c', 'import time; time.sleep(60)'], timeout=0.05)
