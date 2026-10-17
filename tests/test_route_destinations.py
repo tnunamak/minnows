@@ -491,9 +491,23 @@ def test_endless_output_is_cut_off_without_unbounded_memory(world, tmp_path):
 
 
 def test_detached_descendant_holding_stdout_cannot_outlast_the_deadline(world, tmp_path):
-    out, seconds = probe_fallback(world, tmp_path, 'setsid sleep 20 &\nsleep 20', timeout=0.5)
-    assert dest(out)['fallback']['probe_reason'] == 'capacity_probe_error: timeout'
-    assert seconds < 8, seconds
+    # The escaped child keeps stdout open, but also has a test-owned stop channel.
+    # A process-group kill alone cannot clean this child up.
+    import shlex
+    stop, done = tmp_path / 'detached.stop', tmp_path / 'detached.done'
+    child = (f'while [ ! -e {shlex.quote(str(stop))} ]; do sleep 0.05; done; '
+             f'touch {shlex.quote(str(done))}')
+    body = f'setsid sh -c {shlex.quote(child)} &\nsleep 20'
+    try:
+        out, seconds = probe_fallback(world, tmp_path, body, timeout=0.5)
+        assert dest(out)['fallback']['probe_reason'] == 'capacity_probe_error: timeout'
+        assert seconds < 8, seconds
+    finally:
+        stop.touch()
+        deadline = time.monotonic() + 5
+        while not done.exists() and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert done.exists(), 'detached child did not acknowledge cleanup'
 
 
 def test_probe_stdin_is_closed_not_inherited(world, tmp_path):
