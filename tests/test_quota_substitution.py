@@ -192,19 +192,21 @@ def test_state_is_read_modify_written_under_an_exclusive_lock(world):
     world.route('review.audit')
     world.codex(80)
     world.write()
-    lock = open(world.state.with_name('quota-substitution.json.lock'), 'w')
-    fcntl.flock(lock, fcntl.LOCK_EX)
+    from owned_process import owned_popen
     env = dict(os.environ, XDG_CONFIG_HOME=str(world.tmp / 'xdg'), PINNED_NOW=NOW)
-    process = subprocess.Popen([sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), 'route', 'review.audit', *map(str, world.args()),
-                                '--decision-id', 'locked', '--json'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
-    time.sleep(1.5)
-    assert process.poll() is None, 'route waits for the lock'
-    assert 'codex' in world.stored()
-    lock.close()
-    stdout, stderr = process.communicate(timeout=30)
-    assert process.returncode == 0, stderr
-    assert json.loads(stdout)['routing']['quota_substitution']['active_accounts']['codex']['state'] == 'released'
-    assert world.stored() == {}
+    with open(world.state.with_name('quota-substitution.json.lock'), 'w') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        with owned_popen([sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), 'route', 'review.audit', *map(str, world.args()),
+                          '--decision-id', 'locked', '--json'], stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE, text=True, env=env) as process:
+            time.sleep(1.5)
+            assert process.poll() is None, 'route waits for the lock'
+            assert 'codex' in world.stored()
+            fcntl.flock(lock, fcntl.LOCK_UN)
+            stdout, stderr = process.communicate(timeout=30)
+            assert process.returncode == 0, stderr
+            assert json.loads(stdout)['routing']['quota_substitution']['active_accounts']['codex']['state'] == 'released'
+            assert world.stored() == {}
 
 
 def test_state_path_must_differ_from_the_other_ledgers(world):

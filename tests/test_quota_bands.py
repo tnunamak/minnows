@@ -244,12 +244,22 @@ def test_independence_still_wins_over_headroom(world):
     assert 'quota_substitution_unavailable' in codes(out)
 
 
+@pytest.mark.offline_unit
 @pytest.mark.parametrize('days, high', [(6.0, 130), (5.0, 130), (4.9, 120), (2.1, 120), (2.0, 110), (1.0, 110), (0.9, 105)])
-def test_band_edges_follow_the_ordered_rules(world, days, high):
+def test_band_edges_follow_the_ordered_rules(days, high):
+    from quota_bands import band_for
+    assert band_for(BANDS, days)['high'] == high
+
+
+@pytest.mark.parametrize('days, high', [(5.0, 130), (2.0, 110), (0.9, 105)])
+def test_band_edges_cli_parity(world, days, high):
+    from quota_bands import band_for
     reset_in(world, 'alt', days)
     world.set_claude(100, 'claude-alt')
     out = route(world)
-    assert out['routing']['quota']['claude-alt']['binding']['band']['high'] == high
+    actual = out['routing']['quota']['claude-alt']['binding']['band']
+    assert actual == band_for(BANDS, days)
+    assert actual['high'] == high
 
 
 def test_hysteresis_uses_the_band_low_and_high(world):
