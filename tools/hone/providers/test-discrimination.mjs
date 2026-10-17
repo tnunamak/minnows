@@ -89,6 +89,17 @@ if (!args.includes("--live") || process.env.MINNOWS_OFFLINE === "1") {
 }
 // flag() is null only when absent: an empty or bare selector must be rejected, not
 // treated as "all".
+// Only the space-separated forms are understood. Anything else (for example
+// --provider=codex) would silently select every provider and case, so refuse it.
+const KNOWN = new Set(["--live", "--save", "--provider", "--case"]);
+const takesValue = new Set(["--provider", "--case"]);
+for (let i = 0; i < args.length; i++) {
+  if (!KNOWN.has(args[i])) {
+    console.error(`Unknown option ${args[i]}`);
+    process.exit(2);
+  }
+  if (takesValue.has(args[i])) i++;
+}
 if (flag("provider") !== null && !["claude", "codex"].includes(flag("provider"))) {
   console.error("Unknown --provider");
   process.exit(2);
