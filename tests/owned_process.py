@@ -8,6 +8,8 @@ from contextlib import contextmanager
 import os
 import signal
 import subprocess
+import tempfile
+import time
 
 
 @contextmanager
@@ -39,7 +41,24 @@ def owned_popen(argv, **kwargs):
 
 
 def run_owned(argv, *, timeout=30, env=None):
-    with owned_popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                     text=True, env=env) as process:
-        stdout, stderr = process.communicate(timeout=timeout)
-        return subprocess.CompletedProcess(argv, process.returncode, stdout, stderr)
+    """Run to completion with output in temp files, not pipes.
+
+    A descendant that outlives the leader cannot hold a pipe open, and the group
+    is killed while the exited leader is still an unreaped zombie (so its PID
+    cannot have been reused) before the leader is reaped.
+    """
+    with tempfile.TemporaryFile('w+') as out, tempfile.TemporaryFile('w+') as err:
+        with owned_popen(argv, stdout=out, stderr=err, text=True, env=env) as process:
+            deadline = time.monotonic() + timeout
+            while not os.waitid(os.P_PID, process.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT):
+                if time.monotonic() > deadline:
+                    raise subprocess.TimeoutExpired(argv, timeout)
+                time.sleep(0.002)
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            process.wait(timeout=5)
+        out.seek(0)
+        err.seek(0)
+        return subprocess.CompletedProcess(argv, process.returncode, out.read(), err.read())

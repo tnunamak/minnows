@@ -1,6 +1,8 @@
 """Ownership regressions for the test-only subprocess helper."""
 from contextlib import ExitStack
 import os
+import signal
+import time
 import subprocess
 import sys
 
@@ -44,8 +46,8 @@ def test_run_owned_preserves_exit_and_streams():
 def test_reaped_leader_is_never_signalled(monkeypatch):
     signalled = []
     monkeypatch.setattr(os, 'killpg', lambda *args: signalled.append(args))
-    result = run_owned([sys.executable, '-c', 'pass'])
-    assert result.returncode == 0
+    with owned_popen([sys.executable, '-c', 'pass']) as child:
+        child.wait()
     assert signalled == []
 
 
@@ -56,6 +58,25 @@ def test_unreaped_leader_group_is_signalled(monkeypatch):
     with owned_popen([sys.executable, '-c', 'import time; time.sleep(60)']) as child:
         pass
     assert signalled == [child.pid]
+
+
+def test_run_owned_kills_a_child_that_outlives_its_leader():
+    # The leader exits at once; its same-group child has redirected streams.
+    code = ('import subprocess, sys; '
+            'c = subprocess.Popen(["sleep", "60"], stdout=subprocess.DEVNULL, '
+            'stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL); print(c.pid)')
+    result = run_owned([sys.executable, '-c', code])
+    pid = int(result.stdout)
+    for _ in range(100):
+        try:
+            state = open(f'/proc/{pid}/stat').read().rsplit(')', 1)[1].split()[0]
+        except FileNotFoundError:
+            return
+        if state == 'Z':
+            return
+        time.sleep(0.05)
+    os.kill(pid, signal.SIGKILL)
+    pytest.fail('same-group child survived run_owned')
 
 
 def test_run_owned_deadline():
