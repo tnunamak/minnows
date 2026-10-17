@@ -15,9 +15,9 @@
 // the judge's real job.
 //
 // Usage:
-//   node test-discrimination.mjs                 # both providers, all cases
-//   node test-discrimination.mjs --provider claude --case bad-behavior
-//   node test-discrimination.mjs --save          # also write results/discrimination-<ts>.json
+//   node test-discrimination.mjs --live          # authorized live run: both providers, all cases
+//   node test-discrimination.mjs --live --provider claude --case bad-behavior
+//   node test-discrimination.mjs --live --save   # also write results/discrimination-<ts>.json
 //   node test-discrimination.mjs --self-test     # offline: fail-closed parse/error paths only
 //
 // Exit code 0 iff every (provider, case) verdict matches expectation.
@@ -81,8 +81,20 @@ if (args.includes("--self-test")) {
 }
 
 // ---------------------------------------------------------------------------
-// The real discrimination run.
+// The real discrimination run. Refuse before importing a live provider.
 // ---------------------------------------------------------------------------
+if (!args.includes("--live") || process.env.MINNOWS_OFFLINE === "1") {
+  console.error("Live evaluation disabled. Use --self-test offline, or explicitly authorize a --live run.");
+  process.exit(2);
+}
+if (flag("provider") && !["claude", "codex"].includes(flag("provider"))) {
+  console.error("Unknown --provider");
+  process.exit(2);
+}
+if (flag("case") && !CASES.some((c) => c.name === flag("case"))) {
+  console.error("Unknown --case");
+  process.exit(2);
+}
 const providers = [];
 const wantProvider = flag("provider");
 if (!wantProvider || wantProvider === "claude") providers.push((await import("./claude.mjs")).default);
