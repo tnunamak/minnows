@@ -15,6 +15,7 @@ from pathlib import Path
 import pytest
 
 from cli_args import full_record
+from owned_process import run_owned
 
 REPO = Path(__file__).resolve().parents[1]
 TOOL = REPO / 'tools/model-policy-ops/model-policy-ops'
@@ -48,20 +49,22 @@ def apply_overlay(policy, overlay):
 
 def build_db(path, events, items=(), runs=()):
     db = sqlite3.connect(path)
-    db.execute(f'CREATE TABLE {PREFIX}turn_items (turn_item_id TEXT, thread_id TEXT, run_id TEXT, type TEXT, status TEXT, updated_at TEXT, payload_json TEXT)')
-    db.execute(f'CREATE TABLE {PREFIX}runs (run_id TEXT, provider_instance_id TEXT, payload_json TEXT)')
-    for number, event in enumerate(events):
-        run = f'run-{number}'
-        db.execute(f'INSERT INTO {PREFIX}runs VALUES (?,?,?)', (run, event['instance'], '{}'))
-        payload = {'startedAt': event['startedAt'], 'title': 'Provider error', 'failure': {'class': event['class'], 'message': event['message']}}
-        db.execute(f'INSERT INTO {PREFIX}turn_items VALUES (?,?,?,?,?,?,?)',
-                   (f'turn-item:provider:x:native-item:terminal-failure%3A{number}', 't', run, 'error', event['status'], event['startedAt'], json.dumps(payload)))
-    for item in items:
-        db.execute(f'INSERT INTO {PREFIX}turn_items VALUES (?,?,?,?,?,?,?)', item)
-    for run in runs:
-        db.execute(f'INSERT INTO {PREFIX}runs VALUES (?,?,?)', run)
-    db.commit()
-    db.close()
+    try:
+        db.execute(f'CREATE TABLE {PREFIX}turn_items (turn_item_id TEXT, thread_id TEXT, run_id TEXT, type TEXT, status TEXT, updated_at TEXT, payload_json TEXT)')
+        db.execute(f'CREATE TABLE {PREFIX}runs (run_id TEXT, provider_instance_id TEXT, payload_json TEXT)')
+        for number, event in enumerate(events):
+            run = f'run-{number}'
+            db.execute(f'INSERT INTO {PREFIX}runs VALUES (?,?,?)', (run, event['instance'], '{}'))
+            payload = {'startedAt': event['startedAt'], 'title': 'Provider error', 'failure': {'class': event['class'], 'message': event['message']}}
+            db.execute(f'INSERT INTO {PREFIX}turn_items VALUES (?,?,?,?,?,?,?)',
+                       (f'turn-item:provider:x:native-item:terminal-failure%3A{number}', 't', run, 'error', event['status'], event['startedAt'], json.dumps(payload)))
+        for item in items:
+            db.execute(f'INSERT INTO {PREFIX}turn_items VALUES (?,?,?,?,?,?,?)', item)
+        for run in runs:
+            db.execute(f'INSERT INTO {PREFIX}runs VALUES (?,?,?)', run)
+        db.commit()
+    finally:
+        db.close()
 
 
 def event(instance, message, status='failed', klass='provider_error', at='2026-10-10T00:20:00.000Z'):
@@ -86,13 +89,37 @@ class World:
         self.with_db = True
         self.model_catalog = None
         self.receipts = tmp / 'state/decisions.jsonl'
+        self._db_snapshot = None
+        self._db_signature = None
+
+    @staticmethod
+    def _signature(path):
+        try:
+            info = path.stat()
+        except FileNotFoundError:
+            return None
+        return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
 
     def write(self):
+        # Compare serialized values, not mutable object identity. Preserve key/list order.
         for name, value in (('quota.json', self.quota), ('catalog.json', self.catalog), ('accounts.json', self.accounts), ('policy.json', self.policy)):
-            (self.tmp / name).write_text(json.dumps(value))
+            path = self.tmp / name
+            content = json.dumps(value)
+            try:
+                current = path.read_text()
+            except (FileNotFoundError, UnicodeDecodeError):
+                current = None
+            if current != content:
+                path.write_text(content)
         db = self.tmp / 't3.sqlite'
-        db.unlink(missing_ok=True)
-        build_db(db, self.events, **self.db_extra)
+        snapshot = json.dumps([self.events, self.db_extra])
+        signature = self._signature(db)
+        if snapshot != self._db_snapshot or signature is None or signature != self._db_signature:
+            self._db_snapshot = self._db_signature = None
+            db.unlink(missing_ok=True)
+            build_db(db, self.events, **self.db_extra)
+            self._db_snapshot = snapshot
+            self._db_signature = self._signature(db)
 
     def args(self):
         found = ['--policy', self.tmp / 'policy.json', '--available', self.tmp / 'catalog.json', '--quota', self.tmp / 'quota.json',
@@ -117,7 +144,7 @@ class World:
                 del args[at:at + 2]
             env['PINNED_NOW'] = clock
         args = full_record(args)
-        result = subprocess.run([sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), *args], capture_output=True, text=True, env=env)
+        result = run_owned([sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), *args], env=env)
         return result, json.loads(result.stdout) if result.stdout.startswith('{') else None
 
     def route(self, op, *extra, record=None):

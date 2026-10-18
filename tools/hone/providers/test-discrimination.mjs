@@ -15,9 +15,9 @@
 // the judge's real job.
 //
 // Usage:
-//   node test-discrimination.mjs                 # both providers, all cases
-//   node test-discrimination.mjs --provider claude --case bad-behavior
-//   node test-discrimination.mjs --save          # also write results/discrimination-<ts>.json
+//   node test-discrimination.mjs --live          # authorized live run: both providers, all cases
+//   node test-discrimination.mjs --live --provider claude --case bad-behavior
+//   node test-discrimination.mjs --live --save   # also write results/discrimination-<ts>.json
 //   node test-discrimination.mjs --self-test     # offline: fail-closed parse/error paths only
 //
 // Exit code 0 iff every (provider, case) verdict matches expectation.
@@ -81,15 +81,40 @@ if (args.includes("--self-test")) {
 }
 
 // ---------------------------------------------------------------------------
-// The real discrimination run.
+// The real discrimination run. Refuse before importing a live provider.
 // ---------------------------------------------------------------------------
+if (!args.includes("--live") || process.env.MINNOWS_OFFLINE === "1") {
+  console.error("Live evaluation disabled. Use --self-test offline, or explicitly authorize a --live run.");
+  process.exit(2);
+}
+// flag() is null only when absent: an empty or bare selector must be rejected, not
+// treated as "all".
+// Only the space-separated forms are understood. Anything else (for example
+// --provider=codex) would silently select every provider and case, so refuse it.
+const KNOWN = new Set(["--live", "--save", "--provider", "--case"]);
+const takesValue = new Set(["--provider", "--case"]);
+for (let i = 0; i < args.length; i++) {
+  if (!KNOWN.has(args[i])) {
+    console.error(`Unknown option ${args[i]}`);
+    process.exit(2);
+  }
+  if (takesValue.has(args[i])) i++;
+}
+if (flag("provider") !== null && !["claude", "codex"].includes(flag("provider"))) {
+  console.error("Unknown --provider");
+  process.exit(2);
+}
+if (flag("case") !== null && !CASES.some((c) => c.name === flag("case"))) {
+  console.error("Unknown --case");
+  process.exit(2);
+}
 const providers = [];
 const wantProvider = flag("provider");
-if (!wantProvider || wantProvider === "claude") providers.push((await import("./claude.mjs")).default);
-if (!wantProvider || wantProvider === "codex") providers.push((await import("./codex.mjs")).default);
+if (wantProvider === null || wantProvider === "claude") providers.push((await import("./claude.mjs")).default);
+if (wantProvider === null || wantProvider === "codex") providers.push((await import("./codex.mjs")).default);
 
 const wantCase = flag("case");
-const cases = CASES.filter((c) => !wantCase || c.name === wantCase).map((c) => ({
+const cases = CASES.filter((c) => wantCase === null || c.name === wantCase).map((c) => ({
   ...c,
   diff: readFileSync(join(FIXTURES, c.name, "diff.patch"), "utf8"),
   evidence: readFileSync(join(FIXTURES, c.name, "evidence.txt"), "utf8"),
