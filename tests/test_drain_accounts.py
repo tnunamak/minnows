@@ -179,6 +179,27 @@ def test_banded_entry_at_threshold_waits_again(banded):
     assert out['launch_ready'] is False and out['waiting']['state'] == 'no_forecast_headroom'
 
 
+def test_banded_missing_forecast_still_drains_on_current_use(banded):
+    source = next(s for s in banded.quota['providers']['claude']['sources'] if s['source']['id'] == 'alt')
+    del source['forecast']['windows']['7d All']
+    assert qb.route(banded)['launch_ready'] is False, 'without an entry an unknown forecast waits'
+    banded.policy['routing']['drain_accounts'] = {'claude-alt': ENTRY}
+    out = qb.route(banded)
+    assert qb.pick(out) == ('claude-alt', 'claude-sonnet-5-5') and out['launch_ready'] is True
+    assert out['routing']['drain_accounts']['accounts']['claude-alt']['current_pct'] == 3
+    banded.policy['routing']['drain_accounts'] = {'claude-alt': ENTRY | {'until_current_pct': 3}}
+    assert qb.route(banded)['launch_ready'] is False
+
+
+def test_the_summary_matches_an_instance_id_that_contains_a_colon():
+    from datetime import datetime, timezone
+    import routing
+    now = datetime(2026, 10, 11, tzinfo=timezone.utc)
+    status = drain.status(ENTRY, 10, now)
+    block = routing.drain_summary({'drain': {'codex:personal': ENTRY}, 'now': now}, {'codex:personal': status}, {'instance': 'codex:personal'})
+    assert block['chosen_drained'] is True and block['accounts']['codex:personal']['applies'] is True
+
+
 # ---- validation -------------------------------------------------------------------------------------------------------
 
 @pytest.mark.parametrize('value, message', [

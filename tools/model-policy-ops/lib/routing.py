@@ -73,23 +73,25 @@ def quota_view(quota, quota_meta, arm, entry, pace_windows, now, bands=None, dra
     considered = [name for name in pace_windows if name in by_name or name in forecast]
     if not considered:
         return view | {'pace_reason': 'no_pace_window'}
+    # a live drain entry needs current use only, not a forecast: it can apply when the forecast or band is missing
+    usable = all(name in by_name and by_name[name]['state'] != 'stale' for name in considered)
+    if drain_entry and usable:
+        view['drain'] = drain.status(drain_entry, drain.current_pct([by_name[name] for name in considered]), now)
+    draining = (view.get('drain') or {}).get('applies', False)
+    on_track = {'pace': 'on_track', 'pace_reason': None, 'binding': None}
     if any(name not in forecast or name not in by_name or by_name[name]['state'] == 'stale' for name in considered):
-        return view | {'pace_reason': 'no_forecast_or_expired_window'}
+        return view | (on_track if draining else {'pace_reason': 'no_forecast_or_expired_window'})
     if bands:
         banded = {name: quota_bands.headroom(bands, forecast[name], by_name[name]['resets_at'], now) for name in considered}
         if any(found is None for found in banded.values()):
-            return view | {'pace_reason': 'no_band_for_window'}
+            return view | (on_track if draining else {'pace_reason': 'no_band_for_window'})
         binding = min(considered, key=lambda name: (banded[name]['headroom'], name))
         pace = 'on_track' if banded[binding]['headroom'] > 0 else 'at_risk'
     else:
         binding = max(considered, key=lambda name: (forecast[name], name))
         pace = 'at_risk' if forecast[binding] >= 100 else 'on_track'
     window = by_name[binding]
-    if drain_entry:
-        view['drain'] = drain.status(drain_entry, drain.current_pct([by_name[name] for name in considered]), now)
-        if view['drain']['applies']:
-            pace = 'on_track'
-    return view | {'pace': pace, 'pace_reason': None,
+    return view | {'pace': 'on_track' if draining else pace, 'pace_reason': None,
                    'binding': {'window': binding, 'projected_pct': forecast[binding], 'utilization': window['utilization'],
                                'remaining_pct': window['remaining_pct'], 'resets_at': window['resets_at']} | (banded[binding] if bands else {})}
 
@@ -346,6 +348,7 @@ def route(op, params, ctx):
     conflicts = []
     applied = set()
     views = {}
+    drains = {}  # instance -> drain status, kept by exact identity (a quota ref key is not an identity)
     candidates = expand_candidates(op) + ctx['free_candidates']
     for index, candidate in enumerate(candidates):
         arm = candidate['arm']
@@ -365,6 +368,8 @@ def route(op, params, ctx):
                 conflicts.append({'candidate': index, 'instance': instance, 'avoid': [d['id'] for d in matched['avoid']],
                                   'overridden': [d['id'] for d in matched['prefer'] + matched['authorize']], 'resolution': 'avoid wins'})
             row['quota'] = quota_row(view, quota_summary(views, instance, arm, view))
+            if view.get('drain'):
+                drains[instance] = view['drain']
             if found['hits']:
                 removed, detail = found['hits'][0]
                 trace.append(row | {'removed_by': removed, 'detail': detail})
@@ -405,7 +410,7 @@ def route(op, params, ctx):
                          'detail': {'constrained': {instance: {k: row[k] for k in ('projected_pct', 'window')}
                                                     for instance, row in ctx['substitution']['state']['constrained'].items()}}}], 'routed')
     reasons = pacing.relax_pacing_reasons(reasons, pace_decision)
-    drained = drain_summary(ctx, views, chosen) if ctx['drain'] else None
+    drained = drain_summary(ctx, drains, chosen) if ctx['drain'] else None
     if drained and drained['chosen_drained']:
         applied_entry = drained['accounts'][chosen['instance']]
         reasons += tag([{'code': 'drain_account_active', 'informational': True,
@@ -426,15 +431,14 @@ def route(op, params, ctx):
     return block
 
 
-def drain_summary(ctx, views, chosen):
+def drain_summary(ctx, drains, chosen):
     """The `routing.drain_accounts` block: every configured entry with whether it applied, and why not when it did not.
 
     An account with no quota reading (not in the catalog, unmapped, stale) has unknown use, so its entry does not apply.
     """
     rows = {}
     for instance, entry in sorted(ctx['drain'].items()):
-        found = next((v['drain'] for key, v in views.items() if v.get('drain') and key.split(':', 1)[0] == instance), None)
-        rows[instance] = found or drain.status(entry, None, ctx['now'])
+        rows[instance] = drains.get(instance) or drain.status(entry, None, ctx['now'])
     return {'accounts': rows, 'chosen_drained': bool(chosen and rows.get(chosen['instance'], {}).get('applies'))}
 
 
