@@ -11,7 +11,7 @@ import stat
 from pathlib import Path
 
 SCHEMA_VERSION = 1
-TUNABLE = ('quota_substitution', 'quota_bands', 'observation_max_age_hours', 'observation_window_days')
+TUNABLE = ('quota_substitution', 'quota_bands', 'drain_accounts', 'observation_max_age_hours', 'observation_window_days')
 
 
 def default_path():

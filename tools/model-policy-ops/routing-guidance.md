@@ -30,6 +30,14 @@ whole procedure, and it must not be read as one.
 4. Read the audit strata. Check close coverage first. A low coverage means the
    other numbers describe only the closed part.
 
+## Spend a reset credit
+
+When the owner holds a one-off quota reset credit for a subscription account, the router would steer work away
+from that account while its projection is high. Set `routing.drain_accounts` for it in the user overlay (see
+README, Drain an account): `{"<instance>": {"until_current_pct": 95, "expires_at": "<zoned time>", "reason": "..."}}`.
+While it applies, pairs on that account rank first among the pairs that passed every filter. Remove the entry
+(or let it expire) once the credit is spent. Never put it in the shipped pack.
+
 ## Limits
 
 - Outcomes are caller claims. A parent that judges its own delegate leans optimistic;
