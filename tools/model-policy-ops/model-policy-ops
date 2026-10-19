@@ -14,6 +14,7 @@ PACK = REPO / "data" / "model-choice-policy"
 OPERATING_POINTS = PACK / "operating-points.json"
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from experimental_routes import check_experimental_free_routes
+import drain
 import quota_bands
 
 
@@ -103,7 +104,7 @@ def check_routing(routing) -> list[str]:
     if not isinstance(routing, dict):
         return ["routing must be an object"]
     errors: list[str] = []
-    unknown = sorted(set(routing) - {"pace_windows", "failure_lookback_minutes", "failure_demote_count", "review_task_families", "independence_default", "directive_max_days", "lineage_key", "observation_max_age_hours", "observation_window_days", "quota_substitution", "quota_bands"})
+    unknown = sorted(set(routing) - {"pace_windows", "failure_lookback_minutes", "failure_demote_count", "review_task_families", "independence_default", "directive_max_days", "lineage_key", "observation_max_age_hours", "observation_window_days", "quota_substitution", "quota_bands", "drain_accounts"})
     if unknown:
         errors.append(f"routing: unknown keys {', '.join(unknown)}")
     for key in ("pace_windows", "review_task_families"):
@@ -116,6 +117,7 @@ def check_routing(routing) -> list[str]:
         errors.append(f"routing.independence_default must be one of {', '.join(INDEPENDENCE_LEVELS)}")
     errors.extend(check_quota_substitution(routing.get("quota_substitution"), "quota_substitution" in routing))
     errors.extend(quota_bands.check(routing.get("quota_bands"), "quota_bands" in routing))
+    errors.extend(drain.check(routing.get("drain_accounts"), "drain_accounts" in routing))
     lineage = routing.get("lineage_key")
     if "lineage_key" in routing and not (isinstance(lineage, dict) and lineage and all(
             isinstance(k, str) and k and v in LINEAGE_FIELDS for k, v in lineage.items())):

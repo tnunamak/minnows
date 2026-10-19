@@ -551,6 +551,9 @@ ops retain their existing behavior. Request and launch-fact shapes stay unchange
     (see User policy overlay);
   - `quota_substitution`, only when the pack or the user policy enables it: the constrained accounts, the
     thresholds, and the substitution if one happened (see Quota substitution);
+  - `drain_accounts`, only when the pack or the user policy sets `routing.drain_accounts`: each entry with
+    `applies`, `why` (`active`, `threshold_reached`, `expired` or `current_use_unknown`), `current_pct` and the
+    entry's `reason`, and `chosen_drained` (see Drain an account);
   - `judgment_required` and `judgment_reasons` (`code`, `detail`, `applies_to`
     `routed` or `final`, and `informational` for the stale-pack note). After an
     override, `judgment_required` follows the final pair; the routed reasons stay listed;
@@ -733,6 +736,31 @@ scheduling policy; the pack has none and the code has no defaults. With bands se
   asserted, qualified op, proof class and effort, current evidence) is already a candidate and launches here before any
   wait; it is removed as `cooling_down` while its account cools and reconsidered by the next route. A route that does not qualify is
   evidence only, and the caller may opt in with the exact flags in `opt_in`. A subscription is never picked for a discretionary wait.
+- **Drain an account** (revision 32). A user with a one-off quota reset credit wants to use an account's
+  7-day allowance up quickly, fire the credit, and use it up again. A high projection makes the router steer away
+  from that account, which is the opposite. The overlay key `routing.drain_accounts`, keyed by provider
+  instance ID, reverses that for a while:
+
+  ```json
+  "drain_accounts": {"claude-dondo": {"until_current_pct": 95, "expires_at": "2026-10-22T00:00:00Z", "reason": "reset credit: burn the week, fire it, burn it again"}}
+  ```
+
+  An entry applies while `now < expires_at` and the account's current use (the highest `utilization` among
+  the pace windows) is known and below `until_current_pct`. While it applies: the account's pace is
+  `on_track` whatever its projection (the projection stays visible in `routing.quota`), so it is neither
+  constrained, nor held, nor a wait under bands; and its pairs rank first among the pairs that passed every
+  filter, right after the evidence class (rank key `drain_account`; substitution also prefers them). Every
+  filter still runs first: `avoid`, independence, `requires`, billing, funding, `not_runnable` and
+  `quota_exhausted` remove a drained account's pair as they do any other, and an evidence class 1 pair
+  (for example an unvalidated candidate) still ranks behind a class 0 pair. An explicit `--override` is
+  unchanged. Unknown use never applies an entry. Once use reaches `until_current_pct` or the entry expires,
+  routing is as without the key (stored hysteresis memory for the account is left as it was). The receipt
+  records `routing.drain_accounts` and, when the chosen pair is on a draining account, the informational
+  judgment reason `drain_account_active` (`instance`, `reason`, `until_current_pct`, `current_pct`,
+  `expires_at`), so the exception is as visible as a quota reason. `check` requires an object keyed by
+  non-empty instance IDs; each value has exactly `until_current_pct` (a number, `0 <` and `<= 100`),
+  `expires_at` (an ISO 8601 time with a zone) and a non-empty `reason`. The shipped pack has no entry: this
+  is a per-user setting.
 - **Cooldown.** An account with at least `failure_demote_count` rate-limit or transport failures inside
   `failure_lookback_minutes` is `cooling_down`. `retry_after` is when enough events leave the lookback: the account is available once the clock is later than it (the lookback is inclusive, so at the instant itself it still cools). Nothing is
   stored: every route reads the telemetry again, so a cooldown ends by itself and one failure never marks an account
@@ -855,8 +883,8 @@ A user tunes a few `routing` parameters without editing the pack. `~/.config/mod
 {"schema_version": 1, "routing": {"quota_substitution": {"activate_projected_pct": 97, "release_projected_pct": 85}}}
 ```
 
-(example values). `routing` may set only `quota_substitution`, `quota_bands`, `observation_max_age_hours` and
-`observation_window_days`. Candidates, `basis`, independence, `lineage_key` and every other
+(example values). `routing` may set only `quota_substitution`, `quota_bands`, `drain_accounts`,
+`observation_max_age_hours` and `observation_window_days`. Candidates, `basis`, independence, `lineage_key` and every other
 evidence policy stay in the pack. Each key replaces the pack value whole (no deep merge). A
 missing file at the default path means no overlay; a file named with `--user-policy` that does
 not exist is an error, so a typo cannot silently turn the overlay off.
