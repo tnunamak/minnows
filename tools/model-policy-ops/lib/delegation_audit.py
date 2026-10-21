@@ -66,41 +66,104 @@ def count(value):
     return value if type(value) is int and value >= 0 else None
 
 
-def read_child_usage(db, child_run_id):
+def read_child_usage(db, child_run_id, close_batches=False):
     """Per-attempt, per-turn whitelisted metadata for one child run. Never sums, never guesses."""
-    for name, table in (('attempts', PREFIX + 'run_attempts'), ('turns', PREFIX + 'provider_turns')):
-        columns = {row[1] for row in db.execute(f'PRAGMA table_info({table})')}
+    attempt_table, turn_table = PREFIX + 'run_attempts', PREFIX + 'provider_turns'
+    attempt_columns = {row[1] for row in db.execute(f'PRAGMA table_info({attempt_table})')}
+    turn_columns = {row[1] for row in db.execute(f'PRAGMA table_info({turn_table})')}
+    for name, table, columns in (('attempts', attempt_table, attempt_columns), ('turns', turn_table, turn_columns)):
         if not columns:
             return usage_unknown('unknown_table_absent', table)
         if not USAGE_COLUMNS[name] <= columns:
             return usage_unknown('unavailable', 'schema_mismatch')
-    fields = ','.join(f"json_extract(t.payload_json,'$.turnTokenUsage.{key}')" for _, key in USAGE_FIELDS)
-    sql = f"""SELECT a.attempt_id,a.attempt_ordinal,t.provider_turn_id,t.ordinal,t.status,
-      json_extract(t.payload_json,'$.turnTokenUsage.usageStatus'),json_extract(t.payload_json,'$.turnTokenUsage.usageScope'),
-      json_extract(t.payload_json,'$.turnTokenUsage.hasSubagents'),{fields}
-      FROM {PREFIX}run_attempts a LEFT JOIN {PREFIX}provider_turns t
-        ON t.run_attempt_id=a.attempt_id OR (a.provider_turn_id IS NOT NULL AND t.provider_turn_id=a.provider_turn_id)
-      WHERE a.run_id=? ORDER BY a.attempt_ordinal,a.attempt_id,t.ordinal,t.provider_turn_id"""
-    attempts, seen = {}, {}
-    for row in db.execute(sql, (child_run_id,)):
-        attempt = attempts.setdefault(row[0], {'attempt_id': safe_id(row[0]), 'attempt_ordinal': safe_ordinal(row[1]), 'turns': []})
-        if row[2] is None or row[2] in seen.setdefault(row[0], set()):
-            continue
-        seen[row[0]].add(row[2])
-        status = row[5]
-        scope, scope_dropped = bounded(row[6], USAGE_SCOPES)
-        turn_status, turn_status_dropped = bounded(row[4], T3_STATUSES)
-        subagents = {0: False, 1: True}.get(row[7])  # SQLite JSON booleans arrive as 0/1
-        reported = {name: count(row[8 + i]) for i, (name, _) in enumerate(USAGE_FIELDS)}
-        keep = status in ('complete', 'partial')
-        attempt['turns'].append({
-            'provider_turn_id': safe_id(row[2]), 'ordinal': safe_ordinal(row[3]), 'turn_status': turn_status, 'turn_status_dropped': turn_status_dropped,
-            'usage_status': status if status in ('complete', 'partial', 'unavailable') else 'unknown',
-            'usage_scope': scope, 'usage_scope_dropped': scope_dropped,
-            'has_subagents': subagents,
-            # hasSubagents false is the only evidence that no nested usage exists.
-            'nested_usage': 'none_reported' if subagents is False else 'unknown',
-            **(reported if keep else {name: None for name in reported})})
+    fields = ','.join(f"json_extract(payload_json,'$.turnTokenUsage.{key}')" for _, key in USAGE_FIELDS)
+    select_turn = f"""SELECT provider_turn_id,run_attempt_id,ordinal,status,
+      json_extract(payload_json,'$.turnTokenUsage.usageStatus'),json_extract(payload_json,'$.turnTokenUsage.usageScope'),
+      json_extract(payload_json,'$.turnTokenUsage.hasSubagents'),{fields}
+      FROM {PREFIX}provider_turns"""
+    has_attempt_thread = 'provider_thread_id' in attempt_columns
+    has_turn_thread = 'provider_thread_id' in turn_columns
+    if close_batches and not has_index_prefix(db, attempt_table, 'run_id'):
+        return usage_unknown('unavailable', 'no_indexed_attempt_lookup')
+    indexed_attempt_turn = has_index_prefix(db, turn_table, 'run_attempt_id')
+    indexed_thread_turn = has_attempt_thread and has_turn_thread and has_index_prefix(db, turn_table, 'provider_thread_id')
+    if not indexed_thread_turn:
+        if close_batches and not indexed_attempt_turn:
+            return usage_unknown('unavailable', 'no_indexed_turn_lookup')
+    attempt_thread = 'provider_thread_id' if indexed_thread_turn else 'NULL'
+    attempt_rows, after_ordinal = [], -1
+    while True:
+        page = db.execute(f"SELECT attempt_id,attempt_ordinal,{attempt_thread},provider_turn_id FROM {attempt_table} "
+                          "WHERE run_id=? AND attempt_ordinal>? ORDER BY attempt_ordinal,attempt_id LIMIT 500",
+                          (child_run_id, after_ordinal)).fetchall()
+        attempt_rows.extend(page)
+        if len(page) < 500:
+            break
+        after_ordinal = page[-1][1]
+        if close_batches:
+            db.commit()
+    attempts, rows_by_attempt = {}, {}
+    for row in attempt_rows:
+        attempt_id, ordinal, provider_thread_id, provider_turn_id = row
+        attempts[attempt_id] = {'attempt_id': safe_id(attempt_id), 'attempt_ordinal': safe_ordinal(ordinal), 'turns': []}
+        rows_by_attempt[attempt_id] = {}
+
+    # provider_turns has no run_attempt_id index in the current schema. Resolve it through the indexed
+    # provider_thread_id, then filter by attempt. Legacy schemas use run_attempt_id only when indexed.
+    thread_ids = {r[2] for r in attempt_rows if r[2]} if indexed_thread_turn else set()
+    for thread_id in thread_ids:
+        after_ordinal = -1
+        while True:
+            page = db.execute(select_turn + ' WHERE provider_thread_id=? AND ordinal>? ORDER BY ordinal LIMIT 500',
+                              (thread_id, after_ordinal)).fetchall()
+            for turn in page:
+                attempt_id = turn[1]
+                if attempt_id in rows_by_attempt:
+                    rows_by_attempt[attempt_id][turn[0]] = turn
+            if len(page) < 500:
+                break
+            after_ordinal = page[-1][2]
+            if close_batches:
+                db.commit()
+    if not indexed_thread_turn:
+        for attempt_id, _, _, _ in attempt_rows:
+            after_ordinal = -1
+            while True:
+                page = db.execute(select_turn + ' WHERE run_attempt_id=? AND ordinal>? ORDER BY ordinal LIMIT 500',
+                                  (attempt_id, after_ordinal)).fetchall()
+                for turn in page:
+                    rows_by_attempt[attempt_id][turn[0]] = turn
+                if len(page) < 500:
+                    break
+                after_ordinal = page[-1][2]
+                if close_batches:
+                    db.commit()
+    for attempt_id, _, _, provider_turn_id in attempt_rows:
+        if provider_turn_id:
+            turn = db.execute(select_turn + ' WHERE provider_turn_id=?', (provider_turn_id,)).fetchone()
+            if turn and turn[0] is not None:
+                rows_by_attempt[attempt_id][turn[0]] = turn
+
+    seen = {}
+    for attempt_id, attempt in attempts.items():
+        for row in sorted(rows_by_attempt[attempt_id].values(), key=lambda r: (r[2], r[0])):
+            if row[0] is None or row[0] in seen.setdefault(attempt_id, set()):
+                continue
+            seen[attempt_id].add(row[0])
+            status = row[4]
+            scope, scope_dropped = bounded(row[5], USAGE_SCOPES)
+            turn_status, turn_status_dropped = bounded(row[3], T3_STATUSES)
+            subagents = {0: False, 1: True}.get(row[6])  # SQLite JSON booleans arrive as 0/1
+            reported = {name: count(row[7 + i]) for i, (name, _) in enumerate(USAGE_FIELDS)}
+            keep = status in ('complete', 'partial')
+            attempt['turns'].append({
+                'provider_turn_id': safe_id(row[0]), 'ordinal': safe_ordinal(row[2]), 'turn_status': turn_status, 'turn_status_dropped': turn_status_dropped,
+                'usage_status': status if status in ('complete', 'partial', 'unavailable') else 'unknown',
+                'usage_scope': scope, 'usage_scope_dropped': scope_dropped,
+                'has_subagents': subagents,
+                # hasSubagents false is the only evidence that no nested usage exists.
+                'nested_usage': 'none_reported' if subagents is False else 'unknown',
+                **(reported if keep else {name: None for name in reported})})
     listed = list(attempts.values())
     turns = [t for a in listed for t in a['turns']]
     if not listed:
@@ -116,6 +179,15 @@ def read_child_usage(db, child_run_id):
     return {'label': USAGE_LABEL, 'state': state, 'reason': None, 'attempts': listed,
             'multiple_attempts': len(listed) > 1, 'multiple_turns': len(turns) > 1,
             'sums': 'never computed; scopes can overlap'}
+
+
+def has_index_prefix(db, table, column):
+    """Whether an existing table index supports an equality lookup on `column`."""
+    for index in db.execute(f'PRAGMA index_list({table})'):
+        names = [row[2] for row in db.execute(f'PRAGMA index_info({index[1]})')]
+        if names and names[0] == column:
+            return True
+    return False
 
 
 def read_db(path, since=None, thread=None):

@@ -1368,7 +1368,8 @@ from observations for unclosed decisions; see Report), and
 ```bash
 model-policy-ops observe --db ~/.t3/userdata/statev2.sqlite \
   [--since RFC3339] [--receipts FILE] [--outcomes FILE] [--observations FILE] \
-  [--destinations FILE] [--git-window-days N]
+  [--destinations FILE] [--git-window-days N] [--observe-state FILE] \
+  [--observe-time-budget-seconds N]
 ```
 
 It appends new fact rows to `observations.jsonl`, beside the receipts (`--observations`
@@ -1377,6 +1378,35 @@ private-ledger rules: mode 0600, exclusive lock, fsync, no symlink, a refused gr
 world-writable parent, and it must be a different file from the receipts and the
 outcomes. Older CLIs never read it. Each read of a source is read-only. `--now` is refused.
 `--since` limits the decisions in scope by `recorded_at`.
+
+The T3 reader stores its cursor in `~/.local/state/model-policy/observe.json` (or
+`--observe-state`). On the first run it scans only the last 50,000 `turn_items`
+rowids and prints that bounded initial window in `incremental`. It then advances a
+rowid high-water mark in batches of at most 500 rows. Each batch closes its SQLite
+read transaction before the next one. Known delegation rows are refreshed by rowid
+primary-key lookup so updates to their run, attempt, usage, or thread facts remain
+visible; unchanged facts still dedupe by observation ID. The 60-second default
+budget (`--observe-time-budget-seconds`, range 1–3600) saves the last completed
+cursor after appending its observations, then the next run resumes. State and output
+files are separate. The first-window and progress counts are printed under the
+top-level `incremental` object.
+
+`EXPLAIN QUERY PLAN` on the copied T3 database produced these lookup plans:
+
+```text
+turn_items rowid range: SEARCH orchestration_v2_projection_turn_items USING INTEGER PRIMARY KEY (rowid>? AND rowid<?)
+known call rowids:      SEARCH orchestration_v2_projection_turn_items USING INTEGER PRIMARY KEY (rowid=?)
+run by run_id:          SEARCH orchestration_v2_projection_runs USING INDEX sqlite_autoindex_orchestration_v2_projection_runs_1 (run_id=?)
+attempts by run_id:      SEARCH orchestration_v2_projection_run_attempts USING INDEX orchestration_v2_projection_run_attempts_run_ordinal_idx (run_id=? AND attempt_ordinal>?)
+turns by thread:         SEARCH orchestration_v2_projection_provider_turns USING INDEX orchestration_v2_projection_provider_turns_thread_ordinal_idx (provider_thread_id=? AND ordinal>?)
+turn by provider ID:    SEARCH orchestration_v2_projection_provider_turns USING INDEX sqlite_autoindex_orchestration_v2_projection_provider_turns_1 (provider_turn_id=?)
+runs by thread:         SEARCH orchestration_v2_projection_runs USING COVERING INDEX orchestration_v2_projection_runs_thread_ordinal_idx (thread_id=?)
+```
+
+The T3 projection has no index on `provider_turns.run_attempt_id`; observe resolves
+turns through the indexed provider thread and filters the matching attempt in that
+result. No timestamp function or unindexed predicate is used to find candidate
+source rows.
 
 **Facts only.** Every observation has a source ID (T3 run ID, dot request ID or git sha),
 the source timestamps, and `unknown` for fields that the source did not give, each with a

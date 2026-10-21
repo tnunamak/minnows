@@ -9,6 +9,7 @@ import sqlite3
 import stat
 import subprocess
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -27,7 +28,7 @@ def paths(setup):
 
 
 def observe(setup, *extra, **kwargs):
-    return run('observe', '--receipts', setup[3], *extra, **kwargs)
+    return run('observe', '--receipts', setup[3], '--observe-state', setup[3].with_name('observe-state.json'), *extra, **kwargs)
 
 
 def ok(setup, *extra):
@@ -106,6 +107,74 @@ def test_t3_facts_carry_ids_timestamps_requested_config_and_labels(setup, tmp_pa
     text = paths(setup)[1].read_text()
     for planted in (SECRET, 'SECRET PROMPT', '"SECRET":"prompt"', 'tokenUsage'):
         assert planted not in text
+
+
+def test_incremental_high_water_refreshes_known_rows_and_reads_new_rows(setup, tmp_path):
+    db = t3_world(setup, tmp_path)
+    first = ok(setup, '--db', db)
+    assert first['incremental']['initial_window'] == 'last 50000 turn_items rowids'
+    first_high = first['incremental']['rowid_through']
+    second = ok(setup, '--db', db)
+    assert second['incremental']['high_water_before'] == first_high
+    assert second['incremental']['rows_scanned'] == 0
+    assert second['incremental']['rows_refreshed'] == 1
+    c = sqlite3.connect(db)
+    call = json.loads(c.execute(f"select payload_json from {PREFIX}turn_items where turn_item_id='call'").fetchone()[0])
+    c.execute(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
+              ('call-later', 'parent-thread', 'parent', '2026-10-08T00:02:00Z', 'completed', 'dynamic_tool', json.dumps(call)))
+    c.commit()
+    new_high = c.execute(f'select max(rowid) from {PREFIX}turn_items').fetchone()[0]
+    c.close()
+    third = ok(setup, '--db', db)
+    assert third['incremental']['rowid_through'] == new_high > first_high
+    assert third['incremental']['rows_scanned'] == 1
+
+
+def test_incremental_budget_exit_resumes_from_saved_high_water(setup, tmp_path, monkeypatch):
+    db = t3_world(setup, tmp_path)
+    c = sqlite3.connect(db)
+    c.executemany(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
+                  [(f'filler-{i}', 't', 'parent', '2026-10-08T00:00:00Z', 'completed', 'other', '{"toolName":"other"}')
+                   for i in range(600)])
+    c.commit()
+    c.close()
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    targets = {'one': json.loads(setup[3].read_text().splitlines()[0])['target']}
+    moments = iter([0, 0, 2])
+    monkeypatch.setattr(time, 'monotonic', lambda: next(moments, 2))
+    stopped = module.incremental_t3(db, {'one'}, targets, state, 1)
+    monkeypatch.undo()
+    assert stopped['state'] == 'partial' and stopped['reason'] == 'time_budget_exhausted'
+    assert stopped['incremental']['rowid_through'] == 500
+    assert stopped['incremental']['rows_scanned'] == 500
+    state.write_text(json.dumps(stopped['_state']))
+    resumed = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+    assert resumed['state'] == 'ok'
+    assert resumed['incremental']['high_water_before'] == stopped['_state']['rowid']
+    assert resumed['incremental']['rowid_through'] == resumed['incremental']['snapshot_high_water']
+
+
+def test_incremental_facts_match_the_existing_collector_for_the_same_fixture_rows(setup, tmp_path):
+    db = t3_world(setup, tmp_path, failure=f'{SECRET} rate limit reached')
+    module = lib_module('observe')
+    from delegation_audit import read_db
+    calls, _ = read_db(db, None, None)
+    targets = {'one': json.loads(setup[3].read_text().splitlines()[0])['target']}
+    baseline = module.collect_t3(db, {'one'}, targets, calls_override=calls)
+    incremental = module.incremental_t3(db, {'one'}, targets, tmp_path / 'observe.json', time.monotonic() + 30)
+    assert {r['observation_id'] for r in incremental['observations']} == {r['observation_id'] for r in baseline['observations']}
+
+
+def test_incremental_query_plan_uses_rowid_primary_key(setup, tmp_path):
+    db = t3_world(setup, tmp_path)
+    c = sqlite3.connect(db)
+    plan = c.execute(f"EXPLAIN QUERY PLAN SELECT rowid,turn_item_id FROM {PREFIX}turn_items "
+                      "WHERE rowid>? AND rowid<=? ORDER BY rowid LIMIT 500", (0, 1)).fetchall()
+    assert any('INTEGER PRIMARY KEY (rowid>? AND rowid<?)' in row[-1] for row in plan)
+    refresh = c.execute(f"EXPLAIN QUERY PLAN SELECT rowid,turn_item_id FROM {PREFIX}turn_items WHERE rowid IN (?)", (1,)).fetchall()
+    assert any('INTEGER PRIMARY KEY (rowid=?)' in row[-1] for row in refresh)
+    c.close()
 
 
 PRIVATE = ['SECRET-PLANTED-TEXT', 'password=secret123', 'hunter2']

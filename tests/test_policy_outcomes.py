@@ -240,6 +240,8 @@ def make_db(tmp_path, receipt, usage_by_turn, extra_attempt=False):
     db.execute(f'create table {PREFIX}turn_items (turn_item_id text,thread_id text,run_id text,updated_at text,status text,type text,payload_json text)')
     db.execute(f'create table {PREFIX}run_attempts (attempt_id text,thread_id text,run_id text,attempt_ordinal int,root_node_id text,provider text,provider_thread_id text,provider_turn_id text,status text,payload_json text,provider_instance_id text)')
     db.execute(f'create table {PREFIX}provider_turns (provider_turn_id text,thread_id text,provider_thread_id text,node_id text,run_attempt_id text,ordinal int,status text,started_at text,completed_at text,payload_json text)')
+    db.execute(f'create index {PREFIX}run_attempts_run_id_idx on {PREFIX}run_attempts(run_id,attempt_ordinal)')
+    db.execute(f'create index {PREFIX}provider_turns_thread_ordinal_idx on {PREFIX}provider_turns(provider_thread_id,ordinal)')
     for run_id, provider in (('parent', 'parent-account'), ('child', 'claude-one')):
         db.execute(f'insert into {PREFIX}runs values (?,?,?,?,?)', (run_id, provider, 'completed', json.dumps({'modelSelection': {'model': 'm', 'options': {'effort': 'medium'}}}), '2026-10-08T00:00:00Z'))
     attempts = ['a1'] + (['a2'] if extra_attempt else [])

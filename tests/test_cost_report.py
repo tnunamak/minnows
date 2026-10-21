@@ -106,6 +106,8 @@ class ReportTests(unittest.TestCase):
         CREATE TABLE {prefix}turn_items(turn_item_id TEXT,thread_id TEXT,run_id TEXT,type TEXT,status TEXT,payload_json TEXT);
         CREATE TABLE {prefix}run_attempts(attempt_id TEXT,run_id TEXT,attempt_ordinal INTEGER,provider_turn_id TEXT);
         CREATE TABLE {prefix}provider_turns(provider_turn_id TEXT,run_attempt_id TEXT,ordinal INTEGER,status TEXT,payload_json TEXT);
+        CREATE INDEX {prefix}run_attempts_run_id_idx ON {prefix}run_attempts(run_id,attempt_ordinal);
+        CREATE INDEX {prefix}provider_turns_attempt_id_idx ON {prefix}provider_turns(run_attempt_id,ordinal);
         ''')
         for run in ('run:parent', 'run:child'):
             db.execute(f'INSERT INTO {prefix}runs VALUES(?,?,?,?)',
