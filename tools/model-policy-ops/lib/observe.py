@@ -58,21 +58,24 @@ DEFAULT_WINDOW_DAYS = 14
 OBSERVE_BATCH_ROWS = 500
 OBSERVE_READ_SECONDS = 0.2
 OBSERVE_INITIAL_ROWS = 50_000
+OBSERVE_REFRESH_ROWS = 500
 OBSERVE_TIME_BUDGET_SECONDS = 60
 MAX_STATE_ANCHORS = 128
 
 
-def default_observe_state():
+def default_observe_state(observations_path=None):
     state_home = os.environ.get('XDG_STATE_HOME')
     root = Path(state_home) if state_home and Path(state_home).is_absolute() else Path.home() / '.local/state'
-    return root / 'model-policy/observe.json'
+    observations = Path(observations_path or Path.home() / '.local/state/model-policy/observations.jsonl')
+    ledger_key = hashlib.sha256(str(observations.expanduser().resolve()).encode()).hexdigest()[:16]
+    return root / f'model-policy/observe-{ledger_key}.json'
 
 
 def private_parent(path):
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     info = path.parent.stat()
     if info.st_uid != os.getuid() or info.st_mode & 0o077:
-        raise ValueError('observe state parent directory must not be group- or world-writable')
+        raise ValueError('observe state parent directory must not be group- or world-accessible')
 
 
 def private_file(path, create=False):
@@ -105,10 +108,15 @@ def open_call_index(state_path):
     finally:
         os.umask(mask)
     os.chmod(path, 0o600)
-    db.execute('PRAGMA synchronous=FULL')
+    db.execute('PRAGMA journal_mode=WAL')
+    db.execute('PRAGMA synchronous=NORMAL')
     db.execute('CREATE TABLE IF NOT EXISTS index_meta (id INTEGER PRIMARY KEY CHECK(id=1), instance TEXT NOT NULL)')
-    db.execute('CREATE TABLE IF NOT EXISTS known_calls (source_rowid INTEGER PRIMARY KEY, turn_item_id TEXT NOT NULL, child_run_id TEXT, decision_id TEXT)')
+    db.execute('CREATE TABLE IF NOT EXISTS known_calls (source_rowid INTEGER PRIMARY KEY, turn_item_id TEXT NOT NULL, child_run_id TEXT, decision_id TEXT, settled INTEGER NOT NULL DEFAULT 0)')
+    known_columns = {row[1] for row in db.execute('PRAGMA table_info(known_calls)')}
+    if 'settled' not in known_columns:
+        db.execute('ALTER TABLE known_calls ADD COLUMN settled INTEGER NOT NULL DEFAULT 0')
     db.execute('CREATE INDEX IF NOT EXISTS known_calls_child_run_idx ON known_calls(child_run_id,decision_id)')
+    db.execute('CREATE INDEX IF NOT EXISTS known_calls_settled_rowid_idx ON known_calls(settled,source_rowid)')
     db.execute('CREATE TABLE IF NOT EXISTS quarantined_rows (source_rowid INTEGER PRIMARY KEY, reason TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 1)')
     quarantine_columns = {row[1] for row in db.execute('PRAGMA table_info(quarantined_rows)')}
     if 'attempts' not in quarantine_columns:
@@ -161,11 +169,17 @@ def read_last_ledger_line(path, deadline=None, previous_marker=None):
         with open(path, 'rb') as stream:
             stream.seek(0, os.SEEK_END)
             end = stream.tell()
-            start = max(0, end - 1024 * 1024)
+            start = max(0, end - 16 * 1024 * 1024 - 1)
             stream.seek(start)
             prefix = stream.read()
-            lines = prefix.splitlines()
-        row = json.loads(lines[-1]) if lines else None
+        if start:
+            first_newline = prefix.find(b'\n')
+            prefix = prefix[first_newline + 1:] if first_newline >= 0 else prefix
+        lines = prefix.splitlines()
+        try:
+            row = json.loads(lines[-1]) if lines else None
+        except (UnicodeDecodeError, ValueError):
+            row = None
         info = os.stat(path)
         previous_size = previous_marker.get('size') if isinstance(previous_marker, dict) else None
         can_verify_prefix = (type(previous_size) is int and previous_size <= info.st_size and
@@ -182,9 +196,20 @@ def read_last_ledger_line(path, deadline=None, previous_marker=None):
         return None
 
 
+def empty_ledger_marker(path):
+    """Identify an empty prefix of a newly created ledger without hashing its appended contents."""
+    info = os.stat(path)
+    return {'path': str(Path(path).resolve()), 'device': info.st_dev, 'inode': info.st_ino, 'size': 0,
+            'mtime_ns': info.st_mtime_ns, 'prefix_sha256': hashlib.sha256(b'').hexdigest()}
+
+
 def ledger_prefix_matches(previous, current, deadline=None):
+    if previous is None:
+        return current is None
+    if current is None:
+        return False
     if not isinstance(previous, dict) or not isinstance(current, dict):
-        return previous is None and current is None
+        return False
     if any(previous.get(key) != current.get(key) for key in ('path', 'device', 'inode')):
         return False
     size = previous.get('size')
@@ -353,56 +378,127 @@ def table_columns(db, name):
 
 
 def observe_index_issue(db):
-    required = (('runs', 'run_id'), ('runs', 'thread_id'), ('run_attempts', 'run_id'),
-                ('turn_items', 'run_id'), ('turn_items', 'thread_id'), ('threads', 'thread_id'))
-    for table, column in required:
-        if column in table_columns(db, table) and not has_index_prefix(db, PREFIX + table, column):
-            return f'no_indexed_{table}_{column}_lookup'
+    runs, attempts, items = (table_columns(db, name) for name in ('runs', 'run_attempts', 'turn_items'))
+    required = [('runs', ('run_id',)), ('run_attempts', ('run_id',)),
+                ('turn_items', ('turn_item_id',)), ('threads', ('thread_id',))]
+    if 'thread_id' in runs:
+        required.append(('runs', ('thread_id', 'ordinal') if 'ordinal' in runs else ('thread_id',)))
+    if 'attempt_ordinal' in attempts:
+        required.append(('run_attempts', ('run_id', 'attempt_ordinal')))
+    if 'ordinal' in items:
+        required.extend((('turn_items', ('run_id', 'ordinal')),))
+        followup_indexes = (('thread_id', 'type', 'ordinal'), ('thread_id', 'ordinal'))
+        if not any(has_index_prefix(db, PREFIX + 'turn_items', columns) for columns in followup_indexes):
+            return 'no_indexed_turn_items_thread_id_ordinal_lookup'
+    else:
+        if 'run_id' in items:
+            required.append(('turn_items', ('run_id',)))
+        if {'thread_id', 'type'} <= items:
+            required.append(('turn_items', ('thread_id', 'type')))
+    for table, columns in required:
+        if set(columns) <= table_columns(db, table) and not has_index_prefix(db, PREFIX + table, columns):
+            return f"no_indexed_{table}_{'_'.join(columns)}_lookup"
     return None
+
+
+def terminal_failure_page_sql():
+    return (f'SELECT ordinal,turn_item_id,updated_at,payload_json,status,rowid FROM {PREFIX}turn_items '
+            "WHERE run_id=? AND status='failed' AND turn_item_id LIKE '%terminal-failure%' COLLATE NOCASE "
+            'AND (ordinal,rowid)>(?,?) ORDER BY ordinal,rowid LIMIT 500')
+
+
+def terminal_failure_null_page_sql():
+    return (f'SELECT ordinal,turn_item_id,updated_at,payload_json,status,rowid FROM {PREFIX}turn_items '
+            "WHERE run_id=? AND status='failed' AND turn_item_id LIKE '%terminal-failure%' COLLATE NOCASE "
+            'AND ordinal IS NULL AND rowid>? ORDER BY rowid LIMIT 500')
 
 
 def run_details(db, run_id, deadline=None):
     """Run status and timestamps, attempt statuses and classified terminal failures for one child run. No text columns."""
     columns = table_columns(db, 'runs')
     completed = 'completed_at' if 'completed_at' in columns else 'NULL'
-    row = db.execute(f"""SELECT status,requested_at,{completed},json_extract(payload_json,'$.startedAt'),
-        json_extract(payload_json,'$.completedAt') FROM {PREFIX}runs WHERE run_id=?""", (run_id,)).fetchone()
+    row = db.execute(f"""SELECT status,requested_at,{completed},
+        CASE WHEN json_valid(payload_json) THEN json_extract(payload_json,'$.startedAt') END,
+        CASE WHEN json_valid(payload_json) THEN json_extract(payload_json,'$.completedAt') END
+        FROM {PREFIX}runs WHERE run_id=?""", (run_id,)).fetchone()
     attempts = []
     if {'attempt_id', 'run_id', 'attempt_ordinal', 'status'} <= table_columns(db, 'run_attempts'):
-        after_ordinal = -1
+        after_ordinal = -(2 ** 63)
         while True:
             if deadline is not None and time.monotonic() >= deadline:
                 raise BudgetExhausted
             page = db.execute(f'SELECT attempt_id,attempt_ordinal,status FROM {PREFIX}run_attempts '
-                              'WHERE run_id=? AND attempt_ordinal>? ORDER BY attempt_ordinal,attempt_id LIMIT 500',
+                              'WHERE run_id=? AND attempt_ordinal IS NOT NULL AND attempt_ordinal>? '
+                              'ORDER BY attempt_ordinal,attempt_id LIMIT 500',
                               (run_id, after_ordinal)).fetchall()
             attempts.extend(page)
             if len(page) < 500:
                 break
             after_ordinal = page[-1][1]
+        after_id = ''
+        while True:
+            if deadline is not None and time.monotonic() >= deadline:
+                raise BudgetExhausted
+            page = db.execute(f'SELECT attempt_id,attempt_ordinal,status FROM {PREFIX}run_attempts '
+                              'WHERE run_id=? AND attempt_ordinal IS NULL AND attempt_id>? ORDER BY attempt_id LIMIT 500',
+                              (run_id, after_id)).fetchall()
+            attempts.extend(page)
+            if len(page) < 500:
+                break
+            after_id = page[-1][0]
     failures = []
     if {'turn_item_id', 'run_id', 'status', 'updated_at', 'payload_json'} <= table_columns(db, 'turn_items'):
         if 'ordinal' in table_columns(db, 'turn_items'):
-            after_ordinal = -1
+            after = (-(2 ** 63), 0)
             while True:
                 if deadline is not None and time.monotonic() >= deadline:
                     raise BudgetExhausted
-                page = db.execute(f"""SELECT ordinal,turn_item_id,updated_at,json_extract(payload_json,'$.startedAt'),
-                    json_extract(payload_json,'$.failure.class'),
-                    coalesce(json_extract(payload_json,'$.failure.message'),json_extract(payload_json,'$.title'),'')
-                    FROM {PREFIX}turn_items WHERE run_id=? AND ordinal>? AND turn_item_id LIKE '%terminal-failure%' AND status='failed'
-                    ORDER BY ordinal LIMIT 500""", (run_id, after_ordinal)).fetchall()
-                failures.extend(tuple(row[1:]) for row in page)
+                page = db.execute(terminal_failure_page_sql(), (run_id, after[0], after[1])).fetchall()
+                failures.extend(terminal_failure(row) for row in page)
                 if len(page) < 500:
                     break
-                after_ordinal = page[-1][0]
+                after = (page[-1][0], page[-1][5])
+            after_rowid = 0
+            while True:
+                if deadline is not None and time.monotonic() >= deadline:
+                    raise BudgetExhausted
+                page = db.execute(terminal_failure_null_page_sql(), (run_id, after_rowid)).fetchall()
+                failures.extend(terminal_failure(row) for row in page)
+                if len(page) < 500:
+                    break
+                after_rowid = page[-1][5]
         else:
-            failures = db.execute(f"""SELECT turn_item_id,updated_at,json_extract(payload_json,'$.startedAt'),
-                json_extract(payload_json,'$.failure.class'),
-                coalesce(json_extract(payload_json,'$.failure.message'),json_extract(payload_json,'$.title'),'')
-                FROM {PREFIX}turn_items WHERE run_id=? AND turn_item_id LIKE '%terminal-failure%' AND status='failed'
-                ORDER BY turn_item_id LIMIT 500""", (run_id,)).fetchall()
+            after_id = ''
+            while True:
+                if deadline is not None and time.monotonic() >= deadline:
+                    raise BudgetExhausted
+                page = db.execute(f'SELECT NULL,turn_item_id,updated_at,payload_json,status FROM {PREFIX}turn_items '
+                                  "WHERE run_id=? AND status='failed' AND turn_item_id LIKE '%terminal-failure%' COLLATE NOCASE "
+                                  'AND turn_item_id>? ORDER BY turn_item_id LIMIT 500',
+                                  (run_id, after_id)).fetchall()
+                failures.extend(terminal_failure(row) for row in page)
+                if len(page) < 500:
+                    break
+                after_id = page[-1][1]
     return row, attempts, failures
+
+
+def terminal_failure(row):
+    """Project one failed terminal turn after the indexed page has bounded the SQLite read."""
+    try:
+        payload = json.loads(row[3]) if row[3] else {}
+    except (TypeError, ValueError) as error:
+        raise ValueError('invalid_terminal_failure_payload') from error
+    payload = payload if isinstance(payload, dict) else {}
+    failure = payload.get('failure') if isinstance(payload.get('failure'), dict) else {}
+    message = failure.get('message')
+    if message is None:
+        message = payload.get('title')
+    if isinstance(message, (dict, list)):
+        message = json.dumps(message, separators=(',', ':'))
+    elif not isinstance(message, str):
+        message = '' if message is None else str(message)
+    return row[1], row[2], payload.get('startedAt'), failure.get('class'), message
 
 
 PR_STATES = ('open', 'merged', 'closed', 'draft')
@@ -422,27 +518,65 @@ def indexed_run_owners(call_db, run_ids):
     return owners
 
 
-def indexed_thread_owners(db, call_db, thread, decision, deadline=None):
-    order_column = 'ordinal' if 'ordinal' in table_columns(db, 'runs') else 'rowid'
-    owners, after, missing = {decision}, -1, False
+def thread_run_pages(db, thread, deadline=None):
+    """Yield indexed runs in a thread, including tied and NULL ordinals, in bounded pages."""
+    if 'ordinal' not in table_columns(db, 'runs'):
+        after_rowid = 0
+        while True:
+            if deadline is not None and time.monotonic() >= deadline:
+                raise BudgetExhausted
+            page = db.execute(f'SELECT run_id,rowid FROM {PREFIX}runs WHERE thread_id=? AND rowid>? ORDER BY rowid LIMIT 500',
+                              (thread, after_rowid)).fetchall()
+            if not page:
+                return
+            yield [(row[0], (0, row[1])) for row in page]
+            if len(page) < 500:
+                return
+            after_rowid = page[-1][1]
+    after = (-(2 ** 63), 0)
     while True:
         if deadline is not None and time.monotonic() >= deadline:
             raise BudgetExhausted
-        page = db.execute(f'SELECT run_id,{order_column} FROM {PREFIX}runs WHERE thread_id=? AND {order_column}>? '
-                          f'ORDER BY {order_column} LIMIT 500',
-                          (thread, after)).fetchall()
+        page = db.execute(f'SELECT run_id,ordinal,rowid FROM {PREFIX}runs WHERE thread_id=? AND ordinal IS NOT NULL '
+                          'AND (ordinal,rowid)>(?,?) ORDER BY ordinal,rowid LIMIT 500',
+                          (thread, after[0], after[1])).fetchall()
         if not page:
             break
+        yield [(row[0], (0, row[1], row[2])) for row in page]
+        if len(page) < 500:
+            break
+        after = (page[-1][1], page[-1][2])
+    after_rowid = 0
+    while True:
+        if deadline is not None and time.monotonic() >= deadline:
+            raise BudgetExhausted
+        page = db.execute(f'SELECT run_id,rowid FROM {PREFIX}runs WHERE thread_id=? AND ordinal IS NULL AND rowid>? '
+                          'ORDER BY rowid LIMIT 500', (thread, after_rowid)).fetchall()
+        if not page:
+            return
+        yield [(row[0], (1, row[1])) for row in page]
+        if len(page) < 500:
+            return
+        after_rowid = page[-1][1]
+
+
+def indexed_thread_owners(db, call_db, thread, decision, deadline=None):
+    owners, unowned_orders, owned_orders = {decision}, [], []
+    for page in thread_run_pages(db, thread, deadline):
         known = indexed_run_owners(call_db, [row[0] for row in page])
-        for run_id, _ in page:
+        for run_id, order in page:
             run_decisions = known.get(run_id)
             if run_decisions:
                 owners.update(run_decisions)
+                owned_orders.append(order)
+            # A thread can have ordinary follow-up runs that were never created by a
+            # delegation call. The legacy collector counted only indexed owners.
             else:
-                missing = True
-        if len(page) < 500:
-            break
-        after = page[-1][1]
+                unowned_orders.append(order)
+    # An older unowned run may be a delegate call outside the bounded observation
+    # window. Later unowned runs are normal follow-ups and do not affect ownership.
+    first_owned = min(owned_orders) if owned_orders else None
+    missing = first_owned is not None and any(order < first_owned for order in unowned_orders)
     return len(owners), missing
 
 
@@ -458,19 +592,7 @@ def pull_request_facts(db, thread, run_id, decision, ids, run_owner, deadline=No
         return []
     runs = []
     if call_db is None:
-        if 'ordinal' in table_columns(db, 'runs'):
-            after_ordinal = -1
-            while True:
-                if deadline is not None and time.monotonic() >= deadline:
-                    raise BudgetExhausted
-                page = db.execute(f'SELECT run_id,ordinal FROM {PREFIX}runs WHERE thread_id=? AND ordinal>? '
-                                  'ORDER BY ordinal LIMIT 500', (thread, after_ordinal)).fetchall()
-                runs.extend(row[0] for row in page)
-                if len(page) < 500:
-                    break
-                after_ordinal = page[-1][1]
-        else:
-            runs = [row[0] for row in db.execute(f'SELECT run_id FROM {PREFIX}runs WHERE thread_id=?', (thread,))]
+        runs = [run_id for page in thread_run_pages(db, thread, deadline) for run_id, _ in page]
     owner_summary = indexed_thread_owners(db, call_db, thread, decision, deadline) if call_db is not None else None
     missing_owner = owner_summary[1] if owner_summary else False
     sharing = None if missing_owner else owner_summary[0] if owner_summary else \
@@ -515,18 +637,42 @@ def child_thread_facts(db, run_id, decision, ids, run_owner=None, include_thread
     found = []
     columns = table_columns(db, 'turn_items')
     if 'ordinal' in columns:
-        messages, last, after_ordinal = 0, None, -1
+        messages, last, after = 0, None, (-(2 ** 63), 0)
         while True:
             if deadline is not None and time.monotonic() >= deadline:
-                raise BudgetExhausted
-            page = db.execute(f"SELECT ordinal,updated_at FROM {PREFIX}turn_items WHERE thread_id=? AND type='user_message' "
-                              'AND ordinal>? ORDER BY ordinal LIMIT 500', (thread, after_ordinal)).fetchall()
+                raise BudgetExhausted(found)
+            try:
+                page = db.execute(f"SELECT rowid,ordinal,updated_at FROM {PREFIX}turn_items WHERE thread_id=? AND type='user_message' "
+                                  'AND (ordinal,rowid)>(?,?) ORDER BY ordinal,rowid LIMIT 500',
+                                  (thread, after[0], after[1])).fetchall()
+            except sqlite3.Error:
+                if deadline is not None and time.monotonic() >= deadline:
+                    raise BudgetExhausted(found) from None
+                raise
             messages += len(page)
-            page_last = max((row[1] for row in page if row[1] is not None), default=None)
+            page_last = max((row[2] for row in page if row[2] is not None), default=None)
             last = max((value for value in (last, page_last) if value is not None), default=None)
             if len(page) < 500:
                 break
-            after_ordinal = page[-1][0]
+            after = (page[-1][1], page[-1][0])
+        after_rowid = 0
+        while True:
+            if deadline is not None and time.monotonic() >= deadline:
+                raise BudgetExhausted(found)
+            try:
+                page = db.execute(f"SELECT rowid,ordinal,updated_at FROM {PREFIX}turn_items "
+                                  "WHERE thread_id=? AND type='user_message' AND ordinal IS NULL AND rowid>? "
+                                  'ORDER BY rowid LIMIT 500', (thread, after_rowid)).fetchall()
+            except sqlite3.Error:
+                if deadline is not None and time.monotonic() >= deadline:
+                    raise BudgetExhausted(found) from None
+                raise
+            messages += len(page)
+            page_last = max((row[2] for row in page if row[2] is not None), default=None)
+            last = max((value for value in (last, page_last) if value is not None), default=None)
+            if len(page) < 500:
+                break
+            after_rowid = page[-1][0]
     else:
         messages, last = db.execute(f"SELECT count(*), max(updated_at) FROM {PREFIX}turn_items WHERE thread_id=? AND type='user_message'",
                                     (thread,)).fetchone()
@@ -538,7 +684,12 @@ def child_thread_facts(db, run_id, decision, ids, run_owner=None, include_thread
         {'child_thread_id': thread, 'user_messages': messages, 'followup_messages': max(messages - 1, 0) if messages else None},
         source_ids=ids, source_timestamps=stamps, unknown=unknown | why | ({} if messages else {'followup_messages': 'no_user_messages'})))
     if include_thread_snapshot:
-        found += pull_request_facts(db, thread, run_id, decision, ids, run_owner or {}, deadline, call_db)
+        try:
+            found += pull_request_facts(db, thread, run_id, decision, ids, run_owner or {}, deadline, call_db)
+        except sqlite3.Error:
+            if deadline is not None and time.monotonic() >= deadline:
+                raise BudgetExhausted(found) from None
+            raise
     return found
 
 
@@ -578,7 +729,7 @@ def collect_t3(db_path, scope_ids, targets=None, calls_override=None, deadline=N
     targets = targets or {}
     run_owner = run_owner_override or {
         c['child_run_id']: c['decision_id'] for c in calls if c.get('child_run_id') and c.get('decision_id')}
-    found, runs = [], {}
+    found, runs, usage_pending = [], {}, False
     try:
         db = sqlite3.connect(Path(db_path).resolve().as_uri() + '?mode=ro', uri=True)
     except sqlite3.Error as error:
@@ -597,17 +748,24 @@ def collect_t3(db_path, scope_ids, targets=None, calls_override=None, deadline=N
             thread_id = checked_id(call['thread_id'], 'thread_id', unknown)
             child = checked_id(call['child_run_id'], 'child_run_id', unknown) if call['child_run_id'] is not None else None
             found.append(store.make_observation(
-                't3', call_id or f'invalid-call:{decision}:{position}', decision, 't3_delegate_call',
+                't3', call_id or f'invalid-call:{call.get("_source_rowid", decision)}', decision, 't3_delegate_call',
                 {'call_status': call_status, 'child_run_id': child},
                 source_ids=ids_of(call_id=call_id, thread_id=thread_id), source_timestamps=stamps,
                 unknown=unknown | ({} if child or 'child_run_id' in unknown else {'child_run_id': 'call_started_no_child_run'})
                 | ({'call_status': why} if why else {})))
             if child and child not in runs:
                 runs[child] = (decision, call)
+        checked = sum(c.get('child_run_id') is None for c in calls)
         for run_id, (decision, call) in runs.items():
             if deadline is not None and time.monotonic() >= deadline:
-                raise BudgetExhausted
-            row, attempts, failures = run_details(db, run_id, deadline)
+                return result('partial', 'time_budget_exhausted', checked, found)
+            try:
+                row, attempts, failures = run_details(db, run_id, deadline)
+            except (BudgetExhausted, sqlite3.Error) as error:
+                if isinstance(error, sqlite3.Error) and (deadline is None or time.monotonic() < deadline):
+                    return result('error', short(error), checked, found)
+                return result('partial', 'time_budget_exhausted', checked, found)
+            checked += 1
             ids = {'run_id': run_id}
             if row is None:
                 found.append(store.make_observation('t3', run_id, decision, 't3_run_status', {'status': None},
@@ -647,49 +805,70 @@ def collect_t3(db_path, scope_ids, targets=None, calls_override=None, deadline=N
                     't3', run_id, decision, 't3_terminal_failure',
                     {'turn_item_id': item_id, 'failure_class': classify_failure(message)},
                     source_ids=ids | ids_of(turn_item_id=item_id), source_timestamps=stamps, unknown=unknown))
-            found += child_thread_facts(db, run_id, decision, ids, run_owner, include_thread_snapshot, deadline, call_db)
-            found += usage_observations('t3', run_id, decision, call['observed_child_usage'])
+            try:
+                found += child_thread_facts(db, run_id, decision, ids, run_owner, include_thread_snapshot, deadline, call_db)
+                usage = call.get('observed_child_usage')
+                if usage is None:
+                    usage = read_child_usage_for_call(db_path, run_id, deadline)
+                if usage.get('state') == 'unavailable' and usage.get('reason') in ('read_slice_exceeded', 'read_error'):
+                    usage_pending = True
+                found += usage_observations('t3', run_id, decision, usage)
+            except BudgetExhausted as error:
+                found.extend(error.observations)
+                return result('partial', 'time_budget_exhausted', checked, found)
+            except sqlite3.Error as error:
+                if deadline is None or time.monotonic() < deadline:
+                    return result('error', short(error), checked, found)
+                return result('partial', 'time_budget_exhausted', checked, found)
     except sqlite3.Error as error:
         if deadline is not None and time.monotonic() >= deadline:
             raise BudgetExhausted from None
         return result('error', short(error))
     finally:
         db.close()
-    return result('ok', None, len(runs) + sum(c['child_run_id'] is None for c in calls), found)
+    if usage_pending:
+        return result('partial', 'usage_refresh_pending', checked, found)
+    return result('ok', None, checked, found)
 
 
 def t3_batch_sql(source_filter):
-    return f"""SELECT i.rowid source_rowid,i.turn_item_id call_id,i.thread_id,
-        CASE WHEN i.type='dynamic_tool' AND json_valid(i.payload_json) THEN json_extract(i.payload_json,'$.startedAt') END timestamp,i.status,i.type,
-        CASE WHEN i.type='dynamic_tool' AND json_valid(i.payload_json) THEN json_extract(i.payload_json,'$.input.clientRequestId') END decision_id,
-        CASE WHEN i.type='dynamic_tool' AND json_valid(i.payload_json) THEN json_quote(json_extract(i.payload_json,'$.input.target')) END target,
-        CASE WHEN i.type='dynamic_tool' AND json_valid(i.payload_json) THEN coalesce(json_extract(i.payload_json,'$.output.childRunId'),
-                 json_extract(i.payload_json,'$.output.structuredContent.childRunId')) END child_run_id,
+    def payload_value(expression):
+        return f"CASE WHEN i.type='dynamic_tool' THEN CASE WHEN i.payload_json LIKE '%delegate_task%' COLLATE NOCASE THEN CASE WHEN json_valid(i.payload_json) THEN {expression} END END END"
+    return f"""WITH selected AS MATERIALIZED (
+        SELECT i.rowid source_rowid,i.turn_item_id call_id,i.thread_id,
+        {payload_value("json_extract(i.payload_json,'$.startedAt')")} timestamp,i.status,i.type,
+        {payload_value("json_extract(i.payload_json,'$.input.clientRequestId')")} decision_id,
+        {payload_value("json_quote(json_extract(i.payload_json,'$.input.target'))")} target,
+        {payload_value("coalesce(json_extract(i.payload_json,'$.output.childRunId'), json_extract(i.payload_json,'$.output.structuredContent.childRunId'))")} child_run_id,
         p.provider_instance_id parent_provider,
         CASE WHEN json_valid(p.payload_json) THEN json_extract(p.payload_json,'$.modelSelection.model') END parent_model,
+        {payload_value("json_extract(i.payload_json,'$.toolName')")} tool_name
+        FROM {PREFIX}turn_items i LEFT JOIN {PREFIX}runs p ON p.run_id=i.run_id
+        WHERE {source_filter} ORDER BY i.rowid LIMIT ?
+        )
+        SELECT selected.source_rowid,selected.call_id,selected.thread_id,selected.timestamp,selected.status,selected.type,
+        selected.decision_id,selected.target,selected.child_run_id,selected.parent_provider,selected.parent_model,
         c.status child_status,c.provider_instance_id child_provider,
         CASE WHEN json_valid(c.payload_json) THEN json_extract(c.payload_json,'$.modelSelection.model') END child_requested_model,
         CASE WHEN json_valid(c.payload_json) THEN json_quote(json_extract(c.payload_json,'$.modelSelection.options')) END child_requested_options,
-        CASE WHEN i.type='dynamic_tool' AND json_valid(i.payload_json) THEN json_extract(i.payload_json,'$.toolName') END tool_name
-        FROM {PREFIX}turn_items i LEFT JOIN {PREFIX}runs p ON p.run_id=i.run_id
-        LEFT JOIN {PREFIX}runs c ON c.run_id=CASE WHEN i.type='dynamic_tool' AND json_valid(i.payload_json) THEN coalesce(
-          json_extract(i.payload_json,'$.output.childRunId'),
-          json_extract(i.payload_json,'$.output.structuredContent.childRunId')) END
-        WHERE {source_filter} ORDER BY i.rowid LIMIT ?"""
+        selected.tool_name
+        FROM selected LEFT JOIN {PREFIX}runs c ON c.run_id=selected.child_run_id
+        ORDER BY selected.source_rowid"""
 
 
 class ReadBatchTooSlow(sqlite3.OperationalError):
     """A bounded rowid read exceeded its short transaction slice and can be retried smaller."""
 
 
-def read_t3_rowid_batch(db_path, after, through, limit, rowids=None, scope_ids=None, deadline=None):
+def read_t3_rowid_batch(db_path, after, through, limit, rowids=None, scope_ids=None, deadline=None,
+                        max_read_seconds=None):
     """Read one bounded turn_items rowid range. The query uses only the rowid primary index."""
     db = sqlite3.connect(Path(db_path).resolve().as_uri() + '?mode=ro', uri=True)
     db.row_factory = sqlite3.Row
     try:
         db.execute('PRAGMA query_only=ON')
         db.execute('BEGIN')
-        read_deadline = time.monotonic() + OBSERVE_READ_SECONDS
+        read_deadline = time.monotonic() + (max_read_seconds or OBSERVE_READ_SECONDS)
         if deadline is not None:
             read_deadline = min(read_deadline, deadline)
         db.set_progress_handler(lambda: int(time.monotonic() >= read_deadline), 1000)
@@ -721,13 +900,7 @@ def read_t3_rowid_batch(db_path, after, through, limit, rowids=None, scope_ids=N
         for key in ('target', 'child_requested_options'):
             call[key] = json.loads(call[key]) if call[key] else None
         call['_source_rowid'] = source_rowid
-        if scope_ids is None or call['decision_id'] in scope_ids:
-            try:
-                call['observed_child_usage'] = read_child_usage_for_call(db_path, call['child_run_id'], deadline)
-            except BudgetExhausted:
-                from delegation_audit import usage_unknown
-                call['observed_child_usage'] = usage_unknown('unavailable', 'time_budget_exhausted')
-        else:
+        if scope_ids is not None and call['decision_id'] not in scope_ids:
             from delegation_audit import usage_unknown
             call['observed_child_usage'] = usage_unknown('not_in_scope')
         calls.append(call)
@@ -804,15 +977,29 @@ def remember_anchor(anchors, rowid, turn_item_id):
 def reset_call_index(call_db):
     call_db.execute('DELETE FROM known_calls')
     call_db.execute('DELETE FROM quarantined_rows')
+    identity = str(uuid.uuid4())
+    call_db.execute('UPDATE index_meta SET instance=? WHERE id=1', (identity,))
     call_db.commit()
+    return identity
 
 
-def remember_calls(call_db, calls):
-    call_db.executemany('INSERT INTO known_calls(source_rowid,turn_item_id,child_run_id,decision_id) VALUES(?,?,?,?) '
+def remember_calls(call_db, calls, commit=True):
+    terminal = {'completed', 'failed', 'cancelled', 'interrupted'}
+    call_db.executemany('INSERT INTO known_calls(source_rowid,turn_item_id,child_run_id,decision_id,settled) VALUES(?,?,?,?,?) '
                         'ON CONFLICT(source_rowid) DO UPDATE SET turn_item_id=excluded.turn_item_id, '
-                        'child_run_id=excluded.child_run_id,decision_id=excluded.decision_id',
-                        [(c['_source_rowid'], c['call_id'], c.get('child_run_id'), c.get('decision_id')) for c in calls])
-    call_db.commit()
+                        'child_run_id=excluded.child_run_id,decision_id=excluded.decision_id,settled=excluded.settled',
+                        [(c['_source_rowid'], c['call_id'], c.get('child_run_id'), c.get('decision_id'),
+                          int(c.get('status') in terminal and (not c.get('child_run_id') or c.get('child_status') in terminal)))
+                         for c in calls])
+    if commit:
+        call_db.commit()
+
+
+def mark_calls_unsettled(call_db, calls, commit=True):
+    call_db.executemany('UPDATE known_calls SET settled=0 WHERE source_rowid=?',
+                        [(call['_source_rowid'],) for call in calls])
+    if commit:
+        call_db.commit()
 
 
 def collect_indexed_thread_facts(db_path, call_db, scope_ids, run_owner, deadline, after_rowid=0):
@@ -826,7 +1013,7 @@ def collect_indexed_thread_facts(db_path, call_db, scope_ids, run_owner, deadlin
                                    'WHERE source_rowid>? ORDER BY source_rowid LIMIT ?',
                                    (after, OBSERVE_BATCH_ROWS)).fetchall()
             if not page:
-                return found, subjects, 0, True
+                return found, subjects, after, True
             for rowid, run_id, decision in page:
                 if run_id and decision in scope_ids:
                     try:
@@ -838,30 +1025,36 @@ def collect_indexed_thread_facts(db_path, call_db, scope_ids, run_owner, deadlin
                     subjects += 1
                 after = rowid
             if len(page) < OBSERVE_BATCH_ROWS:
-                return found, subjects, 0, True
+                return found, subjects, after, True
         return found, subjects, after, False
     except sqlite3.Error as error:
         if time.monotonic() >= deadline:
-            return [], 0, after_rowid, False
+            return found, subjects, after, False
         raise error
     finally:
         db.close()
 
 
-def delete_stale_calls(call_db, requested, matched):
+def delete_stale_calls(call_db, requested, matched, commit=True):
     stale = sorted(set(requested) - set(matched))
     call_db.executemany('DELETE FROM known_calls WHERE source_rowid=?', [(rowid,) for rowid in stale])
+    if commit:
+        call_db.commit()
+
+
+def sync_call_range(call_db, after, through, calls, matched):
+    known = [row[0] for row in call_db.execute(
+        'SELECT source_rowid FROM known_calls WHERE source_rowid>? AND source_rowid<=?', (after, through))]
+    delete_stale_calls(call_db, known, matched, commit=False)
+    remember_calls(call_db, calls, commit=False)
     call_db.commit()
 
 
 def note_quarantine(call_db, rowid, error):
     row = call_db.execute('SELECT attempts FROM quarantined_rows WHERE source_rowid=?', (rowid,)).fetchone()
     attempts = (row[0] if row else 0) + 1
-    if attempts >= 3:
-        call_db.execute('DELETE FROM quarantined_rows WHERE source_rowid=?', (rowid,))
-    else:
-        call_db.execute('INSERT OR REPLACE INTO quarantined_rows(source_rowid,reason,attempts) VALUES(?,?,?)',
-                        (rowid, short(error), attempts))
+    call_db.execute('INSERT OR REPLACE INTO quarantined_rows(source_rowid,reason,attempts) VALUES(?,?,?)',
+                    (rowid, short(error), attempts))
     call_db.commit()
     return attempts
 
@@ -898,20 +1091,20 @@ def incremental_t3(db_path, scope_ids, targets, state_path, deadline, ledger_mar
         high = db.execute(f'SELECT coalesce(max(rowid),0) FROM {PREFIX}turn_items').fetchone()[0]
         identity = database_identity(db_path, db)
         previous_ledger = state.get('ledger')
-        ledger_matches = ledger_marker is None or ledger_prefix_matches(previous_ledger, ledger_marker, deadline)
+        ledger_matches = ledger_prefix_matches(previous_ledger, ledger_marker, deadline)
         anchors_ok, anchors, reset_reason = anchors_valid(db, state.get('anchors', {}), state.get('rowid', 0)) \
             if isinstance(state.get('anchors', {}), dict) else (False, {}, 'anchors_invalid')
         if type(state.get('rowid')) is int and state['rowid'] > high:
             reset_reason = 'high_water_rewound'
-        elif not ledger_matches:
+        elif state and not ledger_matches:
             reset_reason = 'ledger_prefix_changed'
-        elif state.get('database_identity') != identity or state.get('call_index_id') != call_index_id:
+        elif state.get('rowid') is not None and (state.get('database_identity') != identity or state.get('call_index_id') != call_index_id):
             reset_reason = 'database_identity_changed'
         valid = (state.get('database_identity') == identity and state.get('call_index_id') == call_index_id
                  and ledger_matches and type(state.get('rowid')) is int and state['rowid'] <= high and anchors_ok)
         if state and not valid:
             state = {}
-            reset_call_index(call_db)
+            call_index_id = reset_call_index(call_db)
         initial = 'rowid' not in state
         cursor = max(0, high - OBSERVE_INITIAL_ROWS) if initial else state['rowid']
         floor = cursor
@@ -922,84 +1115,143 @@ def incremental_t3(db_path, scope_ids, targets, state_path, deadline, ledger_mar
             if anchor:
                 anchors[str(anchor[0])] = anchor[1]
         refresh_after = state.get('refresh_after', 0)
+        refresh_unsettled_after = state.get('refresh_unsettled_after', 0)
         thread_after = state.get('thread_after', 0)
         found, subjects, scanned, refreshed = [], 0, 0, 0
+        details_deferred = False
+        time_deferred = False
         refresh_done = True
+        refresh_error = False
         refresh_deadline = time.monotonic() + max(0, deadline - time.monotonic()) * 0.5
-        while time.monotonic() < refresh_deadline:
-            page = call_db.execute('SELECT source_rowid FROM known_calls WHERE source_rowid>? ORDER BY source_rowid LIMIT ?',
-                                   (refresh_after, OBSERVE_BATCH_ROWS)).fetchall()
-            if not page:
-                refresh_after = 0
+        active_limit = OBSERVE_REFRESH_ROWS // 2
+        active_page = call_db.execute('SELECT source_rowid FROM known_calls WHERE settled=0 AND source_rowid>? '
+                                      'ORDER BY source_rowid LIMIT ?', (refresh_unsettled_after, active_limit)).fetchall()
+        if not active_page:
+            refresh_unsettled_after = 0
+            active_page = call_db.execute('SELECT source_rowid FROM known_calls WHERE settled=0 '
+                                          'ORDER BY source_rowid LIMIT ?', (active_limit,)).fetchall()
+        settled_limit = OBSERVE_REFRESH_ROWS - len(active_page)
+        settled_page = call_db.execute('SELECT source_rowid FROM known_calls WHERE settled=1 AND source_rowid>? '
+                                       'ORDER BY source_rowid LIMIT ?', (refresh_after, settled_limit)).fetchall() if settled_limit else []
+        if settled_limit and not settled_page:
+            refresh_after = 0
+            settled_page = call_db.execute('SELECT source_rowid FROM known_calls WHERE settled=1 '
+                                           'ORDER BY source_rowid LIMIT ?', (settled_limit,)).fetchall()
+        page = [(rowid, True) for (rowid,) in active_page] + [(rowid, False) for (rowid,) in settled_page]
+        completed_page = True
+        for rowid, was_unsettled in page:
+            if time.monotonic() >= refresh_deadline:
+                refresh_done = completed_page = False
                 break
-            completed_page = True
-            for (rowid,) in page:
-                if time.monotonic() >= refresh_deadline:
-                    refresh_done = completed_page = False
-                    break
-                try:
-                    _, calls, count, matched, _ = read_t3_rowid_batch(
-                        db_path, cursor, high, 1, [rowid], scope_ids, refresh_deadline)
-                    delete_stale_calls(call_db, [rowid], matched)
-                    remember_calls(call_db, calls)
-                    run_owner = indexed_run_owners(call_db, [c.get('child_run_id') for c in calls])
-                    batch = collect_t3(db_path, scope_ids, targets, calls_override=calls, deadline=refresh_deadline,
-                                       run_owner_override=run_owner, include_thread_snapshot=cursor >= high,
-                                       call_db=call_db) if calls else result('ok')
-                    if batch['state'] not in ('ok', 'unavailable'):
-                        raise sqlite3.OperationalError(batch.get('reason') or 'T3 row failed')
-                    found.extend(batch['observations'])
-                    subjects += batch['subjects_checked']
-                    refreshed += count
+            try:
+                call_db.execute('SAVEPOINT refresh_row')
+                _, calls, count, matched, _ = read_t3_rowid_batch(
+                    db_path, cursor, high, 1, [rowid], scope_ids, refresh_deadline)
+                delete_stale_calls(call_db, [rowid], matched, commit=False)
+                remember_calls(call_db, calls, commit=False)
+                run_owner = indexed_run_owners(call_db, [c.get('child_run_id') for c in calls])
+                batch = collect_t3(db_path, scope_ids, targets, calls_override=calls, deadline=refresh_deadline,
+                                   run_owner_override=run_owner, include_thread_snapshot=True,
+                                   call_db=call_db) if calls else result('ok')
+                if batch['state'] not in ('ok', 'unavailable', 'partial'):
+                    raise sqlite3.OperationalError(batch.get('reason') or 'T3 row failed')
+                if batch['state'] == 'partial':
+                    mark_calls_unsettled(call_db, calls, commit=False)
+                call_db.execute('RELEASE refresh_row')
+                call_db.commit()
+                found.extend(batch['observations'])
+                subjects += batch['subjects_checked']
+                refreshed += count
+                if was_unsettled:
+                    refresh_unsettled_after = rowid
+                else:
                     refresh_after = rowid
-                    call_db.execute('DELETE FROM quarantined_rows WHERE source_rowid=?', (rowid,))
-                    call_db.commit()
-                except BudgetExhausted:
-                    refresh_done = completed_page = False
-                    break
-                except ReadBatchTooSlow:
-                    attempts = note_quarantine(call_db, rowid, 'read_batch_exceeded_200ms')
-                    if attempts >= 3:
-                        refresh_after = rowid
-                        continue
-                    refresh_done = completed_page = False
-                    break
-                except (sqlite3.Error, ValueError, TypeError, KeyError, IndexError, OSError) as error:
-                    if time.monotonic() >= refresh_deadline or 'locked' in str(error).lower() or 'busy' in str(error).lower():
+                if batch['state'] == 'partial':
+                    details_deferred = True
+                    if batch.get('reason') == 'time_budget_exhausted':
+                        time_deferred = True
                         refresh_done = completed_page = False
                         break
-                    note_quarantine(call_db, rowid, error)
+                call_db.execute('DELETE FROM quarantined_rows WHERE source_rowid=?', (rowid,))
+                if was_unsettled:
+                    refresh_unsettled_after = rowid
+                else:
                     refresh_after = rowid
-            if completed_page and len(page) < OBSERVE_BATCH_ROWS:
-                refresh_after = 0
+            except BudgetExhausted:
+                if call_db.in_transaction:
+                    call_db.execute('ROLLBACK TO refresh_row')
+                    call_db.execute('RELEASE refresh_row')
+                refresh_done = completed_page = False
                 break
-        else:
-            refresh_done = False
+            except ReadBatchTooSlow:
+                if call_db.in_transaction:
+                    call_db.execute('ROLLBACK TO refresh_row')
+                    call_db.execute('RELEASE refresh_row')
+                attempts = note_quarantine(call_db, rowid, 'read_batch_exceeded_200ms')
+                if attempts >= 3:
+                    if was_unsettled:
+                        refresh_unsettled_after = rowid
+                    else:
+                        refresh_after = rowid
+                    continue
+                refresh_done = completed_page = False
+                break
+            except (sqlite3.Error, ValueError, TypeError, KeyError, IndexError, OSError) as error:
+                if call_db.in_transaction:
+                    call_db.execute('ROLLBACK TO refresh_row')
+                    call_db.execute('RELEASE refresh_row')
+                if isinstance(error, (sqlite3.Error, OSError)) or time.monotonic() >= refresh_deadline:
+                    refresh_error = isinstance(error, OSError) or time.monotonic() < refresh_deadline
+                    refresh_done = completed_page = False
+                    break
+                note_quarantine(call_db, rowid, error)
+                if was_unsettled:
+                    refresh_unsettled_after = rowid
+                else:
+                    refresh_after = rowid
+        if call_db.in_transaction:
+            call_db.commit()
+        if completed_page and len(settled_page) < settled_limit:
+            refresh_after = 0
+        if completed_page:
+            remaining_active = call_db.execute('SELECT count(*) FROM known_calls WHERE settled=0 AND source_rowid>?',
+                                               (refresh_unsettled_after,)).fetchone()[0]
+            refresh_done = remaining_active == 0 and not details_deferred and not refresh_error
+            if len(active_page) < active_limit:
+                refresh_unsettled_after = 0
         retry_deadline = time.monotonic() + max(0, deadline - time.monotonic()) * 0.1
-        quarantined_page = call_db.execute('SELECT source_rowid FROM quarantined_rows WHERE source_rowid<=? ORDER BY source_rowid LIMIT 25',
+        quarantined_page = call_db.execute('SELECT source_rowid,attempts FROM quarantined_rows WHERE source_rowid<=? ORDER BY attempts,source_rowid LIMIT 25',
                                            (high,)).fetchall()
-        for (rowid,) in quarantined_page:
+        for rowid, attempts in quarantined_page:
             if time.monotonic() >= retry_deadline:
                 break
             try:
                 _, calls, count, matched, _ = read_t3_rowid_batch(
-                    db_path, cursor, high, 1, [rowid], scope_ids, retry_deadline)
+                    db_path, cursor, high, 1, [rowid], scope_ids, retry_deadline,
+                    max_read_seconds=min(2.0, OBSERVE_READ_SECONDS * (2 ** max(0, attempts - 1))))
                 delete_stale_calls(call_db, [rowid], matched)
                 remember_calls(call_db, calls)
                 run_owner = indexed_run_owners(call_db, [c.get('child_run_id') for c in calls])
                 batch = collect_t3(db_path, scope_ids, targets, calls_override=calls, deadline=retry_deadline,
                                    run_owner_override=run_owner, include_thread_snapshot=False, call_db=call_db) if calls else result('ok')
-                if batch['state'] not in ('ok', 'unavailable'):
+                if batch['state'] not in ('ok', 'unavailable', 'partial'):
                     raise sqlite3.OperationalError(batch.get('reason') or 'T3 retry failed')
                 found.extend(batch['observations'])
                 subjects += batch['subjects_checked']
                 refreshed += count
+                if batch['state'] == 'partial':
+                    mark_calls_unsettled(call_db, calls)
+                    details_deferred = True
+                    break
                 call_db.execute('DELETE FROM quarantined_rows WHERE source_rowid=?', (rowid,))
                 call_db.commit()
-            except (BudgetExhausted, ReadBatchTooSlow):
+            except BudgetExhausted:
                 break
+            except ReadBatchTooSlow:
+                note_quarantine(call_db, rowid, 'read_batch_exceeded_200ms')
+                continue
             except (sqlite3.Error, ValueError, TypeError, KeyError, IndexError, OSError) as error:
-                if isinstance(error, sqlite3.Error) and any(term in str(error).lower() for term in ('locked', 'busy')):
+                if isinstance(error, (sqlite3.Error, OSError)):
                     break
                 note_quarantine(call_db, rowid, error)
         while cursor < high and time.monotonic() < deadline:
@@ -1008,31 +1260,35 @@ def incremental_t3(db_path, scope_ids, targets, state_path, deadline, ledger_mar
                     db_path, cursor, high, OBSERVE_BATCH_ROWS, scope_ids=scope_ids, deadline=deadline)
                 if next_cursor == cursor:
                     break
-                remember_calls(call_db, calls)
+                sync_call_range(call_db, cursor, next_cursor, calls, matched_rowids)
+                call_db.execute('DELETE FROM quarantined_rows WHERE source_rowid>? AND source_rowid<=?',
+                                (cursor, next_cursor))
+                call_db.commit()
                 run_owner = indexed_run_owners(call_db, [c.get('child_run_id') for c in calls])
-                try:
-                    batch = collect_t3(db_path, scope_ids, targets, calls_override=calls, deadline=deadline,
-                                       run_owner_override=run_owner, include_thread_snapshot=next_cursor >= high,
-                                       call_db=call_db) if calls else result('ok')
-                except BudgetExhausted:
-                    # The sidecar has the rows; refresh will retry their details after the high-water mark advances.
-                    scanned += count
-                    cursor = next_cursor
-                    anchors = remember_anchor(anchors, cursor, anchor_key)
-                    break
-                if batch['state'] not in ('ok', 'unavailable'):
+                batch = collect_t3(db_path, scope_ids, targets, calls_override=calls, deadline=deadline,
+                                   run_owner_override=run_owner, include_thread_snapshot=next_cursor >= high,
+                                   call_db=call_db) if calls else result('ok')
+                if batch['state'] not in ('ok', 'unavailable', 'partial'):
                     raise sqlite3.OperationalError(batch.get('reason') or 'T3 batch failed')
                 found.extend(batch['observations'])
                 subjects += batch['subjects_checked']
                 scanned += count
                 cursor = next_cursor
                 anchors = remember_anchor(anchors, cursor, anchor_key)
+                if batch['state'] == 'partial':
+                    mark_calls_unsettled(call_db, calls)
+                    details_deferred = True
+                    if batch.get('reason') == 'time_budget_exhausted':
+                        time_deferred = True
+                        refresh_done = False
             except BudgetExhausted:
                 break
             except (sqlite3.Error, ValueError, TypeError, KeyError, IndexError, OSError) as error:
                 # Retry a bad batch row by row. Quarantine only the row that still fails so later rows advance.
                 if time.monotonic() >= deadline:
                     break
+                if isinstance(error, (sqlite3.Error, OSError)) and not isinstance(error, ReadBatchTooSlow):
+                    raise
                 single_cursor = cursor
                 slow_row = False
                 for _ in range(OBSERVE_BATCH_ROWS):
@@ -1042,20 +1298,22 @@ def incremental_t3(db_path, scope_ids, targets, state_path, deadline, ledger_mar
                             db_path, single_cursor, high, 1, scope_ids=scope_ids, deadline=deadline)
                         if one_cursor == single_cursor:
                             break
-                        remember_calls(call_db, one_calls)
+                        sync_call_range(call_db, single_cursor, one_cursor, one_calls, one_ids)
+                        call_db.execute('DELETE FROM quarantined_rows WHERE source_rowid=?', (one_cursor,))
+                        call_db.commit()
                         run_owner = indexed_run_owners(call_db, [c.get('child_run_id') for c in one_calls])
                         one = collect_t3(db_path, scope_ids, targets, calls_override=one_calls, deadline=deadline,
                                          run_owner_override=run_owner, include_thread_snapshot=one_cursor >= high,
                                          call_db=call_db) if one_calls else result('ok')
-                        if one['state'] not in ('ok', 'unavailable'):
+                        if one['state'] not in ('ok', 'unavailable', 'partial'):
                             raise sqlite3.OperationalError(one.get('reason') or 'T3 row failed')
                         found.extend(one['observations'])
                         subjects += one['subjects_checked']
+                        if one['state'] == 'partial':
+                            mark_calls_unsettled(call_db, one_calls)
+                            details_deferred = True
+                            refresh_done = False
                     except BudgetExhausted:
-                        if one_cursor is not None:
-                            cursor = one_cursor
-                            scanned += one_count
-                            anchors = remember_anchor(anchors, cursor, anchor_key)
                         break
                     except ReadBatchTooSlow:
                         bad_row = next_source_rowid(db_path, single_cursor, high)
@@ -1074,9 +1332,12 @@ def incremental_t3(db_path, scope_ids, targets, state_path, deadline, ledger_mar
                         slow_row = True
                         break
                     except (sqlite3.Error, ValueError, TypeError, KeyError, IndexError, OSError) as row_error:
-                        if isinstance(row_error, sqlite3.Error) and any(term in str(row_error).lower() for term in ('locked', 'busy')):
-                            slow_row = True
-                            break
+                        if isinstance(row_error, (sqlite3.Error, OSError)):
+                            if isinstance(row_error, ReadBatchTooSlow) or (isinstance(row_error, sqlite3.Error) and
+                                    any(term in str(row_error).lower() for term in ('locked', 'busy', 'interrupt'))):
+                                slow_row = True
+                                break
+                            raise
                         bad_row = one_cursor if one_cursor is not None else next_source_rowid(db_path, single_cursor, high)
                         bad_rowid = bad_row[0] if isinstance(bad_row, tuple) else bad_row
                         if bad_rowid is None:
@@ -1102,25 +1363,51 @@ def incremental_t3(db_path, scope_ids, targets, state_path, deadline, ledger_mar
                 db_path, call_db, scope_ids, run_owner, deadline, after_rowid=thread_after)
             found.extend(thread_facts)
             subjects += thread_subjects
-        quarantined = call_db.execute('SELECT count(*) FROM quarantined_rows WHERE attempts<3').fetchone()[0]
-        exhausted = cursor < high or not refresh_done or not thread_done
-        reason = 'time_budget_exhausted' if exhausted else 'rows_quarantined' if quarantined else None
+            if thread_done:
+                thread_after = 0
+        quarantined = call_db.execute('SELECT count(*) FROM quarantined_rows').fetchone()[0]
+        budget_exhausted = time.monotonic() >= deadline
+        exhausted = cursor < high or not refresh_done or not thread_done or details_deferred
+        reason = ('time_budget_exhausted' if budget_exhausted or time_deferred else
+                  'usage_refresh_pending' if details_deferred else
+                  'refresh_pending' if not refresh_done else 'time_budget_exhausted' if exhausted else
+                  'rows_quarantined' if quarantined else None)
         outcome = result('partial' if exhausted or quarantined else 'ok', reason, subjects, found,
                          incremental={'initial_window': f'last {OBSERVE_INITIAL_ROWS} turn_items rowids' if initial else None,
                                       'reset_reason': reset_reason if initial and reset_reason else None,
                                       'high_water_before': state.get('rowid'), 'rowid_from': floor, 'rowid_through': cursor,
                                       'snapshot_high_water': high, 'rows_scanned': scanned, 'rows_refreshed': refreshed,
-                                      'refresh_cursor': refresh_after, 'thread_cursor': thread_after,
+                                      'refresh_cursor': refresh_after, 'refresh_unsettled_cursor': refresh_unsettled_after,
+                                      'thread_cursor': thread_after,
                                       'quarantined_rows': quarantined,
-                                      'budget_exhausted': exhausted},
+                                      'budget_exhausted': budget_exhausted},
                          _state={'database_identity': identity, 'call_index_id': call_index_id, 'rowid': cursor,
-                                 'anchors': anchors, 'refresh_after': refresh_after, 'thread_after': thread_after,
+                                 'anchors': anchors, 'refresh_after': refresh_after,
+                                 'refresh_unsettled_after': refresh_unsettled_after, 'thread_after': thread_after,
                                  'ledger': state.get('ledger'),
                                  'git_cursor': state.get('git_cursor'), 'destination_cursors': state.get('destination_cursors', {})})
         return outcome
     except BudgetExhausted:
+        if 'call_index_id' in locals() and 'cursor' in locals():
+            return result('partial', 'time_budget_exhausted', locals().get('subjects', 0), locals().get('found', []), _state={
+                'database_identity': locals().get('identity'), 'call_index_id': call_index_id, 'rowid': cursor,
+                'anchors': locals().get('anchors', state.get('anchors', {})),
+                'refresh_after': locals().get('refresh_after', state.get('refresh_after', 0)),
+                'refresh_unsettled_after': locals().get('refresh_unsettled_after', state.get('refresh_unsettled_after', 0)),
+                'thread_after': locals().get('thread_after', state.get('thread_after', 0)),
+                'ledger': state.get('ledger'), 'git_cursor': state.get('git_cursor'),
+                'destination_cursors': state.get('destination_cursors', {})})
         return result('partial', 'time_budget_exhausted')
     except (OSError, ValueError, sqlite3.Error) as error:
+        if 'call_index_id' in locals() and 'cursor' in locals():
+            return result('error', short(error), locals().get('subjects', 0), locals().get('found', []), _state={
+                'database_identity': locals().get('identity'), 'call_index_id': call_index_id, 'rowid': cursor,
+                'anchors': locals().get('anchors', state.get('anchors', {})),
+                'refresh_after': locals().get('refresh_after', state.get('refresh_after', 0)),
+                'refresh_unsettled_after': locals().get('refresh_unsettled_after', state.get('refresh_unsettled_after', 0)),
+                'thread_after': locals().get('thread_after', state.get('thread_after', 0)),
+                'ledger': state.get('ledger'), 'git_cursor': state.get('git_cursor'),
+                'destination_cursors': state.get('destination_cursors', {})})
         return result('error', short(error))
     finally:
         if 'db' in locals():
@@ -1336,9 +1623,9 @@ def scan_commit(close, ref, window_days, now, deadline=None):
         raise Ineligible('repo_missing')
     if not is_repo_root(repo, deadline):
         raise Ineligible('not_a_repository_root')
-    if deadline is not None and deadline - time.monotonic() < COMMIT_TIMEOUT:
+    if deadline is not None and time.monotonic() >= deadline:
         raise BudgetExhausted
-    state = commit_state(repo, sha)
+    state = commit_state(repo, sha, deadline)
     if state != 'exists':
         if state == 'missing':
             raise Ineligible('sha_missing')
@@ -1429,9 +1716,15 @@ def execute(args):
     budget = getattr(args, 'observe_time_budget_seconds', OBSERVE_TIME_BUDGET_SECONDS)
     if type(budget) is not int or not 1 <= budget <= 3600:
         raise ValueError('--observe-time-budget-seconds must be an integer 1-3600')
-    state_path = getattr(args, 'observe_state', None) or default_observe_state()
-    deadline = time.monotonic() + budget
-    lock_fd = observe_state_lock(state_path, deadline)
+    state_path = getattr(args, 'observe_state', None) or default_observe_state(getattr(args, 'observations', None))
+    process_started = getattr(args, '_observe_process_started_monotonic', None)
+    if type(process_started) not in (int, float):
+        process_started = time.monotonic()
+    deadline = process_started + budget
+    try:
+        lock_fd = observe_state_lock(state_path, deadline)
+    except BudgetExhausted:
+        raise ValueError('observe_state_lock_timeout')
     args._observe_deadline = deadline
     try:
         return _execute_locked(args)
@@ -1459,27 +1752,31 @@ def _execute_locked(args):
     by_name = {e['name']: e for e in entries}
     scope = store.decision_sources(receipts, outcome_rows)
     collected = {}
-    pending_state = None
-    state_path = getattr(args, 'observe_state', None) or default_observe_state()
+    pending_state = {}
+    state_path = getattr(args, 'observe_state', None) or default_observe_state(getattr(args, 'observations', None))
     try:
         previous_state = json.loads(state_path.read_text()) if state_path.exists() else {}
     except (OSError, ValueError):
         previous_state = {}
     if not isinstance(previous_state, dict):
         previous_state = {}
-    if previous_state.get('database_identity') and previous_state.get('call_index_id'):
-        pending_state = previous_state.copy()
+    pending_state.update(previous_state)
+    t3_state_updated = False
     destination_cursors = previous_state.get('destination_cursors', {})
     if not isinstance(destination_cursors, dict):
         destination_cursors = {}
     t3_deadline = budget_start + budget * 0.60
+    ledger_before = None
+    ledger_matches_on_entry = False
     try:
         ledger_before = read_last_ledger_line(args.observations, min(deadline, t3_deadline), previous_state.get('ledger'))
+        ledger_matches_on_entry = ledger_prefix_matches(previous_state.get('ledger'), ledger_before)
         t3_result = incremental_t3(args.db, scope.get('t3', set()), {r['decision_id']: r.get('target') for r in receipts},
-                                   state_path, min(deadline, t3_deadline), ledger_before or {})
+                                   state_path, min(deadline, t3_deadline), ledger_before)
         collected_state = t3_result.pop('_state', None)
         if collected_state is not None:
             pending_state = collected_state
+            t3_state_updated = True
         collected['t3'] = t3_result
     except BudgetExhausted:
         collected['t3'] = result('partial', 'time_budget_exhausted')
@@ -1522,10 +1819,11 @@ def _execute_locked(args):
     if pending_state is not None:
         pending_state['destination_cursors'] = destination_cursors
         pending_state['git_cursor'] = git_cursor
-        try:
-            pending_state['ledger'] = read_last_ledger_line(args.observations, deadline, pending_state.get('ledger'))
-        except BudgetExhausted:
-            pass  # The previous marker still identifies an unchanged prefix after this append.
+        if t3_state_updated or not previous_state.get('rowid') or ledger_matches_on_entry:
+            try:
+                pending_state['ledger'] = read_last_ledger_line(args.observations, deadline, pending_state.get('ledger'))
+            except BudgetExhausted:
+                pending_state['ledger'] = pending_state.get('ledger') or ledger_before or empty_ledger_marker(args.observations)
         save_state(state_path, pending_state)
     # Printed, never stored: what each evidenced commit's close recorded, beside the live re-check above. Old rows are not_recorded.
     closes, _ = split_rows(outcome_rows)

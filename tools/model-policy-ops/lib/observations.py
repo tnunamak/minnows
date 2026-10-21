@@ -8,10 +8,13 @@ import hashlib
 import json
 import os
 import re
+import sqlite3
+import tempfile
 from datetime import datetime
+from pathlib import Path
 
 import destinations as destination_store
-from decision_receipts import append_row, locked_private_rows, numbered_rows, validate_id
+from decision_receipts import locked_private_stream, locked_private_rows, numbered_rows, validate_id
 from outcomes import split_rows
 
 SCHEMA = 1
@@ -29,6 +32,7 @@ OBSERVATION_KEYS = {'schema_version', 'kind', 'observation_id', 'source', 'subje
                     'source_ids', 'source_timestamps', 'unknown', 'scope', 'observed_at', 'run_id'}
 SOURCE_RUN_KEYS = {'schema_version', 'kind', 'run_id', 'started_at', 'finished_at', 'sources', 'labels'}
 SOURCE_ENTRY_KEYS = {'state', 'reason', 'subjects_checked', 'new_observations'}
+MAX_LEDGER_LINE = 4 * 1024 * 1024
 
 
 def observation_id(source, subject_id, fact, source_timestamps, unknown):
@@ -140,23 +144,67 @@ def append_run(path, run_id, started_at, finished_at, collected):
     candidates = [o | {'observed_at': finished_at, 'run_id': run_id} for r in collected.values() for o in r['observations']]
     for row in candidates + [source_run(run_id, started_at, finished_at, collected, {})]:
         check_row(row)
-    with locked_private_rows(path, validate_observation_rows) as (stream, rows):
-        known = {r['observation_id'] for r in rows if r['kind'] == 'observation'}
-        if any(r['kind'] == 'source_run' and r['run_id'] == run_id for r in rows):
-            raise ValueError(f'run id {run_id!r} already recorded')
-        fresh_by_source = {}
-        for source, result in sorted(collected.items()):
-            fresh = []
-            for observation in result['observations']:
-                if observation['observation_id'] not in known:
-                    known.add(observation['observation_id'])
-                    fresh.append(observation | {'observed_at': finished_at, 'run_id': run_id})
-            fresh_by_source[source] = fresh
-        record = source_run(run_id, started_at, finished_at, collected, {s: len(f) for s, f in fresh_by_source.items()})
-        for fresh in fresh_by_source.values():
-            for observation in fresh:
-                append_row(stream, observation)
-        append_row(stream, record)
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    with tempfile.TemporaryDirectory(prefix='.observe-dedupe-', dir=os.fspath(path.parent)) as scratch:
+        index_path = os.path.join(scratch, 'ids.sqlite')
+        with locked_private_stream(path) as stream:
+            index = sqlite3.connect(index_path)
+            try:
+                os.chmod(index_path, 0o600)
+                index.execute('PRAGMA cache_size=-8192')
+                index.execute('PRAGMA temp_store=FILE')
+                index.execute('CREATE TABLE ids (kind TEXT NOT NULL, value TEXT NOT NULL, line INTEGER NOT NULL, PRIMARY KEY(kind,value)) WITHOUT ROWID')
+                source_run_exists = False
+                number = 0
+                while True:
+                    line = stream.readline(MAX_LEDGER_LINE + 1)
+                    if not line:
+                        break
+                    number += 1
+                    if len(line) > MAX_LEDGER_LINE:
+                        raise ValueError(f'{path.name} line {number}: row exceeds {MAX_LEDGER_LINE} characters')
+                    if not line.strip():
+                        continue
+                    try:
+                        row = json.loads(line)
+                    except ValueError as error:
+                        raise ValueError(f'{Path(path).name} line {number}: not valid JSON') from error
+                    try:
+                        check_row(row)
+                    except ValueError as error:
+                        raise ValueError(f'{Path(path).name} line {number}: {error}') from None
+                    own = row['observation_id'] if row['kind'] == 'observation' else row['run_id']
+                    try:
+                        index.execute('INSERT INTO ids VALUES(?,?,?)', (row['kind'], own, number))
+                    except sqlite3.IntegrityError:
+                        raise ValueError(f'{Path(path).name} line {number}: id {own!r} already used') from None
+                    if row['kind'] == 'source_run' and own == run_id:
+                        source_run_exists = True
+                if source_run_exists:
+                    raise ValueError(f'run id {run_id!r} already recorded')
+                index.commit()
+                fresh_by_source = {}
+                for source, result in sorted(collected.items()):
+                    fresh = []
+                    for observation in result['observations']:
+                        exists = index.execute('SELECT 1 FROM ids WHERE kind=? AND value=?',
+                                                ('observation', observation['observation_id'])).fetchone()
+                        if not exists:
+                            index.execute('INSERT INTO ids VALUES(?,?,?)',
+                                          ('observation', observation['observation_id'], 0))
+                            fresh.append(observation | {'observed_at': finished_at, 'run_id': run_id})
+                    fresh_by_source[source] = fresh
+                record = source_run(run_id, started_at, finished_at, collected,
+                                    {source: len(rows) for source, rows in fresh_by_source.items()})
+                new_rows = [row for fresh in fresh_by_source.values() for row in fresh] + [record]
+                if new_rows:
+                    stream.seek(0, os.SEEK_END)
+                    stream.write(''.join(json.dumps(row, sort_keys=True, separators=(',', ':')) + '\n' for row in new_rows))
+                    stream.flush()
+                    os.fsync(stream.fileno())
+            finally:
+                index.close()
     return record
 
 

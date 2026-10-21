@@ -10,6 +10,7 @@ import os
 import re
 import stat
 import subprocess
+import time
 from datetime import datetime, timezone
 
 from decision_receipts import (append_row, find_receipt, locked_private_rows, numbered_rows, validate_id,
@@ -174,7 +175,7 @@ COMMIT_TIMEOUT = 10
 OBJECT_ID = re.compile(r'[0-9a-f]{40}')
 
 
-def commit_state(repo, sha):
+def commit_state(repo, sha, deadline=None):
     """'exists', 'missing', 'timeout' or 'error'. `sha` is validated hex, so it cannot be read as an option.
 
     `cat-file --batch-check` answers on stdout and exits 0 whether or not the object exists. Only its explicit `<name> missing` line means
@@ -182,8 +183,11 @@ def commit_state(repo, sha):
     """
     query = sha + '^{commit}'
     try:
+        timeout = COMMIT_TIMEOUT if deadline is None else min(COMMIT_TIMEOUT, deadline - time.monotonic())
+        if timeout <= 0:
+            return 'timeout'
         done = subprocess.run(git_argv(repo, 'cat-file', '--batch-check'), input=(query + '\n').encode(), capture_output=True,
-                              timeout=COMMIT_TIMEOUT, env=git_env())
+                              timeout=timeout, env=git_env())
     except subprocess.TimeoutExpired:
         return 'timeout'
     except OSError:

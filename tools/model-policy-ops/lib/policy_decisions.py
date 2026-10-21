@@ -65,7 +65,8 @@ def add_arguments(parser):
     parser.add_argument('--outcomes', type=Path, help='outcome ledger; default outcomes.jsonl beside --receipts')
     parser.add_argument('--observations', type=Path, help='observation ledger; default observations.jsonl beside --receipts')
     parser.add_argument('--git-window-days', type=int, help='observe: days after a close that git signals are searched; default 14')
-    parser.add_argument('--observe-state', type=Path, help='observe: private incremental cursor; default ~/.local/state/model-policy/observe.json')
+    parser.add_argument('--observe-state', type=Path,
+                        help='observe: private incremental cursor; default $XDG_STATE_HOME/model-policy/observe-<ledger-key>.json (or ~/.local/state when unset)')
     parser.add_argument('--observe-time-budget-seconds', type=int, default=60, help='observe: total time budget; default 60 seconds')
     parser.add_argument('--close-id')
     parser.add_argument('--followup-id')

@@ -50,6 +50,68 @@ USAGE_SCOPES = ('main_agent',)
 USAGE_FIELDS = (('input_tokens', 'inputTokens'), ('cached_input_tokens', 'cachedInputTokens'),
                 ('cache_creation_tokens', 'cacheCreationTokens'), ('output_tokens', 'outputTokens'),
                 ('reasoning_tokens', 'reasoningTokens'))
+USAGE_READ_SLICE_SECONDS = 0.2
+
+
+class UsageReadSliceExceeded(Exception):
+    """One usage page exceeded its bounded SQLite read slice."""
+
+
+def usage_page(db, sql, params, deadline, short_read=True):
+    page_deadline = deadline
+    if short_read:
+        page_deadline = time.monotonic() + USAGE_READ_SLICE_SECONDS
+        if deadline is not None:
+            page_deadline = min(page_deadline, deadline)
+        db.set_progress_handler(lambda: int(time.monotonic() >= page_deadline), 1000)
+    try:
+        return db.execute(sql, params).fetchall()
+    except sqlite3.OperationalError as error:
+        if short_read and 'interrupt' in str(error).lower() and (deadline is None or time.monotonic() < deadline):
+            raise UsageReadSliceExceeded from error
+        raise
+    finally:
+        if not short_read:
+            if deadline is None:
+                db.set_progress_handler(None, 0)
+            else:
+                db.set_progress_handler(lambda: int(time.monotonic() >= deadline), 1000)
+        elif deadline is None:
+            db.set_progress_handler(None, 0)
+        else:
+            db.set_progress_handler(lambda: int(time.monotonic() >= deadline), 1000)
+
+
+def paged_turn_rows(db, select_turn, where, params, close_batches, deadline, ordinal_not_null):
+    """Yield indexed turn pages with a stable key, including rows whose ordinal is null."""
+    after = None
+    while True:
+        if deadline is not None and time.monotonic() >= deadline:
+            raise BudgetExhausted
+        sql = select_turn + ' ' + where
+        page_params = params
+        if after is not None:
+            ordinal, rowid = after
+            if ordinal_not_null:
+                sql += ' AND (ordinal,rowid)>(?,?)'
+                page_params += (ordinal, rowid)
+            else:
+                sql += (' AND ((ordinal IS NULL AND ? IS NULL AND rowid>?) OR '
+                        '(? IS NULL AND ordinal IS NOT NULL) OR ordinal>? OR '
+                        '(ordinal=? AND rowid>?))')
+                page_params += (ordinal, rowid, ordinal, ordinal, ordinal, rowid)
+        page = usage_page(db, sql + ' ORDER BY ordinal,rowid LIMIT 500', page_params, deadline, close_batches)
+        if close_batches:
+            db.commit()
+        if not page:
+            return
+        yield page
+        if len(page) < 500:
+            return
+        next_after = (page[-1][2], page[-1][-1])
+        if next_after == after:
+            raise sqlite3.OperationalError('provider_turn_page_cursor_did_not_advance')
+        after = next_after
 
 
 def usage_unknown(state, reason=None):
@@ -70,8 +132,12 @@ def count(value):
 class BudgetExhausted(Exception):
     """The observe deadline expired while reading a bounded SQLite page."""
 
+    def __init__(self, observations=None):
+        super().__init__('time_budget_exhausted')
+        self.observations = observations or []
 
-def read_child_usage(db, child_run_id, close_batches=False, deadline=None):
+
+def _read_child_usage(db, child_run_id, close_batches=False, deadline=None):
     """Per-attempt, per-turn whitelisted metadata for one child run. Never sums, never guesses."""
     attempt_table, turn_table = PREFIX + 'run_attempts', PREFIX + 'provider_turns'
     attempt_columns = {row[1] for row in db.execute(f'PRAGMA table_info({attempt_table})')}
@@ -84,80 +150,99 @@ def read_child_usage(db, child_run_id, close_batches=False, deadline=None):
     fields = ','.join(f"json_extract(payload_json,'$.turnTokenUsage.{key}')" for _, key in USAGE_FIELDS)
     select_turn = f"""SELECT provider_turn_id,run_attempt_id,ordinal,status,
       json_extract(payload_json,'$.turnTokenUsage.usageStatus'),json_extract(payload_json,'$.turnTokenUsage.usageScope'),
-      json_extract(payload_json,'$.turnTokenUsage.hasSubagents'),{fields}
+      json_extract(payload_json,'$.turnTokenUsage.hasSubagents'),{fields},rowid
       FROM {PREFIX}provider_turns"""
-    has_attempt_thread = 'provider_thread_id' in attempt_columns
-    has_turn_thread = 'provider_thread_id' in turn_columns
+    thread_column = next((name for name in ('thread_id', 'provider_thread_id')
+                          if name in attempt_columns and name in turn_columns
+                          and has_index_prefix(db, turn_table, name)), None)
+    ordinal_not_null = any(row[1] == 'ordinal' and row[3] for row in db.execute(f'PRAGMA table_info({turn_table})'))
     if close_batches and not has_index_prefix(db, attempt_table, 'run_id'):
         return usage_unknown('unavailable', 'no_indexed_attempt_lookup')
     indexed_attempt_turn = has_index_prefix(db, turn_table, 'run_attempt_id')
-    indexed_thread_turn = has_attempt_thread and has_turn_thread and has_index_prefix(db, turn_table, 'provider_thread_id')
+    indexed_thread_turn = thread_column is not None
     if not indexed_thread_turn:
         if close_batches and not indexed_attempt_turn:
             return usage_unknown('unavailable', 'no_indexed_turn_lookup')
     if deadline is not None:
         db.set_progress_handler(lambda: int(time.monotonic() >= deadline), 1000)
-    attempt_thread = 'provider_thread_id' if indexed_thread_turn else 'NULL'
-    attempt_rows, after_ordinal = [], -1
+    attempt_thread = thread_column if indexed_thread_turn else 'NULL'
+    attempt_rows, after_attempt = [], None
     while True:
         if deadline is not None and time.monotonic() >= deadline:
             raise BudgetExhausted
-        page = db.execute(f"SELECT attempt_id,attempt_ordinal,{attempt_thread},provider_turn_id FROM {attempt_table} "
-                          "WHERE run_id=? AND attempt_ordinal>? ORDER BY attempt_ordinal,attempt_id LIMIT 500",
-                          (child_run_id, after_ordinal)).fetchall()
+        sql = f"SELECT attempt_id,attempt_ordinal,{attempt_thread},provider_turn_id FROM {attempt_table} WHERE run_id=? AND attempt_ordinal IS NOT NULL"
+        params = [child_run_id]
+        if after_attempt is not None:
+            sql += ' AND (attempt_ordinal,attempt_id)>(?,?)'
+            params.extend(after_attempt)
+        page = db.execute(sql + ' ORDER BY attempt_ordinal,attempt_id LIMIT 500', params).fetchall()
         if close_batches:
             db.commit()
         attempt_rows.extend(page)
         if len(page) < 500:
             break
-        after_ordinal = page[-1][1]
+        after_attempt = (page[-1][1], page[-1][0])
+    after_attempt_id = ''
+    while True:
+        if deadline is not None and time.monotonic() >= deadline:
+            raise BudgetExhausted
+        page = db.execute(f"SELECT attempt_id,attempt_ordinal,{attempt_thread},provider_turn_id FROM {attempt_table} "
+                          "WHERE run_id=? AND attempt_ordinal IS NULL AND attempt_id>? ORDER BY attempt_id LIMIT 500",
+                          (child_run_id, after_attempt_id)).fetchall()
+        if close_batches:
+            db.commit()
+        attempt_rows.extend(page)
+        if len(page) < 500:
+            break
+        after_attempt_id = page[-1][0]
+    attempt_rows.sort(key=lambda row: (row[1] is not None, row[1] if row[1] is not None else 0, row[0] or ''))
     attempts, rows_by_attempt = {}, {}
     for row in attempt_rows:
-        attempt_id, ordinal, provider_thread_id, provider_turn_id = row
+        attempt_id, ordinal, thread_id, provider_turn_id = row
         attempts[attempt_id] = {'attempt_id': safe_id(attempt_id), 'attempt_ordinal': safe_ordinal(ordinal), 'turns': []}
         rows_by_attempt[attempt_id] = {}
 
-    # provider_turns has no run_attempt_id index in the current schema. Resolve it through the indexed
-    # provider_thread_id, then filter by attempt. Legacy schemas use run_attempt_id only when indexed.
-    thread_ids = {r[2] for r in attempt_rows if r[2]} if indexed_thread_turn else set()
-    for thread_id in thread_ids:
-        after_ordinal = -1
-        while True:
-            if deadline is not None and time.monotonic() >= deadline:
-                raise BudgetExhausted
-            page = db.execute(select_turn + ' WHERE provider_thread_id=? AND ordinal>? ORDER BY ordinal LIMIT 500',
-                              (thread_id, after_ordinal)).fetchall()
-            if close_batches:
-                db.commit()
-            for turn in page:
-                attempt_id = turn[1]
-                if attempt_id in rows_by_attempt:
-                    rows_by_attempt[attempt_id][turn[0]] = turn
-            if len(page) < 500:
-                break
-            after_ordinal = page[-1][2]
-    if not indexed_thread_turn:
+    if close_batches and not indexed_attempt_turn and any(not row[2] for row in attempt_rows):
+        return usage_unknown('unavailable', 'attempt_thread_unavailable')
+
+    # Preserve both sides of the old OR join, but use indexes for each branch.
+    if indexed_attempt_turn:
         for attempt_id, _, _, _ in attempt_rows:
-            after_ordinal = -1
-            while True:
-                if deadline is not None and time.monotonic() >= deadline:
-                    raise BudgetExhausted
-                page = db.execute(select_turn + ' WHERE run_attempt_id=? AND ordinal>? ORDER BY ordinal LIMIT 500',
-                                  (attempt_id, after_ordinal)).fetchall()
-                if close_batches:
-                    db.commit()
+            for page in paged_turn_rows(db, select_turn, 'WHERE run_attempt_id=?', (attempt_id,), close_batches, deadline, ordinal_not_null):
                 for turn in page:
                     rows_by_attempt[attempt_id][turn[0]] = turn
-                if len(page) < 500:
-                    break
-                after_ordinal = page[-1][2]
+    if indexed_thread_turn:
+        thread_attempts = {}
+        for attempt_id, _, thread_id, _ in attempt_rows:
+            if thread_id:
+                thread_attempts.setdefault(thread_id, []).append(attempt_id)
+        for thread_id, attempt_ids in thread_attempts.items():
+            for start in range(0, len(attempt_ids), 400):
+                page_attempts = attempt_ids[start:start + 400]
+                placeholders = ','.join('?' for _ in page_attempts)
+                for page in paged_turn_rows(db, select_turn,
+                                            f'WHERE {thread_column}=? AND run_attempt_id IN ({placeholders})',
+                                            (thread_id, *page_attempts), close_batches, deadline, ordinal_not_null):
+                    for turn in page:
+                        rows_by_attempt[turn[1]][turn[0]] = turn
+    if not indexed_attempt_turn and not close_batches:
+        for attempt_id, _, thread_id, _ in attempt_rows:
+            if indexed_thread_turn and thread_id:
+                continue
+            for page in paged_turn_rows(db, select_turn, 'WHERE run_attempt_id=?', (attempt_id,), close_batches, deadline, ordinal_not_null):
+                for turn in page:
+                    rows_by_attempt[attempt_id][turn[0]] = turn
     for attempt_id, _, _, provider_turn_id in attempt_rows:
         if deadline is not None and time.monotonic() >= deadline:
             raise BudgetExhausted
         if provider_turn_id:
-            turn = db.execute(select_turn + ' WHERE provider_turn_id=?', (provider_turn_id,)).fetchone()
-            if close_batches:
-                db.commit()
+            turn = next((item for item in rows_by_attempt[attempt_id].values() if item[0] == provider_turn_id), None)
+            if turn is None:
+                if close_batches and not has_index_prefix(db, turn_table, 'provider_turn_id'):
+                    return usage_unknown('unavailable', 'no_indexed_provider_turn_lookup')
+                turn = db.execute(select_turn + ' WHERE provider_turn_id=?', (provider_turn_id,)).fetchone()
+                if close_batches:
+                    db.commit()
             if turn and turn[0] is not None:
                 rows_by_attempt[attempt_id][turn[0]] = turn
 
@@ -165,7 +250,8 @@ def read_child_usage(db, child_run_id, close_batches=False, deadline=None):
     for attempt_id, attempt in attempts.items():
         if deadline is not None and time.monotonic() >= deadline:
             raise BudgetExhausted
-        for row in sorted(rows_by_attempt[attempt_id].values(), key=lambda r: (r[2], r[0])):
+        for row in sorted(rows_by_attempt[attempt_id].values(),
+                          key=lambda r: (r[2] is not None, r[2] if isinstance(r[2], int) else -1, r[0] or '')):
             if row[0] is None or row[0] in seen.setdefault(attempt_id, set()):
                 continue
             seen[attempt_id].add(row[0])
@@ -200,11 +286,21 @@ def read_child_usage(db, child_run_id, close_batches=False, deadline=None):
             'sums': 'never computed; scopes can overlap'}
 
 
+def read_child_usage(db, child_run_id, close_batches=False, deadline=None):
+    try:
+        return _read_child_usage(db, child_run_id, close_batches, deadline)
+    except UsageReadSliceExceeded:
+        if close_batches:
+            db.rollback()
+        return usage_unknown('unavailable', 'read_slice_exceeded')
+
+
 def has_index_prefix(db, table, column):
-    """Whether an existing table index supports an equality lookup on `column`."""
+    """Whether a table index starts with the requested column or column sequence."""
+    prefix = (column,) if isinstance(column, str) else tuple(column)
     for index in db.execute(f'PRAGMA index_list({table})'):
         names = [row[2] for row in db.execute(f'PRAGMA index_info({index[1]})')]
-        if names and names[0] == column:
+        if names[:len(prefix)] == list(prefix):
             return True
     return False
 

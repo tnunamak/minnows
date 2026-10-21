@@ -109,6 +109,19 @@ def test_t3_facts_carry_ids_timestamps_requested_config_and_labels(setup, tmp_pa
         assert planted not in text
 
 
+def test_run_details_ignores_malformed_optional_json_timestamps(setup, tmp_path):
+    db_path = t3_world(setup, tmp_path)
+    c = sqlite3.connect(db_path)
+    c.execute(f"update {PREFIX}runs set payload_json='{{' where run_id='child'")
+    c.commit()
+    module = lib_module('observe')
+
+    details = module.run_details(c, 'child')
+
+    c.close()
+    assert details[0][0] == 'completed'
+
+
 def test_incremental_high_water_refreshes_known_rows_and_reads_new_rows(setup, tmp_path):
     db = t3_world(setup, tmp_path)
     first = ok(setup, '--db', db)
@@ -175,10 +188,10 @@ def test_row_retry_after_one_failed_read_clears_quarantine(setup, tmp_path, monk
     def fail_one_single_row_read(*args, **kwargs):
         if args[3] == 500 and not failed_batch[0]:
             failed_batch[0] = True
-            raise sqlite3.OperationalError('temporary batch read error')
+            raise ValueError('temporary row payload error')
         if args[3] == 1 and kwargs.get('rowids') is None and not failed_row[0]:
             failed_row[0] = True
-            raise sqlite3.OperationalError('temporary row read error')
+            raise ValueError('temporary row payload error')
         return real_read(*args, **kwargs)
 
     monkeypatch.setattr(module, 'read_t3_rowid_batch', fail_one_single_row_read)
@@ -189,6 +202,139 @@ def test_row_retry_after_one_failed_read_clears_quarantine(setup, tmp_path, monk
     monkeypatch.undo()
     assert second['incremental']['quarantined_rows'] == 0
     assert any(row['fact_type'] == 't3_delegate_call' for row in second['observations'])
+
+
+def test_quarantined_slow_read_retries_with_a_larger_single_row_cap(setup, tmp_path, monkeypatch):
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    targets = {'one': json.loads(setup[3].read_text().splitlines()[0])['target']}
+    real_read = module.read_t3_rowid_batch
+    monkeypatch.setattr(module, 'read_t3_rowid_batch',
+                        lambda *_args, **_kwargs: (_ for _ in ()).throw(module.ReadBatchTooSlow('slow')))
+    first = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+    assert first['incremental']['quarantined_rows'] == 1
+    module.save_state(state, first['_state'])
+    second = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+    assert second['incremental']['quarantined_rows'] == 1
+    module.save_state(state, second['_state'])
+    monkeypatch.undo()
+    read_caps = []
+
+    def record_retry_cap(*args, **kwargs):
+        read_caps.append(kwargs.get('max_read_seconds'))
+        return real_read(*args, **kwargs)
+
+    monkeypatch.setattr(module, 'read_t3_rowid_batch', record_retry_cap)
+    retry = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+
+    assert read_caps and read_caps[0] > module.OBSERVE_READ_SECONDS
+    assert retry['incremental']['quarantined_rows'] == 0
+    assert any(row['fact_type'] == 't3_delegate_call' for row in retry['observations'])
+
+
+def test_operational_sqlite_error_never_quarantines_or_skips_rows(setup, tmp_path, monkeypatch):
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    targets = {'one': json.loads(setup[3].read_text().splitlines()[0])['target']}
+    monkeypatch.setattr(module, 'read_t3_rowid_batch',
+                        lambda *_args, **_kwargs: (_ for _ in ()).throw(sqlite3.OperationalError('disk I/O error')))
+    for _ in range(3):
+        failed = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+        assert failed['state'] == 'error'
+        call_db, _, _ = module.open_call_index(state)
+        assert call_db.execute('select count(*) from quarantined_rows').fetchone()[0] == 0
+        call_db.close()
+
+
+def test_incremental_error_keeps_facts_from_completed_batches(setup, tmp_path, monkeypatch):
+    db = t3_world(setup, tmp_path)
+    c = sqlite3.connect(db)
+    payload = c.execute(f"select payload_json from {PREFIX}turn_items where turn_item_id='call'").fetchone()[0]
+    c.execute(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
+              ('call-later', 'parent-thread', 'parent', '2026-10-08T00:01:00Z', 'completed', 'dynamic_tool', payload))
+    c.commit()
+    c.close()
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    targets = {'one': json.loads(setup[3].read_text().splitlines()[0])['target']}
+    real_read = module.read_t3_rowid_batch
+    read_count = 0
+
+    def fail_after_one_batch(*args, **kwargs):
+        nonlocal read_count
+        read_count += 1
+        if read_count == 2:
+            raise sqlite3.OperationalError('disk I/O error')
+        return real_read(*args, **kwargs)
+
+    monkeypatch.setattr(module, 'OBSERVE_BATCH_ROWS', 1)
+    monkeypatch.setattr(module, 'read_t3_rowid_batch', fail_after_one_batch)
+    failed = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+
+    assert failed['state'] == 'error'
+    assert any(row['fact_type'] == 't3_delegate_call' for row in failed['observations'])
+    assert failed['_state']['rowid'] == 1
+
+
+def test_budget_limited_t3_batch_keeps_completed_call_observation(setup, tmp_path, monkeypatch):
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    real_details = module.run_details
+    monkeypatch.setattr(module, 'run_details', lambda *_args, **_kwargs: (_ for _ in ()).throw(module.BudgetExhausted()))
+    _, calls, _, _, _ = module.read_t3_rowid_batch(db, 0, 10, 500, scope_ids={'one'})
+    partial = module.collect_t3(db, {'one'}, {}, calls_override=calls, deadline=time.monotonic() + 10)
+    monkeypatch.setattr(module, 'run_details', real_details)
+    assert partial['state'] == 'partial'
+    assert any(row['fact_type'] == 't3_delegate_call' for row in partial['observations'])
+    assert not any(row.get('unknown', {}).get('usage') == 'time_budget_exhausted' for row in partial['observations'])
+
+
+def test_budget_exit_in_single_row_fallback_does_not_advance_cursor(setup, tmp_path, monkeypatch):
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    targets = {'one': json.loads(setup[3].read_text().splitlines()[0])['target']}
+    real_read = module.read_t3_rowid_batch
+    failed_batch = False
+
+    def force_row_fallback(*args, **kwargs):
+        nonlocal failed_batch
+        if args[3] == 500 and not failed_batch:
+            failed_batch = True
+            raise ValueError('fixture batch error')
+        return real_read(*args, **kwargs)
+
+    monkeypatch.setattr(module, 'read_t3_rowid_batch', force_row_fallback)
+    monkeypatch.setattr(module, 'collect_t3', lambda *_args, **_kwargs: (_ for _ in ()).throw(module.BudgetExhausted()))
+    stopped = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+
+    assert stopped['state'] == 'partial'
+    assert stopped['reason'] == 'time_budget_exhausted'
+    assert stopped['_state']['rowid'] == 0
+
+
+def test_observe_lock_budget_returns_error_without_traceback(setup, tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    module = lib_module('observe')
+    monkeypatch.setattr(module, 'observe_state_lock', lambda *_args, **_kwargs: (_ for _ in ()).throw(module.BudgetExhausted()))
+    with pytest.raises(ValueError, match='observe_state_lock_timeout'):
+        module.execute(SimpleNamespace(observe_time_budget_seconds=1, observe_state=tmp_path / 'state' / 'observe.json'))
+
+
+def test_observe_deadline_includes_cli_startup(setup, tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    module = lib_module('observe')
+    deadlines = []
+    monkeypatch.setattr(module, 'observe_state_lock', lambda _path, deadline: deadlines.append(deadline) or 123)
+    monkeypatch.setattr(module, 'release_observe_state_lock', lambda _fd: None)
+    monkeypatch.setattr(module, '_execute_locked', lambda _args: module.result('ok'))
+    monkeypatch.setattr(module.time, 'monotonic', lambda: 110.0)
+    args = SimpleNamespace(observe_time_budget_seconds=60, observe_state=tmp_path / 'observe.json',
+                           _observe_process_started_monotonic=100.0)
+    module.execute(args)
+    assert deadlines == [160.0]
 
 
 def test_thread_fact_cursor_resumes_at_the_first_unfinished_call(setup, tmp_path, monkeypatch):
@@ -219,7 +365,7 @@ def test_thread_fact_cursor_resumes_at_the_first_unfinished_call(setup, tmp_path
     resumed, _, cursor, done = module.collect_indexed_thread_facts(db_path, call_db, {'one'}, {}, time.monotonic() + 10,
                                                                    after_rowid=cursor)
     call_db.close()
-    assert resumed == [{'fact': 'first'}] and cursor == 0 and done
+    assert resumed == [{'fact': 'first'}] and cursor == rowids[-1] and done
 
 
 def test_incremental_facts_match_the_existing_collector_for_the_same_fixture_rows(setup, tmp_path):
@@ -246,6 +392,7 @@ def test_incremental_resets_when_ledger_or_rowid_anchors_change(setup, tmp_path)
                                            {'path': '/ledger-b', 'device': 1, 'inode': 2, 'size': 3,
                                             'mtime_ns': 4, 'tail_sha256': 'a', 'last_run_id': 'run-a'})
     assert changed_ledger['incremental']['initial_window'] == 'last 50000 turn_items rowids'
+    assert changed_ledger['_state']['call_index_id'] != first['_state']['call_index_id']
     module.save_state(state, changed_ledger['_state'])
     changed_ledger['_state']['anchors'] = {'1': 'rowid-was-reused'}
     module.save_state(state, changed_ledger['_state'])
@@ -272,6 +419,8 @@ def test_cursor_anchor_detects_rowid_reuse_but_drops_deleted_anchor(setup, tmp_p
     assert reused['incremental']['initial_window'] == 'last 50000 turn_items rowids'
     assert reused['incremental']['reset_reason'] == 'anchor_rowid_reused'
 
+    state = tmp_path / 'observe-deleted-anchor.json'
+    first = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
     module.save_state(state, first['_state'])
     c = sqlite3.connect(db)
     c.execute(f"delete from {PREFIX}turn_items where turn_item_id='call-reused'")
@@ -295,6 +444,91 @@ def test_missing_database_run_appends_ledger_without_resetting_t3_cursor(setup, 
     assert resumed['incremental']['high_water_before'] == first_high
 
 
+def test_changed_ledger_is_not_rebound_when_database_is_missing(setup, tmp_path):
+    db = t3_world(setup, tmp_path)
+    ok(setup, '--db', db)
+    state_path = setup[3].with_name('observe-state.json')
+    state_before = json.loads(state_path.read_text())
+    ledger = paths(setup)[1]
+    ledger_rows = [json.loads(line) for line in ledger.read_text().splitlines()]
+    if ledger_rows[0]['kind'] == 'source_run':
+        ledger_rows[0]['started_at'] = '2000-01-01T00:00:00+00:00'
+    else:
+        ledger_rows[0]['observed_at'] = '2000-01-01T00:00:00+00:00'
+    ledger.write_text(''.join(json.dumps(row) + '\n' for row in ledger_rows))
+
+    missing = ok(setup, '--db', tmp_path / 'missing.sqlite')
+
+    assert missing['sources']['t3']['reason'] == 'database_missing'
+    after_missing = json.loads(state_path.read_text())
+    module = lib_module('observe')
+    current_marker = module.read_last_ledger_line(ledger)
+    assert not module.ledger_prefix_matches(after_missing['ledger'], current_marker)
+    assert after_missing['rowid'] == state_before['rowid']
+
+    healthy = ok(setup, '--db', db)
+    assert healthy['incremental']['initial_window'] == 'last 50000 turn_items rowids'
+    assert healthy['incremental']['reset_reason'] == 'ledger_prefix_changed'
+
+
+def test_failed_unsettled_refresh_does_not_commit_settled_status(setup, tmp_path, monkeypatch):
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    targets = {'one': json.loads(setup[3].read_text().splitlines()[0])['target']}
+    c = sqlite3.connect(db)
+    c.execute(f"update {PREFIX}turn_items set status='running' where turn_item_id='call'")
+    c.execute(f"update {PREFIX}runs set status='running' where run_id='child'")
+    c.execute(f"update {PREFIX}run_attempts set status='running' where run_id='child'")
+    c.commit()
+    c.close()
+    first = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+    module.save_state(state, first['_state'])
+    call_db, _, _ = module.open_call_index(state)
+    assert call_db.execute('select settled from known_calls').fetchone()[0] == 0
+    c = sqlite3.connect(db)
+    c.execute(f"update {PREFIX}turn_items set status='completed' where turn_item_id='call'")
+    c.execute(f"update {PREFIX}runs set status='completed' where run_id='child'")
+    c.execute(f"update {PREFIX}run_attempts set status='completed' where run_id='child'")
+    c.commit()
+    c.close()
+    monkeypatch.setattr(module, 'collect_t3', lambda *_args, **_kwargs: (_ for _ in ()).throw(module.BudgetExhausted()))
+
+    failed = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+
+    assert failed['incremental']['rows_refreshed'] == 0
+    assert call_db.execute('select settled from known_calls').fetchone()[0] == 0
+    call_db.close()
+
+
+def test_destination_and_git_cursors_save_when_t3_has_no_state(setup, tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    module = lib_module('observe')
+    state = tmp_path / 'state' / 'observe.json'
+    state.parent.mkdir()
+    state.parent.chmod(0o700)
+    state.write_text(json.dumps({'git_cursor': 'old-git', 'destination_cursors': {'destination:foo': 'old-request'}}))
+    state.chmod(0o600)
+    monkeypatch.setattr(module.store, 'decision_sources', lambda *_args: {
+        't3': {'one'}, 'git': {'one'}, 'destination:foo': {'request'}})
+    monkeypatch.setattr(module.destination_store, 'read_destinations', lambda _path: (
+        [{'name': 'foo', 'observe_command': ['/unused'], 'timeout_seconds': 1}], {}))
+    monkeypatch.setattr(module, 'collect_destination', lambda *_args, **_kwargs:
+                        module.result('partial', 'time_budget_exhausted', _cursor='next-request', _batch_size=5))
+    monkeypatch.setattr(module, 'collect_git', lambda *_args, **_kwargs:
+                        module.result('partial', 'time_budget_exhausted', _cursor='next-git'))
+    receipts_path = setup[3]
+    outcomes_path = paths(setup)[0]
+    args = SimpleNamespace(git_window_days=14, since=None, receipts=receipts_path, outcomes=outcomes_path,
+                           destinations=tmp_path / 'destinations.json', observations=tmp_path / 'ledger.jsonl',
+                           observe_state=state, observe_time_budget_seconds=60,
+                           db=tmp_path / 'missing.sqlite')
+    module.execute(args)
+    saved = json.loads(state.read_text())
+    assert saved['git_cursor'] == 'next-git'
+    assert saved['destination_cursors']['destination:foo'] == {'after': 'next-request', 'batch_size': 5}
+
+
 def test_ledger_prefix_validation_accepts_appends_and_rejects_edits(tmp_path):
     module = lib_module('observe')
     ledger = tmp_path / 'observations.jsonl'
@@ -308,6 +542,18 @@ def test_ledger_prefix_validation_accepts_appends_and_rejects_edits(tmp_path):
     ledger.write_bytes(content)
     edited = module.read_last_ledger_line(ledger, previous_marker=previous)
     assert not module.ledger_prefix_matches(previous, edited)
+
+
+def test_empty_ledger_prefix_survives_append_but_missing_ledger_does_not(tmp_path):
+    module = lib_module('observe')
+    ledger = tmp_path / 'observations.jsonl'
+    ledger.write_text('{"kind":"source_run"}\n')
+    empty_prefix = module.empty_ledger_marker(ledger)
+    current = module.read_last_ledger_line(ledger, previous_marker=empty_prefix)
+    assert module.ledger_prefix_matches(empty_prefix, current)
+    assert not module.ledger_prefix_matches(None, current)
+    ledger.unlink()
+    assert not module.ledger_prefix_matches(empty_prefix, module.read_last_ledger_line(ledger))
 
 
 def test_refresh_deadline_leaves_time_to_scan_new_rows(setup, tmp_path, monkeypatch):
@@ -337,10 +583,71 @@ def test_refresh_deadline_leaves_time_to_scan_new_rows(setup, tmp_path, monkeypa
         time.sleep(0.05)
         return real_usage(*args, **kwargs)
 
+    monkeypatch.setattr(module, 'OBSERVE_REFRESH_ROWS', 2)
     monkeypatch.setattr(module, 'read_child_usage_for_call', slow_usage)
     second = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 5)
     assert second['incremental']['rows_scanned'] == 10
     assert second['incremental']['refresh_cursor'] > 0
+    assert second['reason'] is None  # settled-call rotation may remain, without masking the source as partial
+    assert second['incremental']['budget_exhausted'] is False
+
+
+def test_refresh_reads_unsettled_calls_before_settled_round_robin(setup, tmp_path, monkeypatch):
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    targets = {'one': json.loads(setup[3].read_text().splitlines()[0])['target']}
+    c = sqlite3.connect(db)
+    payload = c.execute(f"select payload_json from {PREFIX}turn_items where turn_item_id='call'").fetchone()[0]
+    c.execute(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
+              ('call-later', 'parent-thread', 'parent', '2026-10-08T00:02:00Z', 'completed', 'dynamic_tool', payload))
+    c.commit()
+    c.close()
+    first = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+    module.save_state(state, first['_state'])
+    call_db, _, _ = module.open_call_index(state)
+    earlier, later = [row[0] for row in call_db.execute('select source_rowid from known_calls order by source_rowid')]
+    call_db.execute('update known_calls set settled=0 where source_rowid=?', (later,))
+    call_db.commit()
+    call_db.close()
+    read_order = []
+    real_read = module.read_t3_rowid_batch
+
+    def record_refresh_order(*args, **kwargs):
+        rowids = kwargs.get('rowids') or (args[4] if len(args) > 4 else None)
+        if rowids:
+            read_order.extend(rowids)
+        return real_read(*args, **kwargs)
+
+    monkeypatch.setattr(module, 'read_t3_rowid_batch', record_refresh_order)
+    second = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+    assert second['incremental']['rows_scanned'] == 0
+    assert read_order[:2] == [later, earlier]
+
+
+def test_refreshed_running_calls_do_not_make_source_partial(setup, tmp_path):
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    targets = {'one': json.loads(setup[3].read_text().splitlines()[0])['target']}
+    c = sqlite3.connect(db)
+    c.execute(f"update {PREFIX}turn_items set status='running' where turn_item_id='call'")
+    c.execute(f"update {PREFIX}runs set status='running' where run_id='child'")
+    c.execute(f"update {PREFIX}run_attempts set status='running' where run_id='child'")
+    c.commit()
+    c.close()
+    first = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+    assert first['state'] == 'ok'
+    module.save_state(state, first['_state'])
+
+    refreshed = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+
+    assert refreshed['state'] == 'ok'
+    assert refreshed['reason'] is None
+    assert refreshed['incremental']['rows_refreshed'] == 1
+    call_db, _, _ = module.open_call_index(state)
+    assert call_db.execute('select settled from known_calls').fetchone()[0] == 0
+    call_db.close()
 
 
 def test_incremental_preserves_dynamic_tool_filter_case_insensitively(setup, tmp_path):
@@ -367,7 +674,7 @@ def test_incremental_refuses_missing_followup_index(setup, tmp_path):
     c.close()
     row = ok(setup, '--db', db)
     assert row['sources']['t3']['state'] == 'unavailable'
-    assert row['sources']['t3']['reason'] == 'no_indexed_turn_items_thread_id_lookup'
+    assert row['sources']['t3']['reason'] == 'no_indexed_turn_items_thread_id_type_lookup'
 
 
 def test_incremental_state_refuses_loose_files_and_symlinks(setup, tmp_path):
@@ -469,9 +776,21 @@ def test_incremental_query_plan_uses_rowid_primary_key(setup, tmp_path):
     plan = c.execute('EXPLAIN QUERY PLAN ' + module.t3_batch_sql('i.rowid>? AND i.rowid<=?'), (0, 1, 500)).fetchall()
     assert any('INTEGER PRIMARY KEY (rowid>? AND rowid<?)' in row[-1] for row in plan)
     assert any('SEARCH p USING' in row[-1] for row in plan)
-    assert any('SEARCH c USING' in row[-1] for row in plan)
     refresh = c.execute('EXPLAIN QUERY PLAN ' + module.t3_batch_sql('i.rowid IN (?)'), (1, 500)).fetchall()
     assert any('INTEGER PRIMARY KEY (rowid=?)' in row[-1] for row in refresh)
+    c.close()
+
+
+def test_terminal_failure_query_uses_run_ordinal_index(setup, tmp_path):
+    db = t3_world(setup, tmp_path)
+    c = sqlite3.connect(db)
+    c.execute(f'alter table {PREFIX}turn_items add column ordinal integer')
+    c.execute(f'update {PREFIX}turn_items set ordinal=rowid')
+    c.execute(f'create index {PREFIX}turn_items_run_ordinal_idx on {PREFIX}turn_items(run_id,ordinal)')
+    module = lib_module('observe')
+    plan = c.execute('EXPLAIN QUERY PLAN ' + module.terminal_failure_page_sql(), ('child', -1, 0)).fetchall()
+    assert any('SEARCH' in row[-1] and 'turn_items_run_ordinal_idx' in row[-1] for row in plan)
+    assert not any('SCAN orchestration_v2_projection_turn_items' in row[-1] for row in plan)
     c.close()
 
 
@@ -859,6 +1178,35 @@ def test_append_run_validates_every_pending_row_and_the_source_run_before_writin
         assert not ledger.exists() or ledger.read_text() == ''
 
 
+def test_append_run_syncs_the_complete_batch_once(tmp_path, monkeypatch):
+    sys.path.insert(0, str(REPO / 'tools/model-policy-ops/lib'))
+    import observations
+    ledger = tmp_path / 'observations.jsonl'
+    facts = [observations.make_observation('git', f's{n}', 'one', 'git_scan', {'a': n}) for n in range(4)]
+    calls = []
+    real_fsync = observations.os.fsync
+    monkeypatch.setattr(observations.os, 'fsync', lambda fd: calls.append(fd) or real_fsync(fd))
+    row = observations.append_run(ledger, 'batch', '2026-10-10T00:00:00+00:00', '2026-10-10T00:00:01+00:00',
+                                  {'git': {'state': 'ok', 'reason': None, 'subjects_checked': 4, 'observations': facts}})
+    assert row['kind'] == 'source_run'
+    assert len(calls) == 1
+    assert len(ledger.read_text().splitlines()) == 5
+
+
+def test_append_run_streams_existing_ledger_for_deduplication(tmp_path, monkeypatch):
+    sys.path.insert(0, str(REPO / 'tools/model-policy-ops/lib'))
+    import observations
+    ledger = tmp_path / 'observations.jsonl'
+    fact = observations.make_observation('git', 's1', 'one', 'git_scan', {'a': 1})
+    collected = {'git': {'state': 'ok', 'reason': None, 'subjects_checked': 1, 'observations': [fact]}}
+    observations.append_run(ledger, 'first', '2026-10-10T00:00:00+00:00', '2026-10-10T00:00:01+00:00', collected)
+    monkeypatch.setattr(observations, 'locked_private_rows', lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError('loaded ledger')))
+    record = observations.append_run(ledger, 'second', '2026-10-10T00:00:02+00:00', '2026-10-10T00:00:03+00:00', collected)
+    rows = [json.loads(line) for line in ledger.read_text().splitlines()]
+    assert record['sources']['git']['new_observations'] == 0
+    assert sum(row['kind'] == 'observation' for row in rows) == 1
+
+
 # ---- git --------------------------------------------------------------------------------------------------------------
 
 def git(repo, *args, when=None):
@@ -1211,7 +1559,7 @@ def test_file_mode_parent_symlink_and_alias_refusals(setup, tmp_path):
     state = setup[3].parent
     state.chmod(0o770)
     result, _ = observe(setup)
-    assert result.returncode == 1 and 'group- or world-writable' in result.stderr
+    assert result.returncode == 1 and 'group- or world-accessible' in result.stderr
     state.chmod(0o700)
     link = tmp_path / 'link.jsonl'
     link.symlink_to(paths(setup)[1])
@@ -1483,6 +1831,395 @@ def test_shared_thread_reports_unknown_owner_outside_initial_window(setup, tmp_p
     assert fact['unknown']['shared_with_decisions'] == 'outside_observed_window'
 
 
+def test_unowned_followup_run_does_not_change_legacy_sharing_count(setup, tmp_path):
+    db_path = child_thread_world(setup, tmp_path, [pr('merged')])
+    c = sqlite3.connect(db_path)
+    c.execute(f'insert into {PREFIX}runs values (?,?,?,?,?,?)',
+              ('followup-run', 'claude-one', 'completed', '{}', '2026-10-08T02:00:00Z', 'child-thread'))
+    c.commit()
+    c.close()
+    module = lib_module('observe')
+    call_db, _, _ = module.open_call_index(tmp_path / 'state' / 'observe.json')
+    module.remember_calls(call_db, [{'_source_rowid': 1, 'call_id': 'call', 'child_run_id': 'child', 'decision_id': 'one'}])
+    db = sqlite3.connect(db_path)
+    found = module.pull_request_facts(db, 'child-thread', 'child', 'one', {'run_id': 'child'}, {}, call_db=call_db)
+    db.close()
+    call_db.close()
+    assert found[0]['fact']['shared_with_decisions'] == 1
+    assert 'shared_with_decisions' not in found[0]['unknown']
+
+
+def test_incremental_thread_owner_count_includes_unreceipted_calls(setup, tmp_path):
+    db_path = child_thread_world(setup, tmp_path, [pr('merged')])
+    c = sqlite3.connect(db_path)
+    c.execute(f'insert into {PREFIX}runs values (?,?,?,?,?,?)',
+              ('child2', 'claude-one', 'completed', '{}', '2026-10-08T02:00:00Z', 'child-thread'))
+    c.commit()
+    c.close()
+    module = lib_module('observe')
+    call_db, _, _ = module.open_call_index(tmp_path / 'state' / 'observe.json')
+    module.remember_calls(call_db, [
+        {'_source_rowid': 1, 'call_id': 'call1', 'child_run_id': 'child', 'decision_id': 'one'},
+        {'_source_rowid': 2, 'call_id': 'call2', 'child_run_id': 'child2', 'decision_id': 'outside'},
+    ])
+    db = sqlite3.connect(db_path)
+    found = module.pull_request_facts(db, 'child-thread', 'child', 'one', {'run_id': 'child'}, {},
+                                      call_db=call_db)
+    db.close()
+    call_db.close()
+    assert found[0]['fact']['shared_with_decisions'] == 2
+
+
+def test_thread_run_paging_keeps_tied_and_null_ordinal_owners(setup, tmp_path):
+    db_path = child_thread_world(setup, tmp_path, [pr('merged')])
+    c = sqlite3.connect(db_path)
+    c.execute(f'alter table {PREFIX}runs add column ordinal integer')
+    c.execute(f'create index {PREFIX}runs_thread_ordinal_idx on {PREFIX}runs(thread_id,ordinal)')
+    c.execute(f"update {PREFIX}runs set ordinal=1 where thread_id='child-thread'")
+    c.executemany(f'insert into {PREFIX}runs(run_id,provider_instance_id,status,payload_json,requested_at,thread_id,ordinal) '
+                  'values (?,?,?,?,?,?,?)',
+                  [(f'run-{i}', 'claude-one', 'completed', '{}', '2026-10-08T02:00:00Z', 'child-thread', 1)
+                   for i in range(501)])
+    c.execute(f'insert into {PREFIX}runs(run_id,provider_instance_id,status,payload_json,requested_at,thread_id,ordinal) '
+              "values ('null-run','claude-one','completed','{}','2026-10-08T02:00:00Z','child-thread',NULL)")
+    c.commit()
+    c.close()
+    module = lib_module('observe')
+    call_db, _, _ = module.open_call_index(tmp_path / 'state' / 'observe.json')
+    module.remember_calls(call_db, [
+        {'_source_rowid': 1, 'call_id': 'call1', 'child_run_id': 'child', 'decision_id': 'one'},
+        {'_source_rowid': 2, 'call_id': 'call2', 'child_run_id': 'run-500', 'decision_id': 'two'},
+        {'_source_rowid': 3, 'call_id': 'call3', 'child_run_id': 'null-run', 'decision_id': 'three'},
+    ])
+    db = sqlite3.connect(db_path)
+    assert module.indexed_thread_owners(db, call_db, 'child-thread', 'one') == (3, False)
+    found = module.pull_request_facts(db, 'child-thread', 'child', 'one', {'run_id': 'child'},
+                                      {'child': 'one', 'run-500': 'two', 'null-run': 'three'})
+    db.close()
+    call_db.close()
+    assert found[0]['fact']['shared_with_decisions'] == 3
+
+
+def test_partial_refresh_keeps_unsettled_update_inside_savepoint(setup, tmp_path):
+    module = lib_module('observe')
+    call_db, _, _ = module.open_call_index(tmp_path / 'state' / 'observe.json')
+    call = {'_source_rowid': 7, 'call_id': 'call', 'child_run_id': 'child', 'decision_id': 'one'}
+    module.remember_calls(call_db, [call])
+    call_db.execute('SAVEPOINT refresh_row')
+    module.mark_calls_unsettled(call_db, [call], commit=False)
+    call_db.execute('RELEASE refresh_row')
+    call_db.commit()
+    assert call_db.execute('SELECT settled FROM known_calls WHERE source_rowid=7').fetchone() == (0,)
+    call_db.close()
+
+
+def test_partial_refresh_commits_facts_and_advances_its_cursor(setup, tmp_path, monkeypatch):
+    db_path = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    state_path = tmp_path / 'state' / 'observe.json'
+    target = json.loads(setup[3].read_text().splitlines()[0])['target']
+    initial = module.incremental_t3(db_path, {'one'}, {'one': target}, state_path, time.monotonic() + 30)
+    module.save_state(state_path, initial['_state'])
+    call_db, _, _ = module.open_call_index(state_path)
+    source_rowid = call_db.execute('SELECT source_rowid FROM known_calls').fetchone()[0]
+    call_db.close()
+
+    def partial_refresh(_db_path, _scope, _targets, calls_override=None, **_kwargs):
+        call = calls_override[0]
+        fact = module.store.make_observation('t3', call['call_id'], 'one', 't3_run_status', {'status': 'completed'})
+        return module.result('partial', 'time_budget_exhausted', 1, [fact])
+
+    monkeypatch.setattr(module, 'collect_t3', partial_refresh)
+    resumed = module.incremental_t3(db_path, {'one'}, {'one': target}, state_path, time.monotonic() + 30)
+    call_db, _, _ = module.open_call_index(state_path)
+    settled = call_db.execute('SELECT settled FROM known_calls WHERE source_rowid=?', (source_rowid,)).fetchone()[0]
+    call_db.close()
+    assert any(row['fact_type'] == 't3_run_status' for row in resumed['observations'])
+    assert resumed['incremental']['refresh_cursor'] == source_rowid
+    assert settled == 0
+
+
+def test_invalid_call_observation_id_uses_source_rowid_not_batch_position(setup, tmp_path):
+    db_path = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    invalid = {'_source_rowid': 7, 'call_id': None, 'decision_id': 'one', 'timestamp': '2026-10-08T00:00:00Z',
+               'status': 'completed', 'thread_id': None, 'child_run_id': None}
+    leading = {'_source_rowid': 6, 'call_id': 'valid', 'decision_id': 'one', 'timestamp': '2026-10-08T00:00:00Z',
+               'status': 'completed', 'thread_id': None, 'child_run_id': None}
+    first = module.collect_t3(db_path, {'one'}, {}, calls_override=[invalid])
+    second = module.collect_t3(db_path, {'one'}, {}, calls_override=[leading, invalid])
+    first_row = next(row for row in first['observations'] if row['unknown'].get('call_id') == 'invalid_id')
+    second_row = next(row for row in second['observations'] if row['unknown'].get('call_id') == 'invalid_id')
+    assert first_row['observation_id'] == second_row['observation_id']
+
+
+def test_detail_readers_keep_null_ordinal_rows(setup, tmp_path):
+    db_path = child_thread_world(setup, tmp_path, [], messages=2)
+    c = sqlite3.connect(db_path)
+    c.execute(f'alter table {PREFIX}turn_items add column ordinal integer')
+    c.execute(f"update {PREFIX}turn_items set ordinal=NULL where type='user_message'")
+    c.execute(f'create index {PREFIX}turn_items_user_message_idx on {PREFIX}turn_items(thread_id,type,ordinal)')
+    c.execute(f'update {PREFIX}run_attempts set attempt_ordinal=NULL')
+    c.commit()
+    c.close()
+    module = lib_module('observe')
+    db = sqlite3.connect(db_path)
+    _, attempts, _ = module.run_details(db, 'child')
+    facts = module.child_thread_facts(db, 'child', 'one', {'run_id': 'child'})
+    usage = lib_module('delegation_audit').read_child_usage(db, 'child')
+    db.close()
+    assert len(attempts) == 1
+    assert len(usage['attempts']) == 1 and usage['attempts'][0]['attempt_ordinal'] is None
+    followups = next(row for row in facts if row['fact_type'] == 't3_child_followups')
+    assert followups['fact']['user_messages'] == 2
+
+
+def test_usage_reader_keeps_attempts_when_all_turn_indexes_are_absent(setup, tmp_path):
+    db_path = t3_world(setup, tmp_path)
+    c = sqlite3.connect(db_path)
+    c.execute(f'DROP INDEX {PREFIX}provider_turns_thread_ordinal_idx')
+    c.commit()
+    c.close()
+    module = lib_module('delegation_audit')
+    db = sqlite3.connect(db_path)
+    usage = module.read_child_usage(db, 'child', close_batches=False)
+    db.close()
+    assert usage['state'] == 'complete'
+    assert usage['attempts'][0]['turns'][0]['provider_turn_id'] == 'turn0'
+
+
+def test_audit_usage_falls_back_for_attempts_without_thread_ids(setup, tmp_path):
+    _, receipt = record(setup)
+    db_path = make_db(tmp_path, receipt, [('a1', COMPLETE)])
+    c = sqlite3.connect(db_path)
+    c.execute(f'create index {PREFIX}provider_turns_thread_id_idx on {PREFIX}provider_turns(thread_id)')
+    c.execute(f'update {PREFIX}run_attempts set thread_id=NULL where attempt_id="a1"')
+    c.commit()
+    c.close()
+    module = lib_module('delegation_audit')
+    db = sqlite3.connect(db_path)
+    usage = module.read_child_usage(db, 'child', close_batches=False)
+    db.close()
+    assert usage['state'] == 'complete'
+    assert usage['attempts'][0]['turns'][0]['provider_turn_id'] == 'turn0'
+
+
+def test_usage_attempt_order_keeps_null_ordinals_first(setup, tmp_path):
+    _, receipt = record(setup)
+    db_path = make_db(tmp_path, receipt, [('a1', COMPLETE), ('a2', COMPLETE)], extra_attempt=True)
+    c = sqlite3.connect(db_path)
+    c.execute(f'update {PREFIX}run_attempts set attempt_ordinal=NULL where attempt_id="a1"')
+    c.commit()
+    c.close()
+    module = lib_module('delegation_audit')
+    db = sqlite3.connect(db_path)
+    usage = module.read_child_usage(db, 'child')
+    db.close()
+    assert [attempt['attempt_id'] for attempt in usage['attempts']] == ['a1', 'a2']
+
+
+def test_completed_thread_snapshot_cursor_wraps(setup, tmp_path):
+    db_path = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    receipt = json.loads(setup[3].read_text().splitlines()[0])
+    result = module.incremental_t3(db_path, {'one'}, {'one': receipt['target']}, tmp_path / 'state.json', time.monotonic() + 30)
+    assert result['incremental']['thread_cursor'] == 0
+
+
+def test_last_ledger_marker_handles_trimmed_tail_and_invalid_json(tmp_path):
+    module = lib_module('observe')
+    ledger = tmp_path / 'observations.jsonl'
+    ledger.write_bytes(b'x' * (16 * 1024 * 1024 + 10) + b'\n{bad json}\n')
+    assert module.read_last_ledger_line(ledger)['last_run_id'] is None
+
+
+def test_audit_usage_does_not_apply_observe_read_slice(setup, tmp_path, monkeypatch):
+    db_path = t3_world(setup, tmp_path)
+    module = lib_module('delegation_audit')
+    monkeypatch.setattr(module, 'USAGE_READ_SLICE_SECONDS', 0)
+    db = sqlite3.connect(db_path)
+    usage = module.read_child_usage(db, 'child', close_batches=False)
+    db.close()
+    assert usage['state'] == 'complete'
+
+
+def test_first_incremental_run_does_not_report_a_reset(setup, tmp_path):
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    ledger = tmp_path / 'existing.jsonl'
+    ledger.write_text('{}\n')
+    marker = module.read_last_ledger_line(ledger)
+    receipt = json.loads(setup[3].read_text().splitlines()[0])
+    result = module.incremental_t3(db, {'one'}, {'one': receipt['target']}, tmp_path / 'state.json',
+                                   time.monotonic() + 30, ledger_marker=marker)
+    assert result['incremental']['initial_window'] == 'last 50000 turn_items rowids'
+    assert result['incremental']['reset_reason'] is None
+
+
+def test_last_ledger_marker_tolerates_a_row_larger_than_one_megabyte(tmp_path):
+    module = lib_module('observe')
+    ledger = tmp_path / 'observations.jsonl'
+    ledger.write_text(json.dumps({'kind': 'source_run', 'run_id': 'large', 'padding': 'x' * (1024 * 1024 + 10)}) + '\n')
+    assert module.read_last_ledger_line(ledger)['last_run_id'] == 'large'
+
+
+def test_stuck_unsettled_refresh_cursor_completes_a_cycle(setup, tmp_path, monkeypatch):
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    receipt = json.loads(setup[3].read_text().splitlines()[0])
+    state_path = tmp_path / 'observe.json'
+    initial = module.incremental_t3(db, {'one'}, {'one': receipt['target']}, state_path, time.monotonic() + 30)
+    initial['_state']['rowid'] = initial['incremental']['snapshot_high_water']
+    module.save_state(state_path, initial['_state'])
+    call_db, _, _ = module.open_call_index(state_path)
+    call_db.execute('DELETE FROM known_calls')
+    call_db.executemany('INSERT INTO known_calls(source_rowid,turn_item_id,child_run_id,decision_id,settled) VALUES(?,?,?,?,0)',
+                        [(rowid, f'call-{rowid}', f'child-{rowid}', 'one') for rowid in range(1, 252)])
+    call_db.commit()
+    call_db.close()
+
+    def read_batch(db_path, after, through, limit, rowids=None, scope_ids=None, deadline=None, **kwargs):
+        rowid = rowids[0]
+        call = {'_source_rowid': rowid, 'call_id': f'call-{rowid}', 'child_run_id': f'child-{rowid}',
+                'decision_id': 'one', 'status': 'running', 'child_status': 'running'}
+        return after, [call], 1, [rowid], None
+
+    monkeypatch.setattr(module, 'read_t3_rowid_batch', read_batch)
+    monkeypatch.setattr(module, 'collect_t3', lambda *args, **kwargs: {'state': 'ok', 'observations': [], 'subjects_checked': 0})
+    first = module.incremental_t3(db, {'one'}, {'one': receipt['target']}, state_path, time.monotonic() + 30)
+    module.save_state(state_path, first['_state'])
+    second = module.incremental_t3(db, {'one'}, {'one': receipt['target']}, state_path, time.monotonic() + 30)
+    assert first['reason'] == 'refresh_pending'
+    assert second['reason'] is None, second['incremental']
+    assert second['incremental']['refresh_unsettled_cursor'] == 0
+
+
+def test_transient_usage_slice_keeps_t3_source_pending(setup, tmp_path, monkeypatch):
+    db_path = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    from delegation_audit import usage_unknown
+    monkeypatch.setattr(module, 'read_child_usage_for_call', lambda *args, **kwargs: usage_unknown('unavailable', 'read_slice_exceeded'))
+    _, calls, _, _, _ = module.read_t3_rowid_batch(db_path, 0, 100, 500)
+    call = calls[0] | {'status': 'completed', 'child_status': 'completed'}
+    collected = module.collect_t3(db_path, {'one'}, {}, calls_override=[call])
+    assert collected['state'] == 'partial'
+    assert collected['reason'] == 'usage_refresh_pending'
+
+
+def test_default_observe_state_is_keyed_by_ledger_and_respects_xdg_state_home(tmp_path, monkeypatch):
+    module = lib_module('observe')
+    monkeypatch.setenv('XDG_STATE_HOME', str(tmp_path / 'state'))
+    first = module.default_observe_state(tmp_path / 'one.jsonl')
+    second = module.default_observe_state(tmp_path / 'two.jsonl')
+    assert first.parent == tmp_path / 'state/model-policy'
+    assert first != second
+
+
+def test_terminal_failure_message_matches_sqlite_json_text_semantics():
+    module = lib_module('observe')
+    import json
+    empty = module.terminal_failure((1, 'item', None, json.dumps({'failure': {'message': ''}, 'title': 'rate limit reached'}), 'failed'))
+    object_message = module.terminal_failure((1, 'item', None, json.dumps({'failure': {'message': {'text': 'rate limit reached'}}}), 'failed'))
+    assert empty[-1] == ''
+    assert object_message[-1] == '{"text":"rate limit reached"}'
+    assert module.classify_failure(empty[-1]) == 'unknown'
+    assert module.classify_failure(object_message[-1]) == 'rate_limit'
+
+
+def test_thread_followup_paging_keeps_duplicate_boundary_ordinals(setup, tmp_path):
+    db = t3_world(setup, tmp_path)
+    c = sqlite3.connect(db)
+    c.execute(f'alter table {PREFIX}turn_items add column ordinal integer')
+    c.execute(f'create table {PREFIX}threads (thread_id text primary key,payload_json text,updated_at text)')
+    c.execute(f'alter table {PREFIX}runs add column thread_id text')
+    c.execute(f"update {PREFIX}runs set thread_id='child-thread' where run_id='child'")
+    c.execute(f"insert into {PREFIX}threads values ('child-thread','{{}}',NULL)")
+    c.execute(f'create index {PREFIX}turn_items_thread_id_type_ordinal_idx on {PREFIX}turn_items(thread_id,type,ordinal)')
+    c.executemany(f'insert into {PREFIX}turn_items(turn_item_id,thread_id,run_id,updated_at,status,type,payload_json,ordinal) values (?,?,?,?,?,?,?,?)',
+                  [(f'user-{n:03}', 'child-thread', 'child', f'2026-10-08T00:{n // 60:02}:{n % 60:02}Z',
+                    'completed', 'user_message', '{}', 7) for n in range(501)])
+    c.commit()
+    c.close()
+    module = lib_module('observe')
+    c = sqlite3.connect(db)
+    facts = module.child_thread_facts(c, 'child', 'one', {'run_id': 'child'}, include_thread_snapshot=False)
+    c.close()
+    followup = next(row for row in facts if row['fact_type'] == 't3_child_followups')
+    assert followup['fact']['user_messages'] == 501
+
+
+def test_provider_turn_paging_seeks_duplicate_non_null_ordinals_by_rowid(tmp_path):
+    module = lib_module('delegation_audit')
+    db = sqlite3.connect(tmp_path / 'turn-pages.sqlite')
+    db.execute('CREATE TABLE turns (provider_turn_id TEXT, run_attempt_id TEXT, provider_thread_id TEXT, ordinal INTEGER NOT NULL, status TEXT)')
+    db.execute('CREATE INDEX turns_thread_ordinal ON turns(provider_thread_id,ordinal)')
+    db.executemany('INSERT INTO turns VALUES (?,?,?,?,?)',
+                   [(f'turn-{n:03}', 'attempt', 'thread', 7, 'completed') for n in range(501)])
+    pages = list(module.paged_turn_rows(db, 'SELECT provider_turn_id,run_attempt_id,ordinal,status,rowid FROM turns',
+                                        'WHERE provider_thread_id=?', ('thread',), False, time.monotonic() + 10, True))
+    assert [len(page) for page in pages] == [500, 1]
+    assert len({row[0] for page in pages for row in page}) == 501
+    db.close()
+
+
+def test_usage_reader_keeps_attempt_linked_turns_and_null_ordinals(setup, tmp_path):
+    db_path = t3_world(setup, tmp_path)
+    c = sqlite3.connect(db_path)
+    c.execute(f'create index {PREFIX}provider_turns_thread_id_idx on {PREFIX}provider_turns(thread_id,ordinal)')
+    c.execute(f"update {PREFIX}run_attempts set provider_turn_id='turn-null' where attempt_id='a1'")
+    payload = json.dumps({'turnTokenUsage': COMPLETE})
+    c.execute(f'insert into {PREFIX}provider_turns values (?,?,?,?,?,?,?,?,?,?)',
+              ('turn-null', 't', 'other-thread', 'node', 'a1', None, 'completed', None, None, payload))
+    c.execute(f'insert into {PREFIX}provider_turns values (?,?,?,?,?,?,?,?,?,?)',
+              ('turn-other', 't', 'other-thread', 'node', 'a1', 2, 'completed', None, None, payload))
+    c.executemany(f'insert into {PREFIX}provider_turns values (?,?,?,?,?,?,?,?,?,?)',
+                  [(f'turn-extra-{i:03}', 't', 't', 'node', 'a1', None, 'completed', None, None, payload)
+                   for i in range(501)])
+    c.commit()
+    c.close()
+    module = lib_module('delegation_audit')
+    db = sqlite3.connect(db_path)
+    assert not module.has_index_prefix(db, PREFIX + 'provider_turns', 'run_attempt_id')
+    usage = module.read_child_usage(db, 'child', close_batches=True)
+    db.close()
+    turns = usage['attempts'][0]['turns']
+    ids = {turn['provider_turn_id'] for turn in turns}
+    assert {'turn0', 'turn-null', 'turn-other'} <= ids
+    assert len(ids) == 504 and 'turn-extra-500' in ids
+    assert next(turn for turn in turns if turn['provider_turn_id'] == 'turn-null')['ordinal'] is None
+
+
+def test_usage_read_slice_exits_with_unknown_and_releases_transaction(setup, tmp_path, monkeypatch):
+    db_path = t3_world(setup, tmp_path)
+    module = lib_module('delegation_audit')
+    db = sqlite3.connect(db_path)
+    db.execute('BEGIN')
+    monkeypatch.setattr(module, 'usage_page', lambda *_args, **_kwargs: (_ for _ in ()).throw(module.UsageReadSliceExceeded()))
+
+    usage = module.read_child_usage(db, 'child', close_batches=True)
+
+    assert usage['state'] == 'unavailable'
+    assert usage['reason'] == 'read_slice_exceeded'
+    assert not db.in_transaction
+    db.close()
+
+
+def test_usage_reader_marks_unindexable_attempt_links_unknown(setup, tmp_path):
+    db_path = t3_world(setup, tmp_path)
+    c = sqlite3.connect(db_path)
+    c.execute("update orchestration_v2_projection_run_attempts set thread_id=NULL,provider_thread_id=NULL,provider_turn_id='turn0' where attempt_id='a1'")
+    c.commit()
+    c.close()
+    module = lib_module('delegation_audit')
+    db = sqlite3.connect(db_path)
+
+    usage = module.read_child_usage(db, 'child', close_batches=True)
+
+    db.close()
+    assert usage['state'] == 'unavailable'
+    assert usage['reason'] == 'attempt_thread_unavailable'
+
+
 def test_a_thread_without_pull_requests_records_an_empty_snapshot(setup, tmp_path):
     db = child_thread_world(setup, tmp_path, [], messages=1)
     ok(setup, '--db', db)
@@ -1495,7 +2232,7 @@ def test_followup_timestamp_uses_maximum_across_all_pages(setup, tmp_path):
     c = sqlite3.connect(db_path)
     c.execute(f'alter table {PREFIX}turn_items add column ordinal integer')
     c.execute(f'update {PREFIX}turn_items set ordinal=rowid')
-    c.execute(f'create index {PREFIX}turn_items_user_message_idx on {PREFIX}turn_items(thread_id,ordinal)')
+    c.execute(f'create index {PREFIX}turn_items_user_message_idx on {PREFIX}turn_items(thread_id,type,ordinal)')
     c.execute(f"update {PREFIX}turn_items set updated_at='2999-01-01T00:00:00Z' where turn_item_id='msg0'")
     c.commit()
     c.close()
