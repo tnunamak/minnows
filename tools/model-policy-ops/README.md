@@ -1384,22 +1384,27 @@ The previous T3 reader scanned the full `turn_items` projection on every run. On
 while it uses CPU, which competes with T3's own database work.
 
 The reader stores private progress under `~/.local/state/model-policy/observe.json`
-(or `--observe-state`). A first run starts at the newest 50,000 `turn_items` rowids,
-so it bounds catch-up work and does not backfill older rows. Later runs start after
-the saved high-water rowid. The rowid range uses SQLite's primary index and reads
-at most 500 rows per transaction; it closes that transaction before resolving run,
-usage, and thread facts. Releasing each snapshot lets WAL checkpoints advance between
-batches. A private SQLite sidecar stores matched delegation rowids, so refresh work
-can advance across all rows in the observed window instead of restarting at the
-oldest call. Thread-sharing snapshots wait until the scan has indexed all calls in
-the window, which prevents an early batch from recording a partial owner count.
+(or `--observe-state`). A first run starts at the newest 50,000 `turn_items` rowids.
+That fixed window bounds initial catch-up; on the copy it finished in about 33 seconds,
+within the 60-second budget. Rows before the window receive no historical observations.
+Later runs start after the saved high-water rowid. The rowid range uses SQLite's primary
+index and reads at most 500 rows per transaction, with a 200 ms interrupt limit. It
+closes the transaction before resolving run, usage, and thread facts, so each snapshot
+ends before the next batch and WAL checkpoints can advance between reads. A private
+SQLite sidecar indexes matched delegation rows. Its refresh cursor resumes across those
+rows so later run, attempt, usage, and thread changes remain visible without restarting
+at the oldest call. A separate cursor resumes thread snapshots. Sharing counts wait
+until every call in the window is indexed; if a thread also has runs outside that window,
+the count is marked unknown instead of attributing its pull requests to one decision.
 
 The 60-second default budget (`--observe-time-budget-seconds`, range 1–3600) reserves
-60% for T3, 20% for destinations, and 20% for git. Each source saves its completed
-cursor with the observation append; after a budget exit, the next run continues from
-that point. The cursor is bound to the database identity and observation ledger.
-State writes use a private lock and an atomic replacement. Progress counts and the
-bounded first window appear under the top-level `incremental` object.
+60% for T3, 20% for destinations, and 20% for git. Each source saves its cursor with
+the observation append; after a budget exit, the next run continues from that point.
+The T3 cursor is bound to the database identity and the observation-ledger prefix, so
+appending a source-run row does not reset it, while replacing or editing the ledger does.
+If a required lookup index is missing, T3 reports the missing index instead of scanning.
+State writes use a private lock and atomic replacement. Progress counts and the bounded
+first window appear under the top-level `incremental` object.
 
 `EXPLAIN QUERY PLAN` on the copied T3 database, using the production batch SQL,
 showed these indexed lookups:

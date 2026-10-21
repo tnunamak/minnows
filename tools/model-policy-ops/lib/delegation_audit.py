@@ -105,12 +105,12 @@ def read_child_usage(db, child_run_id, close_batches=False, deadline=None):
         page = db.execute(f"SELECT attempt_id,attempt_ordinal,{attempt_thread},provider_turn_id FROM {attempt_table} "
                           "WHERE run_id=? AND attempt_ordinal>? ORDER BY attempt_ordinal,attempt_id LIMIT 500",
                           (child_run_id, after_ordinal)).fetchall()
+        if close_batches:
+            db.commit()
         attempt_rows.extend(page)
         if len(page) < 500:
             break
         after_ordinal = page[-1][1]
-        if close_batches:
-            db.commit()
     attempts, rows_by_attempt = {}, {}
     for row in attempt_rows:
         attempt_id, ordinal, provider_thread_id, provider_turn_id = row
@@ -127,6 +127,8 @@ def read_child_usage(db, child_run_id, close_batches=False, deadline=None):
                 raise BudgetExhausted
             page = db.execute(select_turn + ' WHERE provider_thread_id=? AND ordinal>? ORDER BY ordinal LIMIT 500',
                               (thread_id, after_ordinal)).fetchall()
+            if close_batches:
+                db.commit()
             for turn in page:
                 attempt_id = turn[1]
                 if attempt_id in rows_by_attempt:
@@ -134,8 +136,6 @@ def read_child_usage(db, child_run_id, close_batches=False, deadline=None):
             if len(page) < 500:
                 break
             after_ordinal = page[-1][2]
-            if close_batches:
-                db.commit()
     if not indexed_thread_turn:
         for attempt_id, _, _, _ in attempt_rows:
             after_ordinal = -1
@@ -144,18 +144,20 @@ def read_child_usage(db, child_run_id, close_batches=False, deadline=None):
                     raise BudgetExhausted
                 page = db.execute(select_turn + ' WHERE run_attempt_id=? AND ordinal>? ORDER BY ordinal LIMIT 500',
                                   (attempt_id, after_ordinal)).fetchall()
+                if close_batches:
+                    db.commit()
                 for turn in page:
                     rows_by_attempt[attempt_id][turn[0]] = turn
                 if len(page) < 500:
                     break
                 after_ordinal = page[-1][2]
-                if close_batches:
-                    db.commit()
     for attempt_id, _, _, provider_turn_id in attempt_rows:
         if deadline is not None and time.monotonic() >= deadline:
             raise BudgetExhausted
         if provider_turn_id:
             turn = db.execute(select_turn + ' WHERE provider_turn_id=?', (provider_turn_id,)).fetchone()
+            if close_batches:
+                db.commit()
             if turn and turn[0] is not None:
                 rows_by_attempt[attempt_id][turn[0]] = turn
 

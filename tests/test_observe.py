@@ -84,7 +84,7 @@ def test_t3_facts_carry_ids_timestamps_requested_config_and_labels(setup, tmp_pa
     before = db.read_bytes()
     row = ok(setup, '--db', db)
     assert db.read_bytes() == before
-    assert row['sources']['t3'] | {'new_observations': 0} == {'state': 'ok', 'reason': None, 'subjects_checked': 1, 'new_observations': 0}
+    assert row['sources']['t3'] | {'new_observations': 0} == {'state': 'ok', 'reason': None, 'subjects_checked': 2, 'new_observations': 0}
     assert set(row['sources']) == {'git', 't3'} and row['sources']['git']['subjects_checked'] == 0
     assert row['labels']['completed'] == 'completed ≠ accepted' and row['labels']['consumed'] == 'consumed ≠ correct'
     assert row['labels']['tokens'] == 'tokens ≠ subscription cost'
@@ -164,6 +164,64 @@ def test_incremental_budget_exit_resumes_from_saved_high_water(setup, tmp_path, 
     assert resumed['incremental']['rowid_through'] == resumed['incremental']['snapshot_high_water']
 
 
+def test_row_retry_after_one_failed_read_clears_quarantine(setup, tmp_path, monkeypatch):
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    targets = {'one': json.loads(setup[3].read_text().splitlines()[0])['target']}
+    real_read = module.read_t3_rowid_batch
+    failed_batch, failed_row = [False], [False]
+
+    def fail_one_single_row_read(*args, **kwargs):
+        if args[3] == 500 and not failed_batch[0]:
+            failed_batch[0] = True
+            raise sqlite3.OperationalError('temporary batch read error')
+        if args[3] == 1 and kwargs.get('rowids') is None and not failed_row[0]:
+            failed_row[0] = True
+            raise sqlite3.OperationalError('temporary row read error')
+        return real_read(*args, **kwargs)
+
+    monkeypatch.setattr(module, 'read_t3_rowid_batch', fail_one_single_row_read)
+    first = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+    assert first['incremental']['quarantined_rows'] == 1
+    module.save_state(state, first['_state'])
+    second = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+    monkeypatch.undo()
+    assert second['incremental']['quarantined_rows'] == 0
+    assert any(row['fact_type'] == 't3_delegate_call' for row in second['observations'])
+
+
+def test_thread_fact_cursor_resumes_at_the_first_unfinished_call(setup, tmp_path, monkeypatch):
+    db_path = t3_world(setup, tmp_path)
+    c = sqlite3.connect(db_path)
+    call = json.loads(c.execute(f"select payload_json from {PREFIX}turn_items where turn_item_id='call'").fetchone()[0])
+    c.execute(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
+              ('call-b', 'parent-thread', 'parent', '2026-10-08T00:01:00Z', 'completed', 'dynamic_tool', json.dumps(call)))
+    rowids = [row[0] for row in c.execute(f"select rowid from {PREFIX}turn_items where turn_item_id in ('call','call-b') order by rowid")]
+    c.close()
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    call_db, _, _ = module.open_call_index(state)
+    module.remember_calls(call_db, [{'_source_rowid': rowids[0], 'call_id': 'call', 'child_run_id': 'child', 'decision_id': 'one'},
+                                    {'_source_rowid': rowids[1], 'call_id': 'call-b', 'child_run_id': 'child', 'decision_id': 'one'}])
+    seen = []
+
+    def facts(_db, _run, _decision, _ids, _owner=None, **_kwargs):
+        seen.append(len(seen) + 1)
+        if len(seen) == 2:
+            raise module.BudgetExhausted
+        return [{'fact': 'first'}]
+
+    monkeypatch.setattr(module, 'child_thread_facts', facts)
+    first, _, cursor, done = module.collect_indexed_thread_facts(db_path, call_db, {'one'}, {}, time.monotonic() + 10)
+    assert first == [{'fact': 'first'}] and cursor == rowids[0] and not done
+    seen.clear()
+    resumed, _, cursor, done = module.collect_indexed_thread_facts(db_path, call_db, {'one'}, {}, time.monotonic() + 10,
+                                                                   after_rowid=cursor)
+    call_db.close()
+    assert resumed == [{'fact': 'first'}] and cursor == 0 and done
+
+
 def test_incremental_facts_match_the_existing_collector_for_the_same_fixture_rows(setup, tmp_path):
     db = t3_world(setup, tmp_path, failure=f'{SECRET} rate limit reached')
     module = lib_module('observe')
@@ -195,6 +253,96 @@ def test_incremental_resets_when_ledger_or_rowid_anchors_change(setup, tmp_path)
     assert changed_anchor['incremental']['initial_window'] == 'last 50000 turn_items rowids'
 
 
+def test_cursor_anchor_detects_rowid_reuse_but_drops_deleted_anchor(setup, tmp_path):
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    targets = {'one': json.loads(setup[3].read_text().splitlines()[0])['target']}
+    first = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+    module.save_state(state, first['_state'])
+    c = sqlite3.connect(db)
+    original = c.execute(f"select payload_json from {PREFIX}turn_items where turn_item_id='call'").fetchone()[0]
+    c.execute(f"delete from {PREFIX}turn_items where turn_item_id='call'")
+    c.execute(f'insert into {PREFIX}turn_items(rowid,turn_item_id,thread_id,run_id,updated_at,status,type,payload_json) '
+              'values (?,?,?,?,?,?,?,?)', (1, 'call-reused', 'parent-thread', 'parent', '2026-10-08T00:03:00Z',
+                                           'completed', 'dynamic_tool', json.dumps(original)))
+    c.commit()
+    c.close()
+    reused = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+    assert reused['incremental']['initial_window'] == 'last 50000 turn_items rowids'
+    assert reused['incremental']['reset_reason'] == 'anchor_rowid_reused'
+
+    module.save_state(state, first['_state'])
+    c = sqlite3.connect(db)
+    c.execute(f"delete from {PREFIX}turn_items where turn_item_id='call-reused'")
+    c.execute(f'insert into {PREFIX}turn_items(rowid,turn_item_id,thread_id,run_id,updated_at,status,type,payload_json) '
+              'values (?,?,?,?,?,?,?,?)', (2, 'later', 'parent-thread', 'parent', '2026-10-08T00:04:00Z',
+                                           'completed', 'other', '{}'))
+    c.commit()
+    c.close()
+    deleted = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+    assert deleted['incremental']['initial_window'] is None
+
+
+def test_missing_database_run_appends_ledger_without_resetting_t3_cursor(setup, tmp_path):
+    db = t3_world(setup, tmp_path)
+    first = ok(setup, '--db', db)
+    first_high = first['incremental']['rowid_through']
+    missing = ok(setup, '--db', tmp_path / 'missing.sqlite')
+    assert missing['sources']['t3']['reason'] == 'database_missing'
+    resumed = ok(setup, '--db', db)
+    assert resumed['incremental']['initial_window'] is None
+    assert resumed['incremental']['high_water_before'] == first_high
+
+
+def test_ledger_prefix_validation_accepts_appends_and_rejects_edits(tmp_path):
+    module = lib_module('observe')
+    ledger = tmp_path / 'observations.jsonl'
+    ledger.write_bytes(b'{"run_id":"one"}\n')
+    previous = module.read_last_ledger_line(ledger)
+    with ledger.open('ab') as stream:
+        stream.write(b'{"run_id":"two"}\n')
+    appended = module.read_last_ledger_line(ledger, previous_marker=previous)
+    assert module.ledger_prefix_matches(previous, appended)
+    content = ledger.read_bytes().replace(b'one', b'bad', 1)
+    ledger.write_bytes(content)
+    edited = module.read_last_ledger_line(ledger, previous_marker=previous)
+    assert not module.ledger_prefix_matches(previous, edited)
+
+
+def test_refresh_deadline_leaves_time_to_scan_new_rows(setup, tmp_path, monkeypatch):
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    targets = {'one': json.loads(setup[3].read_text().splitlines()[0])['target']}
+    c = sqlite3.connect(db)
+    call = json.loads(c.execute(f"select payload_json from {PREFIX}turn_items where turn_item_id='call'").fetchone()[0])
+    c.executemany(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
+                  [(f'call-{i}', 'parent-thread', 'parent', '2026-10-08T00:01:00Z', 'completed', 'dynamic_tool', json.dumps(call))
+                   for i in range(499)])
+    c.commit()
+    c.close()
+    real_usage = module.read_child_usage_for_call
+    monkeypatch.setattr(module, 'read_child_usage_for_call', lambda *args, **kwargs: real_usage(*args, **kwargs))
+    first = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+    module.save_state(state, first['_state'])
+    c = sqlite3.connect(db)
+    c.executemany(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
+                  [(f'new-call-{i}', 'parent-thread', 'parent', '2026-10-08T00:02:00Z', 'completed', 'dynamic_tool', json.dumps(call))
+                   for i in range(10)])
+    c.commit()
+    c.close()
+
+    def slow_usage(*args, **kwargs):
+        time.sleep(0.05)
+        return real_usage(*args, **kwargs)
+
+    monkeypatch.setattr(module, 'read_child_usage_for_call', slow_usage)
+    second = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 5)
+    assert second['incremental']['rows_scanned'] == 10
+    assert second['incremental']['refresh_cursor'] > 0
+
+
 def test_incremental_preserves_dynamic_tool_filter_case_insensitively(setup, tmp_path):
     db = t3_world(setup, tmp_path)
     c = sqlite3.connect(db)
@@ -209,6 +357,17 @@ def test_incremental_preserves_dynamic_tool_filter_case_insensitively(setup, tmp
     _, calls, _, matched, _ = module.read_t3_rowid_batch(db, 0, 0, 500, rowids=rowids, scope_ids=set())
     assert [call['call_id'] for call in calls] == ['tool-match']
     assert len(matched) == 1
+
+
+def test_incremental_refuses_missing_followup_index(setup, tmp_path):
+    db = child_thread_world(setup, tmp_path, [])
+    c = sqlite3.connect(db)
+    c.execute(f'drop index {PREFIX}turn_items_thread_id_idx')
+    c.commit()
+    c.close()
+    row = ok(setup, '--db', db)
+    assert row['sources']['t3']['state'] == 'unavailable'
+    assert row['sources']['t3']['reason'] == 'no_indexed_turn_items_thread_id_lookup'
 
 
 def test_incremental_state_refuses_loose_files_and_symlinks(setup, tmp_path):
@@ -244,6 +403,39 @@ def test_destination_time_budget_returns_a_resume_cursor(setup, tmp_path, monkey
                                          stopped['_cursor'])
     monkeypatch.undo()
     assert resumed['state'] == 'ok' and resumed['subjects_checked'] == 5
+
+
+def test_bad_destination_record_restarts_status_refresh_from_first_id(tmp_path, monkeypatch):
+    module = lib_module('observe')
+    entry = {'name': 'destination', 'observe_command': ['/unused'], 'timeout_seconds': 1}
+    values = {'a': {'found': True, 'status': 'queued'}, 'b': {'found': 'invalid'}}
+    monkeypatch.setattr(module, 'ask_destination', lambda _entry, ids, _deadline: ({key: values[key] for key in ids}, None))
+    first = module.collect_destination(entry, {'a', 'b'}, time.monotonic() + 10)
+    assert first['state'] == 'error' and first['_cursor'] is None
+    values['a'] = {'found': True, 'status': 'finished'}
+    second = module.collect_destination(entry, {'a', 'b'}, time.monotonic() + 10, first['_cursor'])
+    assignment = next(row for row in second['observations'] if row['subject_id'] == 'a')
+    assert assignment['fact']['status'] == 'finished'
+
+
+def test_destination_budget_timeout_retries_with_smaller_batches(tmp_path, monkeypatch):
+    module = lib_module('observe')
+    entry = {'name': 'destination', 'observe_command': ['/unused'], 'timeout_seconds': 1}
+    timed_out = []
+
+    def first_batch_times_out(_entry, ids, _deadline):
+        timed_out.append(len(ids))
+        return None, 'time_budget_exhausted'
+
+    monkeypatch.setattr(module, 'ask_destination', first_batch_times_out)
+    stopped = module.collect_destination(entry, {f'id-{i:02d}' for i in range(30)}, time.monotonic() + 10)
+    assert stopped['_cursor'] is None and stopped['_batch_size'] == 12
+    assert timed_out == [25]
+    monkeypatch.setattr(module, 'ask_destination', lambda _entry, ids, _deadline:
+                        ({key: {'found': False} for key in ids}, None))
+    resumed = module.collect_destination(entry, {f'id-{i:02d}' for i in range(30)}, time.monotonic() + 10,
+                                         stopped['_cursor'], stopped['_batch_size'])
+    assert resumed['state'] == 'ok' and resumed['subjects_checked'] == 30
 
 
 def test_git_time_budget_returns_a_resume_cursor(setup, repo_world, monkeypatch):
@@ -1173,8 +1365,10 @@ def child_thread_world(setup, tmp_path, pull_requests, messages=3, raw=None):
     db = t3_world(setup, tmp_path)
     c = sqlite3.connect(db)
     c.execute(f'alter table {PREFIX}runs add column thread_id text')
+    c.execute(f'create index {PREFIX}runs_thread_id_idx on {PREFIX}runs(thread_id)')
     c.execute(f"update {PREFIX}runs set thread_id='child-thread' where run_id='child'")
     c.execute(f'create table {PREFIX}threads (thread_id text, payload_json text, updated_at text)')
+    c.execute(f'create index {PREFIX}threads_thread_id_idx on {PREFIX}threads(thread_id)')
     payload = raw if raw is not None else json.dumps({'pullRequests': pull_requests, 'title': SECRET})
     c.execute(f'insert into {PREFIX}threads values (?,?,?)', ('child-thread', payload, '2026-10-08T01:00:00Z'))
     for i in range(messages):
@@ -1261,8 +1455,53 @@ def test_a_thread_shared_by_two_decisions_is_flagged(setup, tmp_path):
     assert facts(setup, 't3', 't3_child_pull_requests')[0]['fact']['shared_with_decisions'] == 2
 
 
+def test_shared_thread_reports_unknown_owner_outside_initial_window(setup, tmp_path, monkeypatch):
+    db = child_thread_world(setup, tmp_path, [pr('merged')])
+    _, receipt = record(setup, 'two', 'implement.standard', '--purpose', 'execution')
+    c = sqlite3.connect(db)
+    c.execute(f'insert into {PREFIX}runs values (?,?,?,?,?,?)',
+              ('child2', 'claude-one', 'completed', json.dumps({'modelSelection': {'model': receipt['target']['model']}}),
+               '2026-10-08T00:10:00Z', 'child-thread'))
+    c.executemany(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
+                  [(f'filler-{i}', 'parent-thread', 'parent', '2026-10-08T00:09:00Z', 'completed', 'other', '{}')
+                   for i in range(11)])
+    call = json.loads(c.execute(f"select payload_json from {PREFIX}turn_items where turn_item_id='call'").fetchone()[0])
+    call['input']['clientRequestId'] = 'two'
+    call['input']['target'] = receipt['target']
+    call['output']['structuredContent']['childRunId'] = 'child2'
+    c.execute(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
+              ('call2', 'parent-thread', 'parent', '2026-10-08T00:10:00Z', 'completed', 'dynamic_tool', json.dumps(call)))
+    c.commit()
+    c.close()
+    module = lib_module('observe')
+    monkeypatch.setattr(module, 'OBSERVE_INITIAL_ROWS', 10)
+    receipts = [json.loads(line) for line in setup[3].read_text().splitlines()]
+    targets = {row['decision_id']: row['target'] for row in receipts}
+    result = module.incremental_t3(db, {'one', 'two'}, targets, tmp_path / 'state' / 'observe.json', time.monotonic() + 30)
+    fact = next(row for row in result['observations'] if row['fact_type'] == 't3_child_pull_requests')
+    assert fact['fact']['shared_with_decisions'] is None
+    assert fact['unknown']['shared_with_decisions'] == 'outside_observed_window'
+
+
 def test_a_thread_without_pull_requests_records_an_empty_snapshot(setup, tmp_path):
     db = child_thread_world(setup, tmp_path, [], messages=1)
     ok(setup, '--db', db)
     assert facts(setup, 't3', 't3_child_followups')[0]['fact']['followup_messages'] == 0
     assert facts(setup, 't3', 't3_child_pull_requests')[0]['fact']['pull_requests'] == []
+
+
+def test_followup_timestamp_uses_maximum_across_all_pages(setup, tmp_path):
+    db_path = child_thread_world(setup, tmp_path, [], messages=501)
+    c = sqlite3.connect(db_path)
+    c.execute(f'alter table {PREFIX}turn_items add column ordinal integer')
+    c.execute(f'update {PREFIX}turn_items set ordinal=rowid')
+    c.execute(f'create index {PREFIX}turn_items_user_message_idx on {PREFIX}turn_items(thread_id,ordinal)')
+    c.execute(f"update {PREFIX}turn_items set updated_at='2999-01-01T00:00:00Z' where turn_item_id='msg0'")
+    c.commit()
+    c.close()
+    module = lib_module('observe')
+    db = sqlite3.connect(db_path)
+    found = module.child_thread_facts(db, 'child', 'one', {'run_id': 'child'}, include_thread_snapshot=False)
+    db.close()
+    followup = next(row for row in found if row['fact_type'] == 't3_child_followups')
+    assert followup['source_timestamps']['last_user_message_at'] == '2999-01-01T00:00:00+00:00'
