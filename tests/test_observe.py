@@ -135,20 +135,29 @@ def test_incremental_budget_exit_resumes_from_saved_high_water(setup, tmp_path, 
     c = sqlite3.connect(db)
     c.executemany(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
                   [(f'filler-{i}', 't', 'parent', '2026-10-08T00:00:00Z', 'completed', 'other', '{"toolName":"other"}')
-                   for i in range(600)])
+                   for i in range(50_600)])
     c.commit()
     c.close()
     module = lib_module('observe')
     state = tmp_path / 'observe.json'
     targets = {'one': json.loads(setup[3].read_text().splitlines()[0])['target']}
-    moments = iter([0, 0, 2])
-    monkeypatch.setattr(time, 'monotonic', lambda: next(moments, 2))
+    clock = [0.0]
+    real_read = module.read_t3_rowid_batch
+
+    def read_one_batch_then_expire(*args, **kwargs):
+        result = real_read(*args, **kwargs)
+        clock[0] = 2.0
+        return result
+
+    monkeypatch.setattr(module.time, 'monotonic', lambda: clock[0])
+    monkeypatch.setattr(module, 'read_t3_rowid_batch', read_one_batch_then_expire)
     stopped = module.incremental_t3(db, {'one'}, targets, state, 1)
     monkeypatch.undo()
     assert stopped['state'] == 'partial' and stopped['reason'] == 'time_budget_exhausted'
-    assert stopped['incremental']['rowid_through'] == 500
+    assert stopped['incremental']['rowid_through'] == stopped['incremental']['rowid_from'] + 500
+    assert stopped['incremental']['rowid_from'] > 0
     assert stopped['incremental']['rows_scanned'] == 500
-    state.write_text(json.dumps(stopped['_state']))
+    module.save_state(state, stopped['_state'])
     resumed = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
     assert resumed['state'] == 'ok'
     assert resumed['incremental']['high_water_before'] == stopped['_state']['rowid']
@@ -166,13 +175,110 @@ def test_incremental_facts_match_the_existing_collector_for_the_same_fixture_row
     assert {r['observation_id'] for r in incremental['observations']} == {r['observation_id'] for r in baseline['observations']}
 
 
+def test_incremental_resets_when_ledger_or_rowid_anchors_change(setup, tmp_path):
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    targets = {'one': json.loads(setup[3].read_text().splitlines()[0])['target']}
+    first = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30,
+                                  {'path': '/ledger-a', 'device': 1, 'inode': 2, 'size': 3,
+                                   'mtime_ns': 4, 'tail_sha256': 'a', 'last_run_id': 'run-a'})
+    module.save_state(state, first['_state'])
+    changed_ledger = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30,
+                                           {'path': '/ledger-b', 'device': 1, 'inode': 2, 'size': 3,
+                                            'mtime_ns': 4, 'tail_sha256': 'a', 'last_run_id': 'run-a'})
+    assert changed_ledger['incremental']['initial_window'] == 'last 50000 turn_items rowids'
+    module.save_state(state, changed_ledger['_state'])
+    changed_ledger['_state']['anchors'] = {'1': 'rowid-was-reused'}
+    module.save_state(state, changed_ledger['_state'])
+    changed_anchor = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 30)
+    assert changed_anchor['incremental']['initial_window'] == 'last 50000 turn_items rowids'
+
+
+def test_incremental_preserves_dynamic_tool_filter_case_insensitively(setup, tmp_path):
+    db = t3_world(setup, tmp_path)
+    c = sqlite3.connect(db)
+    c.executemany(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)', [
+        ('tool-match', 't', 'parent', '2026-10-08T00:00:00Z', 'completed', 'dynamic_tool', '{"toolName":"Dynamic_Delegate_Task"}'),
+        ('wrong-type', 't', 'parent', '2026-10-08T00:00:01Z', 'completed', 'other', '{"toolName":"delegate_task"}'),
+    ])
+    c.commit()
+    rowids = [row[0] for row in c.execute(f"select rowid from {PREFIX}turn_items where turn_item_id in ('tool-match','wrong-type') order by rowid")]
+    c.close()
+    module = lib_module('observe')
+    _, calls, _, matched, _ = module.read_t3_rowid_batch(db, 0, 0, 500, rowids=rowids, scope_ids=set())
+    assert [call['call_id'] for call in calls] == ['tool-match']
+    assert len(matched) == 1
+
+
+def test_incremental_state_refuses_loose_files_and_symlinks(setup, tmp_path):
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    state.write_text('{}')
+    state.chmod(0o644)
+    loose = module.incremental_t3(db, {'one'}, {}, state, time.monotonic() + 10)
+    assert loose['state'] == 'error' and 'not_private' in loose['reason']
+    state.unlink()
+    target = tmp_path / 'target.json'
+    module.save_state(target, {})
+    state.symlink_to(target)
+    linked = module.incremental_t3(db, {'one'}, {}, state, time.monotonic() + 10)
+    assert linked['state'] == 'error' and 'symlink' in linked['reason']
+
+
+def test_destination_time_budget_returns_a_resume_cursor(setup, tmp_path, monkeypatch):
+    module = lib_module('observe')
+    clock = [0.0]
+    entry = {'name': 'destination', 'observe_command': ['/unused'], 'timeout_seconds': 1}
+
+    def answer(entry, ids, deadline):
+        clock[0] = 2.0
+        return {request_id: {'found': False} for request_id in ids}, None
+
+    monkeypatch.setattr(module.time, 'monotonic', lambda: clock[0])
+    monkeypatch.setattr(module, 'ask_destination', answer)
+    stopped = module.collect_destination(entry, {f'id-{i:02d}' for i in range(30)}, 1)
+    assert stopped['state'] == 'partial' and stopped['_cursor'] == 'id-24'
+    resumed = module.collect_destination(entry, {f'id-{i:02d}' for i in range(30)}, time.monotonic() + 10,
+                                         stopped['_cursor'])
+    monkeypatch.undo()
+    assert resumed['state'] == 'ok' and resumed['subjects_checked'] == 5
+
+
+def test_git_time_budget_returns_a_resume_cursor(setup, repo_world, monkeypatch):
+    module = lib_module('observe')
+    record(setup, 'two')
+    close_on(setup, repo_world['repo'], repo_world['sha'], close_id='c2', decision='two')
+    from outcomes import read_outcomes
+    outcome_rows = read_outcomes(paths(setup)[0])
+    clock = [0.0]
+    scanned = []
+
+    def scan(close_row, ref, window_days, now, deadline):
+        scanned.append(close_row['close_id'])
+        clock[0] = 2.0
+        return []
+
+    monkeypatch.setattr(module.time, 'monotonic', lambda: clock[0])
+    monkeypatch.setattr(module, 'scan_commit', scan)
+    stopped = module.collect_git(outcome_rows, {'one', 'two'}, 14, NOW, 1)
+    assert stopped['state'] == 'partial' and stopped['_cursor']
+    scanned.clear()
+    resumed = module.collect_git(outcome_rows, {'one', 'two'}, 14, NOW, time.monotonic() + 10, stopped['_cursor'])
+    monkeypatch.undo()
+    assert resumed['state'] == 'ok' and scanned == ['c2']
+
+
 def test_incremental_query_plan_uses_rowid_primary_key(setup, tmp_path):
     db = t3_world(setup, tmp_path)
     c = sqlite3.connect(db)
-    plan = c.execute(f"EXPLAIN QUERY PLAN SELECT rowid,turn_item_id FROM {PREFIX}turn_items "
-                      "WHERE rowid>? AND rowid<=? ORDER BY rowid LIMIT 500", (0, 1)).fetchall()
+    module = lib_module('observe')
+    plan = c.execute('EXPLAIN QUERY PLAN ' + module.t3_batch_sql('i.rowid>? AND i.rowid<=?'), (0, 1, 500)).fetchall()
     assert any('INTEGER PRIMARY KEY (rowid>? AND rowid<?)' in row[-1] for row in plan)
-    refresh = c.execute(f"EXPLAIN QUERY PLAN SELECT rowid,turn_item_id FROM {PREFIX}turn_items WHERE rowid IN (?)", (1,)).fetchall()
+    assert any('SEARCH p USING' in row[-1] for row in plan)
+    assert any('SEARCH c USING' in row[-1] for row in plan)
+    refresh = c.execute('EXPLAIN QUERY PLAN ' + module.t3_batch_sql('i.rowid IN (?)'), (1, 500)).fetchall()
     assert any('INTEGER PRIMARY KEY (rowid=?)' in row[-1] for row in refresh)
     c.close()
 
@@ -1141,6 +1247,9 @@ def test_a_thread_shared_by_two_decisions_is_flagged(setup, tmp_path):
     c = sqlite3.connect(db)
     c.execute(f'insert into {PREFIX}runs (run_id, provider_instance_id, status, payload_json, requested_at, thread_id) values (?,?,?,?,?,?)',
               ('child2', 'claude-one', 'completed', '{}', '2026-10-08T00:10:00Z', 'child-thread'))
+    c.executemany(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
+                  [(f'filler-{i}', 'parent-thread', 'parent', '2026-10-08T00:09:00Z', 'completed', 'other', '{"toolName":"other"}')
+                   for i in range(501)])
     call = json.loads(c.execute(f"select payload_json from {PREFIX}turn_items where turn_item_id='call'").fetchone()[0])
     call['input']['clientRequestId'] = 'other-decision'
     call['output']['structuredContent']['childRunId'] = 'child2'

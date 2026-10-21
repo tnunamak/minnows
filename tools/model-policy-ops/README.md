@@ -1379,34 +1379,50 @@ world-writable parent, and it must be a different file from the receipts and the
 outcomes. Older CLIs never read it. Each read of a source is read-only. `--now` is refused.
 `--since` limits the decisions in scope by `recorded_at`.
 
-The T3 reader stores its cursor in `~/.local/state/model-policy/observe.json` (or
-`--observe-state`). On the first run it scans only the last 50,000 `turn_items`
-rowids and prints that bounded initial window in `incremental`. It then advances a
-rowid high-water mark in batches of at most 500 rows. Each batch closes its SQLite
-read transaction before the next one. Known delegation rows are refreshed by rowid
-primary-key lookup so updates to their run, attempt, usage, or thread facts remain
-visible; unchanged facts still dedupe by observation ID. The 60-second default
-budget (`--observe-time-budget-seconds`, range 1–3600) saves the last completed
-cursor after appending its observations, then the next run resumes. State and output
-files are separate. The first-window and progress counts are printed under the
-top-level `incremental` object.
+The previous T3 reader scanned the full `turn_items` projection on every run. On a
+32 GB database, one run took 2m39s. A long read snapshot can delay WAL checkpoints
+while it uses CPU, which competes with T3's own database work.
 
-`EXPLAIN QUERY PLAN` on the copied T3 database produced these lookup plans:
+The reader stores private progress under `~/.local/state/model-policy/observe.json`
+(or `--observe-state`). A first run starts at the newest 50,000 `turn_items` rowids,
+so it bounds catch-up work and does not backfill older rows. Later runs start after
+the saved high-water rowid. The rowid range uses SQLite's primary index and reads
+at most 500 rows per transaction; it closes that transaction before resolving run,
+usage, and thread facts. Releasing each snapshot lets WAL checkpoints advance between
+batches. A private SQLite sidecar stores matched delegation rowids, so refresh work
+can advance across all rows in the observed window instead of restarting at the
+oldest call. Thread-sharing snapshots wait until the scan has indexed all calls in
+the window, which prevents an early batch from recording a partial owner count.
+
+The 60-second default budget (`--observe-time-budget-seconds`, range 1–3600) reserves
+60% for T3, 20% for destinations, and 20% for git. Each source saves its completed
+cursor with the observation append; after a budget exit, the next run continues from
+that point. The cursor is bound to the database identity and observation ledger.
+State writes use a private lock and an atomic replacement. Progress counts and the
+bounded first window appear under the top-level `incremental` object.
+
+`EXPLAIN QUERY PLAN` on the copied T3 database, using the production batch SQL,
+showed these indexed lookups:
 
 ```text
-turn_items rowid range: SEARCH orchestration_v2_projection_turn_items USING INTEGER PRIMARY KEY (rowid>? AND rowid<?)
-known call rowids:      SEARCH orchestration_v2_projection_turn_items USING INTEGER PRIMARY KEY (rowid=?)
-run by run_id:          SEARCH orchestration_v2_projection_runs USING INDEX sqlite_autoindex_orchestration_v2_projection_runs_1 (run_id=?)
-attempts by run_id:      SEARCH orchestration_v2_projection_run_attempts USING INDEX orchestration_v2_projection_run_attempts_run_ordinal_idx (run_id=? AND attempt_ordinal>?)
-turns by thread:         SEARCH orchestration_v2_projection_provider_turns USING INDEX orchestration_v2_projection_provider_turns_thread_ordinal_idx (provider_thread_id=? AND ordinal>?)
+batch rowid range:      SEARCH i USING INTEGER PRIMARY KEY (rowid>? AND rowid<?)
+refresh rowids:         SEARCH i USING INTEGER PRIMARY KEY (rowid=?)
+parent run:             SEARCH p USING INDEX sqlite_autoindex_orchestration_v2_projection_runs_1 (run_id=?) LEFT-JOIN
+child run:              SEARCH c USING INDEX sqlite_autoindex_orchestration_v2_projection_runs_1 (run_id=?) LEFT-JOIN
+run status:             SEARCH orchestration_v2_projection_runs USING INDEX sqlite_autoindex_orchestration_v2_projection_runs_1 (run_id=?)
+attempts by run_id:     SEARCH orchestration_v2_projection_run_attempts USING INDEX orchestration_v2_projection_run_attempts_run_ordinal_idx (run_id=? AND attempt_ordinal>?)
+failures by run_id:     SEARCH orchestration_v2_projection_turn_items USING INDEX orchestration_v2_projection_turn_items_run_ordinal_idx (run_id=? AND ordinal>?)
+user follow-ups:        SEARCH orchestration_v2_projection_turn_items USING INDEX orchestration_v2_projection_turn_items_user_message_idx (thread_id=? AND ordinal>?)
+runs by thread:         SEARCH orchestration_v2_projection_runs USING INDEX orchestration_v2_projection_runs_thread_ordinal_idx (thread_id=? AND ordinal>?)
+thread snapshot:        SEARCH orchestration_v2_projection_threads USING INDEX sqlite_autoindex_orchestration_v2_projection_threads_1 (thread_id=?)
+turns by thread:        SEARCH orchestration_v2_projection_provider_turns USING INDEX orchestration_v2_projection_provider_turns_thread_ordinal_idx (provider_thread_id=? AND ordinal>?)
 turn by provider ID:    SEARCH orchestration_v2_projection_provider_turns USING INDEX sqlite_autoindex_orchestration_v2_projection_provider_turns_1 (provider_turn_id=?)
-runs by thread:         SEARCH orchestration_v2_projection_runs USING COVERING INDEX orchestration_v2_projection_runs_thread_ordinal_idx (thread_id=?)
 ```
 
 The T3 projection has no index on `provider_turns.run_attempt_id`; observe resolves
 turns through the indexed provider thread and filters the matching attempt in that
-result. No timestamp function or unindexed predicate is used to find candidate
-source rows.
+result. These paged lookups use existing ordinal indexes. No timestamp function or
+unindexed predicate is used to find candidate source rows.
 
 **Facts only.** Every observation has a source ID (T3 run ID, dot request ID or git sha),
 the source timestamps, and `unknown` for fields that the source did not give, each with a

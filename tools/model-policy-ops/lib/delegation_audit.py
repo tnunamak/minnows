@@ -2,6 +2,7 @@
 import json
 import re
 import sqlite3
+import time
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -66,7 +67,11 @@ def count(value):
     return value if type(value) is int and value >= 0 else None
 
 
-def read_child_usage(db, child_run_id, close_batches=False):
+class BudgetExhausted(Exception):
+    """The observe deadline expired while reading a bounded SQLite page."""
+
+
+def read_child_usage(db, child_run_id, close_batches=False, deadline=None):
     """Per-attempt, per-turn whitelisted metadata for one child run. Never sums, never guesses."""
     attempt_table, turn_table = PREFIX + 'run_attempts', PREFIX + 'provider_turns'
     attempt_columns = {row[1] for row in db.execute(f'PRAGMA table_info({attempt_table})')}
@@ -90,9 +95,13 @@ def read_child_usage(db, child_run_id, close_batches=False):
     if not indexed_thread_turn:
         if close_batches and not indexed_attempt_turn:
             return usage_unknown('unavailable', 'no_indexed_turn_lookup')
+    if deadline is not None:
+        db.set_progress_handler(lambda: int(time.monotonic() >= deadline), 1000)
     attempt_thread = 'provider_thread_id' if indexed_thread_turn else 'NULL'
     attempt_rows, after_ordinal = [], -1
     while True:
+        if deadline is not None and time.monotonic() >= deadline:
+            raise BudgetExhausted
         page = db.execute(f"SELECT attempt_id,attempt_ordinal,{attempt_thread},provider_turn_id FROM {attempt_table} "
                           "WHERE run_id=? AND attempt_ordinal>? ORDER BY attempt_ordinal,attempt_id LIMIT 500",
                           (child_run_id, after_ordinal)).fetchall()
@@ -114,6 +123,8 @@ def read_child_usage(db, child_run_id, close_batches=False):
     for thread_id in thread_ids:
         after_ordinal = -1
         while True:
+            if deadline is not None and time.monotonic() >= deadline:
+                raise BudgetExhausted
             page = db.execute(select_turn + ' WHERE provider_thread_id=? AND ordinal>? ORDER BY ordinal LIMIT 500',
                               (thread_id, after_ordinal)).fetchall()
             for turn in page:
@@ -129,6 +140,8 @@ def read_child_usage(db, child_run_id, close_batches=False):
         for attempt_id, _, _, _ in attempt_rows:
             after_ordinal = -1
             while True:
+                if deadline is not None and time.monotonic() >= deadline:
+                    raise BudgetExhausted
                 page = db.execute(select_turn + ' WHERE run_attempt_id=? AND ordinal>? ORDER BY ordinal LIMIT 500',
                                   (attempt_id, after_ordinal)).fetchall()
                 for turn in page:
@@ -139,6 +152,8 @@ def read_child_usage(db, child_run_id, close_batches=False):
                 if close_batches:
                     db.commit()
     for attempt_id, _, _, provider_turn_id in attempt_rows:
+        if deadline is not None and time.monotonic() >= deadline:
+            raise BudgetExhausted
         if provider_turn_id:
             turn = db.execute(select_turn + ' WHERE provider_turn_id=?', (provider_turn_id,)).fetchone()
             if turn and turn[0] is not None:
@@ -146,6 +161,8 @@ def read_child_usage(db, child_run_id, close_batches=False):
 
     seen = {}
     for attempt_id, attempt in attempts.items():
+        if deadline is not None and time.monotonic() >= deadline:
+            raise BudgetExhausted
         for row in sorted(rows_by_attempt[attempt_id].values(), key=lambda r: (r[2], r[0])):
             if row[0] is None or row[0] in seen.setdefault(attempt_id, set()):
                 continue
