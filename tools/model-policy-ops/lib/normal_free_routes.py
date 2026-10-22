@@ -1,9 +1,9 @@
-"""Normal (non-experimental) policy-declared zero-price routes.
+"""Normal policy-declared zero-price routes.
 
 A normal route binds one exact provider, model and T3 account with a declared source price of
-zero, the public-input floor, the T3 risks it carries (`known_risks`), and dated evidence. Unlike
-`experimental_free_routes` it carries no experimental authorization, no local expiry horizon and no
-transport grant. Its operations name an honest evidence basis:
+zero, the public-input floor, the T3 risks it carries (`known_risks`), and dated evidence. It carries
+no experimental flag, no local expiry horizon and no transport grant. Its operations name an honest
+evidence basis:
 
 - `qualified_free`: a finite deterministic gate sample passed for exactly this scope, at the
   declared effort and proof class. It is not whole-task acceptance.
@@ -113,6 +113,16 @@ def refusal(route, op_id, proof_class, effort, evaluated_at):
     if effort not in item['efforts']:
         return EFFORT_MISSING
     return None
+
+
+RETIRED_EXPERIMENTAL_KEY = 'experimental_free_routes'
+
+
+def check_retired_experimental(policy):
+    """The legacy experimental declaration is retired. Its root key must be absent so no flag or expiry can apply."""
+    if RETIRED_EXPERIMENTAL_KEY in policy:
+        return [f'{RETIRED_EXPERIMENTAL_KEY} is retired; declare the route under free_routes (no experimental flag or expiry)']
+    return []
 
 
 def check_normal_free_routes(routes):

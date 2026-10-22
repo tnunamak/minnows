@@ -3,7 +3,7 @@ import copy
 import json
 import subprocess
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 
 import pytest
 
@@ -52,7 +52,7 @@ def refused(out):
             assert 'submit by hand' not in node['launch_readiness_basis']
 
 
-@pytest.mark.parametrize('case', ['unclassified', 'sensitive', 'expired', 'allowed-to-sibling', 'ordinary-to-sibling'])
+@pytest.mark.parametrize('case', ['unclassified', 'sensitive', 'allowed-to-sibling', 'ordinary-to-sibling'])
 def test_r1_actual_destination_requires_its_own_authorization(world, case):
     add_opencode_fixture(world)
     sibling(world)
@@ -60,39 +60,30 @@ def test_r1_actual_destination_requires_its_own_authorization(world, case):
     flags = deepseek_flags(classification='public') if case == 'allowed-to-sibling' else []
     if case == 'sensitive':
         flags += ['--data-classification', 'sensitive']
-    if case == 'expired':
-        world.policy['experimental_free_routes'][0]['expires_at_utc'] = '2026-10-14T00:00:00Z'
     op = 'implement.standard' if case == 'ordinary-to-sibling' else 'fanout.explore'
     out = run(world, 'route', op, *world.args(), '--proof-class', 'judged',
               *destination(world, model), *flags)
     refused(out)
 
 
-@pytest.mark.parametrize('change', ['removed', 'account', 'model', 'provider', 'expired', 'expiry-boundary'])
+@pytest.mark.parametrize('change', ['removed', 'account', 'model', 'provider'])
 def test_r2_replay_requires_current_exact_authorization(world, change):
     add_opencode_fixture(world)
-    # Record against the real clock so expiry-boundary replay is tested without a simulation.
-    now = datetime.now(timezone.utc)
-    route = world.policy['experimental_free_routes'][0]
-    route['expires_at_utc'] = (now + timedelta(days=1)).isoformat()
-    flags = ['resolve', '--no-op', *world.args(), *deepseek_flags(classification='public'),
-             '--record', '--decision-id', 'current-exact', '--parent-model', 'parent',
+    route = world.policy['free_routes'][0]
+    flags = ['route', 'implement.oracle-bounded', *world.args(), *deepseek_flags(classification='public'),
+             '--proof-class', 'oracle', '--record', '--decision-id', 'current-exact', '--parent-model', 'parent',
              '--parent-provider-instance', 'parent', '--parent-thread', 'parent']
     first = run(world, *flags)
     assert first['launch_ready'] is True
     assert run(world, *flags) == first | {'replayed': True}
     if change == 'removed':
-        world.policy['experimental_free_routes'] = []
-    elif change in ('account', 'model', 'provider'):
-        route[change] = 'revoked-' + route[change]
-    elif change == 'expiry-boundary':
-        route['expires_at_utc'] = now.isoformat()
+        world.policy['free_routes'] = []
     else:
-        route['expires_at_utc'] = '2026-10-14T00:00:00Z'
+        route[change] = 'revoked-' + route[change]
     out = run(world, *flags)
     assert out['replayed'] is True
     refused(out)
-    assert out['data_policy']['refusal'] == 'experimental_route_receipt_not_currently_authorized'
+    assert out['data_policy']['refusal'] == 'normal_route_receipt_not_currently_authorized'
 
 
 def test_r2_genuine_legacy_sibling_receipt_is_refused(world):
@@ -113,7 +104,6 @@ def test_r2_genuine_legacy_sibling_receipt_is_refused(world):
     original = json.loads(old.stdout)
     assert original['launch_ready'] is True and 'data_policy' not in original
     assert original['target']['model'] == SIBLING
-    world.policy['experimental_free_routes'] = []
     out = run(world, *flags)
     assert out['replayed'] is True
     refused(out)
@@ -201,7 +191,8 @@ def test_stored_governed_identity_survives_complete_policy_removal(world):
     out['selection'] = {'arm': {key: identity[key] for key in ('provider', 'model', 'effort')},
                         'target': {'providerInstanceId': identity['account'], 'model': identity['model'], 'options': {'variant': 'high'}}}
     out['target'] = copy.deepcopy(out['selection']['target'])
-    apply_experimental_route_policy(out, {'experimental_free_routes': []}, datetime.now(timezone.utc), replay=True)
+    apply_experimental_route_policy(out, {'free_routes': []}, datetime.fromisoformat(CLOCK.replace('Z', '+00:00')),
+                                    replay=True)
     refused(out)
 
 
@@ -224,7 +215,7 @@ def test_destination_alias_cannot_use_fallback_authorization(world, driver):
     assert out['data_policy']['account'] == 'alias'
 
 
-def test_destination_replay_revocation_clears_dispatch_instructions(world):
+def test_destination_replay_of_a_refused_offer_stays_refused(world):
     add_opencode_fixture(world)
     flags = ['route', 'fanout.explore', *world.args(), *deepseek_flags(classification='public'),
              *destination(world, DEEPSEEK_FREE), '--record', '--decision-id', 'destination-replay',
@@ -234,7 +225,6 @@ def test_destination_replay_revocation_clears_dispatch_instructions(world):
     replayed = run(world, *flags)
     assert replayed['replayed'] is True
     refused(replayed)
-    world.policy['experimental_free_routes'] = []
     out = run(world, *flags)
     assert out['replayed'] is True
     refused(out)

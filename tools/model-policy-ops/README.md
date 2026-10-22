@@ -325,27 +325,25 @@ when selected by the pack. Parent model, provider instance, and thread are alway
 caller-supplied; unrelated environment variables are not evidence of the parent.
 Reason and handoff text must be short explanations, without prompts or secrets.
 
-### Experimental free routes
+### Free routes (normal declaration)
 
-An entry in the pack's root `experimental_free_routes` metadata is never an
-operating-point candidate in the pack. `route` adds it as a candidate itself, with no override, when the
-caller asserts `--data-classification public` for one of the two qualified operations with the qualified
-proof class and the evidence is current (see "Qualified free candidates" in the contract). Otherwise it is usable only
-through an explicit experimental override, or under the separately authorized
-`fanout.explore` and `resolve --no-op` paths, with exact provider, model, effort
-and account flags. `--data-classification public` is required; omission
-means unknown, and `--sensitive` always refuses the
-route. `--inputs github` does not classify its contents. The exact route below is
-bound to OpenCode's `opencode` provider and account plus
-`opencode/deepseek-v4.1-flash-free`; other OpenCode models and provider/account
-aliases do not inherit its zero-cost metadata. The effort option key is read from
-the live T3 catalog and remains `variant`; an authorized public experimental
-request can emit its T3 target.
+The DeepSeek V4.1 Flash Free zero-price route is declared under the pack's root `free_routes`. The retired
+`experimental_free_routes` key is a pack error. `route` adds the route itself as a candidate, with no override and no flag, when the
+caller asserts `--data-classification public` for one of its qualified operations with the qualified proof class and
+the evidence is current (see "Qualified free candidates" in the contract). Otherwise it is usable only through exact
+provider, model, effort and account flags with a reason. `--data-classification public` is required; omission
+means unknown, and `--sensitive` always refuses the route. `--inputs github` does not classify its contents. The
+route is bound to OpenCode's `opencode` provider and account plus `opencode/deepseek-v4.1-flash-free`; other OpenCode
+models and provider/account aliases do not inherit its zero-cost metadata. The effort option key is read from the live
+T3 catalog and remains `variant`. The `--experimental-route` flag is accepted only so that historical request shapes
+still compare equal; a fresh request that uses it is refused. A receipt recorded under the retired contract is refused
+on replay with `experimental_route_receipt_not_currently_authorized`, and no receipt is rewritten.
+`fanout.explore` and `resolve --no-op` no longer authorize the DeepSeek route.
 
 This model-arm path validates and emits the actual effort option, such as
 `options.variant: high`. Generic destination submission does not support governed
 OpenCode routes: its options-free target cannot carry that validation. A chosen
-governed destination refuses even with exact public experimental overrides, and
+governed destination refuses even with exact public overrides, and
 even when its configured target is absent from the catalog. Refusal removes all
 targets, dispatch metadata, `submit`, `how_to`, and manual submission readiness
 advice from full and brief output, including nested copies and receipt replay.
@@ -388,7 +386,7 @@ content-improvement terms.
 ```bash
 ./tools/model-policy-ops/model-policy-ops route implement.oracle-bounded \
   --policy data/model-choice-policy/operating-points.json --available auto \
-  --proof-class oracle --experimental-route --data-classification public \
+  --proof-class oracle --data-classification public \
   --override provider=opencode \
   --override model=opencode/deepseek-v4.1-flash-free \
   --override effort=high --override account=opencode \
@@ -731,8 +729,7 @@ scheduling policy; the pack has none and the code has no defaults. With bands se
   pair that could not launch (unknown forecast, at risk, held), with the skipped pair in `skipped`. Only when no pair
   can launch does the route wait. `waiting` then says what a wait is: `dispatches: false`, `retry_after` (the earliest
   reset of an eligible subscription account, or null), a note that nothing retries on a timer, and
-  `alternatives_considered` (the destination block, every metered pair with the filter that removed it, and each
-  declared experimental free route with its qualification and cooldown). A qualified free route (public classification
+  `alternatives_considered` (the destination block and every metered pair with the filter that removed it). A qualified free route (public classification
   asserted, qualified op, proof class and effort, current evidence) is already a candidate and launches here before any
   wait; it is removed as `cooling_down` while its account cools and reconsidered by the next route. A route that does not qualify is
   evidence only, and the caller may opt in with the exact flags in `opt_in`. A subscription is never picked for a discretionary wait.
@@ -780,7 +777,7 @@ scheduling policy; the pack has none and the code has no defaults. With bands se
   launch, with or without the flag. `--brief` and the default line print `critical_path` and `pacing`.
 - a qualified free arm that the router chose (no override) is routed again on the next route: it is removed while it
   cools down and chosen again after the cooldown.
-- a free arm that the caller chose by explicit override or `--experimental-route` stays exact. After it fails
+- a free arm that the caller chose by explicit override stays exact. After it fails
   (for example, rate limited), route again without the override: the pack's subscription arms then compete, and the
   one above (adequate arm, then most headroom) wins, or the route waits.
 
@@ -1134,7 +1131,7 @@ its own request ID. These values describe one machine's setup and belong in the 
 config, not in the pack.
 
 Governed OpenCode routes are unsupported through this generic destination contract.
-Use the validated model-arm override described under experimental free routes.
+Use the validated model-arm override described under free routes.
 An unsupported destination returns `data_policy.state: refused` and suppresses
 its manual offer instructions as well as its T3 dispatch target.
 

@@ -180,7 +180,7 @@ def test_a_wait_reports_its_semantics_and_what_it_considered(world):
     considered = wait['alternatives_considered']
     assert considered['prepaid'] == [{'instance': 'claude-api', 'arm_model': 'claude-sonnet-5-5', 'state': 'funding_unverified'},
                                      {'instance': 'claude-api-alt', 'arm_model': 'claude-sonnet-5-5', 'state': 'billing_not_subscription'}]
-    assert considered['destination']['chosen'] == 'model' and considered['free_routes'][0]['model'] == DEEPSEEK_FREE
+    assert considered['destination']['chosen'] == 'model'
     assert 'critical_path' not in wait
 
 
@@ -241,19 +241,11 @@ def wait_at(world, clock):
 def test_a_rate_limit_cooldown_expires_and_is_reevaluated_from_fresh_events(world):
     add_opencode_fixture(world)
     world.events = [event('opencode', RATE, at=at) for at in ('2026-10-16T00:10:00.000Z', '2026-10-16T00:15:00.000Z', '2026-10-16T00:20:00.000Z')]
-    cooling = wait_at(world, '2026-10-16T00:30:00Z')['waiting']['alternatives_considered']['free_routes'][0]
-    assert cooling['qualified'] is True and cooling['availability'] == {'state': 'cooling_down', 'retry_after': '2026-10-16T01:10:00+00:00', 'events': 3}
-    assert '--experimental-route' in cooling['opt_in'] and f'model={DEEPSEEK_FREE}' in cooling['opt_in']
-    later = wait_at(world, '2026-10-16T01:11:00Z')['waiting']['alternatives_considered']['free_routes'][0]
-    assert later['availability'] == {'state': 'available', 'retry_after': None, 'events': 2}
+    cooling = cooling_detail(world, '2026-10-16T00:30:00Z')
+    assert cooling['retry_after'] == '2026-10-16T01:10:00+00:00' and cooling['events'] == 3
+    assert cooling_detail(world, '2026-10-16T01:11:00Z') is None
 
 
-def test_an_unqualified_operation_is_reported_not_offered(world):
-    add_opencode_fixture(world)
-    result, out = world.cli('route', 'implement.quota-tight', *world.args(), '--proof-class', 'judged', '--decision-id', 'cool', evaluation_time='2026-10-16T00:30:00Z')
-    assert result.returncode == 0, result.stderr
-    row = out['waiting']['alternatives_considered']['free_routes'][0]
-    assert row['qualified'] is False and row['refusal'] == 'operation_not_qualified' and 'opt_in' not in row
 
 
 def test_an_exact_override_onto_a_cooling_account_is_kept_and_reports_the_retry_time(world):
@@ -272,31 +264,42 @@ def cool(world, *times):
     world.events = [event('opencode', RATE, at=at) for at in times]
 
 
-def free_row(world, clock):
-    return wait_at(world, clock)['waiting']['alternatives_considered']['free_routes'][0]['availability']
+def normal_row(world, clock):
+    """The DeepSeek normal candidate's trace row at `clock`; route offers it only to a public oracle request."""
+    result, out = world.cli('route', 'implement.oracle-bounded', *world.args(), '--proof-class', 'oracle',
+                            '--data-classification', 'public', '--decision-id', 'cool', evaluation_time=clock)
+    assert result.returncode == 0, result.stderr
+    return next(row for row in out['routing']['trace'] if row['arm']['model'] == DEEPSEEK_FREE and row['instance'] == 'opencode')
+
+
+def cooling_detail(world, clock):
+    """The cooldown that removes the normal candidate at `clock`, or None when it is not cooling."""
+    row = normal_row(world, clock)
+    return row['detail'] if row['removed_by'] == 'cooling_down' else None
 
 
 def test_cooldown_orders_events_by_instant_not_by_text(world):
     # 01:05+01:00 is 00:05Z, the oldest; text order would pick 00:10Z and report 01:10Z
     cool(world, '2026-10-16T00:10:00.000Z', '2026-10-16T01:05:00.000+01:00', '2026-10-16T00:20:00.000Z')
-    assert free_row(world, '2026-10-16T00:30:00Z') == {'state': 'cooling_down', 'retry_after': '2026-10-16T01:05:00+00:00', 'events': 3}
+    cooling = cooling_detail(world, '2026-10-16T00:30:00Z')
+    assert cooling['retry_after'] == '2026-10-16T01:05:00+00:00' and cooling['events'] == 3
 
 
 def test_cooldown_with_more_events_than_the_threshold_waits_for_enough_to_leave(world):
     cool(world, *(f'2026-10-16T00:{m}:00.000Z' for m in ('05', '10', '15', '20')))  # 4 events, threshold 3: the 2nd oldest must leave
-    assert free_row(world, '2026-10-16T00:30:00Z')['retry_after'] == '2026-10-16T01:10:00+00:00'
+    assert cooling_detail(world, '2026-10-16T00:30:00Z')['retry_after'] == '2026-10-16T01:10:00+00:00'
 
 
 def test_cooldown_ends_just_after_retry_after_not_at_it(world):
     cool(world, '2026-10-16T00:10:00.000Z', '2026-10-16T00:15:00.000Z', '2026-10-16T00:20:00.000Z')
-    assert free_row(world, '2026-10-16T01:10:00Z')['state'] == 'cooling_down'
-    assert free_row(world, '2026-10-16T01:10:01Z')['state'] == 'available'
+    assert cooling_detail(world, '2026-10-16T01:10:00Z') is not None
+    assert cooling_detail(world, '2026-10-16T01:10:01Z') is None
 
 
-def test_cooldown_is_unknown_without_telemetry(world):
+def test_cooldown_is_not_cooling_without_telemetry(world):
     add_opencode_fixture(world)
     world.with_db = False
-    assert free_row(world, '2026-10-16T00:30:00Z') == {'state': 'unknown', 'retry_after': None, 'events': 0}
+    assert cooling_detail(world, '2026-10-16T00:30:00Z') is None
 
 
 def test_a_prefer_directive_outranks_a_smaller_overshoot(world):

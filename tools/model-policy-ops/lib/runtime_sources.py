@@ -76,7 +76,7 @@ def runnable(row):
                 or row.get('status', 'ready') not in ('ready', 'available'))
 
 
-def resolve_arm(arm, available, metadata, account=None, *, experimental_route=None):
+def resolve_arm(arm, available, metadata, account=None, *, free_route=None):
     candidates = []
     for provider in providers(available):
         if driver_family(provider) != arm['provider']:
@@ -110,9 +110,9 @@ def resolve_arm(arm, available, metadata, account=None, *, experimental_route=No
             # generic keys are only a fallback for an arm with no declaration: a declaration never
             # accepts a different descriptor, which would silently change how effort is set.
             declared_option = None
-            if (experimental_route and experimental_route['provider'] == arm['provider']
-                    and experimental_route['model'] == arm['model']):
-                declared_option = experimental_route['effort_option']
+            if (free_route and free_route['provider'] == arm['provider']
+                    and free_route['model'] == arm['model']):
+                declared_option = free_route['effort_option']
             effort_keys = (declared_option,) if declared_option else ('effort', 'reasoningEffort', 'thinking')
             options = [o for o in model.get('options') or [] if o.get('id') in effort_keys]
             if len(options) != 1:

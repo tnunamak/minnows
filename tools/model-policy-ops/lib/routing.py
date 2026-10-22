@@ -207,8 +207,7 @@ def assess_pair(ctx, op_id, arm, instance, requires, free_route=None):
     entry = ctx['accounts'].get(instance)
     billing = entry['billing'] if entry else 'unmapped'
     free_route = free_route if free_route and free_route['account'] == instance else None
-    selection = resolve_arm(arm, ctx['available'], ctx['available_meta'], instance,
-                            experimental_route=free_route or ctx.get('experimental_route'))
+    selection = resolve_arm(arm, ctx['available'], ctx['available_meta'], instance, free_route=free_route)
     view = quota_view(ctx['quota'], ctx['quota_meta'], arm, entry, ctx['pace_windows'], ctx['now'], ctx['bands'], ctx['drain'].get(instance))
     proof_class = ctx['proof_class']
     hits = []
@@ -216,11 +215,7 @@ def assess_pair(ctx, op_id, arm, instance, requires, free_route=None):
         hits.append(('not_runnable', {'state': selection['state']}))
     if requires and proof_class is not None and proof_class not in requires:
         hits.append(('requires_not_met', {'proof_class': proof_class, 'requires': requires}))
-    exact_experimental_free = (ctx.get('experimental_route') is not None
-                               and ctx['experimental_route']['provider'] == arm['provider']
-                               and ctx['experimental_route']['model'] == arm['model']
-                               and ctx['experimental_route']['account'] == instance)
-    if exact_experimental_free or free_route:
+    if free_route:
         billing = 'free'
     if billing not in ('subscription', 'free') and not matched['allow-metered']:
         hits.append(('billing_not_subscription', {'billing': billing}))
@@ -280,7 +275,7 @@ def is_review(op, params):
 
 
 def make_context(op, params, *, available, available_meta, quota, quota_meta, accounts, directives, maker, independence,
-                 proof_class, line_of, failures, freshness, now, experimental_route=None, substitution=None, critical_path=False,
+                 proof_class, line_of, failures, freshness, now, substitution=None, critical_path=False,
                  free_candidates=()):
     """The inputs that every pair assessment shares. A review op without a pack `independence_default` requires `vendor`.
 
@@ -299,7 +294,7 @@ def make_context(op, params, *, available, available_meta, quota, quota_meta, ac
     return {'available': available, 'available_meta': available_meta, 'quota': quota, 'quota_meta': quota_meta,
             'accounts': accounts, 'directives': directives, 'maker': maker, 'level': level, 'level_source': source, 'review': review,
             'proof_class': proof_class, 'line_of': line_of, 'failures': failures, 'freshness': freshness,
-            'pace_windows': params.get('pace_windows', []), 'bands': params.get('quota_bands'), 'now': now, 'experimental_route': experimental_route,
+            'pace_windows': params.get('pace_windows', []), 'bands': params.get('quota_bands'), 'now': now,
             'substitution': substitution, 'critical_path': critical_path is True, 'demote_count': params.get('failure_demote_count'),
             'free_candidates': list(free_candidates), 'drain': params.get('drain_accounts') or {}}
 

@@ -1,10 +1,11 @@
 """Generic destinations cannot submit governed models, including historical offers."""
 import copy
 import json
+import os
 import runpy
 import subprocess
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 
 import pytest
 
@@ -12,6 +13,8 @@ from test_route import REPO, DEEPSEEK_FREE, add_opencode_fixture, deepseek_flags
 from test_route_authorization import CLOCK, destination, nested_nodes, run
 import directives
 import policy_decisions as pd
+
+LEGACY_ROUTE = REPO / 'tests/fixtures/legacy-experimental-free-route-2026-10-15.json'
 
 
 def no_submission(out):
@@ -87,37 +90,37 @@ def prior_tool(tmp_path_factory):
 
 
 def write_prior_policy(world):
-    """The archived CLI requires the policy contract that existed with it."""
+    """The archived CLI requires the policy contract that existed with it, and the era's legacy declaration."""
     policy = copy.deepcopy(world.policy)
+    policy['experimental_free_routes'] = json.loads(LEGACY_ROUTE.read_text(encoding='utf-8'))
     for route in policy['experimental_free_routes']:
         route['qualified_operations'] = []
         route['t3_transport']['scope'] = 'fanout.explore_or_resolve_no_op_exact_overrides_public_only'
-        # The archived CLI evaluates at the real clock; keep the declaration current so this still tests
-        # destination authorization rather than the passing of the historical expiry.
-        route['expires_at_utc'] = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
     (world.tmp / 'policy.json').write_text(json.dumps(policy))
+
+
+def run_archived(prior_tool, args):
+    """Run the archived CLI under the era's pinned clock: its legacy declaration (2026-10-15) is valid there, so no wall clock."""
+    env = dict(os.environ, PINNED_TOOL=str(prior_tool), PINNED_NOW='2026-10-15T00:30:00Z')
+    return subprocess.run([sys.executable, str(REPO / 'tests/pinned_clock_cli.py'), *map(str, args), '--no-user-policy'],
+                          text=True, capture_output=True, cwd=REPO, env=env)
 
 
 @pytest.mark.parametrize('brief', [False, True])
 @pytest.mark.parametrize('race', [False, True])
-@pytest.mark.parametrize('revoke', [False, True])
-def test_authentic_public_offer_cannot_replay_submission(world, prior_tool, monkeypatch, capsys,
-                                                       brief, race, revoke):
+def test_authentic_public_offer_cannot_replay_submission(world, prior_tool, monkeypatch, capsys, brief, race):
     add_opencode_fixture(world)
     flags = ['route', 'fanout.explore', *world.args(), *destination(world, DEEPSEEK_FREE),
-             *deepseek_flags(classification='public'), '--record', '--decision-id', 'prior-offer',
+             *deepseek_flags(classification='public'), '--experimental-route', '--record', '--decision-id', 'prior-offer',
              '--parent-model', 'parent', '--parent-provider-instance', 'parent', '--parent-thread', 'parent']
     world.write()
     write_prior_policy(world)
-    process = subprocess.run([sys.executable, str(prior_tool), *map(str, flags), '--no-user-policy'],
-                             text=True, capture_output=True, cwd=REPO)
+    process = run_archived(prior_tool, flags)
     assert process.returncode == 0, process.stderr
     original = json.loads(process.stdout)
     assert original['launch_ready'] and original['dispatch']['mode'] == 'async'
     assert original['destination_offer']['submit'] and original['destination_offer']['how_to']
     before = world.receipts.read_bytes()
-    if revoke:
-        world.policy['experimental_free_routes'] = []
     world.write()
     if race:
         # Only the early lookup misses: append_receipt still uses the real locked ledger.
@@ -159,7 +162,7 @@ def test_refused_identity_survives_replay_without_catalog_or_config(world):
     out = run(world, 'route', 'fanout.explore', *world.args(), *destination(world, DEEPSEEK_FREE),
               '--data-classification', 'sensitive')
     no_submission(out)
-    pd.apply_experimental_route_policy(out, {'experimental_free_routes': []},
+    pd.apply_experimental_route_policy(out, {'free_routes': []},
                                        datetime.fromisoformat(CLOCK.replace('Z', '+00:00')), replay=True)
     no_submission(out)
     assert out['data_policy']['targets'][0]['model'] == DEEPSEEK_FREE
@@ -173,14 +176,12 @@ def test_legacy_catalog_miss_replay_uses_structured_config_identity(world, prior
              '--parent-model', 'parent', '--parent-provider-instance', 'parent', '--parent-thread', 'parent']
     world.write()
     write_prior_policy(world)
-    process = subprocess.run([sys.executable, str(prior_tool), *map(str, flags), '--no-user-policy'],
-                             text=True, capture_output=True, cwd=REPO)
+    process = run_archived(prior_tool, flags)
     assert process.returncode == 0, process.stderr
     original = json.loads(process.stdout)
     assert 'data_policy' not in original and original['target'] is None
     assert original['destination_offer']['submit']
     before = world.receipts.read_bytes()
-    world.policy['experimental_free_routes'] = []
     out = run(world, *flags)
     no_submission(out)
     assert out['replayed'] and world.receipts.read_bytes() == before
