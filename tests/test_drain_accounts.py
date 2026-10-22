@@ -53,7 +53,7 @@ def test_an_active_entry_keeps_the_projected_account(world):
     assert pick(out) == ('codex', 'gpt-6.1-sol')
     assert block(out)['substituted'] is False and active(out) == {}, 'the drained account is not constrained'
     assert out['routing']['chosen']['pace'] == 'on_track' and out['launch_ready'] is True
-    assert out['routing']['rank_keys'][:2] == ['eligibility', 'drain_account']
+    assert out['routing']['rank_keys'][:4] == ['eligibility', 'prefer', 'price_class (normal qualified free before paid work)', 'drain_account']
 
 
 def test_the_receipt_records_the_entry_and_its_reason(world):

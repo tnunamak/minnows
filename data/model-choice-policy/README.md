@@ -10,14 +10,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.2.7](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.7) — unreleased; published by CI after merge to main |
+| **This version** | [data-model-choice-policy-v0.2.8](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.8) — unreleased; published by CI after merge to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.2.7
+TAG=data-model-choice-policy-v0.2.8
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -32,18 +32,83 @@ curl -fsSL -L \
 5. Update ops only from source-backed catalog facts or local evals.
 6. Raw flags always win: `--provider` / `--model` / `--effort` override `--op`.
 
-## Experimental free routes
+## Normal free routes
 
-The OpenCode DeepSeek V4.1 Flash Free route is an optional experimental
-candidate for exactly two operations. Primary model recommendations stay unchanged.
+`free_routes` declares an exact zero-price arm as an ordinary `route` candidate.
+It needs no experimental flag. Primary operating points stay unchanged.
+
+| Operation | Basis | Scope | Proof and effort |
+|-----------|-------|-------|------------------|
+| `implement.oracle-bounded` | `qualified_free` | Small PUBLIC source changes whose full acceptance standard is a deterministic oracle | `oracle`, `high` |
+| `docs.lookup` | `qualified_free` | Known PUBLIC sources with a structured fact oracle; excludes open-ended research | `oracle`, `high` |
+| `review.rule-check` | `unvalidated` | Bounded PUBLIC typed rule judgment; the two known-defect probes do not establish review adequacy | `judged`, `high` |
+
+Use `route <op> --data-classification public --proof-class oracle` for the two
+qualified operations. No override is required and no experimental flag exists.
+The router applies evidence eligibility, then explicit owner model/account
+preferences, then zero source price, quota draining and pace. A qualified free
+pair is not displaced only to spend subscription tokens; an explicit owner
+preference is not a quota-draining preference. An owner `avoid` directive and checker independence still
+remove it, and an observed cooldown still applies.
+
+The `review.rule-check` row is an alternative, not an automatic target. It is
+ranked as judgment-required and requires exact
+provider/model/account/effort overrides plus `--reason`. It cannot replace
+`review.audit`, and broad, security, protocol or open-ended review is unchanged.
+No paid fallback is authorized by this pack: an unmapped or unfunded account
+stays excluded exactly as before.
+
+The normal declaration has no artificial expiry. `status` is the last observed
+free date, and the evidence dates are the last source reads. Revocation is
+explicit: remove the operation or the route. Replay keeps the kind that was
+recorded. A normal receipt is rechecked as normal and refused with
+`normal_route_receipt_not_currently_authorized`; a legacy experimental receipt
+keeps its own path and refusal code. Neither is rewritten.
+
+Public classification and proof class are caller assertions, not content scans
+or sandbox guarantees. `--sensitive` always refuses, and a private repository,
+PDPP data, secrets, Jev text or personal data never becomes eligible because the
+price is zero. The pack does not widen consent for private or personal inputs.
+
+The [matched public benchmark](evidence/deepseek-public-eval-2026-10-15.json)
+holds four implementation and two known-source lookup gate pairs per arm, all
+passing. That is bounded gate evidence: the sample is small and purposive, uses
+public tests and reference fixes, and estimates neither whole-task quality nor
+audit recall. The two review probes are classification probes only; R2 also
+exceeded its inspection scope. Provider usage and complete workflow cost were
+not reported, so the $0 source price is not an observed total cost. Rate limits
+remain unknown. No availability monitor is implied: the source dates record the
+last check, not continuous verification.
+
+A free provider can enforce usage limits. Zero source price implies neither
+unlimited availability nor a reset or retry time. A usage-limit response does
+not permanently invalidate the free pair. The router cools the account only
+from recorded failure events; the pack does not carry those events.
+
+OpenCode attributes zero retention and no training to the upstream provider;
+its unpaid-service terms separately permit content use to improve OpenCode
+services. Both processing layers are named in the declaration. The shared
+OpenCode server exposes host tools, and injected `t3_thread_read` can access
+private thread content. The declaration records both risks in `known_risks`,
+and the validator requires them. Per-instance provider sandbox and MCP isolation
+remain later hardening.
+
+## Legacy experimental free routes
+
+The OpenCode DeepSeek V4.1 Flash Free experimental route remains for historical
+replay and explicit legacy runs. A normal route of the same provider and model
+supersedes it for fresh automatic selection. The old contract has exactly two
+operations and a seven-day local recheck horizon. Primary model recommendations
+stay unchanged.
 
 | Operation | Qualified scope | Required proof and effort |
 |-----------|-----------------|---------------------------|
 | `implement.oracle-bounded` | Small PUBLIC source changes whose full acceptance standard has a deterministic oracle | `oracle`, `high` |
 | `docs.lookup` | Known PUBLIC sources with a structured fact oracle; excludes open-ended research | `oracle`, `high` |
 
-Use `route` or `resolve` with the selected operation, `--proof-class oracle`,
-`--experimental-route`, exact provider/model/account/effort overrides, a reason,
+Legacy runs use `route` or `resolve` with the selected operation,
+`--proof-class oracle`, `--experimental-route`, exact provider/model/account/effort
+overrides, a reason,
 and `--data-classification public`. High is the only benchmark-tested effort.
 The separately authorized `route fanout.explore` and `resolve --no-op` paths
 remain available with catalog-validated effort values. They confer no broader

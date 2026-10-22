@@ -3,7 +3,7 @@ import copy
 import json
 import runpy
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -101,6 +101,9 @@ def test_qualification_keeps_security_floor(world, op, case):
     elif case == 'disabled-transport':
         route['t3_transport']['enabled'] = False
     elif case == 'no-experimental':
+        # Without the flag, only the legacy contract can be under test here; a normal declaration of the
+        # same model would authorize it, so remove that declaration and keep the legacy flag requirement.
+        world.policy['free_routes'] = []
         argv.remove('--experimental-route')
     elif case == 'missing-account':
         index = argv.index('account=opencode')
@@ -142,6 +145,9 @@ def test_generic_destination_remains_refused_for_qualified_ops(world, op):
 @pytest.mark.parametrize('revoke', [None, 'operation', 'proof'])
 def test_current_qualification_is_required_on_both_replay_paths(world, op, race, revoke, monkeypatch, capsys):
     add_opencode_fixture(world)
+    # Replay authorizes against the real clock while the fresh route is pinned to CLOCK; keep the declaration
+    # current for both so this tests qualification rather than the passing of the historical expiry.
+    world.policy['experimental_free_routes'][0]['expires_at_utc'] = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
     argv = [*flags(world, op), '--record', '--decision-id', 'qualified', '--parent-model', 'parent',
             '--parent-provider-instance', 'parent', '--parent-thread', 'parent']
     first = run(world, *argv)

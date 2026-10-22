@@ -27,6 +27,9 @@ def world(tmp_path, monkeypatch):
     monkeypatch.setattr(test_route, 'NOW', NOW)
     found = BandWorld(tmp_path)
     add_opencode_fixture(found)
+    # This module keeps the legacy experimental contract under test. A normal declaration of the same
+    # provider and model would supersede it, so remove that declaration here only.
+    assert found.policy.pop('free_routes', None)
     return found
 
 

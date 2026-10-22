@@ -106,10 +106,14 @@ def resolve_arm(arm, available, metadata, account=None, *, experimental_route=No
             if not runnable(model):
                 result['state'] = 'unavailable_model'
                 return result
-            effort_keys = ('effort', 'reasoningEffort', 'thinking')
+            # A declared free route names the exact live option key it was validated against. The
+            # generic keys are only a fallback for an arm with no declaration: a declaration never
+            # accepts a different descriptor, which would silently change how effort is set.
+            declared_option = None
             if (experimental_route and experimental_route['provider'] == arm['provider']
                     and experimental_route['model'] == arm['model']):
-                effort_keys += (experimental_route['effort_option'],)
+                declared_option = experimental_route['effort_option']
+            effort_keys = (declared_option,) if declared_option else ('effort', 'reasoningEffort', 'thinking')
             options = [o for o in model.get('options') or [] if o.get('id') in effort_keys]
             if len(options) != 1:
                 result['state'] = 'unknown_effort_surface'
