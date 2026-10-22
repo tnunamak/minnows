@@ -1368,7 +1368,8 @@ from observations for unclosed decisions; see Report), and
 ```bash
 model-policy-ops observe --db ~/.t3/userdata/statev2.sqlite \
   [--since RFC3339] [--receipts FILE] [--outcomes FILE] [--observations FILE] \
-  [--destinations FILE] [--git-window-days N]
+  [--destinations FILE] [--git-window-days N] [--observe-state FILE] \
+  [--observe-time-budget-seconds N]
 ```
 
 It appends new fact rows to `observations.jsonl`, beside the receipts (`--observations`
@@ -1377,6 +1378,98 @@ private-ledger rules: mode 0600, exclusive lock, fsync, no symlink, a refused gr
 world-writable parent, and it must be a different file from the receipts and the
 outcomes. Older CLIs never read it. Each read of a source is read-only. `--now` is refused.
 `--since` limits the decisions in scope by `recorded_at`.
+
+The previous T3 reader scanned the full `turn_items` projection on every hourly run.
+On the 32 GB database, that took about four minutes and peaked at 5.8 GB RSS. Its long
+read snapshot delayed WAL checkpoints. T3 auth lookups then took 10–36 seconds instead
+of 0.1 ms, slowing other application database work.
+
+The reader stores private progress in `$XDG_STATE_HOME/model-policy/observe-<ledger-key>.json`
+(or `~/.local/state/model-policy` when `XDG_STATE_HOME` is unset, or `--observe-state`).
+The key comes from the resolved observation-ledger path, so two
+ledgers do not share a cursor. A first run starts at the newest 50,000 `turn_items`
+rowids; rows before it receive no historical observations. Later runs start after the saved
+high-water rowid. The rowid scan uses SQLite's primary index and reads at most 500 rows
+per transaction. The 500-row cap limits each query's result and payload memory; a 200 ms
+SQLite interrupt bounds how long a slow query can keep its read snapshot open. Observe
+closes each scan transaction before it resolves run, usage,
+and thread facts, so WAL checkpoints can advance between batches. Detail lookups cap
+each result page at 500 rows and use indexed keys; the rowid scan and usage pages also
+have a 200 ms SQLite interrupt, while other detail reads rely on the overall source
+deadline. The append step still validates the existing ledger outside that source
+deadline. It streams and validates one ledger row at a time, rejects rows over 4 MiB,
+and uses a temporary disk-backed ID index so memory does not grow with ledger size.
+A quarantined single-row retry increases its
+read cap gradually, up to two seconds, so an unusually large delegation payload can be
+processed without blocking the main rowid cursor. Successful rereads clear quarantine.
+The observation ledger writes all new rows in one
+append and one sync, so per-row durability work does not multiply with the fact count.
+
+A private SQLite sidecar stores matched delegation rows and their refresh status. Calls
+whose call and child-run statuses are still active are revisited first. Terminal calls
+remain in round-robin refresh because later usage and thread facts can change; with more
+than 500 known calls, those later changes can take several timer runs to appear. A
+settled-call backlog alone does not mark T3 partial. A separate cursor resumes thread
+snapshots. An unowned run before the first known owner can be a delegate call outside the
+observed window, so observe marks the sharing count unknown. Later unowned follow-up runs
+do not change the legacy owner count.
+
+The 60-second default budget (`--observe-time-budget-seconds`, range 1–3600) starts before
+CLI imports and reserves 60% for T3, 20% for destinations, and 20% for git. The hourly
+timer leaves room between runs while the budget prevents catch-up from running without a
+limit. Each source saves its cursor with the observation append; if its time slice ends,
+the next run continues from that point. The T3 cursor is bound to the database identity
+and the observation-ledger prefix, so appending a source-run row does not reset it, while
+replacing or editing the ledger does. If a required lookup index is missing, T3 reports
+the missing index instead of scanning. State writes use a private lock and atomic
+replacement. Progress counts and the bounded first window appear under `incremental`.
+
+`EXPLAIN QUERY PLAN` on the copied T3 database, using the production batch SQL,
+showed these indexed lookups:
+
+```text
+batch rowid range:      MATERIALIZE selected; SEARCH i USING INTEGER PRIMARY KEY (rowid>? AND rowid<?)
+refresh rowids:         MATERIALIZE selected; SEARCH i USING INTEGER PRIMARY KEY (rowid=?)
+parent run:             SEARCH p USING INDEX sqlite_autoindex_orchestration_v2_projection_runs_1 (run_id=?) LEFT-JOIN
+child run:              SEARCH c USING INDEX sqlite_autoindex_orchestration_v2_projection_runs_1 (run_id=?) LEFT-JOIN
+bounded result:         SCAN selected (materialized result contains at most 500 rows)
+run status:             SEARCH orchestration_v2_projection_runs USING INDEX sqlite_autoindex_orchestration_v2_projection_runs_1 (run_id=?)
+attempts by run_id:     SEARCH orchestration_v2_projection_run_attempts USING INDEX orchestration_v2_projection_run_ordinal_idx (run_id=? AND attempt_ordinal>?)
+NULL attempts:          SEARCH orchestration_v2_projection_run_attempts USING INDEX orchestration_v2_projection_run_ordinal_idx (run_id=?) + temp B-tree for ORDER BY
+failures by run_id:     SEARCH orchestration_v2_projection_turn_items USING INDEX orchestration_v2_projection_turn_items_run_ordinal_idx (run_id=? AND ordinal>?)
+user follow-ups:        SEARCH orchestration_v2_projection_turn_items USING INDEX orchestration_v2_projection_turn_items_user_message_idx (thread_id=? AND ordinal>?) + temp B-tree for final ORDER BY term
+runs by thread:         SEARCH orchestration_v2_projection_runs USING INDEX orchestration_v2_projection_runs_thread_ordinal_idx (thread_id=? AND ordinal>?)
+thread snapshot:        SEARCH orchestration_v2_projection_threads USING INDEX sqlite_autoindex_orchestration_v2_projection_threads_1 (thread_id=?)
+usage attempts:         SEARCH orchestration_v2_projection_run_attempts USING INDEX orchestration_v2_projection_run_ordinal_idx (run_id=?)
+usage turns:            SEARCH orchestration_v2_projection_provider_turns USING INDEX orchestration_v2_projection_provider_turns_thread_idx (thread_id=?) + temp B-tree for ORDER BY
+turn by provider ID:    SEARCH orchestration_v2_projection_provider_turns USING INDEX sqlite_autoindex_orchestration_v2_projection_provider_turns_1 (provider_turn_id=?)
+```
+
+The T3 projection has no index on `provider_turns.run_attempt_id`; observe resolves
+turns through the indexed `thread_id` and filters matching attempt IDs in that result.
+Each usage page has a 200 ms read slice. If the query cannot finish inside it, usage is
+reported as unavailable for that run and can be retried later. A turn whose `thread_id`
+differs from its attempt's thread and has no direct `provider_turn_id` link cannot be
+found through those indexes. If an attempt has no thread ID, even a direct turn link
+cannot prove that all of its turns were found, so usage is reported as unavailable.
+Neither case appeared in the copied window; parity is verified for the observed rows only.
+
+The benchmark used a low-priority raw file copy of the database and WAL, then ran
+`PRAGMA wal_checkpoint(TRUNCATE)` on the copy. The first observe run scanned all 50,000
+rows in the initial window in 49.07 seconds and peaked at 433,276 KiB RSS. The next run
+scanned no new rowids, refreshed 245 known calls, and took 42.85 seconds. A steady
+incremental run also scanned no new rowids and took 29.56 seconds. Peak RSS stayed near
+423 MiB across all three runs. The first-window setting bounds catch-up; the 60-second
+budget bounds each hourly invocation and reserves time for destinations and git.
+
+For the same 50,000-row window, the old collector and incremental collector both
+produced 241 observations for 245 matched calls, with identical observation IDs and no
+missing or extra facts. A concurrent indexed reader and SQLite writer ran on the copy
+during each invocation. Across the first, next, and steady runs, reader p95 was
+0.067–0.077 ms and writer p95 was 24.662–28.218 ms; all stayed below 50 ms with no
+SQLite errors. The former full scan took about four minutes and peaked at 5.8 GB RSS.
+The final model-policy-ops suite run passed 1,815 tests, skipped one test, and passed
+171 subtests.
 
 **Facts only.** Every observation has a source ID (T3 run ID, dot request ID or git sha),
 the source timestamps, and `unknown` for fields that the source did not give, each with a

@@ -275,11 +275,8 @@ def validate_escalation_source(rows, source_id):
 
 
 @contextmanager
-def locked_private_rows(path, validate=None):
-    """Yield (stream, rows) for an exclusive, private, append-only JSONL file.
-
-    `validate(numbered_rows, name)` runs before the caller sees any row and may raise.
-    """
+def locked_private_stream(path):
+    """Yield an exclusively locked, private append-only JSONL stream without loading its rows."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     if path.parent.stat().st_mode & 0o022:
@@ -288,9 +285,19 @@ def locked_private_rows(path, validate=None):
     with os.fdopen(fd, 'r+', encoding='utf-8') as stream:
         fcntl.flock(stream, fcntl.LOCK_EX)
         os.fchmod(stream.fileno(), 0o600)
-        numbered = numbered_rows(stream, path.name)
+        yield stream
+
+
+@contextmanager
+def locked_private_rows(path, validate=None):
+    """Yield (stream, rows) for an exclusive, private, append-only JSONL file.
+
+    `validate(numbered_rows, name)` runs before the caller sees any row and may raise.
+    """
+    with locked_private_stream(path) as stream:
+        numbered = numbered_rows(stream, Path(path).name)
         if validate:
-            validate(numbered, path.name)
+            validate(numbered, Path(path).name)
         yield stream, [row for _, row in numbered]
 
 

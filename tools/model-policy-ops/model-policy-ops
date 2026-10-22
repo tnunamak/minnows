@@ -6,9 +6,11 @@ import argparse
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
 
+PROCESS_STARTED_MONOTONIC = time.monotonic()
 REPO = Path(__file__).resolve().parents[2]
 PACK = REPO / "data" / "model-choice-policy"
 OPERATING_POINTS = PACK / "operating-points.json"
@@ -353,6 +355,8 @@ def main() -> int:
     from decision_receipts import find_receipt
     add_arguments(parser)
     args = parser.parse_args()
+    if args.command == "observe":
+        args._observe_process_started_monotonic = PROCESS_STARTED_MONOTONIC
     if args.brief and args.command not in ("route", "resolve"):
         parser.error("--brief applies to route and resolve only")
     if args.brief and args.json:
