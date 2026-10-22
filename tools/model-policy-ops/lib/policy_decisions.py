@@ -889,6 +889,42 @@ def normal_target_refusal(identity, request, sensitive, routes, evaluated_at, *,
     return route, None
 
 
+def normal_binding_refusal(result, identity, route, destination_target=None):
+    """Check every actual target's carrier key, without changing historical identities or options."""
+    routed = result.get('routing') or {}
+    superseded = routed.get('chosen') if (routed.get('final') or {}).get('overridden') else None
+    targets = []
+
+    def visit(value):
+        if isinstance(value, dict):
+            if value is superseded:
+                return
+            target = value.get('target')
+            if (isinstance(target, dict)
+                    and target.get('providerInstanceId') == identity['account']
+                    and target.get('model') == identity['model']):
+                targets.append(target)
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    visit(result)
+    if isinstance(destination_target, dict):
+        targets.append(destination_target)
+    key = route['effort_option']
+    effort_keys = {'effort', 'reasoningEffort', 'thinking', 'variant', key}
+    if not targets:
+        return 'effort_binding_not_declared_for_normal_route'
+    for target in targets:
+        options = target.get('options')
+        if (not isinstance(options, dict) or set(options).intersection(effort_keys) != {key}
+                or options[key] != identity['effort']):
+            return 'effort_binding_not_declared_for_normal_route'
+    return None
+
+
 def free_route_kind(identity, previous, request, replay, normal_routes):
     """Which declaration governs one target identity: `normal` or the legacy experimental contract.
 
@@ -939,6 +975,8 @@ def apply_experimental_route_policy(result, policy, evaluated_at, *, available=N
                                                    proof_class=proof_class,
                                                    generic_destination=bool(result.get('destination')),
                                                    routed=(result.get('routing') or {}).get('chosen'))
+            if refusal is None:
+                refusal = normal_binding_refusal(result, identity, route, destination_target)
         else:
             route, refusal = experimental_target_refusal(identity, request, sensitive, routes, evaluated_at,
                                                          proof_class=proof_class,

@@ -45,9 +45,10 @@ It needs no experimental flag. Primary operating points stay unchanged.
 
 Use `route <op> --data-classification public --proof-class oracle` for the two
 qualified operations. No override is required and no experimental flag exists.
-The router selects the free pair after evidence eligibility and before any drain,
-preference or pace key: a qualified free pair is not displaced only to spend
-subscription tokens. An owner `avoid` directive and checker independence still
+The router applies evidence eligibility, then explicit owner model/account
+preferences, then zero source price, quota draining and pace. A qualified free
+pair is not displaced only to spend subscription tokens; an explicit owner
+preference is not a quota-draining preference. An owner `avoid` directive and checker independence still
 remove it, and an observed cooldown still applies.
 
 The `review.rule-check` row is an alternative, not an automatic target. It is
@@ -79,11 +80,10 @@ not reported, so the $0 source price is not an observed total cost. Rate limits
 remain unknown. No availability monitor is implied: the source dates record the
 last check, not continuous verification.
 
-Operational fact, 2026-10-21: one bounded maker run on this route reached the
-provider's free usage limit before it finished. This pack records no reset time,
-and it infers no retry time. The free pair is not permanently invalid and is not
-guaranteed to stay available. The router cools the account only from recorded
-failure events; the pack does not carry those events.
+A free provider can enforce usage limits. Zero source price implies neither
+unlimited availability nor a reset or retry time. A usage-limit response does
+not permanently invalidate the free pair. The router cools the account only
+from recorded failure events; the pack does not carry those events.
 
 OpenCode attributes zero retention and no training to the upstream provider;
 its unpaid-service terms separately permit content use to improve OpenCode

@@ -468,3 +468,84 @@ def test_a_missing_evidence_file_is_rejected_by_both_checkers(tmp_path):
                             text=True, capture_output=True, cwd=REPO)
     assert result.returncode == 1
     assert 'evidence_ref evidence/missing.json is missing' in result.stderr
+
+
+# Regression: zero source price schedules budget; it does not revoke an owner's preference.
+@pytest.mark.parametrize('selector', ['account', 'model'])
+def test_explicit_owner_preference_precedes_qualified_free_price(world, selector):
+    current_at_pinned_capture(world)
+    world.codex(100)
+    primary = next(op for op in world.policy['operating_points'] if op['id'] == OP)['expands_to']
+    target = 'account=codex' if selector == 'account' else f"model={primary['model']}"
+    world.add_directive('prefer-subscription', 'prefer', target,
+                        until='2026-10-12T00:00:00Z', recorded_at='2026-10-10T00:00:00+00:00')
+    out = route_at(world, NOW, *PUBLIC)
+    assert out['routing']['chosen']['instance'] == 'codex'
+    assert out['routing']['chosen']['arm']['model'] == primary['model']
+    assert out['launch_ready'] is True
+    assert free_rows(out)[0]['removed_by'] is None
+
+
+def test_normal_replay_refuses_an_obsolete_option_key_without_rewriting_receipt(world):
+    first = route_at(world, LATER, *PUBLIC, record='option-binding')
+    assert selected(first)
+    saved = world.receipts.read_bytes()
+    normal(world)['effort_option'] = 'reasoningEffort'
+    refused = route_at(world, LATER, *PUBLIC, record='option-binding')
+    assert refused['replayed'] is True
+    assert not_dispatched(refused)
+    assert refused['data_policy']['refusal'] == 'normal_route_receipt_not_currently_authorized'
+    assert all(target is None for target in all_target_values(refused))
+    assert world.receipts.read_bytes() == saved
+    normal(world)['effort_option'] = 'variant'
+    restored = route_at(world, LATER, *PUBLIC, record='option-binding')
+    assert restored == first | {'replayed': True}
+    assert world.receipts.read_bytes() == saved
+
+
+@pytest.mark.parametrize('location', [('target',), ('selection', 'target'), ('routing', 'final', 'target')])
+@pytest.mark.parametrize('options', [{}, {'variant': 'high', 'effort': 'high'}, {'variant': 'low'}])
+def test_every_actual_normal_target_binding_is_checked(world, location, options):
+    from datetime import datetime, timezone
+    import policy_decisions as decisions
+    first = route_at(world, LATER, *PUBLIC, record='actual-binding')
+    assert selected(first)
+    saved = world.receipts.read_bytes()
+    replay = copy.deepcopy(first)
+    node = replay
+    for key in location:
+        node = node[key]
+    node['options'] = options
+    decisions.apply_experimental_route_policy(
+        replay, world.policy, datetime.now(timezone.utc), replay=True)
+    assert not_dispatched(replay)
+    assert replay['data_policy']['refusal'] == 'normal_route_receipt_not_currently_authorized'
+    assert all(target is None for target in all_target_values(replay))
+    assert world.receipts.read_bytes() == saved
+
+
+def test_record_time_replay_rechecks_the_current_option_binding(world, monkeypatch):
+    import policy_decisions as decisions
+    first = route_at(world, LATER, *PUBLIC, record='binding-race')
+    assert selected(first)
+    saved = world.receipts.read_bytes()
+    normal(world)['effort_option'] = 'reasoningEffort'
+    # Model an initial lookup miss followed by append finding the existing receipt.
+    # Only the lookup is faulted; the real append/replay and CLI authorization run.
+    calls = []
+    original_find = decisions.find_receipt
+    def initial_miss(*args, **kwargs):
+        calls.append(True)
+        return None
+    monkeypatch.setattr(decisions, 'find_receipt', initial_miss)
+    refused = route_at(world, LATER, *PUBLIC, record='binding-race')
+    assert calls, 'the record-time race must bypass the early lookup'
+    assert refused['replayed'] is True
+    assert not_dispatched(refused)
+    assert refused['data_policy']['refusal'] == 'normal_route_receipt_not_currently_authorized'
+    assert all(target is None for target in all_target_values(refused))
+    assert world.receipts.read_bytes() == saved
+    monkeypatch.setattr(decisions, 'find_receipt', original_find)
+    normal(world)['effort_option'] = 'variant'
+    assert route_at(world, LATER, *PUBLIC, record='binding-race') == first | {'replayed': True}
+    assert world.receipts.read_bytes() == saved

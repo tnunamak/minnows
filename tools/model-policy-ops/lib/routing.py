@@ -383,8 +383,8 @@ def route(op, params, ctx):
                     continue
             klass, selection_basis, reasons = eligibility(candidate, matched['authorize'], ctx['proof_class'])
             health = availability_view(failures, demote_count, instance)
-            # A normal qualified free pair is ranked by its zero source price after eligibility and before
-            # draining, preference and pace: it is not displaced only to spend subscription tokens.
+            # Explicit owner preference follows eligibility. Zero source price then precedes
+            # quota draining and pace: spending subscription tokens is not a model preference.
             price_class = 0 if normal_basis == 'qualified_free' else 1
             rank = {'eligibility': klass, 'price_class': price_class, 'prefer': 0 if matched['prefer'] else 1,
                     'pace': PACE_RANK[view['pace']],
@@ -425,8 +425,8 @@ def route(op, params, ctx):
             'independence': {'required': ctx['level'], 'required_source': ctx['level_source'], 'maker': ctx['maker']},
             'directives_applied': sorted(applied), 'directives_unmatched': sorted(d['id'] for d in ctx['directives'] if d['id'] not in applied),
             'conflicts': conflicts,
-            'rank_keys': ['eligibility', 'price_class (normal qualified free before paid work)', *(['drain_account'] if ctx['drain'] else []),
-                          'prefer', 'pace', 'availability', 'candidate_order',
+            'rank_keys': ['eligibility', 'prefer', 'price_class (normal qualified free before paid work)', *(['drain_account'] if ctx['drain'] else []),
+                          'pace', 'availability', 'candidate_order',
                           'headroom below band upper (most first), then earliest reset' if ctx['bands'] else 'projected_pct (load-balancing heuristic)', 'instance'],
             'quota': views, 'trace': trace, 'chosen': chosen, 'judgment_required': judgment_needed(reasons), 'judgment_reasons': reasons}
     if drained:
@@ -501,7 +501,7 @@ def rank_tuple(rank):
         load = (float('inf') if rank['headroom'] is None else -rank['headroom'], float('inf') if reset is None else reset)
     else:
         load = (float('inf') if rank['projected_pct'] is None else rank['projected_pct'],)
-    return (rank['eligibility'], rank.get('price_class', 1), rank.get('drain', 1), rank['prefer'], rank['pace'], rank['availability'], rank['candidate_order'], load, rank['instance'])
+    return (rank['eligibility'], rank['prefer'], rank.get('price_class', 1), rank.get('drain', 1), rank['pace'], rank['availability'], rank['candidate_order'], load, rank['instance'])
 
 
 def chosen_view(row, candidates):
