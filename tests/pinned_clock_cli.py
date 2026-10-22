@@ -11,7 +11,8 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-TOOL = REPO / 'tools/model-policy-ops/model-policy-ops'
+# PINNED_TOOL runs an archived copy of the CLI under the same pinned clock (historical receipts).
+TOOL = Path(os.environ.get('PINNED_TOOL') or REPO / 'tools/model-policy-ops/model-policy-ops')
 sys.path.insert(0, str(TOOL.parent / 'lib'))
 
 import directives  # noqa: E402

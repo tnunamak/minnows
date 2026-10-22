@@ -1,9 +1,14 @@
-"""Offline qualification boundaries, using the real CLI and locked receipt ledger."""
+"""Qualified normal free-route boundaries, using the real CLI and locked receipt ledger.
+
+The DeepSeek V4.1 Flash Free declaration in `free_routes` is the only zero-price route. Its two qualified
+operations need public inputs, oracle proof and the high effort. The retired legacy experimental declaration
+survives only as a refusal: a stored legacy identity is never re-authorized, and the retired flag refuses.
+"""
 import copy
 import json
 import runpy
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -17,6 +22,7 @@ import policy_decisions as pd
 
 
 OPS = ['implement.oracle-bounded', 'docs.lookup']
+CLOCK_AT = datetime.fromisoformat(CLOCK.replace('Z', '+00:00'))
 
 
 def flags(world, op, command='route', proof='oracle', effort='high'):
@@ -24,6 +30,10 @@ def flags(world, op, command='route', proof='oracle', effort='high'):
     selected[selected.index('effort=high')] = 'effort=' + effort
     return [command, op, *world.args(), '--destinations', world.tmp / 'no-destinations.json',
             *selected, *(['--proof-class', proof] if proof else [])]
+
+
+def normal(world):
+    return world.policy['free_routes'][0]
 
 
 @pytest.mark.parametrize('op', OPS)
@@ -34,7 +44,8 @@ def test_qualified_public_oracle_high_returns_exact_target(world, op, command):
     assert out['launch_ready'] is True
     assert out['target'] == {'providerInstanceId': 'opencode', 'model': DEEPSEEK_FREE,
                              'options': {'variant': 'high'}}
-    assert out['data_policy']['state'] == 'allowed_public_experimental'
+    assert out['data_policy']['state'] == 'allowed_public_normal'
+    assert out['data_policy']['basis'] == 'qualified_free' and out['data_policy']['refusal'] is None
     if command == 'route':
         assert out['routing']['final']['billing'] == 'free'
 
@@ -50,7 +61,7 @@ def test_missing_or_nonoracle_proof_cannot_dispatch(world, op, command, proof):
     else:
         assert process.returncode == 0, process.stderr
         refused(out)
-        assert out['data_policy']['refusal'] == 'qualified_operation_requires_oracle_proof'
+        assert out['data_policy']['refusal'] == 'proof_class_not_declared_for_normal_route'
 
 
 @pytest.mark.parametrize('op', OPS)
@@ -59,6 +70,8 @@ def test_only_benchmarked_effort_qualifies(world, op, effort):
     add_opencode_fixture(world)
     out = run(world, *flags(world, op, effort=effort))
     refused(out)
+    if effort in ('low', 'max'):
+        assert out['data_policy']['refusal'] == 'effort_not_declared_for_normal_route'
 
 
 @pytest.mark.parametrize('op', ['review.audit', 'implement.standard', 'advisor.deep', 'recover.report'])
@@ -66,17 +79,17 @@ def test_other_ops_do_not_inherit_qualification(world, op):
     add_opencode_fixture(world)
     out = run(world, *flags(world, op, proof='judged'))
     refused(out)
-    assert out['data_policy']['refusal'] == 'operation_not_qualified'
+    assert out['data_policy']['refusal'] == 'operation_not_declared_for_normal_route'
 
 
 @pytest.mark.parametrize('op', OPS)
 @pytest.mark.parametrize('case', ['unknown', 'sensitive-class', 'sensitive-flag', 'account-alias',
-                                 'provider-alias', 'sibling', 'expired', 'missing-evidence',
-                                 'disabled-transport', 'no-experimental', 'missing-account', 'missing-expiry'])
+                                 'provider-alias', 'sibling', 'future-evidence', 'missing-evidence',
+                                 'missing-account'])
 def test_qualification_keeps_security_floor(world, op, case):
     add_opencode_fixture(world)
     argv = flags(world, op)
-    route = world.policy['experimental_free_routes'][0]
+    route = normal(world)
     if case == 'unknown':
         argv.remove('--data-classification')
         argv.remove('public')
@@ -92,28 +105,27 @@ def test_qualification_keeps_security_floor(world, op, case):
         argv[argv.index('provider=opencode')] = 'provider=alias'
     elif case == 'sibling':
         argv[argv.index('model=' + DEEPSEEK_FREE)] = 'model=opencode/paid-model'
-    elif case == 'expired':
-        route['expires_at_utc'] = '2026-10-14T00:00:00Z'
+    elif case == 'future-evidence':
+        route['status'] = 'free_as_of_2026-10-16'
+        route['evidence'][0]['accessed'] = '2026-10-16'
     elif case == 'missing-evidence':
         route['evidence'] = []
-    elif case == 'missing-expiry':
-        route.pop('expires_at_utc')
-    elif case == 'disabled-transport':
-        route['t3_transport']['enabled'] = False
-    elif case == 'no-experimental':
-        # Without the flag, only the legacy contract can be under test here; a normal declaration of the
-        # same model would authorize it, so remove that declaration and keep the legacy flag requirement.
-        world.policy['free_routes'] = []
-        argv.remove('--experimental-route')
     elif case == 'missing-account':
         index = argv.index('account=opencode')
         del argv[index - 1:index + 1]
     process, out = world.cli(*argv, evaluation_time=CLOCK)
-    if case in ('missing-evidence', 'missing-expiry', 'disabled-transport'):
+    if case == 'missing-evidence':
         assert process.returncode == 1 and not out
+        assert 'evidence' in process.stderr
     else:
         assert process.returncode == 0, process.stderr
         refused(out)
+        if case == 'future-evidence':
+            assert out['data_policy']['refusal'] == 'normal_route_evidence_from_future_or_invalid'
+        if case == 'sensitive-flag':
+            assert out['data_policy']['refusal'] == 'sensitive_inputs'
+        if case in ('unknown', 'sensitive-class'):
+            assert out['data_policy']['refusal'] == 'public_classification_required'
 
 
 @pytest.mark.parametrize('op', OPS)
@@ -142,29 +154,24 @@ def test_generic_destination_remains_refused_for_qualified_ops(world, op):
 
 @pytest.mark.parametrize('op', OPS)
 @pytest.mark.parametrize('race', [False, True])
-@pytest.mark.parametrize('revoke', [None, 'operation', 'proof'])
+@pytest.mark.parametrize('revoke', [None, 'operation', 'declaration'])
 def test_current_qualification_is_required_on_both_replay_paths(world, op, race, revoke, monkeypatch, capsys):
     add_opencode_fixture(world)
-    # Replay authorizes against the real clock while the fresh route is pinned to CLOCK; keep the declaration
-    # current for both so this tests qualification rather than the passing of the historical expiry.
-    world.policy['experimental_free_routes'][0]['expires_at_utc'] = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
     argv = [*flags(world, op), '--record', '--decision-id', 'qualified', '--parent-model', 'parent',
             '--parent-provider-instance', 'parent', '--parent-thread', 'parent']
     first = run(world, *argv)
     assert first['launch_ready']
     ledger = world.receipts.read_bytes()
-    if revoke:
-        route = world.policy['experimental_free_routes'][0]
-        if revoke == 'operation':
-            route['qualified_operations'] = [entry for entry in route['qualified_operations'] if entry['id'] != op]
-        else:
-            next(entry for entry in route['qualified_operations'] if entry['id'] == op)['proof_classes'] = []
+    if revoke == 'operation':
+        normal(world)['operations'] = [entry for entry in normal(world)['operations'] if entry['id'] != op]
+    elif revoke == 'declaration':
+        world.policy['free_routes'] = []
     world.write()
     if race:
         monkeypatch.setattr(pd, 'find_receipt', lambda *args: None)
     else:
         monkeypatch.setattr(pd, 'read_source', lambda *args: pytest.fail('early replay read live runtime data'))
-    monkeypatch.setattr(directives, 'now', lambda: datetime.fromisoformat(CLOCK.replace('Z', '+00:00')))
+    monkeypatch.setattr(directives, 'now', lambda: CLOCK_AT)
     tool = str(Path(__file__).resolve().parents[1] / 'tools/model-policy-ops/model-policy-ops')
     monkeypatch.setattr(sys, 'argv', [tool, *full_record(argv), '--no-user-policy'])
     with pytest.raises(SystemExit) as exited:
@@ -174,35 +181,38 @@ def test_current_qualification_is_required_on_both_replay_paths(world, op, race,
     out = json.loads(captured.out)
     if revoke:
         refused(out)
-        assert out['data_policy']['refusal'] == 'experimental_route_receipt_not_currently_authorized'
+        assert out['data_policy']['refusal'] == 'normal_route_receipt_not_currently_authorized'
     else:
         assert out == first | {'replayed': True}
     assert world.receipts.read_bytes() == ledger
 
 
 @pytest.mark.parametrize('op', OPS)
-@pytest.mark.parametrize('change', ['proof-removed', 'proof-changed', 'effort', 'scope'])
+@pytest.mark.parametrize('change', ['operation-removed', 'proof-changed', 'effort-changed'])
 def test_actual_target_replay_uses_current_proof_and_effort_eligibility(world, op, change):
     add_opencode_fixture(world)
     out = run(world, *flags(world, op))
     policy = copy.deepcopy(world.policy)
-    entry = next(item for item in policy['experimental_free_routes'][0]['qualified_operations'] if item['id'] == op)
-    if change.startswith('proof'):
-        entry['proof_classes'] = [] if change == 'proof-removed' else ['judged']
-    elif change == 'effort':
-        entry['efforts'] = []
+    declared = policy['free_routes'][0]
+    if change == 'operation-removed':
+        declared['operations'] = [item for item in declared['operations'] if item['id'] != op]
     else:
-        entry['scope'] = 'open_ended_research'
-    pd.apply_experimental_route_policy(out, policy, datetime.fromisoformat(CLOCK.replace('Z', '+00:00')), replay=True)
+        entry = next(item for item in declared['operations'] if item['id'] == op)
+        if change == 'proof-changed':
+            entry['proof_classes'] = ['judged']
+        else:
+            entry['efforts'] = ['low']
+    pd.apply_experimental_route_policy(out, policy, CLOCK_AT, replay=True)
     refused(out)
+    assert out['data_policy']['refusal'] == 'normal_route_receipt_not_currently_authorized'
 
 
-@pytest.mark.parametrize('effort', ['low', 'max'])
-def test_exploratory_paths_retain_catalog_validated_efforts(world, effort):
+@pytest.mark.parametrize('command,op', [('route', 'fanout.explore'), ('resolve', '--no-op')])
+def test_exploratory_paths_are_not_authorized_for_the_free_route(world, command, op):
     add_opencode_fixture(world)
-    for command, op in [('route', 'fanout.explore'), ('resolve', '--no-op')]:
-        out = run(world, *flags(world, op, command, proof=None, effort=effort))
-        assert out['target']['options'] == {'variant': effort}
+    out = run(world, *flags(world, op, command, proof=None))
+    refused(out)
+    assert out['data_policy']['refusal'] == 'operation_not_declared_for_normal_route'
 
 
 @pytest.mark.parametrize('op', OPS)
@@ -216,3 +226,30 @@ def test_changed_recorded_proof_cannot_be_replaced_on_replay(world, op):
     process, out = world.cli(*argv, evaluation_time=CLOCK)
     assert process.returncode == 1 and out is None and 'changed inputs' in process.stderr
     assert world.receipts.read_bytes() == ledger
+
+
+def test_a_stored_legacy_identity_is_refused_on_replay_even_with_the_normal_declaration(world):
+    add_opencode_fixture(world)
+    out = run(world, *flags(world, OPS[0]))
+    assert out['data_policy']['state'] == 'allowed_public_normal'
+    # A receipt recorded under the retired legacy contract: same identity, legacy kind, legacy request shape.
+    out['data_policy']['state'] = 'allowed_public_experimental'
+    out['request']['experimental_route'] = True
+    pd.apply_experimental_route_policy(out, world.policy, CLOCK_AT, replay=True)
+    refused(out)
+    assert out['data_policy']['refusal'] == 'experimental_route_receipt_not_currently_authorized'
+
+
+def test_the_retired_flag_refuses_a_fresh_request(world):
+    add_opencode_fixture(world)
+    out = run(world, *flags(world, OPS[0]), '--experimental-route')
+    refused(out)
+    assert out['data_policy']['refusal'] == 'model_not_declared_for_experimental_route'
+
+
+def test_a_retired_experimental_key_in_the_pack_is_an_error(world):
+    add_opencode_fixture(world)
+    world.policy['experimental_free_routes'] = []
+    process, out = world.cli(*flags(world, OPS[0]), evaluation_time=CLOCK)
+    assert process.returncode == 1 and out is None
+    assert 'experimental_free_routes is retired' in process.stderr

@@ -9,6 +9,7 @@ import json
 import shutil
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -78,8 +79,7 @@ def free_rows(out):
 
 # ---- selected as an ordinary candidate -----------------------------------------------------------------------------------
 
-def test_the_normal_route_is_selected_without_the_legacy_declaration_or_flag(world):
-    world.policy['experimental_free_routes'] = []
+def test_the_normal_route_is_selected_without_any_flag(world):
     out = route_at(world, LATER, *PUBLIC)
     assert selected(out)
     chosen = out['routing']['chosen']
@@ -114,13 +114,13 @@ def test_the_normal_route_is_not_displaced_by_a_drain_preference(world):
     assert out['routing']['chosen']['arm']['provider'] == 'opencode'
 
 
-def test_one_normal_declaration_supersedes_the_legacy_candidate_but_not_its_explicit_path(world):
+def test_an_explicit_override_on_the_normal_declaration_is_normal(world):
     out = route_at(world, LATER, *PUBLIC)
     assert len(free_rows(out)) == 1 and out['data_policy']['state'] == 'allowed_public_normal'
-    result, manual = world.cli('route', OP, *world.args(), *ORACLE, '--decision-id', 'legacy-manual',
+    result, manual = world.cli('route', OP, *world.args(), *ORACLE, '--decision-id', 'manual-normal',
                                *test_route.deepseek_flags(classification='public'), evaluation_time=LATER)
     assert result.returncode == 0, result.stderr
-    assert manual['data_policy']['state'] == 'allowed_public_experimental'
+    assert manual['data_policy']['state'] == 'allowed_public_normal'
 
 
 # ---- the declared scope --------------------------------------------------------------------------------------------------
@@ -337,21 +337,6 @@ def test_a_normal_receipt_replays_and_is_refused_once_the_declaration_is_removed
     assert all(target is None for target in all_target_values(revoked))
 
 
-def test_a_legacy_receipt_keeps_its_legacy_refusal_after_the_normal_route_exists(world):
-    flags = ['route', OP, *world.args(), *ORACLE, '--decision-id', 'legacy-1', '--record', '--parent-model', 'pm',
-             '--parent-provider-instance', 'pp', '--parent-thread', 'pt',
-             *test_route.deepseek_flags(classification='public')]
-    result, first = world.cli(*flags, evaluation_time=LATER)
-    assert result.returncode == 0, result.stderr
-    assert first['data_policy']['state'] == 'allowed_public_experimental'
-    world.policy['experimental_free_routes'] = []
-    result, again = world.cli(*flags, evaluation_time=LATER)
-    assert result.returncode == 0, result.stderr
-    assert again['replayed'] is True
-    assert again['data_policy']['refusal'] == 'experimental_route_receipt_not_currently_authorized'
-    assert all(target is None for target in all_target_values(again))
-
-
 def test_a_simulation_never_launches_or_records_the_normal_route(world):
     result, out = world.cli('route', OP, *world.args(), *ORACLE, *PUBLIC, '--now', LATER, raw=True)
     assert result.returncode == 0, result.stderr
@@ -506,7 +491,6 @@ def test_normal_replay_refuses_an_obsolete_option_key_without_rewriting_receipt(
 @pytest.mark.parametrize('location', [('target',), ('selection', 'target'), ('routing', 'final', 'target')])
 @pytest.mark.parametrize('options', [{}, {'variant': 'high', 'effort': 'high'}, {'variant': 'low'}])
 def test_every_actual_normal_target_binding_is_checked(world, location, options):
-    from datetime import datetime, timezone
     import policy_decisions as decisions
     first = route_at(world, LATER, *PUBLIC, record='actual-binding')
     assert selected(first)
@@ -517,7 +501,7 @@ def test_every_actual_normal_target_binding_is_checked(world, location, options)
         node = node[key]
     node['options'] = options
     decisions.apply_experimental_route_policy(
-        replay, world.policy, datetime.now(timezone.utc), replay=True)
+        replay, world.policy, datetime.fromisoformat(LATER.replace('Z', '+00:00')), replay=True)
     assert not_dispatched(replay)
     assert replay['data_policy']['refusal'] == 'normal_route_receipt_not_currently_authorized'
     assert all(target is None for target in all_target_values(replay))

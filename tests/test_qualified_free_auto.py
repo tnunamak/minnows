@@ -1,7 +1,7 @@
-"""A qualified free route is a routed candidate: no override and no experimental flag, but only inside its declared scope.
+"""A qualified free route is a routed candidate: no override and no flag, but only inside its declared scope.
 
-The scope is the pack declaration: the operation, the proof class, the effort, public inputs that the caller asserts,
-current evidence and an open transport. Each test changes one input and runs the real CLI. No model is called.
+The scope is the normal `free_routes` declaration: the operation, the proof class, the effort, public inputs that the
+caller asserts, and current evidence. Each test changes one input and runs the real CLI. No model is called.
 """
 import json
 
@@ -27,20 +27,17 @@ def world(tmp_path, monkeypatch):
     monkeypatch.setattr(test_route, 'NOW', NOW)
     found = BandWorld(tmp_path)
     add_opencode_fixture(found)
-    # This module keeps the legacy experimental contract under test. A normal declaration of the same
-    # provider and model would supersede it, so remove that declaration here only.
-    assert found.policy.pop('free_routes', None)
     return found
 
 
 def declared(world):
-    return world.policy['experimental_free_routes'][0]
+    return world.policy['free_routes'][0]
 
 
 def current_at_pinned_capture(world):
     """The route's evidence is dated 2026-10-15; the quota capture is 2026-10-11. Date the evidence earlier so one clock serves both."""
     route = declared(world)
-    route['status'] = 'temporary_free_as_of_2026-10-10'
+    route['status'] = 'free_as_of_2026-10-10'
     for item in route['evidence']:
         item['accessed'] = '2026-10-10'
 
@@ -71,15 +68,10 @@ def test_a_qualified_public_oracle_task_takes_the_free_route_instead_of_waiting(
     assert chosen['selection_basis'] == 'qualified_free_route' and chosen['evidence'] == 'qualified'
     assert out['routing']['final']['billing'] == 'free' and out['routing']['final']['overridden'] is False
     assert out['request']['overrides'] == {} and 'experimental_route' not in out['request']
-    assert out['data_policy']['state'] == 'allowed_public_experimental' and out['data_policy']['refusal'] is None
+    assert out['data_policy']['state'] == 'allowed_public_normal' and out['data_policy']['refusal'] is None
     assert out['routing']['judgment_required'] is False
 
 
-def test_without_the_public_assertion_the_route_still_waits_and_lists_the_opt_in(world):
-    out = route_at(world, LATER)
-    assert not_dispatched(out) and out['waiting']['state'] == 'no_forecast_headroom'
-    row = out['waiting']['alternatives_considered']['free_routes'][0]
-    assert row['qualified'] is True and row['availability']['state'] == 'available' and '--experimental-route' in row['opt_in']
 
 
 def test_the_free_route_precedes_the_critical_path_exception(world):
@@ -97,11 +89,11 @@ def test_the_critical_path_exception_still_serves_a_task_that_is_not_qualified(w
     assert pacing(out)['state'] == 'critical_path_exception' and out['target']['providerInstanceId'] != 'opencode'
 
 
-def test_a_subscription_with_headroom_keeps_the_task(world):
+def test_a_qualified_normal_route_ranks_before_a_subscription_with_headroom(world):
     current_at_pinned_capture(world)
     world.codex(100)
     out = route_at(world, NOW, *PUBLIC)
-    assert out['target']['providerInstanceId'] == 'codex'
+    assert out['target']['providerInstanceId'] == 'opencode'
 
 
 def test_docs_lookup_is_qualified_too(world):
@@ -160,7 +152,7 @@ def test_an_operation_without_a_qualification_is_not_offered_the_route(world):
 
 
 def test_a_declaration_with_no_qualified_operation_is_revoked(world):
-    declared(world)['qualified_operations'] = []
+    declared(world)['operations'] = []
     out = route_at(world, LATER, *PUBLIC)
     assert not_dispatched(out) and all(t['arm']['provider'] != 'opencode' for t in out['routing']['trace'])
 
@@ -181,9 +173,8 @@ def test_a_missing_catalog_account_removes_the_route(world):
 
 
 @pytest.mark.parametrize('change', [
-    lambda route: route.update(expires_at_utc='2026-10-16T01:00:00Z'),
-    lambda route: route.update(status='temporary_free_as_of_2026-10-17'),
-], ids=['expired', 'evidence-from-the-future'])
+    lambda route: route.update(status='free_as_of_2026-10-17'),
+], ids=['evidence-from-the-future'])
 def test_stale_or_revoked_evidence_never_reaches_the_free_route(world, change):
     change(declared(world))
     out = route_at(world, LATER, *PUBLIC)
@@ -215,7 +206,6 @@ def test_a_cooling_route_waits_and_the_same_route_is_chosen_after_the_cooldown(w
     assert not_dispatched(cooling)
     row = next(t for t in cooling['routing']['trace'] if t['arm']['provider'] == 'opencode')
     assert row['removed_by'] == 'cooling_down' and row['detail']['retry_after'] == '2026-10-16T01:10:00+00:00'
-    assert cooling['waiting']['alternatives_considered']['free_routes'][0]['availability']['retry_after'] == '2026-10-16T01:10:00+00:00'
     assert not_dispatched(route_at(world, '2026-10-16T01:10:00Z', *PUBLIC))
     assert selected(route_at(world, '2026-10-16T01:10:01Z', *PUBLIC))
 
@@ -234,10 +224,10 @@ def test_a_recorded_route_replays_and_is_refused_once_the_declaration_is_revoked
     first = route_at(world, LATER, *PUBLIC, record='auto-1')
     assert selected(first)
     assert route_at(world, LATER, *PUBLIC, record='auto-1')['replayed'] is True
-    declared(world)['qualified_operations'] = []
+    declared(world)['operations'] = []
     revoked = route_at(world, LATER, *PUBLIC, record='auto-1')
     assert revoked['target'] is None and revoked['launch_ready'] is False
-    assert revoked['data_policy']['refusal'] == 'experimental_route_receipt_not_currently_authorized'
+    assert revoked['data_policy']['refusal'] == 'normal_route_receipt_not_currently_authorized'
 
 
 def test_a_simulation_never_launches_the_free_route(world):
@@ -246,14 +236,16 @@ def test_a_simulation_never_launches_the_free_route(world):
     assert out['target'] is None and out['launch_ready'] is False and out['simulated_target'] == FREE_TARGET and 'dispatch' not in out
 
 
-def test_the_manual_free_route_still_needs_its_exact_overrides(world):
+def test_the_manual_free_route_needs_its_exact_overrides_and_a_reason(world):
     result, out = world.cli('route', OP, *world.args(), *ORACLE, '--decision-id', 'manual', *test_route.deepseek_flags(classification='public'),
                             evaluation_time=LATER)
     assert result.returncode == 0, result.stderr
-    assert out['target'] == FREE_TARGET and out['routing']['final']['overridden'] is True and out['request']['experimental_route'] is True
-    unflagged = route_at(world, LATER, *PUBLIC, '--override', 'provider=opencode', '--override', f'model={DEEPSEEK_FREE}', '--override', 'effort=high',
-                         '--override', 'account=opencode', '--reason', 'no experimental flag')
-    assert unflagged['target'] is None and unflagged['data_policy']['refusal'] == 'exact_experimental_override_required'
+    assert out['target'] == FREE_TARGET and out['routing']['final']['overridden'] is True
+    assert 'experimental_route' not in out['request']
+    result, _ = world.cli('route', OP, *world.args(), *ORACLE, *PUBLIC, '--decision-id', 'unreasoned', '--override', 'provider=opencode',
+                          '--override', f'model={DEEPSEEK_FREE}', '--override', 'effort=high', '--override', 'account=opencode',
+                          evaluation_time=LATER)
+    assert result.returncode == 1 and 'require --reason' in result.stderr
 
 
 def test_only_the_declared_account_can_carry_the_free_route(world):

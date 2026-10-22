@@ -196,8 +196,8 @@ def add_opencode_fixture(world):
 
 
 def deepseek_flags(*, classification=None, sensitive=False):
-    flags = ['--experimental-route', '--override', 'provider=opencode', '--override', f'model={DEEPSEEK_FREE}',
-             '--override', 'effort=high', '--override', 'account=opencode', '--reason', 'Experimental exploration on a public task']
+    flags = ['--override', 'provider=opencode', '--override', f'model={DEEPSEEK_FREE}',
+             '--override', 'effort=high', '--override', 'account=opencode', '--reason', 'Explicit override of the normal free route']
     if classification:
         flags += ['--data-classification', classification]
     if sensitive:
@@ -214,30 +214,31 @@ def all_target_values(value):
     return []
 
 
-def test_experimental_opencode_route_needs_public_classification_and_preserves_variant_target(world):
+def test_normal_opencode_route_needs_public_classification_and_preserves_variant_target(world):
     add_opencode_fixture(world)
-    result, out = world.cli('route', 'fanout.explore', *world.args(), *deepseek_flags(classification='public'),
-                            '--inputs', 'github', evaluation_time='2026-10-15T00:30:00Z')
+    result, out = world.cli('route', 'implement.oracle-bounded', *world.args(), *deepseek_flags(classification='public'),
+                            '--proof-class', 'oracle', evaluation_time='2026-10-15T00:30:00Z')
     assert result.returncode == 0, result.stderr
     assert out['target'] == {'providerInstanceId': 'opencode', 'model': DEEPSEEK_FREE,
                              'options': {'variant': 'high'}}
     assert out['launch_ready'] is True
-    assert out['data_policy']['state'] == 'allowed_public_experimental'
+    assert out['data_policy']['state'] == 'allowed_public_normal'
     assert out['data_policy']['refusal'] is None
-    assert out['data_policy']['t3_transport']['enabled'] is True
     assert out['routing']['final']['billing'] == 'free'
     assert out['routing']['final']['account'] == 'opencode'
 
 
-def test_resolve_no_op_can_return_only_the_exact_public_experimental_target(world):
+
+
+def test_resolve_no_op_does_not_authorize_the_free_route(world):
     add_opencode_fixture(world)
     result, out = world.cli('resolve', '--no-op', *world.args(), *deepseek_flags(classification='public'),
                             evaluation_time='2026-10-15T00:30:00Z')
     assert result.returncode == 0, result.stderr
-    assert out['target'] == {'providerInstanceId': 'opencode', 'model': DEEPSEEK_FREE,
-                             'options': {'variant': 'high'}}
-    assert out['launch_ready'] is True
-    assert out['data_policy']['state'] == 'allowed_public_experimental'
+    assert out['launch_ready'] is False and out['target'] is None
+    assert out['data_policy']['refusal'] == 'operation_not_declared_for_normal_route'
+
+
 
 
 @pytest.mark.parametrize('model', [
@@ -268,51 +269,42 @@ def test_undeclared_opencode_variant_is_refused_instead_of_launchable(world, mod
     assert all(target is None for target in all_target_values(out))
 
 
-@pytest.mark.parametrize('evaluation_time,expected_refusal', [
-    ('2026-10-15T00:29:59Z', None),
-    ('2026-10-15T00:30:00Z', 'verification_expired'),
-    ('2026-10-15T00:30:01Z', 'verification_expired'),
-])
-def test_experimental_route_expiry_boundary_is_exclusive(world, evaluation_time, expected_refusal):
+@pytest.mark.parametrize('evaluation_time', ['2026-10-15T00:29:59Z', '2026-10-16T00:30:00Z', '2030-01-01T00:00:00Z'])
+def test_the_normal_declaration_has_no_expiry_boundary(world, evaluation_time):
     add_opencode_fixture(world)
-    route = world.policy['experimental_free_routes'][0]
-    route['expires_at_utc'] = '2026-10-15T00:30:00Z'
-    route['status'] = 'temporary_free_as_of_2026-10-15'
-    for source in route['evidence']:
-        source['accessed'] = '2026-10-15'
-    result, out = world.cli('route', 'fanout.explore', *world.args(), *deepseek_flags(classification='public'),
-                            evaluation_time=evaluation_time)
+    result, out = world.cli('route', 'implement.oracle-bounded', *world.args(), *deepseek_flags(classification='public'),
+                            '--proof-class', 'oracle', evaluation_time=evaluation_time)
     assert result.returncode == 0, result.stderr
-    if expected_refusal is None:
-        assert out['launch_ready'] is True and out['target']['model'] == DEEPSEEK_FREE
-    else:
-        assert out['launch_ready'] is False and out['target'] is None
-    assert out['data_policy']['refusal'] == expected_refusal
+    assert out['launch_ready'] is True and out['target']['model'] == DEEPSEEK_FREE
+    assert out['data_policy']['refusal'] is None
 
 
-@pytest.mark.parametrize('expiry', [None, 'not-a-date', '2026-10-15T00:30:00+01:00'])
-def test_missing_or_malformed_route_expiry_refuses_dispatch(world, expiry):
+
+
+@pytest.mark.parametrize('status', ['not-a-date', 'free_as_of_2026-13-40'])
+def test_a_malformed_normal_status_refuses_dispatch(world, status):
     add_opencode_fixture(world)
-    route = world.policy['experimental_free_routes'][0]
-    if expiry is None:
-        route.pop('expires_at_utc')
-    else:
-        route['expires_at_utc'] = expiry
-    result, out = world.cli('route', 'fanout.explore', *world.args(), *deepseek_flags(classification='public'))
+    world.policy['free_routes'][0]['status'] = status
+    result, out = world.cli('route', 'implement.oracle-bounded', *world.args(), *deepseek_flags(classification='public'),
+                            '--proof-class', 'oracle')
     assert result.returncode == 1 and out is None
-    assert 'expires_at_utc' in result.stderr
+    assert 'free_routes' in result.stderr
 
 
-def test_future_dated_route_evidence_refuses_dispatch(world):
+
+
+def test_future_dated_normal_evidence_refuses_dispatch(world):
     add_opencode_fixture(world)
-    route = world.policy['experimental_free_routes'][0]
-    route['status'] = 'temporary_free_as_of_2026-10-16'
+    route = world.policy['free_routes'][0]
+    route['status'] = 'free_as_of_2026-10-16'
     route['evidence'][0]['accessed'] = '2026-10-16'
-    result, out = world.cli('route', 'fanout.explore', *world.args(), *deepseek_flags(classification='public'),
-                            evaluation_time='2026-10-15T23:59:59Z')
+    result, out = world.cli('route', 'implement.oracle-bounded', *world.args(), *deepseek_flags(classification='public'),
+                            '--proof-class', 'oracle', evaluation_time='2026-10-15T23:59:59Z')
     assert result.returncode == 0, result.stderr
     assert out['launch_ready'] is False and out['target'] is None
-    assert out['data_policy']['refusal'] == 'verification_evidence_from_future_or_invalid'
+    assert out['data_policy']['refusal'] == 'normal_route_evidence_from_future_or_invalid'
+
+
 
 
 def test_undeclared_variant_refusal_clears_destination_loaded_target(world):
@@ -348,33 +340,18 @@ def test_route_now_simulation_never_dispatches_experimental_free_arm(world):
     assert out['simulation']['now'] == '2026-10-20T00:30:00+00:00'
 
 
-def test_expired_route_cannot_be_bypassed_by_a_recorded_receipt(world):
+
+
+def test_normal_data_policy_is_visible_in_brief_output(world):
     add_opencode_fixture(world)
-    flags = ['route', 'fanout.explore', *world.args(), '--decision-id', 'experimental-route-receipt', '--record',
-             '--parent-model', 'parent', '--parent-provider-instance', 'parent-instance', '--parent-thread', 'parent-thread',
-             *deepseek_flags(classification='public')]
-    first_result, first = world.cli(*flags, evaluation_time='2026-10-15T00:30:00Z')
-    assert first_result.returncode == 0, first_result.stderr
-    assert first['target']['model'] == DEEPSEEK_FREE and first['launch_ready'] is True
-    world.policy['experimental_free_routes'][0]['expires_at_utc'] = '2026-10-14T00:00:00Z'
-
-    replay_result, replay = world.cli(*flags, evaluation_time='2026-10-15T00:30:00Z')
-    assert replay_result.returncode == 0, replay_result.stderr
-    assert replay['replayed'] is True
-    assert replay['launch_ready'] is False and replay['target'] is None
-    assert replay['data_policy']['refusal'] == 'experimental_route_receipt_not_currently_authorized'
-    assert 'dispatch' not in replay
-    assert all(target is None for target in all_target_values(replay))
-
-
-def test_experimental_data_policy_is_visible_in_brief_output(world):
-    add_opencode_fixture(world)
-    result, out = world.cli('route', 'fanout.explore', *world.args(), *deepseek_flags(classification='public'),
-                            '--brief', evaluation_time='2026-10-15T00:30:00Z')
+    result, out = world.cli('route', 'implement.oracle-bounded', *world.args(), *deepseek_flags(classification='public'),
+                            '--proof-class', 'oracle', '--brief', evaluation_time='2026-10-15T00:30:00Z')
     assert result.returncode == 0, result.stderr
-    assert out['data_policy']['state'] == 'allowed_public_experimental'
+    assert out['data_policy']['state'] == 'allowed_public_normal'
     assert out['data_policy']['refusal'] is None
     assert out['launch_ready'] is True and out['target']['model'] == DEEPSEEK_FREE
+
+
 
 
 @pytest.mark.parametrize('command,classification,sensitive,inputs', [
@@ -432,7 +409,9 @@ def test_opencode_free_metadata_does_not_follow_account_alias(world):
     assert result.returncode == 0, result.stderr
     assert out['launch_ready'] is False and out['target'] is None
     assert out['data_policy']['state'] == 'refused'
-    assert out['data_policy']['refusal'] == 'exact_experimental_override_required'
+    assert out['data_policy']['refusal'] == 'account_not_declared_for_normal_route'
+
+
 
 
 def test_same_model_id_under_another_provider_does_not_inherit_free_billing(world):
@@ -445,7 +424,7 @@ def test_same_model_id_under_another_provider_does_not_inherit_free_billing(worl
                             '--override', 'account=other', '--reason', 'Probe the separately configured provider')
     assert result.returncode == 0, result.stderr
     assert out['target'] is None and out['launch_ready'] is False
-    assert out['data_policy']['refusal'] == 'provider_alias_not_allowed'
+    assert out['data_policy']['refusal'] == 'model_not_declared_for_experimental_route'
 
 
 def codes(out):

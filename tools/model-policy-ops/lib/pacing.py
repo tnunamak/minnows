@@ -114,25 +114,6 @@ def cooldown(failures, instance, demote_count, classes):
     return {'state': 'cooling_down', 'retry_after': until.isoformat() if until else None, 'events': count}
 
 
-def free_routes(routes, qualify, failures, demote_count, classes):
-    """One row per declared experimental free route: whether it qualifies for this request and whether it is cooling down.
-
-    `qualify(route)` returns `(effort, refusal)`. The row only reports: the caller still opts in with the exact flags,
-    because public inputs are the caller's own assertion.
-    """
-    rows = []
-    for route in routes:
-        effort, refusal = qualify(route)
-        row = {'provider': route['provider'], 'model': route['model'], 'account': route['account'], 'qualified': refusal is None,
-               'refusal': refusal, 'availability': cooldown(failures, route['account'], demote_count, classes)}
-        if refusal is None:
-            row['opt_in'] = ['--experimental-route', '--data-classification', 'public', '--override', f'provider={route["provider"]}',
-                             '--override', f'model={route["model"]}', '--override', f'effort={effort}',
-                             '--override', f'account={route["account"]}', '--reason', '<why this public task may use the free route>']
-        rows.append(row)
-    return rows
-
-
 def prepaid_summary(trace):
     """Every metered pair that the filters saw, with the filter that removed it or `eligible`."""
     return [{'instance': row['instance'], 'arm_model': row['arm']['model'], 'state': row['removed_by'] or 'eligible'}
