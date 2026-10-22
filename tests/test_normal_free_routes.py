@@ -525,21 +525,52 @@ def test_every_actual_normal_target_binding_is_checked(world, location, options)
 
 
 def test_record_time_replay_rechecks_the_current_option_binding(world, monkeypatch):
+    import io
+    import runpy
+    from contextlib import redirect_stdout
+    from datetime import datetime
     import policy_decisions as decisions
+
     first = route_at(world, LATER, *PUBLIC, record='binding-race')
     assert selected(first)
     saved = world.receipts.read_bytes()
     normal(world)['effort_option'] = 'reasoningEffort'
-    # Model an initial lookup miss followed by append finding the existing receipt.
-    # Only the lookup is faulted; the real append/replay and CLI authorization run.
-    calls = []
+    world.write()
+    # World.cli starts a subprocess. Load the same real CLI in-process so this
+    # read-boundary fault is observable, without replacing execute or append.
+    cli = runpy.run_path(str(test_route.TOOL), run_name='binding_race_cli')
+    calls, appended = [], []
     original_find = decisions.find_receipt
-    def initial_miss(*args, **kwargs):
-        calls.append(True)
+    original_append = decisions.append_receipt
+
+    def initial_miss(path, decision_id):
+        assert path == world.receipts and decision_id == 'binding-race'
+        assert original_find(path, decision_id) is not None
+        calls.append((path, decision_id))
         return None
+
+    def observe_append(*args, **kwargs):
+        recorded = original_append(*args, **kwargs)
+        appended.append(copy.deepcopy(recorded))
+        return recorded
+
     monkeypatch.setattr(decisions, 'find_receipt', initial_miss)
-    refused = route_at(world, LATER, *PUBLIC, record='binding-race')
-    assert calls, 'the record-time race must bypass the early lookup'
+    monkeypatch.setattr(decisions, 'append_receipt', observe_append)
+    monkeypatch.setattr(decisions.directive_store, 'now',
+                        lambda: datetime.fromisoformat(LATER.replace('Z', '+00:00')))
+    monkeypatch.setenv('XDG_CONFIG_HOME', str(world.tmp / 'xdg'))
+    args = test_route.full_record(list(map(str, [
+        'route', OP, *world.args(), *ORACLE, *PUBLIC, '--no-user-policy',
+        '--decision-id', 'binding-race', '--record', '--parent-model', 'pm',
+        '--parent-provider-instance', 'pp', '--parent-thread', 'pt'])))
+    monkeypatch.setattr(sys, 'argv', [str(test_route.TOOL), *args])
+    output = io.StringIO()
+    with redirect_stdout(output):
+        assert cli['main']() == 0
+    refused = json.loads(output.getvalue())
+    assert calls == [(world.receipts, 'binding-race')], 'the initial receipt lookup must miss'
+    assert len(appended) == 1 and appended[0]['replayed'] is True
+    assert appended[0]['target'] == FREE_TARGET, 'the real append must find the old variant receipt'
     assert refused['replayed'] is True
     assert not_dispatched(refused)
     assert refused['data_policy']['refusal'] == 'normal_route_receipt_not_currently_authorized'
