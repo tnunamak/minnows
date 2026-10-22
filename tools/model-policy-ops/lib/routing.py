@@ -352,6 +352,7 @@ def route(op, params, ctx):
     candidates = expand_candidates(op) + ctx['free_candidates']
     for index, candidate in enumerate(candidates):
         arm = candidate['arm']
+        normal_basis = candidate['basis'] if candidate.get('normal_free') else None
         instances = catalog_instances(ctx['available'], arm['provider'])
         if candidate.get('free_route'):
             instances = [i for i in instances if i == candidate['free_route']['account']]  # a declaration is exact: other accounts are not it
@@ -363,6 +364,7 @@ def route(op, params, ctx):
             matched, view = found['matched'], found['view']
             applied.update(d['id'] for rows in matched.values() for d in rows)
             row = base | {'instance': instance, 'billing': found['billing'],
+                          'exact_override_required': normal_basis == 'unvalidated',
                           'directives': {effect: [d['id'] for d in rows] for effect, rows in matched.items() if rows}}
             if matched['avoid'] and (matched['prefer'] or matched['authorize']):
                 conflicts.append({'candidate': index, 'instance': instance, 'avoid': [d['id'] for d in matched['avoid']],
@@ -381,7 +383,11 @@ def route(op, params, ctx):
                     continue
             klass, selection_basis, reasons = eligibility(candidate, matched['authorize'], ctx['proof_class'])
             health = availability_view(failures, demote_count, instance)
-            rank = {'eligibility': klass, 'prefer': 0 if matched['prefer'] else 1, 'pace': PACE_RANK[view['pace']],
+            # A normal qualified free pair is ranked by its zero source price after eligibility and before
+            # draining, preference and pace: it is not displaced only to spend subscription tokens.
+            price_class = 0 if normal_basis == 'qualified_free' else 1
+            rank = {'eligibility': klass, 'price_class': price_class, 'prefer': 0 if matched['prefer'] else 1,
+                    'pace': PACE_RANK[view['pace']],
                     'availability': AVAILABILITY_RANK[health['class']], 'candidate_order': index,
                     'projected_pct': view['binding']['projected_pct'] if view['binding'] else None, 'instance': instance}
             if ctx['drain']:
@@ -419,7 +425,8 @@ def route(op, params, ctx):
             'independence': {'required': ctx['level'], 'required_source': ctx['level_source'], 'maker': ctx['maker']},
             'directives_applied': sorted(applied), 'directives_unmatched': sorted(d['id'] for d in ctx['directives'] if d['id'] not in applied),
             'conflicts': conflicts,
-            'rank_keys': ['eligibility', *(['drain_account'] if ctx['drain'] else []), 'prefer', 'pace', 'availability', 'candidate_order',
+            'rank_keys': ['eligibility', 'price_class (normal qualified free before paid work)', *(['drain_account'] if ctx['drain'] else []),
+                          'prefer', 'pace', 'availability', 'candidate_order',
                           'headroom below band upper (most first), then earliest reset' if ctx['bands'] else 'projected_pct (load-balancing heuristic)', 'instance'],
             'quota': views, 'trace': trace, 'chosen': chosen, 'judgment_required': judgment_needed(reasons), 'judgment_reasons': reasons}
     if drained:
@@ -470,7 +477,9 @@ def finalize(block, ctx, op, arm, instance, selection, *, routed, overridden):
     The routed reasons stay in the list, tagged `routed`. A final pair with no target needs judgment.
     """
     if instance:
-        free_route = None if overridden else next((c['free_route'] for c in ctx['free_candidates'] if c['arm'] == arm), None)
+        # A declared free route binds its exact account. Pass it for an override too: the pair only
+        # becomes free when the account matches, so an override to another account keeps its billing.
+        free_route = next((c['free_route'] for c in ctx['free_candidates'] if c['arm'] == arm), None)
         facts, final_reasons = final_view(ctx, op, arm, instance, block['quota'], free_route)
     else:
         facts, final_reasons = {'billing': None, 'filters_bypassed': [], 'pace': None, 'quota_ref': None}, []
@@ -492,7 +501,7 @@ def rank_tuple(rank):
         load = (float('inf') if rank['headroom'] is None else -rank['headroom'], float('inf') if reset is None else reset)
     else:
         load = (float('inf') if rank['projected_pct'] is None else rank['projected_pct'],)
-    return (rank['eligibility'], rank.get('drain', 1), rank['prefer'], rank['pace'], rank['availability'], rank['candidate_order'], load, rank['instance'])
+    return (rank['eligibility'], rank.get('price_class', 1), rank.get('drain', 1), rank['prefer'], rank['pace'], rank['availability'], rank['candidate_order'], load, rank['instance'])
 
 
 def chosen_view(row, candidates):

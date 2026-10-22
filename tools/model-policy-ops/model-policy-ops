@@ -16,6 +16,7 @@ PACK = REPO / "data" / "model-choice-policy"
 OPERATING_POINTS = PACK / "operating-points.json"
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from experimental_routes import check_experimental_free_routes
+from normal_free_routes import check_normal_free_routes, missing_evidence
 import drain
 import quota_bands
 
@@ -127,7 +128,8 @@ def check_routing(routing) -> list[str]:
     return errors
 
 
-def check_policy(policy: dict) -> list[str]:
+def check_policy(policy: dict, *, base: Path | None = None) -> list[str]:
+    """Shape errors. `base` additionally checks that a normal route's evidence file exists beside the policy."""
     errors: list[str] = []
     seen: set[str] = set()
     for i, op in enumerate(policy.get("operating_points", [])):
@@ -149,6 +151,9 @@ def check_policy(policy: dict) -> list[str]:
         errors.extend(check_candidates(op, where))
     errors.extend(check_routing(policy.get("routing")))
     errors.extend(check_experimental_free_routes(policy.get("experimental_free_routes")))
+    errors.extend(check_normal_free_routes(policy.get("free_routes")))
+    if base is not None:
+        errors.extend(missing_evidence(policy.get("free_routes"), base))
     if not policy.get("catalog_ref"):
         errors.append("missing catalog_ref")
     if not policy.get("policy_version"):
@@ -392,6 +397,8 @@ def main() -> int:
             if needs_policy and not isinstance(policy, dict):
                 raise ValueError('policy must be a JSON object')
             if needs_policy:
+                # A route may run from a caller-supplied policy copy; evidence files are a pack-check
+                # concern, while the declared dates still gate selection at request time.
                 errors = check_policy(policy)
                 if errors:
                     raise ValueError("; ".join(errors))
@@ -413,7 +420,9 @@ def main() -> int:
             return 1
 
     policy = load_policy(args.policy)
-    errors = check_policy(policy)
+    # A caller-supplied policy copy carries no evidence tree; only a complete pack directory can be checked for it.
+    base = args.policy.parent if (args.policy.parent / "pack.json").is_file() else None
+    errors = check_policy(policy, base=base)
     if not errors:
         try:
             policy = with_user_policy(policy)

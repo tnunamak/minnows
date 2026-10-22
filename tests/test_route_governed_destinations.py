@@ -4,7 +4,7 @@ import json
 import runpy
 import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -92,6 +92,9 @@ def write_prior_policy(world):
     for route in policy['experimental_free_routes']:
         route['qualified_operations'] = []
         route['t3_transport']['scope'] = 'fanout.explore_or_resolve_no_op_exact_overrides_public_only'
+        # The archived CLI evaluates at the real clock; keep the declaration current so this still tests
+        # destination authorization rather than the passing of the historical expiry.
+        route['expires_at_utc'] = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
     (world.tmp / 'policy.json').write_text(json.dumps(policy))
 
 
