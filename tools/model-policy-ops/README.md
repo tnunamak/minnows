@@ -876,18 +876,42 @@ identity, and the state path is not either.
 
 ### User policy overlay
 
-A user tunes a few `routing` parameters without editing the pack. `~/.config/model-policy/user-policy.json`
-(`$XDG_CONFIG_HOME` honored; `--user-policy FILE` names another file; `--no-user-policy` skips it) holds
+A user tunes a few `routing` parameters and sets some operating-point defaults without editing the pack.
+`~/.config/model-policy/user-policy.json` (`$XDG_CONFIG_HOME` honored; `--user-policy FILE` names another file;
+`--no-user-policy` skips it) holds
 
 ```json
 {"schema_version": 1, "routing": {"quota_substitution": {"activate_projected_pct": 97, "release_projected_pct": 85}}}
 ```
 
 (example values). `routing` may set only `quota_substitution`, `quota_bands`, `drain_accounts`,
-`observation_max_age_hours` and `observation_window_days`. Candidates, `basis`, independence, `lineage_key` and every other
-evidence policy stay in the pack. Each key replaces the pack value whole (no deep merge). A
-missing file at the default path means no overlay; a file named with `--user-policy` that does
-not exist is an error, so a typo cannot silently turn the overlay off.
+`observation_max_age_hours` and `observation_window_days`. Each key replaces the pack value whole (no deep merge).
+The pack keeps its evidence: `basis`, `evidence_refs`, `known_gaps`, `frontier_assumption`, independence and
+`lineage_key` stay as shipped. A missing file at the default path means no overlay; a file named with
+`--user-policy` that does not exist is an error, so a typo cannot silently turn the overlay off.
+
+The optional `operating_points` object sets choices for named ops. Each key is an existing op id. An entry may set
+any of these, and nothing else:
+
+- `expands_to`: `{provider, model, effort, mode?}`, the op's default arm. It replaces the pack's arm and keeps the
+  pack's alternates. `route` still requires the arm in the live catalog.
+- `candidates`: the op's alternates, in the pack's format. An overlay alternate must use `basis: "unvalidated"`, so a
+  route to it needs judgment, and it may not carry a `prior`.
+- `purpose`: the `--purpose` that `route` uses for this op when the flag is omitted. For example, `review` sends a
+  review to a destination that lists the `review` purpose. An explicit `--purpose` wins.
+- `reason`: required when the entry's arm or alternate uses `xhigh` or `max` effort. `route` accepts this reason where
+  it would otherwise need `--reason`, so the justification is written once in the overlay.
+
+```json
+{"schema_version": 1, "routing": {}, "operating_points": {
+  "implement.standard": {"expands_to": {"provider": "codex", "model": "gpt-6-luna", "effort": "max", "mode": "standard"},
+                          "reason": "example: standard implementation at max"},
+  "review.audit": {"purpose": "review"}}}
+```
+
+An unknown op id, an unknown key, a malformed value, or a missing `reason` for `xhigh` or `max` is an error for
+`route` and `check`. The shipped pack has no `operating_points`. A decision that used an overlay default lists the
+overridden op ids in `routing.user_policy.operating_points` (below), so the receipt shows where its arm came from.
 
 `route` and `check` read it. An unknown key, a bad value (the pack validator checks the merged
 `routing`), a dangling symlink, a file that is not regular, a file owned by another user, or a
@@ -896,7 +920,8 @@ fails. A symlink is followed (for config deployed from a dotfiles repo), and the
 the target. `check --user-policy FILE` validates a file before you deploy it.
 
 Every `route` output and receipt records `routing.user_policy`: `{path, resolved_path, sha256,
-keys}` when an overlay applied, else `null`. Receipts also hold `policy_sha256` (the pack, as
+keys}` when an overlay applied, else `null`. It also lists `operating_points` (the overridden op ids) when the overlay
+set any. Receipts also hold `policy_sha256` (the pack, as
 before) and `effective_policy_sha256` (the pack with the overlay). None of this is in `request`,
 so a replay returns the stored receipt.
 

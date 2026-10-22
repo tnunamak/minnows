@@ -17,7 +17,9 @@ OPERATING_POINTS = PACK / "operating-points.json"
 sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
 from experimental_routes import check_experimental_free_routes
 import drain
+import outcomes
 import quota_bands
+import user_policy
 
 
 def select_policy(explicit_path):
@@ -124,6 +126,54 @@ def check_routing(routing) -> list[str]:
     if "lineage_key" in routing and not (isinstance(lineage, dict) and lineage and all(
             isinstance(k, str) and k and v in LINEAGE_FIELDS for k, v in lineage.items())):
         errors.append(f"routing.lineage_key must map each provider to one of {', '.join(LINEAGE_FIELDS)}")
+    return errors
+
+
+def check_operating_points(overrides, pack: dict) -> list[str]:
+    """Validate the overlay's `operating_points` as structure: each id is a pack op, each entry names only the
+    overridable keys, and each value is well formed. The merged policy is then checked as a whole."""
+    errors: list[str] = []
+    if not overrides:
+        return errors
+    ids = {op.get("id") for op in pack.get("operating_points", [])}
+    for op_id, entry in overrides.items():
+        where = f"operating_points.{op_id}"
+        if op_id not in ids:
+            errors.append(f"{where}: unknown operating point")
+            continue
+        if not isinstance(entry, dict) or not entry:
+            errors.append(f"{where}: must be a non-empty object")
+            continue
+        unknown = sorted(set(entry) - set(user_policy.OVERRIDABLE))
+        if unknown:
+            errors.append(f"{where}: keys {', '.join(unknown)} are not overridable (allowed: {', '.join(user_policy.OVERRIDABLE)})")
+        if "expands_to" in entry:
+            expands_to = entry["expands_to"]
+            if not isinstance(expands_to, dict):
+                errors.append(f"{where}.expands_to must be an object")
+            else:
+                for key in ("provider", "model", "effort"):
+                    if not isinstance(expands_to.get(key), str) or not expands_to[key]:
+                        errors.append(f"{where}.expands_to.{key} must be a non-empty string")
+                if "mode" in expands_to and not isinstance(expands_to["mode"], str):
+                    errors.append(f"{where}.expands_to.mode must be a string")
+        if "candidates" in entry:
+            errors.extend(check_candidates({"candidates": entry["candidates"]}, where))
+            # Evidence claims stay in the pack: an overlay alternate is an unvalidated arm that needs judgment.
+            rows = entry["candidates"] if isinstance(entry["candidates"], list) else []
+            for j, row in enumerate(rows):
+                if isinstance(row, dict) and row.get("basis") != "unvalidated":
+                    errors.append(f"{where}.candidates[{j}]: an overlay alternate must use basis unvalidated")
+        if "purpose" in entry and entry["purpose"] not in outcomes.PURPOSES:
+            errors.append(f"{where}.purpose must be one of {', '.join(outcomes.PURPOSES)}")
+        reason = entry.get("reason")
+        if "reason" in entry and not (isinstance(reason, str) and reason.strip()):
+            errors.append(f"{where}.reason must be a non-empty string")
+        arms = [entry["expands_to"]] if isinstance(entry.get("expands_to"), dict) else []
+        if isinstance(entry.get("candidates"), list):
+            arms += [row for row in entry["candidates"] if isinstance(row, dict)]
+        if any(arm.get("effort") in ("xhigh", "max") for arm in arms) and not (isinstance(reason, str) and reason.strip()):
+            errors.append(f"{where}: an xhigh or max effort needs a reason")
     return errors
 
 
@@ -375,13 +425,21 @@ def main() -> int:
             return pack
         if args.command == "route" and not args.now and args.decision_id and find_receipt(args.receipts, args.decision_id):
             return pack   # a stored receipt replays unchanged, so the current overlay is not read
-        routing, args.user_policy_info = user_policy.read(args.user_policy or user_policy.default_path(),
-                                                          required=args.user_policy is not None)
+        routing, overrides, args.user_policy_info = user_policy.read(args.user_policy or user_policy.default_path(),
+                                                                     required=args.user_policy is not None)
         if routing is None:
             return pack
-        errors = check_routing(routing) + check_policy(merged := user_policy.merge(pack, routing))
+        errors = check_routing(routing) + check_operating_points(overrides, pack)
         if errors:
             raise ValueError(f"user policy {args.user_policy_info['path']}: " + "; ".join(dict.fromkeys(errors)))
+        merged = user_policy.merge(pack, routing, overrides)
+        errors = check_policy(merged)
+        if errors:
+            raise ValueError(f"user policy {args.user_policy_info['path']}: " + "; ".join(dict.fromkeys(errors)))
+        if args.command == "route" and args.purpose is None:
+            # An explicit --purpose wins; otherwise the overlay's default purpose for this op applies.
+            args.purpose = next((op["purpose"] for op in merged.get("operating_points", [])
+                                 if op.get("id") == args.op and "purpose" in op), None)
         return merged
     if args.target and args.command != "directive":
         parser.error(f"unrecognized arguments: {args.target}")

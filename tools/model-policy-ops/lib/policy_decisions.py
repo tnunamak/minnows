@@ -532,7 +532,9 @@ def execute_locked(args, policy, stack):
         routed = {'arm': chosen['arm'], 'account': chosen['instance']} if chosen else None
         arm = dict(arm, **chosen['arm']) if chosen else arm
         arm.update({k: v for k, v in overrides.items() if k != 'account'})
-        if arm['effort'] in ('xhigh', 'max') and not (args.reason and args.reason.strip()):
+        # The reason of this op's user overlay entry (validated in user_policy) stands in for --reason on xhigh/max arms.
+        reasons = [args.reason, (op or {}).get('reason')]
+        if arm['effort'] in ('xhigh', 'max') and not any(isinstance(text, str) and text.strip() for text in reasons):
             raise ValueError('xhigh/max require --reason')
         account = overrides.get('account') or (chosen['instance'] if chosen and arm['provider'] == chosen['arm']['provider'] else None)
         if chosen is None and not overrides:
