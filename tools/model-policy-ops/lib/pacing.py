@@ -62,8 +62,10 @@ def pick(survivors, picked, held, critical_path):
     if launches(picked, held, picked['_view']):
         return picked, ({'state': NOT_NEEDED, 'critical_path': True} if critical_path else None)
     skipped = {'instance': picked['instance'], 'model': picked['arm']['model'], 'pace': picked['_view']['pace'], 'held': picked['instance'] in held}
+    # A pair that only an exact override can authorize is never a pacing alternative: the wait must not decide
+    # the parent's opt-in for it.
     for row in survivors:
-        if launches(row, held, row['_view']):
+        if not row.get('exact_override_required') and launches(row, held, row['_view']):
             return row, {'state': ALTERNATIVE_BEFORE_WAIT, 'critical_path': critical_path, 'skipped': skipped}
     if not critical_path:
         return picked, None

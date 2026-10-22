@@ -23,11 +23,65 @@ Root also carries:
 - `policy_version` — pack semver
 - `doctrine` — short non-goals
 
-The optional root `experimental_free_routes` array declares exact temporary
-free routes. Each entry binds billing, provider, model and T3 account identity.
-It adds no operating-point candidate and changes no primary recommendation.
-Entries carry dated source evidence, authentication and rate-limit state, an
-expiry, the public-data requirement and the mandatory prohibited-input list.
+## Normal free routes (`free_routes`)
+
+The optional root `free_routes` array is the forward declaration for an exact
+zero-price route. Each entry binds one provider, model and T3 account. It adds
+candidates to `route`; it does not change an operating point's primary arm.
+
+| Field | Role |
+|-------|------|
+| `provider`, `model`, `account` | Exact identity. One entry is one binding; duplicates refuse validation. |
+| `status` | `free_as_of_YYYY-MM-DD`; the last observed date, never an expiry. |
+| `cost_usd` | Exactly `0`. A nonzero source price is not a free route. |
+| `authentication`, `rate_limits` | Observed state and source; `unknown` stays explicit. |
+| `effort_option`, `effort_values_source` | The exact live catalog option key, e.g. `variant`. A declared route does not fall back to another effort key. |
+| `data_policy` | Public classification required, sensitive refused, both processing layers named, and the mandatory prohibited-input list. |
+| `known_risks` | Must include both T3 risks the legacy route records: shared OpenCode server host tools and injected `t3_thread_read` private-thread access. Removing either fails validation. |
+| `evidence` | Dated HTTPS sources. Future or invalid dates refuse selection. |
+| `operations` | The only operations the route may serve. An empty list revokes forward availability. |
+
+Each operation record has exactly these fields:
+
+| Field | Allowed value |
+|-------|---------------|
+| `id` | An existing operating-point id; no duplicates in one route. |
+| `basis` | `qualified_free` or `unvalidated`. |
+| `proof_classes` | `qualified_free` requires exactly `["oracle"]`; `unvalidated` requires exactly `["judged"]`. |
+| `efforts` | Non-empty known efforts. Only an effort with the declared evidence may be listed. |
+| `scope` | A non-empty bounded scope string. |
+| `evidence_ref` | A JSON file under `evidence/` that ships in the pack. |
+| `evidence_basis` | `qualified_free` requires `bounded_gate_evidence`; `unvalidated` must not claim it. |
+
+`qualified_free` means a finite deterministic gate sample passed for exactly
+that operation, effort and proof class. It is not whole-task acceptance and not
+a benchmark prior. `unvalidated` means availability is observed but adequacy is
+not established; an unvalidated target is selected only by an exact reasoned
+override, never by automatic routing.
+
+There is no expiry. Revocation is explicit: remove the operation, remove the
+route, or change its identity. Deletion or change never
+rewrites a historical receipt. Replay rechecks the stored kind under current
+permissions: a normal receipt stays `allowed_public_normal`, a legacy receipt
+stays experimental, and neither gains the other's authorization.
+
+`route` requires an explicit `--data-classification public`, no `--sensitive`,
+the operation's declared proof class, and the declared effort. Automatic
+selection authorizes only a `qualified_free` operation. Exact
+provider/model/account/effort overrides plus `--reason` are required for an
+`unvalidated` operation and for any manual target. `avoid` directives and
+checker independence still apply. A public assertion and proof class remain
+caller assertions, not content scans or proof certification. Generic governed
+destination submission still refuses.
+
+## Legacy experimental free routes (`experimental_free_routes`)
+
+The optional root `experimental_free_routes` array is the older temporary
+contract. It remains only for historical replay and explicit legacy runs; a
+normal route of the same provider and model supersedes it for fresh selection.
+Each entry binds billing, provider, model and T3 account identity, carries dated
+source evidence, authentication and rate-limit state, an expiry, the public-data
+requirement and the mandatory prohibited-input list.
 
 `qualified_operations` is a list of strict records with these fields:
 
@@ -46,8 +100,8 @@ valid. Both CLI and
 pack validation use the same contract. Qualification is an owner decision based
 on the referenced evidence, not certification by the shape validator.
 
-For either qualified op, `route` and `resolve` require `--proof-class oracle`,
-`--experimental-route`, exact provider/model/account/effort overrides, a reason
+Under this legacy contract, for either qualified op, `route` and `resolve` require
+`--proof-class oracle`, `--experimental-route`, exact provider/model/account/effort overrides, a reason
 and `--data-classification public`. The separately authorized `route
 fanout.explore` and `resolve --no-op` paths retain catalog-validated efforts.
 They admit no other operations. Generic governed destination submission refuses.

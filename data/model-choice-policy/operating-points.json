@@ -1,8 +1,8 @@
 {
   "id": "model-choice-policy",
   "schema_version": 1,
-  "policy_version": "0.2.7",
-  "generated_at": "2026-10-16",
+  "policy_version": "0.2.8",
+  "generated_at": "2026-10-21",
   "catalog_ref": "data-model-catalog-v0.5.15",
   "doctrine": [
     "Task-shaped operating points, not cheap/default/max ladders",
@@ -939,5 +939,113 @@
       "codex": "tier",
       "grok": "family"
     }
-  }
+  },
+  "free_routes": [
+    {
+      "provider": "opencode",
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "account": "opencode",
+      "status": "free_as_of_2026-10-15",
+      "cost_usd": 0,
+      "authentication": {
+        "state": "none_observed_owner_smoke",
+        "official_docs": "inconclusive"
+      },
+      "rate_limits": "unknown",
+      "effort_option": "variant",
+      "effort_values_source": "live_t3_catalog",
+      "data_policy": {
+        "classification_required": "public",
+        "sensitive_flag_forces_refusal": true,
+        "provider_zero_retention": "OpenCode says the upstream provider follows zero retention and does not train on submitted data.",
+        "unpaid_account_processing": "Terms permit use of unpaid-account Content to develop and improve OpenCode services; Privacy Policy says prompts are passed upstream and not stored.",
+        "prohibited_inputs": [
+          "private_repositories",
+          "PDPP_data",
+          "secrets",
+          "Jev_text",
+          "personal_data"
+        ]
+      },
+      "known_risks": [
+        "shared_server_host_tools",
+        "injected_t3_thread_read_private_thread_access"
+      ],
+      "evidence": [
+        {
+          "url": "https://opencode.ai/docs/zen/",
+          "accessed": "2026-10-15",
+          "supports": [
+            "model_id",
+            "temporary_free_price",
+            "provider_zero_retention",
+            "provider_no_training"
+          ]
+        },
+        {
+          "url": "https://opencode.ai/legal/terms-of-service",
+          "accessed": "2026-10-15",
+          "supports": [
+            "unpaid_content_service_improvement"
+          ]
+        },
+        {
+          "url": "https://opencode.ai/legal/privacy-policy",
+          "accessed": "2026-10-15",
+          "supports": [
+            "prompt_pass_through",
+            "prompt_not_stored"
+          ]
+        },
+        {
+          "url": "https://opencode.ai/docs/providers/",
+          "accessed": "2026-10-15",
+          "supports": [
+            "auth_docs_inconclusive_for_free_route"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "implement.oracle-bounded",
+          "basis": "qualified_free",
+          "proof_classes": [
+            "oracle"
+          ],
+          "efforts": [
+            "high"
+          ],
+          "scope": "small_public_source_change_full_deterministic_oracle",
+          "evidence_ref": "evidence/deepseek-public-eval-2026-10-15.json",
+          "evidence_basis": "bounded_gate_evidence"
+        },
+        {
+          "id": "docs.lookup",
+          "basis": "qualified_free",
+          "proof_classes": [
+            "oracle"
+          ],
+          "efforts": [
+            "high"
+          ],
+          "scope": "known_public_source_lookup_structured_fact_oracle",
+          "evidence_ref": "evidence/deepseek-public-eval-2026-10-15.json",
+          "evidence_basis": "bounded_gate_evidence"
+        },
+        {
+          "id": "review.rule-check",
+          "basis": "unvalidated",
+          "proof_classes": [
+            "judged"
+          ],
+          "efforts": [
+            "high"
+          ],
+          "scope": "bounded_public_explicit_rule_judgment_known_defect_classification_probes",
+          "evidence_ref": "evidence/deepseek-public-eval-2026-10-15.json",
+          "evidence_basis": "classification_probes_only"
+        }
+      ]
+    }
+  ]
 }
