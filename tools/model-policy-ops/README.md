@@ -725,7 +725,9 @@ scheduling policy; the pack has none and the code has no defaults. With bands se
   The account becomes constrained and cannot be a normal substitute. Unknown or invalid exhaustion
   data adds no claim, and stale quota never supplies headroom. Explicit drain and critical-path
   exceptions keep their existing semantics. A short window that activated a hold stays under observation
-  until its band releases it or its window resets, even after the runout signal clears. Drain current use
+  until its band releases it or its window resets, even after the runout signal clears. Its `hold_binding`
+  records that release evidence separately from `binding`, which always reports the worst current risk.
+  Drain current use
   still comes only from the configured pace windows;
 - a substitute needs a known, positive headroom. Order: pack candidate order, availability, the most
   headroom, the earliest reset, the instance ID. `substitution_rank` does not apply. Among accounts of one arm

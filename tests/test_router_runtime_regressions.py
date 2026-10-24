@@ -144,6 +144,27 @@ def test_unknown_short_window_hold_is_not_critical_path_headroom(world):
     assert all(c['instance'] != 'claudeAgent' for c in out['routing']['pacing']['candidates'])
 
 
+@pytest.mark.parametrize('weekly_runout', [False, True])
+def test_short_hold_does_not_mask_worse_weekly_risk(world, weekly_runout):
+    source = activate_short_window(world)
+    set_forecast(world, 'claude', 'default', '5h', 100)
+    world.set_claude(200, 'claudeAgent')
+    world.set_claude(140, 'claude-alt')  # ten points over its 130 band
+    if weekly_runout:
+        source['view']['windows'].append({'name': '7d All', 'exhaustion': {
+            'state': 'runs_out', 'runs_out_in_seconds': 60000, 'early_by_seconds': 300000}})
+    out = world.route('implement.quota-tight')
+    assert out['target'] is None
+    view = out['routing']['quota']['claudeAgent']
+    assert view['binding']['window'] == '7d All'
+    assert view['binding']['headroom'] == (-100 if weekly_runout else -70)
+    assert out['routing']['quota_substitution']['active_accounts']['claudeAgent']['window'] == '5h'
+    critical = world.route('implement.quota-tight', '--critical-path')
+    assert critical['target']['providerInstanceId'] == 'claude-alt'
+    candidate = next(c for c in critical['routing']['pacing']['candidates'] if c['instance'] == 'claudeAgent')
+    assert candidate['overshoot_pp'] == (100 if weekly_runout else 70)
+
+
 def test_catalog_failure_is_not_reported_as_a_missing_account(world):
     world.catalog = {'ok': False, 'error': 'unavailable'}
     out = route(world)

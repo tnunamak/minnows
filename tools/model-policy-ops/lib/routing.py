@@ -109,17 +109,20 @@ def quota_view(quota, quota_meta, arm, entry, pace_windows, now, bands=None, dra
                 banded[name] |= {'headroom': round(limit - forecast[name], 2),
                                  'headroom_limit_pct': limit, 'exhaustion': runout[name]}
         binding = min(considered, key=lambda name: (banded[name]['headroom'], name))
-        if held_window and forecast[held_window] >= banded[held_window]['band']['low']:
-            binding = held_window
         pace = 'on_track' if banded[binding]['headroom'] > 0 else 'at_risk'
     else:
         binding = max(considered, key=lambda name: (forecast[name], name))
         pace = 'at_risk' if forecast[binding] >= 100 else 'on_track'
-    window = by_name[binding]
+    bindings = {name: {'window': name, 'projected_pct': forecast[name], 'utilization': by_name[name]['utilization'],
+                       'remaining_pct': by_name[name]['remaining_pct'], 'resets_at': by_name[name]['resets_at']}
+                      | (banded[name] if bands else {}) for name in considered}
+    # Hold ownership decides release; the worst current window decides risk.
+    # Keeping them separate prevents an older hold from hiding a hotter window.
+    if held_window and forecast[held_window] >= banded[held_window]['band']['low']:
+        view['hold_binding'] = bindings[held_window]
     return view | {'pace': 'on_track' if draining else pace,
                    'pace_reason': 'runs_out_before_reset' if bands and binding in runout and not draining else None,
-                   'binding': {'window': binding, 'projected_pct': forecast[binding], 'utilization': window['utilization'],
-                               'remaining_pct': window['remaining_pct'], 'resets_at': window['resets_at']} | (banded[binding] if bands else {})}
+                   'binding': bindings[binding]}
 
 
 def quota_summary(views, instance, arm, view):
@@ -292,7 +295,7 @@ def substitution_context(params, accounts, quota, quota_meta, now, state_path, *
                               (params.get('drain_accounts') or {}).get(instance), memory.get(instance))
             if (view.get('drain') or {}).get('applies'):
                 continue  # draining leaves this account's stored memory unchanged
-            binding = view['binding']
+            binding = view.get('hold_binding') or view['binding']
             found[instance] = ({k: binding[k] for k in ('projected_pct', 'window', 'resets_at', 'utilization', 'band', 'headroom', 'exhaustion') if k in binding}
                                if binding else None)
         return found
