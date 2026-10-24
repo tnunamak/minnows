@@ -27,8 +27,8 @@ ACTIVE_STATES = ('activated', 'held_by_hysteresis')
 # Same window when the name matches and the reset times are this close. Reset times in the receipt ledger move by at
 # most 1.2 s within one window (clock jitter in the source); consecutive windows of one account differ by 5 h or more.
 SAME_WINDOW_SECONDS = 60
-REASON = ('the best pair sits on an account whose weekly quota is projected at or above the activation threshold, '
-          'and an eligible pack candidate sits on an account with a known projection below it')
+REASON = ('the best pair sits on a quota-constrained account, '
+          'and an eligible pack candidate sits on an account with known headroom')
 
 
 def default_path(receipts):
@@ -165,8 +165,9 @@ def decide(memory, observed, thresholds, at):
             # the constraint ended with its window (shown by the reading, or by the stored reset time having passed)
             reset_from, prior = prior, None
         known[instance] = projected
-        if projected >= activate or (prior and projected >= release):
-            state = 'activated' if projected >= activate else 'held_by_hysteresis'
+        runs_out = bool(binding.get('exhaustion'))
+        if runs_out or projected >= activate or (prior and projected >= release):
+            state = 'activated' if runs_out or projected >= activate else 'held_by_hysteresis'
             since = prior['since'] if prior else at.isoformat()
             # keep the stored reset time inside one window, so source jitter does not rewrite the file on every call;
             # store only a zoned time, so an unusable source time leaves the row without identity instead of a bad one
@@ -193,6 +194,8 @@ def evaluate(path, thresholds, observed, at, *, write, stack=None):
 
     `write=False` is a read-only simulation. `write=True` only prepares a transition;
     the caller must commit it after validation and, when recording, receipt acceptance.
+    `observed` may be a function of the locked memory snapshot when a held window
+    must be read again before choosing the account's current binding window.
     """
     issue = None
     try:
@@ -208,10 +211,12 @@ def evaluate(path, thresholds, observed, at, *, write, stack=None):
             memory, state, issue = read_memory(path)
     except OSError as error:
         memory, state, issue = None, 'unreadable', error.strerror or str(error)
+    if callable(observed):
+        observed = observed(memory or {})
     accounts, report, constrained, known, unknown = decide(memory, observed, thresholds, at)
     return {'state': state, 'issue': issue, 'written': False, 'write_error': None, 'report': report,
             'constrained': constrained, 'known': known, 'unknown': unknown, 'seen': observed,
-            '_accounts': accounts, '_changed': state == 'missing' or accounts != memory}
+            '_accounts': accounts, '_changed': state == 'missing' or accounts != memory, '_prior': memory}
 
 
 def commit(path, state):

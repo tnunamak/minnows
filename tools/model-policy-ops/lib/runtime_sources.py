@@ -1,6 +1,7 @@
 """Bounded runtime readers. Catalog presence is not authentication evidence."""
 import hashlib
 import json
+import math
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -10,12 +11,18 @@ def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 
 
-def read_source(spec, command):
+def read_source(spec, command, *, retry_timeout=False):
     if not spec:
         return {}, {'state': 'missing', 'timestamp': None, 'sha256': None, 'issue': 'not_supplied'}
     try:
         if spec == 'auto':
-            result = subprocess.run(command, capture_output=True, text=True, timeout=30)
+            for attempt in range(2 if retry_timeout else 1):
+                try:
+                    result = subprocess.run(command, capture_output=True, text=True, timeout=30)
+                    break
+                except subprocess.TimeoutExpired:
+                    if not retry_timeout or attempt:
+                        raise
             if result.returncode:
                 return {}, {'state': 'error', 'timestamp': None, 'sha256': None, 'issue': 'command_failed', 'exit_code': result.returncode}
             raw = result.stdout
@@ -135,6 +142,9 @@ def quota_context(value, metadata, arm, provider_id=None, source_id=None, now=No
     """Keep real clawmeter identities. Account-to-source mapping is caller supplied."""
     result = {'source': metadata, 'provider_id': provider_id, 'source_id': source_id,
               'state': 'unknown', 'windows': [], 'accounts': []}
+    if metadata['state'] in ('missing', 'error', 'stale'):
+        result['state'] = metadata['state']
+        return result
     rows = value.get('providers', {})
     if not isinstance(rows, dict):
         result['state'] = 'schema_mismatch'
@@ -172,8 +182,6 @@ def quota_context(value, metadata, arm, provider_id=None, source_id=None, now=No
         return result
     result['timestamp'] = usage.get('fetched_at')
     result['state'] = 'error' if usage.get('error') else 'stale' if usage.get('is_expired') else 'snapshot'
-    if metadata['state'] in ('error', 'stale', 'missing'):
-        result['state'] = metadata['state']
     if not usage.get('windows') and result['state'] == 'snapshot':
         result['state'] = 'unknown_windows'
     for window in usage.get('windows') or []:
@@ -224,3 +232,32 @@ def quota_forecast(value, provider_id, source_id=None):
         return None
     return {name: w['projected_pct'] for name, w in windows.items()
             if isinstance(w, dict) and isinstance(w.get('projected_pct'), (int, float)) and not isinstance(w['projected_pct'], bool)}
+
+
+def quota_runout(value, provider_id, source_id=None):
+    """Known clawmeter view windows that run out before reset, for this exact account.
+
+    Exhaustion is separate from forecast.projected_pct. A provider-level view must
+    never substitute for a source's own view when individual sources are declared.
+    """
+    rows = value.get('providers')
+    row = rows.get(provider_id) if isinstance(rows, dict) else None
+    if not isinstance(row, dict):
+        return {}
+    if row.get('sources'):
+        row = next((s for s in row['sources'] if isinstance(s, dict)
+                    and isinstance(s.get('source'), dict) and s['source'].get('id') == source_id), None)
+    view = row.get('view') if isinstance(row, dict) else None
+    windows = view.get('windows') if isinstance(view, dict) else None
+    found = {}
+    for window in windows if isinstance(windows, list) else []:
+        if not isinstance(window, dict) or not isinstance(window.get('name'), str):
+            continue
+        exhaustion = window.get('exhaustion')
+        if not isinstance(exhaustion, dict) or exhaustion.get('state') != 'runs_out':
+            continue
+        remaining, early = exhaustion.get('runs_out_in_seconds'), exhaustion.get('early_by_seconds')
+        if (type(remaining) in (int, float) and math.isfinite(remaining) and remaining >= 0
+                and type(early) in (int, float) and math.isfinite(early) and early > 0):
+            found[window['name']] = {'state': 'runs_out', 'runs_out_in_seconds': remaining, 'early_by_seconds': early}
+    return found

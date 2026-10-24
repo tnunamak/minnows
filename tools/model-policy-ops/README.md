@@ -297,7 +297,10 @@ or prior assessment, not a success probability or a claim of optimality.
 allowed values come from the selected model's option surface. Disabled or
 nonrunnable accounts/models cannot produce a target. Unknown schema, missing
 files, malformed JSON, command failure, and source-declared stale state are
-explicit. Auto executes only those local CLIs, with a 30-second timeout per source.
+explicit. Auto executes only those local CLIs, with a 30-second timeout per attempt.
+Catalog timeouts get one retry; persistent failure stays unavailable and never
+becomes a claim that an account is absent. A route blocked by the catalog reports
+`waiting.state: catalog_unavailable` with the source failure in its trace.
 It makes no model API request.
 
 `--quota FILE|auto` accepts `clawmeter --json`, including
@@ -309,6 +312,13 @@ Expired reset times are stale. Unknown windows remain informational, not binding
 Fetched timestamps and source state are reported; there is no invented freshness
 age cutoff, price estimate, near-floor threshold, or headroom allocation.
 Absent or stale quota remains a caller judgment and does not change the model.
+
+`--quota auto` runs `clawmeter --json` from `PATH` on every fresh decision; it
+does not read a router-owned JSON cache. Omitting `--quota` supplies no quota.
+The quota state preserves `missing`, `error`, or `stale` from the source before
+checking for a provider. `missing_provider` means a readable snapshot lacks that
+provider. Recorded decision IDs replay their original snapshots, so use a new
+decision ID to collect current facts.
 
 ```bash
 model-policy-ops resolve implement.standard --available capabilities.json \
@@ -708,6 +718,15 @@ scheduling policy; the pack has none and the code has no defaults. With bands se
   is projected above 100%;
 - an account is constrained at `projected_pct >= high` and released below `low`, with the same per-window
   memory as the fixed thresholds;
+- a relevant window whose clawmeter `view.windows[].exhaustion` reports `runs_out`, a nonnegative
+  `runs_out_in_seconds`, and positive `early_by_seconds` has no headroom even inside its band. This
+  applies to a short window as well as the configured pace windows. The binding keeps the owner's
+  band and adds `exhaustion` and `headroom_limit_pct`; its pace reason is `runs_out_before_reset`.
+  The account becomes constrained and cannot be a normal substitute. Unknown or invalid exhaustion
+  data adds no claim, and stale quota never supplies headroom. Explicit drain and critical-path
+  exceptions keep their existing semantics. A short window that activated a hold stays under observation
+  until its band releases it or its window resets, even after the runout signal clears. Drain current use
+  still comes only from the configured pace windows;
 - a substitute needs a known, positive headroom. Order: pack candidate order, availability, the most
   headroom, the earliest reset, the instance ID. `substitution_rank` does not apply. Among accounts of one arm
   with no substitution, the same headroom order replaces the lower-projection order;
@@ -766,8 +785,9 @@ scheduling policy; the pack has none and the code has no defaults. With bands se
 - **`--critical-path`** (route only; a launch fact, `launch_facts.critical_path: true`; absent means false and old
   receipts stay valid; the flag takes no value). Work that must not wait on pacing sets it. It changes nothing unless
   bands are set. When no pair can launch, the router picks, among pairs that passed every filter, the subscription with
-  the least overshoot: projected percent minus the band upper limit of the window that binds that account's pace, in
-  percentage points, so each account is held to its own band and days left. Order: eligibility class, `prefer`,
+  the least overshoot: projected percent minus the effective cap of the window that binds that account's pace, in
+  percentage points. The cap is the account's band upper limit, or the lower `headroom_limit_pct` when early
+  exhaustion is known. Order: eligibility class, `prefer`,
   availability (healthy before unknown before demoted), overshoot, candidate order, earliest reset, instance ID. An
   unknown, stale or exhausted account has no overshoot and is never picked. Avoid, independence, `requires`, funding
   and privacy filters are unchanged, because they run first. The receipt records `routing.pacing` (`state`

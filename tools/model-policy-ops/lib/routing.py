@@ -10,7 +10,7 @@ import drain
 import quota_bands
 import quota_substitution
 from directives import matching
-from runtime_sources import digest, driver_family, provider_instance, providers, quota_context, quota_forecast, resolve_arm
+from runtime_sources import digest, driver_family, provider_instance, providers, quota_context, quota_forecast, quota_runout, resolve_arm
 
 ROUTER_VERSION = 1
 ARM_KEYS = ('provider', 'model', 'effort')
@@ -42,7 +42,7 @@ def catalog_instances(available, family):
                    if isinstance(instance := provider_instance(provider), str) and driver_family(provider) == family})
 
 
-def quota_view(quota, quota_meta, arm, entry, pace_windows, now, bands=None, drain_entry=None):
+def quota_view(quota, quota_meta, arm, entry, pace_windows, now, bands=None, drain_entry=None, hold=None):
     """Quota facts for one account: exhaustion, pace class, and the window that binds the pace.
 
     Pace is `unknown` for an unmapped account, a quota source that is not a plain snapshot, a pace
@@ -60,6 +60,7 @@ def quota_view(quota, quota_meta, arm, entry, pace_windows, now, bands=None, dra
     provider_id, source_id = entry['quota_provider'], entry.get('quota_source')
     info = quota_context(quota, quota_meta, arm, provider_id, source_id, now)
     forecast = quota_forecast(quota, provider_id, source_id) or {}
+    runout = quota_runout(quota, provider_id, source_id)
     cache = quota.get('cache')
     windows = [w | {'projected_pct': forecast.get(w['name']),
                     'remaining_pct': max(0, 100 - w['utilization']) if isinstance(w.get('utilization'), (int, float)) else None}
@@ -70,13 +71,28 @@ def quota_view(quota, quota_meta, arm, entry, pace_windows, now, bands=None, dra
         return view | {'pace_reason': f'quota_{info["state"]}'}
     view['exhausted'] = any(w['state'] == 'exhausted' for w in info['windows'])
     by_name = {w['name']: w for w in windows}
-    considered = [name for name in pace_windows if name in by_name or name in forecast]
+    configured = [name for name in pace_windows if name in by_name or name in forecast]
+    considered = list(configured)
+    held_window = None
+    if bands:
+        considered += [name for name in runout if name not in considered and name in by_name and by_name[name]['relevant']]
+        # A short-window guard owns its hysteresis until release or reset. A
+        # cleared runout signal alone must not make that window disappear.
+        if hold and hold['window'] not in pace_windows:
+            reset = quota_substitution.parse_time(hold.get('resets_at'))
+            name = hold['window']
+            window = by_name.get(name)
+            if (reset is None or reset > now) and (window is None or quota_substitution.same_window(
+                    hold, {'window': name, 'resets_at': window['resets_at']}) is not False):
+                held_window = name
+                if name not in considered:
+                    considered.append(name)
     if not considered:
         return view | {'pace_reason': 'no_pace_window'}
     # a live drain entry needs current use only, not a forecast: it can apply when the forecast or band is missing
-    usable = all(name in by_name and by_name[name]['state'] != 'stale' for name in considered)
+    usable = all(name in by_name and by_name[name]['state'] != 'stale' for name in configured)
     if drain_entry and usable:
-        view['drain'] = drain.status(drain_entry, drain.current_pct([by_name[name] for name in considered]), now)
+        view['drain'] = drain.status(drain_entry, drain.current_pct([by_name[name] for name in configured]), now)
     draining = (view.get('drain') or {}).get('applies', False)
     on_track = {'pace': 'on_track', 'pace_reason': None, 'binding': None}
     if any(name not in forecast or name not in by_name or by_name[name]['state'] == 'stale' for name in considered):
@@ -85,13 +101,23 @@ def quota_view(quota, quota_meta, arm, entry, pace_windows, now, bands=None, dra
         banded = {name: quota_bands.headroom(bands, forecast[name], by_name[name]['resets_at'], now) for name in considered}
         if any(found is None for found in banded.values()):
             return view | (on_track if draining else {'pace_reason': 'no_band_for_window'})
+        for name in considered:
+            if name in runout:
+                # The owner's band stays visible. Running out before reset has
+                # no headroom even inside that band; record the effective cap.
+                limit = min(banded[name]['band']['high'], 100, forecast[name])
+                banded[name] |= {'headroom': round(limit - forecast[name], 2),
+                                 'headroom_limit_pct': limit, 'exhaustion': runout[name]}
         binding = min(considered, key=lambda name: (banded[name]['headroom'], name))
+        if held_window and forecast[held_window] >= banded[held_window]['band']['low']:
+            binding = held_window
         pace = 'on_track' if banded[binding]['headroom'] > 0 else 'at_risk'
     else:
         binding = max(considered, key=lambda name: (forecast[name], name))
         pace = 'at_risk' if forecast[binding] >= 100 else 'on_track'
     window = by_name[binding]
-    return view | {'pace': 'on_track' if draining else pace, 'pace_reason': None,
+    return view | {'pace': 'on_track' if draining else pace,
+                   'pace_reason': 'runs_out_before_reset' if bands and binding in runout and not draining else None,
                    'binding': {'window': binding, 'projected_pct': forecast[binding], 'utilization': window['utilization'],
                                'remaining_pct': window['remaining_pct'], 'resets_at': window['resets_at']} | (banded[binding] if bands else {})}
 
@@ -208,7 +234,9 @@ def assess_pair(ctx, op_id, arm, instance, requires, free_route=None):
     billing = entry['billing'] if entry else 'unmapped'
     free_route = free_route if free_route and free_route['account'] == instance else None
     selection = resolve_arm(arm, ctx['available'], ctx['available_meta'], instance, free_route=free_route)
-    view = quota_view(ctx['quota'], ctx['quota_meta'], arm, entry, ctx['pace_windows'], ctx['now'], ctx['bands'], ctx['drain'].get(instance))
+    holds = ((ctx['substitution'] or {}).get('state') or {}).get('_prior') or {}
+    view = quota_view(ctx['quota'], ctx['quota_meta'], arm, entry, ctx['pace_windows'], ctx['now'], ctx['bands'],
+                      ctx['drain'].get(instance), holds.get(instance))
     proof_class = ctx['proof_class']
     hits = []
     if selection['state'] != 'catalog_present':
@@ -254,17 +282,20 @@ def substitution_context(params, accounts, quota, quota_meta, now, state_path, *
     thresholds = {'quota_bands': bands} if bands else params.get('quota_substitution')
     if not thresholds:
         return None
-    observed = {}
-    for instance, entry in sorted(accounts.items()):
-        if entry['billing'] != 'subscription' or not entry.get('quota_provider'):
-            continue
-        view = quota_view(quota, quota_meta, NEUTRAL_ARM, entry, params.get('pace_windows', []), now, bands,
-                          (params.get('drain_accounts') or {}).get(instance))
-        if (view.get('drain') or {}).get('applies'):
-            continue  # a draining account is neither constrained nor a substitute; its stored memory is left as it is
-        binding = view['binding']
-        observed[instance] = ({k: binding[k] for k in ('projected_pct', 'window', 'resets_at', 'utilization', 'band', 'headroom') if k in binding}
-                              if binding else None)
+    def observed(memory):
+        # Evaluate against the same locked memory snapshot that will be updated.
+        found = {}
+        for instance, entry in sorted(accounts.items()):
+            if entry['billing'] != 'subscription' or not entry.get('quota_provider'):
+                continue
+            view = quota_view(quota, quota_meta, NEUTRAL_ARM, entry, params.get('pace_windows', []), now, bands,
+                              (params.get('drain_accounts') or {}).get(instance), memory.get(instance))
+            if (view.get('drain') or {}).get('applies'):
+                continue  # draining leaves this account's stored memory unchanged
+            binding = view['binding']
+            found[instance] = ({k: binding[k] for k in ('projected_pct', 'window', 'resets_at', 'utilization', 'band', 'headroom', 'exhaustion') if k in binding}
+                               if binding else None)
+        return found
     return {'thresholds': thresholds, 'authorized_by': authorized_by,
             'state': quota_substitution.evaluate(state_path, thresholds, observed, now, write=write, stack=stack),
             'ranks': {instance: entry['substitution_rank'] for instance, entry in accounts.items() if entry.get('substitution_rank') is not None}}
@@ -353,7 +384,10 @@ def route(op, params, ctx):
             instances = [i for i in instances if i == candidate['free_route']['account']]  # a declaration is exact: other accounts are not it
         base = {'candidate': index, 'arm': arm, 'basis': candidate['basis']}
         if not instances:
-            trace.append(base | {'instance': None, 'removed_by': 'no_catalog_account', 'detail': {'catalog': ctx['available_meta']['state']}})
+            state = ctx['available_meta']['state']
+            trace.append(base | {'instance': None,
+                                 'removed_by': 'no_catalog_account' if state == 'snapshot' else 'catalog_unavailable',
+                                 'detail': {'catalog': state, **({'issue': ctx['available_meta']['issue']} if ctx['available_meta'].get('issue') else {})}})
         for instance in instances:
             found = assess_pair(ctx, op['id'], arm, instance, (candidate['requires'] or {}).get('proof_class'), candidate.get('free_route'))
             matched, view = found['matched'], found['view']

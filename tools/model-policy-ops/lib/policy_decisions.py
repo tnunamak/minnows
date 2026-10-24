@@ -181,7 +181,7 @@ def route_choice(args, policy, op, available, available_meta, quota, quota_meta,
 
 def directive_known(args, policy):
     """What a directive may name: the pack, the live catalog and the model catalog (providers, models, ops), and accounts."""
-    available, _ = read_source(args.available, ['t3code', '--json', 'models', 'list'])
+    available, _ = read_source(args.available, ['t3code', '--json', 'models', 'list'], retry_timeout=True)
     model_catalog = route_inputs.read_model_catalog(args.model_catalog or route_inputs.default_model_catalog_path())
     live_models = set().union(*route_inputs.catalog_models(providers(available)).values()) if providers(available) else set()
     try:
@@ -198,7 +198,7 @@ def run_calibrate(args, policy, at):
     outcomes.refuse_shared_ledger(args.receipts, args.outcomes)
     since = directive_store.parse_time(args.since, '--since') if args.since else None
     receipts = [r for r in read_receipts(args.receipts) if not since or datetime.fromisoformat(r['recorded_at']) >= since]
-    available, available_meta = read_source(args.available, ['t3code', '--json', 'models', 'list'])
+    available, available_meta = read_source(args.available, ['t3code', '--json', 'models', 'list'], retry_timeout=True)
     model_catalog = route_inputs.read_model_catalog(args.model_catalog or route_inputs.default_model_catalog_path())
     return calibrate.report(receipts=receipts, outcome_rows=outcomes.read_outcomes(args.outcomes), policy=policy,
                             observations=observation_store.read_observations(args.observations),
@@ -467,7 +467,7 @@ def execute_locked(args, policy, stack):
         if args.relaunch_of == decision_id or not find_receipt(args.receipts, args.relaunch_of):
             raise ValueError('relaunch source receipt not found or self-linked')
         relaunch = {'from': args.relaunch_of, 'why': args.why}
-    available, available_meta = read_source(args.available, ['t3code', '--json', 'models', 'list'])
+    available, available_meta = read_source(args.available, ['t3code', '--json', 'models', 'list'], retry_timeout=True)
     quota, quota_meta = read_source(args.quota, ['clawmeter', '--json'])
     if available_meta['state'] == 'snapshot' and not providers(available):
         available_meta['state'] = 'schema_mismatch'
@@ -617,7 +617,12 @@ def execute_locked(args, policy, stack):
                 return_value['launch_readiness_basis'] = ('destination chosen; the root decision ID does not match its request_id_pattern; '
                                                           'submit by hand or re-route with a matching decision ID')
     if routing_block and not offer:
-        return_value = withhold_without_headroom(return_value, args.critical_path)
+        if routing_block['chosen'] is None and available_meta['state'] != 'snapshot':
+            return_value = withheld(return_value, 'catalog_unavailable',
+                                   'catalog unavailable; supply --available auto or a fresh catalog file and route again',
+                                   'wait_catalog_unavailable', available_meta)
+        else:
+            return_value = withhold_without_headroom(return_value, args.critical_path)
     if routing_block and (return_value.get('target') or proposed_destination):
         return_value = withhold_unfunded(return_value, accounts, at, return_value.get('target') or proposed_destination)
     apply_experimental_route_policy(return_value, policy, at, available=available, destination_target=proposed_destination)

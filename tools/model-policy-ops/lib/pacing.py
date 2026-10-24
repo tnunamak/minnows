@@ -6,7 +6,7 @@ hysteresis hold. When the best pair cannot launch, in order:
 1. The first ranked pair that can launch wins: a verified prepaid or free account, or a subscription with headroom.
    A wait never precedes an eligible alternative that the filters already admitted.
 2. A caller that set the `critical_path` launch fact gets the eligible subscription with the least overshoot, which
-   is the projected percent above that account's own band upper limit, for the window that binds its pace. Unknown,
+   is the projected percent above that account's effective cap (band high or early-exhaustion cap), for the binding window. Unknown,
    stale or exhausted accounts have no overshoot and are never picked.
 3. Otherwise the route waits. `waiting` says so: it dispatches nothing and no timer retries it. A caller routes
    again with fresh facts, at the earliest reset that `waiting.retry_after` names or sooner.
@@ -29,7 +29,7 @@ def launches(row, held, view):
 
 
 def overshoot(row):
-    """Percentage points of projected use above the band upper limit; negative inside the band; None when unknown."""
+    """Projected use above the effective cap (band high, or early-exhaustion cap); None when unknown."""
     headroom = row['rank'].get('headroom')
     return None if headroom is None else round(-headroom, 2)
 
@@ -48,7 +48,8 @@ def candidate_row(row):
     binding = row['_view']['binding']
     return {'instance': row['instance'], 'model': row['arm']['model'], 'effort': row['arm']['effort'], 'overshoot_pp': overshoot(row),
             'projected_pct': binding['projected_pct'], 'band_high': binding['band']['high'], 'window': binding['window'],
-            'resets_at': binding['resets_at'], 'quota_ref': row['quota']['ref']}
+            'resets_at': binding['resets_at'], 'quota_ref': row['quota']['ref']} | (
+                {'headroom_limit_pct': binding['headroom_limit_pct']} if 'headroom_limit_pct' in binding else {})
 
 
 def pick(survivors, picked, held, critical_path):

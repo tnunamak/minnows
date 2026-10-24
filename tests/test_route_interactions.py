@@ -57,12 +57,12 @@ def test_call_that_becomes_a_replay_cannot_release_winners_state(world, monkeypa
     winner = {}
     real_read = policy_decisions.read_source
 
-    def interleave(source, command):
+    def interleave(source, command, **kwargs):
         if source == str(world.tmp / 'quota.json'):
             world.codex(105.12)
             winner['receipt'] = world.route('review.audit', '--destinations', world.tmp / 'missing-destinations.json', record='race')
-            return loser_quota, real_read(source, command)[1]
-        return real_read(source, command)
+            return loser_quota, real_read(source, command, **kwargs)[1]
+        return real_read(source, command, **kwargs)
 
     monkeypatch.setattr(directives, 'now', lambda: directives.parse_time(NOW, 'test'))
     monkeypatch.setattr(policy_decisions, 'read_source', interleave)
