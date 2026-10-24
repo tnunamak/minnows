@@ -1419,8 +1419,10 @@ model-policy-ops observe --db ~/.t3/userdata/statev2.sqlite \
 It appends new fact rows to `observations.jsonl`, beside the receipts (`--observations`
 overrides it), then ONE `source_run` row, and prints that row. The file follows the
 private-ledger rules: mode 0600, exclusive lock, fsync, no symlink, a refused group- or
-world-writable parent, and it must be a different file from the receipts and the
-outcomes. Older CLIs never read it. Each read of a source is read-only. `--now` is refused.
+world-writable parent, and it must be a different file from the receipts, outcomes,
+directives, destinations config, and T3 database. Observe also refuses a state, lock,
+or sidecar file that aliases any of those inputs. Older CLIs never read the observation
+ledger. Each read of a source is read-only. `--now` is refused.
 `--since` limits the decisions in scope by `recorded_at`.
 
 The previous T3 reader scanned the full `turn_items` projection on every hourly run.
@@ -1485,35 +1487,37 @@ user follow-ups:        SEARCH orchestration_v2_projection_turn_items USING INDE
 runs by thread:         SEARCH orchestration_v2_projection_runs USING INDEX orchestration_v2_projection_runs_thread_ordinal_idx (thread_id=? AND ordinal>?)
 thread snapshot:        SEARCH orchestration_v2_projection_threads USING INDEX sqlite_autoindex_orchestration_v2_projection_threads_1 (thread_id=?)
 usage attempts:         SEARCH orchestration_v2_projection_run_attempts USING INDEX orchestration_v2_projection_run_ordinal_idx (run_id=?)
-usage turns:            SEARCH orchestration_v2_projection_provider_turns USING INDEX orchestration_v2_projection_provider_turns_thread_idx (thread_id=?) + temp B-tree for ORDER BY
 turn by provider ID:    SEARCH orchestration_v2_projection_provider_turns USING INDEX sqlite_autoindex_orchestration_v2_projection_provider_turns_1 (provider_turn_id=?)
 ```
 
+The updated usage-turn page query was checked on the copied T3 database with
+`EXPLAIN QUERY PLAN`: SQLite searches `orchestration_v2_projection_provider_turns_thread_idx` by
+`thread_id=? AND rowid>?`, with no temporary sort.
+
 The T3 projection has no index on `provider_turns.run_attempt_id`; observe resolves
 turns through the indexed `thread_id` and filters matching attempt IDs in that result.
-Each usage page has a 200 ms read slice. If the query cannot finish inside it, usage is
-reported as unavailable for that run and can be retried later. A turn whose `thread_id`
+Rowid keyset paging avoids sorting the full thread for each page. Each usage page has
+a 200 ms read slice. If a page cannot finish inside it, usage is reported as unavailable
+for that run and can be retried later. A turn whose `thread_id`
 differs from its attempt's thread and has no direct `provider_turn_id` link cannot be
 found through those indexes. If an attempt has no thread ID, even a direct turn link
 cannot prove that all of its turns were found, so usage is reported as unavailable.
 Neither case appeared in the copied window; parity is verified for the observed rows only.
 
 The benchmark used a low-priority raw file copy of the database and WAL, then ran
-`PRAGMA wal_checkpoint(TRUNCATE)` on the copy. The first observe run scanned all 50,000
-rows in the initial window in 49.07 seconds and peaked at 433,276 KiB RSS. The next run
-scanned no new rowids, refreshed 245 known calls, and took 42.85 seconds. A steady
-incremental run also scanned no new rowids and took 29.56 seconds. Peak RSS stayed near
-423 MiB across all three runs. The first-window setting bounds catch-up; the 60-second
-budget bounds each hourly invocation and reserves time for destinations and git.
+`PRAGMA wal_checkpoint(TRUNCATE)` on the copy. The first observe run scanned the 50,000
+row window in 19.24 seconds and peaked at 489,848 KiB RSS. The next run scanned no new
+rowids, refreshed 169 known calls, and took 16.35 seconds with 489,572 KiB peak RSS.
+The first-window setting bounds catch-up; the 60-second budget bounds each hourly
+invocation and reserves time for destinations and git.
 
-For the same 50,000-row window, the old collector and incremental collector both
-produced 241 observations for 245 matched calls, with identical observation IDs and no
-missing or extra facts. A concurrent indexed reader and SQLite writer ran on the copy
-during each invocation. Across the first, next, and steady runs, reader p95 was
-0.067–0.077 ms and writer p95 was 24.662–28.218 ms; all stayed below 50 ms with no
-SQLite errors. The former full scan took about four minutes and peaked at 5.8 GB RSS.
-The final model-policy-ops suite run passed 1,815 tests, skipped one test, and passed
-171 subtests.
+For that same window, the old collector and incremental collector both produced 309
+observations for 169 matched calls, with identical observation IDs and no missing or
+extra facts. A concurrent indexed reader and SQLite writer ran on the copy during both
+runs. Reader p95 was 0.033–0.035 ms and writer p95 was 15.242–15.443 ms, below the
+50 ms target with no SQLite errors. The former full scan took about four minutes and
+peaked at 5.8 GB RSS. The full model-policy-ops suite passed 1,863 tests, skipped 9,
+and passed 171 subtests.
 
 **Facts only.** Every observation has a source ID (T3 run ID, dot request ID or git sha),
 the source timestamps, and `unknown` for fields that the source did not give, each with a

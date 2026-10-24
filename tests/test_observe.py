@@ -11,6 +11,7 @@ import subprocess
 import sys
 import time
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import pytest
 
@@ -355,17 +356,44 @@ def test_thread_fact_cursor_resumes_at_the_first_unfinished_call(setup, tmp_path
     def facts(_db, _run, _decision, _ids, _owner=None, **_kwargs):
         seen.append(len(seen) + 1)
         if len(seen) == 2:
-            raise module.BudgetExhausted
+            raise module.BudgetExhausted([{'fact': 'partial-second'}])
         return [{'fact': 'first'}]
 
     monkeypatch.setattr(module, 'child_thread_facts', facts)
     first, _, cursor, done = module.collect_indexed_thread_facts(db_path, call_db, {'one'}, {}, time.monotonic() + 10)
-    assert first == [{'fact': 'first'}] and cursor == rowids[0] and not done
+    assert first == [{'fact': 'first'}, {'fact': 'partial-second'}] and cursor == rowids[0] and not done
     seen.clear()
     resumed, _, cursor, done = module.collect_indexed_thread_facts(db_path, call_db, {'one'}, {}, time.monotonic() + 10,
                                                                    after_rowid=cursor)
     call_db.close()
     assert resumed == [{'fact': 'first'}] and cursor == rowids[-1] and done
+
+
+def test_child_followup_fact_survives_budget_between_thread_snapshot_pages(setup, tmp_path, monkeypatch):
+    module = lib_module('observe')
+    db_path = tmp_path / 'thread-budget.sqlite'
+    db = sqlite3.connect(db_path)
+    db.execute(f'create table {PREFIX}runs(run_id text,thread_id text,ordinal integer)')
+    db.execute(f'create table {PREFIX}threads(thread_id text,payload_json text,updated_at text)')
+    db.execute(f'create table {PREFIX}turn_items(thread_id text,type text,updated_at text,ordinal integer)')
+    db.execute(f"insert into {PREFIX}runs values ('child','child-thread',1)")
+    db.execute(f"insert into {PREFIX}threads values ('child-thread','{{\"pullRequests\":[]}}',NULL)")
+    db.commit()
+
+    class Clock:
+        readings = iter((0.0, 0.0, 1.0))
+
+        @classmethod
+        def monotonic(cls):
+            return next(cls.readings, 1.0)
+
+    monkeypatch.setattr(module, 'time', Clock)
+    with pytest.raises(module.BudgetExhausted) as error:
+        module.child_thread_facts(db, 'child', 'one', {'run_id': 'child'}, include_thread_snapshot=True,
+                                  deadline=1.0)
+    db.close()
+
+    assert [row['fact_type'] for row in error.value.observations] == ['t3_child_followups']
 
 
 def test_incremental_facts_match_the_existing_collector_for_the_same_fixture_rows(setup, tmp_path):
@@ -377,6 +405,46 @@ def test_incremental_facts_match_the_existing_collector_for_the_same_fixture_row
     baseline = module.collect_t3(db, {'one'}, targets, calls_override=calls)
     incremental = module.incremental_t3(db, {'one'}, targets, tmp_path / 'observe.json', time.monotonic() + 30)
     assert {r['observation_id'] for r in incremental['observations']} == {r['observation_id'] for r in baseline['observations']}
+
+
+def test_refresh_defers_thread_snapshot_while_main_cursor_is_catching_up(setup, tmp_path, monkeypatch):
+    record(setup, 'two', 'implement.standard', '--purpose', 'execution')
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    receipts = [json.loads(line) for line in setup[3].read_text().splitlines()]
+    targets = {row['decision_id']: row['target'] for row in receipts}
+    c = sqlite3.connect(db)
+    c.execute(f'alter table {PREFIX}runs add column thread_id text')
+    c.execute(f"update {PREFIX}runs set thread_id='child-thread' where run_id='child'")
+    c.execute(f'create index {PREFIX}runs_thread_idx on {PREFIX}runs(thread_id)')
+    c.execute(f'create table {PREFIX}threads(thread_id text primary key, payload_json text, updated_at text)')
+    c.execute(f"insert into {PREFIX}threads values ('child-thread', '{{\"pullRequests\":[]}}', '2026-10-08T00:00:00Z')")
+    c.commit()
+    c.close()
+    first = module.incremental_t3(db, {'one', 'two'}, targets, state, time.monotonic() + 10)
+    module.save_state(state, first['_state'])
+    c = sqlite3.connect(db)
+    call = json.loads(c.execute(f"select payload_json from {PREFIX}turn_items where turn_item_id='call'").fetchone()[0])
+    call['input']['clientRequestId'] = 'two'
+    c.execute(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
+              ('call-two', 'parent-thread', 'parent', '2026-10-08T00:02:00Z', 'completed', 'dynamic_tool', json.dumps(call)))
+    c.commit()
+    c.close()
+    seen = []
+    collect_t3 = module.collect_t3
+
+    def collect(*args, **kwargs):
+        seen.append(kwargs['include_thread_snapshot'])
+        return collect_t3(*args, **kwargs)
+
+    monkeypatch.setattr(module, 'collect_t3', collect)
+    second = module.incremental_t3(db, {'one', 'two'}, targets, state, time.monotonic() + 10)
+    assert second['incremental']['rowid_through'] == second['incremental']['snapshot_high_water']
+    assert seen[0] is False and True in seen
+    snapshots = [row for row in second['observations'] if row['fact_type'] == 't3_child_pull_requests']
+    assert any(row['decision_id'] == 'two' and row['fact']['shared_with_decisions'] == 2 for row in snapshots)
+    assert not any(row['decision_id'] == 'one' and row['fact']['shared_with_decisions'] == 1 for row in snapshots)
 
 
 def test_incremental_resets_when_ledger_or_rowid_anchors_change(setup, tmp_path):
@@ -590,6 +658,45 @@ def test_refresh_deadline_leaves_time_to_scan_new_rows(setup, tmp_path, monkeypa
     assert second['incremental']['refresh_cursor'] > 0
     assert second['reason'] is None  # settled-call rotation may remain, without masking the source as partial
     assert second['incremental']['budget_exhausted'] is False
+
+
+def test_settled_refresh_backlog_does_not_mark_source_partial(setup, tmp_path, monkeypatch):
+    db = t3_world(setup, tmp_path)
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    targets = {'one': json.loads(setup[3].read_text().splitlines()[0])['target']}
+    c = sqlite3.connect(db)
+    payload = c.execute(f"select payload_json from {PREFIX}turn_items where turn_item_id='call'").fetchone()[0]
+    c.executemany(f'insert into {PREFIX}turn_items values (?,?,?,?,?,?,?)',
+                  [(f'call-{i}', 'parent-thread', 'parent', '2026-10-08T00:01:00Z', 'completed', 'dynamic_tool', payload)
+                   for i in range(5)])
+    c.commit()
+    c.close()
+    first = module.incremental_t3(db, {'one'}, targets, state, time.monotonic() + 10)
+    module.save_state(state, first['_state'])
+
+    monkeypatch.setattr(module, 'OBSERVE_REFRESH_ROWS', 6)
+    original_collect = module.collect_t3
+
+    class Clock:
+        current = 100.0
+
+        @classmethod
+        def monotonic(cls):
+            return cls.current
+
+    def slow_collect(*args, **kwargs):
+        result = original_collect(*args, **kwargs)
+        Clock.current += 0.12
+        return result
+
+    monkeypatch.setattr(module, 'time', Clock)
+    monkeypatch.setattr(lib_module('delegation_audit'), 'time', Clock)
+    monkeypatch.setattr(module, 'collect_t3', slow_collect)
+    second = module.incremental_t3(db, {'one'}, targets, state, Clock.current + 1.0)
+    assert second['reason'] != 'refresh_pending'
+    assert second['state'] == 'ok'
+    assert second['incremental']['refresh_cursor'] != 0
 
 
 def test_refresh_reads_unsettled_calls_before_settled_round_robin(setup, tmp_path, monkeypatch):
@@ -1575,6 +1682,124 @@ def test_file_mode_parent_symlink_and_alias_refusals(setup, tmp_path):
     assert result.returncode == 1 and 'name the same file' in result.stderr
 
 
+@pytest.mark.parametrize('ledger_name', ('receipts', 'outcomes', 'observations', 'directives'))
+def test_observe_state_refuses_every_ledger_path_without_writing(setup, tmp_path, ledger_name):
+    record(setup, 'one')
+    receipts = setup[3]
+    ledgers = {
+        'receipts': receipts,
+        'outcomes': receipts.with_name('outcomes.jsonl'),
+        'observations': receipts.with_name('observations.jsonl'),
+        'directives': receipts.with_name('directives.jsonl'),
+    }
+    target = ledgers[ledger_name]
+    if ledger_name != 'receipts':
+        target.write_bytes(b'ledger sentinel\n')
+    before = {name: path.read_bytes() for name, path in ledgers.items() if path.exists()}
+    args = ['observe', '--receipts', receipts, '--observe-state', target]
+    if ledger_name == 'outcomes':
+        args += ['--outcomes', target]
+    elif ledger_name == 'observations':
+        args += ['--observations', target]
+    elif ledger_name == 'directives':
+        args += ['--directives', target]
+
+    result, _ = run(*args)
+
+    assert result.returncode == 1 and 'observe state' in result.stderr
+    assert {name: path.read_bytes() for name, path in ledgers.items() if path.exists()} == before
+
+
+@pytest.mark.parametrize('artifact', ('state', 'lock', 'call index', 'call index WAL', 'call index shared memory', 'call index journal'))
+def test_observe_state_refuses_ledger_aliases_for_all_sidecars(setup, tmp_path, artifact):
+    record(setup, 'one')
+    module = lib_module('observe')
+    state = tmp_path / 'observe.json'
+    call_index = module.call_index_path(state)
+    artifacts = {
+        'state': state,
+        'lock': state.with_name(state.name + '.lock'),
+        'call index': call_index,
+        'call index WAL': Path(str(call_index) + '-wal'),
+        'call index shared memory': Path(str(call_index) + '-shm'),
+        'call index journal': Path(str(call_index) + '-journal'),
+    }
+    ledger = artifacts[artifact]
+    ledger.write_bytes(b'ledger sentinel\n')
+    before = ledger.read_bytes()
+
+    result, _ = run('observe', '--receipts', setup[3], '--observations', ledger, '--observe-state', state)
+
+    assert result.returncode == 1 and 'observe state' in result.stderr
+    assert ledger.read_bytes() == before
+    assert not state.exists() or state == ledger
+    assert not call_index.exists() or call_index == ledger
+    state_lock = state.with_name(state.name + '.lock')
+    assert not state_lock.exists() or state_lock == ledger
+
+
+@pytest.mark.parametrize('input_option', ('--db', '--destinations'))
+def test_observe_state_refuses_input_file_aliases_without_writing(setup, tmp_path, input_option):
+    if input_option == '--db':
+        target = t3_world(setup, tmp_path)
+    else:
+        record(setup, 'one')
+        target = tmp_path / 'destinations.json'
+    if input_option == '--destinations':
+        target.write_bytes(b'{"sentinel":true}\n')
+    before = target.read_bytes()
+
+    result, _ = run('observe', '--receipts', setup[3], input_option, target, '--observe-state', target)
+
+    assert result.returncode == 1 and input_option in result.stderr and 'observe state' in result.stderr
+    assert target.read_bytes() == before
+
+
+@pytest.mark.parametrize('use_symlink', (False, True))
+def test_observe_state_refuses_t3_sidecar_alias_without_writing(setup, tmp_path, use_symlink):
+    db = t3_world(setup, tmp_path)
+    db_arg = db
+    if use_symlink:
+        db_arg = tmp_path / 'db-link.sqlite'
+        db_arg.symlink_to(db)
+    state = Path(str(db) + '-wal')
+    before = db.read_bytes()
+
+    result, _ = run('observe', '--receipts', setup[3], '--db', db_arg, '--observe-state', state)
+
+    assert result.returncode == 1 and '--db' in result.stderr and 'observe state' in result.stderr
+    assert db.read_bytes() == before and not state.exists()
+
+
+@pytest.mark.parametrize('input_kind', ('directives', 'destinations', 'db', 'symlinked_db_wal'))
+def test_observe_ledger_refuses_input_aliases_without_writing(setup, tmp_path, input_kind):
+    if input_kind in ('db', 'symlinked_db_wal'):
+        db = t3_world(setup, tmp_path)
+        mode = db.stat().st_mode
+        if input_kind == 'db':
+            ledger = db
+            args = ['--db', db]
+        else:
+            db_alias = tmp_path / 'db-link.sqlite'
+            db_alias.symlink_to(db)
+            ledger = Path(str(db) + '-wal')
+            args = ['--db', db_alias]
+    else:
+        record(setup, 'one')
+        ledger = tmp_path / f'{input_kind}.jsonl'
+        if input_kind == 'destinations':
+            ledger.write_bytes(b'{"sentinel":true}\n')
+        args = ['--directives' if input_kind == 'directives' else '--destinations', ledger]
+    before = ledger.read_bytes() if ledger.exists() else None
+
+    result, _ = run('observe', '--receipts', setup[3], '--observations', ledger, *args)
+
+    assert result.returncode == 1 and '--observations' in result.stderr
+    assert (ledger.read_bytes() if ledger.exists() else None) == before
+    if input_kind in ('db', 'symlinked_db_wal'):
+        assert db.stat().st_mode == mode
+
+
 def test_now_is_refused(setup):
     record(setup, 'one')
     result, _ = observe(setup, '--now', '2026-10-10T00:00:00Z')
@@ -2151,14 +2376,20 @@ def test_thread_followup_paging_keeps_duplicate_boundary_ordinals(setup, tmp_pat
 def test_provider_turn_paging_seeks_duplicate_non_null_ordinals_by_rowid(tmp_path):
     module = lib_module('delegation_audit')
     db = sqlite3.connect(tmp_path / 'turn-pages.sqlite')
-    db.execute('CREATE TABLE turns (provider_turn_id TEXT, run_attempt_id TEXT, provider_thread_id TEXT, ordinal INTEGER NOT NULL, status TEXT)')
-    db.execute('CREATE INDEX turns_thread_ordinal ON turns(provider_thread_id,ordinal)')
-    db.executemany('INSERT INTO turns VALUES (?,?,?,?,?)',
-                   [(f'turn-{n:03}', 'attempt', 'thread', 7, 'completed') for n in range(501)])
+    db.execute('CREATE TABLE turns (provider_turn_id TEXT, run_attempt_id TEXT, thread_id TEXT, provider_thread_id TEXT, ordinal INTEGER NOT NULL, status TEXT)')
+    db.execute('CREATE INDEX provider_turns_thread_idx ON turns(thread_id)')
+    db.executemany('INSERT INTO turns VALUES (?,?,?,?,?,?)',
+                   [(f'turn-{n:03}', 'attempt', 'thread', 'provider-thread', 7, 'completed') for n in range(501)])
     pages = list(module.paged_turn_rows(db, 'SELECT provider_turn_id,run_attempt_id,ordinal,status,rowid FROM turns',
-                                        'WHERE provider_thread_id=?', ('thread',), False, time.monotonic() + 10, True))
+                                        'WHERE thread_id=? AND run_attempt_id IN (?)', ('thread', 'attempt'),
+                                        False, time.monotonic() + 10))
     assert [len(page) for page in pages] == [500, 1]
     assert len({row[0] for page in pages for row in page}) == 501
+    plan = db.execute('EXPLAIN QUERY PLAN SELECT provider_turn_id,run_attempt_id,ordinal,status,rowid FROM turns '
+                      'WHERE thread_id=? AND run_attempt_id IN (?) AND rowid>? ORDER BY rowid LIMIT 500',
+                      ('thread', 'attempt', 0)).fetchall()
+    assert any('provider_turns_thread_idx' in row[3] and 'rowid>?' in row[3] for row in plan)
+    assert not any('TEMP B-TREE' in row[3] for row in plan)
     db.close()
 
 
