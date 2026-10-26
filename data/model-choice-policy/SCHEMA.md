@@ -46,18 +46,27 @@ Each operation record has exactly these fields:
 | Field | Allowed value |
 |-------|---------------|
 | `id` | An existing operating-point id; no duplicates in one route. |
-| `basis` | `qualified_free` or `unvalidated`. |
-| `proof_classes` | `qualified_free` requires exactly `["oracle"]`; `unvalidated` requires exactly `["judged"]`. |
+| `basis` | `qualified_free`, `owner_authorized` or `unvalidated`. |
+| `proof_classes` | `qualified_free` requires exactly `["oracle"]`; `unvalidated` requires exactly `["judged"]`; `owner_authorized` takes any non-empty set except `["none"]` alone. |
 | `efforts` | Non-empty known efforts. Only an effort with the declared evidence may be listed. |
 | `scope` | A non-empty bounded scope string. |
 | `evidence_ref` | A JSON file under `evidence/` that ships in the pack. |
-| `evidence_basis` | `qualified_free` requires `bounded_gate_evidence`; `unvalidated` must not claim it. |
+| `evidence_basis` | `qualified_free` requires `bounded_gate_evidence`; `owner_authorized` requires `owner_decision`; `unvalidated` must not claim it. |
 
 `qualified_free` means a finite deterministic gate sample passed for exactly
 that operation, effort and proof class. It is not whole-task acceptance and not
 a benchmark prior. `unvalidated` means availability is observed but adequacy is
 not established; an unvalidated target is selected only by an exact reasoned
 override, never by automatic routing.
+
+`owner_authorized` means the owner asserted adequacy for that operation; no gate
+sample or board backs it, and the evidence file records the statement and date.
+Automatic selection treats it like `qualified_free` (zero price ranks first,
+selection basis `owner_authorized_route`, label `owner-asserted`). The public-input
+floor is unchanged. When the free tier reports "Free usage limit reached", T3
+records a terminal failure that `route` classifies as `rate_limit`; the existing
+`cooling_down` filter then removes the free pair and the paid primary serves
+until the lookback clears.
 
 There is no expiry. Revocation is explicit: remove the operation, remove the
 route, or change its identity. Deletion or change never

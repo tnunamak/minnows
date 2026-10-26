@@ -17,8 +17,10 @@ ARM_KEYS = ('provider', 'model', 'effort')
 PACE_RANK = {'on_track': 0, 'unknown': 1, 'at_risk': 2}
 AVAILABILITY_RANK = {'healthy': 0, 'unknown': 1, 'demoted': 2}
 DEMOTING = ('rate_limit', 'transport')
-SELECTION_BASIS = {'primary': 'primary', 'task_benchmark_prior': 'evidence_prior', 'qualified_free': 'qualified_free_route'}
-EVIDENCE_LABEL = {'primary': 'primary', 'task_benchmark_prior': 'prior', 'qualified_free': 'qualified', 'unvalidated': 'unvalidated'}
+SELECTION_BASIS = {'primary': 'primary', 'task_benchmark_prior': 'evidence_prior', 'qualified_free': 'qualified_free_route',
+                   'owner_authorized': 'owner_authorized_route'}
+EVIDENCE_LABEL = {'primary': 'primary', 'task_benchmark_prior': 'prior', 'qualified_free': 'qualified',
+                  'owner_authorized': 'owner-asserted', 'unvalidated': 'unvalidated'}
 INDEPENDENCE_LEVELS = ('vendor', 'family', 'model')
 EFFECTS = ('avoid', 'prefer', 'authorize', 'allow-metered')
 # The filter that removes a pair, in the order the contract applies them, and the reason that a bypass of it raises.
@@ -417,7 +419,7 @@ def route(op, params, ctx):
             health = availability_view(failures, demote_count, instance)
             # Explicit owner preference follows eligibility. Zero source price then precedes
             # quota draining and pace: spending subscription tokens is not a model preference.
-            price_class = 0 if normal_basis == 'qualified_free' else 1
+            price_class = 0 if normal_basis in ('qualified_free', 'owner_authorized') else 1
             rank = {'eligibility': klass, 'price_class': price_class, 'prefer': 0 if matched['prefer'] else 1,
                     'pace': PACE_RANK[view['pace']],
                     'availability': AVAILABILITY_RANK[health['class']], 'candidate_order': index,

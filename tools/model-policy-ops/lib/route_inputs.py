@@ -54,7 +54,7 @@ def read_accounts(path):
 FAILURE_CLASSES = ('rate_limit', 'transport', 'auth_config', 'content_policy', 'unknown')
 # Patterns on the observed terminal-failure message text, matched in this order.
 FAILURE_PATTERNS = (
-    ('rate_limit', ('rate limit reached',)),
+    ('rate_limit', ('rate limit reached', 'free usage limit reached')),
     ('transport', ('connection error', 'stream closed', 'stream disconnected', 'connection refused')),
     ('auth_config', ('could not authenticate', 'no conversation found', 'insufficient context allowance',
                      'still running background agents')),

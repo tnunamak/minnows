@@ -207,12 +207,18 @@ def test_actual_target_replay_uses_current_proof_and_effort_eligibility(world, o
     assert out['data_policy']['refusal'] == 'normal_route_receipt_not_currently_authorized'
 
 
-@pytest.mark.parametrize('command,op', [('route', 'fanout.explore'), ('resolve', '--no-op')])
-def test_exploratory_paths_are_not_authorized_for_the_free_route(world, command, op):
+def test_resolve_without_an_op_is_not_authorized_for_the_free_route(world):
     add_opencode_fixture(world)
-    out = run(world, *flags(world, op, command, proof=None))
+    out = run(world, *flags(world, '--no-op', 'resolve', proof=None))
     refused(out)
     assert out['data_policy']['refusal'] == 'operation_not_declared_for_normal_route'
+
+
+def test_an_owner_authorized_operation_still_needs_a_declared_proof_class(world):
+    add_opencode_fixture(world)
+    out = run(world, *flags(world, 'fanout.explore', proof='oracle'))
+    refused(out)
+    assert out['data_policy']['refusal'] == 'proof_class_not_declared_for_normal_route'
 
 
 @pytest.mark.parametrize('op', OPS)
