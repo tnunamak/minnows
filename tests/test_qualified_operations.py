@@ -22,6 +22,8 @@ import policy_decisions as pd
 
 
 OPS = ['implement.oracle-bounded', 'docs.lookup']
+OWNER_OPS = [('implement.oracle-bounded', 'oracle'), ('implement.quota-tight', 'judged'),
+             ('fanout.dollar-tight', 'judged'), ('fanout.explore', 'judged')]
 CLOCK_AT = datetime.fromisoformat(CLOCK.replace('Z', '+00:00'))
 
 
@@ -207,12 +209,18 @@ def test_actual_target_replay_uses_current_proof_and_effort_eligibility(world, o
     assert out['data_policy']['refusal'] == 'normal_route_receipt_not_currently_authorized'
 
 
-@pytest.mark.parametrize('command,op', [('route', 'fanout.explore'), ('resolve', '--no-op')])
-def test_exploratory_paths_are_not_authorized_for_the_free_route(world, command, op):
+def test_resolve_without_an_op_is_not_authorized_for_the_free_route(world):
     add_opencode_fixture(world)
-    out = run(world, *flags(world, op, command, proof=None))
+    out = run(world, *flags(world, '--no-op', 'resolve', proof=None))
     refused(out)
     assert out['data_policy']['refusal'] == 'operation_not_declared_for_normal_route'
+
+
+def test_an_owner_authorized_operation_still_needs_a_declared_proof_class(world):
+    add_opencode_fixture(world)
+    out = run(world, *flags(world, 'fanout.explore', proof='oracle'))
+    refused(out)
+    assert out['data_policy']['refusal'] == 'proof_class_not_declared_for_normal_route'
 
 
 @pytest.mark.parametrize('op', OPS)
@@ -253,3 +261,39 @@ def test_a_retired_experimental_key_in_the_pack_is_an_error(world):
     process, out = world.cli(*flags(world, OPS[0]), evaluation_time=CLOCK)
     assert process.returncode == 1 and out is None
     assert 'experimental_free_routes is retired' in process.stderr
+
+
+# ---- resolve and the four DeepSeek-first ops ------------------------------------------------------------------------------
+# Automatic `resolve` never picks the free route. An exact, reasoned operator override on public input may name it,
+# as it may for the qualified ops; without public input, or with --sensitive, the override is refused.
+
+@pytest.mark.parametrize('op,proof', OWNER_OPS)
+def test_automatic_resolve_never_returns_the_free_route(world, op, proof):
+    add_opencode_fixture(world)
+    out = run(world, 'resolve', op, *world.args(), '--destinations', world.tmp / 'no-destinations.json',
+              '--data-classification', 'public', '--proof-class', proof)
+    assert DEEPSEEK_FREE not in json.dumps(out)
+    assert (out.get('target') or {}).get('providerInstanceId') != 'opencode'
+
+
+@pytest.mark.parametrize('op,proof', OWNER_OPS)
+def test_an_explicit_public_override_on_resolve_is_accepted(world, op, proof):
+    add_opencode_fixture(world)
+    out = run(world, *flags(world, op, 'resolve', proof=proof))
+    assert out['launch_ready'] is True and out['data_policy']['refusal'] is None
+    assert out['target'] == {'providerInstanceId': 'opencode', 'model': DEEPSEEK_FREE, 'options': {'variant': 'high'}}
+
+
+@pytest.mark.parametrize('op,proof', OWNER_OPS)
+@pytest.mark.parametrize('classification,sensitive,refusal', [
+    (None, False, 'public_classification_required'),
+    ('sensitive', False, 'public_classification_required'),
+    ('public', True, 'sensitive_inputs'),
+])
+def test_an_explicit_override_on_resolve_without_public_input_is_refused(world, op, proof, classification, sensitive, refusal):
+    add_opencode_fixture(world)
+    selected = deepseek_flags(classification=classification, sensitive=sensitive)
+    out = run(world, 'resolve', op, *world.args(), '--destinations', world.tmp / 'no-destinations.json',
+              *selected, '--proof-class', proof)
+    refused(out)
+    assert out['data_policy']['refusal'] == refusal

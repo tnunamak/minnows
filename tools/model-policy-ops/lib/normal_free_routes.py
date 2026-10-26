@@ -7,12 +7,16 @@ evidence basis:
 
 - `qualified_free`: a finite deterministic gate sample passed for exactly this scope, at the
   declared effort and proof class. It is not whole-task acceptance.
+- `owner_authorized`: the owner asserted that this route is adequate for the declared scope.
+  No gate sample or board qualifies it, so the operation must name its owner decision as the
+  evidence basis and must not claim gate evidence.
 - `unvalidated`: the route is available, but the evidence does not establish the operation's
   adequacy. The pair keeps the router's ordinary judgment-required basis.
 
 This module shapes and checks declarations only. It selects nothing and reads no live source; `missing_evidence`
 only checks that each named evidence file exists beside the pack.
 """
+import json
 import re
 from datetime import date
 
@@ -22,9 +26,11 @@ EVIDENCE_BASES = {
     'bounded_gate_evidence': 'finite deterministic gate evidence for a bounded scope',
     'classification_probes_only': 'a few constrained classification probes; not general adequacy',
     'availability_smoke_only': 'availability was observed; quality and cost are not established',
+    'owner_decision': 'the owner asserted adequacy for this scope; no gate sample or board qualifies it',
 }
 QUALIFIED_BASIS = 'qualified_free'
 UNVALIDATED_BASIS = 'unvalidated'
+OWNER_BASIS = 'owner_authorized'
 AUTH_STATES = {'none_observed_owner_smoke', 'required', 'unknown'}
 AUTH_DOC_STATES = {'inconclusive', 'none_documented', 'required_documented'}
 REQUIRED_PROHIBITED_INPUTS = {
@@ -226,8 +232,8 @@ def _operation_errors(value, route_label):
         else:
             seen.add(item['id'])
         basis = item['basis']
-        if basis not in (QUALIFIED_BASIS, UNVALIDATED_BASIS):
-            errors.append(f'{label}.basis must be {QUALIFIED_BASIS} or {UNVALIDATED_BASIS}')
+        if basis not in (QUALIFIED_BASIS, UNVALIDATED_BASIS, OWNER_BASIS):
+            errors.append(f'{label}.basis must be {QUALIFIED_BASIS}, {UNVALIDATED_BASIS} or {OWNER_BASIS}')
             continue
         proofs, efforts = item['proof_classes'], item['efforts']
         if (not isinstance(proofs, list) or not proofs or set(proofs) - set(PROOF_CLASSES)
@@ -240,6 +246,11 @@ def _operation_errors(value, route_label):
                 errors.append(f'{label}: {QUALIFIED_BASIS} requires exactly oracle proof; gate evidence is not judged evidence')
             if item['evidence_basis'] != 'bounded_gate_evidence':
                 errors.append(f'{label}: {QUALIFIED_BASIS} requires evidence_basis bounded_gate_evidence')
+        elif basis == OWNER_BASIS:
+            if item['evidence_basis'] != 'owner_decision':
+                errors.append(f'{label}: {OWNER_BASIS} requires evidence_basis owner_decision; it must not claim gate evidence')
+            if proofs == ['none']:
+                errors.append(f'{label}: {OWNER_BASIS} needs an oracle or judged proof class')
         else:
             if proofs != ['judged']:
                 errors.append(f'{label}: {UNVALIDATED_BASIS} requires exactly judged proof')
@@ -257,7 +268,11 @@ def _operation_errors(value, route_label):
 
 
 def missing_evidence(routes, base):
-    """Error strings for each operation `evidence_ref` that does not name a file beside the policy (`base`)."""
+    """Error strings for each operation `evidence_ref` that does not name a file beside the policy (`base`).
+
+    An `owner_authorized` operation must also be listed in its evidence file's `authorizes` rows, for the route's
+    exact identity, with at least the declared efforts and proof classes. The label alone authorizes nothing.
+    """
     if not isinstance(routes, list):
         return []  # a non-list is already reported by check_normal_free_routes
     errors = []
@@ -266,6 +281,25 @@ def missing_evidence(routes, base):
             continue
         for item in route.get('operations') or []:
             ref = item.get('evidence_ref') if isinstance(item, dict) else None
-            if isinstance(ref, str) and not (base / ref).is_file():
+            if not isinstance(ref, str):
+                continue
+            if not (base / ref).is_file():
                 errors.append(f'free_routes evidence_ref {ref} is missing')
+            elif item.get('basis') == OWNER_BASIS:
+                errors.extend(_owner_binding_errors(route, item, base / ref))
     return errors
+
+
+def _owner_binding_errors(route, item, path):
+    label = f'free_routes {route.get("model")} operation {item.get("id")}'
+    try:
+        rows = json.loads(path.read_text()).get('authorizes')
+    except (OSError, ValueError, AttributeError):
+        return [f'{label}: evidence file {item["evidence_ref"]} is not a JSON object']
+    for row in rows if isinstance(rows, list) else []:
+        if (isinstance(row, dict) and row.get('op') == item['id']
+                and all(row.get(key) == route.get(key) for key in ('provider', 'model', 'account'))
+                and isinstance(row.get('efforts'), list) and isinstance(row.get('proof_classes'), list)
+                and set(item['efforts']) <= set(row['efforts']) and set(item['proof_classes']) <= set(row['proof_classes'])):
+            return []
+    return [f'{label}: evidence file {item["evidence_ref"]} does not authorize this op, identity, effort and proof class']

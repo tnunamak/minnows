@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "title": "DeepSeek V4.1 Flash Free owner adequacy decision",
+  "decision_date": "2026-10-26",
+  "evidence_status": "owner assertion; no gate sample, board or matched evaluation backs it",
+  "owner": "Tim Nunamaker",
+  "statement": "it's basically a luna or haiku equivalent but free. plus we review everything.",
+  "relayed_by": "orchestrator session, 2026-10-26",
+  "scope": {
+    "operations": [
+      "implement.oracle-bounded",
+      "implement.quota-tight",
+      "fanout.dollar-tight",
+      "fanout.explore"
+    ],
+    "effort": "high",
+    "inputs": "public only; the public-input floor is unchanged",
+    "private_inputs": "not approved for the free endpoint; private requests keep the paid primaries"
+  },
+  "observed_limit": {
+    "date": "2026-10-26",
+    "context": "after a few concurrent agent lanes",
+    "message": "Free usage limit reached. Connect a provider or subscribe to OpenCode Go to keep going, or switch models.",
+    "handling": "T3 records the message as a terminal failure; route classifies it as rate_limit and removes the free pair as cooling_down until the lookback clears. The paid primary serves meanwhile."
+  },
+  "authorizes": [
+    {
+      "op": "implement.quota-tight",
+      "provider": "opencode",
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "account": "opencode",
+      "efforts": [
+        "high"
+      ],
+      "proof_classes": [
+        "oracle",
+        "judged"
+      ]
+    },
+    {
+      "op": "fanout.dollar-tight",
+      "provider": "opencode",
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "account": "opencode",
+      "efforts": [
+        "high"
+      ],
+      "proof_classes": [
+        "judged",
+        "none"
+      ]
+    },
+    {
+      "op": "fanout.explore",
+      "provider": "opencode",
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "account": "opencode",
+      "efforts": [
+        "high"
+      ],
+      "proof_classes": [
+        "judged",
+        "none"
+      ]
+    }
+  ]
+}

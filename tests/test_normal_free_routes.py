@@ -130,7 +130,7 @@ def test_an_explicit_override_on_the_normal_declaration_is_normal(world):
     (('--data-classification', 'sensitive'), OP, ORACLE),
     (PUBLIC + ('--sensitive',), OP, ORACLE),
     (PUBLIC, 'docs.lookup', JUDGED),
-    (PUBLIC, 'implement.quota-tight', ORACLE),
+    (PUBLIC, 'implement.standard', JUDGED),
 ])
 def test_public_oracle_and_a_declared_operation_are_required(world, extra, op, proof):
     out = route_at(world, LATER, *extra, op=op, proof=proof)
@@ -374,11 +374,15 @@ def test_the_pack_ships_an_exact_normal_scope_without_experimental_fields():
     route = BASE_ROUTE
     assert 'expires_at_utc' not in route and 't3_transport' not in route and 'expiry_basis' not in route
     operations = {item['id']: item for item in route['operations']}
-    assert set(operations) == {'implement.oracle-bounded', 'docs.lookup', 'review.rule-check'}
+    assert set(operations) == {'implement.oracle-bounded', 'docs.lookup', 'review.rule-check', 'implement.quota-tight',
+                               'fanout.dollar-tight', 'fanout.explore'}
     for op in ('implement.oracle-bounded', 'docs.lookup'):
         assert operations[op]['basis'] == 'qualified_free'
         assert operations[op]['proof_classes'] == ['oracle'] and operations[op]['efforts'] == ['high']
         assert operations[op]['evidence_basis'] == 'bounded_gate_evidence'
+    for op in ('implement.quota-tight', 'fanout.dollar-tight', 'fanout.explore'):
+        assert operations[op]['basis'] == 'owner_authorized' and operations[op]['efforts'] == ['high']
+        assert operations[op]['evidence_basis'] == 'owner_decision'
     review = operations['review.rule-check']
     assert review['basis'] == 'unvalidated' and review['proof_classes'] == ['judged']
     assert review['efforts'] == ['high'] and review['evidence_basis'] == 'classification_probes_only'
@@ -453,6 +457,32 @@ def test_a_missing_evidence_file_is_rejected_by_both_checkers(tmp_path):
                             text=True, capture_output=True, cwd=REPO)
     assert result.returncode == 1
     assert 'evidence_ref evidence/missing.json is missing' in result.stderr
+
+
+@pytest.mark.parametrize('change,why', [
+    (lambda item: item.update(id='implement.standard'), 'an op the evidence does not list'),
+    (lambda item: item.update(efforts=['high', 'max']), 'an effort the evidence does not list'),
+    (lambda item: item.update(proof_classes=['oracle', 'judged', 'none']), 'a proof class the evidence does not list'),
+])
+def test_owner_evidence_must_list_what_a_declaration_claims_in_both_checkers(tmp_path, change, why):
+    pack_dir = tmp_path / 'model-choice-policy'
+    shutil.copytree(REPO / 'data/model-choice-policy', pack_dir)
+    policy_path = pack_dir / 'operating-points.json'
+    policy = json.loads(policy_path.read_text())
+    item = next(o for o in policy['free_routes'][0]['operations'] if o['id'] == 'fanout.explore')
+    change(item)
+    policy_path.write_text(json.dumps(policy))
+    expected = 'does not authorize this op, identity, effort and proof class'
+
+    validator = load_validator()
+    errors = validator.Errors()
+    validator.validate_policy_pack(pack_dir, errors)
+    assert any(expected in message for message in errors.items), why
+
+    result = subprocess.run([str(REPO / 'tools/model-policy-ops/model-policy-ops'), 'check',
+                             '--policy', str(policy_path), '--no-user-policy'],
+                            text=True, capture_output=True, cwd=REPO)
+    assert result.returncode == 1 and expected in result.stderr, why
 
 
 # Regression: zero source price schedules budget; it does not revoke an owner's preference.

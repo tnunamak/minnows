@@ -942,6 +942,48 @@
           "scope": "bounded_public_explicit_rule_judgment_known_defect_classification_probes",
           "evidence_ref": "evidence/deepseek-public-eval-2026-10-15.json",
           "evidence_basis": "classification_probes_only"
+        },
+        {
+          "id": "implement.quota-tight",
+          "basis": "owner_authorized",
+          "proof_classes": [
+            "oracle",
+            "judged"
+          ],
+          "efforts": [
+            "high"
+          ],
+          "scope": "owner_asserted_luna_haiku_equivalent_public_inputs_all_output_reviewed",
+          "evidence_ref": "evidence/deepseek-owner-decision-2026-10-26.json",
+          "evidence_basis": "owner_decision"
+        },
+        {
+          "id": "fanout.dollar-tight",
+          "basis": "owner_authorized",
+          "proof_classes": [
+            "judged",
+            "none"
+          ],
+          "efforts": [
+            "high"
+          ],
+          "scope": "owner_asserted_luna_haiku_equivalent_public_inputs_all_output_reviewed",
+          "evidence_ref": "evidence/deepseek-owner-decision-2026-10-26.json",
+          "evidence_basis": "owner_decision"
+        },
+        {
+          "id": "fanout.explore",
+          "basis": "owner_authorized",
+          "proof_classes": [
+            "judged",
+            "none"
+          ],
+          "efforts": [
+            "high"
+          ],
+          "scope": "owner_asserted_luna_haiku_equivalent_public_inputs_all_output_reviewed",
+          "evidence_ref": "evidence/deepseek-owner-decision-2026-10-26.json",
+          "evidence_basis": "owner_decision"
         }
       ]
     }

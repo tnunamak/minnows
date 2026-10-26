@@ -732,6 +732,10 @@ def dispatch_identities(result, available=None, destination_target=None):
     return identities
 
 
+# The router's own selection bases for a free route: gate-qualified, or asserted adequate by the owner.
+AUTOMATIC_FREE_SELECTIONS = ('qualified_free_route', 'owner_authorized_route')
+
+
 def routed_free_choice(identity, request, routed, route):
     """True when the router itself chose this exact governed identity: a route with no override and no destination,
     whose chosen arm and account are the identity and the declared route's own account. The caller's public assertion and the declared scope are still checked."""
@@ -739,24 +743,24 @@ def routed_free_choice(identity, request, routed, route):
     return (request.get('route') is True and not request.get('overrides')
             and all(arm.get(key) == identity[key] for key in ('provider', 'model', 'effort'))
             and (routed or {}).get('instance') == identity['account'] == route['account']
-            and (routed or {}).get('selection_basis') == 'qualified_free_route')
+            and (routed or {}).get('selection_basis') in AUTOMATIC_FREE_SELECTIONS)
 
 
 def normal_route_choice(identity, request, routed, route, item):
     """True when the router itself chose this exact normal identity through its qualified operation."""
     arm = (routed or {}).get('arm') or {}
-    return (item['basis'] == normal_free_routes.QUALIFIED_BASIS
+    return (item['basis'] in (normal_free_routes.QUALIFIED_BASIS, normal_free_routes.OWNER_BASIS)
             and request.get('route') is True and not request.get('overrides')
             and all(arm.get(key) == identity[key] for key in ('provider', 'model', 'effort'))
             and (routed or {}).get('instance') == identity['account'] == route['account']
-            and (routed or {}).get('selection_basis') == 'qualified_free_route')
+            and (routed or {}).get('selection_basis') in AUTOMATIC_FREE_SELECTIONS)
 
 
 def normal_target_refusal(identity, request, sensitive, routes, evaluated_at, *, proof_class=None,
                           generic_destination=False, routed=None):
     """Current authorization for one normal-route identity: exact declaration, public floor, op, proof and effort.
 
-    An automatic choice authorizes only a `qualified_free` operation. Every other normal target, including an
+    An automatic choice authorizes only a `qualified_free` or `owner_authorized` operation. Every other normal target, including an
     `unvalidated` one, needs exact overrides with a reason; availability never upgrades confidence by itself.
     """
     route = normal_free_routes.declared_identity(routes, identity['provider'], identity['model'], identity['account'])
