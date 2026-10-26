@@ -284,7 +284,26 @@ def test_the_free_tuple_is_not_withheld_for_its_account_map_funding(world):
 
 OWNER_OPS = [('implement.oracle-bounded', ORACLE), ('implement.quota-tight', ('--proof-class', 'judged')),
              ('fanout.dollar-tight', ('--proof-class', 'judged')), ('fanout.explore', ('--proof-class', 'none'))]
+CAPPED = ('2026-10-11T00:05:00.000Z', '2026-10-11T00:10:00.000Z', '2026-10-11T00:15:00.000Z')  # inside the lookback of NOW
 FREE_LIMIT = 'Free usage limit reached. Connect a provider or subscribe to OpenCode Go to keep going, or switch models.'
+
+
+def paid_headroom(world):
+    """Every subscription account inside its band, so a paid primary can launch instead of waiting."""
+    current_at_pinned_capture(world)
+    world.codex(100)
+    for instance in ('claude-alt', 'claudeAgent', 'claude-work'):
+        world.set_claude(100, instance)
+
+
+def assert_paid_primary_serves(world, out, op):
+    """The chosen arm is the op's own paid primary, and the launch target is a launchable paid one."""
+    primary = next(o for o in world.policy['operating_points'] if o['id'] == op)['expands_to']
+    chosen = out['routing']['chosen']
+    assert chosen is not None and chosen['basis'] == 'primary'
+    assert {k: chosen['arm'][k] for k in ('provider', 'model')} == {k: primary[k] for k in ('provider', 'model')}
+    assert out['launch_ready'] is True and out['target']['model'] != DEEPSEEK_FREE
+    assert out['target']['providerInstanceId'] != 'opencode'
 
 
 @pytest.mark.parametrize('op,proof', OWNER_OPS)
@@ -302,16 +321,19 @@ def test_a_public_cheap_task_takes_the_free_route_first(world, op, proof):
 @pytest.mark.parametrize('op,proof', OWNER_OPS)
 @pytest.mark.parametrize('extra', [[], ['--data-classification', 'sensitive'], [*PUBLIC, '--sensitive']])
 def test_private_or_unclassified_cheap_tasks_keep_the_paid_primary(world, op, proof, extra):
-    out = route_at(world, LATER, *extra, op=op, proof=proof)
+    paid_headroom(world)
+    out = route_at(world, NOW, *extra, op=op, proof=proof)
     assert all(t['arm']['provider'] != 'opencode' for t in out['routing']['trace'])
-    assert out['routing']['chosen'] is None or out['routing']['chosen']['arm']['provider'] != 'opencode'
+    assert_paid_primary_serves(world, out, op)
 
 
 def test_an_owner_authorized_route_falls_back_while_the_free_tier_reports_its_cap(world):
-    world.events = [event('opencode', FREE_LIMIT, at=at) for at in THREE]
-    out = route_at(world, '2026-10-16T00:30:00Z', *PUBLIC, op='fanout.explore', proof=('--proof-class', 'judged'))
+    paid_headroom(world)
+    world.events = [event('opencode', FREE_LIMIT, at=at) for at in CAPPED]
+    proof = ('--proof-class', 'judged')
+    out = route_at(world, NOW, *PUBLIC, op='fanout.explore', proof=proof)
     row = next(t for t in out['routing']['trace'] if t['arm']['provider'] == 'opencode')
     assert row['removed_by'] == 'cooling_down'
-    assert (out['routing']['chosen'] or {}).get('arm', {}).get('provider') != 'opencode'
-    again = route_at(world, '2026-10-16T01:10:01Z', *PUBLIC, op='fanout.explore', proof=('--proof-class', 'judged'))
+    assert_paid_primary_serves(world, out, 'fanout.explore')
+    again = route_at(world, '2026-10-11T01:15:01Z', *PUBLIC, op='fanout.explore', proof=proof)
     assert again['routing']['chosen']['arm']['model'] == DEEPSEEK_FREE

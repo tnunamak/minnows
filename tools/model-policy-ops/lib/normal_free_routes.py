@@ -16,6 +16,7 @@ evidence basis:
 This module shapes and checks declarations only. It selects nothing and reads no live source; `missing_evidence`
 only checks that each named evidence file exists beside the pack.
 """
+import json
 import re
 from datetime import date
 
@@ -267,7 +268,11 @@ def _operation_errors(value, route_label):
 
 
 def missing_evidence(routes, base):
-    """Error strings for each operation `evidence_ref` that does not name a file beside the policy (`base`)."""
+    """Error strings for each operation `evidence_ref` that does not name a file beside the policy (`base`).
+
+    An `owner_authorized` operation must also be listed in its evidence file's `authorizes` rows, for the route's
+    exact identity, with at least the declared efforts and proof classes. The label alone authorizes nothing.
+    """
     if not isinstance(routes, list):
         return []  # a non-list is already reported by check_normal_free_routes
     errors = []
@@ -276,6 +281,25 @@ def missing_evidence(routes, base):
             continue
         for item in route.get('operations') or []:
             ref = item.get('evidence_ref') if isinstance(item, dict) else None
-            if isinstance(ref, str) and not (base / ref).is_file():
+            if not isinstance(ref, str):
+                continue
+            if not (base / ref).is_file():
                 errors.append(f'free_routes evidence_ref {ref} is missing')
+            elif item.get('basis') == OWNER_BASIS:
+                errors.extend(_owner_binding_errors(route, item, base / ref))
     return errors
+
+
+def _owner_binding_errors(route, item, path):
+    label = f'free_routes {route.get("model")} operation {item.get("id")}'
+    try:
+        rows = json.loads(path.read_text()).get('authorizes')
+    except (OSError, ValueError, AttributeError):
+        return [f'{label}: evidence file {item["evidence_ref"]} is not a JSON object']
+    for row in rows if isinstance(rows, list) else []:
+        if (isinstance(row, dict) and row.get('op') == item['id']
+                and all(row.get(key) == route.get(key) for key in ('provider', 'model', 'account'))
+                and isinstance(row.get('efforts'), list) and isinstance(row.get('proof_classes'), list)
+                and set(item['efforts']) <= set(row['efforts']) and set(item['proof_classes']) <= set(row['proof_classes'])):
+            return []
+    return [f'{label}: evidence file {item["evidence_ref"]} does not authorize this op, identity, effort and proof class']

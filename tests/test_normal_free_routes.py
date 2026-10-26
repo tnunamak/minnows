@@ -459,6 +459,32 @@ def test_a_missing_evidence_file_is_rejected_by_both_checkers(tmp_path):
     assert 'evidence_ref evidence/missing.json is missing' in result.stderr
 
 
+@pytest.mark.parametrize('change,why', [
+    (lambda item: item.update(id='implement.standard'), 'an op the evidence does not list'),
+    (lambda item: item.update(efforts=['high', 'max']), 'an effort the evidence does not list'),
+    (lambda item: item.update(proof_classes=['oracle', 'judged', 'none']), 'a proof class the evidence does not list'),
+])
+def test_owner_evidence_must_list_what_a_declaration_claims_in_both_checkers(tmp_path, change, why):
+    pack_dir = tmp_path / 'model-choice-policy'
+    shutil.copytree(REPO / 'data/model-choice-policy', pack_dir)
+    policy_path = pack_dir / 'operating-points.json'
+    policy = json.loads(policy_path.read_text())
+    item = next(o for o in policy['free_routes'][0]['operations'] if o['id'] == 'fanout.explore')
+    change(item)
+    policy_path.write_text(json.dumps(policy))
+    expected = 'does not authorize this op, identity, effort and proof class'
+
+    validator = load_validator()
+    errors = validator.Errors()
+    validator.validate_policy_pack(pack_dir, errors)
+    assert any(expected in message for message in errors.items), why
+
+    result = subprocess.run([str(REPO / 'tools/model-policy-ops/model-policy-ops'), 'check',
+                             '--policy', str(policy_path), '--no-user-policy'],
+                            text=True, capture_output=True, cwd=REPO)
+    assert result.returncode == 1 and expected in result.stderr, why
+
+
 # Regression: zero source price schedules budget; it does not revoke an owner's preference.
 @pytest.mark.parametrize('selector', ['account', 'model'])
 def test_explicit_owner_preference_precedes_qualified_free_price(world, selector):
