@@ -20,7 +20,7 @@ class LaunchAuthorizationTests(unittest.TestCase):
         self.target = {'providerInstanceId': 'opencode', 'model': 'opencode/deepseek-v4.1-flash-free',
                        'options': {'variant': 'high'}}
         identity = {'provider': 'opencode', 'account': 'opencode', 'model': self.target['model'], 'effort': 'high'}
-        self.receipt = {'decision_id': 'launch-auth-test', 'target': self.target, 'launch_ready': True,
+        self.receipt = {'schema_version': 1, 'decision_id': 'launch-auth-test', 'target': self.target, 'launch_ready': True,
                         'request': {'op': 'fanout.explore', 'data_classification': 'public',
                                     'overrides': identity.copy(), 'reason': 'synthetic bounded public review'},
                         'launch_facts': {'proof_class': 'judged'},
@@ -53,6 +53,24 @@ class LaunchAuthorizationTests(unittest.TestCase):
 
     def test_current_public_list_options_is_same_binding(self):
         self.authorization(True, {**self.target, 'options': [{'id': 'variant', 'value': 'high'}]})
+
+    def test_supported_strict_integer_receipt_schema_is_required(self):
+        self.receipt.pop('schema_version')
+        with self.subTest(version='missing'):
+            self.authorization(False)
+        for version in (None, True, 1.0, '1', 0, 2, {}):
+            with self.subTest(version=version):
+                self.receipt['schema_version'] = version
+                self.authorization(False)
+
+    def test_explicit_boolean_launch_readiness_is_required(self):
+        self.receipt.pop('launch_ready')
+        with self.subTest(ready='missing'):
+            self.authorization(False)
+        for ready in (None, False, 0, 1, 'false', 'true', []):
+            with self.subTest(ready=ready):
+                self.receipt['launch_ready'] = ready
+                self.authorization(False)
 
     def test_sensitive_unknown_and_recorded_refusal_never_authorize(self):
         for classification in ('sensitive', None):

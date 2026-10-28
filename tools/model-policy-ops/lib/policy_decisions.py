@@ -958,8 +958,10 @@ def authorize_launch(args, policy):
     target = launch_target_identity(json.loads(args.launch_target))
     receipt = find_receipt(args.receipts, args.decision_id)
     result = {'schema_version': 1, 'decision_id': args.decision_id, 'authorized': False, 'target': None}
-    if (not isinstance(receipt, dict) or (receipt.get('data_policy') or {}).get('state') == 'refused'
-            or receipt.get('launch_ready') is False or not isinstance(receipt.get('target'), dict)
+    if (not isinstance(receipt, dict) or type(receipt.get('schema_version')) is not int
+            or receipt['schema_version'] != 1 or receipt.get('launch_ready') is not True
+            or (receipt.get('data_policy') or {}).get('state') == 'refused'
+            or not isinstance(receipt.get('target'), dict)
             or launch_target_identity(receipt['target']) != target):
         return result
     if not any(row['account'] == target['providerInstanceId'] and row['model'] == target['model']
