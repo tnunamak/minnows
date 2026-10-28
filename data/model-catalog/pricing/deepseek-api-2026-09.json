@@ -13,9 +13,12 @@
   "source_ids": [
     "deepseek-pricing-2026-09-23",
     "deepseek-pricing-2026-10-07",
-    "deepseek-change-log-2026-10-07"
+    "deepseek-change-log-2026-10-07",
+    "deepseek-pricing-2026-10-28",
+    "deepseek-updates-2026-10-28",
+    "deepseek-release-log-2026-09-10"
   ],
-  "notes": "Peak-period list rates, USD per 1M tokens. Off-peak price is half the stored rate. The API page lists V4.1-Flash and V4-Pro-0813. No separate cache-write item is billed; cache-hit rates are recorded as cache_read. Pro API service continued per current pricing page. Legacy deepseek-v4-flash is routed to V4.1 Flash, not the retired 0731 weights. 2026-10-07 re-verification: deepseek-flash (V4.1-Flash) peak $0.30 miss / $0.006 hit / $1.20 out and deepseek-v4-pro (V4-Pro-0813) peak $1.32 / $0.044 / $3.96 unchanged; off-peak is half. Change log newest entry is 2026-09-10; no V4.2/V5 release.",
+  "notes": "Peak-period list rates, USD per 1M tokens. Off-peak price is half the stored rate. The API page lists V4.1-Flash and V4-Pro-0813. No separate cache-write item is billed; cache-hit rates are recorded as cache_read. Pro API service continued per current pricing page. Legacy deepseek-v4-flash is routed to V4.1 Flash, not the retired 0731 weights. 2026-10-07 re-verification: deepseek-flash (V4.1-Flash) peak $0.30 miss / $0.006 hit / $1.20 out and deepseek-v4-pro (V4-Pro-0813) peak $1.32 / $0.044 / $3.96 unchanged; off-peak is half. Change log newest entry is 2026-09-10; no V4.2/V5 release. 2026-10-28 re-verification: the pricing page labels deepseek-flash as DeepSeek-V4.1-Flash-1017 at the same rates (update log 2026-10-17: API calling method and pricing unchanged). deepseek-v4-pro still lists V4-Pro-0813 rates. The update log's newest entry is now 2026-10-17. Routing conflict, not reconciled here: the 2026-09-10 announcement (deepseek-release-log-2026-09-10) says deepseek-v4-pro requests route to V4.1-Flash rates from 2026-09-14 until V4.1-Pro launches; the same-day change-log entry (deepseek-updates-2026-10-28) says V4 Pro API service continues with billing unchanged; the 2026-10-28 pricing page keeps the deepseek-v4-pro-0813 row.",
   "models": {
     "deepseek-v4-1-flash": {
       "fresh_input_per_m": 0.3,

@@ -242,10 +242,12 @@
       "tier": "flash",
       "aliases": [
         "deepseek-flash",
-        "DeepSeek-V4.1-Flash"
+        "DeepSeek-V4.1-Flash",
+        "DeepSeek-V4.1-Flash-1017"
       ],
       "released": "2026-09-10",
-      "release_source_id": "deepseek-updates-2026-09-23"
+      "release_source_id": "deepseek-updates-2026-09-23",
+      "notes": "2026-10-17 upgrade: the deepseek-flash id now serves DeepSeek-V4.1-Flash-1017. The update log says the API calling method and pricing remain unchanged. The quick-start page (read 2026-10-28) says the legacy names deepseek-v4-flash and deepseek-v4-flash-vision-exp are served by V4.1-Flash-1017 and billed at the Flash price. The pricing page (read 2026-10-28) gives the model version as DeepSeek-V4.1-Flash-1017. The id stays the join key and the snapshot is recorded as an alias. There is no separate row because DeepSeek gives no separate API id for the snapshot."
     },
     {
       "id": "deepseek-v4-flash",
@@ -276,7 +278,7 @@
         "deepseek-v4-pro",
         "DeepSeek-V4-Pro-0813"
       ],
-      "notes": "Historical/version-pinned identity for DeepSeek V4 Pro GA 2026-08-13; retain the alias deepseek-v4-pro for source rows. DeepSeek pricing labels that API id V4-Pro-0813, but its updates log says requests began routing to V4.1-Flash on 2026-09-14, pending V4.1-Pro. Do not treat this catalog alias as a guarantee of current endpoint identity."
+      "notes": "Historical/version-pinned identity for DeepSeek V4 Pro GA 2026-08-13; retain the alias deepseek-v4-pro for source rows. The pricing page (read 2026-10-28) gives the model version DeepSeek-V4-Pro-0813 for this id. DeepSeek's two 2026-09-10 pages conflict on runtime routing. The announcement says deepseek-v4-pro requests route to V4.1-Flash at V4.1-Flash rates from 04:00 UTC on 2026-09-14 until V4.1-Pro launches. The same-day change-log entry says DeepSeek will continue API service for V4 Pro after 2026-09-14 with the billing method unchanged. Both are recorded; neither is reconciled here. Do not treat this catalog alias as a guarantee of current endpoint identity or billing."
     },
     {
       "id": "gemini-2.5-flash",
@@ -346,10 +348,10 @@
       "id": "gemini-3.5-flash",
       "provider": "google",
       "family": "gemini-3.5",
-      "status": "ga",
+      "status": "historical",
       "aliases": [],
       "tier": "flash",
-      "notes": "Deprecated 2026-10-08 per the Gemini API changelog (google-gemini-changelog-2026-10-13): replaced by gemini-3.6-flash; API requests to gemini-3.5-flash are automatically routed to gemini-3.6-flash and the model is no longer selectable in AI Studio. Status left ga (the id still serves traffic); do not dispatch to it expecting 3.5 behavior."
+      "notes": "Deprecated 2026-10-08 per the Gemini API changelog (google-gemini-changelog-2026-10-13): replaced by gemini-3.6-flash; API requests to gemini-3.5-flash are automatically routed to gemini-3.6-flash and the model is no longer selectable in AI Studio. Status set to historical in v0.5.16 because the model is no longer selectable; the id still serves traffic through routing, so do not dispatch to it expecting 3.5 behavior."
     },
     {
       "id": "gemini-3.5-flash-lite",
@@ -371,10 +373,10 @@
       "id": "gemini-3.7-flash",
       "provider": "google",
       "family": "gemini-3",
-      "status": "ga",
+      "status": "historical",
       "aliases": [],
       "tier": "flash",
-      "notes": "Deprecated 2026-10-08 per the Gemini API changelog (google-gemini-changelog-2026-10-13): replaced by gemini-3.8-flash; API requests to gemini-3.7-flash are automatically routed to gemini-3.8-flash and the model is no longer selectable in AI Studio. The Vertex pricing page banner still names Gemini 3.7 Flash (google-agent-platform-pricing-2026-10-13). Status left ga (the id still serves traffic); do not dispatch to it expecting 3.7 behavior."
+      "notes": "Deprecated 2026-10-08 per the Gemini API changelog (google-gemini-changelog-2026-10-13): replaced by gemini-3.8-flash; API requests to gemini-3.7-flash are automatically routed to gemini-3.8-flash and the model is no longer selectable in AI Studio. The Vertex pricing page banner still names Gemini 3.7 Flash (google-agent-platform-pricing-2026-10-13). Status set to historical in v0.5.16 because the model is no longer selectable; the id still serves traffic through routing, so do not dispatch to it expecting 3.7 behavior."
     },
     {
       "id": "gemini-3.8-flash",
@@ -628,6 +630,21 @@
       ],
       "released": "2026-09-29",
       "release_source_id": "openai-gpt-6-1-sol-launch-2026-09-29"
+    },
+    {
+      "id": "gpt-6.1-terra",
+      "name": "GPT-6.1 Terra",
+      "provider": "openai",
+      "family": "gpt-6",
+      "status": "ga",
+      "tier": "terra",
+      "aliases": [
+        "GPT-6.1 Terra",
+        "GPT‑6.1 Terra"
+      ],
+      "released": "2026-10-26",
+      "release_source_id": "openai-api-changelog-2026-10-26",
+      "notes": "OpenAI API changelog entry dated 2026-10-26: 'Released GPT-6.1 Terra … a fast, efficient model'. Model page (read 2026-10-28): id gpt-6.1-terra; 1,050,000-token context; 922,000 maximum input; 128,000 maximum output; reasoning effort none, low, medium, high, xhigh and max, default medium. The page gives no benchmarks and does not say whether Codex or ChatGPT serves the model. The local Codex model listing (codex-cli 0.165.0) gives a 500,000-token context window, default low, levels low through ultra, and a Fast speed tier at 1.5x. Quality readings: Artificial Analysis Intelligence Index v5.0 and Terminal-Bench 4.0 in performance/artificial-analysis-intelligence-index-v5-2026-10-28.json (grade B). Not checked on 2026-10-28: Vals, tbench.ai, ARC Prize, Arena, Epoch, SEAL, DeepSWE, OpenRouter. No operating point uses this model. At the policy's allowed efforts (low, medium, high) it trails GPT-6.1 Sol by 6 to 8 points on the Intelligence Index and by 10 to 16 points on Terminal-Bench 4.0; no op allows xhigh or max."
     },
     {
       "id": "gpt-oss-120b",

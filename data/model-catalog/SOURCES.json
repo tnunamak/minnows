@@ -5068,6 +5068,166 @@
       "retrieved_at": "2026-10-13",
       "kind": "third_party_eval",
       "notes": "HTTP 404 on 2026-10-13. Harvey LAB readings exist only on AA (Harvey LAB-AA) and Vals (HLAB)."
+    },
+    {
+      "id": "openai-api-changelog-2026-10-26",
+      "url": "https://developers.openai.com/api/docs/changelog",
+      "title": "OpenAI API changelog, GPT-6.1 Terra entry dated 2026-10-26",
+      "publisher": "OpenAI",
+      "published": "2026-10-26",
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Entry text 'Released GPT-6.1 Terra … a fast, efficient model' (cut by the fetch tool). Tag line: Feature · Model: gpt-6.1-terra · API: v1/responses · API: v1/chat/completions. Read through a summarizing fetch tool; the quote is as returned by that tool."
+    },
+    {
+      "id": "openai-api-model-page-gpt-6-1-terra-2026-10-28",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6.1-terra",
+      "title": "GPT-6.1 Terra model page (OpenAI API docs)",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Context 1,050,000 tokens; maximum input 922,000; maximum output 128,000; reasoning effort none, low, medium, high, xhigh and max (default medium). No benchmark numbers on the page. Read through a summarizing fetch tool."
+    },
+    {
+      "id": "openai-api-pricing-2026-10-28",
+      "url": "https://developers.openai.com/api/docs/pricing",
+      "title": "OpenAI API pricing, Standard tab (GPT-6.1 Terra row)",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Row as read: | gpt-6.1-terra | $1.00 | $5.00 | $0.05 | $1.25 | $2.50 | $2.00 | $7.50 | $0.10 | $2.50 | $5.00 |. Short context is at or below 272K input tokens; long context is above 272K. Read through a summarizing fetch tool; the row is as the tool returned it."
+    },
+    {
+      "id": "codex-debug-models-0-165-0-2026-10-28",
+      "url": "https://github.com/tnunamak/minnows/tree/main/data/model-catalog",
+      "title": "codex debug models (live, auth-scoped host output, codex-cli 0.165.0)",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "other",
+      "notes": "Not a public URL (the url field reuses the repo, as in the openai-codex-debug-models-2026-09-05 precedent). Local `codex debug models` output on this host, codex-cli 0.165.0, 2026-10-28: gpt-6.1-terra with default_reasoning_level low, levels low/medium/high/xhigh/max/ultra, additional_speed_tiers [fast], service tier priority named Fast at 1.5x speed, context_window 500000, max_context_window 872000."
+    },
+    {
+      "id": "aa-gpt-6-1-terra-article-2026-10-28",
+      "url": "https://artificialanalysis.ai/articles/gpt-6-1-terra-pushes-the-cost-efficiency-frontier",
+      "title": "GPT-6.1 Terra pushes the cost efficiency frontier (Artificial Analysis article)",
+      "publisher": "Artificial Analysis",
+      "published": "2026-10-26",
+      "retrieved_at": "2026-10-28",
+      "kind": "third_party_eval",
+      "notes": "Fetch-tool summary; quotes as returned by the tool. Max-effort cost per task for Terra $0.40 against $1.40 for GPT-5.6 Terra. Intelligence Index gap figures; the caption cites v4.3.2 while the comparison page labels v5.0. Coding Agent Index v2.0: Terra 48, Sol 54, GPT-6 Luna 31; no effort or harness stated. Charts are images and were not captured."
+    },
+    {
+      "id": "aa-gpt-6-1-terra-vs-sol-comparison-2026-10-28",
+      "url": "https://artificialanalysis.ai/models/releases/comparisons/gpt-6-1-terra-vs-gpt-6-1-sol",
+      "title": "GPT-6.1 Terra vs GPT-6.1 Sol (Artificial Analysis comparison)",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "third_party_eval",
+      "notes": "Labels Intelligence Index v5.0. Terra Intelligence 51, 45, 42, 38, 30 (non-reasoning), 29 at max, xhigh, high, medium, none, low. Terra Terminal-Bench 4.0 55.6%, 46.5%, 41.9%, 32.3%, 26.8%, 15.2% at the same efforts. Sol Intelligence 55, 52, 50, 46, 35 at max, xhigh, high, medium, low; Sol Terminal-Bench 4.0 56.1%, 54.0%, 51.5%, 48.0%, 30.8%. The page does not define the Terminal-Bench 4.0 metric and states no release date. Fetch-tool summary."
+    },
+    {
+      "id": "aa-intelligence-index-v5-article-2026-10-28",
+      "url": "https://artificialanalysis.ai/articles/artificial-analysis-intelligence-index-v5",
+      "title": "Artificial Analysis Intelligence Index v5 (article)",
+      "publisher": "Artificial Analysis",
+      "published": "2026-10-27",
+      "retrieved_at": "2026-10-28",
+      "kind": "third_party_eval",
+      "notes": "Nine benchmarks: new FrontierCode 2.0 and Terminal-Bench-Science; upgraded HLE-Diamond, AA-Omniscience v1.1 and CritPt v2; retained AA-Briefcase, AutomationBench-AA, GDP.pdf and Terminal-Bench 4.0; removed GDPval-AA v2.1, SciCode and AA-LCR v1.1. About 60% of the index uses private test sets or held-out answers. No statement on comparability with v4.x. Per Index task at max: GPT-6.1 Sol $1.27, GPT-6.1 Terra $0.96. Fetch-tool summary; not checked against raw HTML."
+    },
+    {
+      "id": "google-gemini-4-carbon-blog-2026-10-28",
+      "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-carbon/",
+      "title": "Gemini 4 Carbon: our next frontier model (Google blog)",
+      "publisher": "Google",
+      "published": "2026-10-28",
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_blog",
+      "notes": "Staged rollout: first a subset of cyber defenders, then more trusted partners through the Fairwind Program; wider release 'as soon as possible', no date. No model id, no API availability (developer access 'still to come'), no context window, no max output, no thinking or effort setting. Reports Artificial Analysis Intelligence Index v5.0 score 59; AA's own score is not in the fetched text. Benchmark table is an image and was not captured. Intro price $2 input and $10 output per M tokens, then $4 and $20. Fetch-tool text."
+    },
+    {
+      "id": "google-gemini-changelog-2026-10-28",
+      "url": "https://ai.google.dev/gemini-api/docs/changelog",
+      "title": "Gemini API changelog (October 8, 2026 deprecation entries; no Gemini 4 Carbon entry)",
+      "publisher": "Google",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Entries under the October 8, 2026 heading: 'Gemini 3.7 Flash deprecation' (gemini-3.7-flash is deprecated and replaced by gemini-3.8-flash; no longer available to select in Google AI Studio; API requests automatically routed to gemini-3.8-flash) and 'Gemini 3.5 Flash deprecation' (gemini-3.5-flash is deprecated and replaced by gemini-3.6-flash; same routing). The sweep dated these 2026-10-09; the changelog heading says October 8. No Gemini 4 Carbon entry in the fetched text."
+    },
+    {
+      "id": "google-gemini-deprecations-2026-10-28",
+      "url": "https://ai.google.dev/gemini-api/docs/deprecations",
+      "title": "Gemini API deprecations page",
+      "publisher": "Google",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Rows for gemini-3.7-flash and gemini-3.5-flash each say the model is not available to select in Google AI Studio, that the endpoint is not shutting down, and that API requests route automatically to gemini-3.8-flash and gemini-3.6-flash respectively."
+    },
+    {
+      "id": "google-gemini-pricing-2026-10-28",
+      "url": "https://ai.google.dev/gemini-api/docs/pricing",
+      "title": "Gemini API pricing (read 2026-10-28)",
+      "publisher": "Google",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Gemini 3.8 Flash: $0.75 input and $3.75 output per M tokens through 2026-12-31, then $1.50 and $7.50 from 2027-01-01. Cached input $0.075 through 2026-12-31, then $0.15; storage $0.50 then $1.00 per M tokens per hour. Read by curl on 2026-10-28."
+    },
+    {
+      "id": "opencode-zen-docs-2026-10-28",
+      "url": "https://opencode.ai/docs/zen/",
+      "title": "OpenCode Zen docs (model list and prices)",
+      "publisher": "OpenCode",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Lists deepseek-v4.1-flash-free as 'free on OpenCode for a limited time' (Free / Free / Free; no end date), and the paid deepseek-v4.1-flash at $0.30 / $0.006 / $1.20. Lists gemini-3.8-flash at $1.50 input and $7.50 output, which matches Google's 2027 rate rather than its current rate. Lists gemini-4-argon at $2.00 and $10.00, labelled '50% off' through 2026-11-30. Read through a summarizing fetch tool."
+    },
+    {
+      "id": "deepseek-updates-2026-10-28",
+      "url": "https://api-docs.deepseek.com/updates/",
+      "title": "DeepSeek API change log (read 2026-10-28)",
+      "publisher": "DeepSeek",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Raw HTML read by curl on 2026-10-28. Entry dated 2026-10-17: 'DeepSeek V4.1 Flash has been upgraded to DeepSeek-V4.1-Flash-1017' and 'The API calling method and pricing remain unchanged — simply use deepseek-flash to access the latest model.' Entry dated 2026-09-10 includes 'In response to user demand, we have decided to continue providing API services for DeepSeek V4 Pro after September 14, 2026, with the billing method remaining unchanged.'"
+    },
+    {
+      "id": "deepseek-pricing-2026-10-28",
+      "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "title": "DeepSeek API quick-start pricing page (read 2026-10-28)",
+      "publisher": "DeepSeek",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Static HTML read by curl on 2026-10-28: model version DeepSeek-V4.1-Flash-1017 for deepseek-flash and DeepSeek-V4-Pro-0813 for deepseek-v4-pro. Legacy names: 'still accepted, but the corresponding models have been retired, their requests are served by the DeepSeek-V4.1-Flash-1017 model and billed at the Flash price.' Rate values are not in the static HTML; they come from the 2026-10-28 fetch-tool read recorded in the research entry."
+    },
+    {
+      "id": "deepseek-release-log-2026-09-10",
+      "url": "https://api-docs.deepseek.com/news/news260910/",
+      "title": "DeepSeek-V4.1-Flash release announcement (2026-09-10)",
+      "publisher": "DeepSeek",
+      "published": "2026-09-10",
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_blog",
+      "notes": "Read by curl on 2026-10-28. Says the legacy names deepseek-v4-flash and deepseek-v4-flash-vision-exp 'temporarily route to V4.1-Flash', and that 'Starting at 04:00 UTC on Sept 14, 2026, all deepseek-v4-pro requests will route to V4.1-Flash at V4.1-Flash rates. This will continue until V4.1-Pro launches.' Conflicts with the same-day change-log entry (deepseek-updates-2026-10-28); neither is reconciled in this catalog."
+    },
+    {
+      "id": "deepseek-1017-news-2026-10-28",
+      "url": "https://api-docs.deepseek.com/news/news261017/",
+      "title": "DeepSeek-V4.1-Flash-1017 announcement (2026-10-17)",
+      "publisher": "DeepSeek",
+      "published": "2026-10-17",
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_blog",
+      "notes": "Read by curl on 2026-10-28. Says 'DeepSeek-V4.1-Flash-1017 is here!' and 'Now live on our website, app, and API.' The page text read gives no API model string or price; the model id comes from the quick-start page and the change log."
     }
   ]
 }
