@@ -4,7 +4,7 @@
   "provenance": {
     "source": "minnows model-catalog data-model-catalog-v0.5.2 + fable-workflow-baseline-2026-07-02",
     "date": "2026-07-11",
-    "rationale": "Sonnet 5 @ high is the bulk value knee; Opus med is a trap (never routed); Haiku leads only the certified-mechanical class; GPT-5.6 Sol leads accuracy-first Codex work"
+    "rationale": "Sonnet 5 @ high is the bulk value knee; Opus med is a trap (never routed); Haiku leads only the certified-mechanical class; Current models require calibration before routing"
   },
   "default_class": "extraction",
   "proof_class_map": {
@@ -27,29 +27,29 @@
   "classes": {
     "certified-mechanical": {
       "maker": [
-        { "model": "haiku-4.5", "effort": "medium" },
-        { "model": "sonnet-5", "effort": "high" },
-        { "model": "opus-4.8", "effort": "high" },
-        { "model": "gpt-5.6-sol", "effort": "high" }
+        { "model": "haiku-5-5", "effort": "medium" },
+        { "model": "sonnet-5-5", "effort": "high" },
+        { "model": "opus-5-5", "effort": "high" },
+        { "model": "gpt-6.1-sol", "effort": "high" }
       ]
     },
     "extraction": {
       "maker": [
-        { "model": "sonnet-5", "effort": "high" },
-        { "model": "opus-4.8", "effort": "high" },
-        { "model": "gpt-5.6-sol", "effort": "xhigh" }
+        { "model": "sonnet-5-5", "effort": "high" },
+        { "model": "opus-5-5", "effort": "high" },
+        { "model": "gpt-6.1-sol", "effort": "xhigh" }
       ]
     },
     "async-order-oracle": {
       "maker": [
-        { "model": "gpt-5.6-sol", "effort": "xhigh" },
-        { "model": "opus-4.8", "effort": "high" }
+        { "model": "gpt-6.1-sol", "effort": "xhigh" },
+        { "model": "opus-5-5", "effort": "high" }
       ]
     },
     "hard-ambiguous": {
       "maker": [
-        { "model": "opus-4.8", "effort": "high" },
-        { "model": "gpt-5.6-sol", "effort": "xhigh" }
+        { "model": "opus-5-5", "effort": "high" },
+        { "model": "gpt-6.1-sol", "effort": "xhigh" }
       ]
     }
   },

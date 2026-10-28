@@ -11,7 +11,7 @@
       "quota_pool": "claude-sub",
       "efforts": ["low", "medium", "high"],
       "tier_rank": 1,
-      "status": "active",
+      "status": "deprecated",
       "calibration": {
         "type": "external-eval-digitization",
         "source": "waspflow docs/model-economics.md (Anthropic Sonnet-5 announcement charts 2026-06-30)",
@@ -41,7 +41,7 @@
       "quota_pool": "claude-sub",
       "efforts": ["low", "medium", "high", "xhigh", "max"],
       "tier_rank": 3,
-      "status": "active",
+      "status": "deprecated",
       "calibration": {
         "type": "external-eval-digitization",
         "source": "waspflow docs/model-economics.md — BrowseComp: high=79.5%@~$7 (value knee; xhigh marginal 0.38%/$ = poor)",
@@ -70,7 +70,7 @@
       "quota_pool": "claude-sub",
       "efforts": ["low", "medium", "high", "xhigh", "max"],
       "tier_rank": 4,
-      "status": "active",
+      "status": "deprecated",
       "calibration": {
         "type": "external-eval-digitization",
         "source": "waspflow docs/model-economics.md — BrowseComp: high=82%@~$15; med is a TRAP (0.25%/$) — never route opus below high",
@@ -87,13 +87,25 @@
       "quota_pool": "openai-sub",
       "efforts": ["low", "medium", "high", "xhigh"],
       "tier_rank": 4,
-      "status": "active",
+      "status": "deprecated",
       "calibration": {
         "type": "external-eval-digitization",
         "source": "minnows model-catalog data-model-catalog-v0.5.2 — GPT-5.6 launch evidence plus vals.ai SWE-bench Verified",
         "date": "2026-07-09",
         "note": "accuracy-first Codex tier; different-lineage judge/maker for cross-provider pairs"
       }
+    },
+    "opus-5-5": {
+      "provider": "claude",
+      "id": "claude-opus-5-5",
+      "short": "opus-5-5",
+      "lineage": "anthropic",
+      "pricing": { "in": 4, "out": 20, "cache_read": 0.2 },
+      "quota_pool": "claude-sub",
+      "efforts": ["low", "medium", "high", "xhigh", "max"],
+      "tier_rank": 4,
+      "status": "active",
+      "calibration": null
     },
     "gpt-6.1-sol": {
       "provider": "codex",

@@ -20,9 +20,9 @@ export const VERDICTS = Object.freeze(["PASS", "REVISE", "REJECT"]);
 export const DEFAULT_TIMEOUT_MS = Number(process.env.HONE_JUDGE_TIMEOUT_MS ?? 5 * 60 * 1000);
 export const CLAUDE_NO_MCP_ARGS = Object.freeze(["--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}']);
 export const noMcpEnv = () => ({ ...process.env, ENABLE_CLAUDEAI_MCP_SERVERS: "false" });
-export function requireGpt56(model) {
-  if (!/^gpt-5\.6(?:-|$)/.test(model)) {
-    throw new Error(`refusing non-GPT-5.6 Codex model '${model}'`);
+export function requireCurrentCodexModel(model) {
+  if (!["gpt-6.1-sol", "gpt-6.1-terra", "gpt-6-luna", "gpt-6-astra"].includes(model)) {
+    throw new Error(`refusing unsupported Codex model '${model}'`);
   }
   return model;
 }

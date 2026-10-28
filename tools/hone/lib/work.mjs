@@ -58,7 +58,7 @@ import { executeReset } from './reset.mjs';
 import { appendClaim, appendCostEntry, nextClaimSeq, nextJobAttempt, readJsonl, claimsPath, costPath } from './ledger.mjs';
 import { loadRegistry, loadRouting, resolveRoutingClass, selectAgent } from './routing.mjs';
 import { HONE_ROOT } from './profile.mjs';
-import { CLAUDE_NO_MCP_ARGS, codexNoMcpArgs, noMcpEnv, requireGpt56, runCli } from '../providers/provider.mjs';
+import { CLAUDE_NO_MCP_ARGS, codexNoMcpArgs, noMcpEnv, requireCurrentCodexModel, runCli } from '../providers/provider.mjs';
 import {
   DETERMINISTIC_PROOF_PROVIDER,
   DETERMINISTIC_PROOF_TIER,
@@ -184,7 +184,7 @@ async function claudeMaker(prompt, { cwd, timeoutMs = MAKER_TIMEOUT_MS, model: r
 }
 
 async function codexMaker(prompt, { cwd, timeoutMs = MAKER_TIMEOUT_MS, model: routedModel, effort: routedEffort } = {}) {
-  const model = requireGpt56(process.env.HONE_CODEX_MODEL || routedModel || 'gpt-5.6-sol');
+  const model = requireCurrentCodexModel(process.env.HONE_CODEX_MODEL || routedModel || 'gpt-6.1-sol');
   const effort = process.env.HONE_CODEX_EFFORT || routedEffort || 'high';
   const dir = mkdtempSync(join(tmpdir(), 'hone-maker-'));
   const outFile = join(dir, 'last-message.txt');

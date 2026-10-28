@@ -54,7 +54,7 @@ judge). The JSON envelope supplies real `costUsd` and token usage. Model:
 **`codex.mjs`** — `codex exec --ephemeral --skip-git-repo-check -s read-only --color never
 -m <m> -o <file> -`, prompt on stdin, fresh temp cwd. `-o` captures the final message
 robustly; `-s read-only` because a judge reviews evidence, it never mutates. Model:
-`HONE_CODEX_MODEL` (default `gpt-5.6-sol`; non-GPT-5.6 values are refused). ChatGPT-plan auth reports tokens, not dollars —
+`HONE_CODEX_MODEL` (default `gpt-6.1-sol`; only `gpt-6.1-sol`, `gpt-6.1-terra`, `gpt-6-luna`, and `gpt-6-astra` are accepted). ChatGPT-plan auth reports tokens, not dollars —
 `meta.tokens.total` + duration are the cost proxy. Verified against codex-cli 0.142.5.
 
 ## Discrimination test (proof the judges can judge)

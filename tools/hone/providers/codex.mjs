@@ -15,9 +15,9 @@
 import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { codexNoMcpArgs, createProvider, requireGpt56, runCli, DEFAULT_TIMEOUT_MS } from "./provider.mjs";
+import { codexNoMcpArgs, createProvider, requireCurrentCodexModel, runCli, DEFAULT_TIMEOUT_MS } from "./provider.mjs";
 
-const MODEL = requireGpt56(process.env.HONE_CODEX_MODEL || "gpt-5.6-sol");
+const MODEL = requireCurrentCodexModel(process.env.HONE_CODEX_MODEL || "gpt-6.1-sol");
 // reasoning effort is FIRST-CLASS and always explicit (L1 amendment) — codex takes it
 // as a config override; value is TOML, hence the embedded quotes.
 const EFFORT = process.env.HONE_CODEX_JUDGE_EFFORT || "high";
