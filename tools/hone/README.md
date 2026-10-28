@@ -44,6 +44,12 @@ The catalog snapshot contains no GPT-6.1 Terra entry or evaluation; its CLI guar
 supported, but no calibration or routing eligibility is claimed. Retired entries stay
 in the registry for historical receipts and are ineligible for new work.
 
+Agenda and challenge calls inherit reasoning effort from the installed CLI/profile.
+They do not use `HONE_CODEX_EFFORT` (maker only) or `HONE_CODEX_JUDGE_EFFORT` (judge only).
+Their receipts record the selected model but omit effort, so they cannot reproduce an
+effort setting. This preserves the operator's CLI/profile configuration; configure it
+there when running an agenda or challenge that needs a repeatable effort setting.
+
 For subscription-backed execution use `env -u ANTHROPIC_API_KEY -u OPENAI_API_KEY
 HONE_CODEX_MODEL=gpt-6.1-sol HONE_CLAUDE_MODEL=claude-opus-5-5 hone work <id>
 --maker codex --judge claude --repo /path/to/repo` (join onto one shell line).

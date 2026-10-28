@@ -54,20 +54,29 @@ export function biomeFlaggedUniverse(ctx, ownedDirs) {
   const dirsAbs = ownedDirs.map((d) => quote(join(ctx.repoRoot, d))).join(' ');
   const biome = resolveBiomeCommand(ctx);
   const raw = ctx.sh(
-    `${biome} lint --config-path=${cfg} --only=complexity/noExcessiveCognitiveComplexity ` +
+    `${biome} lint --config-path=${quote(cfg)} --only=complexity/noExcessiveCognitiveComplexity ` +
     `--max-diagnostics=none --reporter=json ${dirsAbs} 2>/dev/null`,
   );
-  let diags = [];
-  try { diags = JSON.parse(raw).diagnostics || []; }
+  let report;
+  try { report = JSON.parse(raw); }
   catch {
     throw new Error(
       `biome produced unparseable output (cmd: ${biome}). Is biome runnable inside ${ctx.repoRoot}? ` +
       `First 200 chars: ${raw.slice(0, 200)}`,
     );
   }
+  if (!report || Array.isArray(report) || !Array.isArray(report.diagnostics)) {
+    throw new Error(`biome produced invalid report: diagnostics array required (cmd: ${biome})`);
+  }
   const out = [];
-  for (const d of diags) {
+  for (const d of report.diagnostics) {
+    if (!d || typeof d !== 'object' || Array.isArray(d)) {
+      throw new Error(`biome produced invalid diagnostics (cmd: ${biome})`);
+    }
     const message = d.description || (typeof d.message === 'string' ? d.message : '');
+    if (d.severity === 'error' || d.severity === 'fatal') {
+      throw new Error(`biome analysis failed: ${message || d.severity} (cmd: ${biome})`);
+    }
     const m = message.match(/complexity of (\d+)/);
     if (!m) continue;
     const p = d.location?.path?.file || d.location?.path;

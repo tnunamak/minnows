@@ -43,6 +43,8 @@ jobs:
         run: |
           node tools/hone/providers/test-discrimination.mjs --self-test
           node tools/hone/providers/test-current-models.mjs
+          node tools/hone/providers/test-model-adapters.mjs
+          node tools/hone/collectors/test-biome-contract.mjs
           node tools/hone/hone work --self-test
           node tools/hone/hone lane --self-test
           node tools/hone/lib/test-agenda.mjs
