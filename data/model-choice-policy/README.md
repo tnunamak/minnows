@@ -10,14 +10,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.2.8](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.8) — unreleased; published by CI after merge to main |
+| **This version** | [data-model-choice-policy-v0.2.9](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.9) — unreleased; published by CI after merge to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.2.8
+TAG=data-model-choice-policy-v0.2.9
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -150,6 +150,12 @@ not silently route by model name.
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.2.9 — 2026-10-28
+
+- Pins catalog v0.5.16. No operating point changes. The catalog adds GPT-6.1 Terra, and no op uses it. Terra trails GPT-6.1 Sol at every effort the policy allows (low, medium, high), by 6 to 8 points on Artificial Analysis Intelligence Index v5.0 and by 9.6 to 15.7 points on Terminal-Bench 4.0. Terra's only published cost is at max, which the policy does not allow; there, Terra is 4 points behind Sol on v5.0 and within 0.5 points on Terminal-Bench 4.0. So no cost-per-success comparison against Sol is possible at any allowed effort.
+- OpenCode's `deepseek-v4.1-flash-free` route was still listed as free "for a limited time" with no end date on 2026-10-28. `free_as_of` stays at 2026-10-15 because this release does not re-evaluate the operating point's evidence.
+- DeepSeek's `deepseek-flash` id now serves the V4.1-Flash-1017 snapshot at unchanged rates (2026-10-17). The DeepSeek evidence dated 2026-10-15 predates that move; this release does not re-evaluate it.
 
 ### v0.2.7 — unreleased
 

@@ -2,6 +2,16 @@
 
 Newest first. The README links here; this file is the single record.
 
+## v0.5.16 — 2026-10-28
+
+- Added OpenAI GPT-6.1 Terra (`gpt-6.1-terra`, tier `terra`, status `ga`, released 2026-10-26 per the OpenAI API changelog). Standard API price is $1.00 input, $0.05 cached input and $5.00 output per M tokens; cache writes are $1.25 for 30 minutes and $2.50 for 12 hours. Above 272K input tokens the rates are $2.00, $0.10 and $7.50, with cache writes of $2.50 and $5.00, and the `long_prompt` tier bills the whole request. The row is in `pricing/openai-api-2026-07.json`; no rule before it matches the id. The model has `api` and `codex_cli` effort surfaces. Its API default is `medium`, and its Codex default is `low`.
+- Added Artificial Analysis Intelligence Index v5.0 and Terminal-Bench 4.0 readings for GPT-6.1 Terra and GPT-6.1 Sol at each effort level (grade B), in `performance/artificial-analysis-intelligence-index-v5-2026-10-28.json`. v5.0 has its own metric id and comparability group. AA's v5 article does not say whether v5 scores are comparable with v4.x: GPT-6.1 Sol's low-effort Intelligence score is 42.1 on v4.3.2 and 35 on v5.0.
+- Recorded disagreements without reconciling them. AA's 2026-10-26 Terra article gives $0.40 per task at max effort; its 2026-10-27 v5 article gives $0.96 per Index task at max, against $1.27 for Sol. DeepSeek's 2026-09-10 announcement says `deepseek-v4-pro` requests route to V4.1-Flash rates from 2026-09-14; the same day's change-log entry says V4 Pro API service continues with billing unchanged. The `deepseek-v4-pro-0813` notes state the conflict.
+- Added the `DeepSeek-V4.1-Flash-1017` alias to `deepseek-v4-1-flash`. DeepSeek's 2026-10-17 update says the `deepseek-flash` id now serves that snapshot and that the calling method and pricing are unchanged, so no separate row was added.
+- Set `gemini-3.5-flash` and `gemini-3.7-flash` to `historical`. Google's Gemini changelog dates both deprecations to 2026-10-08. Requests route to `gemini-3.6-flash` and `gemini-3.8-flash` respectively, and neither id is selectable in Google AI Studio.
+- Did not add Gemini 4 Carbon. Google announced it on 2026-10-28 with a staged rollout to cyber defenders, then trusted partners. Its post gives no model id, API availability, context window or effort setting, and the Gemini changelog has no entry for it. Google reports 59 on AA's Intelligence Index v5.0; AA's own score is not in the text read. Add a row when Google publishes an id.
+- Recorded that OpenCode's `deepseek-v4.1-flash-free` route is free "for a limited time" with no end date as of 2026-10-28. OpenCode lists `gemini-3.8-flash` at $1.50 input and $7.50 output, which matches Google's 2027 rate; Google's current rate is $0.75 and $3.75 through 2026-12-31.
+
 ## v0.5.15 — 2026-10-13
 
 - Added Google Gemini 4 Argon (`gemini-4-argon`). Google announced it on 2026-09-30 for trusted cyber defenders and made it generally available on 2026-10-13; the Gemini API changelog calls it generally available, so the row has status `ga`. It has a 1,048,576-token context shared by input, thinking and output, and text, image, video, audio and PDF input. It gets a new tier, `argon`, because Google gives it no Pro or Flash label; the models schema and `SCHEMA.md` list the new value.

@@ -1559,6 +1559,16 @@
       "notes": "Fraction of transcripts where white-box probing finds the model internally suspects it is being evaluated. Direction is context-dependent: high awareness can undermine the reliability of behavioral evaluations (bad for measurement validity) independent of whether the model's actual behavior is good."
     },
     {
+      "id": "artificial-analysis-intelligence-index-v5-0",
+      "name": "Artificial Analysis Intelligence Index v5.0",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other",
+      "comparable": false,
+      "notes": "Aggregate of nine evaluations in AA's v5 index, announced 2026-10-27: new FrontierCode 2.0 and Terminal-Bench-Science; upgraded HLE-Diamond, AA-Omniscience v1.1 and CritPt v2; retained AA-Briefcase, AutomationBench-AA, GDP.pdf and Terminal-Bench 4.0; removed GDPval-AA v2.1, SciCode and AA-LCR v1.1. About 60% of the index uses private or held-out evaluations. The article does not say whether v5 scores are comparable with v4.x: GPT-6.1 Sol's low-effort score is 42.1 on v4.3.2 and 35 on v5.0. Rows are comparable only within their comparability_group."
+    },
+    {
       "id": "artificial-analysis-intelligence-index-v4-3-2",
       "name": "Artificial Analysis Intelligence Index v4.3.2",
       "direction": "higher_better",

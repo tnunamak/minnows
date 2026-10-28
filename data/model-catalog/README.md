@@ -206,15 +206,15 @@ Public benchmarks measure other people's tasks, so use them to narrow the choice
 | Task | Model | low | medium | high | xhigh | max |
 |---|---|---|---|---|---|---|
 | Coding | GPT-6 Luna | ● | ◐ low (1 of 4) | ◐ medium (3 of 4) | ◐ high (3 of 4) | ◐ xhigh (1 of 4) |
-| Coding | GPT-5.6 Terra | ● | ● | ● | ✕ GPT-6 Astra low (1 of 1) | n/a |
+| Coding | GPT-6.1 Terra | · | · | · | · | · |
 | Coding | GPT-6.1 Sol | ◐ GPT-6 Luna xhigh (1 of 2) | ◐ low (2 of 4) | ◐ medium (1 of 2) | ← high (2 of 2) | ← xhigh (2 of 2) |
 | Coding | GPT-6 Astra | ✕ GPT-6 Luna max (2 of 2) | ✕ GPT-6.1 Sol medium (2 of 2) | ✕ GPT-6.1 Sol high (2 of 2) | ◐ high (9 of 10) | ← xhigh (10 of 10) |
 | Knowledge work | GPT-6 Luna | ● | ● | ◐ xhigh (1 of 2) | ◐ medium (1 of 2) | ● |
-| Knowledge work | GPT-5.6 Terra | · | · | · | · | n/a |
+| Knowledge work | GPT-6.1 Terra | · | · | · | · | · |
 | Knowledge work | GPT-6.1 Sol | · | · | · | · | · |
 | Knowledge work | GPT-6 Astra | ✕ GPT-6 Luna max (1 of 1) | ● | ← medium (2 of 2) | ◐ medium (1 of 2) | ◐ xhigh (1 of 2) |
 | Agent workflows | GPT-6 Luna | ● | ● | ● | ◐ high (5 of 7) | ● |
-| Agent workflows | GPT-5.6 Terra | · | · | · | · | n/a |
+| Agent workflows | GPT-6.1 Terra | · | · | · | · | · |
 | Agent workflows | GPT-6.1 Sol | ◐ GPT-6 Luna max (3 of 4) | ◐ GPT-6 Luna max (1 of 4) | ◐ medium (2 of 4) | ◐ high (2 of 4) | ◐ medium (4 of 8) |
 | Agent workflows | GPT-6 Astra | ✕ GPT-6.1 Sol medium (4 of 4) | ✕ GPT-6.1 Sol high (4 of 4) | ✕ GPT-6.1 Sol xhigh (4 of 4) | ✕ GPT-6.1 Sol max (4 of 4) | ◐ GPT-6.1 Sol max (13 of 17) |
 
@@ -222,7 +222,7 @@ Public benchmarks measure other people's tasks, so use them to narrow the choice
 
 | Task | Benchmark | Source | Grade | Models compared |
 |---|---|---|---|---|
-| Coding | DeepSWE Leaderboard (datacurve.ai) | [`performance/google-xai-board-snapshot-2026-09-23.json`](performance/google-xai-board-snapshot-2026-09-23.json) · third party board | B | GPT-5.6 Terra, GPT-6 Astra |
+| Coding | DeepSWE Leaderboard (datacurve.ai) | [`performance/google-xai-board-snapshot-2026-09-23.json`](performance/google-xai-board-snapshot-2026-09-23.json) · third party board | B | GPT-6 Astra |
 | Coding | DeepSWE v1.1 | [`performance/openai-gpt-6-astra-launch-2026-09.json`](performance/openai-gpt-6-astra-launch-2026-09.json) · vendor table | C | GPT-6 Astra |
 | Coding | DeepSWE v1.1 | [`performance/openai-gpt-6-sol-luna-launch-curves-2026-09.json`](performance/openai-gpt-6-sol-luna-launch-curves-2026-09.json) · vendor table | C | GPT-6 Astra, GPT-6 Luna |
 | Coding | FrontierCode 1.1 Extended | [`performance/openai-gpt-6-astra-launch-2026-09.json`](performance/openai-gpt-6-astra-launch-2026-09.json) · vendor table | C | GPT-6 Astra |
@@ -287,7 +287,7 @@ For independently run comparisons across many more models, including speed and l
 | | |
 |---|---|
 | **Latest release** | [data-model-catalog releases](https://github.com/tnunamak/minnows/releases?q=data-model-catalog&expanded=true) — open the newest, hit **Assets → Download** |
-| **This version** | [data-model-catalog-v0.5.15](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.15) — published by CI on push to main |
+| **This version** | [data-model-catalog-v0.5.16](https://github.com/tnunamak/minnows/releases/tag/data-model-catalog-v0.5.16) — published by CI on push to main |
 | **All data packs** | [data/README.md](../README.md) |
 | **Machine index** | [data/index.json](../index.json) on `main` |
 | **Schemas** | [SCHEMA.md](SCHEMA.md) · [schemas/](schemas/) |
@@ -296,14 +296,14 @@ For independently run comparisons across many more models, including speed and l
 ### Full pack
 
 ```bash
-TAG=data-model-catalog-v0.5.15
+TAG=data-model-catalog-v0.5.16
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
 
 # or
 ./scripts/fetch-data-pack.sh model-catalog
-./scripts/fetch-data-pack.sh model-catalog v0.5.15
+./scripts/fetch-data-pack.sh model-catalog v0.5.16
 ```
 
 ### Local
