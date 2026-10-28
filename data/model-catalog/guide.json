@@ -135,7 +135,7 @@
   },
   "hero": {
     "title": "Cost vs intelligence",
-    "metric_id": "artificial-analysis-intelligence-index-v4-3-2",
+    "metric_id": "artificial-analysis-intelligence-index-v5-0",
     "y_label": "Intelligence Index",
     "credit": "Data from Artificial Analysis",
     "cost_basis": "api_usd",

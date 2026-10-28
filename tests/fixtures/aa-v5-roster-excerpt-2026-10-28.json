@@ -1,0 +1,649 @@
+{
+  "source": "AA model pages, decoded App Router payload, read 2026-10-28 22:01-22:03 UTC; bounded excerpt of six objects, fields used by the catalog snapshot",
+  "objects": [
+    {
+      "slug": "claude-opus-5-5",
+      "effort": {
+        "slug": "max",
+        "label": "max",
+        "level": 60
+      },
+      "name": "Claude Opus 5.5 (Max, Default Fallback)",
+      "intelligenceIndex": 58.4060336078904,
+      "intelligenceIndexIsEstimated": false,
+      "intelligenceIndexCostPerTask": {
+        "cost": {
+          "total": 10.036409719512749,
+          "input": 6.569951348193785,
+          "nonCacheInput": 0.03567811040435136,
+          "cacheRead": 4.738378412876434,
+          "cacheWrite": 1.795894824912998,
+          "output": 3.4664583713189643,
+          "reasoning": 2.409395982770641,
+          "answer": 1.0570623885483243
+        },
+        "evaluations": [
+          {
+            "slug": "aa-briefcase",
+            "weightedCostPerTask": 3.1568959073487983
+          },
+          {
+            "slug": "automationbench-aa",
+            "weightedCostPerTask": 0.07143775552710561
+          },
+          {
+            "slug": "terminalbench-4-0",
+            "weightedCostPerTask": 1.3109276120148785
+          },
+          {
+            "slug": "frontiercode-2-0",
+            "weightedCostPerTask": 2.018273664779455
+          },
+          {
+            "slug": "omniscience",
+            "weightedCostPerTask": 0.028107725802746696
+          },
+          {
+            "slug": "gdp-pdf",
+            "weightedCostPerTask": 0.077616774
+          },
+          {
+            "slug": "hle-diamond",
+            "weightedCostPerTask": 0.11983133578968388
+          },
+          {
+            "slug": "critpt-v2-hard",
+            "weightedCostPerTask": 0.257671340257224
+          },
+          {
+            "slug": "terminal-bench-science",
+            "weightedCostPerTask": 2.9956476039928566
+          }
+        ]
+      },
+      "intelligenceIndexEvaluations": [
+        {
+          "slug": "aa-briefcase",
+          "score": 1799.65,
+          "costPerTask": 21.045972715658657
+        },
+        {
+          "slug": "automationbench-aa",
+          "score": 0.6953868128636069,
+          "costPerTask": 1.428755110542112
+        },
+        {
+          "slug": "terminalbench-4-0",
+          "score": 0.595959595959596,
+          "costPerTask": 13.109276120148786
+        },
+        {
+          "slug": "frontiercode-2-0",
+          "score": 0.464359595959596,
+          "costPerTask": 13.455157765196367
+        },
+        {
+          "slug": "omniscience",
+          "score": 48.13333333333333,
+          "costPerTask": 0.187384838684978
+        },
+        {
+          "slug": "gdp-pdf",
+          "score": 0.262,
+          "costPerTask": 1.55233548
+        },
+        {
+          "slug": "hle-diamond",
+          "score": 0.679,
+          "costPerTask": 1.1983133578968388
+        },
+        {
+          "slug": "critpt-v2-hard",
+          "score": 0.61,
+          "costPerTask": 2.5767134025722402
+        },
+        {
+          "slug": "terminal-bench-science",
+          "score": 0.59047619047619,
+          "costPerTask": 19.970984026619043
+        }
+      ]
+    },
+    {
+      "slug": "claude-sonnet-5-5",
+      "effort": {
+        "slug": "max",
+        "label": "max",
+        "level": 60
+      },
+      "name": "Claude Sonnet 5.5 (Max, Default Fallback)",
+      "intelligenceIndex": 54.24133407109,
+      "intelligenceIndexIsEstimated": false,
+      "intelligenceIndexCostPerTask": {
+        "cost": {
+          "total": 10.020621343395753,
+          "input": 7.166750209890859,
+          "nonCacheInput": 0.017801421600000002,
+          "cacheRead": 4.879029232925522,
+          "cacheWrite": 2.2699195553653375,
+          "output": 2.853871133504894,
+          "reasoning": 2.0636169402177984,
+          "answer": 0.7902541932870957
+        },
+        "evaluations": [
+          {
+            "slug": "aa-briefcase",
+            "weightedCostPerTask": 3.071086362898891
+          },
+          {
+            "slug": "automationbench-aa",
+            "weightedCostPerTask": 0.051622199990514886
+          },
+          {
+            "slug": "terminalbench-4-0",
+            "weightedCostPerTask": 1.2646441608317138
+          },
+          {
+            "slug": "frontiercode-2-0",
+            "weightedCostPerTask": 1.733627426843996
+          },
+          {
+            "slug": "omniscience",
+            "weightedCostPerTask": 0.022773200799999997
+          },
+          {
+            "slug": "gdp-pdf",
+            "weightedCostPerTask": 0.039716396
+          },
+          {
+            "slug": "hle-diamond",
+            "weightedCostPerTask": 0.0803716788
+          },
+          {
+            "slug": "critpt-v2-hard",
+            "weightedCostPerTask": 0.1926741603570175
+          },
+          {
+            "slug": "terminal-bench-science",
+            "weightedCostPerTask": 3.5641057568736194
+          }
+        ]
+      },
+      "intelligenceIndexEvaluations": [
+        {
+          "slug": "aa-briefcase",
+          "score": 1811.82,
+          "costPerTask": 20.47390908599261
+        },
+        {
+          "slug": "automationbench-aa",
+          "score": 0.7176882128193995,
+          "costPerTask": 1.0324439998102977
+        },
+        {
+          "slug": "terminalbench-4-0",
+          "score": 0.636363636363636,
+          "costPerTask": 12.64644160831714
+        },
+        {
+          "slug": "frontiercode-2-0",
+          "score": 0.416993434343434,
+          "costPerTask": 11.557516178959974
+        },
+        {
+          "slug": "omniscience",
+          "score": 30.466666666666665,
+          "costPerTask": 0.15182133866666667
+        },
+        {
+          "slug": "gdp-pdf",
+          "score": 0.258,
+          "costPerTask": 0.7943279200000001
+        },
+        {
+          "slug": "hle-diamond",
+          "score": 0.533,
+          "costPerTask": 0.803716788
+        },
+        {
+          "slug": "critpt-v2-hard",
+          "score": 0.56,
+          "costPerTask": 1.926741603570175
+        },
+        {
+          "slug": "terminal-bench-science",
+          "score": 0.533333333333333,
+          "costPerTask": 23.76070504582413
+        }
+      ]
+    },
+    {
+      "slug": "gpt-6-astra-xhigh",
+      "effort": {
+        "slug": "xhigh",
+        "label": "xhigh",
+        "level": 50
+      },
+      "name": "GPT-6 Astra (Xhigh)",
+      "intelligenceIndex": 55.2557468569681,
+      "intelligenceIndexIsEstimated": false,
+      "intelligenceIndexCostPerTask": {
+        "cost": {
+          "total": 3.6589264906126227,
+          "input": 2.3227385608426587,
+          "nonCacheInput": 0.0825188705,
+          "cacheRead": 1.3425376954282364,
+          "cacheWrite": 0.8976819949144229,
+          "output": 1.3361879297699635,
+          "reasoning": 0.7346434320397106,
+          "answer": 0.601544497730253
+        },
+        "evaluations": [
+          {
+            "slug": "aa-briefcase",
+            "weightedCostPerTask": 0.9845281987639405
+          },
+          {
+            "slug": "automationbench-aa",
+            "weightedCostPerTask": 0.07031943574056776
+          },
+          {
+            "slug": "terminalbench-4-0",
+            "weightedCostPerTask": 0.5855482520522051
+          },
+          {
+            "slug": "frontiercode-2-0",
+            "weightedCostPerTask": 0.6064502289294526
+          },
+          {
+            "slug": "omniscience",
+            "weightedCostPerTask": 0.007766557499999998
+          },
+          {
+            "slug": "gdp-pdf",
+            "weightedCostPerTask": 0.09563615499999999
+          },
+          {
+            "slug": "hle-diamond",
+            "weightedCostPerTask": 0.037042833
+          },
+          {
+            "slug": "critpt-v2-hard",
+            "weightedCostPerTask": 0.08492838930716662
+          },
+          {
+            "slug": "terminal-bench-science",
+            "weightedCostPerTask": 1.1867064403192904
+          }
+        ]
+      },
+      "intelligenceIndexEvaluations": [
+        {
+          "slug": "aa-briefcase",
+          "score": 1543.23,
+          "costPerTask": 6.563521325092937
+        },
+        {
+          "slug": "automationbench-aa",
+          "score": 0.6717778020215392,
+          "costPerTask": 1.406388714811355
+        },
+        {
+          "slug": "terminalbench-4-0",
+          "score": 0.595959595959596,
+          "costPerTask": 5.855482520522051
+        },
+        {
+          "slug": "frontiercode-2-0",
+          "score": 0.414029545454545,
+          "costPerTask": 4.043001526196351
+        },
+        {
+          "slug": "omniscience",
+          "score": 43.666666666666664,
+          "costPerTask": 0.05177704999999999
+        },
+        {
+          "slug": "gdp-pdf",
+          "score": 0.322,
+          "costPerTask": 1.9127230999999998
+        },
+        {
+          "slug": "hle-diamond",
+          "score": 0.615,
+          "costPerTask": 0.37042833
+        },
+        {
+          "slug": "critpt-v2-hard",
+          "score": 0.705,
+          "costPerTask": 0.8492838930716662
+        },
+        {
+          "slug": "terminal-bench-science",
+          "score": 0.547619047619048,
+          "costPerTask": 7.9113762687952685
+        }
+      ]
+    },
+    {
+      "slug": "gpt-6-1-terra",
+      "effort": {
+        "slug": "max",
+        "label": "max",
+        "level": 60
+      },
+      "name": "GPT-6.1 Terra (Max)",
+      "intelligenceIndex": 50.9765188577015,
+      "intelligenceIndexIsEstimated": false,
+      "intelligenceIndexCostPerTask": {
+        "cost": {
+          "total": 0.961108031081634,
+          "input": 0.6616922074921133,
+          "nonCacheInput": 0.00815032475,
+          "cacheRead": 0.4264246328151169,
+          "cacheWrite": 0.22711724992699645,
+          "output": 0.2994158235895208,
+          "reasoning": 0.19680942126498924,
+          "answer": 0.10260640232453162
+        },
+        "evaluations": [
+          {
+            "slug": "aa-briefcase",
+            "weightedCostPerTask": 0.12116643604459638
+          },
+          {
+            "slug": "automationbench-aa",
+            "weightedCostPerTask": 0.009264252671692034
+          },
+          {
+            "slug": "terminalbench-4-0",
+            "weightedCostPerTask": 0.14853125323157165
+          },
+          {
+            "slug": "frontiercode-2-0",
+            "weightedCostPerTask": 0.1938772227330226
+          },
+          {
+            "slug": "omniscience",
+            "weightedCostPerTask": 0.006377197449999999
+          },
+          {
+            "slug": "gdp-pdf",
+            "weightedCostPerTask": 0.011758996
+          },
+          {
+            "slug": "hle-diamond",
+            "weightedCostPerTask": 0.014650311800000001
+          },
+          {
+            "slug": "critpt-v2-hard",
+            "weightedCostPerTask": 0.025052344669855186
+          },
+          {
+            "slug": "terminal-bench-science",
+            "weightedCostPerTask": 0.43043001648089624
+          }
+        ]
+      },
+      "intelligenceIndexEvaluations": [
+        {
+          "slug": "aa-briefcase",
+          "score": 1401.68,
+          "costPerTask": 0.8077762402973093
+        },
+        {
+          "slug": "automationbench-aa",
+          "score": 0.6016762327257726,
+          "costPerTask": 0.18528505343384066
+        },
+        {
+          "slug": "terminalbench-4-0",
+          "score": 0.555555555555556,
+          "costPerTask": 1.4853125323157166
+        },
+        {
+          "slug": "frontiercode-2-0",
+          "score": 0.423200505050505,
+          "costPerTask": 1.292514818220151
+        },
+        {
+          "slug": "omniscience",
+          "score": 29.566666666666666,
+          "costPerTask": 0.04251464966666667
+        },
+        {
+          "slug": "gdp-pdf",
+          "score": 0.286,
+          "costPerTask": 0.23517992
+        },
+        {
+          "slug": "hle-diamond",
+          "score": 0.473,
+          "costPerTask": 0.14650311800000002
+        },
+        {
+          "slug": "critpt-v2-hard",
+          "score": 0.645,
+          "costPerTask": 0.25052344669855187
+        },
+        {
+          "slug": "terminal-bench-science",
+          "score": 0.576190476190476,
+          "costPerTask": 2.8695334432059747
+        }
+      ]
+    },
+    {
+      "slug": "gpt-6-luna-non-reasoning",
+      "effort": null,
+      "name": "GPT-6 Luna (Non-reasoning)",
+      "intelligenceIndex": 9.39244373619813,
+      "intelligenceIndexIsEstimated": false,
+      "intelligenceIndexCostPerTask": {
+        "cost": {
+          "total": 0.07141741932294249,
+          "input": 0.06638810402878793,
+          "nonCacheInput": 0.0008150135349999999,
+          "cacheRead": 0.05645611475275206,
+          "cacheWrite": 0.009116975741035881,
+          "output": 0.005029315294154553,
+          "reasoning": 0,
+          "answer": 0.005029315294154553
+        },
+        "evaluations": [
+          {
+            "slug": "aa-briefcase",
+            "weightedCostPerTask": 0.0031206328163446446
+          },
+          {
+            "slug": "automationbench-aa",
+            "weightedCostPerTask": 0.0007132040564150087
+          },
+          {
+            "slug": "terminalbench-4-0",
+            "weightedCostPerTask": 0.00446207812657598
+          },
+          {
+            "slug": "frontiercode-2-0",
+            "weightedCostPerTask": 0.01941684338723207
+          },
+          {
+            "slug": "omniscience",
+            "weightedCostPerTask": 3.1477249999999996e-06
+          },
+          {
+            "slug": "gdp-pdf",
+            "weightedCostPerTask": 0.00082573735
+          },
+          {
+            "slug": "hle-diamond",
+            "weightedCostPerTask": 1.3351360000000001e-05
+          },
+          {
+            "slug": "critpt-v2-hard",
+            "weightedCostPerTask": 0.00011474054122854153
+          },
+          {
+            "slug": "terminal-bench-science",
+            "weightedCostPerTask": 0.04274768396014624
+          }
+        ]
+      },
+      "intelligenceIndexEvaluations": [
+        {
+          "slug": "aa-briefcase",
+          "score": 902.31,
+          "costPerTask": 0.020804218775630965
+        },
+        {
+          "slug": "automationbench-aa",
+          "score": 0.09141771078680867,
+          "costPerTask": 0.01426408112830017
+        },
+        {
+          "slug": "terminalbench-4-0",
+          "score": 0.0151515151515152,
+          "costPerTask": 0.0446207812657598
+        },
+        {
+          "slug": "frontiercode-2-0",
+          "score": 0.0158234848484848,
+          "costPerTask": 0.12944562258154715
+        },
+        {
+          "slug": "omniscience",
+          "score": -25.8,
+          "costPerTask": 2.0984833333333333e-05
+        },
+        {
+          "slug": "gdp-pdf",
+          "score": 0.058,
+          "costPerTask": 0.016514747
+        },
+        {
+          "slug": "hle-diamond",
+          "score": 0.063,
+          "costPerTask": 0.00013351360000000002
+        },
+        {
+          "slug": "critpt-v2-hard",
+          "score": 0.045,
+          "costPerTask": 0.0011474054122854154
+        },
+        {
+          "slug": "terminal-bench-science",
+          "score": 0.00952380952380952,
+          "costPerTask": 0.28498455973430825
+        }
+      ]
+    },
+    {
+      "slug": "claude-haiku-5-5",
+      "effort": {
+        "slug": "max",
+        "label": "max",
+        "level": 60
+      },
+      "name": "Claude Haiku 5.5 (Max)",
+      "intelligenceIndex": 36.2345435880142,
+      "intelligenceIndexIsEstimated": false,
+      "intelligenceIndexCostPerTask": {
+        "cost": {
+          "total": 0.41100741536816304,
+          "input": 0.2980244355101784,
+          "nonCacheInput": 0.0008875963900000002,
+          "cacheRead": 0.23252235946317396,
+          "cacheWrite": 0.06461447965700437,
+          "output": 0.11298297985798467,
+          "reasoning": 0.08640723861076245,
+          "answer": 0.026575741247222222
+        },
+        "evaluations": [
+          {
+            "slug": "aa-briefcase",
+            "weightedCostPerTask": 0.10122962509004116
+          },
+          {
+            "slug": "automationbench-aa",
+            "weightedCostPerTask": 0.0021157947873248735
+          },
+          {
+            "slug": "terminalbench-4-0",
+            "weightedCostPerTask": 0.06518847460144606
+          },
+          {
+            "slug": "frontiercode-2-0",
+            "weightedCostPerTask": 0.06907551058110635
+          },
+          {
+            "slug": "omniscience",
+            "weightedCostPerTask": 0.0009019710549999999
+          },
+          {
+            "slug": "gdp-pdf",
+            "weightedCostPerTask": 0.0026345128999999998
+          },
+          {
+            "slug": "hle-diamond",
+            "weightedCostPerTask": 0.00467266906
+          },
+          {
+            "slug": "critpt-v2-hard",
+            "weightedCostPerTask": 0.010132409064748616
+          },
+          {
+            "slug": "terminal-bench-science",
+            "weightedCostPerTask": 0.15505644822849596
+          }
+        ]
+      },
+      "intelligenceIndexEvaluations": [
+        {
+          "slug": "aa-briefcase",
+          "score": 1575.37,
+          "costPerTask": 0.6748641672669411
+        },
+        {
+          "slug": "automationbench-aa",
+          "score": 0.35411015132783624,
+          "costPerTask": 0.04231589574649746
+        },
+        {
+          "slug": "terminalbench-4-0",
+          "score": 0.328282828282828,
+          "costPerTask": 0.6518847460144606
+        },
+        {
+          "slug": "frontiercode-2-0",
+          "score": 0.349325505050505,
+          "costPerTask": 0.4605034038740423
+        },
+        {
+          "slug": "omniscience",
+          "score": 12.3,
+          "costPerTask": 0.006013140366666666
+        },
+        {
+          "slug": "gdp-pdf",
+          "score": 0.208,
+          "costPerTask": 0.052690258
+        },
+        {
+          "slug": "hle-diamond",
+          "score": 0.296,
+          "costPerTask": 0.046726690599999995
+        },
+        {
+          "slug": "critpt-v2-hard",
+          "score": 0.41,
+          "costPerTask": 0.10132409064748615
+        },
+        {
+          "slug": "terminal-bench-science",
+          "score": 0.2,
+          "costPerTask": 1.0337096548566396
+        }
+      ]
+    }
+  ]
+}
