@@ -1,5 +1,6 @@
 """Resolve advisory policy into an explicit target without dispatch."""
 import json
+import copy
 import os
 import sys
 import time
@@ -37,6 +38,7 @@ def add_arguments(parser):
     parser.add_argument('--no-op', action='store_true')
     parser.add_argument('--reason')
     parser.add_argument('--decision-id')
+    parser.add_argument('--launch-target', metavar='JSON', help='authorize-launch: exact target to authorize read-only against the current free-route policy')
     parser.add_argument('--record', action='store_true')
     parser.add_argument('--task-link', metavar='JSON', help='explicit consumer task, workflow, stage and role; top-level metadata')
     parser.add_argument('--choice', metavar='JSON', help='bounded parent workflow choice; descriptive only, never dispatch control')
@@ -321,6 +323,10 @@ def execute(args, policy):
 
 
 def execute_locked(args, policy, stack):
+    if args.command == 'authorize-launch':
+        return authorize_launch(args, policy)
+    if getattr(args, 'launch_target', None) is not None:
+        raise ValueError('--launch-target applies to authorize-launch only')
     extensions = receipt_extensions(args)
     if extensions and args.command not in ('resolve', 'route'):
         raise ValueError('--task-link and --choice apply only to resolve or route')
@@ -916,3 +922,55 @@ def apply_experimental_route_policy(result, policy, evaluated_at, *, available=N
                                                       'detail': result['data_policy']['refusal'],
                                                       'applies_to': 'final'})
         result['routing']['judgment_required'] = True
+
+
+def launch_target_identity(target):
+    """Normalize options encoding only; preserve the exact effort carrier and all other target fields."""
+    if not isinstance(target, dict):
+        raise ValueError('launch target must be an object')
+    target = copy.deepcopy(target)
+    for key in ('providerInstanceId', 'model'):
+        if not isinstance(target.get(key), str) or not target[key]:
+            raise ValueError('launch target needs an exact ' + key)
+    options = target.get('options', {})
+    if isinstance(options, list):
+        if any(not isinstance(o, dict) or set(o) != {'id', 'value'} or not isinstance(o['id'], str) for o in options):
+            raise ValueError('invalid launch options')
+        if len({o['id'] for o in options}) != len(options):
+            raise ValueError('duplicate launch option')
+        options = {o['id']: o['value'] for o in options}
+    if not isinstance(options, dict) or any(not isinstance(v, (str, bool)) for v in options.values()):
+        raise ValueError('invalid launch options')
+    target['options'] = options
+    return target
+
+
+def authorize_launch(args, policy):
+    """Read-only gate bridge: replay current governed-route checks, never resolve, dispatch or record.
+
+    A recorded refusal remains a refusal, even if a later declaration would allow the target.
+    No availability/quota helper, account reader or destination command is executed here.
+    """
+    if (args.now is not None or args.record or args.available is not None or args.quota is not None
+            or args.op is not None or not args.decision_id or not args.launch_target):
+        raise ValueError('authorize-launch requires --decision-id and --launch-target only (plus --receipts/--policy/--json)')
+    validate_id(args.decision_id)
+    target = launch_target_identity(json.loads(args.launch_target))
+    receipt = find_receipt(args.receipts, args.decision_id)
+    result = {'schema_version': 1, 'decision_id': args.decision_id, 'authorized': False, 'target': None}
+    if (not isinstance(receipt, dict) or (receipt.get('data_policy') or {}).get('state') == 'refused'
+            or receipt.get('launch_ready') is False or not isinstance(receipt.get('target'), dict)
+            or launch_target_identity(receipt['target']) != target):
+        return result
+    if not any(row['account'] == target['providerInstanceId'] and row['model'] == target['model']
+               for row in policy.get('free_routes', [])):
+        return result
+    checked = copy.deepcopy(receipt)
+    # Existing binding validation uses the catalog's object encoding; list encoding is semantically identical.
+    checked['target'] = launch_target_identity(checked['target'])
+    apply_experimental_route_policy(checked, policy, directive_store.now(), replay=True)
+    state = (checked.get('data_policy') or {}).get('state')
+    if (state == 'allowed_public_normal' and isinstance(checked.get('target'), dict)
+            and launch_target_identity(checked['target']) == target):
+        result.update(authorized=True, target=target)
+    return result
