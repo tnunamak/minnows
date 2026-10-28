@@ -153,7 +153,7 @@ not silently route by model name.
 
 ### v0.2.9 — 2026-10-28
 
-- Pins catalog v0.5.16. No operating point changes. The catalog adds GPT-6.1 Terra, and no op uses it. Terra trails GPT-6.1 Sol at every effort the policy allows (low, medium, high), by 6 to 8 points on Artificial Analysis Intelligence Index v5.0 and by 9.6 to 15.7 points on Terminal-Bench 4.0. Terra's only published cost is at max, which the policy does not allow; there, Terra is 4 points behind Sol on v5.0 and within 0.5 points on Terminal-Bench 4.0. So no cost-per-success comparison against Sol is possible at any allowed effort.
+- Pins catalog v0.5.16. No operating point changes. The catalog adds GPT-6.1 Terra, and no op uses it. Terra trails GPT-6.1 Sol at every effort the policy allows (low, medium, high), by 6 to 8 points on Artificial Analysis Intelligence Index v5.0 and by 9.6 to 15.7 points on Terminal-Bench 4.0. At max, which the policy does not allow, Terra is 4 points behind Sol on v5.0 and within 0.5 points on Terminal-Bench 4.0. AA also lists Terra's aggregate Intelligence cost per task at low, medium and high ($0.07, $0.17, $0.26); those are benchmark-run costs, not cost per success for an operation, so they do not change any pick.
 - OpenCode's `deepseek-v4.1-flash-free` route was still listed as free "for a limited time" with no end date on 2026-10-28. `free_as_of` stays at 2026-10-15 because this release does not re-evaluate the operating point's evidence.
 - DeepSeek's `deepseek-flash` id now serves the V4.1-Flash-1017 snapshot at unchanged rates (2026-10-17). The DeepSeek evidence dated 2026-10-15 predates that move; this release does not re-evaluate it.
 

@@ -5087,7 +5087,7 @@
       "published": null,
       "retrieved_at": "2026-10-28",
       "kind": "vendor_docs",
-      "notes": "Context 1,050,000 tokens; maximum input 922,000; maximum output 128,000; reasoning effort none, low, medium, high, xhigh and max (default medium). No benchmark numbers on the page. Read through a summarizing fetch tool."
+      "notes": "Context 1,050,000 tokens; maximum output 128,000 (no separate input cap stated; 922,000 is context minus output, derived); reasoning effort none, low, medium, high, xhigh and max (default medium). No benchmark numbers on the page. Read through a summarizing fetch tool."
     },
     {
       "id": "openai-api-pricing-2026-10-28",
