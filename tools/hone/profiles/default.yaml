@@ -5,7 +5,7 @@
 version: 1
 
 commands:
-  biome: npx biome          # how to invoke biome inside the target repo (cwd = --repo)
+  biome: null               # auto: target/hone installation, then pinned @biomejs/biome via npx
   test: null                # oracle commands — used by `work` (wave 2), recorded now
   typecheck: null
 

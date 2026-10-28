@@ -726,7 +726,7 @@ export async function laneSelfTest({ verbose = false } = {}) {
     const r = await emit(root, { dryRun: true });
     check('routing.class resolved (certified_transform → extraction)', r.json.routing?.class === 'extraction', JSON.stringify(r.json.routing));
     check('candidates materialized from the registry (exact id + short alias + effort + pool)', r.json.routing.maker[0].model === 'claude-sonnet-5-5' && r.json.routing.maker[0].short === 'sonnet-5-5' && r.json.routing.maker[0].effort === 'high' && r.json.routing.maker[0].quota_pool === 'claude-sub');
-    check('calibration flag carried per candidate', r.json.routing.maker.every((m) => m.calibrated === false));
+    check('calibration flag carried per candidate', r.json.routing.maker.every((m) => m.calibrated === true));
     check('batch_eligible verdict included', r.json.routing.batch_eligible?.eligible === true);
   });
 
@@ -1022,8 +1022,9 @@ export async function laneSelfTest({ verbose = false } = {}) {
     const p = packetOnDisk(root);
     check('packet landed on disk', p.status === 'landed');
     const body = spawnSync('git', ['log', '-1', '--format=%B'], { cwd: root, encoding: 'utf8' }).stdout;
-    check('commit names the lane substrate + model-qualified pair', /hone lane: maker=claude:sonnet judge=claude:opus/.test(body), body.slice(0, 200));
-    check('model tiers used: haiku pipe, sonnet maker, opus judge', calls.some((c) => c.model === 'haiku') && calls.some((c) => c.model === 'sonnet' && /make:/.test(c.label)) && calls.some((c) => c.model === 'opus' && /judge:/.test(c.label)));
+    check('commit names the lane substrate + model-qualified pair', /hone lane: maker=claude:sonnet-5-5 judge=claude:opus/.test(body), body.slice(0, 200));
+    check('commit has signoff and final assisted trailer', /Signed-off-by:/.test(body) && body.trimEnd().endsWith('Assisted-by: AI'));
+    check('model tiers used: haiku pipe, current sonnet maker, opus judge', calls.some((c) => c.model === 'haiku') && calls.some((c) => c.model === 'sonnet-5-5' && /make:/.test(c.label)) && calls.some((c) => c.model === 'opus' && /judge:/.test(c.label)));
     check('judge read the engine-written context file, not agent relay', calls.find((c) => /judge:/.test(c.label ?? ''))?.prompt.includes('judge-context.json'));
     check('cost ledger written with explicit (null-token) usage', costs(root)[0]?.landed === true && costs(root)[0]?.tokens_in === null);
     check('tree clean after workflow', treeClean(root));
@@ -1088,9 +1089,9 @@ export async function laneSelfTest({ verbose = false } = {}) {
     const res = await loadWorkflow()({ packets: [ID], repo: root, honeDir }, agent, () => {}, () => {});
     check('landed after two revisions', res?.tally?.landed === 1 && costs(root)[0]?.revision_count === 2, JSON.stringify(res?.results));
     const makerModels = calls.filter((c) => /^(make|revise):/.test(c.label ?? '')).map((c) => c.model);
-    check('maker tier sequence haiku → haiku → sonnet (two-strike)', makerModels.join(',') === 'haiku,haiku,sonnet', makerModels.join(','));
+    check('maker tier sequence haiku → haiku → sonnet (two-strike)', makerModels.join(',') === 'haiku-5-5,haiku-5-5,sonnet-5-5', makerModels.join(','));
     const c0 = costs(root)[0];
-    check('landed usage records the ESCALATED maker model + stage attribution', c0.stages?.some((s) => s.role === 'maker' && s.model === 'sonnet' && s.stage === 'edit'), JSON.stringify(c0.stages));
+    check('landed usage records the ESCALATED maker model + stage attribution', c0.stages?.some((s) => s.role === 'maker' && s.model === 'sonnet-5-5' && s.stage === 'edit'), JSON.stringify(c0.stages));
     check('receipt phases post/post-r1/post-r2 on disk (engine ceiling exactly consumed)', ['post', 'post-r1', 'post-r2'].every((ph) => existsSync(join(root, `quality/receipts/${ID}/${ph}-1-direct-test.txt`))));
   });
 

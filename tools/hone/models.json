@@ -1,17 +1,25 @@
 {
   "version": 1,
-  "note": "Model REGISTRY (data, drop-in extensible) — L1 amendment, token-economics-levers-2026-07-02. One entry per model: adding a model/version = one entry here + a calibration report (hone calibrate), nothing else. Pricing per 1M tokens, standard API tier. tier_rank is the capability rank the judge constraint compares (judge tier_rank >= maker, different lineage). quota_pool names the subscription pool the owner's real currency draws from. calibration: null = INELIGIBLE for routing (fail-closed) until `hone calibrate --model <name>` produces a report; initial entries are grandfathered on digitized external evals.",
+  "note": "Model REGISTRY (data, drop-in extensible) — L1 amendment, token-economics-levers-2026-07-02. One entry per model: adding a model/version = one entry here + a calibration report (hone calibrate), nothing else. Pricing per 1M tokens, standard API tier. tier_rank is the capability rank the judge constraint compares (judge tier_rank >= maker, different lineage). quota_pool names the subscription pool the owner's real currency draws from. calibration: null = INELIGIBLE for routing (fail-closed) until `hone calibrate --model <name>` produces a report; source-backed external-eval-digitization is also accepted for new entries; preserve score units, effort, dates and caveats. Retired entries are never eligible. GPT-6.1 Terra has no model or published eval in the catalog snapshot, so it has no calibrated registry entry.",
   "models": {
     "haiku-4.5": {
       "provider": "claude",
       "id": "claude-haiku-4-5",
       "short": "haiku",
       "lineage": "anthropic",
-      "pricing": { "in": 1.0, "out": 5.0, "cache_read": 0.1 },
+      "pricing": {
+        "in": 1,
+        "out": 5,
+        "cache_read": 0.1
+      },
       "quota_pool": "claude-sub",
-      "efforts": ["low", "medium", "high"],
+      "efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
       "tier_rank": 1,
-      "status": "deprecated",
+      "status": "retired",
       "calibration": {
         "type": "external-eval-digitization",
         "source": "waspflow docs/model-economics.md (Anthropic Sonnet-5 announcement charts 2026-06-30)",
@@ -24,24 +32,72 @@
       "id": "claude-haiku-5-5",
       "short": "haiku-5-5",
       "lineage": "anthropic",
-      "pricing": { "in": 0.1, "out": 0.5, "cache_read": 0.01 },
+      "pricing": {
+        "in": 0.1,
+        "out": 0.5,
+        "cache_read": 0.01
+      },
       "pricing_note": "Rates for prompts up to 100,000 tokens. Prompts over 100,000 tokens bill the whole request at 0.5 / 2.5 / 0.05 (see model-catalog pricing long_prompt). New tokenizer: about 30% more tokens than Haiku 4.5 for the same text.",
       "quota_pool": "claude-sub",
-      "efforts": ["low", "medium", "high", "xhigh", "max"],
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
       "tier_rank": 1,
       "status": "active",
-      "calibration": null
+      "calibration": {
+        "type": "external-eval-digitization",
+        "source": "data/model-catalog/performance/anthropic-haiku-5-5-launch-2026-10.json",
+        "date": "2026-10-07",
+        "source_id": "anthropic-haiku-5-5-2026-10-07",
+        "source_url": "https://www.anthropic.com/claude-haiku-5-5",
+        "source_published": "2026-10-07",
+        "evidence": [
+          {
+            "model": "claude-haiku-5-5",
+            "metric": "Terminal-Bench 4.0",
+            "score": 0.392,
+            "unit": "accuracy",
+            "effort": "unknown",
+            "source_id": "anthropic-haiku-5-5-2026-10-07",
+            "caveat": "Launch headline table cell; column 'Haiku 5.5'; displayed qualifier: none. Exact cell: 39.2%. Effort recorded only when the table labels it. The table cell has no effort label. The launch SVG labels this value Max, and System Card 8.4 says max thinking effort; see the digitized and system-card files.",
+            "source_type": "vendor_table",
+            "evidence_grade": "C",
+            "observed_at": "2026-10-07",
+            "effort_verbatim": "unknown",
+            "task_family": "coding",
+            "metric_id": "terminal-bench-4-0",
+            "comparable": false,
+            "comparability_group": "anthropic-haiku-5-5-launch-terminal-bench-4-0",
+            "snapshot_id": "anthropic-haiku-5-5-launch-2026-10-07-terminal-bench-4-0"
+          }
+        ],
+        "note": "Published external evaluation, not a hone replay. Effort and comparability caveats are preserved verbatim; this does not establish hone packet pass rates."
+      }
     },
     "sonnet-5": {
       "provider": "claude",
       "id": "claude-sonnet-5",
       "short": "sonnet",
       "lineage": "anthropic",
-      "pricing": { "in": 2.0, "out": 10.0, "cache_read": 0.2 },
+      "pricing": {
+        "in": 2,
+        "out": 10,
+        "cache_read": 0.2
+      },
       "quota_pool": "claude-sub",
-      "efforts": ["low", "medium", "high", "xhigh", "max"],
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
       "tier_rank": 3,
-      "status": "deprecated",
+      "status": "retired",
       "calibration": {
         "type": "external-eval-digitization",
         "source": "waspflow docs/model-economics.md — BrowseComp: high=79.5%@~$7 (value knee; xhigh marginal 0.38%/$ = poor)",
@@ -54,23 +110,71 @@
       "id": "claude-sonnet-5-5",
       "short": "sonnet-5-5",
       "lineage": "anthropic",
-      "pricing": { "in": 2.0, "out": 10.0, "cache_read": 0.1 },
+      "pricing": {
+        "in": 2,
+        "out": 10,
+        "cache_read": 0.1
+      },
       "quota_pool": "claude-sub",
-      "efforts": ["low", "medium", "high", "xhigh", "max"],
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
       "tier_rank": 3,
       "status": "active",
-      "calibration": null
+      "calibration": {
+        "type": "external-eval-digitization",
+        "source": "data/model-catalog/performance/anthropic-sonnet-5-5-launch-2026-09.json",
+        "date": "2026-09-28",
+        "source_id": "anthropic-sonnet-5-5-2026-09-28",
+        "source_url": "https://www.anthropic.com/claude-sonnet-5-5",
+        "source_published": "2026-09-28",
+        "evidence": [
+          {
+            "model": "claude-sonnet-5-5",
+            "metric": "Terminal-Bench 4.0",
+            "score": 0.706,
+            "unit": "accuracy",
+            "effort": "unknown",
+            "source_id": "anthropic-sonnet-5-5-2026-09-28",
+            "caveat": "Launch headline table cell; displayed qualifier: none. Exact cell: 70.6%. Effort recorded only when the table labels it.",
+            "source_type": "vendor_table",
+            "evidence_grade": "C",
+            "observed_at": "2026-09-28",
+            "effort_verbatim": "unknown",
+            "task_family": "coding",
+            "metric_id": "terminal-bench-4-0",
+            "comparable": false,
+            "comparability_group": "anthropic-sonnet-5-5-launch-terminal-bench-4-0",
+            "snapshot_id": "anthropic-sonnet-5-5-launch-2026-09-28-terminal-bench-4-0"
+          }
+        ],
+        "note": "Published external evaluation, not a hone replay. Effort and comparability caveats are preserved verbatim; this does not establish hone packet pass rates."
+      }
     },
     "opus-4.8": {
       "provider": "claude",
       "id": "claude-opus-4-8",
       "short": "opus",
       "lineage": "anthropic",
-      "pricing": { "in": 5.0, "out": 25.0, "cache_read": 0.5 },
+      "pricing": {
+        "in": 5,
+        "out": 25,
+        "cache_read": 0.5
+      },
       "quota_pool": "claude-sub",
-      "efforts": ["low", "medium", "high", "xhigh", "max"],
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
       "tier_rank": 4,
-      "status": "deprecated",
+      "status": "retired",
       "calibration": {
         "type": "external-eval-digitization",
         "source": "waspflow docs/model-economics.md — BrowseComp: high=82%@~$15; med is a TRAP (0.25%/$) — never route opus below high",
@@ -83,11 +187,20 @@
       "id": "gpt-5.6-sol",
       "short": "gpt-5.6-sol",
       "lineage": "openai",
-      "pricing": { "in": 5.0, "out": 30.0, "cache_read": 0.5 },
+      "pricing": {
+        "in": 5,
+        "out": 30,
+        "cache_read": 0.5
+      },
       "quota_pool": "openai-sub",
-      "efforts": ["low", "medium", "high", "xhigh"],
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
       "tier_rank": 4,
-      "status": "deprecated",
+      "status": "retired",
       "calibration": {
         "type": "external-eval-digitization",
         "source": "minnows model-catalog data-model-catalog-v0.5.2 — GPT-5.6 launch evidence plus vals.ai SWE-bench Verified",
@@ -100,24 +213,214 @@
       "id": "claude-opus-5-5",
       "short": "opus-5-5",
       "lineage": "anthropic",
-      "pricing": { "in": 4, "out": 20, "cache_read": 0.2 },
+      "pricing": {
+        "in": 4,
+        "out": 20,
+        "cache_read": 0.2
+      },
       "quota_pool": "claude-sub",
-      "efforts": ["low", "medium", "high", "xhigh", "max"],
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
       "tier_rank": 4,
       "status": "active",
-      "calibration": null
+      "calibration": {
+        "type": "external-eval-digitization",
+        "source": "data/model-catalog/performance/anthropic-opus-5-5-launch-2026-09.json",
+        "date": "2026-09-22",
+        "source_id": "anthropic-opus-5-5-2026-09-22",
+        "source_url": "https://www.anthropic.com/news/claude-opus-5-5",
+        "source_published": "2026-09-22",
+        "evidence": [
+          {
+            "model": "claude-opus-5-5",
+            "metric": "Terminal-Bench 4.0",
+            "score": 0.664,
+            "unit": "accuracy",
+            "effort": "xhigh",
+            "source_id": "anthropic-opus-5-5-2026-09-22",
+            "caveat": "Best score across effort per source table; footnote states Opus 5.5's best score on this benchmark is at xhigh effort (not max, unlike the rest of the table). Standard error ±2.6 pts.",
+            "source_type": "vendor_table",
+            "evidence_grade": "C",
+            "observed_at": "2026-09-22",
+            "effort_verbatim": "xhigh",
+            "task_family": "coding",
+            "metric_id": "terminal-bench-4-0",
+            "comparable": false,
+            "comparability_group": "anthropic-opus-5-5-launch-terminal-bench-4-0",
+            "snapshot_id": "anthropic-opus-5-5-2026-09-22-2026-09-22--anthropic-opus-5-5-launch-terminal-bench-4-0"
+          }
+        ],
+        "note": "Published external evaluation, not a hone replay. Effort and comparability caveats are preserved verbatim; this does not establish hone packet pass rates."
+      }
     },
     "gpt-6.1-sol": {
       "provider": "codex",
       "id": "gpt-6.1-sol",
       "short": "gpt-6.1-sol",
       "lineage": "openai",
-      "pricing": { "in": 2.0, "out": 10.0, "cache_read": 0.1 },
+      "pricing": {
+        "in": 2,
+        "out": 10,
+        "cache_read": 0.1
+      },
       "quota_pool": "openai-sub",
-      "efforts": ["low", "medium", "high", "xhigh", "max"],
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
       "tier_rank": 4,
       "status": "active",
-      "calibration": null
+      "calibration": {
+        "type": "external-eval-digitization",
+        "source": "data/model-catalog/performance/artificial-analysis-gpt-6-1-sol-2026-09-29.json",
+        "date": "2026-09-29",
+        "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+        "source_url": "https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index",
+        "source_published": null,
+        "evidence": [
+          {
+            "model": "gpt-6.1-sol",
+            "metric": "Terminal-Bench 4.0 (Artificial Analysis)",
+            "score": 0.47979797979798,
+            "unit": "accuracy",
+            "effort": "medium",
+            "source_id": "artificial-analysis-intelligence-index-2026-09-22",
+            "source_type": "third_party_board",
+            "evidence_grade": "B",
+            "observed_at": "2026-09-29",
+            "task_family": "coding",
+            "comparability_group": "artificial-analysis-terminalbench-4-0-2026-09-29",
+            "snapshot_id": "artificial-analysis-intelligence-index-2026-09-29-medium",
+            "comparable": false,
+            "cost": {
+              "value": 0.6137554705459501,
+              "unit": "usd_per_task",
+              "basis": "api_usd"
+            },
+            "caveat": "Per-evaluation row and per-task cost embedded in the Artificial Analysis model detail page; effort is the explicit model variant.",
+            "metric_id": "terminal-bench-4-0"
+          }
+        ],
+        "note": "Published external evaluation, not a hone replay. Effort and comparability caveats are preserved verbatim; this does not establish hone packet pass rates."
+      }
+    },
+    "gpt-6-luna": {
+      "provider": "codex",
+      "id": "gpt-6-luna",
+      "short": "gpt-6-luna",
+      "lineage": "openai",
+      "pricing": {
+        "in": 0.1,
+        "out": 0.5,
+        "cache_read": 0.01
+      },
+      "quota_pool": "openai-sub",
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "tier_rank": 1,
+      "status": "active",
+      "calibration": {
+        "type": "external-eval-digitization",
+        "source": "data/model-catalog/performance/openai-gpt-6-sol-luna-launch-curves-2026-09.json",
+        "date": "2026-09-22",
+        "source_id": "openai-gpt-6-sol-luna-launch-2026-09-22",
+        "source_url": "https://openai.com/index/introducing-gpt-6-sol-and-luna/",
+        "source_published": "2026-09-22",
+        "evidence": [
+          {
+            "model": "gpt-6-luna",
+            "metric": "DeepSWE",
+            "score": 0.4447,
+            "unit": "accuracy",
+            "effort": "medium",
+            "source_id": "openai-gpt-6-sol-luna-launch-2026-09-22",
+            "caveat": "AI agents solve original, long-horizon software engineering tasks (DeepSWE 1.1).",
+            "source_type": "vendor_table",
+            "evidence_grade": "C",
+            "observed_at": "2026-09-22",
+            "effort_verbatim": "medium",
+            "task_family": "coding",
+            "metric_id": "deepswe-v1-1",
+            "cost": {
+              "value": 0.0518,
+              "unit": "usd_per_task",
+              "basis": "api_usd"
+            },
+            "comparable": false,
+            "comparability_group": "vendor-launch-chart-deepswe-v1-1",
+            "snapshot_id": "openai-gpt-6-sol-luna-launch-2026-09-22-2026-09-22"
+          }
+        ],
+        "note": "Published external evaluation, not a hone replay. Effort and comparability caveats are preserved verbatim; this does not establish hone packet pass rates."
+      }
+    },
+    "gpt-6-astra": {
+      "provider": "codex",
+      "id": "gpt-6-astra",
+      "short": "gpt-6-astra",
+      "lineage": "openai",
+      "pricing": {
+        "in": 10,
+        "out": 50,
+        "cache_read": 1
+      },
+      "quota_pool": "openai-sub",
+      "efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "tier_rank": 5,
+      "status": "active",
+      "calibration": {
+        "type": "external-eval-digitization",
+        "source": "data/model-catalog/performance/openai-gpt-6-astra-launch-2026-09.json",
+        "date": "2026-09-05",
+        "source_id": "openai-gpt-6-astra-launch-2026-09-05",
+        "source_url": "https://openai.com/index/gpt-6-astra/",
+        "source_published": null,
+        "evidence": [
+          {
+            "model": "gpt-6-astra",
+            "metric": "DeepSWE v1.1",
+            "score": 0.732,
+            "unit": "accuracy",
+            "effort": "high",
+            "source_id": "openai-gpt-6-astra-launch-2026-09-05",
+            "caveat": "Vendor-published launch chart; point estimate with no confidence interval.",
+            "source_type": "vendor_table",
+            "evidence_grade": "C",
+            "observed_at": "2026-09-05",
+            "effort_verbatim": "high",
+            "task_family": "coding",
+            "metric_id": "deepswe-v1-1",
+            "cost": {
+              "value": 3.9,
+              "unit": "usd_per_task",
+              "basis": "api_usd"
+            },
+            "comparable": false,
+            "comparability_group": "vendor-launch-chart-deepswe-v1-1",
+            "snapshot_id": "openai-gpt-6-astra-launch-2026-09-05-2026-09-05"
+          }
+        ],
+        "note": "Published external evaluation, not a hone replay. Effort and comparability caveats are preserved verbatim; this does not establish hone packet pass rates."
+      }
     }
   }
 }

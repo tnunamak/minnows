@@ -38,7 +38,7 @@ export function loadRegistry(path = DEFAULT_REGISTRY_PATH) {
       bad(`${at}.efforts: non-empty subset of [${EFFORTS.join('|')}] required`);
     }
     if (!Number.isInteger(m.tier_rank) || m.tier_rank < 1) bad(`${at}.tier_rank: int >= 1 required`);
-    if (!['active', 'deprecated', 'experimental'].includes(m.status)) bad(`${at}.status: active|deprecated|experimental required`);
+    if (!['active', 'deprecated', 'retired', 'experimental'].includes(m.status)) bad(`${at}.status: active|deprecated|retired|experimental required`);
     if (m.calibration !== null && (typeof m.calibration !== 'object' || Array.isArray(m.calibration) ||
       typeof m.calibration.source !== 'string' || typeof m.calibration.date !== 'string')) {
       bad(`${at}.calibration: null (uncalibrated => routing-ineligible) or {type, source, date, note?} required`);
