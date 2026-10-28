@@ -16,7 +16,10 @@ when current authorization succeeds.
 The check preserves the effort option key while accepting object or list options.
 A recorded refusal, legacy experimental authorization, changed target, revoked
 declaration or non-public input refuses launch. It reads policy and receipts
-without recording a decision or probing providers. `--policy` and `--receipts`
+without recording a decision or probing providers. It rejects `--sensitive` and
+`--data-classification` rather than overriding or ignoring the stored safety facts.
+If those facts change, obtain a new `route` or `resolve` receipt before checking
+launch authorization. `--policy` and `--receipts`
 can select explicit files for integration tests. Install this command before the
 paired delegation gate and regenerate that gate's model allowlist.
 

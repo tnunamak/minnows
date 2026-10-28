@@ -952,8 +952,10 @@ def authorize_launch(args, policy):
     No availability/quota helper, account reader or destination command is executed here.
     """
     if (args.now is not None or args.record or args.available is not None or args.quota is not None
-            or args.op is not None or not args.decision_id or not args.launch_target):
-        raise ValueError('authorize-launch requires --decision-id and --launch-target only (plus --receipts/--policy/--json)')
+            or args.op is not None or args.sensitive or args.data_classification is not None
+            or not args.decision_id or not args.launch_target):
+        raise ValueError('authorize-launch requires --decision-id and --launch-target only (plus --receipts/--policy/--json); '
+                         'changed safety facts require a new route or resolve receipt')
     validate_id(args.decision_id)
     target = launch_target_identity(json.loads(args.launch_target))
     receipt = find_receipt(args.receipts, args.decision_id)

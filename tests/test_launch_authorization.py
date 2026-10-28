@@ -97,6 +97,16 @@ class LaunchAuthorizationTests(unittest.TestCase):
         self.receipt['launch_facts']['sensitive'] = True
         self.authorization(False)
 
+    def test_current_safety_flags_are_rejected_instead_of_ignored(self):
+        for extra in (('--sensitive',), ('--data-classification', 'sensitive'),
+                      ('--sensitive', '--data-classification', 'public'),
+                      ('--data-classification', 'public')):
+            with self.subTest(extra=extra):
+                proc = self.run_bridge(extra=extra)
+                self.assertNotEqual(proc.returncode, 0, proc.stdout)
+                self.assertIn('authorize-launch requires', proc.stderr)
+                self.assertEqual(proc.stdout, '', 'unsupported facts must not produce authorization')
+
     def test_no_record_no_probes_no_simulated_clock(self):
         for extra in (('--record',), ('--available', 'auto'), ('--available', ''), ('--quota', 'auto'), ('--quota', ''), ('--now', ''), ('--now', '2026-10-28T00:00:00Z')):
             with self.subTest(extra=extra):
