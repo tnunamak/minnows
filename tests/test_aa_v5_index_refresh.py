@@ -330,6 +330,38 @@ def test_new_metric_ids_are_defined_once():
         assert ids.count(new) == 1
 
 
+def test_frontiercode_rows_are_available_to_existing_coding_advice():
+    from test_recommend_ops import ro
+
+    catalog = ro.Catalog.from_dir(CATALOG)
+    ops = {o['id'] for o in _load(POLICY / 'operating-points.json')['operating_points']}
+    requirements = ro.load_requirements(POLICY / 'op-requirements.json', catalog, ops)
+    for op in ('implement.standard', 'implement.quota-tight', 'implement.oracle-bounded',
+               'implement.accuracy-first', 'review.audit'):
+        assert 'frontiercode-2-0' in requirements['ops'][op]['evidence_metrics'], op
+
+
+def test_change_table_preserves_missing_costs_and_every_current_index_score():
+    lines = (CATALOG / 'AA-INDEX-CHANGES.md').read_text().splitlines()
+    table = [[v.strip() for v in line.strip('|').split('|')]
+             for line in lines if line.startswith('|')]
+    header = table[0]
+    rows = {(r[0], r[1]): r for r in table[2:]}
+    partial = {_key(r): r for r in _v5_rows(_load(PARTIAL))}
+    for key, old in partial.items():
+        cost = rows[key][header.index('partial v5 score / $')].split(' / ')[1]
+        if 'cost' not in old:
+            assert cost == '—', (key, 'missing historical cost must not become zero', cost)
+    for current in _v5_rows(_load(FULL)):
+        key = _key(current)
+        assert key in rows, ('unpriced Index settings still need a score row', key)
+        row = rows[key]
+        assert float(row[header.index('v5.0 score')]) == round(current['score'], 2)
+        if 'cost' not in current:
+            assert row[header.index('v5.0 $/task')] == '—'
+            assert row[header.index('v5 frontier')] == 'unpriced'
+
+
 def test_benchmark_advice_cannot_rewrite_configured_pairs_or_candidates(tmp_path):
     # Benchmark frontiers only nominate candidates. Rewriting every v5 score and cost in a copy of the catalog
     # may change advisory recommendations, but must never write the configured policy.

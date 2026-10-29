@@ -68,6 +68,8 @@ Full list: `missing[]` in the snapshot file.
 
 ## Policy pairs (shared pack, `operating-points.json` v0.2.10)
 
+FrontierCode 2.0 carries the existing `coding` metric tag, so advisory coding operations can consider its rows. Those rows have no per-eval cost; the aggregate Index cost is not substituted for it. The other four new metric definitions (AutomationBench-AA, HLE-Diamond, CritPt v2 hard and AA-Omniscience v1.1) remain outside automatic operation matching until their task fit is mapped explicitly. Their scores are still stored. This is an explicit advisory coverage gap, not evidence that they are irrelevant.
+
 Each row is a configured pair or a candidate. Frontier status is on the v5 frontier above. Scores are v5.0 Index values; no pick changed.
 
 | Op | Role | Setting | v5 score | v5 $/task | v5 frontier |

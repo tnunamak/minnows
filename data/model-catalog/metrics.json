@@ -2980,6 +2980,7 @@
       "harness": null,
       "steward": "third_party_board",
       "unit_default": "accuracy",
+      "task_family": "coding",
       "comparable": false,
       "notes": "Cognition's private benchmark of real-world coding tasks, graded on whether a repository maintainer would merge the change. In the v5 Index at 15% of the overall Index, within Coding. Distinct from frontiercode-1-1-main and frontiercode-1-1-extended."
     },
