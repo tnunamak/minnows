@@ -282,7 +282,7 @@ curl -fsSL -L \
 
 # or
 ./scripts/fetch-data-pack.sh model-catalog
-./scripts/fetch-data-pack.sh model-catalog v0.5.16
+./scripts/fetch-data-pack.sh model-catalog v0.5.17
 ```
 
 ### Local

@@ -54,7 +54,7 @@
         "Low effort does not clear the bar: Haiku 5.5 low trails Sonnet 5.5 low on GDPval-AA (1125 vs 1179) and Briefcase (1112 vs 1272), and saves only $0.02 per task over medium.",
         "AA cost figures omit Haiku 5.5's 5x rate above 100k prompt tokens. At that rate ($0.50/$2.50 per MTok) it still costs a quarter of Sonnet 5.5 ($2/$10).",
         "No local success-rate series for the recover task family. AA does not say whether its Haiku 5.5 runs used a pre-release deployment.",
-        "AA Intelligence Index v5.0 (data-model-catalog-v0.5.17, read 2026-10-28): claude-haiku-5-5 medium 24.55 at $0.0918 per task, not on the v5 frontier; claude-sonnet-5-5 medium 30.32 at $0.7807 per task, not on the v5 frontier. Frontier is computed within one regime on the v5 full snapshot. Any Index value quoted elsewhere in this point is a v4.3.2 reading, not comparable with v5. This refresh adds benchmark priors, not own complete-workflow cost evidence. The versioned pick remains provisional; frontier membership only nominates candidates and never establishes cost per accepted result."
+        "AA Intelligence Index v5.0 (catalog v0.5.17): shortlist only; see AA-INDEX-SNAPSHOTS.md. Own cost per accepted result is unmeasured; pick provisional."
       ],
       "override_policy": "explicit_flags_win",
       "candidates": [
@@ -118,7 +118,7 @@
         "Re-checked 2026-10-07 against same-snapshot AA rows (grade B): GPT-6.1 Sol medium scores 62.6% on AutomationBench at $0.196 per task, against Opus 5.5 medium 61.2% at $0.638 and Sonnet 5.5 medium 54.9% at $0.262. Opus leads on GDPval-AA (1586 vs 1433) at about three times the cost.",
         "No bounded code-navigation benchmark exists; AA's agentic evals are the closest proxy. Fall back to Opus 5.5 medium by explicit flags if scouts return wrong locations.",
         "Moved claude-opus-5-5/medium -> codex/gpt-6.1-sol/medium on 2026-09-30 (v0.1.16).",
-        "AA Intelligence Index v5.0 (data-model-catalog-v0.5.17, read 2026-10-28): gpt-6.1-sol medium 46.15 at $0.3594 per task, on the v5 frontier; claude-opus-5-5 medium 48.06 at $2.4511 per task, not on the v5 frontier; claude-sonnet-5-5 medium 30.32 at $0.7807 per task, not on the v5 frontier. Frontier is computed within one regime on the v5 full snapshot. Any Index value quoted elsewhere in this point is a v4.3.2 reading, not comparable with v5. This refresh adds benchmark priors, not own complete-workflow cost evidence. The versioned pick remains provisional; frontier membership only nominates candidates and never establishes cost per accepted result."
+        "AA Intelligence Index v5.0 (catalog v0.5.17): shortlist only; see AA-INDEX-SNAPSHOTS.md. Own cost per accepted result is unmeasured; pick provisional."
       ],
       "override_policy": "explicit_flags_win",
       "candidates": [
@@ -194,7 +194,7 @@
         "Medium, not high: on OpenAI's Agents' Last Exam curve (vendor, grade C) Luna medium scores 46.8% and high 43.6%.",
         "OpenAI reports that Luna at max hides a broken search tool in 28.7% of cases (GPT-6 Sol: 4.9%). That is why verified results are a use_when condition.",
         "Haiku 5.5 medium has the same list price and beats Luna on GDPval-AA (1277) and Briefcase (1372 vs 1099) but loses on AutomationBench (28.6%). Use it by explicit flags when the Claude pool is the cheaper one.",
-        "AA Intelligence Index v5.0 (data-model-catalog-v0.5.17, read 2026-10-28): gpt-6-luna medium 18.30 at $0.0422 per task, on the v5 frontier; claude-sonnet-5-5 medium 30.32 at $0.7807 per task, not on the v5 frontier. Frontier is computed within one regime on the v5 full snapshot. Any Index value quoted elsewhere in this point is a v4.3.2 reading, not comparable with v5. This refresh adds benchmark priors, not own complete-workflow cost evidence. The versioned pick remains provisional; frontier membership only nominates candidates and never establishes cost per accepted result."
+        "AA Intelligence Index v5.0 (catalog v0.5.17): shortlist only; see AA-INDEX-SNAPSHOTS.md. Own cost per accepted result is unmeasured; pick provisional."
       ],
       "override_policy": "explicit_flags_win",
       "candidates": [
@@ -262,7 +262,7 @@
         "Haiku 5.5 medium loses on closed-book recall: HLE without tools 33.8% vs 36.2%, AA-Omniscience 4.5 vs 19.4. This op reads the docs, so recall does not decide it, and AA-LCR (long-context reading) has Haiku 5.5 medium at 77.3%. The lane must say when the docs do not answer the question; escalate to advisor.deep then, or when citations fail verification.",
         "Low effort does not clear the bar: Haiku 5.5 low trails Sonnet 5.5 low on GDPval-AA (1125 vs 1179) and Briefcase (1112 vs 1272), and saves only $0.02 per task over medium.",
         "AA cost figures omit Haiku 5.5's 5x rate above 100k prompt tokens. At that rate ($0.50/$2.50 per MTok) it still costs a quarter of Sonnet 5.5 ($2/$10).",
-        "AA Intelligence Index v5.0 (data-model-catalog-v0.5.17, read 2026-10-28): claude-haiku-5-5 medium 24.55 at $0.0918 per task, not on the v5 frontier; claude-sonnet-5-5 medium 30.32 at $0.7807 per task, not on the v5 frontier. Frontier is computed within one regime on the v5 full snapshot. Any Index value quoted elsewhere in this point is a v4.3.2 reading, not comparable with v5. This refresh adds benchmark priors, not own complete-workflow cost evidence. The versioned pick remains provisional; frontier membership only nominates candidates and never establishes cost per accepted result."
+        "AA Intelligence Index v5.0 (catalog v0.5.17): shortlist only; see AA-INDEX-SNAPSHOTS.md. Own cost per accepted result is unmeasured; pick provisional."
       ],
       "override_policy": "explicit_flags_win",
       "candidates": [
@@ -329,7 +329,7 @@
         "Re-checked 2026-10-07: Opus 5.5 leads GPT-6.1 Sol on the independent coding boards: Vals Terminal-Bench 4.0 65.2% vs 55.1%, AA Terminal-Bench 4.0 at medium 52.5% vs 48.0%, AA SciCode at medium 59.3% vs 53.2%. Sonnet 5.5 medium (AA Terminal-Bench 4.0 29.8%) and Haiku 5.5 medium (15.2%) do not clear the bar. Moving this op to Codex would also break review.audit's different-vendor rule.",
         "Independent boards mostly test at max effort; the medium-effort choice rests on Anthropic's own effort curves (grade C), where Opus 5.5 medium beats GPT-6 Astra medium on Terminal-Bench 4.0 (57.6% at $2.94 vs 53.9% at $6.15).",
         "Derived with scripts/recommend_ops.py against op-requirements.json (DRAFT); rerun on each catalog release.",
-        "AA Intelligence Index v5.0 (data-model-catalog-v0.5.17, read 2026-10-28): claude-opus-5-5 medium 48.06 at $2.4511 per task, not on the v5 frontier; gpt-6.1-sol medium 46.15 at $0.3594 per task, on the v5 frontier. Frontier is computed within one regime on the v5 full snapshot. Any Index value quoted elsewhere in this point is a v4.3.2 reading, not comparable with v5. This refresh adds benchmark priors, not own complete-workflow cost evidence. The versioned pick remains provisional; frontier membership only nominates candidates and never establishes cost per accepted result."
+        "AA Intelligence Index v5.0 (catalog v0.5.17): shortlist only; see AA-INDEX-SNAPSHOTS.md. Own cost per accepted result is unmeasured; pick provisional."
       ],
       "override_policy": "explicit_flags_win",
       "candidates": [
@@ -390,7 +390,7 @@
         "Re-checked 2026-10-07: Haiku 5.5 does not clear this bar at the allowed efforts. AA Terminal-Bench 4.0 (same snapshot): Haiku 5.5 medium 15.2% vs Sonnet 5.5 medium 29.8%. Anthropic's launch table: 39.2% vs 70.6%. Haiku 5.5 reaches Sonnet's medium score only at xhigh (29.3%), which needs an override reason.",
         "Medium, not low: Sonnet 5.5 low scores 20.7% on AA Terminal-Bench 4.0 and 20.0% on Anthropic's curve, against 29.8% and 28.8% at medium.",
         "For Codex-pool patches that a test suite decides, use implement.oracle-bounded.",
-        "AA Intelligence Index v5.0 (data-model-catalog-v0.5.17, read 2026-10-28): claude-sonnet-5-5 medium 30.32 at $0.7807 per task, not on the v5 frontier; gpt-6.1-sol medium 46.15 at $0.3594 per task, on the v5 frontier. Frontier is computed within one regime on the v5 full snapshot. Any Index value quoted elsewhere in this point is a v4.3.2 reading, not comparable with v5. This refresh adds benchmark priors, not own complete-workflow cost evidence. The versioned pick remains provisional; frontier membership only nominates candidates and never establishes cost per accepted result."
+        "AA Intelligence Index v5.0 (catalog v0.5.17): shortlist only; see AA-INDEX-SNAPSHOTS.md. Own cost per accepted result is unmeasured; pick provisional."
       ],
       "override_policy": "explicit_flags_win",
       "candidates": [
@@ -463,7 +463,7 @@
         "High, not medium: on DeepSWE v1.1, Luna rises from 44.5% to 59.3% for $0.03 more per task, which lowers expected cost under the oracle gate.",
         "Independent boards show where Luna fails: Terminal-Bench 4.0 at max is 13.6% on Vals and 16.4% on tbench.ai, against 55.1% and 58.2% for GPT-6.1 Sol, and AA has Luna high at 4.6%. Long terminal tasks are therefore in avoid_when.",
         "No independent board measures Luna on bounded repository patches. A local eval with hidden tests would measure the pass rate against the one-in-three threshold.",
-        "AA Intelligence Index v5.0 (data-model-catalog-v0.5.17, read 2026-10-28): gpt-6-luna high 21.38 at $0.0729 per task, not on the v5 frontier; claude-sonnet-5-5 medium 30.32 at $0.7807 per task, not on the v5 frontier. Frontier is computed within one regime on the v5 full snapshot. Any Index value quoted elsewhere in this point is a v4.3.2 reading, not comparable with v5. This refresh adds benchmark priors, not own complete-workflow cost evidence. The versioned pick remains provisional; frontier membership only nominates candidates and never establishes cost per accepted result."
+        "AA Intelligence Index v5.0 (catalog v0.5.17): shortlist only; see AA-INDEX-SNAPSHOTS.md. Own cost per accepted result is unmeasured; pick provisional."
       ],
       "override_policy": "explicit_flags_win",
       "candidates": [
@@ -530,7 +530,7 @@
         "Vendor harnesses not cross-vendor comparable; independent support is vals.ai Terminal-Bench 4.0 (grade C: Opus 5.5 61.6% vs GPT-6 Astra 57.1%) and AA Intelligence Index v4.3.2 (grade B: 57.6 vs 52.7 at max)",
         "Moves load from the Codex pool to the Claude pool; check clawmeter headroom before bulk use",
         "Effort 'high' chosen from vendor curves: Terminal-Bench 4.0 high 64.2% at $3.88/task vs xhigh 66.4% at $7.35/task",
-        "AA Intelligence Index v5.0 (data-model-catalog-v0.5.17, read 2026-10-28): claude-opus-5-5 high 51.69 at $3.4647 per task, not on the v5 frontier; gpt-6.1-sol high 50.23 at $0.5910 per task, on the v5 frontier. Frontier is computed within one regime on the v5 full snapshot. Any Index value quoted elsewhere in this point is a v4.3.2 reading, not comparable with v5. This refresh adds benchmark priors, not own complete-workflow cost evidence. The versioned pick remains provisional; frontier membership only nominates candidates and never establishes cost per accepted result."
+        "AA Intelligence Index v5.0 (catalog v0.5.17): shortlist only; see AA-INDEX-SNAPSHOTS.md. Own cost per accepted result is unmeasured; pick provisional."
       ],
       "override_policy": "explicit_flags_win",
       "candidates": [
@@ -590,11 +590,11 @@
         "implement.standard"
       ],
       "known_gaps": [
-        "Re-checked 2026-10-07: at high effort, the op's setting, GPT-6.1 Sol ties GPT-6 Astra on the independent boards that report high: AA Intelligence Index 50.2 vs 50.9 ($0.32 vs $1.73 per task) and ARC-AGI-2 91.7% vs 92.1% ($0.135 vs $0.668 per task). At max, Astra leads by 1 to 4 points on AA's per-eval rows and the Vals Index (63.1% vs 61.2%), and the two tie on tbench.ai Terminal-Bench 4.0 (58.2%). Vals Terminal-Bench 4.0, which does not state effort, has Astra at 59.6% and GPT-6.1 Sol at 55.1%. Under the pack's cost model ($100 per missed defect, no detection), the 0.4-point ARC-AGI-2 gap at high is worth $0.40 per task, which is less than Astra's $0.53 extra cost per task. GPT-6.1 Sol high is therefore the strongest evidenced different-vendor arm for its cost. Astra stays available by explicit flag.",
+        "Historical 2026-10-07 audit comparison: see PICK-EVIDENCE.md. This benchmark prior does not measure own audit recall or accepted-result cost.",
         "Different vendor from the Claude makers (implement.standard, implement.accuracy-first). Opus 5.5 scores higher on coding boards but would check its own vendor's work.",
         "No independent benchmark measures audit recall; a seeded-defect local eval would decide between the tied models.",
         "GPT-6 Luna is not a candidate: it scores 13.6% to 16.4% on independent Terminal-Bench 4.0 runs.",
-        "AA Intelligence Index v5.0 (data-model-catalog-v0.5.17, read 2026-10-28): gpt-6.1-sol high 50.23 at $0.5910 per task, on the v5 frontier; claude-opus-5-5 high 51.69 at $3.4647 per task, not on the v5 frontier; claude-sonnet-5-5 high 41.12 at $1.6361 per task, not on the v5 frontier. Frontier is computed within one regime on the v5 full snapshot. Any Index value quoted elsewhere in this point is a v4.3.2 reading, not comparable with v5. This refresh adds benchmark priors, not own complete-workflow cost evidence. The versioned pick remains provisional; frontier membership only nominates candidates and never establishes cost per accepted result."
+        "AA Intelligence Index v5.0 (catalog v0.5.17): shortlist only; see AA-INDEX-SNAPSHOTS.md. Own cost per accepted result is unmeasured; pick provisional."
       ],
       "override_policy": "explicit_flags_win",
       "candidates": [
@@ -668,7 +668,7 @@
         "Re-checked 2026-10-07: at high effort Opus 5.5 leads the AA Intelligence Index (53.6, against 50.9 for GPT-6 Astra and 50.2 for GPT-6.1 Sol) and ARC-AGI-2 (93.3%, against 92.1% and 91.7%).",
         "No benchmark measures design/synthesis advice directly; choice rests on Opus 5.5 dominating Sonnet 5, Opus 5 and Fable 5.1 on AA Intelligence Index v4.3.2 (grade B) and agentic-coding curves (vendor, grade C)",
         "Claude-family advisor reviewing Claude-family implementers is not a cross-model check; escalate to review.audit for independence",
-        "AA Intelligence Index v5.0 (data-model-catalog-v0.5.17, read 2026-10-28): claude-opus-5-5 high 51.69 at $3.4647 per task, not on the v5 frontier; gpt-6.1-sol high 50.23 at $0.5910 per task, on the v5 frontier. Frontier is computed within one regime on the v5 full snapshot. Any Index value quoted elsewhere in this point is a v4.3.2 reading, not comparable with v5. This refresh adds benchmark priors, not own complete-workflow cost evidence. The versioned pick remains provisional; frontier membership only nominates candidates and never establishes cost per accepted result."
+        "AA Intelligence Index v5.0 (catalog v0.5.17): shortlist only; see AA-INDEX-SNAPSHOTS.md. Own cost per accepted result is unmeasured; pick provisional."
       ],
       "override_policy": "explicit_flags_win",
       "candidates": [
@@ -732,7 +732,7 @@
         "Re-checked 2026-10-07: on AA AutomationBench (same snapshot, grade B) GPT-6.1 Sol medium scores 62.6% at $0.196 per task, against Opus 5.5 medium 61.2% ($0.638), Sonnet 5.5 medium 54.9% ($0.262), GPT-6 Luna medium 40.5% and Haiku 5.5 medium 28.6%.",
         "OSWorld still has no harness shared across vendors: Anthropic reports OSWorld 2.1 (Haiku 5.5 medium 53.3%, Sonnet 5.5 medium 66.0%) and OpenAI reports OSWorld 2.0 (GPT-6 Sol medium 54.0%). AutomationBench is workflow automation, not GUI control, so confidence stays low until a local computer-use eval runs.",
         "Moved codex/gpt-6-astra/medium -> codex/gpt-6.1-sol/medium on 2026-09-30 (v0.1.16).",
-        "AA Intelligence Index v5.0 (data-model-catalog-v0.5.17, read 2026-10-28): gpt-6.1-sol medium 46.15 at $0.3594 per task, on the v5 frontier; claude-opus-5-5 medium 48.06 at $2.4511 per task, not on the v5 frontier. Frontier is computed within one regime on the v5 full snapshot. Any Index value quoted elsewhere in this point is a v4.3.2 reading, not comparable with v5. This refresh adds benchmark priors, not own complete-workflow cost evidence. The versioned pick remains provisional; frontier membership only nominates candidates and never establishes cost per accepted result."
+        "AA Intelligence Index v5.0 (catalog v0.5.17): shortlist only; see AA-INDEX-SNAPSHOTS.md. Own cost per accepted result is unmeasured; pick provisional."
       ],
       "override_policy": "explicit_flags_win",
       "candidates": [
@@ -793,7 +793,7 @@
         "No repo-repair quality curve \u2014 deliberately not invented",
         "grok-4.7 chosen by rule 1, not by benchmark ranking: it is the only model the authenticated grok CLI offers (grok-4.6 and grok-4.5 left the list on 2026-09-23), and the newest GA model in xAI's flagship tier. Effort medium is rule 1's default; the vendor default is high.",
         "Signed off by an independent Claude Opus 5.5 review (rounds 1 and 2, 2026-09-23).",
-        "AA Intelligence Index v5.0 (data-model-catalog-v0.5.17, read 2026-10-28): grok-4.7 medium: no v5 Index value. Frontier is computed within one regime on the v5 full snapshot. Any Index value quoted elsewhere in this point is a v4.3.2 reading, not comparable with v5. This refresh adds benchmark priors, not own complete-workflow cost evidence. The versioned pick remains provisional; frontier membership only nominates candidates and never establishes cost per accepted result."
+        "AA Intelligence Index v5.0 (catalog v0.5.17): shortlist only; see AA-INDEX-SNAPSHOTS.md. Own cost per accepted result is unmeasured; pick provisional."
       ],
       "override_policy": "explicit_flags_win",
       "notes": "Visible exploration point; not a recommended default."
@@ -838,7 +838,7 @@
         "Exact Jev version/question hashes, contract evidence, expiry, cost scope and usable local adapter must be supplied by destination configuration; Jev is not registered as a T3 chat model.",
         "Classification, triage, severity, duplicates and preclassification are candidate typed domains, not accepted operations merely because their output is typed.",
         "Evidence and limitations: https://github.com/tnunamak/divan/tree/35b8851/case-studies/personal-workflow/2026-10-16-jev-lead-rule-checks",
-        "AA Intelligence Index v5.0 (data-model-catalog-v0.5.17, read 2026-10-28): claude-haiku-5-5 medium 24.55 at $0.0918 per task, not on the v5 frontier. Frontier is computed within one regime on the v5 full snapshot. Any Index value quoted elsewhere in this point is a v4.3.2 reading, not comparable with v5. This refresh adds benchmark priors, not own complete-workflow cost evidence. The versioned pick remains provisional; frontier membership only nominates candidates and never establishes cost per accepted result."
+        "AA Intelligence Index v5.0 (catalog v0.5.17): shortlist only; see AA-INDEX-SNAPSHOTS.md. Own cost per accepted result is unmeasured; pick provisional."
       ],
       "override_policy": "explicit_flags_win"
     }

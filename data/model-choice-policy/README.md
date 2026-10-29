@@ -154,10 +154,11 @@ not silently route by model name.
 ### v0.2.10 — 2026-10-28
 
 - Pins catalog v0.5.17, which moves the cost-vs-intelligence chart to AA Intelligence Index v5.0 and adds the v5 full snapshot. No operating point changes: `expands_to`, candidates, bases and `frontier_assumption` are unchanged.
-- Adds the v5 full snapshot as an evidence ref to each operating point, with one known-gap line per point: the v5 score, USD per task and frontier status of each configured pair and candidate. v4.3.2 readings quoted elsewhere in each point are a different regime and are not used for routing.
+- Adds the v5 full snapshot as an evidence ref to each operating point, with a short known-gap pointer per point; the linked snapshot note lists each configured pair and candidate's v5 score, USD per task and frontier status without copying those details into every receipt. v4.3.2 readings quoted elsewhere in each point are a different regime and are not used for routing.
 - Advisory statuses and recommended model settings from `scripts/recommend_ops.py` remain unchanged for all 13 ops. FrontierCode 2.0 is now tagged as coding evidence for the existing coding operations; it has no per-eval cost, so no aggregate cost is borrowed to force a recommendation.
 - Luna max (`gpt-6-luna` max) and Haiku 5.5 max (`claude-haiku-5-5` max) are not in the shared pack: the shared defaults and automatic candidates do not list those max settings. `op-requirements.json` bounds the advisory recommender, not permission for explicit overrides. A local owner overlay allows both as explicit choices for `implement.oracle-bounded`. This release does not change that overlay. In AA v5 they score 27.76 at $0.152 per task (Luna max) and 36.23 at $0.411 (Haiku 5.5 max); neither is on the v5 frontier.
 - Each operating point's v5 known-gap line labels this refresh as benchmark priors, not proof of lowest own cost per accepted result. Picks remain provisional. [The pick-evidence audit](PICK-EVIDENCE.md) separates locally observed closes from complete workflow costs and records why this release does not rerank them.
+- Keeps the dated audit comparison in PICK-EVIDENCE.md instead of duplicating it in each receipt; the receipt size budget is unchanged.
 - Catalog pin: **v0.5.17**.
 
 ### v0.2.9 — 2026-10-28

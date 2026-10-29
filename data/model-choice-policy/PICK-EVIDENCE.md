@@ -37,3 +37,9 @@ Changing an AA score, cost, chart frontier or advisory recommendation does not r
 ## What is not enforced yet
 
 The router does not automatically choose the empirical least-cost complete workflow: the required comparable observations are missing. This release adds no learned ranking, arbitrary minimum-sample threshold or fabricated USD conversion. A future cost-supported pick change must identify the accepted-result standard, model version and effort, full workflow boundary, missing costs, uncertainty and owner decision. Until then the defaults are provisional choices, not measured optima. Raw local records and identifiers are excluded from this public pack.
+
+## Historical audit prior (2026-10-07)
+
+The following earlier rationale is retained for provenance, not as a current v5 comparison or a measured own-cost choice. Receipts link here instead of copying this dated analysis into every audit delegation.
+
+> Re-checked 2026-10-07: at high effort, the op's setting, GPT-6.1 Sol ties GPT-6 Astra on the independent boards that report high: AA Intelligence Index 50.2 vs 50.9 ($0.32 vs $1.73 per task) and ARC-AGI-2 91.7% vs 92.1% ($0.135 vs $0.668 per task). At max, Astra leads by 1 to 4 points on AA's per-eval rows and the Vals Index (63.1% vs 61.2%), and the two tie on tbench.ai Terminal-Bench 4.0 (58.2%). Vals Terminal-Bench 4.0, which does not state effort, has Astra at 59.6% and GPT-6.1 Sol at 55.1%. Under the pack's cost model ($100 per missed defect, no detection), the 0.4-point ARC-AGI-2 gap at high is worth $0.40 per task, which is less than Astra's $0.53 extra cost per task. GPT-6.1 Sol high is therefore the strongest evidenced different-vendor arm for its cost. Astra stays available by explicit flag.
