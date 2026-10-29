@@ -2,6 +2,11 @@
 
 Newest first. The README links here; this file is the single record.
 
+## v0.5.17 — 2026-10-29
+
+- Correct GPT-6.1 Terra's API model note: the OpenAI model page gives a 1,050,000-token context and 128,000-token maximum output, but does not state a separate input cap. The 922,000-token difference is derived, not a stated limit.
+- Record Artificial Analysis' low-, medium- and high-effort Intelligence cost per task for Terra ($0.07, $0.17 and $0.26) as aggregate benchmark costs, not cost per success for an operation.
+
 ## v0.5.16 — 2026-10-28
 
 - Added OpenAI GPT-6.1 Terra (`gpt-6.1-terra`, tier `terra`, status `ga`, released 2026-10-26 per the OpenAI API changelog). Standard API price is $1.00 input, $0.05 cached input and $5.00 output per M tokens; cache writes are $1.25 for 30 minutes and $2.50 for 12 hours. Above 272K input tokens the rates are $2.00, $0.10 and $7.50, with cache writes of $2.50 and $5.00, and the `long_prompt` tier bills the whole request. The row is in `pricing/openai-api-2026-07.json`; no rule before it matches the id. The model has `api` and `codex_cli` effort surfaces. Its API default is `medium`, and its Codex default is `low`.

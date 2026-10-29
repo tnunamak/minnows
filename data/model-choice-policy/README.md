@@ -10,14 +10,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.2.10](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.10) — unreleased; published by CI after merge to main |
+| **This version** | [data-model-choice-policy-v0.2.11](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.11) — unreleased; published by CI after merge to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.2.10
+TAG=data-model-choice-policy-v0.2.11
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -150,6 +150,10 @@ not silently route by model name.
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.2.11 — 2026-10-29
+
+- Repin to catalog v0.5.17. It corrects Terra's derived input-cap note and records aggregate Intelligence benchmark costs at low, medium and high effort; these costs do not establish operation cost per success. No primary operating point changes.
 
 ### v0.2.10 — 2026-10-29
 
