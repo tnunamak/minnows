@@ -153,10 +153,11 @@ def test_a_declared_unverified_account_is_withheld_even_by_an_explicit_override(
     assert out['launch_ready'] is True and out['target']['providerInstanceId'] == 'claude-api'
 
 
-def test_unknown_forecasts_are_not_dispatchable_headroom(world):
+def test_missing_forecasts_without_applicable_readings_are_not_live_room(world):
     for provider in world.quota['providers'].values():
         for source in provider.get('sources', [provider]):
             source['forecast']['windows'].clear()
+            source['usage']['windows'].clear()
     out = route(world)
     assert out['target'] is None and out['waiting']['state'] == 'no_forecast_headroom'
 
@@ -306,3 +307,206 @@ def test_check_validates_the_bands(world, bands, ok):
 def test_the_shipped_pack_carries_no_bands():
     policy = json.loads((REPO / 'data/model-choice-policy/operating-points.json').read_text())
     assert 'quota_bands' not in (policy.get('routing') or {})
+
+
+# Scrubbed facts from observed-cleanup-1029 and observed-cleanup-1029-r2,
+# supplied with routing-false-wait-build-dot-20261029. These receipts had NO
+# telemetry, despite the caller saying "auto". The separate pinned QuotaWorld
+# snapshot below supplies controlled live readings, not a reconstructed forecast.
+RECEIPT_CASES = [
+    {'case': 'observed-cleanup-1029', 'choice': None},
+    {'case': 'observed-cleanup-1029-r2', 'choice': {
+        'reason': {'code': 'forecast-missing-headroom-real',
+                   'detail': 'observed quota has room; explicit caller pacing decision'}, 'v': 1}},
+]
+RECEIPT_FACTS = {
+    'op': 'implement.oracle-bounded',
+    'quota': {'issue': 'not_supplied', 'sha256': None, 'state': 'missing', 'timestamp': None},
+    'arm': {'effort': 'high', 'model': 'gpt-6-luna', 'provider': 'codex'},
+    'launch_ready': False, 'waiting_state': 'no_forecast_headroom',
+    'quota_view': {'banded': True, 'binding': None, 'cache': None, 'exhausted': False,
+                   'fetched_at': None, 'pace': 'unknown', 'pace_reason': 'quota_missing',
+                   'provider_id': 'openai', 'source_id': None, 'source_state': 'missing',
+                   'state': 'missing', 'windows': []},
+    'judgment_codes': ['pace_not_on_track', 'quota_substitution_unavailable', 'wait_no_forecast_headroom'],
+}
+
+
+def receipt_flags(case=1):
+    return ['--choice', json.dumps(RECEIPT_CASES[case]['choice'])] if RECEIPT_CASES[case]['choice'] else []
+
+
+def missing_codex_forecast(world):
+    world.quota['providers']['openai']['forecast']['windows'].clear()
+
+
+def stub_live_quota(world, monkeypatch):
+    import os
+    import shlex
+    world.write()
+    bin_dir = world.tmp / 'live-stub'
+    bin_dir.mkdir()
+    marker = world.tmp / 'quota-probed'
+    script = bin_dir / 'clawmeter'
+    script.write_text('#!/bin/sh\n' + 'printf ran >> ' + shlex.quote(str(marker)) +
+                      '\ncat ' + shlex.quote(str(world.tmp / 'quota.json')) + '\n')
+    script.chmod(0o755)
+    monkeypatch.setenv('PATH', str(bin_dir) + os.pathsep + os.environ['PATH'])
+    args = list(world.args())
+    at = args.index('--quota')
+    del args[at:at + 2]
+    return args, marker
+
+
+@pytest.mark.parametrize('case', [0, 1], ids=[c['case'] for c in RECEIPT_CASES])
+def test_receipt_omitted_quota_reads_auto_without_fabricating_forecast(world, monkeypatch, case):
+    missing_codex_forecast(world)
+    args, marker = stub_live_quota(world, monkeypatch)
+    result, out = world.cli('route', RECEIPT_FACTS['op'], *ORACLE, *args,
+                           '--decision-id', RECEIPT_CASES[case]['case'], *receipt_flags(case))
+    assert result.returncode == 0, result.stderr
+    assert marker.exists(), 'omitted quota must probe live, not repeat receipt not_supplied'
+    assert out['request']['quota']['state'] == 'snapshot'
+    assert out['routing']['chosen']['arm'] == RECEIPT_FACTS['arm']
+    assert out['launch_ready'] is True and out['target'] is not None
+    view = out['routing']['quota']['codex']
+    assert view['pace'] == 'unknown' and view['binding'] is None
+    assert all(w['projected_pct'] is None for w in view['windows'])
+    assert out['routing']['judgment_required'] and 'pace_not_on_track' in codes(out)
+
+
+def test_receipt_explicit_choice_bypasses_pacing_only(world):
+    # The live projection is high: the caller's prose is NOT a forecast or arm selector.
+    out = route(world, *receipt_flags())
+    assert out['routing']['chosen']['arm'] == RECEIPT_FACTS['arm']
+    assert out['launch_ready'] is True and 'waiting' not in out
+    assert out['routing']['chosen']['pace'] == 'at_risk'
+    assert out['routing']['judgment_required'] and 'pace_not_on_track' in codes(out)
+    assert out['routing']['pacing_authorization']['source'] == 'caller_choice'
+    assert out['choice']['reason']['code'] == RECEIPT_CASES[1]['choice']['reason']['code']
+
+
+def test_missing_forecast_with_observed_room_is_launchable_but_unknown(world):
+    missing_codex_forecast(world)
+    out = route(world)
+    assert out['launch_ready'] is True and 'waiting' not in out
+    assert out['routing']['chosen']['pace'] == 'unknown'
+    assert out['routing']['judgment_required'] and 'pace_not_on_track' in codes(out)
+    assert out['routing']['quota']['codex']['binding'] is None
+
+
+@pytest.mark.parametrize('bad', [None, '21', True, -1, 100, float('inf'), float('nan')])
+def test_missing_forecast_bad_or_exhausted_utilization_is_not_live_room(world, bad):
+    missing_codex_forecast(world)
+    for window in world.quota['providers']['openai']['usage']['windows']:
+        window['utilization'] = bad
+    out = route(world)
+    assert out['launch_ready'] is False and out['target'] is None
+
+
+@pytest.mark.parametrize('reset', [None, 'bad', '2026-10-10T00:00:00Z', '2026-10-17T00:25:00'])
+def test_missing_forecast_bad_or_expired_reset_is_not_live_room(world, reset):
+    missing_codex_forecast(world)
+    for window in world.quota['providers']['openai']['usage']['windows']:
+        window['resets_at'] = reset
+    out = route(world)
+    assert out['launch_ready'] is False and out['target'] is None
+
+
+def test_missing_forecast_does_not_erase_an_observed_constraint(world):
+    route(world)  # records the real overband constraint
+    missing_codex_forecast(world)
+    out = route(world)
+    assert out['launch_ready'] is False and out['waiting']['state'] == 'no_forecast_headroom'
+
+
+def test_choice_does_not_restore_exhausted_or_avoided_models(world):
+    for provider in world.quota['providers'].values():
+        for source in provider.get('sources', [provider]):
+            for window in source['usage']['windows']:
+                window['utilization'] = 100
+    out = route(world, *receipt_flags())
+    assert out['target'] is None and out['launch_ready'] is False
+    world.add_directive('avoid-codex-choice', 'avoid', 'provider=codex', until='2026-10-12T00:00:00Z')
+    out = route(world, *receipt_flags())
+    assert out['target'] is None
+
+
+def test_choice_keeps_unverified_funding_refusal(world):
+    add_prepaid(world)
+    out = route(world, *receipt_flags(), '--override', 'provider=claude', '--override',
+                'model=claude-sonnet-5-5', '--override', 'account=claude-api', '--reason', 'caller intent')
+    assert out['target'] is None and out['waiting']['state'] == 'funding_unverified'
+
+
+def test_choice_simulation_remains_nondispatchable(world):
+    result, out = world.cli('route', RECEIPT_FACTS['op'], *ORACLE, *world.args(),
+                           *receipt_flags(), '--now', NOW, raw=True)
+    assert result.returncode == 0, result.stderr
+    assert out['target'] is None and out['launch_ready'] is False and out['simulation']
+    assert not world.state.exists()
+
+
+def test_choice_replay_preserves_original_decision(world):
+    first = world.route(RECEIPT_FACTS['op'], *ORACLE, *receipt_flags(), record='choice-replay')
+    world.codex(50)
+    again = world.route(RECEIPT_FACTS['op'], *ORACLE, *receipt_flags(), record='choice-replay')
+    assert again['replayed'] and again['target'] == first['target']
+    assert again['routing'] == first['routing']
+    assert again['choice'] == first['choice']
+
+
+@pytest.mark.parametrize('missing', [False, True])
+def test_choice_selected_waiting_does_not_authorize_pacing(world, missing):
+    if missing:
+        missing_codex_forecast(world)
+    choice = {'v': 1, 'reason': {'code': 'owner-choice'},
+              'schedule': {'state': 'selected_waiting', 'candidate': 'workflow', 'reason': {'code': 'defer'}}}
+    out = route(world, '--choice', json.dumps(choice))
+    assert out['target'] is None and out['launch_ready'] is False
+    assert 'pacing_authorization' not in out['routing']
+
+
+def test_missing_forecast_stale_cache_is_not_live_room(world):
+    missing_codex_forecast(world)
+    world.quota['cache'] = {'stale': True}
+    out = route(world)
+    assert out['target'] is None and out['launch_ready'] is False
+
+
+def test_explicit_missing_quota_file_stays_unknown_unless_owner_chooses(world):
+    args = list(world.args())
+    args[args.index('--quota') + 1] = world.tmp / 'not-supplied.json'
+    result, out = world.cli('route', RECEIPT_FACTS['op'], *ORACLE, *args, '--decision-id', 'absent')
+    assert result.returncode == 0, result.stderr
+    assert out['target'] is None
+    result, out = world.cli('route', RECEIPT_FACTS['op'], *ORACLE, *args,
+                           '--decision-id', 'explicit-absent', *receipt_flags())
+    assert result.returncode == 0, result.stderr
+    assert out['launch_ready'] and out['routing']['chosen']['pace'] == 'unknown'
+    assert out['routing']['pacing_authorization']['source'] == 'caller_choice'
+
+
+def test_choice_does_not_bypass_avoid_or_independence(world):
+    world.add_directive('avoid-choice', 'avoid', 'provider=codex', until='2026-10-12T00:00:00Z')
+    world.add_directive('avoid-claude-choice', 'avoid', 'provider=claude', until='2026-10-12T00:00:00Z')
+    out = route(world, *receipt_flags())
+    assert out['target'] is None and out['routing']['chosen'] is None
+    out = world.route('review.audit', '--maker-model', 'claude:claude-opus-5-5', *receipt_flags())
+    assert out['target'] is None
+
+
+def test_choice_does_not_bypass_catalog(world):
+    world.catalog['data']['providers'].clear()
+    out = route(world, *receipt_flags())
+    assert out['target'] is None and out['launch_ready'] is False
+
+
+def test_unknown_forecast_does_not_hide_another_known_window(world):
+    missing_codex_forecast(world)
+    provider = world.quota['providers']['openai']
+    provider['usage']['windows'].append({'name': '7d All', 'utilization': 21,
+                                        'resets_at': '2026-10-17T00:25:00Z'})
+    provider['forecast']['windows']['7d All'] = {'projected_pct': 160}
+    out = route(world)
+    assert out['target'] is None and out['launch_ready'] is False

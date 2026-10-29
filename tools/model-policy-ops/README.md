@@ -48,6 +48,8 @@ cost or quality evidence. Reason codes are IDs; detail and unknown-cost reason
 are single lines of at most 280 characters. JSON has an 8192-character limit,
 exact allowed keys, and rejects duplicate keys.
 
+On a fresh route, a validated `--choice` reason also records the caller's decision to proceed with the already eligible model despite quota pacing. It does not select another model or bypass exhaustion, account funding, avoid directives, independence, input policy or catalog checks. The receipt keeps uncertainty and judgment reasons and records `routing.pacing_authorization`. A choice whose schedule is `selected_waiting` does not grant this exception. Historical receipts still replay their original decision.
+
 To record a parent decision to wait for busy dot, --choice may include
 schedule:{"state":"selected_waiting","candidate":"dot","reason":{"code":"busy"}}.
 Schedule states are immediate or selected_waiting. This is a caller claim:
@@ -741,9 +743,7 @@ scheduling policy; the pack has none and the code has no defaults. With bands se
   hysteresis), the receipt is a **wait**: `target` is null (every nested target too), `launch_ready` is
   false, there is no `dispatch`, `waiting` is `{state: no_forecast_headroom, assertion: router_evidence}` and the
   judgment reasons add `wait_no_forecast_headroom` to `pace_not_on_track`. The router withholds; it does not queue.
-  Route again after a fresh reading or a reset. An explicit `--override` is the caller's own intent and is not
-  withheld for quota; its bypassed filters stay in `routing.final`. A verified metered overflow pair is not judged by
-  headroom;
+  Route again after a fresh reading or a reset. With forecast bands, an omitted `--quota` now reads live quota automatically. A missing forecast alone does not withhold an eligible account when the source reports a current snapshot, every applicable window has finite utilization below 100% and a valid future reset, and there is no current or retained constraint. Pace stays `unknown` and judgment remains required; current room is not forecast headroom. Stale or unusable readings still wait. A validated `--choice` reason can acknowledge pacing for the already eligible selected model; `selected_waiting` does not. An explicit `--override` remains the caller's own intent and is not withheld for quota; its bypassed filters stay in `routing.final`. A verified metered overflow pair is not judged by headroom;
 - **Order before a wait.** The wait comes last. A destination offer (for example dot) is decided first. Then, among
   the pairs that passed every filter, the first ranked pair that can launch wins: a funded prepaid or free account, or
   a subscription with headroom. `routing.pacing.state` is `alternative_before_wait` when that replaced a subscription
