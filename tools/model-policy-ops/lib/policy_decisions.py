@@ -271,6 +271,7 @@ def observed_room_without_forecast(view, at, prior_hold):
     """Current usable quota is not a forecast. Never erase an observed constraint."""
     if (view.get('state') != 'snapshot' or view.get('source_state') != 'snapshot'
             or view.get('pace_reason') != 'no_forecast_or_expired_window'
+            or view.get('forecast_absent') is not True or view.get('runout')
             or view.get('exhausted') or not view.get('windows')
             or (view.get('cache') or {}).get('stale')):
         return False

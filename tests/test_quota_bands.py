@@ -510,3 +510,27 @@ def test_unknown_forecast_does_not_hide_another_known_window(world):
     provider['forecast']['windows']['7d All'] = {'projected_pct': 160}
     out = route(world)
     assert out['target'] is None and out['launch_ready'] is False
+
+
+@pytest.mark.parametrize('projection', ['130', True])
+def test_invalid_projection_is_not_an_absent_forecast(world, projection):
+    missing_codex_forecast(world)
+    world.quota['providers']['openai']['forecast']['windows']['7d'] = {'projected_pct': projection}
+    out = route(world)
+    assert out['target'] is None and out['launch_ready'] is False
+
+
+def test_known_forecast_without_its_usage_row_is_not_pure_absence(world):
+    missing_codex_forecast(world)
+    world.quota['providers']['openai']['forecast']['windows']['7d All'] = {'projected_pct': 160}
+    out = route(world)
+    assert out['target'] is None and out['launch_ready'] is False
+
+
+def test_missing_forecast_preserves_a_valid_early_runout_warning(world):
+    missing_codex_forecast(world)
+    world.quota['providers']['openai']['view'] = {'windows': [
+        {'name': '7d', 'exhaustion': {'state': 'runs_out', 'runs_out_in_seconds': 3600,
+                                      'early_by_seconds': 250000}}]}
+    out = route(world)
+    assert out['target'] is None and out['launch_ready'] is False
