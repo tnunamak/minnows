@@ -1,5 +1,6 @@
 """Resolve advisory policy into an explicit target without dispatch."""
 import json
+import math
 import os
 import sys
 import time
@@ -39,7 +40,7 @@ def add_arguments(parser):
     parser.add_argument('--decision-id')
     parser.add_argument('--record', action='store_true')
     parser.add_argument('--task-link', metavar='JSON', help='explicit consumer task, workflow, stage and role; top-level metadata')
-    parser.add_argument('--choice', metavar='JSON', help='bounded parent workflow choice; descriptive only, never dispatch control')
+    parser.add_argument('--choice', metavar='JSON', help='bounded caller choice; a reason authorizes pacing only for the eligible routed model')
     parser.add_argument('--task-result', metavar='JSON', help='close: explicit whole-consumer-result claim at referenced evidence standard')
     parser.add_argument('--receipts', type=Path, default=Path(os.environ.get('XDG_STATE_HOME', Path.home() / '.local/state')) / 'model-policy/decisions.jsonl')
     parser.add_argument('--parent-model')
@@ -266,11 +267,32 @@ def wait_detail(block, critical_path):
     return detail
 
 
-def withhold_without_headroom(value, critical_path=False):
-    """With forecast bands, a routed subscription pair is dispatchable only with known positive headroom on an
-    account that is not held constrained, unless `pacing` already picked a launchable alternative or the caller's
-    critical-path exception. Unknown, stale, at-risk and hysteresis-held pairs wait. A metered pair (verified
-    overflow) and an explicit override are not judged here."""
+def observed_room_without_forecast(view, at, prior_hold):
+    """Current usable quota is not a forecast. Never erase an observed constraint."""
+    if (view.get('state') != 'snapshot' or view.get('source_state') != 'snapshot'
+            or view.get('pace_reason') != 'no_forecast_or_expired_window'
+            or view.get('forecast_absent') is not True or view.get('runout')
+            or view.get('exhausted') or not view.get('windows')
+            or (view.get('cache') or {}).get('stale')):
+        return False
+    if prior_hold:
+        reset = quota_substitution.parse_time(prior_hold.get('resets_at'))
+        if reset is None or reset > at:
+            return False
+    for window in view['windows']:
+        use = window.get('utilization')
+        reset = quota_substitution.parse_time(window.get('resets_at'))
+        if (window.get('projected_pct') is not None or window.get('state') == 'stale'
+                or isinstance(use, bool) or not isinstance(use, (int, float))
+                or not math.isfinite(use) or not 0 <= use < 100 or reset is None or reset <= at):
+            return False
+    return True
+
+
+def withhold_without_headroom(value, critical_path=False, *, choice=None, at=None, prior_hold=None):
+    """Withhold pacing risk, not genuine forecast absence with fresh observed room.
+    An explicit caller reason authorizes the eligible pair, not a different arm or
+    bypass of hard filters. Keep all uncertainty and judgment reasons."""
     block = value['routing']
     chosen = block['chosen']
     if not block['params'].get('quota_bands') or block['final']['overridden'] or not chosen:
@@ -280,6 +302,14 @@ def withhold_without_headroom(value, critical_path=False):
     row = next(t for t in block['trace'] if t['removed_by'] is None and t['candidate'] == chosen['candidate'] and t['instance'] == chosen['instance'])
     held = (((block.get('quota_substitution') or {}).get('active_accounts') or {}).get(chosen['instance']) or {}).get('state') in quota_substitution.ACTIVE_STATES
     if row['billing'] != 'subscription' or (chosen['pace'] == 'on_track' and not held):
+        return value
+    selected_waiting = ((choice or {}).get('schedule') or {}).get('state') == 'selected_waiting'
+    if choice and choice.get('reason') and not selected_waiting:
+        block['pacing_authorization'] = {'source': 'caller_choice', 'reason': choice['reason'],
+                                         'scope': 'pacing only; selected eligible model; quota uncertainty retained'}
+        return value
+    view = block['quota'][row['quota']['ref']]
+    if not selected_waiting and not held and observed_room_without_forecast(view, at, prior_hold):
         return value
     return withheld(value, 'no_forecast_headroom', WAIT_BASIS, 'wait_no_forecast_headroom',
                     {'instance': chosen['instance'], 'pace': chosen['pace'], 'held_constrained': held},
@@ -468,7 +498,8 @@ def execute_locked(args, policy, stack):
             raise ValueError('relaunch source receipt not found or self-linked')
         relaunch = {'from': args.relaunch_of, 'why': args.why}
     available, available_meta = read_source(args.available, ['t3code', '--json', 'models', 'list'], retry_timeout=True)
-    quota, quota_meta = read_source(args.quota, ['clawmeter', '--json'])
+    quota_arg = 'auto' if route and policy.get('routing', {}).get('quota_bands') and args.quota is None else args.quota
+    quota, quota_meta = read_source(quota_arg, ['clawmeter', '--json'])
     if available_meta['state'] == 'snapshot' and not providers(available):
         available_meta['state'] = 'schema_mismatch'
     request.update({'available': available_meta, 'quota': quota_meta})
@@ -622,7 +653,11 @@ def execute_locked(args, policy, stack):
                                    'catalog unavailable; supply --available auto or a fresh catalog file and route again',
                                    'wait_catalog_unavailable', available_meta)
         else:
-            return_value = withhold_without_headroom(return_value, args.critical_path)
+            prior = (((ctx.get('substitution') or {}).get('state') or {}).get('_prior') or {})
+            chosen = routing_block['chosen']
+            return_value = withhold_without_headroom(
+                return_value, args.critical_path, choice=extensions.get('choice'), at=at,
+                prior_hold=prior.get(chosen['instance']) if chosen else None)
     if routing_block and (return_value.get('target') or proposed_destination):
         return_value = withhold_unfunded(return_value, accounts, at, return_value.get('target') or proposed_destination)
     apply_experimental_route_policy(return_value, policy, at, available=available, destination_target=proposed_destination)

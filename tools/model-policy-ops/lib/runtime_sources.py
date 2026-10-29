@@ -234,6 +234,30 @@ def quota_forecast(value, provider_id, source_id=None):
             if isinstance(w, dict) and isinstance(w.get('projected_pct'), (int, float)) and not isinstance(w['projected_pct'], bool)}
 
 
+def quota_forecast_absent(value, provider_id, source_id=None):
+    """True only when this exact account has no supplied projections, valid or invalid."""
+    rows = value.get('providers')
+    row = rows.get(provider_id) if isinstance(rows, dict) else None
+    if not isinstance(row, dict):
+        return False
+    if row.get('sources'):
+        row = next((source for source in row['sources'] if isinstance(source, dict)
+                    and isinstance(source.get('source'), dict) and source['source'].get('id') == source_id), None)
+    if not isinstance(row, dict):
+        return False
+    forecast = row.get('forecast')
+    if forecast is None:
+        return True
+    if not isinstance(forecast, dict):
+        return False
+    windows = forecast.get('windows')
+    if windows is None:
+        return True
+    return isinstance(windows, dict) and all(
+        isinstance(name, str) and isinstance(window, dict) and window.get('projected_pct') is None
+        for name, window in windows.items())
+
+
 def quota_runout(value, provider_id, source_id=None):
     """Known clawmeter view windows that run out before reset, for this exact account.
 

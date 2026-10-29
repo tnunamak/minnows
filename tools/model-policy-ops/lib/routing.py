@@ -10,7 +10,7 @@ import drain
 import quota_bands
 import quota_substitution
 from directives import matching
-from runtime_sources import digest, driver_family, provider_instance, providers, quota_context, quota_forecast, quota_runout, resolve_arm
+from runtime_sources import digest, driver_family, provider_instance, providers, quota_context, quota_forecast, quota_forecast_absent, quota_runout, resolve_arm
 
 ROUTER_VERSION = 1
 ARM_KEYS = ('provider', 'model', 'effort')
@@ -98,6 +98,11 @@ def quota_view(quota, quota_meta, arm, entry, pace_windows, now, bands=None, dra
     draining = (view.get('drain') or {}).get('applies', False)
     on_track = {'pace': 'on_track', 'pace_reason': None, 'binding': None}
     if any(name not in forecast or name not in by_name or by_name[name]['state'] == 'stale' for name in considered):
+        # Numeric normalization can discard malformed values, and usage rows need
+        # not cover every supplied projection. Neither is genuine forecast absence.
+        view['forecast_absent'] = quota_forecast_absent(quota, provider_id, source_id)
+        if runout:
+            view['runout'] = runout
         return view | (on_track if draining else {'pace_reason': 'no_forecast_or_expired_window'})
     if bands:
         banded = {name: quota_bands.headroom(bands, forecast[name], by_name[name]['resets_at'], now) for name in considered}
