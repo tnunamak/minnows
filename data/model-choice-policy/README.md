@@ -100,8 +100,12 @@ The OpenCode DeepSeek V4.1 Flash Free legacy experimental declaration (`experime
 Historical receipts recorded under it keep their recorded kind and are refused on replay with
 `experimental_route_receipt_not_currently_authorized`; no receipt is rewritten. The normal `free_routes` declaration is
 the only zero-price route for that model: no flag, no expiry, public classification required, and `--sensitive`
-refused. The separately authorized `fanout.explore` and `resolve --no-op` paths for it were retired with the legacy
-contract, which was their only authorization.
+refused. The legacy experimental `fanout.explore` and `resolve --no-op` authority
+was retired with that contract. The current normal `fanout.explore` free-route
+authorization is separate: its `owner_authorized` declaration in `free_routes`
+allows `judged` or `none` proof at high effort. The experimental retirement does
+not grant or remove this current authorization; normal declaration and public-input
+checks apply.
 
 ## Read operating points
 
