@@ -2,9 +2,9 @@
   "$schema": "../schemas/pack-v1.schema.json",
   "name": "model-choice-policy",
   "schema_version": 1,
-  "tag": "data-model-choice-policy-v0.2.10",
+  "tag": "data-model-choice-policy-v0.2.11",
   "generated_at": "2026-10-29",
-  "description": "Task-shaped operating points. Adds unvalidated GPT-6.1 Terra candidates at the corresponding efforts wherever GPT-6.1 Sol is already a primary or candidate; primary arms remain unchanged. Pins catalog v0.5.16. Opus 5.5 runs implement.standard (medium) and implement.accuracy-first and advisor.deep (high); GPT-6.1 Sol runs fanout.explore and ui.computer-use (medium) and review.audit (high); Haiku 5.5 runs recover.report and docs.lookup (medium); Sonnet 5.5 runs implement.quota-tight (medium); GPT-6 Luna runs fanout.dollar-tight (medium) and implement.oracle-bounded (high); grok.explore-only on grok-4.7 (medium). No op runs GPT-6 Astra. op-requirements.json (DRAFT) feeds scripts/recommend_ops.py. Adds a normal, public-input-only OpenCode DeepSeek V4.1 Flash Free route: bounded-gate qualification for small public implement.oracle-bounded changes and known-source docs.lookup at high, plus an unvalidated explicitly-selected review.rule-check alternative. The legacy experimental declaration remains only for historical replay. Primary operating points are unchanged. Adds narrow review.rule-check with Haiku 5.5 medium fallback; typed destinations need separate pinned per-op acceptance evidence. Adds owner-authorized (owner-asserted, not gate-qualified) public-input DeepSeek routes for implement.quota-tight, fanout.dollar-tight and fanout.explore at high effort.",
+  "description": "Task-shaped operating points. Adds unvalidated GPT-6.1 Terra candidates at the corresponding efforts wherever GPT-6.1 Sol is already a primary or candidate; primary arms remain unchanged. Pins catalog v0.5.17; Terra benchmark cost notes are aggregate costs, not operation cost-per-success evidence. Opus 5.5 runs implement.standard (medium) and implement.accuracy-first and advisor.deep (high); GPT-6.1 Sol runs fanout.explore and ui.computer-use (medium) and review.audit (high); Haiku 5.5 runs recover.report and docs.lookup (medium); Sonnet 5.5 runs implement.quota-tight (medium); GPT-6 Luna runs fanout.dollar-tight (medium) and implement.oracle-bounded (high); grok.explore-only on grok-4.7 (medium). No op runs GPT-6 Astra. op-requirements.json (DRAFT) feeds scripts/recommend_ops.py. Adds a normal, public-input-only OpenCode DeepSeek V4.1 Flash Free route: bounded-gate qualification for small public implement.oracle-bounded changes and known-source docs.lookup at high, plus an unvalidated explicitly-selected review.rule-check alternative. The legacy experimental declaration remains only for historical replay. Primary operating points are unchanged. Adds narrow review.rule-check with Haiku 5.5 medium fallback; typed destinations need separate pinned per-op acceptance evidence. Adds owner-authorized (owner-asserted, not gate-qualified) public-input DeepSeek routes for implement.quota-tight, fanout.dollar-tight and fanout.explore at high effort.",
   "files": [
     "README.md",
     "SCHEMA.md",
@@ -14,7 +14,7 @@
     "evidence/deepseek-owner-decision-2026-10-26.json"
   ],
   "related": {
-    "catalog": "data-model-catalog-v0.5.16",
+    "catalog": "data-model-catalog-v0.5.17",
     "doctrine": "Operating Point Resolver \u2014 task-shaped ops, not cheap/default/max, not silent auto-routing"
   }
 }
