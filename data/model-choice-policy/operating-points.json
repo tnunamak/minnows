@@ -1,8 +1,8 @@
 {
   "id": "model-choice-policy",
   "schema_version": 1,
-  "policy_version": "0.2.9",
-  "generated_at": "2026-10-21",
+  "policy_version": "0.2.10",
+  "generated_at": "2026-10-29",
   "catalog_ref": "data-model-catalog-v0.5.16",
   "doctrine": [
     "Task-shaped operating points, not cheap/default/max ladders",
@@ -141,6 +141,18 @@
           ],
           "known_gaps": [
             "Weaker: AutomationBench 54.9 vs 62.6"
+          ]
+        },
+        {
+          "provider": "codex",
+          "model": "gpt-6.1-terra",
+          "effort": "medium",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/artificial-analysis-intelligence-index-v5-2026-10-28"
+          ],
+          "known_gaps": [
+            "Artificial Analysis Intelligence Index v5.0 and Terminal-Bench 4.0 are aggregate benchmarks, not task-specific validation; Terra trails GPT-6.1 Sol at every policy-allowed effort."
           ]
         }
       ]
@@ -335,6 +347,18 @@
           "known_gaps": [
             "Weaker: Vals TB4 55.1 vs 65.2"
           ]
+        },
+        {
+          "provider": "codex",
+          "model": "gpt-6.1-terra",
+          "effort": "medium",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/artificial-analysis-intelligence-index-v5-2026-10-28"
+          ],
+          "known_gaps": [
+            "Artificial Analysis Intelligence Index v5.0 and Terminal-Bench 4.0 are aggregate benchmarks, not task-specific validation; Terra trails GPT-6.1 Sol at every policy-allowed effort."
+          ]
         }
       ]
     },
@@ -402,6 +426,18 @@
             "harness_matched": false,
             "note": "48.0 vs 29.8 at medium (pack gap text, 2026-10-07)"
           }
+        },
+        {
+          "provider": "codex",
+          "model": "gpt-6.1-terra",
+          "effort": "medium",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/artificial-analysis-intelligence-index-v5-2026-10-28"
+          ],
+          "known_gaps": [
+            "Artificial Analysis Intelligence Index v5.0 and Terminal-Bench 4.0 are aggregate benchmarks, not task-specific validation; Terra trails GPT-6.1 Sol at every policy-allowed effort."
+          ]
         }
       ]
     },
@@ -530,6 +566,18 @@
           "known_gaps": [
             "Weaker on the aggregate index (50.2 vs 53.6)"
           ]
+        },
+        {
+          "provider": "codex",
+          "model": "gpt-6.1-terra",
+          "effort": "high",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/artificial-analysis-intelligence-index-v5-2026-10-28"
+          ],
+          "known_gaps": [
+            "Artificial Analysis Intelligence Index v5.0 and Terminal-Bench 4.0 are aggregate benchmarks, not task-specific validation; Terra trails GPT-6.1 Sol at every policy-allowed effort."
+          ]
         }
       ]
     },
@@ -603,6 +651,18 @@
           "known_gaps": [
             "No comparable evidence"
           ]
+        },
+        {
+          "provider": "codex",
+          "model": "gpt-6.1-terra",
+          "effort": "high",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/artificial-analysis-intelligence-index-v5-2026-10-28"
+          ],
+          "known_gaps": [
+            "Artificial Analysis Intelligence Index v5.0 and Terminal-Bench 4.0 are aggregate benchmarks, not task-specific validation; Terra trails GPT-6.1 Sol at every policy-allowed effort."
+          ]
         }
       ]
     },
@@ -663,6 +723,18 @@
           ],
           "known_gaps": [
             "Weaker on the aggregate index (50.2 vs 53.6)"
+          ]
+        },
+        {
+          "provider": "codex",
+          "model": "gpt-6.1-terra",
+          "effort": "high",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/artificial-analysis-intelligence-index-v5-2026-10-28"
+          ],
+          "known_gaps": [
+            "Artificial Analysis Intelligence Index v5.0 and Terminal-Bench 4.0 are aggregate benchmarks, not task-specific validation; Terra trails GPT-6.1 Sol at every policy-allowed effort."
           ]
         }
       ]
@@ -725,6 +797,18 @@
           ],
           "known_gaps": [
             "Mixed and borderline: AutomationBench 61.2 vs 62.6"
+          ]
+        },
+        {
+          "provider": "codex",
+          "model": "gpt-6.1-terra",
+          "effort": "medium",
+          "basis": "unvalidated",
+          "evidence_refs": [
+            "catalog://performance/artificial-analysis-intelligence-index-v5-2026-10-28"
+          ],
+          "known_gaps": [
+            "Artificial Analysis Intelligence Index v5.0 and Terminal-Bench 4.0 are aggregate benchmarks, not task-specific validation; Terra trails GPT-6.1 Sol at every policy-allowed effort."
           ]
         }
       ]
