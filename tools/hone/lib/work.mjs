@@ -58,7 +58,7 @@ import { executeReset } from './reset.mjs';
 import { appendClaim, appendCostEntry, nextClaimSeq, nextJobAttempt, readJsonl, claimsPath, costPath } from './ledger.mjs';
 import { loadRegistry, loadRouting, resolveRoutingClass, selectAgent } from './routing.mjs';
 import { HONE_ROOT } from './profile.mjs';
-import { CLAUDE_NO_MCP_ARGS, codexNoMcpArgs, noMcpEnv, requireGpt56, runCli } from '../providers/provider.mjs';
+import { CLAUDE_NO_MCP_ARGS, codexNoMcpArgs, noMcpEnv, requireCurrentCodexModel, runCli } from '../providers/provider.mjs';
 import {
   DETERMINISTIC_PROOF_PROVIDER,
   DETERMINISTIC_PROOF_TIER,
@@ -184,7 +184,7 @@ async function claudeMaker(prompt, { cwd, timeoutMs = MAKER_TIMEOUT_MS, model: r
 }
 
 async function codexMaker(prompt, { cwd, timeoutMs = MAKER_TIMEOUT_MS, model: routedModel, effort: routedEffort } = {}) {
-  const model = requireGpt56(process.env.HONE_CODEX_MODEL || routedModel || 'gpt-5.6-sol');
+  const model = requireCurrentCodexModel(process.env.HONE_CODEX_MODEL || routedModel || 'gpt-6.1-sol');
   const effort = process.env.HONE_CODEX_EFFORT || routedEffort || 'high';
   const dir = mkdtempSync(join(tmpdir(), 'hone-maker-'));
   const outFile = join(dir, 'last-message.txt');
@@ -1163,8 +1163,8 @@ export function landCommit(g, { packet, id, touchTop, receiptsDirRel, pipelineLa
   if (rogue.length) throw new Error(`staged paths outside touchset at commit time: ${rogue.join(', ')} — refusing to commit`);
   const commitType = packet.action === 'preserve_refactor' || packet.action === 'idealize_rewrite' ? 'refactor' : 'chore';
   const msg = `${commitType}(${packet.subsystem}): ${packet.plan.transform_class} [hone ${id}]\n\n${pipelineLabel} verdict=${verdictLabel}${confidence != null ? ` (confidence ${confidence})` : ''}, revisions=${revisionCount}.\nEvidence: ${packet.evidence_required.length} rung(s) green at baseline and post-change (receipts: ${receiptsDirRel}/).`;
-  g.git(['-c', `user.name=${AUTHOR_NAME}`, '-c', `user.email=${AUTHOR_EMAIL}`, 'commit', '-q',
-    `--author=${AUTHOR_NAME} <${AUTHOR_EMAIL}>`, '-m', msg]);
+  g.git(['-c', `user.name=${AUTHOR_NAME}`, '-c', `user.email=${AUTHOR_EMAIL}`, 'commit', '-q', '-s',
+    `--author=${AUTHOR_NAME} <${AUTHOR_EMAIL}>`, '--trailer', 'Assisted-by: AI', '-m', msg]);
   const commit = g.git(['rev-parse', 'HEAD']);
   // allowedLeftover: batch lands commit one order at a time — the OTHER orders' not-yet-
   // committed touchset files may legitimately remain dirty. Default [] = any leftover

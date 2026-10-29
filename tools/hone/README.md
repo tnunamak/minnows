@@ -5,8 +5,8 @@ candidate packets → classification → ranking → (wave 2) workflow execution
 The design is frozen in [SPEC.md](SPEC.md); the packet format in
 [schemas/candidate-packet.yaml](schemas/candidate-packet.yaml). This README is operational docs only.
 
-**v1 wave 1 scope:** `inventory` + `plan` (deterministic-heuristic classification). `work`,
-`report`, `run` are stubs that exit 1. Packet enrichment via LLM providers is wave 2 — every
+`inventory` + `plan` use deterministic-heuristic classification. `work` executes packets;
+`report` compiles evidence and `run` schedules work. Every
 judgment-dependent packet field is emitted with an explicit `[v1 deterministic heuristic …]`
 label, never presented as validated.
 
@@ -27,9 +27,35 @@ HONE_ENABLE_EXTERNAL_LANE=1 hone lane emit|gate|land --packet <id> --repo /path/
 hone reset <id> --repo /path/to/repo           # deliberately reopen a terminal packet (landed needs --force)
 ```
 
-Requirements: Node >= 22.7; `biome` runnable inside the target repo (default `npx biome`);
-`typescript` resolvable from the target repo's node_modules (its own tsc — hone ships no deps).
+Requirements: Node >= 22.7; npm/npx when no Biome installation is available;
+`typescript` resolvable from the target repo's node_modules or hone's tree.
 Git history is used for churn; a non-git target degrades to churn 0 with `repo_sha: no-git`.
+
+Biome resolves in this order: an explicit `commands.biome` override, the target's
+`node_modules/.bin/biome`, hone's `node_modules/.bin/biome`, then
+`npx --yes --package=@biomejs/biome@1.9.4 biome`. The fallback pins the official package,
+uses npm's cache and does not add a dependency to the target. Its first use needs network
+access. Set `commands.biome: null` to enable automatic resolution in an existing profile.
+
+The model registry accepts source-backed `external-eval-digitization` for new models.
+Each calibration retains the catalog file, source URL/id, observation date, exact score,
+unit, effort and caveats. Published evals do not establish local packet pass rates.
+The catalog snapshot contains no GPT-6.1 Terra entry or evaluation; its CLI guard is
+supported, but no calibration or routing eligibility is claimed. Retired entries stay
+in the registry for historical receipts and are ineligible for new work.
+
+Agenda and challenge calls inherit reasoning effort from the installed CLI/profile.
+They do not use `HONE_CODEX_EFFORT` (maker only) or `HONE_CODEX_JUDGE_EFFORT` (judge only).
+Their receipts record the selected model but omit effort, so they cannot reproduce an
+effort setting. This preserves the operator's CLI/profile configuration; configure it
+there when running an agenda or challenge that needs a repeatable effort setting.
+
+For subscription-backed execution use `env -u ANTHROPIC_API_KEY -u OPENAI_API_KEY
+HONE_CODEX_MODEL=gpt-6.1-sol HONE_CLAUDE_MODEL=claude-opus-5-5 hone work <id>
+--maker codex --judge claude --repo /path/to/repo` (join onto one shell line).
+Check `claude auth status` and a headless `claude -p` call first; if subscription login
+is unavailable, use `--defer-judge` and leave the model review pending.
+Landed commits include signoff and `Assisted-by: AI`.
 
 ### Engine vs per-repo state
 
@@ -69,7 +95,7 @@ scalars replace). A fully specified real profile: [profiles/example-pdpp.yaml](p
 
 | key | default | meaning |
 |---|---|---|
-| `commands.biome` | `npx biome` | how to invoke biome (cwd = `--repo`) |
+| `commands.biome` | `null` | automatic resolution; non-null overrides run in `--repo` |
 | `commands.test` / `.typecheck` | `null` | oracle commands, used by `work` (wave 2) |
 | `analysis.owned_dirs` | `[]` | dirs to analyze (repo-relative); `[]` = auto-detect top-level dirs containing JS/TS |
 | `analysis.scan_depth` | `2` | `find -maxdepth` for the churn-ranking file walk |

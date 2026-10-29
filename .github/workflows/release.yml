@@ -42,12 +42,18 @@ jobs:
       - name: Offline CLI integrity suites
         run: |
           node tools/hone/providers/test-discrimination.mjs --self-test
+          node tools/hone/providers/test-current-models.mjs
+          node tools/hone/providers/test-model-adapters.mjs
+          node tools/hone/collectors/test-biome-contract.mjs
           node tools/hone/hone work --self-test
           node tools/hone/hone lane --self-test
           node tools/hone/lib/test-agenda.mjs
           node tools/hone/lib/test-collectors.mjs
           node tools/hone/lib/test-report-run.mjs
           python3 tools/unfinished/unfinished self-test
+
+      - name: Biome fallback integration (npm registry required)
+        run: node tools/hone/collectors/test-biome.mjs
 
       - name: Generated skills are current
         run: |

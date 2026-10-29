@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import { existsSync, mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { biomeFlaggedUniverse, resolveBiomeCommand } from './biome.mjs';
+import { makeSh } from '../lib/util.mjs';
+import { scopeFile, scopeFn } from './scope-fn.mjs';
+import { loadProfile } from '../lib/profile.mjs';
+
+const root = mkdtempSync(join(tmpdir(), "hone-biome-test-'"));
+mkdirSync(join(root, 'src'));
+writeFileSync(join(root, 'src/example.js'), '// café\nexport function example(a, b, c) { if (a) { if (b) { if (c) return 1; } } return 0; }\n');
+const ctx = { repoRoot: root, profile: loadProfile(root).profile, sh: makeSh(root) };
+assert.equal(ctx.profile.commands.biome, null);
+const honeBiome = new URL('../node_modules/.bin/biome', import.meta.url);
+assert.match(resolveBiomeCommand(ctx), existsSync(honeBiome) ? /node_modules\/\.bin\/biome/ : /^npx --yes --package=@biomejs\/biome@1\.9\.4 biome$/);
+// Exercise pinned fallback even when the developer has installed Biome for hone.
+ctx.profile.commands.biome = 'npx --yes --package=@biomejs/biome@1.9.4 biome';
+const flagged = biomeFlaggedUniverse(ctx, ['src']);
+assert.equal(flagged.length, 1, JSON.stringify(flagged));
+assert.equal(flagged[0].absFile, join(root, 'src/example.js'));
+assert.equal(flagged[0].line, 2);
+assert.equal(flagged[0].col, 17);
+assert.equal(flagged[0].cc, 6);
+assert.equal(scopeFile(ctx, 'src/example.js').file_excess, 1);
+assert.equal(scopeFn(ctx, ['src'], 'src/example.js::example').cognitive_before, 6);
+assert.throws(() => biomeFlaggedUniverse({ ...ctx, sh: () => 'invalid JSON' }, ['src']), /unparseable output/);
+assert.throws(() => biomeFlaggedUniverse({ ...ctx, sh: () => JSON.stringify({ diagnostics: [{ description: 'complexity of 6', location: { path: 'src/example.js' } }] }) }, ['src']), /no source position/);
+ctx.profile.commands.biome = null;
+mkdirSync(join(root, 'node_modules/.bin'), { recursive: true });
+writeFileSync(join(root, 'node_modules/.bin/biome'), '');
+assert.match(resolveBiomeCommand(ctx), /node_modules\/\.bin\/biome/);
+ctx.profile.commands.biome = 'custom-biome';
+assert.equal(resolveBiomeCommand(ctx), 'custom-biome');
+console.log('Biome fallback analyzes a dependency-free repo; local installation and override take precedence');

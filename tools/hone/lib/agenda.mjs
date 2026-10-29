@@ -35,7 +35,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFil
 import { tmpdir } from 'node:os';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 import { buildContext } from './profile.mjs';
-import { CLAUDE_NO_MCP_ARGS, codexNoMcpArgs, extractFencedJson, noMcpEnv, requireGpt56, runCli } from '../providers/provider.mjs';
+import { CLAUDE_NO_MCP_ARGS, codexNoMcpArgs, extractFencedJson, noMcpEnv, requireCurrentCodexModel, runCli } from '../providers/provider.mjs';
 import { slug } from './util.mjs';
 import { readPacketPool } from './report.mjs';
 import { loadVerifiedInventorySnapshot } from './inventory-snapshot.mjs';
@@ -701,7 +701,7 @@ async function claudeExec(prompt, { timeoutMs = AGENDA_TIMEOUT_MS } = {}) {
 }
 
 async function codexExec(prompt, { timeoutMs = AGENDA_TIMEOUT_MS } = {}) {
-  const model = requireGpt56(process.env.HONE_AGENDA_CODEX_MODEL || process.env.HONE_CODEX_MODEL || 'gpt-5.6-sol');
+  const model = requireCurrentCodexModel(process.env.HONE_AGENDA_CODEX_MODEL || process.env.HONE_CODEX_MODEL || 'gpt-6.1-sol');
   const dir = mkdtempSync(join(tmpdir(), 'hone-agenda-'));
   const outFile = join(dir, 'last-message.txt');
   const mcpArgs = await codexNoMcpArgs(dir);

@@ -2,9 +2,9 @@
   "version": 2,
   "note": "Routing POLICY (data) — L1 amendment, token-economics-levers-2026-07-02. class -> ORDERED candidate list of {model: <models.json registry name>, effort}; two-strike escalation walks down the list; judge constraint = different lineage at tier_rank >= maker. Packets may pin routing_class, NEVER a model (validator-enforced). Policy authorship is judgment on a slow cadence: the agenda/chooser PROPOSES diffs to this file from the measured per-(class x tier) pass-rate table; application is deterministic (lib/routing.mjs selectAgent).",
   "provenance": {
-    "source": "minnows model-catalog data-model-catalog-v0.5.2 + fable-workflow-baseline-2026-07-02",
-    "date": "2026-07-11",
-    "rationale": "Sonnet 5 @ high is the bulk value knee; Opus med is a trap (never routed); Haiku leads only the certified-mechanical class; GPT-5.6 Sol leads accuracy-first Codex work"
+    "source": "minnows data/model-catalog; exact external-eval-digitization rows and source dates in models.json",
+    "date": "2026-10-28",
+    "rationale": "Current replacements retain the existing class ladder and efforts. Published evaluations establish registry eligibility, not local pass rates or comparative effort knees. Retired models cannot route."
   },
   "default_class": "extraction",
   "proof_class_map": {
@@ -21,42 +21,93 @@
   "action_overrides": {
     "generate_evidence": "async-order-oracle"
   },
-  "escalation": { "rule": "two-strike", "strikes_per_step": 2 },
-  "judge_constraint": { "different_lineage": true, "tier_rank_at_least_maker": true },
-  "quota": { "pressure_threshold": 0.9 },
+  "escalation": {
+    "rule": "two-strike",
+    "strikes_per_step": 2
+  },
+  "judge_constraint": {
+    "different_lineage": true,
+    "tier_rank_at_least_maker": true
+  },
+  "quota": {
+    "pressure_threshold": 0.9
+  },
   "classes": {
     "certified-mechanical": {
       "maker": [
-        { "model": "haiku-4.5", "effort": "medium" },
-        { "model": "sonnet-5", "effort": "high" },
-        { "model": "opus-4.8", "effort": "high" },
-        { "model": "gpt-5.6-sol", "effort": "high" }
+        {
+          "model": "haiku-5-5",
+          "effort": "medium"
+        },
+        {
+          "model": "sonnet-5-5",
+          "effort": "high"
+        },
+        {
+          "model": "opus-5-5",
+          "effort": "high"
+        },
+        {
+          "model": "gpt-6.1-sol",
+          "effort": "high"
+        }
       ]
     },
     "extraction": {
       "maker": [
-        { "model": "sonnet-5", "effort": "high" },
-        { "model": "opus-4.8", "effort": "high" },
-        { "model": "gpt-5.6-sol", "effort": "xhigh" }
+        {
+          "model": "sonnet-5-5",
+          "effort": "high"
+        },
+        {
+          "model": "opus-5-5",
+          "effort": "high"
+        },
+        {
+          "model": "gpt-6.1-sol",
+          "effort": "xhigh"
+        }
       ]
     },
     "async-order-oracle": {
       "maker": [
-        { "model": "gpt-5.6-sol", "effort": "xhigh" },
-        { "model": "opus-4.8", "effort": "high" }
+        {
+          "model": "gpt-6.1-sol",
+          "effort": "xhigh"
+        },
+        {
+          "model": "opus-5-5",
+          "effort": "high"
+        }
       ]
     },
     "hard-ambiguous": {
       "maker": [
-        { "model": "opus-4.8", "effort": "high" },
-        { "model": "gpt-5.6-sol", "effort": "xhigh" }
+        {
+          "model": "opus-5-5",
+          "effort": "high"
+        },
+        {
+          "model": "gpt-6.1-sol",
+          "effort": "xhigh"
+        }
       ]
     }
   },
   "batch": {
-    "eligible_actions": ["preserve_refactor"],
-    "eligible_proof_classes": ["type_only", "exact_move", "certified_transform", "pure_logic"],
+    "eligible_actions": [
+      "preserve_refactor"
+    ],
+    "eligible_proof_classes": [
+      "type_only",
+      "exact_move",
+      "certified_transform",
+      "pure_logic"
+    ],
     "max_silent_wrongness": "low",
-    "eligible_behavior_status": ["contract", "likely_intended"]
+    "eligible_behavior_status": [
+      "contract",
+      "likely_intended"
+    ]
   }
 }
