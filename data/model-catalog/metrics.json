@@ -2962,6 +2962,57 @@
       "steward": "third_party_board",
       "unit_default": "accuracy",
       "notes": "An agent builds and runs a space program in Kerbal Space Program (Vals AI)."
+    },
+    {
+      "id": "automationbench-aa",
+      "name": "AutomationBench-AA: Agentic SaaS Workflow Benchmark",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "Artificial Analysis's agentic SaaS workflow benchmark. In the v5 Index at 5% of the overall Index, within Knowledge Work. Not the same measurement as the vendor-table id 'automationbench'."
+    },
+    {
+      "id": "frontiercode-2-0",
+      "name": "FrontierCode 2.0 Benchmark",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "task_family": "coding",
+      "comparable": false,
+      "notes": "Cognition's private benchmark of real-world coding tasks, graded on whether a repository maintainer would merge the change. In the v5 Index at 15% of the overall Index, within Coding. Distinct from frontiercode-1-1-main and frontiercode-1-1-extended."
+    },
+    {
+      "id": "hle-diamond",
+      "name": "HLE-Diamond Benchmark",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "AA's refined 1,000-question version of Humanity's Last Exam, split evenly between reasoning and knowledge questions. The v5 article says it replaces Humanity's Last Exam. In the v5 Index at 10% of the overall Index, within General."
+    },
+    {
+      "id": "critpt-v2-hard",
+      "name": "CritPt v2 hard subset",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "accuracy",
+      "comparable": false,
+      "notes": "A private, 40-question hard subset of CritPt v2, revised by the CritPt authors and run with a code-execution tool. In the v5 Index at 10% of the overall Index, within Science. Not the same measurement as aa-critpt or epoch-critpt."
+    },
+    {
+      "id": "aa-omniscience-v1-1",
+      "name": "AA-Omniscience v1.1: Knowledge and Hallucination Benchmark",
+      "direction": "higher_better",
+      "harness": null,
+      "steward": "third_party_board",
+      "unit_default": "other",
+      "comparable": false,
+      "notes": "AA's knowledge and hallucination benchmark, v1.1: saturated and public-set questions removed, new questions added. In the v5 Index at 15% of the overall Index, within General (10% accuracy, 5% non-hallucination). Distinct from the unversioned aa-omniscience id."
     }
   ]
 }

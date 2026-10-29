@@ -1,3 +1,14 @@
+## v0.5.17 — 2026-10-28
+
+- Moved the cost-vs-intelligence chart to Artificial Analysis Intelligence Index v5.0 (`guide.json` `hero.metric_id`). AA published v5 on 2026-10-27. v5 values are not comparable with v4.3.2 values, so the v4.3.2 chart is kept under `charts/historical/` and is not the current chart. The change moves each setting's score by method, not by model performance.
+- Added `performance/artificial-analysis-intelligence-index-v5-full-2026-10-28.json`. It holds 63 Index rows (score; 61 also carry AA's per-task USD) and 558 per-eval rows for catalog settings. AA's cost is a benchmark-task cost. It is not a cost per accepted harness task. The 2026-10-28 partial v5 snapshot is unchanged.
+- Added five metric ids for v5 evals that had none: `automationbench-aa`, `frontiercode-2-0`, `hle-diamond`, `critpt-v2-hard`, `aa-omniscience-v1-1`.
+- Recorded 52 explicit gaps in the snapshot's `missing[]` (30 no AA object for this catalog id or effort; 11 AA object exists, no Index value; 7 blank or unknown catalog effort, not mapped; 3 identity not established (different version or snapshot); 1 other). Each is listed in `AA-INDEX-SNAPSHOTS.md`.
+- Gemini 4 Carbon has a v5 value in AA's roster but no catalog id, so it is recorded as a gap and not added as a setting.
+- Unresolved: AA's 2026-10-26 Terra article quotes $0.40 per task for GPT-6.1 Terra at max. The 2026-10-28 roster gives $0.96 at max and $0.40 at xhigh. The stored value is the roster's $0.96 at max; the $0.40 at max is not reproduced.
+- Unresolved: AA's article gives GPT-6 Astra's CritPt v2 hard subset as 72%, and the roster gives 70.5%. The roster value is stored.
+- No provider token rate changed. No routing pick changed in `model-choice-policy`; that pack pins this catalog tag.
+
 # Model catalog changelog
 
 Newest first. The README links here; this file is the single record.

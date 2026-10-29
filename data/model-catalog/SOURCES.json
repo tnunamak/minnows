@@ -5228,6 +5228,16 @@
       "retrieved_at": "2026-10-28",
       "kind": "vendor_blog",
       "notes": "Read by curl on 2026-10-28. Says 'DeepSeek-V4.1-Flash-1017 is here!' and 'Now live on our website, app, and API.' The page text read gives no API model string or price; the model id comes from the quick-start page and the change log."
+    },
+    {
+      "id": "aa-model-pages-v5-roster-2026-10-28",
+      "url": "https://artificialanalysis.ai/leaderboards/models",
+      "title": "Artificial Analysis model pages, decoded App Router payloads (v5 roster, 2026-10-28)",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "third_party_eval",
+      "notes": "Public AA model pages read 2026-10-28, 22:01 to 22:03 UTC, from the decoded App Router payload. The roster holds 716 model objects; 78 carry an Intelligence Index v5.0 value and 77 carry the full nine-eval set. Fields used: intelligenceIndex, intelligenceIndexCostPerTask.cost.total (USD per Index task), intelligenceIndexEvaluations (per-eval score by slug), and the effort label. Only the catalog rows that map exactly (same model and version) are stored; the roster itself is not in the repo. Each unmapped catalog key is listed in the snapshot's missing[] with its reason. Checked against the v5 article (aa-intelligence-index-v5-article-2026-10-28): the quoted leader scores match the payload, and one value differs: GPT-6 Astra CritPt v2 hard subset (article 72%, payload 70.5%). The payload value is stored."
     }
   ]
 }

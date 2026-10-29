@@ -2,9 +2,9 @@
   "$schema": "schemas/pack-v1.schema.json",
   "name": "model-catalog",
   "schema_version": 1,
-  "tag": "data-model-catalog-v0.5.16",
+  "tag": "data-model-catalog-v0.5.17",
   "generated_at": "2026-10-28",
-  "description": "Model economics catalog. v0.5.16: adds OpenAI GPT-6.1 Terra with Artificial Analysis Intelligence Index v5.0 and Terminal-Bench 4.0 readings for Terra and GPT-6.1 Sol; records Gemini 4 Carbon's announcement without a row; sets two Gemini 3 Flash ids to historical; adds the DeepSeek-V4.1-Flash-1017 alias. v0.5.15: adds Google Gemini 4 Argon (generally available 2026-10-13; API introductory price $2 / $0.10 / $10 per M tokens through 2026-11-30, then $4 / $0.20 / $20) with Google's launch table and model card, Artificial Analysis, Vals, Arena, Epoch and OpenRouter readings. Boards run it at high effort only. Google and the boards disagree on several scores; both are stored.",
+  "description": "Model economics catalog. v0.5.17: the cost-vs-intelligence chart moves from Artificial Analysis Intelligence Index v4.3.2 to v5.0 (AA published v5 on 2026-10-27; read 2026-10-28). Adds a full v5.0 snapshot: 24 catalog models at 63 settings with Index values (61 also carry AA's per-task cost), 558 per-eval values, 52 explicit gaps. Adds five metric ids for v5 evals that had none. The v4.3.2 and partial v5 snapshots are unchanged. No pricing change. Model economics catalog. v0.5.16: adds OpenAI GPT-6.1 Terra with Artificial Analysis Intelligence Index v5.0 and Terminal-Bench 4.0 readings for Terra and GPT-6.1 Sol; records Gemini 4 Carbon's announcement without a row; sets two Gemini 3 Flash ids to historical; adds the DeepSeek-V4.1-Flash-1017 alias. v0.5.15: adds Google Gemini 4 Argon (generally available 2026-10-13; API introductory price $2 / $0.10 / $10 per M tokens through 2026-11-30, then $4 / $0.20 / $20) with Google's launch table and model card, Artificial Analysis, Vals, Arena, Epoch and OpenRouter readings. Boards run it at high effort only. Google and the boards disagree on several scores; both are stored.",
   "files": [
     "CHANGELOG.md",
     "FRESHNESS.md",
@@ -155,7 +155,15 @@
     "schemas/pack-v1.schema.json",
     "schemas/performance-v1.schema.json",
     "schemas/pricing-v1.schema.json",
-    "schemas/sources-v1.schema.json"
+    "schemas/sources-v1.schema.json",
+    "performance/artificial-analysis-intelligence-index-v5-full-2026-10-28.json",
+    "charts/historical/cost-vs-intelligence-v4-3-2-readme-block.md",
+    "charts/historical/cost-vs-intelligence-v4-3-2-light.svg",
+    "charts/historical/cost-vs-intelligence-v4-3-2-dark.svg",
+    "charts/historical/cost-vs-intelligence-all-v4-3-2-light.svg",
+    "charts/historical/cost-vs-intelligence-all-v4-3-2-dark.svg",
+    "AA-INDEX-SNAPSHOTS.md",
+    "AA-INDEX-CHANGES.md"
   ],
   "schemas": {
     "pricing": "schemas/pricing-v1.schema.json",
