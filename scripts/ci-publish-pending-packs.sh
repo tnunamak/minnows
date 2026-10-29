@@ -109,7 +109,7 @@ for pack_json in data/*/pack.json; do
     echo "- **Index:** https://github.com/${OWNER_REPO}/blob/main/data/index.json"
     echo
     if [[ -f "$pack_dir/README.md" ]]; then
-      sed -n '/## Changelog/,$p' "$pack_dir/README.md" | head -40
+      sed -n '/## Changelog/,$p' "$pack_dir/README.md" | sed -n '1,40p'
     fi
   } >"$notes"
 
