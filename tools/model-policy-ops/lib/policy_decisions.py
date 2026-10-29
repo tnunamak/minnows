@@ -363,6 +363,42 @@ def execute_locked(args, policy, stack):
     if args.command in ('audit', 'calibrate', 'observe'):
         outcomes.refuse_shared_ledger(args.receipts, args.observations, '--observations')
         outcomes.refuse_shared_ledger(args.outcomes, args.observations, '--observations', first='--outcomes')
+    if args.command == 'observe':
+        state_path = args.observe_state or observe.default_observe_state(args.observations)
+        call_index_path = observe.call_index_path(state_path)
+        state_files = (
+            ('state', state_path),
+            ('lock', state_path.with_name(state_path.name + '.lock')),
+            ('call index', call_index_path),
+            ('call index WAL', Path(str(call_index_path) + '-wal')),
+            ('call index shared memory', Path(str(call_index_path) + '-shm')),
+            ('call index journal', Path(str(call_index_path) + '-journal')),
+        )
+        ledgers = ((args.receipts, '--receipts'), (args.outcomes, '--outcomes'),
+                   (args.observations, '--observations'), (args.directives, '--directives'))
+        protected_files = list(ledgers)
+        protected_files.append((args.destinations, '--destinations'))
+        protected_inputs = [(args.directives, '--directives'), (args.destinations, '--destinations')]
+        if args.db is not None:
+            db_paths = {Path(args.db), Path(os.path.realpath(args.db))}
+            db_files = []
+            for db_path in db_paths:
+                db_files.append((db_path, '--db'))
+                db_files.extend((Path(str(db_path) + suffix), '--db')
+                                for suffix in ('-wal', '-shm', '-journal'))
+            protected_files.extend(db_files)
+            protected_inputs.extend(db_files)
+        for protected_path, protected_name in protected_files:
+            for artifact, path in state_files:
+                try:
+                    outcomes.refuse_shared_ledger(protected_path, path, '--observe-state', first=protected_name)
+                except ValueError:
+                    raise ValueError(f'{protected_name} must not share a file with observe state {artifact}') from None
+        for protected_path, protected_name in protected_inputs:
+            try:
+                outcomes.refuse_shared_ledger(args.observations, protected_path, '--observations', first=protected_name)
+            except ValueError:
+                raise ValueError(f'{protected_name} must not share a file with --observations') from None
     if args.command == 'calibrate':
         return run_calibrate(args, policy, at)
     if args.command in ('close', 'followup', 'audit', 'observe'):
