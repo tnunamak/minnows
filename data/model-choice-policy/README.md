@@ -10,14 +10,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.2.9](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.9) — unreleased; published by CI after merge to main |
+| **This version** | [data-model-choice-policy-v0.2.10](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.10) — unreleased; published by CI after merge to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.2.9
+TAG=data-model-choice-policy-v0.2.10
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -150,6 +150,11 @@ not silently route by model name.
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.2.10 — 2026-10-29
+
+- Add GPT-6.1 Terra as an unvalidated Codex candidate at the operating-point efforts wherever GPT-6.1 Sol is already a primary or candidate: `fanout.explore` (medium), `implement.standard` (medium), `implement.quota-tight` (medium), `implement.accuracy-first` (high), `review.audit` (high), `advisor.deep` (high), and `ui.computer-use` (medium). Primary arms do not change. The catalog's Artificial Analysis Intelligence Index v5.0 and Terminal-Bench 4.0 comparison places Terra below Sol at every policy-allowed effort; neither board is task-specific validation.
+- Catalog pin: **v0.5.16**.
 
 ### v0.2.9 — 2026-10-28
 
