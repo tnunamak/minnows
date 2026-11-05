@@ -42,8 +42,8 @@ def world(tmp_path, monkeypatch):
     return found
 
 
-def route(world, *extra, op=OP, proof=ORACLE, clock=NOW):
-    result, out = world.cli('route', op, *world.args(), *proof, '--decision-id', 'allowance', *extra, evaluation_time=clock)
+def route(world, *extra, op=OP, proof=ORACLE, clock=NOW, decision='allowance'):
+    result, out = world.cli('route', op, *world.args(), *proof, '--decision-id', decision, *extra, evaluation_time=clock)
     assert result.returncode == 0, result.stderr
     return out
 
@@ -174,6 +174,34 @@ def test_a_limit_message_in_new_wording_still_exhausts_the_pool(world):
     out = route(world)
     assert removed(out, GEMINI, 'antigravity') == 'allowance_exhausted'
     assert removed(out, SONNET, 'antigravity') is None, 'the other pool of the account keeps its allowance'
+
+
+CAP_NOTE = 'Usage Limit Reached. You have reached your current quota for this period. Your limit will reset in 6 days, 23 hours.'
+
+
+def record_and_close(world, note):
+    out = route(world, '--record', '--parent-model', 'pm', '--parent-provider-instance', 'pp', '--parent-thread', 'pt')
+    first = out['target']['model']
+    result, _ = world.cli('close', out['decision_id'], '--receipts', world.receipts, '--close-id', 'cap-close', '--outcome', 'rejected',
+                          '--judged-by', 'parent', '--check', 'none', '--note', note)
+    assert result.returncode == 0, result.stderr
+    return first
+
+
+def test_a_close_note_that_reports_a_cap_exhausts_the_pool_that_served_the_run(world):
+    assert record_and_close(world, CAP_NOTE) == GEMINI
+    state = allowance.read_state(world.receipts.with_name('allowance-exhaustion.json'))
+    assert list(state) == ['antigravity/antigravity/gemini']
+    assert state['antigravity/antigravity/gemini']['source'] == 'close_note'
+    out = route(world, decision='after-cap')
+    assert removed(out, GEMINI, 'antigravity') == 'allowance_exhausted'
+    assert removed(out, SONNET, 'antigravity') is None, 'the other pool of the account keeps its allowance'
+
+
+def test_a_close_note_that_only_mentions_a_limit_leaves_the_pool_alone(world):
+    assert record_and_close(world, 'Accepted after I raised the page limit to 50.') == GEMINI
+    assert not world.receipts.with_name('allowance-exhaustion.json').exists()
+    assert removed(route(world, decision='after-note'), GEMINI, 'antigravity') is None
 
 
 def test_an_unrelated_rate_limit_does_not_exhaust_a_pool(world):

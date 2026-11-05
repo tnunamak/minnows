@@ -20,7 +20,7 @@ from pathlib import Path
 STATE_NAME = 'allowance-exhaustion.json'
 SCHEMA_VERSION = 1
 PERIODS = ('daily_utc', 'weekly')
-SOURCES = ('t3_failure', 'caller')
+SOURCES = ('t3_failure', 'close_note', 'caller')
 UNITS = {'day': timedelta(days=1), 'hour': timedelta(hours=1), 'minute': timedelta(minutes=1)}
 RESET_IN = re.compile(r'(\d+)\s*(day|hour|minute)s?', re.I)
 RESETS_PHRASE = re.compile(r'resets?\s+in\b([^.\n]*)', re.I)
@@ -44,6 +44,7 @@ def pools(routes):
     return found
 
 
+CAP_NOTICE = re.compile(r'reached|exceeded|quota|reset')
 TRANSIENT_LIMIT = re.compile(r'rate[- ]?limit|too many requests|\b429\b')
 
 
@@ -151,6 +152,8 @@ def from_events(rows, routes, events, now):
             route = found['route']
             if route['account'] != event['instance'] or not matches_limit(route['allowance'], event['message']):
                 continue
+            if event.get('kind') == 'message' and not CAP_NOTICE.search(event['message'].lower()):
+                continue  # free text (a close note) is the caller's own words unless it reads as a cap notice
             if event.get('model') is None:
                 if sum(1 for other in declared.values() if other['route']['account'] == route['account']) != 1:
                     continue
@@ -158,7 +161,7 @@ def from_events(rows, routes, events, now):
                 continue
             until = next_reset(route['allowance'], at, event['message'])
             if until > now:
-                rows = merge(rows, key, until, at, 't3_failure', event['message'])
+                rows = merge(rows, key, until, at, event.get('source', 't3_failure'), event['message'])
     return rows
 
 

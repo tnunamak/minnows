@@ -171,6 +171,24 @@ def run_allowance(args, policy, at):
     raise ValueError('allowance takes status, limit or clear')
 
 
+def record_cap_from_close(args, policy, close):
+    """A close whose `--note` reads as a cap notice exhausts the pool that served the decision.
+
+    The note is the caller's own report of what the arm returned ("Usage Limit Reached ... resets in 6 days"). The
+    pool is the declared one for the receipt's target account and model. A replayed close is skipped: its first
+    recording already stored the row. The event time is the close's `recorded_at`, so the reset is the provider's
+    stated one, counted from the close.
+    """
+    routes = policy.get('free_routes', [])
+    if not args.note or close.get('replayed') or not allowance.pools(routes):
+        return
+    target = (find_receipt(args.receipts, args.op) or {}).get('target') or {}
+    event = {'instance': target.get('providerInstanceId'), 'model': target.get('model'), 'kind': 'message', 'source': 'close_note',
+             'at': close['recorded_at'], 'message': args.note}
+    path = args.allowance_state or allowance.default_path(args.receipts)
+    allowance.sync(path, routes, [event], directive_store.now(), write=True)
+
+
 def route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack):
     """Run the router and add the evidence snapshot and calibration notes. No state commit."""
     params = policy.get('routing', {})
@@ -414,8 +432,8 @@ def execute_locked(args, policy, stack):
     if args.command == 'allowance':
         outcomes.refuse_shared_ledger(args.receipts, args.allowance_state or allowance.default_path(args.receipts), '--allowance-state')
         return run_allowance(args, policy, at)
-    if args.allowance_state is not None and args.command != 'route':
-        raise ValueError('--allowance-state applies to route and allowance only')
+    if args.allowance_state is not None and args.command not in ('route', 'close'):
+        raise ValueError('--allowance-state applies to route, close and allowance only')
     if args.command == 'directive':
         outcomes.refuse_shared_ledger(args.receipts, args.directives, '--directives')
         max_days = policy.get('routing', {}).get('directive_max_days')
@@ -442,7 +460,10 @@ def execute_locked(args, policy, stack):
     if args.command == 'observe':
         return observe.execute(args)
     if args.command in ('close', 'followup'):
-        return outcomes.execute(args)
+        result = outcomes.execute(args)
+        if args.command == 'close':
+            record_cap_from_close(args, policy, result)
+        return result
     if args.command == 'audit':
         if bool(args.db) == bool(args.export):
             raise ValueError('audit requires exactly one of --db or --export')
