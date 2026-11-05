@@ -450,7 +450,8 @@ def main() -> int:
     if args.command in ("resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe", "report", "allowance"):
         try:
             needs_policy = args.command in ("resolve", "route", "calibrate", "allowance") or (args.command == "directive" and args.op in ("add", "list"))
-            policy = load_policy(args.policy) if needs_policy else {}
+            # A close with a note reads the declared pools (raw, unchecked) to see whether the note reports a spent cap.
+            policy = load_policy(args.policy) if needs_policy or (args.command == "close" and args.note) else {}
             if needs_policy and not isinstance(policy, dict):
                 raise ValueError('policy must be a JSON object')
             if needs_policy:
