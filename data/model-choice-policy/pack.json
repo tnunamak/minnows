@@ -11,7 +11,8 @@
     "op-requirements.json",
     "operating-points.json",
     "evidence/deepseek-public-eval-2026-10-15.json",
-    "evidence/deepseek-owner-decision-2026-10-26.json"
+    "evidence/deepseek-owner-decision-2026-10-26.json",
+    "evidence/allowance-owner-decision-2026-11-05.json"
   ],
   "related": {
     "catalog": "data-model-catalog-v0.5.17",

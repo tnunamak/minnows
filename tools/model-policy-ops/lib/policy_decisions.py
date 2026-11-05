@@ -6,9 +6,10 @@ import sys
 import time
 import uuid
 from contextlib import ExitStack
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import allowance
 import normal_free_routes
 from runtime_sources import digest, read_source, providers, provider_instance, driver_family, resolve_arm, quota_context
 from decision_receipts import read_receipts, find_receipt, append_receipt, validate_id, replay_receipt, validate_escalation_source
@@ -57,6 +58,10 @@ def add_arguments(parser):
     parser.add_argument('--critical-path', action='store_true', help='route launch fact: this work must not wait on quota pacing; with forecast bands and no other launchable pair, take the subscription with the least overshoot above its own band. Exhausted, unknown, avoided, unfunded and independence-failing pairs stay excluded')
     parser.add_argument('--inputs', choices=outcomes.INPUTS, help='launch fact: where the task inputs are; absent means unknown')
     parser.add_argument('--data-classification', choices=['public', 'sensitive'], help='free routes require an explicit public declaration')
+    parser.add_argument('--allowance-state', type=Path, help='allowance exhaustion state; default allowance-exhaustion.json beside --receipts')
+    parser.add_argument('--pool', help='allowance limit|clear: the allowance pool name on --account')
+    parser.add_argument('--account', help='allowance limit|clear: the T3 provider instance of the pool')
+    parser.add_argument('--message', help='allowance limit: the provider limit message that the failed launch returned; a "resets in N days" phrase sets the reset')
     parser.add_argument('--experimental-route', action='store_true', help='retired: the legacy experimental free route is no longer declared, so this flag only refuses; omit it and use the normal free route')
     parser.add_argument('--input-mode', choices=destinations.INPUT_MODES, help='route: how a typed destination gets local inputs; only caller-text, only with --inputs local')
     parser.add_argument('--sensitive', action='store_true', help='launch fact: the task touches credential or signing code; absent means unknown')
@@ -114,18 +119,20 @@ def quota_authorized_by(args, params):
 def normal_free_candidates(args, policy, at):
     """The normal (non-experimental) zero-price routes that this request may route to, as pack-style candidates.
 
-    The caller's assertions gate them: explicit public inputs, no sensitive flag, and the proof class the
-    declaration names. The declaration gates the rest: operation, effort and current evidence. There is no
+    The caller's assertions gate them: explicit public inputs when the declaration requires them (a route that
+    declares `any` needs no assertion), no sensitive flag or classification, and the proof class the declaration names. The declaration gates the rest: operation, effort and current evidence. There is no
     experimental flag and no expiry. The router applies its ordinary filters (catalog, exact effort surface,
     avoid, independence) and the account's cooldown.
 
     A `qualified_free` item is selected on its qualified evidence. An `unvalidated` item stays a judgment-
     required alternate: it is chosen only by the ordinary ranking or an explicit override with a reason.
     """
-    if args.command != 'route' or args.data_classification != 'public' or args.sensitive:
+    if args.command != 'route' or args.data_classification == 'sensitive' or args.sensitive:
         return []
     found = []
     for route in policy.get('free_routes', []):
+        if normal_free_routes.requires_public(route) and args.data_classification != 'public':
+            continue
         for item in route.get('operations', []):
             if item['id'] != args.op:
                 continue
@@ -140,13 +147,37 @@ def normal_free_candidates(args, policy, at):
     return found
 
 
+LIMIT_LOOKBACK_HOURS = 48
+
+
+def run_allowance(args, policy, at):
+    """`allowance status|limit|clear`: show, record or clear the exhaustion of a declared allowance pool."""
+    routes = policy.get('free_routes', [])
+    path = args.allowance_state or allowance.default_path(args.receipts)
+    if args.op == 'status':
+        failures = route_inputs.read_failures(args.db, at, policy.get('routing', {}).get('failure_lookback_minutes') or 0, LIMIT_LOOKBACK_HOURS)
+        rows = allowance.sync(path, routes, failures['limit_events'], at, write=False)
+        return {'now': at.isoformat(), 'state_path': str(path), 'pools': allowance.status(routes, rows, at)}
+    if not args.account or not args.pool:
+        raise ValueError(f'allowance {args.op} needs --account and --pool')
+    if args.op == 'limit':
+        if not args.message:
+            raise ValueError('allowance limit needs --message: the limit text that the failed launch returned')
+        until = directive_store.parse_time(args.until, '--until') if args.until else None
+        key, row = allowance.record(path, routes, account=args.account, pool=args.pool, message=args.message, at=at, until=until)
+        return {'pool': key, 'exhausted_until': row['until'], 'state_path': str(path)}
+    if args.op == 'clear':
+        return {'cleared': allowance.clear(path, routes, account=args.account, pool=args.pool), 'state_path': str(path)}
+    raise ValueError('allowance takes status, limit or clear')
+
+
 def route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack):
     """Run the router and add the evidence snapshot and calibration notes. No state commit."""
     params = policy.get('routing', {})
     accounts, accounts_meta = route_inputs.read_accounts(args.accounts)
     records = directive_store.read_directives(args.directives)
     max_days = params.get('directive_max_days')
-    failures = route_inputs.read_failures(args.db, at, params.get('failure_lookback_minutes'))
+    failures = route_inputs.read_failures(args.db, at, params.get('failure_lookback_minutes'), LIMIT_LOOKBACK_HOURS)
     model_catalog = route_inputs.read_model_catalog(args.model_catalog or route_inputs.default_model_catalog_path())
     lineage_key = params.get('lineage_key')
     fresh = route_inputs.freshness(policy, providers(available), model_catalog, lineage_key)
@@ -155,11 +186,17 @@ def route_choice(args, policy, op, available, available_meta, quota, quota_meta,
         maker = route_inputs.resolve_maker(args.receipts, args.maker, args.maker_model, args.db, available,
                                            route_inputs.known_providers(policy, available, lineage_key))
     line_of = lambda provider, model: route_inputs.line_of(provider, model, model_catalog, lineage_key)
+    routes = policy.get('free_routes', [])
+    exhausted = allowance.sync(args.allowance_state or allowance.default_path(args.receipts), routes, failures['limit_events'],
+                               at, write=not args.now)
+    vendors = {(route['provider'], route['model']): route['vendor'] for route in routes if route.get('vendor')}
     ctx = routing.make_context(op, params, available=available, available_meta=available_meta, quota=quota, quota_meta=quota_meta,
                                accounts=accounts, directives=directive_store.active(records, at, max_days), maker=maker,
                                independence=args.independence, proof_class=args.proof_class, line_of=line_of,
                                failures=failures, freshness=fresh, now=at, critical_path=args.critical_path,
                                free_candidates=normal_free_candidates(args, policy, at),
+                               exhausted_pools={key: row for key, row in exhausted.items() if allowance.active(exhausted, key, at)},
+                               vendor_of=lambda provider, model: vendors.get((provider, model), provider),
                                substitution=routing.substitution_context(params, accounts, quota, quota_meta, at, args.quota_state, write=not args.now,
                                                               authorized_by=quota_authorized_by(args, params), stack=stack))
     block = routing.route(op, params, ctx)
@@ -374,6 +411,11 @@ def execute_locked(args, policy, stack):
     if args.now and not (args.command in ('route', 'calibrate') or (args.command == 'directive' and args.op == 'list')):
         name = args.command + (f' {args.op}' if args.command == 'directive' else '')
         raise ValueError(f'--now is not allowed for {name}: it is a read-only simulation clock and {name} writes state with the real clock')
+    if args.command == 'allowance':
+        outcomes.refuse_shared_ledger(args.receipts, args.allowance_state or allowance.default_path(args.receipts), '--allowance-state')
+        return run_allowance(args, policy, at)
+    if args.allowance_state is not None and args.command != 'route':
+        raise ValueError('--allowance-state applies to route and allowance only')
     if args.command == 'directive':
         outcomes.refuse_shared_ledger(args.receipts, args.directives, '--directives')
         max_days = policy.get('routing', {}).get('directive_max_days')
@@ -750,7 +792,7 @@ def dispatch_identities(result, available=None, destination_target=None):
         if provider is None and account == 'opencode':
             provider = 'opencode'
         options = target.get('options') or {}
-        effort = next((options[key] for key in ('effort', 'reasoningEffort', 'thinking', 'variant') if key in options),
+        effort = next((options[key] for key in ('effort', 'reasoningEffort', 'thinking', 'variant', 'thinking_level') if key in options),
                       None)
         identity = {'provider': provider, 'model': model, 'account': account, 'effort': effort}
         if identity not in identities:
@@ -804,8 +846,10 @@ def normal_target_refusal(identity, request, sensitive, routes, evaluated_at, *,
         return model_route, ('account_not_declared_for_normal_route' if model_route else 'model_not_declared_for_normal_route')
     if sensitive:
         return route, 'sensitive_inputs'
-    if request.get('data_classification') != 'public':
+    if normal_free_routes.requires_public(route) and request.get('data_classification') != 'public':
         return route, 'public_classification_required'
+    if request.get('data_classification') == 'sensitive':
+        return route, 'sensitive_inputs'
     if generic_destination:
         return route, 'governed_destination_unsupported'
     op = request.get('op')

@@ -5,6 +5,7 @@ The pack carries the policy: candidate arms with their evidence basis, and the r
 rejects, ranks the rest by a lexicographic key, and explains each step in a trace. It never learns
 from outcomes and it never dispatches work.
 """
+import allowance
 import pacing
 import drain
 import quota_bands
@@ -190,8 +191,11 @@ def maker_vendor_coverage(maker):
     return vendors, bool(vendors)
 
 
-def independence_check(level, maker, arm, line_of):
+def independence_check(level, maker, arm, line_of, vendor_of=lambda provider, model: provider):
     """(ok, requested_only, why_not). A different vendor is fixed by the T3 driver kind.
+
+    `vendor_of` names the vendor that trained a model. By default it is the driver kind. A free route that serves another
+    vendor's model through its own driver declares that vendor, so a checker never shares a vendor with its maker.
 
     Within one vendor, family and model rest on the requested model only, so they are `requested_only`.
     The family is the model line from `line_of`: a different version of the same line is the same family,
@@ -199,7 +203,7 @@ def independence_check(level, maker, arm, line_of):
     """
     requested_only = False
     for vendor, model in maker_targets(maker):
-        if vendor != arm['provider']:
+        if vendor_of(vendor, model) != vendor_of(arm['provider'], arm['model']):
             continue
         if level == 'vendor':
             return False, False, 'same_vendor'
@@ -265,7 +269,7 @@ def assess_pair(ctx, op_id, arm, instance, requires, free_route=None):
         hits.append(('quota_exhausted', {'windows': [w['name'] for w in view['windows'] if w['state'] == 'exhausted']}))
     requested_only = False
     if ctx['level'] and ctx['maker']:
-        ok, requested_only, why = independence_check(ctx['level'], ctx['maker'], arm, ctx['line_of'])
+        ok, requested_only, why = independence_check(ctx['level'], ctx['maker'], arm, ctx['line_of'], ctx['vendor_of'])
         if not ok:
             hits.append(('independence', {'level': ctx['level'], 'why': why}))
     return {'matched': matched, 'billing': billing, 'selection': selection, 'view': view, 'hits': hits, 'requested_only': requested_only}
@@ -317,13 +321,15 @@ def is_review(op, params):
 
 def make_context(op, params, *, available, available_meta, quota, quota_meta, accounts, directives, maker, independence,
                  proof_class, line_of, failures, freshness, now, substitution=None, critical_path=False,
-                 free_candidates=()):
+                 free_candidates=(), exhausted_pools=None, vendor_of=None):
     """The inputs that every pair assessment shares. A review op without a pack `independence_default` requires `vendor`.
 
     `level_source` says where the level came from: the `flag`, the `pack` or the `mechanism_default`.
     `substitution` is None when the pack does not enable quota substitution, else {thresholds, state, ranks}.
     `critical_path` is the caller's launch fact (see `pacing`); it changes nothing without forecast bands.
     `free_candidates` are the declared free routes that this request qualifies for; `route` ranks them after the pack's candidates.
+    `exhausted_pools` maps each exhausted allowance pool (see `allowance`) to its stored row; `vendor_of(provider, model)` names the
+    model's vendor for checker independence.
     """
     review = is_review(op, params)
     if independence:
@@ -337,7 +343,8 @@ def make_context(op, params, *, available, available_meta, quota, quota_meta, ac
             'proof_class': proof_class, 'line_of': line_of, 'failures': failures, 'freshness': freshness,
             'pace_windows': params.get('pace_windows', []), 'bands': params.get('quota_bands'), 'now': now,
             'substitution': substitution, 'critical_path': critical_path is True, 'demote_count': params.get('failure_demote_count'),
-            'free_candidates': list(free_candidates), 'drain': params.get('drain_accounts') or {}}
+            'free_candidates': list(free_candidates), 'drain': params.get('drain_accounts') or {},
+            'allowance': exhausted_pools or {}, 'vendor_of': vendor_of or (lambda provider, model: provider)}
 
 
 def tag(reasons, applies_to):
@@ -369,6 +376,11 @@ def final_view(ctx, op, arm, instance, views, free_route=None):
         constrained = sub['state']['constrained'][instance]
         reasons.append({'code': 'final_account_quota_constrained',
                         'detail': {'instance': instance, 'projected_pct': constrained['projected_pct'], 'window': constrained['window']}})
+    exhausted = ctx['allowance'].get(allowance.pool_key(free_route)) if free_route and free_route.get('allowance') else None
+    if exhausted:
+        # The override stays exact. The caller learns that the pool is spent until its known reset.
+        reasons.append({'code': 'final_allowance_exhausted', 'informational': True,
+                        'detail': {'pool': allowance.pool_key(free_route), 'exhausted_until': exhausted['until']}})
     cooling = pacing.cooldown(ctx['failures'], instance, ctx['demote_count'], DEMOTING)
     if cooling['state'] == 'cooling_down':
         # The override stays exact. The caller learns when recent failures leave the lookback.
@@ -415,6 +427,12 @@ def route(op, params, ctx):
                 removed, detail = found['hits'][0]
                 trace.append(row | {'removed_by': removed, 'detail': detail})
                 continue
+            if candidate.get('free_route'):
+                exhausted = ctx['allowance'].get(allowance.pool_key(candidate['free_route'])) if candidate['free_route'].get('allowance') else None
+                if exhausted:
+                    trace.append(row | {'removed_by': 'allowance_exhausted',
+                                        'detail': {'pool': allowance.pool_key(candidate['free_route']), 'exhausted_until': exhausted['until']}})
+                    continue
             if candidate.get('free_route') and found['billing'] == 'free':
                 cooling = pacing.cooldown(failures, instance, demote_count, DEMOTING)
                 if cooling['state'] == 'cooling_down':

@@ -375,12 +375,12 @@ def test_the_pack_ships_an_exact_normal_scope_without_experimental_fields():
     assert 'expires_at_utc' not in route and 't3_transport' not in route and 'expiry_basis' not in route
     operations = {item['id']: item for item in route['operations']}
     assert set(operations) == {'implement.oracle-bounded', 'docs.lookup', 'review.rule-check', 'implement.quota-tight',
-                               'fanout.dollar-tight', 'fanout.explore'}
+                               'fanout.dollar-tight', 'fanout.explore', 'review.first-pass'}
     for op in ('implement.oracle-bounded', 'docs.lookup'):
         assert operations[op]['basis'] == 'qualified_free'
         assert operations[op]['proof_classes'] == ['oracle'] and operations[op]['efforts'] == ['high']
         assert operations[op]['evidence_basis'] == 'bounded_gate_evidence'
-    for op in ('implement.quota-tight', 'fanout.dollar-tight', 'fanout.explore'):
+    for op in ('implement.quota-tight', 'fanout.dollar-tight', 'fanout.explore', 'review.first-pass'):
         assert operations[op]['basis'] == 'owner_authorized' and operations[op]['efforts'] == ['high']
         assert operations[op]['evidence_basis'] == 'owner_decision'
     review = operations['review.rule-check']

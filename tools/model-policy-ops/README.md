@@ -412,6 +412,18 @@ Do not dispatch if the result is refused or `target` is null. A sensitive
 negative check adds `--sensitive`; the result must have `launch_ready: false`
 and `target: null`.
 
+### Allowance pools (free and prepaid caps)
+
+Free DeepSeek (daily cap, resets 00:00 UTC) and Antigravity (prepaid weekly caps, one per model group) are declared in `free_routes` with an `allowance`. They rank before paid arms for `implement.oracle-bounded`, `docs.lookup` and `review.first-pass`. DeepSeek is a candidate only with `--data-classification public`; Antigravity needs no assertion but refuses `--sensitive`. A launch that fails with the provider's limit message exhausts the pool until its reset, and `route` falls through to the next arm. The state survives restarts in `allowance-exhaustion.json` beside the receipts.
+
+```bash
+model-policy-ops allowance status
+model-policy-ops allowance limit --account antigravity --pool gemini --message 'Usage Limit Reached ... resets in 3 days'
+model-policy-ops allowance clear --account antigravity --pool gemini
+```
+
+Output from these arms still gets a different-vendor check before merge: route the checker with `--maker` or `--maker-model`.
+
 ## Receipts and escalation
 
 Default resolve is read-only. `--record` requires a caller decision ID plus all
