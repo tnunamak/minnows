@@ -333,7 +333,10 @@ def test_an_owner_authorized_route_falls_back_while_the_free_tier_reports_its_ca
     proof = ('--proof-class', 'judged')
     out = route_at(world, NOW, *PUBLIC, op='fanout.explore', proof=proof)
     row = next(t for t in out['routing']['trace'] if t['arm']['provider'] == 'opencode')
-    assert row['removed_by'] == 'cooling_down'
+    assert row['removed_by'] == 'allowance_exhausted'  # a daily cap holds until 00:00 UTC, not for the failure lookback
+    assert row['detail']['exhausted_until'] == '2026-10-12T00:00:00+00:00'
     assert_paid_primary_serves(world, out, 'fanout.explore')
-    again = route_at(world, '2026-10-11T01:15:01Z', *PUBLIC, op='fanout.explore', proof=proof)
+    held = route_at(world, '2026-10-11T01:15:01Z', *PUBLIC, op='fanout.explore', proof=proof)
+    assert held['routing']['chosen']['arm']['model'] != DEEPSEEK_FREE
+    again = route_at(world, '2026-10-12T00:00:01Z', *PUBLIC, op='fanout.explore', proof=proof)
     assert again['routing']['chosen']['arm']['model'] == DEEPSEEK_FREE

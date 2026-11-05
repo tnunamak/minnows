@@ -172,6 +172,24 @@
       "failure_detection_probability": 0
     },
     {
+      "op": "review.first-pass",
+      "status": "DRAFT",
+      "constraint_decision": "OWNER_DECISION_PENDING",
+      "allowed_efforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "constraints": [
+        "different_vendor_from:implement.standard",
+        "different_vendor_from:implement.accuracy-first"
+      ],
+      "cost_basis": "usd_per_task",
+      "rationale": "Advisory first look at another agent's change. A different-vendor review.audit still follows before merge.",
+      "silent_failure_cost_usd": 100,
+      "failure_detection_probability": 0
+    },
+    {
       "op": "advisor.deep",
       "status": "DRAFT",
       "allowed_efforts": [
@@ -256,6 +274,9 @@
       "coding"
     ],
     "review.audit": [
+      "coding"
+    ],
+    "review.first-pass": [
       "coding"
     ],
     "advisor.deep": [

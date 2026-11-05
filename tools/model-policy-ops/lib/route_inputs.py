@@ -73,15 +73,19 @@ def classify_failure(message):
     return 'unknown'
 
 
-def read_failures(db_path, now, lookback_minutes):
+def read_failures(db_path, now, lookback_minutes, limit_hours=0):
     """Terminal-failure events per provider instance and class, within the lookback.
 
     The events are T3 turn items whose ID contains `terminal-failure` and whose status is `failed`.
     A recovered item (status completed), a cancellation and an interruption are not failures.
     They join to the instance through the run. The database opens read-only and query-only, in one
     transaction. A missing database, table or column gives state `unknown` with a reason, never healthy.
+
+    The same scan also collects `limit_events` for `allowance`: failures in the last `limit_hours` whose message mentions a
+    limit, as {instance, model, at, message}. A cap can outlast the failure lookback, and a second scan of a large database
+    would double the cost of every route. The model is the run's requested model selection when the run row has one, else None.
     """
-    unknown = lambda reason: {'state': 'unknown', 'reason': reason, 'lookback_minutes': lookback_minutes, 'instances': {}, 'times': {}, 'unjoined': None}
+    unknown = lambda reason: {'state': 'unknown', 'reason': reason, 'lookback_minutes': lookback_minutes, 'instances': {}, 'times': {}, 'unjoined': None, 'limit_events': []}
     if not db_path:
         return unknown('not_supplied')
     if lookback_minutes is None:
@@ -99,11 +103,15 @@ def read_failures(db_path, now, lookback_minutes):
                 return unknown(f'{name}_table_absent')
             if not needed <= columns:
                 return unknown('schema_mismatch')
-        since = (now - timedelta(minutes=lookback_minutes)).isoformat()
+        model = ("json_extract(r.payload_json,'$.modelSelection.model')"
+                 if 'payload_json' in {row[1] for row in db.execute(f'PRAGMA table_info({PREFIX}runs)')} else 'NULL')
+        window = max(timedelta(minutes=lookback_minutes), timedelta(hours=limit_hours))
+        since = (now - window).isoformat()
         rows = db.execute(f"""SELECT r.provider_instance_id,
               json_extract(i.payload_json,'$.failure.class'),
               coalesce(json_extract(i.payload_json,'$.failure.message'),json_extract(i.payload_json,'$.title'),''),
-              coalesce(json_extract(i.payload_json,'$.startedAt'),i.updated_at)
+              coalesce(json_extract(i.payload_json,'$.startedAt'),i.updated_at),
+              {model}
             FROM {PREFIX}turn_items i LEFT JOIN {PREFIX}runs r ON r.run_id=i.run_id
             WHERE i.turn_item_id LIKE '%terminal-failure%' AND i.status='failed'
               AND julianday(coalesce(json_extract(i.payload_json,'$.startedAt'),i.updated_at))>=julianday(?)
@@ -113,11 +121,17 @@ def read_failures(db_path, now, lookback_minutes):
         return unknown('read_error')
     finally:
         db.close()
-    instances, times = {}, {}
+    instances, times, limit_events = {}, {}, []
     unjoined = 0
-    for instance, native_class, message, started in rows:
+    recent = now - timedelta(minutes=lookback_minutes)
+    for instance, native_class, message, started, requested_model in rows:
         if str(native_class).lower() in CANCELLATIONS:
             continue
+        if instance is not None and started and 'limit' in (message or '').lower():
+            limit_events.append({'instance': instance, 'model': requested_model, 'at': started, 'message': message})
+        moment = parse_time(started)
+        if moment is not None and moment < recent:
+            continue  # inside the wider limit window only
         if instance is None:
             unjoined += 1
             continue
@@ -125,7 +139,8 @@ def read_failures(db_path, now, lookback_minutes):
         name = classify_failure(message)
         events[name] = events.get(name, 0) + 1
         times.setdefault(instance, {}).setdefault(name, []).append(started)
-    return {'state': 'observed', 'reason': None, 'lookback_minutes': lookback_minutes, 'instances': instances, 'times': times, 'unjoined': unjoined}
+    return {'state': 'observed', 'reason': None, 'lookback_minutes': lookback_minutes, 'instances': instances, 'times': times, 'unjoined': unjoined,
+            'limit_events': limit_events}
 
 
 def read_maker_runs(db_path, decision_id):

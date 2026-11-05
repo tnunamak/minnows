@@ -859,6 +859,54 @@
       "notes": "Visible exploration point; not a recommended default."
     },
     {
+      "id": "review.first-pass",
+      "task_family": "review",
+      "constraint_family": "dollar-tight",
+      "expands_to": {
+        "provider": "claude",
+        "model": "claude-sonnet-5-5",
+        "effort": "high",
+        "mode": "standard"
+      },
+      "frontier_assumption": {
+        "cost_basis": "low",
+        "quota_basis": "low",
+        "expected_strength": "advisory_first_pass_review_before_a_different_vendor_check",
+        "evidence_confidence": "low",
+        "frontier_status": "unknown_locally"
+      },
+      "evidence_refs": [],
+      "use_when": [
+        "A cheap first look at another agent's change that finds obvious defects early",
+        "Allowance pools (free or prepaid) have room, and a different-vendor check still follows before merge"
+      ],
+      "avoid_when": [
+        "The only review before merge (use review.audit)",
+        "Security or correctness sensitive changes"
+      ],
+      "escalate_to": [
+        "review.audit"
+      ],
+      "deescalate_to": [],
+      "known_gaps": [
+        "Advisory only: it never replaces review.audit. A change that a free or prepaid arm made still needs a different-vendor check before merge.",
+        "The paid fallback is a judgment call without a matched board; the free and prepaid arms are owner-authorized, not gate-qualified."
+      ],
+      "override_policy": "explicit_flags_win",
+      "candidates": [
+        {
+          "provider": "codex",
+          "model": "gpt-6.1-terra",
+          "effort": "high",
+          "basis": "unvalidated",
+          "evidence_refs": [],
+          "known_gaps": [
+            "No review-quality board for this op"
+          ]
+        }
+      ]
+    },
+    {
       "id": "review.rule-check",
       "task_family": "review",
       "constraint_family": "dollar-tight",
@@ -1067,6 +1115,191 @@
           ],
           "scope": "owner_asserted_luna_haiku_equivalent_public_inputs_all_output_reviewed",
           "evidence_ref": "evidence/deepseek-owner-decision-2026-10-26.json",
+          "evidence_basis": "owner_decision"
+        },
+        {
+          "id": "review.first-pass",
+          "basis": "owner_authorized",
+          "proof_classes": [
+            "judged"
+          ],
+          "efforts": [
+            "high"
+          ],
+          "scope": "owner_asserted_first_pass_review_public_inputs_different_vendor_check_before_merge",
+          "evidence_ref": "evidence/allowance-owner-decision-2026-11-05.json",
+          "evidence_basis": "owner_decision"
+        }
+      ],
+      "allowance": {
+        "pool": "daily",
+        "period": "daily_utc",
+        "limit_markers": [
+          "free usage limit reached"
+        ]
+      }
+    },
+    {
+      "provider": "antigravity",
+      "model": "gemini-3.8-flash",
+      "account": "antigravity",
+      "status": "prepaid_as_of_2026-11-05",
+      "cost_usd": 0,
+      "authentication": {
+        "state": "none_observed_owner_smoke",
+        "official_docs": "inconclusive"
+      },
+      "rate_limits": "unknown",
+      "effort_option": "thinking_level",
+      "effort_values_source": "live_t3_catalog",
+      "data_policy": {
+        "classification_required": "any",
+        "sensitive_flag_forces_refusal": true,
+        "provider_zero_retention": "Not established. Google processes submitted content under the terms of the owner's Antigravity plan.",
+        "unpaid_account_processing": "Prepaid plan, not an unpaid account. The owner accepts it for non-public repository content; credential, signing, PDPP and personal data stay out.",
+        "prohibited_inputs": [
+          "PDPP_data",
+          "secrets",
+          "Jev_text",
+          "personal_data"
+        ]
+      },
+      "known_risks": [
+        "shared_server_host_tools",
+        "injected_t3_thread_read_private_thread_access"
+      ],
+      "evidence": [
+        {
+          "url": "https://github.com/tnunamak/clawmeter/blob/main/docs/provider-maturity.md",
+          "accessed": "2026-11-05",
+          "supports": [
+            "weekly_windows_by_model_group_observed_in_clawmeter"
+          ]
+        }
+      ],
+      "vendor": "google",
+      "allowance": {
+        "pool": "gemini",
+        "period": "weekly",
+        "anchor": "2026-11-05T17:35:12Z",
+        "limit_markers": [
+          "usage limit reached"
+        ]
+      },
+      "operations": [
+        {
+          "id": "implement.oracle-bounded",
+          "basis": "owner_authorized",
+          "proof_classes": [
+            "oracle"
+          ],
+          "efforts": [
+            "medium"
+          ],
+          "scope": "owner_asserted_bounded_work_with_deterministic_check_or_first_pass_review",
+          "evidence_ref": "evidence/allowance-owner-decision-2026-11-05.json",
+          "evidence_basis": "owner_decision"
+        },
+        {
+          "id": "docs.lookup",
+          "basis": "owner_authorized",
+          "proof_classes": [
+            "oracle"
+          ],
+          "efforts": [
+            "medium"
+          ],
+          "scope": "owner_asserted_bounded_work_with_deterministic_check_or_first_pass_review",
+          "evidence_ref": "evidence/allowance-owner-decision-2026-11-05.json",
+          "evidence_basis": "owner_decision"
+        },
+        {
+          "id": "review.first-pass",
+          "basis": "owner_authorized",
+          "proof_classes": [
+            "judged"
+          ],
+          "efforts": [
+            "medium"
+          ],
+          "scope": "owner_asserted_bounded_work_with_deterministic_check_or_first_pass_review",
+          "evidence_ref": "evidence/allowance-owner-decision-2026-11-05.json",
+          "evidence_basis": "owner_decision"
+        }
+      ]
+    },
+    {
+      "provider": "antigravity",
+      "model": "claude-sonnet-4-6",
+      "account": "antigravity",
+      "status": "prepaid_as_of_2026-11-05",
+      "cost_usd": 0,
+      "authentication": {
+        "state": "none_observed_owner_smoke",
+        "official_docs": "inconclusive"
+      },
+      "rate_limits": "unknown",
+      "effort_option": "thinking_level",
+      "effort_values_source": "live_t3_catalog",
+      "data_policy": {
+        "classification_required": "any",
+        "sensitive_flag_forces_refusal": true,
+        "provider_zero_retention": "Not established. Google processes submitted content under the terms of the owner's Antigravity plan.",
+        "unpaid_account_processing": "Prepaid plan, not an unpaid account. The owner accepts it for non-public repository content; credential, signing, PDPP and personal data stay out.",
+        "prohibited_inputs": [
+          "PDPP_data",
+          "secrets",
+          "Jev_text",
+          "personal_data"
+        ]
+      },
+      "known_risks": [
+        "shared_server_host_tools",
+        "injected_t3_thread_read_private_thread_access"
+      ],
+      "evidence": [
+        {
+          "url": "https://github.com/tnunamak/clawmeter/blob/main/docs/provider-maturity.md",
+          "accessed": "2026-11-05",
+          "supports": [
+            "weekly_windows_by_model_group_observed_in_clawmeter"
+          ]
+        }
+      ],
+      "vendor": "claude",
+      "allowance": {
+        "pool": "claude-gpt",
+        "period": "weekly",
+        "anchor": "2026-11-05T17:40:58Z",
+        "limit_markers": [
+          "usage limit reached"
+        ]
+      },
+      "operations": [
+        {
+          "id": "implement.oracle-bounded",
+          "basis": "owner_authorized",
+          "proof_classes": [
+            "oracle"
+          ],
+          "efforts": [
+            "medium"
+          ],
+          "scope": "owner_asserted_bounded_work_with_deterministic_check",
+          "evidence_ref": "evidence/allowance-owner-decision-2026-11-05.json",
+          "evidence_basis": "owner_decision"
+        },
+        {
+          "id": "docs.lookup",
+          "basis": "owner_authorized",
+          "proof_classes": [
+            "oracle"
+          ],
+          "efforts": [
+            "medium"
+          ],
+          "scope": "owner_asserted_bounded_work_with_deterministic_check",
+          "evidence_ref": "evidence/allowance-owner-decision-2026-11-05.json",
           "evidence_basis": "owner_decision"
         }
       ]
