@@ -414,7 +414,7 @@ and `target: null`.
 
 ### Allowance pools (free and prepaid caps)
 
-Free DeepSeek (daily cap, resets 00:00 UTC) and Antigravity (prepaid weekly caps, one per model group) are declared in `free_routes` with an `allowance`. They rank before paid arms for `implement.oracle-bounded`, `docs.lookup` and `review.first-pass`. DeepSeek is a candidate only with `--data-classification public`; Antigravity needs no assertion but refuses `--sensitive`. A launch that fails with the provider's limit message exhausts the pool until its reset, and `route` falls through to the next arm. The state survives restarts in `allowance-exhaustion.json` beside the receipts.
+Free DeepSeek (daily cap, resets 00:00 UTC) and Antigravity (prepaid weekly caps, one per model group) are declared in `free_routes` with an `allowance`. They rank before paid arms for `implement.oracle-bounded`, `docs.lookup` and `review.first-pass`. DeepSeek is a candidate only with `--data-classification public`; Antigravity needs no assertion but refuses `--sensitive`. A launch that fails with any message that mentions a limit (a short-lived rate limit excepted) exhausts the pool until its reset, and `route` falls through to the next arm. The state survives restarts in `allowance-exhaustion.json` beside the receipts.
 
 ```bash
 model-policy-ops allowance status

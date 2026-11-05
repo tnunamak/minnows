@@ -44,9 +44,20 @@ def pools(routes):
     return found
 
 
+TRANSIENT_LIMIT = re.compile(r'rate[- ]?limit|too many requests|\b429\b')
+
+
 def matches_limit(allowance, message):
+    """True when a failure message says the pool's allowance is spent.
+
+    Any message that mentions a limit counts, whatever its wording, unless it names a short-lived rate limit
+    (that one clears in seconds and must not close a pool until its reset). The pool's declared `limit_markers`
+    also count, so a provider whose cap message has no "limit" in it can still be declared.
+    """
     text = (message or '').lower()
-    return any(marker in text for marker in allowance['limit_markers'])
+    if any(marker in text for marker in allowance['limit_markers']):
+        return True
+    return 'limit' in text and not TRANSIENT_LIMIT.search(text)
 
 
 def next_reset(allowance, at, message=None):

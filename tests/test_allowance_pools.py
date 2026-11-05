@@ -169,6 +169,13 @@ def test_a_limit_without_a_model_exhausts_only_an_unambiguous_pool(world):
     assert removed(out, GEMINI, 'antigravity') is None, 'antigravity has two pools: a guess could spend the wrong one'
 
 
+def test_a_limit_message_in_new_wording_still_exhausts_the_pool(world):
+    world.events = [event('antigravity', 'You have reached your weekly quota limit for this plan.', at=EVENT_AT, model=GEMINI)]
+    out = route(world)
+    assert removed(out, GEMINI, 'antigravity') == 'allowance_exhausted'
+    assert removed(out, SONNET, 'antigravity') is None, 'the other pool of the account keeps its allowance'
+
+
 def test_an_unrelated_rate_limit_does_not_exhaust_a_pool(world):
     world.events = [event('opencode', 'Claude API rate limit reached. Try again later.', at=EVENT_AT, model=DEEPSEEK_FREE)]
     assert removed(route(world, *PUBLIC), DEEPSEEK_FREE, 'opencode') is None
