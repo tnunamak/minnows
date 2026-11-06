@@ -12,7 +12,7 @@
 // before it is written — a malformed packet crashes the plan (acceptance test #4).
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { buildContext, HONE_ROOT } from './profile.mjs';
+import { buildContext } from './profile.mjs';
 import { parseYaml, stringifyYaml } from './yaml.mjs';
 import { assertValidPacket } from './validate-packet.mjs';
 import { countWordInFiles, deepEqual, djb2, escRe, globToRegExp, slug, subsystemOf, walkSourceFiles } from './util.mjs';
@@ -310,15 +310,19 @@ function instructionFor(g, namedSyms, captures, capturesMut) {
 
 function evidenceFor(g, namedSyms, ctx, meta) {
   const ev = [];
-  const repo = ctx.repoRoot;
+  // Rung commands are committed in packets, so they name no host path: they enter the repo via the
+  // `cd "$REPO_ROOT"` form the rung executor exports (same cwd as every legacy repo-relative rung)
+  // and reach the engine via $HONE_ROOT.
+  const prefix = ctx.git.prefix;
+  const cd = 'cd "$REPO_ROOT" && ';
   const typecheck = ctx.profile.commands?.typecheck;
   const test = ctx.profile.commands?.test;
-  if (typecheck) ev.push({ rung: 'typecheck', command: `cd ${repo} && ${typecheck}`, expect: 'exit 0', expect_check: { type: 'exit_code', value: 0 } });
-  if (test) ev.push({ rung: 'direct-test', command: `cd ${repo} && ${test}`, expect: 'all tests pass; 0 fail; no new skips (skip counts compared baseline vs post)', expect_check: { type: 'exit_code', value: 0 } });
+  if (typecheck) ev.push({ rung: 'typecheck', command: `${cd}${typecheck}`, expect: 'exit 0', expect_check: { type: 'exit_code', value: 0 } });
+  if (test) ev.push({ rung: 'direct-test', command: `${cd}${test}`, expect: 'all tests pass; 0 fail; no new skips (skip counts compared baseline vs post)', expect_check: { type: 'exit_code', value: 0 } });
   if (g.tier === 'T1-extractable-callback') {
     ev.push({
       rung: 'whitespace-normalized-body-move',
-      command: `cd ${repo} && git diff -w -- ${g.file}`,
+      command: `${cd}git diff -w -- ${g.file}`,
       expect: 'hoisted bodies appear verbatim under -w (indent-only change at the move site); no logic edits',
     });
   }
@@ -326,7 +330,7 @@ function evidenceFor(g, namedSyms, ctx, meta) {
     const pat = g.sec.slice(0, 6).map(escRe).join('|');
     ev.push({
       rung: 'guard-byte-identity',
-      command: `cd ${repo} && git diff -U0 -- ${g.file} | grep -inE '(${pat})' || echo GUARDS-UNTOUCHED`,
+      command: `${cd}git diff -U0 -- ${g.file} | grep -inE '(${pat})' || echo GUARDS-UNTOUCHED`,
       expect: 'prints GUARDS-UNTOUCHED — no security-marker line added/removed/modified by the diff',
       expect_check: { type: 'stdout_includes', value: 'GUARDS-UNTOUCHED' },
     });
@@ -334,7 +338,7 @@ function evidenceFor(g, namedSyms, ctx, meta) {
   if (g.tier === 'DELETE' && namedSyms.length) {
     ev.push({
       rung: 'liveness-sweep',
-      command: `cd ${repo} && grep -rnw '${namedSyms[0]}' ${(meta.owned_dirs || []).join(' ')} | grep -v '${g.file}'`,
+      command: `${cd}grep -rnw '${namedSyms[0]}' ${(meta.owned_dirs || []).join(' ')} | grep -v '${g.file}'`,
       expect: 'no references outside the defining file before deletion; repo-wide grep empty after',
     });
   }
@@ -347,7 +351,7 @@ function evidenceFor(g, namedSyms, ctx, meta) {
     // exceed the threshold, so relocation is self-defeating instead of incentivized.
     ev.push({
       rung: 'file-complexity-remeasure',
-      command: `node ${HONE_ROOT}/collectors/scope-fn.mjs --repo ${repo} --file '${g.file}' --cog ${meta.cog_threshold}`,
+      command: `${cd}node $HONE_ROOT/collectors/scope-fn.mjs --repo . --file '${g.file}' --cog ${meta.cog_threshold}`,
       expect: `found=true and file_excess < ${g.fileMass} (packet baseline: whole-file Σ excess-cc) and strictly below the measured baseline; no NEW function above the cog-${meta.cog_threshold} threshold vs baseline; red_scan unchanged`,
       expect_check: { type: 'file_excess_lt', value: g.fileMass },
     });
@@ -357,7 +361,7 @@ function evidenceFor(g, namedSyms, ctx, meta) {
     const cc = g.rows.find((r) => r.fn === namedSyms[0])?.cc ?? g.rows[0].cc;
     ev.push({
       rung: 'complexity-remeasure',
-      command: `node ${HONE_ROOT}/collectors/scope-fn.mjs --repo ${repo} --target '${g.file}::${namedSyms[0]}'`,
+      command: `${cd}node $HONE_ROOT/collectors/scope-fn.mjs --repo . --target '${g.file}::${namedSyms[0]}'`,
       expect: `found=true and cognitive_before < ${cc} (packet baseline); red_scan unchanged`,
       expect_check: { type: 'scope_fn_lt', value: cc },
     });
@@ -366,7 +370,7 @@ function evidenceFor(g, namedSyms, ctx, meta) {
     // profile configured no oracle commands and no tier rung applies — the packet is honest about it.
     ev.push({
       rung: 'no-oracle-configured',
-      command: `echo 'BLOCKED: configure commands.test / commands.typecheck in ${repo}/quality/hone.yaml'`,
+      command: `echo 'BLOCKED: configure commands.test / commands.typecheck in ${prefix ? `${prefix}/` : ''}quality/hone.yaml'`,
       expect: 'work MUST mark this packet blocked(missing-oracle) — no evidence, no preservation claim',
     });
   }

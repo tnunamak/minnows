@@ -19,7 +19,7 @@
 //
 // Run: node lib/test-lane.mjs   (or: hone lane --self-test). Exit 0 iff all green.
 
-import { existsSync, mkdtempSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, realpathSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -937,12 +937,15 @@ export async function laneSelfTest({ verbose = false } = {}) {
     const r = await emit(root);
     check('emit GREEN — the baseline measured --repo, not the red authoring tree', r.exitCode === 0, JSON.stringify(r.json).slice(0, 200));
     const receipt = read(root, `quality/receipts/${ID}/baseline-1-direct-test.txt`) ?? '';
-    check('receipt records BOTH commands (authored + executed)', receipt.includes(`# command: cd ${authoring} && node test.js`) && receipt.includes(`# executed-command (portable-path rewrite): cd "${root}" && node test.js`), receipt.slice(0, 400));
+    check('receipt records the portable command that ran, never the authored absolute path', receipt.includes('# command: cd "$REPO_ROOT" && node test.js') && receipt.includes('# portable-path rewrite:') && !receipt.includes(authoring), receipt.slice(0, 400));
     editUtil(root, ST_GOOD);
     const g = await gate(root);
     check('gate green on --repo; receipt line carries the rewrite marker', g.exitCode === 0 && g.json.receipts.some((l) => /\[portable-path rewrite\]$/.test(l)));
     const l = await land(root, { verdictRaw: verdictJson('PASS', 'measured the right tree'), usageRaw: USAGE_OK });
     check('lands; authoring tree untouched throughout', l.exitCode === 0 && read(authoring, 'src/util.js') === ST_BAD);
+    const landClaims = read(root, 'quality/claims.jsonl') ?? '';
+    const landLeaks = [authoring, realpathSync(authoring), root, realpathSync(root)].filter((h) => landClaims.includes(h));
+    check('land claims carry no authored foreign path or git root', landClaims.includes('behavior_preserved') && !landLeaks.length, landLeaks.join(' | ') + ' ' + landClaims.slice(0, 300));
   });
 
   await scenario('e2e hone work: same authored-foreign cd — the split-brain class closed on the subprocess path too', async (check) => {
@@ -957,6 +960,67 @@ export async function laneSelfTest({ verbose = false } = {}) {
     const r = await executeWork({ id: ID, repoRoot: root, makerName: 'claude', judgeName: 'codex', dryRun: false }, deps);
     check('landed — the work path shares the rewrite (verbatim = red-baseline block / revision burn)', r.outcome === 'landed', r.summary);
     check('every receipt line carries the rewrite marker', packetOnDisk(root).outcome.evidence_receipts.every((l) => /\[portable-path rewrite\]$/.test(l)), JSON.stringify(packetOnDisk(root).outcome.evidence_receipts));
+    const workClaims = read(root, 'quality/claims.jsonl') ?? '';
+    const workLeaks = [authoring, realpathSync(authoring), root, realpathSync(root)].filter((h) => workClaims.includes(h));
+    check('work land claims carry no authored foreign path or git root', workClaims.includes('behavior_preserved') && !workLeaks.length, workLeaks.join(' | ') + ' ' + workClaims.slice(0, 300));
+  });
+
+  // failure-path claims (reverted runs) and maker-brief digests must not record the authored foreign command either
+  const hostLeaks = (root, authoring) => {
+    const files = [read(root, 'quality/claims.jsonl') ?? '', ...['maker-brief-1.digest.txt', 'maker-brief-2.digest.txt'].map((f) => read(root, `quality/receipts/${ID}/${f}`) ?? '')];
+    return [authoring, realpathSync(authoring), root, realpathSync(root)].filter((h) => files.some((t) => t.includes(h)));
+  };
+  const workDeps = (root, edits, { throwOn = null } = {}) => {
+    let n = 0;
+    return {
+      maker: async (name, prompt, opts) => { n += 1; if (n === throwOn) throw new Error('maker blew up'); editUtil(root, edits[Math.min(n, edits.length) - 1]); return { text: 'mock maker done', meta: { provider: name, model: opts.model ?? 'mock', durationMs: 1, costUsd: 0.01, tokens: { input: 1, output: 1 } } }; },
+      judge: async (name) => ({ judge: async () => ({ verdict: 'REVISE', reasoning: 'try again', confidence: 0.5, raw: { provider: name, attempts: [] } }) }),
+      log: () => {},
+    };
+  };
+
+  await scenario('lane: reverted run with a foreign authored rung command → claims carry no foreign path', async (check) => {
+    const authoring = makeAuthoringTree();
+    const root = fixtureRepo({ packetOverrides: { evidence_required: [{ rung: 'direct-test', command: `cd ${authoring} && node test.js`, expect: 'exit 0' }] } });
+    await emit(root);
+    editUtil(root, ST_BAD);
+    await gate(root); await gate(root);
+    const r3 = await gate(root);
+    check('reverted at the ceiling', r3.json.terminal === 'reverted', JSON.stringify(r3.json).slice(0, 200));
+    const found = hostLeaks(root, authoring);
+    check('claims.jsonl and brief digests carry no foreign path or git root', !found.length && (read(root, 'quality/claims.jsonl') ?? '').includes('still failing'), found.join(' | '));
+  });
+
+  for (const [label, edits, opts, judgeRev] of [
+    ['revision still red', [ST_BAD, ST_BAD], {}, false],
+    ['revision maker errors', [ST_BAD, ST_BAD], { throwOn: 2 }, false],
+    ['judge-requested revision breaks the oracle', [ST_GOOD, ST_BAD], {}, true],
+  ]) {
+    await scenario(`hone work: reverted (${label}) with a foreign authored rung command → claims carry no foreign path`, async (check) => {
+      const { executeWork } = await import('./work.mjs');
+      const authoring = makeAuthoringTree();
+      const root = fixtureRepo({ packetOverrides: { evidence_required: [{ rung: 'direct-test', command: `cd ${authoring} && node test.js`, expect: 'exit 0' }] } });
+      const deps = workDeps(root, edits, opts);
+      if (!judgeRev) deps.judge = async () => { throw new Error('judge must not run'); };
+      const r = await executeWork({ id: ID, repoRoot: root, makerName: 'claude', judgeName: 'codex', dryRun: false }, deps);
+      check('ended reverted', packetOnDisk(root).status === 'reverted', `${r.outcome} ${packetOnDisk(root).status}`);
+      const found = hostLeaks(root, authoring);
+      check('claims.jsonl and brief digests carry no foreign path or git root', !found.length && (read(root, 'quality/claims.jsonl') ?? '').length > 0, found.join(' | '));
+    });
+  }
+
+  await scenario('batch bisect: offender claims carry no foreign authored path', async (check) => {
+    const authoring = makeAuthoringTree();
+    writeFileSync(join(authoring, 'test2.js'), ST_TEST2);
+    const root = fixtureRepo({ secondPacket: { evidence_required: [{ rung: 'direct-test-2', command: `cd ${authoring} && node test2.js`, expect: 'exit 0' }] } });
+    await emit(root); await emit2(root);
+    editUtil(root, ST_GOOD);
+    writeFileSync(join(root, 'src/util2.js'), ST_BAD2);
+    await bgate(root, [ID, ID2]);
+    const text = read(root, 'quality/claims.jsonl') ?? '';
+    const found = [authoring, realpathSync(authoring), root, realpathSync(root)].filter((h) => text.includes(h));
+    check('offender reverted and claims recorded', packetOnDisk(root, ID2).status === 'reverted' && text.includes('with ONLY'), packetOnDisk(root, ID2).status);
+    check('claims.jsonl carries no foreign path or git root', !found.length, found.join(' | '));
   });
 
   await scenario('e2e: rung pointing into ANOTHER git checkout → refused, never executed, fail-closed', async (check) => {
@@ -966,8 +1030,21 @@ export async function laneSelfTest({ verbose = false } = {}) {
     const p = packetOnDisk(root);
     check('emit blocked at baseline (the rung never ran)', r.exitCode === 1 && r.json.terminal === 'blocked', JSON.stringify(r.json).slice(0, 200));
     check('blocked_on names the portable-path refusal', /portable-path refusal/.test(p.outcome.blocked_on ?? ''), p.outcome.blocked_on ?? '');
-    check('receipt marks NOT EXECUTED', (read(root, `quality/receipts/${ID}/baseline-1-direct-test.txt`) ?? '').includes('# executed-command: (NOT EXECUTED — portable-path refusal)'));
+    const refusedReceipt = read(root, `quality/receipts/${ID}/baseline-1-direct-test.txt`) ?? '';
+    check('receipt marks NOT EXECUTED and carries no foreign checkout path', refusedReceipt.includes('# executed-command: (NOT EXECUTED — portable-path refusal)') && !refusedReceipt.includes(foreignRepo), refusedReceipt.slice(0, 400));
     check('current tree clean; foreign repo untouched', treeClean(root) && read(foreignRepo, 'src/util.js') === ST_ORIG);
+    // every committed consumer of the refusal reason: blocked_on, headline, claims, packet
+    const hostPaths = [foreignRepo, realpathSync(foreignRepo), root, realpathSync(root)];
+    const leaking = (label, text) => hostPaths.filter((h) => text.includes(h)).map((h) => `${label}: ${h}`);
+    const claimsText = (read(root, 'quality/claims.jsonl') ?? '');
+    const found = [
+      ...leaking('blocked_on', p.outcome.blocked_on ?? ''),
+      ...leaking('headline', String(r.json.summary).split('\n').filter((l) => !/^\s+(packet|claims|cost):/.test(l)).join('\n')),
+      ...leaking('claims.jsonl', claimsText),
+      ...leaking('packet outcome', JSON.stringify(p.outcome)),
+    ];
+    check('refusal reason leaks no foreign checkout or git-root path (blocked_on, headline, claims, packet)', !found.length, found.join(' | '));
+    check('claims.jsonl records the refusal', /portable-path refusal/.test(claimsText), claimsText.slice(0, 300));
   });
 
   await scenario('e2e: engine collector path → the RUNNING engine; REPO_ROOT/GIT_ROOT/HONE_ROOT exported to rung shells', async (check) => {
@@ -983,7 +1060,7 @@ export async function laneSelfTest({ verbose = false } = {}) {
     const r = await emit(root);
     check('emit green — collector resolved against the running engine, env contract satisfied', r.exitCode === 0, JSON.stringify(r.json.baseline ?? r.json).slice(0, 400));
     const receipt = read(root, `quality/receipts/${ID}/baseline-1-collector.txt`) ?? '';
-    check('receipt executed-command names the running engine', receipt.includes(`# executed-command (portable-path rewrite): node ${HONE_ROOT}/lib/util.mjs`), receipt.slice(0, 300));
+    check('receipt executed-command names the running engine', receipt.includes('# command: node $HONE_ROOT/lib/util.mjs') && !receipt.includes('/some/other/checkout'), receipt.slice(0, 300));
   });
 
   await scenario('validator lint: absolute rung paths WARN toward the portable $REPO_ROOT form', async (check) => {

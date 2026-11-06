@@ -8,7 +8,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { buildContext, HONE_ROOT } from './profile.mjs';
+import { buildContext, HONE_ROOT, repoRootArtifact } from './profile.mjs';
 import { buildInventoryContext } from './inventory.mjs';
 import { collectTierMass } from '../collectors/tier-mass.mjs';
 import { collectCallbackSmells } from '../collectors/callback-smells.mjs';
@@ -67,9 +67,9 @@ async function collectFreshMeasurements({ repoRoot, max, targetDirs }) {
   write('test-signals.json', testSignals);
   write('meta.json', {
     repo_sha: ctx.git.sha,
-    repo_root: ctx.repoRoot,
-    git_root: ctx.git.gitRoot,
-    profile_source: ctx.profileSource,
+    repo_root: repoRootArtifact(ctx.git), // committed artifact: git-root-relative, never the host path
+    git_root: '.',
+    profile_source: ctx.profileSourceArtifact,
     owned_dirs: inv.ownedDirs,
     cog_threshold: inv.cog,
     seam_cc: inv.seamCc,

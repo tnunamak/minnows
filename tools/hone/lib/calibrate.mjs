@@ -11,13 +11,14 @@
 // routing.mjs selectAgent: a models.json entry with calibration:null is never routed
 // (fail-closed; override requires allowUncalibrated + a ledger note).
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync, rmSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { mkdtempSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { parseYaml } from './yaml.mjs';
 import { loadRegistry, loadRouting, resolveRoutingClass } from './routing.mjs';
+import { portableReceiptText } from './work.mjs';
 
 export async function runCalibrate(flags) {
   const res = executeCalibrate({
@@ -28,6 +29,23 @@ export async function runCalibrate(flags) {
   });
   process.stdout.write(JSON.stringify(res.json, null, 2) + '\n');
   process.exitCode = res.exitCode;
+}
+
+const escRe = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * calibration reports are committed: git stderr and notes must not carry host paths. Repo/git/
+ * engine roots become their placeholders; any remaining os.tmpdir() path (the scratch worktree,
+ * which can also be the repo's own parent) becomes `<scratch>`. Roots go first: a repo under
+ * the tmpdir must read $REPO_ROOT, not <scratch>.
+ */
+export function portableCalibrationText(text, { repoRoot, gitRoot = repoRoot }) {
+  const real = (p) => { try { return realpathSync(p); } catch { return p; } };
+  const tmps = [...new Set([tmpdir(), real(tmpdir())])].filter((t) => t && t !== '/').sort((a, b) => b.length - a.length);
+  return tmps.reduce(
+    (t, tmp) => t.replace(new RegExp(`${escRe(tmp)}(?![A-Za-z0-9._-])(?:/[^\\s'"]*)?`, 'g'), '<scratch>'),
+    portableReceiptText(text, { repoRoot, gitRoot }),
+  );
 }
 
 const refuse = (reason) => ({ exitCode: 2, json: { ok: false, refused: true, reason } });
@@ -42,7 +60,10 @@ export function executeCalibrate({ model, replay, repoRoot, log = () => {} }) {
   if (!Number.isInteger(replay) || replay < 1) return refuse('--replay must be an integer >= 1');
 
   const git = (args, cwd = repoRoot) => spawnSync('git', args, { cwd, encoding: 'utf8' });
-  if (git(['rev-parse', '--show-toplevel']).status !== 0) return refuse(`--repo is not inside a git repository: ${repoRoot}`);
+  const top = git(['rev-parse', '--show-toplevel']);
+  if (top.status !== 0) return refuse(`--repo is not inside a git repository: ${repoRoot}`);
+  const gitRoot = top.stdout.trim();
+  const portable = (t) => portableCalibrationText(t, { repoRoot, gitRoot });
 
   // ---- the replay set: most recent LANDED orders from the packet pool (ledger-backed) ----
   const packetsDir = join(repoRoot, 'quality', 'packets');
@@ -92,7 +113,7 @@ export function executeCalibrate({ model, replay, repoRoot, log = () => {} }) {
     rmSync(scratch, { recursive: true, force: true }); // git worktree add wants to create it
     const add = git(['worktree', 'add', '--detach', scratch, item.parent]);
     if (add.status !== 0) {
-      item.note = `worktree add failed: ${(add.stderr || '').slice(0, 200)}`;
+      item.note = `worktree add failed: ${portable(add.stderr || '').slice(0, 200)}`;
       replaySet.push(item);
       continue;
     }
@@ -109,6 +130,8 @@ export function executeCalibrate({ model, replay, repoRoot, log = () => {} }) {
   mkdirSync(reportsDir, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const reportPath = join(reportsDir, `calibration-${model}-${stamp}.json`);
+  // committed report: the source path is git-root-relative, never the host path
+  const reportSource = relative(realpathSync(gitRoot), join(realpathSync(reportsDir), `calibration-${model}-${stamp}.json`)).split('\\').join('/');
   const report = {
     model,
     registry_snapshot: { provider: entry.provider, id: entry.id, tier_rank: entry.tier_rank, quota_pool: entry.quota_pool, efforts: entry.efforts, currently_calibrated: entry.calibration !== null },
@@ -117,7 +140,7 @@ export function executeCalibrate({ model, replay, repoRoot, log = () => {} }) {
     measured: { pass_rate: null, usd_per_land: null, quota_pts_per_land: null, effort_sensitivity: null },
     status: 'stub-v1',
     honest_note: 'NO model invocations were performed. This report proves the replay seam only (ledger -> landed ground-truth commits -> scratch worktree) and is NOT sufficient for routing eligibility. A real calibration fills `measured` by re-executing each packet against its parent tree with the candidate model and gating against the landed diff + green rungs.',
-    next: `after a real replay run, set models.json models.${model}.calibration = {type: 'ledger-replay', source: '${reportPath}', date: '<date>'} to make the model routing-eligible`,
+    next: `after a real replay run, set models.json models.${model}.calibration = {type: 'ledger-replay', source: '${reportSource}', date: '<date>'} to make the model routing-eligible`,
     created: new Date().toISOString(),
   };
   writeFileSync(reportPath, JSON.stringify(report, null, 2));

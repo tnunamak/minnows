@@ -34,7 +34,7 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync, appendFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, isAbsolute, join, resolve } from 'node:path';
-import { buildContext } from './profile.mjs';
+import { artifactPath, buildContext } from './profile.mjs';
 import { CLAUDE_NO_MCP_ARGS, codexNoMcpArgs, extractFencedJson, noMcpEnv, requireGpt56, runCli } from '../providers/provider.mjs';
 import { slug } from './util.mjs';
 import { readPacketPool } from './report.mjs';
@@ -792,7 +792,7 @@ export async function executeAgenda(opts, deps) {
     model: meta?.model ?? null,
     repo_sha: repoSha ?? null,
     inventory_sha: inventoryMeta?.repo_sha ?? null,
-    doctrine_path: doctrinePath ?? null,
+    doctrine_path: doctrinePath ? artifactPath(doctrinePath, gitRoot) : null, // committed: git-root-relative
     context_bytes: Object.fromEntries(sections.map((s) => [s.label, s.bytes])),
     total_context_bytes: totalBytes,
     prompt_bytes: Buffer.byteLength(prompt),

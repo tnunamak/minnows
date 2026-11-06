@@ -45,14 +45,14 @@
 // (a)+(b) + the identity expect_check types — improvement clauses like
 // `cognitive_before < N` / `file_excess_lt` are post-change goals by construction.
 
-import { cpSync, lstatSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, rmSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { cpSync, lstatSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, rmSync, writeFileSync, existsSync, mkdirSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve, dirname } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { parseYaml, stringifyYaml } from './yaml.mjs';
 import { validatePacket, assertValidPacket } from './validate-packet.mjs';
-import { deepEqual, djb2, slug } from './util.mjs';
+import { deepEqual, djb2, escRe, slug } from './util.mjs';
 import { loadPacket, writePacket } from './packet-io.mjs';
 import { executeReset } from './reset.mjs';
 import { appendClaim, appendCostEntry, nextClaimSeq, nextJobAttempt, readJsonl, claimsPath, costPath } from './ledger.mjs';
@@ -987,10 +987,13 @@ export function makeRungExecutor({ gitRoot, repoRoot, prefix, log = () => {}, pa
   return async function execRung(rung, phase, baselineRes = null, opts = {}) {
     const port = portableRungCommand(rung.command, ctx);
     if (port.refused) {
-      log(`  [portable-path] ${rung.rung}: REFUSED — ${port.refused}`);
+      // The reason reaches committed artifacts (packet blocked_on, headline, claims, receipts):
+      // scrub it here, once, so no consumer sees a host path.
+      const refusal = portableErrorText(port.refused, ctx);
+      log(`  [portable-path] ${rung.rung}: REFUSED — ${refusal}`);
       return {
-        res: { code: null, timedOut: false, stdout: '', output: `[engine] rung NOT EXECUTED — ${port.refused}`, durationMs: 0, timeoutMs: 0 },
-        verdict: { pass: false, reason: `portable-path refusal: ${port.refused}` },
+        res: { code: null, timedOut: false, stdout: '', output: `[engine] rung NOT EXECUTED — ${refusal}`, durationMs: 0, timeoutMs: 0 },
+        verdict: { pass: false, reason: `portable-path refusal: ${refusal}` },
         executedCommand: null,
       };
     }
@@ -1016,29 +1019,71 @@ export function makeRungExecutor({ gitRoot, repoRoot, prefix, log = () => {}, pa
 }
 
 /**
+ * receipts are committed, so host paths become the same placeholders rung shells are given:
+ * the repo root -> $REPO_ROOT, the git root -> $GIT_ROOT, the engine install -> $HONE_ROOT.
+ * Longest path first (the repo root usually sits inside the git root); realpath forms included.
+ */
+export function portableReceiptText(text, { repoRoot, gitRoot = repoRoot }) {
+  const real = (p) => { try { return realpathSync(p); } catch { return p; } };
+  const pairs = [[repoRoot, '$REPO_ROOT'], [gitRoot, '$GIT_ROOT'], [HONE_ROOT, '$HONE_ROOT']]
+    .flatMap(([p, ph]) => [[p, ph], [real(p), ph]])
+    .filter(([p]) => p && p !== '/')
+    .sort((x, y) => y[0].length - x[0].length);
+  return pairs.reduce((t, [p, ph]) => t.replace(new RegExp(`${escRe(p)}(?![A-Za-z0-9._-])`, 'g'), () => ph), String(text));
+}
+
+/**
+ * the command a committed artifact (receipt, ledger line, claim evidence) may record for a rung:
+ * the portable command that ran, never the authored form (it may hold host paths); a refused
+ * rung never ran, so none.
+ */
+/**
+ * free text bound for a committed artifact (blocked_on, headline, claim statement): roots become
+ * placeholders, any other absolute path token becomes <foreign-path>.
+ */
+export function portableErrorText(text, ctx) {
+  return portableReceiptText(text, ctx).replace(ABS_PATH_RE, '<foreign-path>');
+}
+
+export function receiptCommand({ rung, executedCommand = undefined, repoRoot, gitRoot = repoRoot }) {
+  if (executedCommand === null) return '(not recorded: rung was not executed)';
+  const ran = executedCommand !== undefined && executedCommand !== rung.command;
+  return portableReceiptText(ran ? executedCommand : rung.command, { repoRoot, gitRoot });
+}
+
+/**
  * write one evidence-rung receipt file + return the bookkeeping strings the caller
  * accumulates ({digest, line, slice, meta}). File + digest + line formats are the
  * ledger-visible receipt contract — identical for every execution substrate. When the
  * executed command differs from the authored one (portable-path rewrite, or a refusal
- * that never ran), the receipt records BOTH — the books never hide a rewrite.
+ * that never ran), the receipt says so but does not commit the authored form (it may hold host paths).
  */
-export function writeRungReceipt({ repoRoot, receiptsDirRel, id, via = 'work', phase, index, rung, res, verdict, stripCtx, executedCommand = undefined }) {
+export function writeRungReceipt({ repoRoot, gitRoot = repoRoot, receiptsDirRel, id, via = 'work', phase, index, rung, res, verdict, stripCtx, executedCommand = undefined }) {
   const rel = join(receiptsDirRel, `${phase}-${index + 1}-${slug(rung.rung)}.txt`);
   const abs = join(repoRoot, rel);
   mkdirSync(dirname(abs), { recursive: true });
   const rewritten = executedCommand !== undefined && executedCommand !== rung.command;
-  const execLine = rewritten
-    ? (executedCommand === null
-      ? `# executed-command: (NOT EXECUTED — portable-path refusal)\n`
-      : `# executed-command (portable-path rewrite): ${executedCommand}\n`)
-    : '';
+  const pp = (t) => portableReceiptText(t, { repoRoot, gitRoot });
+  // The authored command is NOT committed: for an old packet it can carry a foreign absolute
+  // checkout path. A rewritten rung records the portable command that actually ran; a refused
+  // rung records no command (its refusal text is already scrubbed by the executor).
+  const refused = executedCommand === null;
+  const rungCommand = receiptCommand({ rung, executedCommand, repoRoot, gitRoot });
+  const output = pp(res.output);
+  const reason = pp(verdict.reason ?? '');
+  const execLine = !rewritten ? '' : refused
+    ? `# executed-command: (NOT EXECUTED — portable-path refusal)\n`
+    : `# portable-path rewrite: the authored command is not recorded (it may hold host paths); the command above is what ran\n`;
   const timeoutS = Math.round((res.timeoutMs ?? EVIDENCE_TIMEOUT_MS) / 1000);
   const timeoutLine = `# timeout: ${timeoutS}s${res.timeoutSource ? ` (${res.timeoutSource}${res.timeoutRequestedS && res.timeoutRequestedS !== timeoutS ? ` requested ${res.timeoutRequestedS}s` : ''}${res.timeoutCapped ? ', capped' : ''})` : ''}\n`;
-  writeFileSync(abs, `# hone ${via} ${id} — ${phase} rung '${rung.rung}'\n# command: ${rung.command}\n${execLine}# expect: ${rung.expect}\n${timeoutLine}# exit: ${res.timedOut ? 'TIMEOUT' : res.code}  duration: ${Math.round(res.durationMs / 1000)}s  verdict: ${verdict.pass ? 'PASS' : `FAIL (${verdict.reason})`}\n\n${res.output}`);
-  const digest = `exit=${res.timedOut ? 'TIMEOUT' : res.code} timeout=${timeoutS}s djb2=${djb2(res.output)} bytes=${res.output.length} receipt=${rel}`;
+  writeFileSync(abs, `# hone ${via} ${id} — ${phase} rung '${rung.rung}'\n# command: ${rungCommand}\n${execLine}# expect: ${rung.expect}\n${timeoutLine}# exit: ${res.timedOut ? 'TIMEOUT' : res.code}  duration: ${Math.round(res.durationMs / 1000)}s  verdict: ${verdict.pass ? 'PASS' : `FAIL (${reason})`}\n\n${output}`);
+  // djb2 covers exactly the bytes after the blank line that ends the receipt header: the
+  // portable-rewritten `output`, as written to disk. Recompute from the artifact with
+  // djb2(text.slice(text.indexOf('\n\n') + 2)); `bytes=` is that string's length.
+  const digest = `exit=${res.timedOut ? 'TIMEOUT' : res.code} timeout=${timeoutS}s djb2=${djb2(output)} bytes=${output.length} receipt=${rel}`;
   return {
     digest,
-    line: `[${phase}] ${rung.rung}: ${rung.command} -> ${res.timedOut ? 'TIMEOUT' : `exit ${res.code}`} (${Math.round(res.durationMs / 1000)}s, timeout ${timeoutS}s) ${verdict.pass ? 'PASS' : `FAIL: ${verdict.reason}`}; ${digest}${!rewritten ? '' : executedCommand === null ? ' [NOT EXECUTED — portable-path refusal]' : ' [portable-path rewrite]'}`,
+    line: `[${phase}] ${rung.rung}: ${rungCommand} -> ${res.timedOut ? 'TIMEOUT' : `exit ${res.code}`} (${Math.round(res.durationMs / 1000)}s, timeout ${timeoutS}s) ${verdict.pass ? 'PASS' : `FAIL: ${reason}`}; ${digest}${!rewritten ? '' : executedCommand === null ? ' [NOT EXECUTED — portable-path refusal]' : ' [portable-path rewrite]'}`,
     slice: judgeSlice(rung.rung, res, stripCtx),
     meta: { phase, pass: verdict.pass, rung: rung.rung },
   };
@@ -1049,12 +1094,12 @@ export function writeRungReceipt({ repoRoot, receiptsDirRel, id, via = 'work', p
  * auditability without huge files; written BEFORE the maker runs so even a crashed
  * attempt leaves its brief on disk (engine-iteration-4 fix 2).
  */
-export function persistMakerBriefDigest({ repoRoot, receiptsDirRel, id, via = 'work', attempt, briefText }) {
+export function persistMakerBriefDigest({ repoRoot, gitRoot = repoRoot, receiptsDirRel, id, via = 'work', attempt, briefText }) {
   const rel = join(receiptsDirRel, `maker-brief-${attempt}.digest.txt`);
   const abs = join(repoRoot, rel);
   mkdirSync(dirname(abs), { recursive: true });
   const sha = createHash('sha256').update(briefText, 'utf8').digest('hex');
-  writeFileSync(abs, `# hone ${via} ${id} — maker brief digest (attempt ${attempt})\n# sha256(full brief)=${sha} bytes=${Buffer.byteLength(briefText, 'utf8')}\n# first 4096 chars follow\n\n${briefText.slice(0, 4096)}`);
+  writeFileSync(abs, `# hone ${via} ${id} — maker brief digest (attempt ${attempt})\n# sha256(full brief)=${sha} bytes=${Buffer.byteLength(briefText, 'utf8')}\n# first 4096 chars follow (host paths scrubbed; the sha covers the original)\n\n${portableErrorText(briefText.slice(0, 4096), { repoRoot, gitRoot })}`);
   return rel;
 }
 
@@ -1174,13 +1219,23 @@ export function landCommit(g, { packet, id, touchTop, receiptsDirRel, pipelineLa
   return commit;
 }
 
+/**
+ * claims.jsonl is committed: record the portable command the rung ran as (the same rewrite the
+ * executor applies), never the authored form that may hold a foreign checkout path.
+ * pathCtx = {gitRoot, repoRoot, prefix}.
+ */
+export function claimCommand(rung, pathCtx) {
+  const port = portableRungCommand(rung.command, pathCtx);
+  return receiptCommand({ rung, executedCommand: port.refused ? null : port.command, repoRoot: pathCtx.repoRoot, gitRoot: pathCtx.gitRoot });
+}
+
 /** the landed-path claim set: behavior_preserved + judged_design_claim (+ measured-cc verified_fact). */
-export function buildLandClaims({ packet, id, reasoning, judgeProvider, receiptLines, receiptsDirRel }) {
+export function buildLandClaims({ packet, id, reasoning, judgeProvider, receiptLines, receiptsDirRel, pathCtx }) {
   const claims = [
     {
       type: 'behavior_preserved',
       statement: `all ${packet.evidence_required.length} evidence_required rung(s) for ${id} green at baseline and post-change (${packet.evidence_required.map((r) => r.rung).join(', ')})`,
-      evidence: packet.evidence_required.map((r) => ({ command: r.command, output_digest: receiptLines.filter((l) => l.includes(`] ${r.rung}:`)).pop() ?? `see ${receiptsDirRel}/` })),
+      evidence: packet.evidence_required.map((r) => ({ command: claimCommand(r, pathCtx), output_digest: receiptLines.filter((l) => l.includes(`] ${r.rung}:`)).pop() ?? `see ${receiptsDirRel}/` })),
     },
     {
       type: 'judged_design_claim',
@@ -1194,7 +1249,7 @@ export function buildLandClaims({ packet, id, reasoning, judgeProvider, receiptL
     claims.push({
       type: 'verified_fact',
       statement: `measured cognitive-complexity reduction for ${id}: '${ccRung.expect}' satisfied post-change`,
-      evidence: [{ command: ccRung.command, output_digest: receiptLines.filter((l) => l.includes(`] ${ccRung.rung}:`)).pop() ?? `see ${receiptsDirRel}/` }],
+      evidence: [{ command: claimCommand(ccRung, pathCtx), output_digest: receiptLines.filter((l) => l.includes(`] ${ccRung.rung}:`)).pop() ?? `see ${receiptsDirRel}/` }],
     });
   }
   return claims;
@@ -1329,7 +1384,7 @@ async function executeWorkAttempt(opts, deps, signal) {
   // disk keep the RAW output — the filter shapes judge context, never the record
   const stripCtx = { qualityRel: g.topRel('quality'), candidateId: id };
   const writeReceipt = (phase, i, rung, res, verdict, executedCommand = undefined) => {
-    const r = writeRungReceipt({ repoRoot, receiptsDirRel, id, phase, index: i, rung, res, verdict, stripCtx, executedCommand });
+    const r = writeRungReceipt({ repoRoot, gitRoot: g.gitRoot, receiptsDirRel, id, phase, index: i, rung, res, verdict, stripCtx, executedCommand });
     receiptLines.push(r.line);
     receiptSlices.push(r.slice);
     receiptMeta.push(r.meta);
@@ -1337,7 +1392,8 @@ async function executeWorkAttempt(opts, deps, signal) {
   };
   // portable rung execution: authored-worktree absolute paths are rewritten into THIS
   // tree (or the rung is refused fail-closed) — a rung must never measure another repo
-  const execRung = makeRungExecutor({ gitRoot: g.gitRoot, repoRoot, prefix: g.prefix, log, packetDefaultTimeoutS: packet.rung_timeout_s ?? null });
+  const pathCtx = { gitRoot: g.gitRoot, repoRoot, prefix: g.prefix };
+  const execRung = makeRungExecutor({ ...pathCtx, log, packetDefaultTimeoutS: packet.rung_timeout_s ?? null });
 
   let makerBriefCount = 0;
   /**
@@ -1348,7 +1404,7 @@ async function executeWorkAttempt(opts, deps, signal) {
    * the maker runs so even a crashed/timed-out attempt leaves its brief on disk.
    */
   const persistBriefDigest = (briefText) => {
-    persistMakerBriefDigest({ repoRoot, receiptsDirRel, id, attempt: ++makerBriefCount, briefText });
+    persistMakerBriefDigest({ repoRoot, gitRoot: g.gitRoot, receiptsDirRel, id, attempt: ++makerBriefCount, briefText });
   };
 
   const tokensOf = () => {
@@ -1418,7 +1474,7 @@ async function executeWorkAttempt(opts, deps, signal) {
           blockedOn: `red baseline: rung '${rung.rung}' failed BEFORE any change (${verdict.reason}) — never work on a red baseline`,
           lesson: `baseline rung '${rung.rung}' is red at repo_sha ${packet.repo_sha.slice(0, 12)}; the oracle must be green before this packet is workable`,
           claims: [
-            { type: 'verified_fact', statement: `baseline evidence rung '${rung.rung}' fails before any change: ${verdict.reason}`, evidence: [{ command: rung.command, output_digest: digest }] },
+            { type: 'verified_fact', statement: `baseline evidence rung '${rung.rung}' fails before any change: ${verdict.reason}`, evidence: [{ command: receiptCommand({ rung, executedCommand, repoRoot, gitRoot: g.gitRoot }), output_digest: digest }] },
             { type: 'remaining_work', statement: `fix the red baseline (rung '${rung.rung}'), reset packet status to pending, and re-run hone work ${id}` },
           ],
           headline: `red baseline at rung '${rung.rung}': ${verdict.reason}`,
@@ -1437,12 +1493,13 @@ async function executeWorkAttempt(opts, deps, signal) {
       const policy = loadRouting(undefined, registry);
       routingCtx = { cls: resolveRoutingClass(packet, policy), registry, policy };
     } catch (e) {
+      const why = portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot });
       return terminalize({
         status: 'blocked',
-        blockedOn: `routing configuration invalid: ${e.message}`,
+        blockedOn: `routing configuration invalid: ${why}`,
         lesson: 'model routing is a safety gate; invalid registry/policy never falls back to a provider default',
         claims: [
-          { type: 'verified_fact', statement: `hone refused to invoke a maker because routing configuration was invalid: ${e.message}`, evidence: [{ command: 'loadRegistry() + loadRouting()', output_digest: String(e.message) }] },
+          { type: 'verified_fact', statement: `hone refused to invoke a maker because routing configuration was invalid: ${why}`, evidence: [{ command: 'loadRegistry() + loadRouting()', output_digest: why }] },
           { type: 'remaining_work', statement: `repair Hone model routing, reset packet ${id} to pending, and retry` },
         ],
         headline: 'invalid model routing — blocked before maker invocation',
@@ -1475,13 +1532,13 @@ async function executeWorkAttempt(opts, deps, signal) {
       revertAll(g); // fail-closed: whatever half-state the maker left, remove it
       return terminalize({
         status: 'skipped',
-        skipReason: `maker-error: ${makerName} subprocess failed (${e.kind ?? 'error'}: ${e.message.slice(0, 200)})`,
+        skipReason: `maker-error: ${makerName} subprocess failed (${e.kind ?? 'error'}: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 200)})`,
         lesson: `maker subprocess failure is a skip, not a revert-of-nothing: ${e.kind ?? 'error'}`,
         claims: [
           { type: 'uncertainty', statement: `maker (${makerName}) subprocess failed before producing a reviewable diff: ${e.kind ?? 'error'}` },
           { type: 'remaining_work', statement: `re-run hone work ${id} after resolving the maker failure (status must be reset to pending by owner)` },
         ],
-        headline: `maker subprocess failed: ${e.message.slice(0, 120)}`,
+        headline: `maker subprocess failed: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 120)}`,
       });
     }
 
@@ -1573,7 +1630,7 @@ async function executeWorkAttempt(opts, deps, signal) {
         makerMetas.push(rev.meta);
       } catch (e) {
         return reverted({}, [
-          { type: 'verified_fact', statement: `post-change oracle rung '${oracle.rung.rung}' failed (${oracle.verdict.reason}) and the revision maker call errored; changes reverted`, evidence: [{ command: oracle.rung.command, output_digest: oracle.digest }] },
+          { type: 'verified_fact', statement: `post-change oracle rung '${oracle.rung.rung}' failed (${oracle.verdict.reason}) and the revision maker call errored; changes reverted`, evidence: [{ command: claimCommand(oracle.rung, pathCtx), output_digest: oracle.digest }] },
           { type: 'remaining_work', statement: `packet ${id} reverted; oracle failure unresolved: ${oracle.verdict.reason}` },
         ], `oracle red + maker revision error — reverted`, `revision maker call failed: ${e.kind ?? 'error'}`);
       }
@@ -1594,7 +1651,7 @@ async function executeWorkAttempt(opts, deps, signal) {
       oracle = await runOracle('post-r1');
       if (!oracle.green) {
         return reverted({}, [
-          { type: 'verified_fact', statement: `evidence rung '${oracle.rung.rung}' still failing after 1 maker revision (${oracle.verdict.reason}); all changes reverted, nothing landed`, evidence: [{ command: oracle.rung.command, output_digest: oracle.digest }] },
+          { type: 'verified_fact', statement: `evidence rung '${oracle.rung.rung}' still failing after 1 maker revision (${oracle.verdict.reason}); all changes reverted, nothing landed`, evidence: [{ command: claimCommand(oracle.rung, pathCtx), output_digest: oracle.digest }] },
           { type: 'remaining_work', statement: `packet ${id} reverted with a red oracle at '${oracle.rung.rung}'; needs a different approach or a better instruction` },
         ], `oracle red after revision: '${oracle.rung.rung}' ${oracle.verdict.reason}`, `transform failed its own evidence ladder at '${oracle.rung.rung}' — prior for ${packet.batch_key} down`);
       }
@@ -1640,17 +1697,17 @@ async function executeWorkAttempt(opts, deps, signal) {
         terminalJudgeRan: true,
         judgeTier: DEFERRED_JUDGE_TIER,
         reviewStatus: 'pending',
-        judgeVerdict: `${DEFERRED_JUDGE_PROVIDER} ${DEFERRED_JUDGE_VERDICT} (tier ${DEFERRED_JUDGE_TIER}): model judge deferred; run hone review-batch --repo ${repoRoot}`,
+        judgeVerdict: `${DEFERRED_JUDGE_PROVIDER} ${DEFERRED_JUDGE_VERDICT} (tier ${DEFERRED_JUDGE_TIER}): model judge deferred; run hone review-batch --repo ${g.prefix || '.'}`,
         lesson: 'deferred-review: landed on deterministic gates only; model review is pending debt and must be cleared by hone review-batch',
         claims: [
           {
             type: 'behavior_preserved',
             statement: `all ${packet.evidence_required.length} deterministic evidence_required rung(s) for ${id} green at baseline and post-change; model judge deferred`,
-            evidence: packet.evidence_required.map((r) => ({ command: r.command, output_digest: receiptLines.filter((l) => l.includes(`] ${r.rung}:`)).pop() ?? `see ${receiptsDirRel}/` })),
+            evidence: packet.evidence_required.map((r) => ({ command: claimCommand(r, pathCtx), output_digest: receiptLines.filter((l) => l.includes(`] ${r.rung}:`)).pop() ?? `see ${receiptsDirRel}/` })),
           },
           {
             type: 'remaining_work',
-            statement: `deferred-review: landed commit ${commit.slice(0, 12)} is PENDING model review; run hone review-batch --repo ${repoRoot} before treating the work as trustworthy`,
+            statement: `deferred-review: landed commit ${commit.slice(0, 12)} is PENDING model review; run hone review-batch --repo ${g.prefix || '.'} before treating the work as trustworthy`,
             judge: { provider: DEFERRED_JUDGE_PROVIDER, verdict: DEFERRED_JUDGE_VERDICT },
           },
         ],
@@ -1700,7 +1757,7 @@ async function executeWorkAttempt(opts, deps, signal) {
       oracle = await runOracle('post-r2');
       if (!oracle.green) {
         return reverted({ judgeVerdict: verdictLine(verdict) }, [
-          { type: 'verified_fact', statement: `judge-requested revision broke evidence rung '${oracle.rung.rung}' (${oracle.verdict.reason}); all changes reverted`, evidence: [{ command: oracle.rung.command, output_digest: oracle.digest }] },
+          { type: 'verified_fact', statement: `judge-requested revision broke evidence rung '${oracle.rung.rung}' (${oracle.verdict.reason}); all changes reverted`, evidence: [{ command: claimCommand(oracle.rung, pathCtx), output_digest: oracle.digest }] },
           { type: 'remaining_work', statement: `packet ${id} reverted; judge concern (${headClip(verdict.reasoning, 240)}) still open` },
         ], `revision broke the oracle at '${oracle.rung.rung}' — reverted`, 'judge-driven revision regressed the oracle; REVISE cycles need the oracle re-gate (it held)');
       }
@@ -1726,7 +1783,7 @@ async function executeWorkAttempt(opts, deps, signal) {
       pipelineLabel: `hone work: maker=${makerName} judge=${judgeName}`,
       confidence: verdict.confidence, revisionCount,
     });
-    const claims = buildLandClaims({ packet, id, reasoning: verdict.reasoning, judgeProvider: judgeName, receiptLines, receiptsDirRel });
+    const claims = buildLandClaims({ packet, id, reasoning: verdict.reasoning, judgeProvider: judgeName, receiptLines, receiptsDirRel, pathCtx });
     return terminalize({
       status: 'landed', commit,
       judgeVerdict: verdictLine(verdict),
@@ -1740,13 +1797,13 @@ async function executeWorkAttempt(opts, deps, signal) {
     try { revertAll(g); } catch (e2) { e.message += ` [AND REVERT FAILED: ${e2.message} — manual cleanup required]`; }
     return terminalize({
       status: 'blocked',
-      blockedOn: `internal-error: ${e.message.slice(0, 300)}`,
+      blockedOn: `internal-error: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 300)}`,
       lesson: 'engine fault, not a packet fact — fix the engine, reset status to pending',
       claims: [
-        { type: 'uncertainty', statement: `hone work aborted on internal error before a terminal gate decision: ${e.message.slice(0, 200)}` },
+        { type: 'uncertainty', statement: `hone work aborted on internal error before a terminal gate decision: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 200)}` },
         { type: 'remaining_work', statement: `packet ${id} blocked on engine error; changes (if any) reverted; reset to pending after fixing` },
       ],
-      headline: `internal error (fail-closed): ${e.message.slice(0, 120)}`,
+      headline: `internal error (fail-closed): ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 120)}`,
     });
   }
 }
