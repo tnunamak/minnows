@@ -1493,12 +1493,13 @@ async function executeWorkAttempt(opts, deps, signal) {
       const policy = loadRouting(undefined, registry);
       routingCtx = { cls: resolveRoutingClass(packet, policy), registry, policy };
     } catch (e) {
+      const why = portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot });
       return terminalize({
         status: 'blocked',
-        blockedOn: `routing configuration invalid: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot })}`,
+        blockedOn: `routing configuration invalid: ${why}`,
         lesson: 'model routing is a safety gate; invalid registry/policy never falls back to a provider default',
         claims: [
-          { type: 'verified_fact', statement: `hone refused to invoke a maker because routing configuration was invalid: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot })}`, evidence: [{ command: 'loadRegistry() + loadRouting()', output_digest: String(e.message) }] },
+          { type: 'verified_fact', statement: `hone refused to invoke a maker because routing configuration was invalid: ${why}`, evidence: [{ command: 'loadRegistry() + loadRouting()', output_digest: why }] },
           { type: 'remaining_work', statement: `repair Hone model routing, reset packet ${id} to pending, and retry` },
         ],
         headline: 'invalid model routing — blocked before maker invocation',
