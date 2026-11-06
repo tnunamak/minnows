@@ -222,6 +222,7 @@ const MODEL_AGENDA = {
   ok('emit: ledger rank order is the verified-first consumable order', ledger.find((l) => l.item_id === 'bad-sensor')?.rank === 3);
   ok('emit: context bounded and sizes recorded', aj.total_context_bytes > 500 && aj.total_context_bytes < 45000 && aj.context_bytes['doctrine'] > 0);
   ok('emit: call cost recorded', aj.call.cost_usd === 0.5);
+  ok('emit: doctrine_path is git-root-relative, never the absolute checkout path', aj.doctrine_path === 'DOCTRINE-fixture.md', String(aj.doctrine_path));
 
   // ---- 4. aging across a second + third agenda (same repo) ----
   const secondNotChosen = { ...MODEL_AGENDA, deltas_from_prior: ['kept shape'] };

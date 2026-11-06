@@ -47,6 +47,7 @@ jobs:
           node tools/hone/lib/test-agenda.mjs
           node tools/hone/lib/test-collectors.mjs
           node tools/hone/lib/test-report-run.mjs
+          node tools/hone/lib/test-relative-paths.mjs
           python3 tools/unfinished/unfinished self-test
 
       - name: Generated skills are current

@@ -975,6 +975,17 @@ export function portableRungCommand(command, { gitRoot, repoRoot, prefix }) {
 }
 
 /**
+ * a rung that opens with a RELATIVE `cd <prefix>` is a git-root-relative command (the form
+ * `hone plan` commits, so packets name no host path) and runs from the git root; every other
+ * rung keeps the historical cwd, the hone repo root.
+ */
+function rungCwd(command, { gitRoot, repoRoot, prefix }) {
+  const m = String(command).match(/^\s*cd\s+(?:"([^"]+)"|'([^']+)'|([^\s;&|]+))\s*(?:&&|;)/);
+  const target = m ? (m[1] ?? m[2] ?? m[3]) : null;
+  return prefix && target && (target === prefix || target.startsWith(prefix + '/')) ? gitRoot : repoRoot;
+}
+
+/**
  * the ONE way both substrates execute an evidence rung: portable-path rewrite (or
  * fail-closed refusal, rendered as a failing verdict with an unexecuted-receipt), the
  * REPO_ROOT/GIT_ROOT/HONE_ROOT env contract, then the deterministic expect check.
@@ -1007,7 +1018,7 @@ export function makeRungExecutor({ gitRoot, repoRoot, prefix, log = () => {}, pa
     if (timeout.capped) {
       log(`  [timeout] ${rung.rung}: ${timeout.source}=${timeout.requestedS}s capped to hard outer bound ${timeout.hardCapS}s`);
     }
-    const res = await runShellCmd(port.command, repoRoot, timeout.timeoutMs, env);
+    const res = await runShellCmd(port.command, rungCwd(port.command, { gitRoot, repoRoot, prefix }), timeout.timeoutMs, env);
     res.timeoutSource = timeout.source;
     res.timeoutRequestedS = timeout.requestedS;
     res.timeoutCapped = timeout.capped;
@@ -1640,7 +1651,7 @@ async function executeWorkAttempt(opts, deps, signal) {
         terminalJudgeRan: true,
         judgeTier: DEFERRED_JUDGE_TIER,
         reviewStatus: 'pending',
-        judgeVerdict: `${DEFERRED_JUDGE_PROVIDER} ${DEFERRED_JUDGE_VERDICT} (tier ${DEFERRED_JUDGE_TIER}): model judge deferred; run hone review-batch --repo ${repoRoot}`,
+        judgeVerdict: `${DEFERRED_JUDGE_PROVIDER} ${DEFERRED_JUDGE_VERDICT} (tier ${DEFERRED_JUDGE_TIER}): model judge deferred; run hone review-batch --repo ${g.prefix || '.'}`,
         lesson: 'deferred-review: landed on deterministic gates only; model review is pending debt and must be cleared by hone review-batch',
         claims: [
           {
@@ -1650,7 +1661,7 @@ async function executeWorkAttempt(opts, deps, signal) {
           },
           {
             type: 'remaining_work',
-            statement: `deferred-review: landed commit ${commit.slice(0, 12)} is PENDING model review; run hone review-batch --repo ${repoRoot} before treating the work as trustworthy`,
+            statement: `deferred-review: landed commit ${commit.slice(0, 12)} is PENDING model review; run hone review-batch --repo ${g.prefix || '.'} before treating the work as trustworthy`,
             judge: { provider: DEFERRED_JUDGE_PROVIDER, verdict: DEFERRED_JUDGE_VERDICT },
           },
         ],

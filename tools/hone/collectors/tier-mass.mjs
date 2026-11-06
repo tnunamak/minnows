@@ -7,6 +7,7 @@
 //
 // hone additionally emits the per-function `universe` rows (same routing) so `plan` never
 // re-derives what inventory already knows (SPEC non-negotiable #9).
+import { repoRootArtifact } from '../lib/profile.mjs';
 import { matchDiag } from './ast-scope.mjs';
 import { routeFn } from './router.mjs';
 import { markerHits, subsystemOf } from '../lib/util.mjs';
@@ -98,7 +99,7 @@ export function collectTierMass(inv) {
 
   return {
     generated_from: {
-      repo_root: inv.ctx.repoRoot, repo_sha: inv.ctx.git.sha, cog_threshold: cog, seam_cc: seamCc,
+      repo_root: repoRootArtifact(inv.ctx.git), repo_sha: inv.ctx.git.sha, cog_threshold: cog, seam_cc: seamCc,
       window: inv.window, flagged_fns: universe.length, files: byFile.size, total_excess_mass: totalMass,
       resolver: 'ast-scope (TS compiler API), router v1',
     },
