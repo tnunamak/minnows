@@ -211,9 +211,11 @@ for (const nested of [false, true]) {
   const refusedRung = { rung: 'refused', command: `node ${other.gitRoot}/x.js`, expect: 'exit 0', expect_check: { type: 'exit_code', value: 0 } };
   const rr = await exec(refusedRung, 'baseline');
   ok('receipts: refusal fixture was refused', rr.executedCommand === null, String(rr.executedCommand));
-  writeRungReceipt({ repoRoot: co.repoRoot, gitRoot: co.gitRoot, receiptsDirRel: 'quality/receipts/x', id: 'x', phase: 'baseline', index: 9, rung: refusedRung, res: rr.res, verdict: rr.verdict, stripCtx, executedCommand: rr.executedCommand });
+  const rq = writeRungReceipt({ repoRoot: co.repoRoot, gitRoot: co.gitRoot, receiptsDirRel: 'quality/receipts/x', id: 'x', phase: 'baseline', index: 9, rung: refusedRung, res: rr.res, verdict: rr.verdict, stripCtx, executedCommand: rr.executedCommand });
   const refusedText = readFileSync(join(co.repoRoot, 'quality/receipts/x', 'baseline-10-refused.txt'), 'utf8');
   ok('receipts: refused receipt carries no foreign checkout path', !refusedText.includes(other.gitRoot) && !refusedText.includes(realpathSync(other.gitRoot)), refusedText.slice(0, 400));
+  const refusedLine = rq.line + rq.digest;
+  ok('receipts: refused ledger line carries no foreign checkout path', !refusedLine.includes(other.gitRoot) && !refusedLine.includes(realpathSync(other.gitRoot)), refusedLine.slice(0, 400));
 
   // ---- digest provenance: djb2 recomputes from the bytes on disk (after the header's blank line)
   for (const [index, rung] of rungs.entries()) {
