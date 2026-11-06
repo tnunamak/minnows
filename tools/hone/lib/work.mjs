@@ -51,7 +51,7 @@ import { join, relative, resolve, dirname } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { parseYaml, stringifyYaml } from './yaml.mjs';
-import { validatePacket, assertValidPacket, absPathTokens } from './validate-packet.mjs';
+import { validatePacket, assertValidPacket } from './validate-packet.mjs';
 import { deepEqual, djb2, escRe, slug } from './util.mjs';
 import { loadPacket, writePacket } from './packet-io.mjs';
 import { executeReset } from './reset.mjs';
@@ -1046,7 +1046,9 @@ export function writeRungReceipt({ repoRoot, gitRoot = repoRoot, receiptsDirRel,
   // checkout path. A rewritten rung records the portable command that actually ran; a refused
   // rung records no command (its refusal text is scrubbed of foreign paths too).
   const refused = executedCommand === null;
-  const scrub = (t) => (refused ? absPathTokens(t).reduce((x, tok) => x.split(tok).join('<foreign-path>'), t) : t);
+  // Scrub every absolute token, not the lint's list: the lint exempts system prefixes such as
+  // /tmp/, and a foreign checkout can live under one of them.
+  const scrub = (t) => (refused ? t.replace(ABS_PATH_RE, '<foreign-path>') : t);
   const rungCommand = refused ? '(not recorded: rung was not executed)' : pp(rewritten ? executedCommand : rung.command);
   const output = scrub(pp(res.output));
   const reason = scrub(pp(verdict.reason ?? ''));
