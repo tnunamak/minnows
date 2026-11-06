@@ -45,14 +45,14 @@
 // (a)+(b) + the identity expect_check types — improvement clauses like
 // `cognitive_before < N` / `file_excess_lt` are post-change goals by construction.
 
-import { cpSync, lstatSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, rmSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { cpSync, lstatSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, rmSync, writeFileSync, existsSync, mkdirSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve, dirname } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { parseYaml, stringifyYaml } from './yaml.mjs';
 import { validatePacket, assertValidPacket } from './validate-packet.mjs';
-import { deepEqual, djb2, slug } from './util.mjs';
+import { deepEqual, djb2, escRe, slug } from './util.mjs';
 import { loadPacket, writePacket } from './packet-io.mjs';
 import { executeReset } from './reset.mjs';
 import { appendClaim, appendCostEntry, nextClaimSeq, nextJobAttempt, readJsonl, claimsPath, costPath } from './ledger.mjs';
@@ -975,17 +975,6 @@ export function portableRungCommand(command, { gitRoot, repoRoot, prefix }) {
 }
 
 /**
- * a rung that opens with a RELATIVE `cd <prefix>` is a git-root-relative command (the form
- * `hone plan` commits, so packets name no host path) and runs from the git root; every other
- * rung keeps the historical cwd, the hone repo root.
- */
-function rungCwd(command, { gitRoot, repoRoot, prefix }) {
-  const m = String(command).match(/^\s*cd\s+(?:"([^"]+)"|'([^']+)'|([^\s;&|]+))\s*(?:&&|;)/);
-  const target = m ? (m[1] ?? m[2] ?? m[3]) : null;
-  return prefix && target && (target === prefix || target.startsWith(prefix + '/')) ? gitRoot : repoRoot;
-}
-
-/**
  * the ONE way both substrates execute an evidence rung: portable-path rewrite (or
  * fail-closed refusal, rendered as a failing verdict with an unexecuted-receipt), the
  * REPO_ROOT/GIT_ROOT/HONE_ROOT env contract, then the deterministic expect check.
@@ -1018,7 +1007,7 @@ export function makeRungExecutor({ gitRoot, repoRoot, prefix, log = () => {}, pa
     if (timeout.capped) {
       log(`  [timeout] ${rung.rung}: ${timeout.source}=${timeout.requestedS}s capped to hard outer bound ${timeout.hardCapS}s`);
     }
-    const res = await runShellCmd(port.command, rungCwd(port.command, { gitRoot, repoRoot, prefix }), timeout.timeoutMs, env);
+    const res = await runShellCmd(port.command, repoRoot, timeout.timeoutMs, env);
     res.timeoutSource = timeout.source;
     res.timeoutRequestedS = timeout.requestedS;
     res.timeoutCapped = timeout.capped;
@@ -1033,23 +1022,40 @@ export function makeRungExecutor({ gitRoot, repoRoot, prefix, log = () => {}, pa
  * executed command differs from the authored one (portable-path rewrite, or a refusal
  * that never ran), the receipt records BOTH — the books never hide a rewrite.
  */
-export function writeRungReceipt({ repoRoot, receiptsDirRel, id, via = 'work', phase, index, rung, res, verdict, stripCtx, executedCommand = undefined }) {
+/**
+ * receipts are committed, so host paths become the same placeholders rung shells are given:
+ * the repo root -> $REPO_ROOT, the git root -> $GIT_ROOT, the engine install -> $HONE_ROOT.
+ * Longest path first (the repo root usually sits inside the git root); realpath forms included.
+ */
+export function portableReceiptText(text, { repoRoot, gitRoot = repoRoot }) {
+  const real = (p) => { try { return realpathSync(p); } catch { return p; } };
+  const pairs = [[repoRoot, '$REPO_ROOT'], [gitRoot, '$GIT_ROOT'], [HONE_ROOT, '$HONE_ROOT']]
+    .flatMap(([p, ph]) => [[p, ph], [real(p), ph]])
+    .filter(([p]) => p && p !== '/')
+    .sort((x, y) => y[0].length - x[0].length);
+  return pairs.reduce((t, [p, ph]) => t.replace(new RegExp(`${escRe(p)}(?![A-Za-z0-9._-])`, 'g'), () => ph), String(text));
+}
+
+export function writeRungReceipt({ repoRoot, gitRoot = repoRoot, receiptsDirRel, id, via = 'work', phase, index, rung, res, verdict, stripCtx, executedCommand = undefined }) {
   const rel = join(receiptsDirRel, `${phase}-${index + 1}-${slug(rung.rung)}.txt`);
   const abs = join(repoRoot, rel);
   mkdirSync(dirname(abs), { recursive: true });
   const rewritten = executedCommand !== undefined && executedCommand !== rung.command;
+  const pp = (t) => portableReceiptText(t, { repoRoot, gitRoot });
+  const rungCommand = pp(rung.command);
+  const output = pp(res.output);
   const execLine = rewritten
     ? (executedCommand === null
       ? `# executed-command: (NOT EXECUTED — portable-path refusal)\n`
-      : `# executed-command (portable-path rewrite): ${executedCommand}\n`)
+      : `# executed-command (portable-path rewrite): ${pp(executedCommand)}\n`)
     : '';
   const timeoutS = Math.round((res.timeoutMs ?? EVIDENCE_TIMEOUT_MS) / 1000);
   const timeoutLine = `# timeout: ${timeoutS}s${res.timeoutSource ? ` (${res.timeoutSource}${res.timeoutRequestedS && res.timeoutRequestedS !== timeoutS ? ` requested ${res.timeoutRequestedS}s` : ''}${res.timeoutCapped ? ', capped' : ''})` : ''}\n`;
-  writeFileSync(abs, `# hone ${via} ${id} — ${phase} rung '${rung.rung}'\n# command: ${rung.command}\n${execLine}# expect: ${rung.expect}\n${timeoutLine}# exit: ${res.timedOut ? 'TIMEOUT' : res.code}  duration: ${Math.round(res.durationMs / 1000)}s  verdict: ${verdict.pass ? 'PASS' : `FAIL (${verdict.reason})`}\n\n${res.output}`);
-  const digest = `exit=${res.timedOut ? 'TIMEOUT' : res.code} timeout=${timeoutS}s djb2=${djb2(res.output)} bytes=${res.output.length} receipt=${rel}`;
+  writeFileSync(abs, `# hone ${via} ${id} — ${phase} rung '${rung.rung}'\n# command: ${rungCommand}\n${execLine}# expect: ${rung.expect}\n${timeoutLine}# exit: ${res.timedOut ? 'TIMEOUT' : res.code}  duration: ${Math.round(res.durationMs / 1000)}s  verdict: ${verdict.pass ? 'PASS' : `FAIL (${verdict.reason})`}\n\n${output}`);
+  const digest = `exit=${res.timedOut ? 'TIMEOUT' : res.code} timeout=${timeoutS}s djb2=${djb2(output)} bytes=${output.length} receipt=${rel}`;
   return {
     digest,
-    line: `[${phase}] ${rung.rung}: ${rung.command} -> ${res.timedOut ? 'TIMEOUT' : `exit ${res.code}`} (${Math.round(res.durationMs / 1000)}s, timeout ${timeoutS}s) ${verdict.pass ? 'PASS' : `FAIL: ${verdict.reason}`}; ${digest}${!rewritten ? '' : executedCommand === null ? ' [NOT EXECUTED — portable-path refusal]' : ' [portable-path rewrite]'}`,
+    line: `[${phase}] ${rung.rung}: ${rungCommand} -> ${res.timedOut ? 'TIMEOUT' : `exit ${res.code}`} (${Math.round(res.durationMs / 1000)}s, timeout ${timeoutS}s) ${verdict.pass ? 'PASS' : `FAIL: ${verdict.reason}`}; ${digest}${!rewritten ? '' : executedCommand === null ? ' [NOT EXECUTED — portable-path refusal]' : ' [portable-path rewrite]'}`,
     slice: judgeSlice(rung.rung, res, stripCtx),
     meta: { phase, pass: verdict.pass, rung: rung.rung },
   };
@@ -1340,7 +1346,7 @@ async function executeWorkAttempt(opts, deps, signal) {
   // disk keep the RAW output — the filter shapes judge context, never the record
   const stripCtx = { qualityRel: g.topRel('quality'), candidateId: id };
   const writeReceipt = (phase, i, rung, res, verdict, executedCommand = undefined) => {
-    const r = writeRungReceipt({ repoRoot, receiptsDirRel, id, phase, index: i, rung, res, verdict, stripCtx, executedCommand });
+    const r = writeRungReceipt({ repoRoot, gitRoot: g.gitRoot, receiptsDirRel, id, phase, index: i, rung, res, verdict, stripCtx, executedCommand });
     receiptLines.push(r.line);
     receiptSlices.push(r.slice);
     receiptMeta.push(r.meta);

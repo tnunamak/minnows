@@ -327,7 +327,7 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
     for (const [i, rung] of packet.evidence_required.entries()) {
       log(`  [baseline] ${rung.rung}: ${rung.command}`);
       const { res, verdict, executedCommand } = await execRung(rung, 'baseline');
-      const r = writeRungReceipt({ repoRoot, receiptsDirRel, id, via: 'lane', phase: 'baseline', index: i, rung, res, verdict, stripCtx, executedCommand });
+      const r = writeRungReceipt({ repoRoot, gitRoot: g.gitRoot, receiptsDirRel, id, via: 'lane', phase: 'baseline', index: i, rung, res, verdict, stripCtx, executedCommand });
       state.receiptLines.push(r.line); state.receiptSlices.push(r.slice); state.receiptMeta.push(r.meta);
       state.baseline.push({ code: res.code, timedOut: res.timedOut, stdout: res.stdout, output: res.output, durationMs: res.durationMs, timeoutMs: res.timeoutMs });
       if (!verdict.pass) {
@@ -518,7 +518,7 @@ export async function executeLaneGate({ id, repoRoot, makerSummary = null, revis
   for (const [i, rung] of packet.evidence_required.entries()) {
     log(`  [${phase}] ${rung.rung}: ${rung.command}`);
     const { res, verdict, executedCommand } = await execRung(rung, 'post', state.baseline[i]);
-    const r = writeRungReceipt({ repoRoot, receiptsDirRel, id, via: 'lane', phase, index: i, rung, res, verdict, stripCtx, executedCommand });
+    const r = writeRungReceipt({ repoRoot, gitRoot: g.gitRoot, receiptsDirRel, id, via: 'lane', phase, index: i, rung, res, verdict, stripCtx, executedCommand });
     state.receiptLines.push(r.line); state.receiptSlices.push(r.slice); state.receiptMeta.push(r.meta);
     if (!verdict.pass) { red = { rung, verdict, res, digest: r.digest }; break; }
   }
@@ -971,7 +971,7 @@ export async function executeLaneBatchGate({ ids, repoRoot, log = () => {} }) {
     for (const [i, p] of plan.entries()) {
       log(`  [${phase}] ${p.rung.rung}: ${p.rung.command}`);
       const { res, verdict, executedCommand } = await execRung(p.rung, 'post', p.baseline, { packetDefaultTimeoutS: p.packetDefaultTimeoutS });
-      const r = writeRungReceipt({ repoRoot, receiptsDirRel, id: batchId, via: 'lane', phase, index: i, rung: p.rung, res, verdict, stripCtx, executedCommand });
+      const r = writeRungReceipt({ repoRoot, gitRoot: g.gitRoot, receiptsDirRel, id: batchId, via: 'lane', phase, index: i, rung: p.rung, res, verdict, stripCtx, executedCommand });
       entries.push({ key: p.key, ...r });
       if (!verdict.pass) return { green: false, red: { plan: p, verdict, res, receipt: r }, entries };
     }

@@ -310,10 +310,11 @@ function instructionFor(g, namedSyms, captures, capturesMut) {
 
 function evidenceFor(g, namedSyms, ctx, meta) {
   const ev = [];
-  // Rung commands are committed in packets, so they name no host path: they run from the GIT ROOT
-  // (`cd <prefix> &&`, omitted when the repo is the git root) and reach the engine via $HONE_ROOT.
+  // Rung commands are committed in packets, so they name no host path: they enter the repo via the
+  // `cd "$REPO_ROOT"` form the rung executor exports (same cwd as every legacy repo-relative rung)
+  // and reach the engine via $HONE_ROOT.
   const prefix = ctx.git.prefix;
-  const cd = prefix ? `cd ${prefix} && ` : '';
+  const cd = 'cd "$REPO_ROOT" && ';
   const typecheck = ctx.profile.commands?.typecheck;
   const test = ctx.profile.commands?.test;
   if (typecheck) ev.push({ rung: 'typecheck', command: `${cd}${typecheck}`, expect: 'exit 0', expect_check: { type: 'exit_code', value: 0 } });

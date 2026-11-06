@@ -937,7 +937,7 @@ export async function laneSelfTest({ verbose = false } = {}) {
     const r = await emit(root);
     check('emit GREEN — the baseline measured --repo, not the red authoring tree', r.exitCode === 0, JSON.stringify(r.json).slice(0, 200));
     const receipt = read(root, `quality/receipts/${ID}/baseline-1-direct-test.txt`) ?? '';
-    check('receipt records BOTH commands (authored + executed)', receipt.includes(`# command: cd ${authoring} && node test.js`) && receipt.includes(`# executed-command (portable-path rewrite): cd "${root}" && node test.js`), receipt.slice(0, 400));
+    check('receipt records BOTH commands (authored + executed)', receipt.includes(`# command: cd ${authoring} && node test.js`) && receipt.includes(`# executed-command (portable-path rewrite): cd "$REPO_ROOT" && node test.js`), receipt.slice(0, 400));
     editUtil(root, ST_GOOD);
     const g = await gate(root);
     check('gate green on --repo; receipt line carries the rewrite marker', g.exitCode === 0 && g.json.receipts.some((l) => /\[portable-path rewrite\]$/.test(l)));
@@ -983,7 +983,7 @@ export async function laneSelfTest({ verbose = false } = {}) {
     const r = await emit(root);
     check('emit green — collector resolved against the running engine, env contract satisfied', r.exitCode === 0, JSON.stringify(r.json.baseline ?? r.json).slice(0, 400));
     const receipt = read(root, `quality/receipts/${ID}/baseline-1-collector.txt`) ?? '';
-    check('receipt executed-command names the running engine', receipt.includes(`# executed-command (portable-path rewrite): node ${HONE_ROOT}/lib/util.mjs`), receipt.slice(0, 300));
+    check('receipt executed-command names the running engine', receipt.includes(`# executed-command (portable-path rewrite): node $HONE_ROOT/lib/util.mjs`), receipt.slice(0, 300));
   });
 
   await scenario('validator lint: absolute rung paths WARN toward the portable $REPO_ROOT form', async (check) => {
