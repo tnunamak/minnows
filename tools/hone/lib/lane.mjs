@@ -32,7 +32,7 @@ import { join, resolve, dirname } from 'node:path';
 import { homedir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { djb2 } from './util.mjs';
+import { djb2, ensureSelfIgnoredDir } from './util.mjs';
 import { validatePacket } from './validate-packet.mjs';
 import { loadPacket, writePacket } from './packet-io.mjs';
 import { validateStageEntry } from './ledger.mjs';
@@ -176,6 +176,7 @@ function loadState(repoRoot, id) {
 }
 
 function saveState(repoRoot, id, state) {
+  ensureSelfIgnoredDir(join(repoRoot, 'quality', '.lane'));
   mkdirSync(laneDir(repoRoot, id), { recursive: true });
   const { baseline, ...rest } = state;
   const baselineRaw = JSON.stringify(baseline);
@@ -510,7 +511,7 @@ export async function executeLaneGate({ id, repoRoot, makerSummary = null, revis
   if (revisionNote) {
     const rel = join(receiptsDirRel, `revision-note-${attempt}.txt`);
     mkdirSync(join(repoRoot, 'quality', 'receipts', id), { recursive: true });
-    writeFileSync(join(repoRoot, rel), `# hone lane ${id} — orchestrator revision note before gate attempt ${attempt}\n\n${revisionNote.slice(0, 8192)}`);
+    writeFileSync(join(repoRoot, rel), `# hone lane ${id} — orchestrator revision note before gate attempt ${attempt}\n\n${portableErrorText(revisionNote.slice(0, 8192), { repoRoot, gitRoot: g.gitRoot })}`);
   }
   saveState(repoRoot, id, state); // attempt counted BEFORE running — crash-conservative
 

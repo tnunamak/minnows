@@ -37,6 +37,7 @@ import { basename, isAbsolute, join, resolve } from 'node:path';
 import { artifactPath, buildContext } from './profile.mjs';
 import { CLAUDE_NO_MCP_ARGS, codexNoMcpArgs, extractFencedJson, noMcpEnv, requireGpt56, runCli } from '../providers/provider.mjs';
 import { slug } from './util.mjs';
+import { hostScrubber, scrubDeep } from './portable.mjs';
 import { readPacketPool } from './report.mjs';
 import { loadVerifiedInventorySnapshot } from './inventory-snapshot.mjs';
 import { notChosenPath, selectionLedgerPath, readAgendaArtifacts } from './agenda-consume.mjs';
@@ -782,7 +783,8 @@ export async function executeAgenda(opts, deps) {
   const created = new Date().toISOString();
   const stamp = created.replace(/[:.]/g, '-');
   const inventoryMeta = readJson(join(repoRoot, 'quality', 'inventory', 'meta.json'));
-  const agendaDoc = {
+  // model prose lands in AGENDA.*, agendas/*, not-chosen.json and the selection ledger: scrub once, here
+  const agendaDoc = scrubDeep({
     version: 1,
     agenda_id: `${challenge ? 'challenge' : 'agenda'}-${stamp}`,
     created,
@@ -803,7 +805,7 @@ export async function executeAgenda(opts, deps) {
     not_chosen: modelDoc.not_chosen,
     deltas_from_prior: modelDoc.deltas_from_prior,
     human_decisions_needed: modelDoc.human_decisions_needed,
-  };
+  }, hostScrubber(repoRoot, gitRoot));
 
   const qdir = join(repoRoot, 'quality');
   const histDir = join(qdir, 'agendas');

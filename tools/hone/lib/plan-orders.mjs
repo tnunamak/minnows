@@ -17,6 +17,7 @@ import { collectTestSignals } from '../collectors/test-signals.mjs';
 import { parseYaml, stringifyYaml } from './yaml.mjs';
 import { validatePacket } from './validate-packet.mjs';
 import { deepEqual } from './util.mjs';
+import { writePacket } from './packet-io.mjs';
 import { extractFencedJson } from '../providers/provider.mjs';
 import { makeRungExecutor } from './work.mjs';
 import { buildRung, dbTestRung, mutantKillRung, seamPinRung } from './rung-builder.mjs';
@@ -155,7 +156,7 @@ export async function executePlanOrders({ repoRoot, max = 10, classFilter = 'bot
       continue;
     }
     const path = join(outDir, `${order.candidate_id}.yaml`);
-    writeFileSync(path, yaml);
+    writePacket(path, order); // validated + host paths scrubbed from free text
     written.push({ candidate_id: order.candidate_id, path, action: order.action, proof_class: order.proof_class });
   }
   for (const bad of invalid) {
