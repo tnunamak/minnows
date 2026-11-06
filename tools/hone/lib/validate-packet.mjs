@@ -103,6 +103,15 @@ function findGitRoot(start) {
  *   callback for non-fatal lints; defaults to stderr.
  * @returns string[] — empty when valid.
  */
+/**
+ * Multi-segment absolute path tokens in `text`, system prefixes exempt. One definition shared
+ * by the packet lint and the receipt writer/tests, so "what counts as a host path" cannot drift.
+ */
+export function absPathTokens(text) {
+  return (String(text).match(/(?<=^|[\s"'=(:])\/(?:[A-Za-z0-9._-]+\/)+[A-Za-z0-9._-]+/g) ?? [])
+    .filter((t) => !['/dev/', '/tmp/', '/proc/', '/sys/', '/usr/', '/bin/', '/sbin/', '/lib/', '/lib64/', '/opt/', '/etc/', '/var/'].some((a) => t.startsWith(a)));
+}
+
 export function validatePacket(p, ctx = {}) {
   const errs = [];
   const err = (m) => errs.push(m);
@@ -249,8 +258,7 @@ export function validatePacket(p, ctx = {}) {
     // execution time; this lint pushes authors to the portable form up front. System
     // prefixes are exempt; only >=2-segment paths flag (single-segment `/x` fixtures
     // and sed/regex literals stay quiet).
-    const absTokens = (e.command.match(/(?<=^|[\s"'=(:])\/(?:[A-Za-z0-9._-]+\/)+[A-Za-z0-9._-]+/g) ?? [])
-      .filter((t) => !['/dev/', '/tmp/', '/proc/', '/sys/', '/usr/', '/bin/', '/sbin/', '/lib/', '/lib64/', '/opt/', '/etc/', '/var/'].some((a) => t.startsWith(a)));
+    const absTokens = absPathTokens(e.command);
     if (absTokens.length) {
       warn(`evidence_required[${i}] (${e.rung}): absolute path(s) in the rung command (${absTokens.slice(0, 3).join(', ')}) — authored-worktree paths break portability across worktrees (the engine rewrites or fail-closed-refuses them at run time). Author portably instead: paths relative to the repo root, or $REPO_ROOT / $GIT_ROOT / $HONE_ROOT (exported to every rung shell)`);
     }

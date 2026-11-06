@@ -51,7 +51,7 @@ import { join, relative, resolve, dirname } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { parseYaml, stringifyYaml } from './yaml.mjs';
-import { validatePacket, assertValidPacket } from './validate-packet.mjs';
+import { validatePacket, assertValidPacket, absPathTokens } from './validate-packet.mjs';
 import { deepEqual, djb2, escRe, slug } from './util.mjs';
 import { loadPacket, writePacket } from './packet-io.mjs';
 import { executeReset } from './reset.mjs';
@@ -1020,7 +1020,7 @@ export function makeRungExecutor({ gitRoot, repoRoot, prefix, log = () => {}, pa
  * accumulates ({digest, line, slice, meta}). File + digest + line formats are the
  * ledger-visible receipt contract — identical for every execution substrate. When the
  * executed command differs from the authored one (portable-path rewrite, or a refusal
- * that never ran), the receipt records BOTH — the books never hide a rewrite.
+ * that never ran), the receipt says so but does not commit the authored form (it may hold host paths).
  */
 /**
  * receipts are committed, so host paths become the same placeholders rung shells are given:
@@ -1042,20 +1042,27 @@ export function writeRungReceipt({ repoRoot, gitRoot = repoRoot, receiptsDirRel,
   mkdirSync(dirname(abs), { recursive: true });
   const rewritten = executedCommand !== undefined && executedCommand !== rung.command;
   const pp = (t) => portableReceiptText(t, { repoRoot, gitRoot });
-  const rungCommand = pp(rung.command);
-  const output = pp(res.output);
-  const execLine = rewritten
-    ? (executedCommand === null
-      ? `# executed-command: (NOT EXECUTED — portable-path refusal)\n`
-      : `# executed-command (portable-path rewrite): ${pp(executedCommand)}\n`)
-    : '';
+  // The authored command is NOT committed: for an old packet it can carry a foreign absolute
+  // checkout path. A rewritten rung records the portable command that actually ran; a refused
+  // rung records no command (its refusal text is scrubbed of foreign paths too).
+  const refused = executedCommand === null;
+  const scrub = (t) => (refused ? absPathTokens(t).reduce((x, tok) => x.split(tok).join('<foreign-path>'), t) : t);
+  const rungCommand = refused ? '(not recorded: rung was not executed)' : pp(rewritten ? executedCommand : rung.command);
+  const output = scrub(pp(res.output));
+  const reason = scrub(pp(verdict.reason ?? ''));
+  const execLine = !rewritten ? '' : refused
+    ? `# executed-command: (NOT EXECUTED — portable-path refusal)\n`
+    : `# portable-path rewrite: the authored command is not recorded (it may hold host paths); the command above is what ran\n`;
   const timeoutS = Math.round((res.timeoutMs ?? EVIDENCE_TIMEOUT_MS) / 1000);
   const timeoutLine = `# timeout: ${timeoutS}s${res.timeoutSource ? ` (${res.timeoutSource}${res.timeoutRequestedS && res.timeoutRequestedS !== timeoutS ? ` requested ${res.timeoutRequestedS}s` : ''}${res.timeoutCapped ? ', capped' : ''})` : ''}\n`;
-  writeFileSync(abs, `# hone ${via} ${id} — ${phase} rung '${rung.rung}'\n# command: ${rungCommand}\n${execLine}# expect: ${rung.expect}\n${timeoutLine}# exit: ${res.timedOut ? 'TIMEOUT' : res.code}  duration: ${Math.round(res.durationMs / 1000)}s  verdict: ${verdict.pass ? 'PASS' : `FAIL (${verdict.reason})`}\n\n${output}`);
+  writeFileSync(abs, `# hone ${via} ${id} — ${phase} rung '${rung.rung}'\n# command: ${rungCommand}\n${execLine}# expect: ${rung.expect}\n${timeoutLine}# exit: ${res.timedOut ? 'TIMEOUT' : res.code}  duration: ${Math.round(res.durationMs / 1000)}s  verdict: ${verdict.pass ? 'PASS' : `FAIL (${reason})`}\n\n${output}`);
+  // djb2 covers exactly the bytes after the blank line that ends the receipt header: the
+  // portable-rewritten `output`, as written to disk. Recompute from the artifact with
+  // djb2(text.slice(text.indexOf('\n\n') + 2)); `bytes=` is that string's length.
   const digest = `exit=${res.timedOut ? 'TIMEOUT' : res.code} timeout=${timeoutS}s djb2=${djb2(output)} bytes=${output.length} receipt=${rel}`;
   return {
     digest,
-    line: `[${phase}] ${rung.rung}: ${rungCommand} -> ${res.timedOut ? 'TIMEOUT' : `exit ${res.code}`} (${Math.round(res.durationMs / 1000)}s, timeout ${timeoutS}s) ${verdict.pass ? 'PASS' : `FAIL: ${verdict.reason}`}; ${digest}${!rewritten ? '' : executedCommand === null ? ' [NOT EXECUTED — portable-path refusal]' : ' [portable-path rewrite]'}`,
+    line: `[${phase}] ${rung.rung}: ${rungCommand} -> ${res.timedOut ? 'TIMEOUT' : `exit ${res.code}`} (${Math.round(res.durationMs / 1000)}s, timeout ${timeoutS}s) ${verdict.pass ? 'PASS' : `FAIL: ${reason}`}; ${digest}${!rewritten ? '' : executedCommand === null ? ' [NOT EXECUTED — portable-path refusal]' : ' [portable-path rewrite]'}`,
     slice: judgeSlice(rung.rung, res, stripCtx),
     meta: { phase, pass: verdict.pass, rung: rung.rung },
   };

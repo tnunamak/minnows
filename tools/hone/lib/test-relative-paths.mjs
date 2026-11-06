@@ -29,7 +29,9 @@ import { runInventory } from './inventory.mjs';
 import { runPlan } from './plan.mjs';
 import { loadVerifiedInventorySnapshot } from './inventory-snapshot.mjs';
 import { loadPacket } from './packet-io.mjs';
-import { buildLandClaims, makeRungExecutor, portableRungCommand, writeRungReceipt } from './work.mjs';
+import { buildLandClaims, makeRungExecutor, portableReceiptText, portableRungCommand, writeRungReceipt } from './work.mjs';
+import { absPathTokens } from './validate-packet.mjs';
+import { djb2 } from './util.mjs';
 
 const checks = [];
 const ok = (name, cond, detail = '') => {
@@ -196,8 +198,55 @@ for (const nested of [false, true]) {
     files.push({ file: `receipt-${rung.rung}`, text: readFileSync(join(co.repoRoot, 'quality/receipts/x', `baseline-${index + 1}-${rung.rung}.txt`), 'utf8') });
     files.push({ file: `receipt-line-${rung.rung}`, text: r.line + r.digest });
   }
-  ok('receipts: files and ledger lines carry no absolute checkout/engine/home path', !leaks(files, co).length, leaks(files, co).join(' | '));
+  ok('receipts: files and ledger lines carry no checkout/engine/home path', !leaks(files, co).length, leaks(files, co).join(' | '));
+  // any multi-segment absolute token (system prefixes exempt) is a host path, even a foreign one
+  const foreign = files.flatMap((f) => absPathTokens(f.text).map((t) => `${f.file}: ${t}`));
+  ok('receipts: no foreign absolute path token in any receipt file or ledger line', !foreign.length, foreign.join(' | '));
   ok('receipts: output keeps a neutral placeholder for the checkout', /\$REPO_ROOT/.test(files[0].text), files[0].text);
+  const oldPacket = files.find((f) => f.file === 'receipt-old-packet').text;
+  ok('receipts: the old-packet receipt records the portable command that ran', oldPacket.includes('# command: cd "$REPO_ROOT"') && !oldPacket.includes('/some/other/checkout'), oldPacket.slice(0, 300));
+
+  // a refused rung (foreign real checkout): command and refusal text carry no foreign path
+  const other = makeCheckout('foreign', false);
+  const refusedRung = { rung: 'refused', command: `node ${other.gitRoot}/x.js`, expect: 'exit 0', expect_check: { type: 'exit_code', value: 0 } };
+  const rr = await exec(refusedRung, 'baseline');
+  ok('receipts: refusal fixture was refused', rr.executedCommand === null, String(rr.executedCommand));
+  writeRungReceipt({ repoRoot: co.repoRoot, gitRoot: co.gitRoot, receiptsDirRel: 'quality/receipts/x', id: 'x', phase: 'baseline', index: 9, rung: refusedRung, res: rr.res, verdict: rr.verdict, stripCtx, executedCommand: rr.executedCommand });
+  const refusedText = readFileSync(join(co.repoRoot, 'quality/receipts/x', 'baseline-10-refused.txt'), 'utf8');
+  ok('receipts: refused receipt carries no foreign checkout path', !refusedText.includes(other.gitRoot) && !refusedText.includes(realpathSync(other.gitRoot)), refusedText.slice(0, 400));
+
+  // ---- digest provenance: djb2 recomputes from the bytes on disk (after the header's blank line)
+  for (const [index, rung] of rungs.entries()) {
+    const { res, verdict, executedCommand } = await exec(rung, 'baseline');
+    const r = writeRungReceipt({ repoRoot: co.repoRoot, gitRoot: co.gitRoot, receiptsDirRel: 'quality/receipts/x', id: 'x', phase: 'baseline', index, rung, res, verdict, stripCtx, executedCommand });
+    const text = readFileSync(join(co.repoRoot, 'quality/receipts/x', `baseline-${index + 1}-${rung.rung}.txt`), 'utf8');
+    const body = text.slice(text.indexOf('\n\n') + 2);
+    ok(`receipts: ${rung.rung} djb2 and bytes recompute from the on-disk body`, r.digest.includes(`djb2=${djb2(body)} bytes=${body.length}`), `${r.digest} vs djb2=${djb2(body)} bytes=${body.length}`);
+  }
+}
+
+// ---------------------------------------------------------------- 8. substitution order
+{
+  // HONE_ROOT is under the git root here: the most specific root must win over the enclosing $GIT_ROOT
+  const gitRoot = '/zz-fake-git';
+  const repoRoot = '/zz-fake-git/sub';
+  const text = `a ${HONE_ROOT} b ${repoRoot}/src c ${gitRoot}/other`;
+  const out = portableReceiptText(text, { repoRoot, gitRoot });
+  ok('order: repo root maps to $REPO_ROOT before the enclosing $GIT_ROOT', out.includes('$REPO_ROOT/src') && out.includes('$GIT_ROOT/other'), out);
+  const nestedEngine = portableReceiptText(`${HONE_ROOT}/lib/x.mjs`, { repoRoot: join(HONE_ROOT, '..', 'repo-elsewhere'), gitRoot: join(HONE_ROOT, '..', '..') });
+  ok('order: HONE_ROOT beneath the git root maps to $HONE_ROOT, not $GIT_ROOT/...', nestedEngine === '$HONE_ROOT/lib/x.mjs', nestedEngine);
+}
+
+// ---------------------------------------------------------------- 9. cleanup on throw
+{
+  // a section that throws right after makeCheckout: the dir is registered at creation, so the
+  // teardown (the `finally` below) removes it. Verified at process exit, after that teardown ran.
+  let thrown = null;
+  try { const c = makeCheckout('throws', false); thrown = c.gitRoot; throw new Error('section failed'); } catch { /* the failure is the scenario */ }
+  ok('cleanup: a checkout made by a section that then threw is registered for teardown', thrown != null && existsSync(thrown) && tempRoots.includes(thrown));
+  process.on('exit', () => {
+    if (thrown && existsSync(thrown)) { process.stdout.write(`FAIL cleanup: ${thrown} survived the teardown\n`); process.exitCode = 1; }
+  });
 }
 } finally {
   for (const dir of tempRoots) rmSync(dir, { recursive: true, force: true });
