@@ -27,6 +27,7 @@ import { execSync } from 'node:child_process';
 import { HONE_ROOT, buildContext } from './profile.mjs';
 import { runInventory } from './inventory.mjs';
 import { runPlan } from './plan.mjs';
+import { executeCalibrate, portableCalibrationText } from './calibrate.mjs';
 import { loadVerifiedInventorySnapshot } from './inventory-snapshot.mjs';
 import { loadPacket } from './packet-io.mjs';
 import { buildLandClaims, makeRungExecutor, portableReceiptText, portableRungCommand, writeRungReceipt } from './work.mjs';
@@ -225,6 +226,31 @@ for (const nested of [false, true]) {
     const body = text.slice(text.indexOf('\n\n') + 2);
     ok(`receipts: ${rung.rung} djb2 and bytes recompute from the on-disk body`, r.digest.includes(`djb2=${djb2(body)} bytes=${body.length}`), `${r.digest} vs djb2=${djb2(body)} bytes=${body.length}`);
   }
+}
+
+// ---------------------------------------------------------------- 7b. calibration report
+{
+  // the committed calibration report (read by the registry gate): no host path, anywhere.
+  const co = makeCheckout('calibrate', true);
+  writeFileSync(join(co.repoRoot, 'src', 'b.js'), 'export const b = 1;\n');
+  execSync('git add -A -f && git -c user.email=t@t -c user.name=t commit -q -m second', { cwd: co.gitRoot });
+  const sha = execSync('git rev-parse HEAD', { cwd: co.gitRoot, encoding: 'utf8' }).trim();
+  mkdirSync(join(co.repoRoot, 'quality', 'packets'), { recursive: true });
+  writeFileSync(join(co.repoRoot, 'quality', 'packets', 'cal-1.yaml'), `candidate_id: cal-1\ncreated: '2026-01-01T00:00:00Z'\nstatus: landed\naction: extract\nproof_class: certified-mechanical\noutcome:\n  commit: ${sha}\n`);
+  const r = await quiet(async () => executeCalibrate({ model: 'sonnet-5', replay: 1, repoRoot: co.repoRoot }));
+  ok('calibrate: fixture run succeeded', r.exitCode === 0 && r.json.of === 1, JSON.stringify(r.json));
+  const text = readFileSync(r.json.report_path, 'utf8');
+  const report = JSON.parse(text);
+  const f = [{ file: 'calibration-report', text }];
+  ok('calibrate: report carries no checkout/engine/home/tmpdir path', !leaks(f, co).length && ![tmpdir(), realpathSync(tmpdir())].some((t) => t !== '/' && text.includes(t + '/')), leaks(f, co).join(' | '));
+  ok('calibrate: report has no absolute path token', !absPathTokens(text).length, absPathTokens(text).join(' | '));
+  const m = /source: '([^']+)'/.exec(report.next);
+  ok('calibrate: next.source is git-root-relative and names the report file', m != null && m[1] === `reference-implementation/quality/reports/${r.json.report_path.split('/').pop()}`, report.next);
+
+  // stderr notes: a git worktree failure names the tmpdir scratch path (and here the repo itself sits under tmpdir)
+  const scratch = join(tmpdir(), 'hone-calibrate-abc123-zzz');
+  const note = portableCalibrationText(`fatal: '${scratch}' already exists; repo ${co.gitRoot}/x and ${realpathSync(co.repoRoot)}`, co);
+  ok('calibrate: stderr note maps scratch -> <scratch> and roots -> placeholders', note.includes("'<scratch>'") && note.includes('$GIT_ROOT/x') && note.includes('$REPO_ROOT') && !note.includes(scratch) && !note.includes(co.gitRoot) && !note.includes(tmpdir() + '/'), note);
 }
 
 // ---------------------------------------------------------------- 8. substitution order

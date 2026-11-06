@@ -95,15 +95,6 @@ function findGitRoot(start) {
 }
 
 /**
- * @param p the packet
- * @param ctx optional context: {repoDir} (the --repo directory) enables the touchset
- *   path lint + shared-DB rung lint (plan/work pass it; bare validation stays
- *   structural — best-effort by design). {repoRoot} is a deprecated alias for repoDir
- *   (it never meant the git root); accepted with a warning. {warn} is an optional
- *   callback for non-fatal lints; defaults to stderr.
- * @returns string[] — empty when valid.
- */
-/**
  * Multi-segment absolute path tokens in `text`, system prefixes exempt. One definition shared
  * by the packet lint and the receipt writer/tests, so "what counts as a host path" cannot drift.
  */
@@ -112,6 +103,15 @@ export function absPathTokens(text) {
     .filter((t) => !['/dev/', '/tmp/', '/proc/', '/sys/', '/usr/', '/bin/', '/sbin/', '/lib/', '/lib64/', '/opt/', '/etc/', '/var/'].some((a) => t.startsWith(a)));
 }
 
+/**
+ * @param p the packet
+ * @param ctx optional context: {repoDir} (the --repo directory) enables the touchset
+ *   path lint + shared-DB rung lint (plan/work pass it; bare validation stays
+ *   structural — best-effort by design). {repoRoot} is a deprecated alias for repoDir
+ *   (it never meant the git root); accepted with a warning. {warn} is an optional
+ *   callback for non-fatal lints; defaults to stderr.
+ * @returns string[] — empty when valid.
+ */
 export function validatePacket(p, ctx = {}) {
   const errs = [];
   const err = (m) => errs.push(m);

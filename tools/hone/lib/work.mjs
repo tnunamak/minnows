@@ -987,10 +987,13 @@ export function makeRungExecutor({ gitRoot, repoRoot, prefix, log = () => {}, pa
   return async function execRung(rung, phase, baselineRes = null, opts = {}) {
     const port = portableRungCommand(rung.command, ctx);
     if (port.refused) {
-      log(`  [portable-path] ${rung.rung}: REFUSED — ${port.refused}`);
+      // The reason reaches committed artifacts (packet blocked_on, headline, claims, receipts):
+      // scrub it here, once, so no consumer sees a host path.
+      const refusal = portableReceiptText(port.refused, ctx).replace(ABS_PATH_RE, '<foreign-path>');
+      log(`  [portable-path] ${rung.rung}: REFUSED — ${refusal}`);
       return {
-        res: { code: null, timedOut: false, stdout: '', output: `[engine] rung NOT EXECUTED — ${port.refused}`, durationMs: 0, timeoutMs: 0 },
-        verdict: { pass: false, reason: `portable-path refusal: ${port.refused}` },
+        res: { code: null, timedOut: false, stdout: '', output: `[engine] rung NOT EXECUTED — ${refusal}`, durationMs: 0, timeoutMs: 0 },
+        verdict: { pass: false, reason: `portable-path refusal: ${refusal}` },
         executedCommand: null,
       };
     }
@@ -1016,13 +1019,6 @@ export function makeRungExecutor({ gitRoot, repoRoot, prefix, log = () => {}, pa
 }
 
 /**
- * write one evidence-rung receipt file + return the bookkeeping strings the caller
- * accumulates ({digest, line, slice, meta}). File + digest + line formats are the
- * ledger-visible receipt contract — identical for every execution substrate. When the
- * executed command differs from the authored one (portable-path rewrite, or a refusal
- * that never ran), the receipt says so but does not commit the authored form (it may hold host paths).
- */
-/**
  * receipts are committed, so host paths become the same placeholders rung shells are given:
  * the repo root -> $REPO_ROOT, the git root -> $GIT_ROOT, the engine install -> $HONE_ROOT.
  * Longest path first (the repo root usually sits inside the git root); realpath forms included.
@@ -1036,6 +1032,24 @@ export function portableReceiptText(text, { repoRoot, gitRoot = repoRoot }) {
   return pairs.reduce((t, [p, ph]) => t.replace(new RegExp(`${escRe(p)}(?![A-Za-z0-9._-])`, 'g'), () => ph), String(text));
 }
 
+/**
+ * the command a committed artifact (receipt, ledger line, claim evidence) may record for a rung:
+ * the portable command that ran, never the authored form (it may hold host paths); a refused
+ * rung never ran, so none.
+ */
+export function receiptCommand({ rung, executedCommand = undefined, repoRoot, gitRoot = repoRoot }) {
+  if (executedCommand === null) return '(not recorded: rung was not executed)';
+  const ran = executedCommand !== undefined && executedCommand !== rung.command;
+  return portableReceiptText(ran ? executedCommand : rung.command, { repoRoot, gitRoot });
+}
+
+/**
+ * write one evidence-rung receipt file + return the bookkeeping strings the caller
+ * accumulates ({digest, line, slice, meta}). File + digest + line formats are the
+ * ledger-visible receipt contract — identical for every execution substrate. When the
+ * executed command differs from the authored one (portable-path rewrite, or a refusal
+ * that never ran), the receipt says so but does not commit the authored form (it may hold host paths).
+ */
 export function writeRungReceipt({ repoRoot, gitRoot = repoRoot, receiptsDirRel, id, via = 'work', phase, index, rung, res, verdict, stripCtx, executedCommand = undefined }) {
   const rel = join(receiptsDirRel, `${phase}-${index + 1}-${slug(rung.rung)}.txt`);
   const abs = join(repoRoot, rel);
@@ -1044,14 +1058,11 @@ export function writeRungReceipt({ repoRoot, gitRoot = repoRoot, receiptsDirRel,
   const pp = (t) => portableReceiptText(t, { repoRoot, gitRoot });
   // The authored command is NOT committed: for an old packet it can carry a foreign absolute
   // checkout path. A rewritten rung records the portable command that actually ran; a refused
-  // rung records no command (its refusal text is scrubbed of foreign paths too).
+  // rung records no command (its refusal text is already scrubbed by the executor).
   const refused = executedCommand === null;
-  // Scrub every absolute token, not the lint's list: the lint exempts system prefixes such as
-  // /tmp/, and a foreign checkout can live under one of them.
-  const scrub = (t) => (refused ? t.replace(ABS_PATH_RE, '<foreign-path>') : t);
-  const rungCommand = refused ? '(not recorded: rung was not executed)' : pp(rewritten ? executedCommand : rung.command);
-  const output = scrub(pp(res.output));
-  const reason = scrub(pp(verdict.reason ?? ''));
+  const rungCommand = receiptCommand({ rung, executedCommand, repoRoot, gitRoot });
+  const output = pp(res.output);
+  const reason = pp(verdict.reason ?? '');
   const execLine = !rewritten ? '' : refused
     ? `# executed-command: (NOT EXECUTED — portable-path refusal)\n`
     : `# portable-path rewrite: the authored command is not recorded (it may hold host paths); the command above is what ran\n`;
@@ -1444,7 +1455,7 @@ async function executeWorkAttempt(opts, deps, signal) {
           blockedOn: `red baseline: rung '${rung.rung}' failed BEFORE any change (${verdict.reason}) — never work on a red baseline`,
           lesson: `baseline rung '${rung.rung}' is red at repo_sha ${packet.repo_sha.slice(0, 12)}; the oracle must be green before this packet is workable`,
           claims: [
-            { type: 'verified_fact', statement: `baseline evidence rung '${rung.rung}' fails before any change: ${verdict.reason}`, evidence: [{ command: rung.command, output_digest: digest }] },
+            { type: 'verified_fact', statement: `baseline evidence rung '${rung.rung}' fails before any change: ${verdict.reason}`, evidence: [{ command: receiptCommand({ rung, executedCommand, repoRoot, gitRoot: g.gitRoot }), output_digest: digest }] },
             { type: 'remaining_work', statement: `fix the red baseline (rung '${rung.rung}'), reset packet status to pending, and re-run hone work ${id}` },
           ],
           headline: `red baseline at rung '${rung.rung}': ${verdict.reason}`,

@@ -19,7 +19,7 @@
 //
 // Run: node lib/test-lane.mjs   (or: hone lane --self-test). Exit 0 iff all green.
 
-import { existsSync, mkdtempSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, realpathSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -969,6 +969,18 @@ export async function laneSelfTest({ verbose = false } = {}) {
     const refusedReceipt = read(root, `quality/receipts/${ID}/baseline-1-direct-test.txt`) ?? '';
     check('receipt marks NOT EXECUTED and carries no foreign checkout path', refusedReceipt.includes('# executed-command: (NOT EXECUTED — portable-path refusal)') && !refusedReceipt.includes(foreignRepo), refusedReceipt.slice(0, 400));
     check('current tree clean; foreign repo untouched', treeClean(root) && read(foreignRepo, 'src/util.js') === ST_ORIG);
+    // every committed consumer of the refusal reason: blocked_on, headline, claims, packet
+    const hostPaths = [foreignRepo, realpathSync(foreignRepo), root, realpathSync(root)];
+    const leaking = (label, text) => hostPaths.filter((h) => text.includes(h)).map((h) => `${label}: ${h}`);
+    const claimsText = (read(root, 'quality/claims.jsonl') ?? '');
+    const found = [
+      ...leaking('blocked_on', p.outcome.blocked_on ?? ''),
+      ...leaking('headline', String(r.json.summary).split('\n').filter((l) => !/^\s+(packet|claims|cost):/.test(l)).join('\n')),
+      ...leaking('claims.jsonl', claimsText),
+      ...leaking('packet outcome', JSON.stringify(p.outcome)),
+    ];
+    check('refusal reason leaks no foreign checkout or git-root path (blocked_on, headline, claims, packet)', !found.length, found.join(' | '));
+    check('claims.jsonl records the refusal', /portable-path refusal/.test(claimsText), claimsText.slice(0, 300));
   });
 
   await scenario('e2e: engine collector path → the RUNNING engine; REPO_ROOT/GIT_ROOT/HONE_ROOT exported to rung shells', async (check) => {

@@ -44,6 +44,7 @@ import {
   parseMakerVerdict, tailClip, headClip, buildJudgeEvidence, buildCurrentJudgeEvidence, currentJudgeEvidenceEntries, buildWorkingDiff,
   writeRungReceipt, persistMakerBriefDigest, writeTerminal, landCommit, buildLandClaims,
   acquireWorkLock, portableRungCommand, makeRungExecutor, resolveRungTimeout,
+  receiptCommand,
 } from './work.mjs';
 import {
   DETERMINISTIC_PROOF_PROVIDER,
@@ -336,7 +337,7 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
           blockedOn: `red baseline: rung '${rung.rung}' failed BEFORE any change (${verdict.reason}) — never work on a red baseline`,
           lesson: `baseline rung '${rung.rung}' is red at repo_sha ${packet.repo_sha.slice(0, 12)}; the oracle must be green before this packet is workable`,
           claims: [
-            { type: 'verified_fact', statement: `baseline evidence rung '${rung.rung}' fails before any change: ${verdict.reason}`, evidence: [{ command: rung.command, output_digest: r.digest }] },
+            { type: 'verified_fact', statement: `baseline evidence rung '${rung.rung}' fails before any change: ${verdict.reason}`, evidence: [{ command: receiptCommand({ rung, executedCommand, repoRoot, gitRoot: g.gitRoot }), output_digest: r.digest }] },
             { type: 'remaining_work', statement: `fix the red baseline (rung '${rung.rung}'), reset packet status to pending, and re-run the lane on ${id}` },
           ],
           headline: `red baseline at rung '${rung.rung}': ${verdict.reason}`,
