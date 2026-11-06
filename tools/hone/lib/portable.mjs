@@ -10,9 +10,14 @@ import { dirname, join, resolve } from 'node:path';
 import { escRe } from './util.mjs';
 import { HONE_ROOT } from './profile.mjs';
 
-// absolute path tokens with >= 2 segments (single-segment tokens like `cd /x` fixtures or
-// sed deletions are ignored); the lookbehind keeps URL slashes (postgres://…) unmatched
-export const ABS_PATH_RE = /(?<=^|[\s"'=(:])\/(?:[A-Za-z0-9._-]+\/)+[A-Za-z0-9._-]+/g;
+// Host absolute path tokens in prose: POSIX paths with >= 2 segments (single-segment tokens like
+// `cd /x` are ignored), file:// URLs, and Windows drive paths. The left boundary is "not the
+// continuation of a path or placeholder": a path glued to a word char, `.`, `-`, `/`, `$`, `~`,
+// `)`, `}` or `]` is not matched, so $REPO_ROOT/x, ./a/b, https://h/x/y and $(pwd)/a/b stay
+// untouched; backticks, `*`, `<`, `>`, `[`, `,`, quotes, `=`, `(`, `:` and whitespace all open a path.
+export const ABS_PATH_RE = new RegExp(
+  String.raw`(?:(?<=file:\/\/)|(?<![A-Za-z0-9._\-/$~)}\]]))\/(?:[A-Za-z0-9._-]+\/)+[A-Za-z0-9._-]+`
+  + String.raw`|(?<![A-Za-z0-9])[A-Za-z]:[\\/]+(?:[A-Za-z0-9._-]+[\\/]+)*[A-Za-z0-9._-]+`, 'g');
 
 const replaceRoots = (text, pairs, boundary = '(?![A-Za-z0-9._-])') => {
   const real = (p) => { try { return realpathSync(p); } catch { return p; } };

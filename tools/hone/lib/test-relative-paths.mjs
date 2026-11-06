@@ -30,7 +30,7 @@ import { runPlan } from './plan.mjs';
 import { executeCalibrate, portableCalibrationText } from './calibrate.mjs';
 import { loadVerifiedInventorySnapshot } from './inventory-snapshot.mjs';
 import { loadPacket } from './packet-io.mjs';
-import { buildLandClaims, makeRungExecutor, portableErrorText, persistMakerBriefDigest, portableReceiptText, portableRungCommand, writeRungReceipt } from './work.mjs';
+import { ABS_PATH_RE, buildLandClaims, makeRungExecutor, portableErrorText, persistMakerBriefDigest, portableReceiptText, portableRungCommand, writeRungReceipt } from './work.mjs';
 import { absPathTokens } from './validate-packet.mjs';
 import { djb2 } from './util.mjs';
 
@@ -276,6 +276,23 @@ for (const nested of [false, true]) {
   ok('order: HONE_ROOT beneath the git root maps to $HONE_ROOT, not $GIT_ROOT/...', nestedEngine === '$HONE_ROOT/lib/x.mjs', nestedEngine);
 }
 
+// ---------------------------------------------------------------- 8a. left boundary of the host-path matcher
+const MARKUP_CANARY_PATHS = ['/opt/canary/b/one.js', '/opt/canary/b/two.js', '/opt/canary/b/three.js', '/opt/canary/b/four.js', '/opt/canary/b/five.js', '/opt/canary/b/six.js', 'C:\\Users\\canary\\seven.js'];
+const MARKUP_CANARY_FORMS = [
+  '`/opt/canary/b/one.js`', '**/opt/canary/b/two.js**', '<code>/opt/canary/b/three.js</code>',
+  '[/opt/canary/b/four.js]', 'x,/opt/canary/b/five.js', 'file:///opt/canary/b/six.js', 'C:\\Users\\canary\\seven.js',
+];
+{
+  const ctx = { repoRoot: '/zz-fake-git/sub', gitRoot: '/zz-fake-git' };
+  for (const form of MARKUP_CANARY_FORMS) {
+    const out = portableErrorText(`saw ${form} here`, ctx);
+    ok(`boundary: ${form} is scrubbed`, !/opt\/canary|Users/.test(out) && !(out.match(ABS_PATH_RE) ?? []).length, out);
+  }
+  const stable = ['$REPO_ROOT/src/x.js', 'node $HONE_ROOT/collectors/a.mjs --repo .', '<foreign-path> and src/a/b.js', 'cd ./a/b/c && ../d/e/f', 'https://example.com/x/y', '${X}/a/b and $(pwd)/c/d', '$TMPDIR'];
+  for (const t of stable) ok(`boundary: placeholder/relative text unchanged: ${t}`, portableErrorText(t, ctx) === t, portableErrorText(t, ctx));
+  ok('boundary: scrub is idempotent', portableErrorText(portableErrorText(MARKUP_CANARY_FORMS.join(' '), ctx), ctx) === portableErrorText(MARKUP_CANARY_FORMS.join(' '), ctx));
+}
+
 // ---------------------------------------------------------------- 8b. host-path census (the class guard)
 {
   // CANARY absolute paths are fed into every free-text input reachable without an LLM, then
@@ -289,7 +306,7 @@ for (const nested of [false, true]) {
   const { executeReviewBatch } = await import('./review-batch.mjs');
   const { executeAgenda } = await import('./agenda.mjs');
   const { writePacket } = await import('./packet-io.mjs');
-  const { acquireWorkLock, ABS_PATH_RE, DEFERRED_JUDGE_PROVIDER } = await import('./work.mjs');
+  const { acquireWorkLock, DEFERRED_JUDGE_PROVIDER } = await import('./work.mjs');
   const { parseYaml, stringifyYaml } = await import('./yaml.mjs');
   const ID = laneT.ID;
   const sh = (cwd, cmd) => execSync(cmd, { cwd, encoding: 'utf8' });
@@ -298,8 +315,10 @@ for (const nested of [false, true]) {
   const canaries = (root) => [
     '/home/canary/x', root, realpathSync(root), join(tmpdir(), 'hone-canary-scratch', 'work', 'out.txt'),
     '/tmp/foreign-checkout-canary/src/a.js', join(homedir(), 'canary-home', 'file.txt'),
+    ...MARKUP_CANARY_PATHS,
   ];
-  const canaryText = (root) => `see ${canaries(root).join(' and ')} for details`;
+  // the same kinds of path as they appear in judge/maker markdown: the left boundary must not matter
+  const canaryText = (root) => `see ${canaries(root).slice(0, 6).join(' and ')} for details; ${MARKUP_CANARY_FORMS.join(' ')}`;
 
   /** every file under <root>/quality except .lane/.locks; returns problems. */
   function census(label, root) {

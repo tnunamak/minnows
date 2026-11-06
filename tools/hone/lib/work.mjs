@@ -884,6 +884,9 @@ export function acquireWorkLock(repoRoot, id, log) {
 // REPO_ROOT / GIT_ROOT / HONE_ROOT so future packets can be authored portably.
 
 // pseudo-filesystems that can never be "another repo" (skip the .git-walk stat churn)
+// rung COMMANDS keep the narrow shell-aware boundary (so `$(pwd)/a/b` etc. are not treated as foreign
+// checkouts); prose scrubbing uses the wider ABS_PATH_RE from portable.mjs
+const RUNG_ABS_PATH_RE = /(?<=^|[\s"'=(:])\/(?:[A-Za-z0-9._-]+\/)+[A-Za-z0-9._-]+/g;
 const NEVER_REPO_PREFIXES = ['/dev/', '/proc/', '/sys/'];
 const SCRATCH_FILE_RE = /^\/tmp\/[A-Za-z0-9._-]+\.bak$/;
 // absolute path tokens with >= 2 segments (single-segment tokens like `cd /x` fixtures or
@@ -953,7 +956,7 @@ export function portableRungCommand(command, { gitRoot, repoRoot, prefix }) {
   // vacuously green a gate, and a token that exists nowhere (incl. shell/JS literals the
   // scanner over-matches, e.g. `/RE/.test(...)`) at worst goes honestly red.
   let refused = null;
-  cmd = cmd.replace(ABS_PATH_RE, (tok) => {
+  cmd = cmd.replace(RUNG_ABS_PATH_RE, (tok) => {
     if (inside(tok, gitRoot) || inside(tok, HONE_ROOT)) return tok;
     if (NEVER_REPO_PREFIXES.some((a) => tok.startsWith(a))) return tok;
     if (SCRATCH_FILE_RE.test(tok)) return tok;
