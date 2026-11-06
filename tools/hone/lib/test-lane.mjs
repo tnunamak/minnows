@@ -965,6 +965,64 @@ export async function laneSelfTest({ verbose = false } = {}) {
     check('work land claims carry no authored foreign path or git root', workClaims.includes('behavior_preserved') && !workLeaks.length, workLeaks.join(' | ') + ' ' + workClaims.slice(0, 300));
   });
 
+  // failure-path claims (reverted runs) and maker-brief digests must not record the authored foreign command either
+  const hostLeaks = (root, authoring) => {
+    const files = [read(root, 'quality/claims.jsonl') ?? '', ...['maker-brief-1.digest.txt', 'maker-brief-2.digest.txt'].map((f) => read(root, `quality/receipts/${ID}/${f}`) ?? '')];
+    return [authoring, realpathSync(authoring), root, realpathSync(root)].filter((h) => files.some((t) => t.includes(h)));
+  };
+  const workDeps = (root, edits, { throwOn = null } = {}) => {
+    let n = 0;
+    return {
+      maker: async (name, prompt, opts) => { n += 1; if (n === throwOn) throw new Error('maker blew up'); editUtil(root, edits[Math.min(n, edits.length) - 1]); return { text: 'mock maker done', meta: { provider: name, model: opts.model ?? 'mock', durationMs: 1, costUsd: 0.01, tokens: { input: 1, output: 1 } } }; },
+      judge: async (name) => ({ judge: async () => ({ verdict: 'REVISE', reasoning: 'try again', confidence: 0.5, raw: { provider: name, attempts: [] } }) }),
+      log: () => {},
+    };
+  };
+
+  await scenario('lane: reverted run with a foreign authored rung command → claims carry no foreign path', async (check) => {
+    const authoring = makeAuthoringTree();
+    const root = fixtureRepo({ packetOverrides: { evidence_required: [{ rung: 'direct-test', command: `cd ${authoring} && node test.js`, expect: 'exit 0' }] } });
+    await emit(root);
+    editUtil(root, ST_BAD);
+    await gate(root); await gate(root);
+    const r3 = await gate(root);
+    check('reverted at the ceiling', r3.json.terminal === 'reverted', JSON.stringify(r3.json).slice(0, 200));
+    const found = hostLeaks(root, authoring);
+    check('claims.jsonl and brief digests carry no foreign path or git root', !found.length && (read(root, 'quality/claims.jsonl') ?? '').includes('still failing'), found.join(' | '));
+  });
+
+  for (const [label, edits, opts, judgeRev] of [
+    ['revision still red', [ST_BAD, ST_BAD], {}, false],
+    ['revision maker errors', [ST_BAD, ST_BAD], { throwOn: 2 }, false],
+    ['judge-requested revision breaks the oracle', [ST_GOOD, ST_BAD], {}, true],
+  ]) {
+    await scenario(`hone work: reverted (${label}) with a foreign authored rung command → claims carry no foreign path`, async (check) => {
+      const { executeWork } = await import('./work.mjs');
+      const authoring = makeAuthoringTree();
+      const root = fixtureRepo({ packetOverrides: { evidence_required: [{ rung: 'direct-test', command: `cd ${authoring} && node test.js`, expect: 'exit 0' }] } });
+      const deps = workDeps(root, edits, opts);
+      if (!judgeRev) deps.judge = async () => { throw new Error('judge must not run'); };
+      const r = await executeWork({ id: ID, repoRoot: root, makerName: 'claude', judgeName: 'codex', dryRun: false }, deps);
+      check('ended reverted', packetOnDisk(root).status === 'reverted', `${r.outcome} ${packetOnDisk(root).status}`);
+      const found = hostLeaks(root, authoring);
+      check('claims.jsonl and brief digests carry no foreign path or git root', !found.length && (read(root, 'quality/claims.jsonl') ?? '').length > 0, found.join(' | '));
+    });
+  }
+
+  await scenario('batch bisect: offender claims carry no foreign authored path', async (check) => {
+    const authoring = makeAuthoringTree();
+    writeFileSync(join(authoring, 'test2.js'), ST_TEST2);
+    const root = fixtureRepo({ secondPacket: { evidence_required: [{ rung: 'direct-test-2', command: `cd ${authoring} && node test2.js`, expect: 'exit 0' }] } });
+    await emit(root); await emit2(root);
+    editUtil(root, ST_GOOD);
+    writeFileSync(join(root, 'src/util2.js'), ST_BAD2);
+    await bgate(root, [ID, ID2]);
+    const text = read(root, 'quality/claims.jsonl') ?? '';
+    const found = [authoring, realpathSync(authoring), root, realpathSync(root)].filter((h) => text.includes(h));
+    check('offender reverted and claims recorded', packetOnDisk(root, ID2).status === 'reverted' && text.includes('with ONLY'), packetOnDisk(root, ID2).status);
+    check('claims.jsonl carries no foreign path or git root', !found.length, found.join(' | '));
+  });
+
   await scenario('e2e: rung pointing into ANOTHER git checkout → refused, never executed, fail-closed', async (check) => {
     const foreignRepo = fixtureRepo();
     const root = fixtureRepo({ packetOverrides: { evidence_required: [{ rung: 'direct-test', command: `node ${foreignRepo}/test.js`, expect: 'exit 0' }] } });

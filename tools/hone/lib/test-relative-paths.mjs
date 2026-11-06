@@ -30,7 +30,7 @@ import { runPlan } from './plan.mjs';
 import { executeCalibrate, portableCalibrationText } from './calibrate.mjs';
 import { loadVerifiedInventorySnapshot } from './inventory-snapshot.mjs';
 import { loadPacket } from './packet-io.mjs';
-import { buildLandClaims, makeRungExecutor, portableReceiptText, portableRungCommand, writeRungReceipt } from './work.mjs';
+import { buildLandClaims, makeRungExecutor, portableErrorText, persistMakerBriefDigest, portableReceiptText, portableRungCommand, writeRungReceipt } from './work.mjs';
 import { absPathTokens } from './validate-packet.mjs';
 import { djb2 } from './util.mjs';
 
@@ -251,6 +251,17 @@ for (const nested of [false, true]) {
   const scratch = join(tmpdir(), 'hone-calibrate-abc123-zzz');
   const note = portableCalibrationText(`fatal: '${scratch}' already exists; repo ${co.gitRoot}/x and ${realpathSync(co.repoRoot)}`, co);
   ok('calibrate: stderr note maps scratch -> <scratch> and roots -> placeholders', note.includes("'<scratch>'") && note.includes('$GIT_ROOT/x') && note.includes('$REPO_ROOT') && !note.includes(scratch) && !note.includes(co.gitRoot) && !note.includes(tmpdir() + '/'), note);
+}
+
+// ---------------------------------------------------------------- 7c. internal-error text and maker-brief digest
+{
+  const co = makeCheckout('errtext', true);
+  const msg = `ENOENT: no such file '${co.repoRoot}/src/x.js' (cwd ${realpathSync(co.gitRoot)}) via /tmp/hone-old-authoring/a/b`;
+  const out = portableErrorText(msg, co);
+  ok('error text: roots become placeholders, other absolute tokens <foreign-path>', out.includes('$REPO_ROOT/src/x.js') && out.includes('$GIT_ROOT') && out.includes('<foreign-path>') && !out.includes(co.gitRoot) && !out.includes('hone-old-authoring'), out);
+  const rel = persistMakerBriefDigest({ repoRoot: co.repoRoot, gitRoot: co.gitRoot, receiptsDirRel: 'quality/receipts/e', id: 'e', attempt: 1, briefText: `rung: cd /tmp/hone-old-authoring/a && node t.js\nin ${co.gitRoot}` });
+  const dig = readFileSync(join(co.repoRoot, rel), 'utf8');
+  ok('maker-brief digest: no authored foreign path or git root', !dig.includes('hone-old-authoring') && !dig.includes(co.gitRoot) && dig.includes('sha256(full brief)='), dig);
 }
 
 // ---------------------------------------------------------------- 8. substitution order

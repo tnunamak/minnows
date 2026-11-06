@@ -44,7 +44,7 @@ import {
   parseMakerVerdict, tailClip, headClip, buildJudgeEvidence, buildCurrentJudgeEvidence, currentJudgeEvidenceEntries, buildWorkingDiff,
   writeRungReceipt, persistMakerBriefDigest, writeTerminal, landCommit, buildLandClaims,
   acquireWorkLock, portableRungCommand, makeRungExecutor, resolveRungTimeout,
-  receiptCommand,
+  claimCommand, portableErrorText, receiptCommand,
 } from './work.mjs';
 import {
   DETERMINISTIC_PROOF_PROVIDER,
@@ -346,7 +346,7 @@ export async function executeLaneEmit({ id, repoRoot, makerProvider, judgeProvid
     }
 
     state.brief_count = 1;
-    persistMakerBriefDigest({ repoRoot, receiptsDirRel, id, via: 'lane', attempt: 1, briefText: brief });
+    persistMakerBriefDigest({ repoRoot, gitRoot: g.gitRoot, receiptsDirRel, id, via: 'lane', attempt: 1, briefText: brief });
     state.maker_ran = true; // from here on a maker is presumed dispatched by the orchestrator
     saveState(repoRoot, id, state);
     // full brief on disk too: in-harness makers can Read it instead of a giant prompt relay
@@ -532,7 +532,7 @@ export async function executeLaneGate({ id, repoRoot, makerSummary = null, revis
         status: 'reverted',
         lesson: `transform failed its own evidence ladder at '${red.rung.rung}' — prior for ${packet.batch_key} down`,
         claims: [
-          { type: 'verified_fact', statement: `evidence rung '${red.rung.rung}' still failing after ${attempt - 1} revision cycle(s) (${red.verdict.reason}); all changes reverted, nothing landed`, evidence: [{ command: red.rung.command, output_digest: red.digest }] },
+          { type: 'verified_fact', statement: `evidence rung '${red.rung.rung}' still failing after ${attempt - 1} revision cycle(s) (${red.verdict.reason}); all changes reverted, nothing landed`, evidence: [{ command: claimCommand(red.rung, { gitRoot: g.gitRoot, repoRoot, prefix: g.prefix }), output_digest: red.digest }] },
           { type: 'remaining_work', statement: `packet ${id} reverted with a red oracle at '${red.rung.rung}'; needs a different approach or a better instruction` },
         ],
         headline: `oracle red at attempt ceiling (${attempt}/${MAX_GATE_ATTEMPTS}): '${red.rung.rung}' ${red.verdict.reason}`,
@@ -543,7 +543,7 @@ export async function executeLaneGate({ id, repoRoot, makerSummary = null, revis
     const brief = makerBrief(loaded.rawText, packet);
     const revBrief = revisionBrief(brief, failureNote, diff);
     state.brief_count += 1;
-    persistMakerBriefDigest({ repoRoot, receiptsDirRel, id, via: 'lane', attempt: state.brief_count, briefText: revBrief });
+    persistMakerBriefDigest({ repoRoot, gitRoot: g.gitRoot, receiptsDirRel, id, via: 'lane', attempt: state.brief_count, briefText: revBrief });
     saveState(repoRoot, id, state);
     // full revision brief on disk: the orchestrator points the maker at the file instead
     // of relaying a 60KB-diff prompt through an agent pipe
@@ -691,13 +691,13 @@ export async function executeLaneLand({ id, repoRoot, verdictRaw = null, usageRa
       try { revertAll(g); } catch (e2) { e.message += ` [AND REVERT FAILED: ${e2.message} — manual cleanup required]`; }
       return laneTerminal(base, {
         status: 'blocked',
-        blockedOn: `internal-error: ${e.message.slice(0, 300)}`,
+        blockedOn: `internal-error: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 300)}`,
         lesson: 'engine fault at certified land time, not a packet fact — fix the engine, reset status to pending',
         claims: [
-          { type: 'uncertainty', statement: `hone lane certified land aborted on internal error before/at commit: ${e.message.slice(0, 200)}` },
+          { type: 'uncertainty', statement: `hone lane certified land aborted on internal error before/at commit: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 200)}` },
           { type: 'remaining_work', statement: `packet ${id} blocked on engine error; changes (if any) reverted; reset to pending after fixing` },
         ],
-        headline: `internal error at certified land (fail-closed): ${e.message.slice(0, 120)}`,
+        headline: `internal error at certified land (fail-closed): ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 120)}`,
       });
     }
   }
@@ -764,13 +764,13 @@ export async function executeLaneLand({ id, repoRoot, verdictRaw = null, usageRa
     try { revertAll(g); } catch (e2) { e.message += ` [AND REVERT FAILED: ${e2.message} — manual cleanup required]`; }
     return laneTerminal(base, {
       status: 'blocked',
-      blockedOn: `internal-error: ${e.message.slice(0, 300)}`,
+      blockedOn: `internal-error: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 300)}`,
       lesson: 'engine fault at land time, not a packet fact — fix the engine, reset status to pending',
       claims: [
-        { type: 'uncertainty', statement: `hone lane land aborted on internal error before/at commit: ${e.message.slice(0, 200)}` },
+        { type: 'uncertainty', statement: `hone lane land aborted on internal error before/at commit: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 200)}` },
         { type: 'remaining_work', statement: `packet ${id} blocked on engine error; changes (if any) reverted; reset to pending after fixing` },
       ],
-      headline: `internal error at land (fail-closed): ${e.message.slice(0, 120)}`,
+      headline: `internal error at land (fail-closed): ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 120)}`,
     });
   }
 }
@@ -1052,7 +1052,7 @@ export async function executeLaneBatchGate({ ids, repoRoot, log = () => {} }) {
         status: 'reverted',
         lesson: `batch bisect isolated this change as an offender at '${red.plan.rung.rung}' — prior for ${m.packet.batch_key} down`,
         claims: [
-          { type: 'verified_fact', statement: `batch ${batchId} bisect: with ONLY ${m.id}'s change applied, rung '${red.plan.rung.rung}' fails (${red.verdict.reason}); change reverted, nothing landed`, evidence: [{ command: red.plan.rung.command, output_digest: red.receipt.digest }] },
+          { type: 'verified_fact', statement: `batch ${batchId} bisect: with ONLY ${m.id}'s change applied, rung '${red.plan.rung.rung}' fails (${red.verdict.reason}); change reverted, nothing landed`, evidence: [{ command: claimCommand(red.plan.rung, { gitRoot: g.gitRoot, repoRoot, prefix: g.prefix }), output_digest: red.receipt.digest }] },
           { type: 'remaining_work', statement: `packet ${m.id} reverted as a batch-bisect offender; retry per-order with a better instruction` },
         ],
         headline: `bisect offender at '${red.plan.rung.rung}' — reverted`,
@@ -1077,7 +1077,7 @@ export async function executeLaneBatchGate({ ids, repoRoot, log = () => {} }) {
           status: 'reverted',
           lesson: `batch ${batchId} interaction: remainder green in isolation but red combined at '${final.red.plan.rung.rung}' — batch these orders separately`,
           claims: [
-            { type: 'verified_fact', statement: `batch ${batchId} remainder failed combined at rung '${final.red.plan.rung.rung}' (${final.red.verdict.reason}) after individual probes were green; all remaining changes reverted`, evidence: [{ command: final.red.plan.rung.command, output_digest: final.red.receipt.digest }] },
+            { type: 'verified_fact', statement: `batch ${batchId} remainder failed combined at rung '${final.red.plan.rung.rung}' (${final.red.verdict.reason}) after individual probes were green; all remaining changes reverted`, evidence: [{ command: claimCommand(final.red.plan.rung, { gitRoot: g.gitRoot, repoRoot, prefix: g.prefix }), output_digest: final.red.receipt.digest }] },
             { type: 'remaining_work', statement: `packet ${m.id} reverted on batch interaction; retry per-order` },
           ],
           headline: `batch interaction red at '${final.red.plan.rung.rung}' — remainder reverted`,
@@ -1237,15 +1237,15 @@ export async function executeLaneBatchLand({ ids, repoRoot, verdictRaw = null, u
       for (const rest of members.slice(i)) {
         termFor(rest, false, judgeMeta, {
           status: 'blocked',
-          blockedOn: `internal-error during batch land: ${e.message.slice(0, 300)}`,
+          blockedOn: `internal-error during batch land: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 300)}`,
           lesson: 'engine fault mid-batch-land; earlier members landed, this one reverted — fix, reset to pending',
           claims: [
-            { type: 'uncertainty', statement: `batch ${batchId} land aborted at ${rest.id}: ${e.message.slice(0, 200)}` },
+            { type: 'uncertainty', statement: `batch ${batchId} land aborted at ${rest.id}: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 200)}` },
             { type: 'remaining_work', statement: `packet ${rest.id} blocked mid-batch-land; changes reverted; reset to pending after fixing` },
           ],
-          headline: `internal error mid-batch-land (fail-closed): ${e.message.slice(0, 120)}`,
+          headline: `internal error mid-batch-land (fail-closed): ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 120)}`,
         });
-        landedResults.push({ id: rest.id, terminal: 'blocked', reason: e.message.slice(0, 160) });
+        landedResults.push({ id: rest.id, terminal: 'blocked', reason: portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 160) });
       }
       rmSync(batchDir(repoRoot, batchId), { recursive: true, force: true });
       return { exitCode: 1, json: { ok: false, terminal: 'blocked', batch_id: batchId, members: uniq, results: landedResults, summary: `hone lane land --batch — ${batchId}: internal error mid-sequence; ${i} landed, rest blocked` } };

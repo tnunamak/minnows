@@ -989,7 +989,7 @@ export function makeRungExecutor({ gitRoot, repoRoot, prefix, log = () => {}, pa
     if (port.refused) {
       // The reason reaches committed artifacts (packet blocked_on, headline, claims, receipts):
       // scrub it here, once, so no consumer sees a host path.
-      const refusal = portableReceiptText(port.refused, ctx).replace(ABS_PATH_RE, '<foreign-path>');
+      const refusal = portableErrorText(port.refused, ctx);
       log(`  [portable-path] ${rung.rung}: REFUSED — ${refusal}`);
       return {
         res: { code: null, timedOut: false, stdout: '', output: `[engine] rung NOT EXECUTED — ${refusal}`, durationMs: 0, timeoutMs: 0 },
@@ -1037,6 +1037,14 @@ export function portableReceiptText(text, { repoRoot, gitRoot = repoRoot }) {
  * the portable command that ran, never the authored form (it may hold host paths); a refused
  * rung never ran, so none.
  */
+/**
+ * free text bound for a committed artifact (blocked_on, headline, claim statement): roots become
+ * placeholders, any other absolute path token becomes <foreign-path>.
+ */
+export function portableErrorText(text, ctx) {
+  return portableReceiptText(text, ctx).replace(ABS_PATH_RE, '<foreign-path>');
+}
+
 export function receiptCommand({ rung, executedCommand = undefined, repoRoot, gitRoot = repoRoot }) {
   if (executedCommand === null) return '(not recorded: rung was not executed)';
   const ran = executedCommand !== undefined && executedCommand !== rung.command;
@@ -1086,12 +1094,12 @@ export function writeRungReceipt({ repoRoot, gitRoot = repoRoot, receiptsDirRel,
  * auditability without huge files; written BEFORE the maker runs so even a crashed
  * attempt leaves its brief on disk (engine-iteration-4 fix 2).
  */
-export function persistMakerBriefDigest({ repoRoot, receiptsDirRel, id, via = 'work', attempt, briefText }) {
+export function persistMakerBriefDigest({ repoRoot, gitRoot = repoRoot, receiptsDirRel, id, via = 'work', attempt, briefText }) {
   const rel = join(receiptsDirRel, `maker-brief-${attempt}.digest.txt`);
   const abs = join(repoRoot, rel);
   mkdirSync(dirname(abs), { recursive: true });
   const sha = createHash('sha256').update(briefText, 'utf8').digest('hex');
-  writeFileSync(abs, `# hone ${via} ${id} — maker brief digest (attempt ${attempt})\n# sha256(full brief)=${sha} bytes=${Buffer.byteLength(briefText, 'utf8')}\n# first 4096 chars follow\n\n${briefText.slice(0, 4096)}`);
+  writeFileSync(abs, `# hone ${via} ${id} — maker brief digest (attempt ${attempt})\n# sha256(full brief)=${sha} bytes=${Buffer.byteLength(briefText, 'utf8')}\n# first 4096 chars follow (host paths scrubbed; the sha covers the original)\n\n${portableErrorText(briefText.slice(0, 4096), { repoRoot, gitRoot })}`);
   return rel;
 }
 
@@ -1216,7 +1224,7 @@ export function landCommit(g, { packet, id, touchTop, receiptsDirRel, pipelineLa
  * executor applies), never the authored form that may hold a foreign checkout path.
  * pathCtx = {gitRoot, repoRoot, prefix}.
  */
-function claimCommand(rung, pathCtx) {
+export function claimCommand(rung, pathCtx) {
   const port = portableRungCommand(rung.command, pathCtx);
   return receiptCommand({ rung, executedCommand: port.refused ? null : port.command, repoRoot: pathCtx.repoRoot, gitRoot: pathCtx.gitRoot });
 }
@@ -1396,7 +1404,7 @@ async function executeWorkAttempt(opts, deps, signal) {
    * the maker runs so even a crashed/timed-out attempt leaves its brief on disk.
    */
   const persistBriefDigest = (briefText) => {
-    persistMakerBriefDigest({ repoRoot, receiptsDirRel, id, attempt: ++makerBriefCount, briefText });
+    persistMakerBriefDigest({ repoRoot, gitRoot: g.gitRoot, receiptsDirRel, id, attempt: ++makerBriefCount, briefText });
   };
 
   const tokensOf = () => {
@@ -1487,10 +1495,10 @@ async function executeWorkAttempt(opts, deps, signal) {
     } catch (e) {
       return terminalize({
         status: 'blocked',
-        blockedOn: `routing configuration invalid: ${e.message}`,
+        blockedOn: `routing configuration invalid: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot })}`,
         lesson: 'model routing is a safety gate; invalid registry/policy never falls back to a provider default',
         claims: [
-          { type: 'verified_fact', statement: `hone refused to invoke a maker because routing configuration was invalid: ${e.message}`, evidence: [{ command: 'loadRegistry() + loadRouting()', output_digest: String(e.message) }] },
+          { type: 'verified_fact', statement: `hone refused to invoke a maker because routing configuration was invalid: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot })}`, evidence: [{ command: 'loadRegistry() + loadRouting()', output_digest: String(e.message) }] },
           { type: 'remaining_work', statement: `repair Hone model routing, reset packet ${id} to pending, and retry` },
         ],
         headline: 'invalid model routing — blocked before maker invocation',
@@ -1523,13 +1531,13 @@ async function executeWorkAttempt(opts, deps, signal) {
       revertAll(g); // fail-closed: whatever half-state the maker left, remove it
       return terminalize({
         status: 'skipped',
-        skipReason: `maker-error: ${makerName} subprocess failed (${e.kind ?? 'error'}: ${e.message.slice(0, 200)})`,
+        skipReason: `maker-error: ${makerName} subprocess failed (${e.kind ?? 'error'}: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 200)})`,
         lesson: `maker subprocess failure is a skip, not a revert-of-nothing: ${e.kind ?? 'error'}`,
         claims: [
           { type: 'uncertainty', statement: `maker (${makerName}) subprocess failed before producing a reviewable diff: ${e.kind ?? 'error'}` },
           { type: 'remaining_work', statement: `re-run hone work ${id} after resolving the maker failure (status must be reset to pending by owner)` },
         ],
-        headline: `maker subprocess failed: ${e.message.slice(0, 120)}`,
+        headline: `maker subprocess failed: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 120)}`,
       });
     }
 
@@ -1621,7 +1629,7 @@ async function executeWorkAttempt(opts, deps, signal) {
         makerMetas.push(rev.meta);
       } catch (e) {
         return reverted({}, [
-          { type: 'verified_fact', statement: `post-change oracle rung '${oracle.rung.rung}' failed (${oracle.verdict.reason}) and the revision maker call errored; changes reverted`, evidence: [{ command: oracle.rung.command, output_digest: oracle.digest }] },
+          { type: 'verified_fact', statement: `post-change oracle rung '${oracle.rung.rung}' failed (${oracle.verdict.reason}) and the revision maker call errored; changes reverted`, evidence: [{ command: claimCommand(oracle.rung, pathCtx), output_digest: oracle.digest }] },
           { type: 'remaining_work', statement: `packet ${id} reverted; oracle failure unresolved: ${oracle.verdict.reason}` },
         ], `oracle red + maker revision error — reverted`, `revision maker call failed: ${e.kind ?? 'error'}`);
       }
@@ -1642,7 +1650,7 @@ async function executeWorkAttempt(opts, deps, signal) {
       oracle = await runOracle('post-r1');
       if (!oracle.green) {
         return reverted({}, [
-          { type: 'verified_fact', statement: `evidence rung '${oracle.rung.rung}' still failing after 1 maker revision (${oracle.verdict.reason}); all changes reverted, nothing landed`, evidence: [{ command: oracle.rung.command, output_digest: oracle.digest }] },
+          { type: 'verified_fact', statement: `evidence rung '${oracle.rung.rung}' still failing after 1 maker revision (${oracle.verdict.reason}); all changes reverted, nothing landed`, evidence: [{ command: claimCommand(oracle.rung, pathCtx), output_digest: oracle.digest }] },
           { type: 'remaining_work', statement: `packet ${id} reverted with a red oracle at '${oracle.rung.rung}'; needs a different approach or a better instruction` },
         ], `oracle red after revision: '${oracle.rung.rung}' ${oracle.verdict.reason}`, `transform failed its own evidence ladder at '${oracle.rung.rung}' — prior for ${packet.batch_key} down`);
       }
@@ -1748,7 +1756,7 @@ async function executeWorkAttempt(opts, deps, signal) {
       oracle = await runOracle('post-r2');
       if (!oracle.green) {
         return reverted({ judgeVerdict: verdictLine(verdict) }, [
-          { type: 'verified_fact', statement: `judge-requested revision broke evidence rung '${oracle.rung.rung}' (${oracle.verdict.reason}); all changes reverted`, evidence: [{ command: oracle.rung.command, output_digest: oracle.digest }] },
+          { type: 'verified_fact', statement: `judge-requested revision broke evidence rung '${oracle.rung.rung}' (${oracle.verdict.reason}); all changes reverted`, evidence: [{ command: claimCommand(oracle.rung, pathCtx), output_digest: oracle.digest }] },
           { type: 'remaining_work', statement: `packet ${id} reverted; judge concern (${headClip(verdict.reasoning, 240)}) still open` },
         ], `revision broke the oracle at '${oracle.rung.rung}' — reverted`, 'judge-driven revision regressed the oracle; REVISE cycles need the oracle re-gate (it held)');
       }
@@ -1788,13 +1796,13 @@ async function executeWorkAttempt(opts, deps, signal) {
     try { revertAll(g); } catch (e2) { e.message += ` [AND REVERT FAILED: ${e2.message} — manual cleanup required]`; }
     return terminalize({
       status: 'blocked',
-      blockedOn: `internal-error: ${e.message.slice(0, 300)}`,
+      blockedOn: `internal-error: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 300)}`,
       lesson: 'engine fault, not a packet fact — fix the engine, reset status to pending',
       claims: [
-        { type: 'uncertainty', statement: `hone work aborted on internal error before a terminal gate decision: ${e.message.slice(0, 200)}` },
+        { type: 'uncertainty', statement: `hone work aborted on internal error before a terminal gate decision: ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 200)}` },
         { type: 'remaining_work', statement: `packet ${id} blocked on engine error; changes (if any) reverted; reset to pending after fixing` },
       ],
-      headline: `internal error (fail-closed): ${e.message.slice(0, 120)}`,
+      headline: `internal error (fail-closed): ${portableErrorText(e.message, { repoRoot, gitRoot: g.gitRoot }).slice(0, 120)}`,
     });
   }
 }
