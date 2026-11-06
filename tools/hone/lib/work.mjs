@@ -52,12 +52,14 @@ import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { parseYaml, stringifyYaml } from './yaml.mjs';
 import { validatePacket, assertValidPacket } from './validate-packet.mjs';
-import { deepEqual, djb2, escRe, slug } from './util.mjs';
+import { deepEqual, djb2, ensureSelfIgnoredDir, slug } from './util.mjs';
 import { loadPacket, writePacket } from './packet-io.mjs';
 import { executeReset } from './reset.mjs';
 import { appendClaim, appendCostEntry, nextClaimSeq, nextJobAttempt, readJsonl, claimsPath, costPath } from './ledger.mjs';
 import { loadRegistry, loadRouting, resolveRoutingClass, selectAgent } from './routing.mjs';
 import { HONE_ROOT } from './profile.mjs';
+import { ABS_PATH_RE, hostScrubber, portableErrorText, portableReceiptText } from './portable.mjs';
+export { ABS_PATH_RE, portableErrorText, portableReceiptText };
 import { CLAUDE_NO_MCP_ARGS, codexNoMcpArgs, noMcpEnv, requireGpt56, runCli } from '../providers/provider.mjs';
 import {
   DETERMINISTIC_PROOF_PROVIDER,
@@ -841,7 +843,7 @@ export function acquireWorkLock(repoRoot, id, log) {
   if (!existsSync(join(repoRoot, 'quality', 'packets'))) return { ok: true, release: () => {} };
   const dir = join(repoRoot, 'quality', '.locks');
   const path = join(dir, `${id}.lock`);
-  mkdirSync(dir, { recursive: true });
+  ensureSelfIgnoredDir(dir);
   const take = () => writeFileSync(path, JSON.stringify({ pid: process.pid, started: new Date().toISOString() }) + '\n', { flag: 'wx' });
   const release = () => {
     try { if (JSON.parse(readFileSync(path, 'utf8')).pid === process.pid) rmSync(path, { force: true }); }
@@ -882,11 +884,13 @@ export function acquireWorkLock(repoRoot, id, log) {
 // REPO_ROOT / GIT_ROOT / HONE_ROOT so future packets can be authored portably.
 
 // pseudo-filesystems that can never be "another repo" (skip the .git-walk stat churn)
+// rung COMMANDS keep the narrow shell-aware boundary (so `$(pwd)/a/b` etc. are not treated as foreign
+// checkouts); prose scrubbing uses the wider ABS_PATH_RE from portable.mjs
+const RUNG_ABS_PATH_RE = /(?<=^|[\s"'=(:])\/(?:[A-Za-z0-9._-]+\/)+[A-Za-z0-9._-]+/g;
 const NEVER_REPO_PREFIXES = ['/dev/', '/proc/', '/sys/'];
 const SCRATCH_FILE_RE = /^\/tmp\/[A-Za-z0-9._-]+\.bak$/;
 // absolute path tokens with >= 2 segments (single-segment tokens like `cd /x` fixtures or
 // sed deletions are ignored); the lookbehind keeps URL slashes (postgres://…) unmatched
-const ABS_PATH_RE = /(?<=^|[\s"'=(:])\/(?:[A-Za-z0-9._-]+\/)+[A-Za-z0-9._-]+/g;
 const ENGINE_PATH_RE = /(?<=^|[\s"'=(:])(\/(?:[A-Za-z0-9._-]+\/)*tools\/hone)(?=\/)/g;
 
 /**
@@ -952,7 +956,7 @@ export function portableRungCommand(command, { gitRoot, repoRoot, prefix }) {
   // vacuously green a gate, and a token that exists nowhere (incl. shell/JS literals the
   // scanner over-matches, e.g. `/RE/.test(...)`) at worst goes honestly red.
   let refused = null;
-  cmd = cmd.replace(ABS_PATH_RE, (tok) => {
+  cmd = cmd.replace(RUNG_ABS_PATH_RE, (tok) => {
     if (inside(tok, gitRoot) || inside(tok, HONE_ROOT)) return tok;
     if (NEVER_REPO_PREFIXES.some((a) => tok.startsWith(a))) return tok;
     if (SCRATCH_FILE_RE.test(tok)) return tok;
@@ -1019,32 +1023,10 @@ export function makeRungExecutor({ gitRoot, repoRoot, prefix, log = () => {}, pa
 }
 
 /**
- * receipts are committed, so host paths become the same placeholders rung shells are given:
- * the repo root -> $REPO_ROOT, the git root -> $GIT_ROOT, the engine install -> $HONE_ROOT.
- * Longest path first (the repo root usually sits inside the git root); realpath forms included.
- */
-export function portableReceiptText(text, { repoRoot, gitRoot = repoRoot }) {
-  const real = (p) => { try { return realpathSync(p); } catch { return p; } };
-  const pairs = [[repoRoot, '$REPO_ROOT'], [gitRoot, '$GIT_ROOT'], [HONE_ROOT, '$HONE_ROOT']]
-    .flatMap(([p, ph]) => [[p, ph], [real(p), ph]])
-    .filter(([p]) => p && p !== '/')
-    .sort((x, y) => y[0].length - x[0].length);
-  return pairs.reduce((t, [p, ph]) => t.replace(new RegExp(`${escRe(p)}(?![A-Za-z0-9._-])`, 'g'), () => ph), String(text));
-}
-
-/**
  * the command a committed artifact (receipt, ledger line, claim evidence) may record for a rung:
  * the portable command that ran, never the authored form (it may hold host paths); a refused
  * rung never ran, so none.
  */
-/**
- * free text bound for a committed artifact (blocked_on, headline, claim statement): roots become
- * placeholders, any other absolute path token becomes <foreign-path>.
- */
-export function portableErrorText(text, ctx) {
-  return portableReceiptText(text, ctx).replace(ABS_PATH_RE, '<foreign-path>');
-}
-
 export function receiptCommand({ rung, executedCommand = undefined, repoRoot, gitRoot = repoRoot }) {
   if (executedCommand === null) return '(not recorded: rung was not executed)';
   const ran = executedCommand !== undefined && executedCommand !== rung.command;
@@ -1136,6 +1118,12 @@ export function writeTerminal({
   reviewStatus = undefined,
 }) {
   const { inTok, outTok, total, usd } = tokens;
+  // every free-text field below lands in a committed packet / claims.jsonl: scrub host paths HERE,
+  // once, so no caller has to (portableErrorText is idempotent on already-portable text)
+  const scrub = hostScrubber(repoRoot);
+  skipReason = scrub(skipReason); blockedOn = scrub(blockedOn); judgeVerdict = scrub(judgeVerdict);
+  lesson = scrub(lesson); headline = scrub(headline);
+  claims = claims.map((c) => ({ ...c, statement: scrub(c.statement) }));
   packet.status = status;
   packet.maker_provider = makerRan ? makerName : null;
   packet.judge_provider = judgeRan ? judgeName : null;
@@ -1231,6 +1219,7 @@ export function claimCommand(rung, pathCtx) {
 
 /** the landed-path claim set: behavior_preserved + judged_design_claim (+ measured-cc verified_fact). */
 export function buildLandClaims({ packet, id, reasoning, judgeProvider, receiptLines, receiptsDirRel, pathCtx }) {
+  reasoning = portableErrorText(reasoning, pathCtx);
   const claims = [
     {
       type: 'behavior_preserved',

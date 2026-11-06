@@ -1,6 +1,6 @@
 // util.mjs — small shared helpers for hone (stdlib-only).
 import { execSync } from 'node:child_process';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 /** parse argv: supports --k=v, --k v, bare --flag, and positionals in `_`. */
@@ -108,4 +108,14 @@ export function deepMerge(base, over) {
   const out = { ...base };
   for (const [k, v] of Object.entries(over)) out[k] = deepMerge(base[k], v);
   return out;
+}
+
+/**
+ * mkdir -p for engine-transient state under quality/ (.lane, .locks): the directory ignores its
+ * own contents (`*` .gitignore), so a stray `git add quality` can never commit it.
+ */
+export function ensureSelfIgnoredDir(dir) {
+  mkdirSync(dir, { recursive: true });
+  const gi = join(dir, '.gitignore');
+  if (!existsSync(gi)) writeFileSync(gi, '*\n');
 }
