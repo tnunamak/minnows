@@ -43,7 +43,7 @@ const ST_ORIG = `function clamp(n, lo, hi) {
 }
 module.exports = { clamp };
 `;
-const ST_GOOD = `function clamp(n, lo, hi) {
+export const ST_GOOD = `function clamp(n, lo, hi) {
   if (n < lo) return lo;
   if (n > hi) return hi;
   return n;
@@ -61,7 +61,7 @@ console.log('PASS 3/3');
 `;
 const ST_OUTSIDE = 'export const KINDS = ["owner", "client"];\n';
 
-const ID = 'lanetest-util-t0-00000001';
+export const ID = 'lanetest-util-t0-00000001';
 
 // second-order fixtures (batch scenarios): a sibling clamp2 in its own file with its own
 // oracle, DISJOINT touchset — plus one rung command shared with packet 1 so the batch
@@ -72,7 +72,7 @@ const ST_GOOD2 = ST_GOOD.replaceAll('clamp', 'clamp2');
 const ST_BAD2 = ST_BAD.replaceAll('clamp', 'clamp2');
 const ST_TEST2 = ST_TEST.replaceAll('clamp', 'clamp2').replaceAll('util.js', 'util2.js');
 
-function basePacket(overrides = {}) {
+export function basePacket(overrides = {}) {
   return {
     candidate_id: ID,
     created: new Date().toISOString(),
@@ -110,7 +110,7 @@ function basePacket(overrides = {}) {
   };
 }
 
-function fixtureRepo({ branch = 'quality-sweep', packetOverrides = {}, secondPacket = null, subdir = null } = {}) {
+export function fixtureRepo({ branch = 'quality-sweep', packetOverrides = {}, secondPacket = null, subdir = null } = {}) {
   const root = mkdtempSync(join(tmpdir(), 'hone-lanetest-'));
   const run = (args) => {
     const r = spawnSync('git', args, { cwd: root, encoding: 'utf8' });
@@ -157,11 +157,11 @@ function fixtureRepo({ branch = 'quality-sweep', packetOverrides = {}, secondPac
   return root;
 }
 
-const USAGE_OK = JSON.stringify([
+export const USAGE_OK = JSON.stringify([
   { role: 'maker', provider: 'claude', model: 'sonnet', tokens_in: 1000, tokens_out: 200, cost_usd: 0.05 },
   { role: 'judge', provider: 'claude', model: 'opus', tokens_in: 500, tokens_out: 100, cost_usd: 0.04 },
 ]);
-const verdictJson = (verdict, reasoning, model = 'opus') =>
+export const verdictJson = (verdict, reasoning, model = 'opus') =>
   JSON.stringify({ verdict, reasoning, confidence: 0.9, judge: { provider: 'claude', model } });
 
 export async function laneSelfTest({ verbose = false } = {}) {

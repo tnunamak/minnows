@@ -276,6 +276,155 @@ for (const nested of [false, true]) {
   ok('order: HONE_ROOT beneath the git root maps to $HONE_ROOT, not $GIT_ROOT/...', nestedEngine === '$HONE_ROOT/lib/x.mjs', nestedEngine);
 }
 
+// ---------------------------------------------------------------- 8b. host-path census (the class guard)
+{
+  // CANARY absolute paths are fed into every free-text input reachable without an LLM, then
+  // EVERY file under the fixture's quality/ is walked. Any absolute path token fails, with NO /tmp
+  // exemption (the old absPathTokens lint exempted /tmp and hid bugs). quality/.lane and
+  // quality/.locks are transient engine state: they must carry a `*` .gitignore instead.
+  process.env.HONE_ENABLE_EXTERNAL_LANE = '1';
+  const laneT = await import('./test-lane.mjs');
+  const { executeLaneEmit, executeLaneGate, executeLaneLand } = await import('./lane.mjs');
+  const { executeReset } = await import('./reset.mjs');
+  const { executeReviewBatch } = await import('./review-batch.mjs');
+  const { executeAgenda } = await import('./agenda.mjs');
+  const { writePacket } = await import('./packet-io.mjs');
+  const { acquireWorkLock, ABS_PATH_RE, DEFERRED_JUDGE_PROVIDER } = await import('./work.mjs');
+  const { parseYaml, stringifyYaml } = await import('./yaml.mjs');
+  const ID = laneT.ID;
+  const sh = (cwd, cmd) => execSync(cmd, { cwd, encoding: 'utf8' });
+  const scanTokens = (text) => text.match(ABS_PATH_RE) ?? [];
+
+  const canaries = (root) => [
+    '/home/canary/x', root, realpathSync(root), join(tmpdir(), 'hone-canary-scratch', 'work', 'out.txt'),
+    '/tmp/foreign-checkout-canary/src/a.js', join(homedir(), 'canary-home', 'file.txt'),
+  ];
+  const canaryText = (root) => `see ${canaries(root).join(' and ')} for details`;
+
+  /** every file under <root>/quality except .lane/.locks; returns problems. */
+  function census(label, root) {
+    const q = join(root, 'quality');
+    const problems = [];
+    const walk = (dir) => {
+      for (const e of readdirSync(dir, { withFileTypes: true })) {
+        if (dir === q && (e.name === '.lane' || e.name === '.locks')) continue;
+        const p = join(dir, e.name);
+        if (e.isDirectory()) { walk(p); continue; }
+        const text = readFileSync(p, 'utf8');
+        const rel = p.slice(q.length + 1);
+        for (const tok of scanTokens(text)) problems.push(`${label}:${rel}: ${tok}`);
+        for (const c of canaries(root)) if (text.includes(c)) problems.push(`${label}:${rel}: canary ${c}`);
+      }
+    };
+    walk(q);
+    return problems;
+  }
+  const verdict = (reasoning, v = 'PASS') => JSON.stringify({ verdict: v, reasoning, confidence: 0.9, judge: { provider: 'claude', model: 'opus' } });
+  const emit = (root) => executeLaneEmit({ id: ID, repoRoot: root, makerProvider: 'claude', judgeProvider: 'claude' });
+
+  const all = [];
+
+  // S1: emit -> gate(--revision-note) -> land(PASS, reasoning)
+  {
+    const root = track(laneT.fixtureRepo());
+    await emit(root);
+    const lane = join(root, 'quality', '.lane');
+    ok('census: quality/.lane self-ignores via a * .gitignore', existsSync(join(lane, '.gitignore')) && readFileSync(join(lane, '.gitignore'), 'utf8').trim() === '*');
+    sh(root, 'git add quality');
+    const staged = sh(root, 'git diff --cached --name-only').split('\n').filter((l) => l.includes('.lane'));
+    sh(root, 'git reset -q');
+    ok('census: `git add quality` stages nothing under .lane', staged.length === 0, staged.join(','));
+    writeFileSync(join(root, 'src/util.js'), laneT.ST_GOOD);
+    const g = await executeLaneGate({ id: ID, repoRoot: root, revisionNote: canaryText(root) });
+    ok('census: S1 gate green', g.exitCode === 0 && g.json.green === true, JSON.stringify(g.json).slice(0, 200));
+    const l = await executeLaneLand({ id: ID, repoRoot: root, verdictRaw: verdict(canaryText(root)), usageRaw: laneT.USAGE_OK });
+    ok('census: S1 landed', l.json.terminal === 'landed', JSON.stringify(l.json).slice(0, 200));
+    all.push(...census('land', root));
+  }
+  // S2: maker-no-diff with a HONE-VERDICT rationale, then a judge REJECT path
+  {
+    const root = track(laneT.fixtureRepo());
+    await emit(root);
+    const g = await executeLaneGate({ id: ID, repoRoot: root, makerSummary: `HONE-VERDICT: unactionable - ${canaryText(root)}` });
+    ok('census: S2 skipped on unactionable', g.json.terminal === 'skipped', JSON.stringify(g.json).slice(0, 200));
+    all.push(...census('maker-rationale', root));
+  }
+  {
+    const root = track(laneT.fixtureRepo());
+    await emit(root);
+    writeFileSync(join(root, 'src/util.js'), laneT.ST_GOOD);
+    await executeLaneGate({ id: ID, repoRoot: root });
+    const l = await executeLaneLand({ id: ID, repoRoot: root, verdictRaw: verdict(canaryText(root), 'REJECT'), usageRaw: laneT.USAGE_OK });
+    ok('census: S2b reverted on REJECT', l.json.terminal === 'reverted', JSON.stringify(l.json).slice(0, 200));
+    all.push(...census('judge-reject', root));
+  }
+  // S3: abort reason, then reset --reason
+  {
+    const root = track(laneT.fixtureRepo());
+    await emit(root);
+    const a = await executeLaneLand({ id: ID, repoRoot: root, abort: true, abortReason: canaryText(root) });
+    ok('census: S3 aborted', a.json.terminal === 'skipped', JSON.stringify(a.json).slice(0, 200));
+    all.push(...census('abort', root));
+    const r = executeReset({ id: ID, repoRoot: root, reason: canaryText(root) });
+    ok('census: S3 reset applied', r.outcome === 'reset', r.summary);
+    all.push(...census('reset', root));
+  }
+  // S4: review-batch verdict into claims + packet
+  {
+    const root = track(laneT.fixtureRepo());
+    await emit(root);
+    writeFileSync(join(root, 'src/util.js'), laneT.ST_GOOD);
+    await executeLaneGate({ id: ID, repoRoot: root });
+    await executeLaneLand({ id: ID, repoRoot: root, verdictRaw: verdict('clean'), usageRaw: laneT.USAGE_OK });
+    const pp = join(root, 'quality', 'packets', `${ID}.yaml`);
+    const pk = parseYaml(readFileSync(pp, 'utf8'));
+    pk.judge_provider = DEFERRED_JUDGE_PROVIDER;
+    pk.outcome.review_status = 'pending';
+    writeFileSync(pp, stringifyYaml(pk));
+    const rb = await executeReviewBatch({ repoRoot: root, judgeName: 'claude' }, {
+      judge: async () => ({ judge: async () => ({ verdict: 'REVISE', reasoning: canaryText(root), confidence: 0.5, raw: {} }) }),
+      log: () => {},
+    });
+    ok('census: S4 review-batch ran', /reviewed 1/.test(rb.summary), rb.summary.slice(0, 200));
+    all.push(...census('review-batch', root));
+  }
+  // S5: agenda docs (model prose) via a mock exec
+  {
+    const co = makeCheckout('agenda', false);
+    await quiet(async () => { await runInventory({ repo: co.repoRoot }); });
+    const ctx = buildContext(co.repoRoot);
+    const ct = canaryText(co.gitRoot);
+    const item = { id: 'canary-item', what: ct, why_now: ct, evidence: [{ type: 'corpus', citation: ct }], workflow_class: 'A2', acceptance_criteria: [ct], est_cost: { usd: 1, basis: ct } };
+    const doc = { items: [item], campaigns: [], not_chosen: [{ id: 'nc', what: 'x', reason: ct }], deltas_from_prior: [ct], human_decisions_needed: [ct] };
+    const deps = { exec: async (provider) => ({ text: '```json\n' + JSON.stringify(doc) + '\n```', meta: { provider, model: 'mock', durationMs: 1, costUsd: 0, tokens: { input: 1, output: 1 } } }), log: () => {} };
+    const r = await executeAgenda({ repoRoot: co.repoRoot, gitRoot: co.gitRoot, repoSha: ctx.git.sha, doctrinePath: null }, deps);
+    ok('census: S5 agenda written', r.exitCode === 0 && existsSync(join(co.repoRoot, 'quality', 'AGENDA.json')), r.summary?.slice(0, 200));
+    all.push(...census('agenda', co.repoRoot));
+  }
+  // S6: hand-authored packet free text through writePacket; evidence_required[].command stays authored
+  {
+    const root = track(laneT.fixtureRepo());
+    const pkPath = join(root, 'quality', 'packets', `${ID}.yaml`);
+    const pk = laneT.basePacket({ why_this_matters: canaryText(root) });
+    pk.plan.instruction = `Flatten clamp. ${canaryText(root)}`;
+    try { writePacket(pkPath, pk); } catch (e) { ok('census: S6 writePacket accepted the packet', false, e.message); }
+    all.push(...census('write-packet', root));
+    const wp = parseYaml(readFileSync(pkPath, 'utf8'));
+    const cmd = `node ${root}/test.js`;
+    wp.evidence_required[0].command = cmd;
+    writePacket(pkPath, wp);
+    ok('census: S6 evidence_required[].command is left as authored', parseYaml(readFileSync(pkPath, 'utf8')).evidence_required[0].command === cmd);
+  }
+  // S7: work lock dir self-ignores
+  {
+    const root = track(laneT.fixtureRepo());
+    const lock = acquireWorkLock(root, ID, () => {});
+    ok('census: quality/.locks self-ignores via a * .gitignore', lock.ok && existsSync(join(root, 'quality', '.locks', '.gitignore')));
+    lock.release?.();
+  }
+  ok('census: no absolute path token or canary in any quality/ file (no /tmp exemption)', all.length === 0, [...new Set(all.map((x) => x.replace(/: .*$/, '')))].join(', '));
+}
+
 // ---------------------------------------------------------------- 9. cleanup on throw
 {
   // a section that throws right after makeCheckout: the dir is registered at creation, so the
