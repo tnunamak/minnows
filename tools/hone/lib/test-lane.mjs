@@ -943,6 +943,9 @@ export async function laneSelfTest({ verbose = false } = {}) {
     check('gate green on --repo; receipt line carries the rewrite marker', g.exitCode === 0 && g.json.receipts.some((l) => /\[portable-path rewrite\]$/.test(l)));
     const l = await land(root, { verdictRaw: verdictJson('PASS', 'measured the right tree'), usageRaw: USAGE_OK });
     check('lands; authoring tree untouched throughout', l.exitCode === 0 && read(authoring, 'src/util.js') === ST_BAD);
+    const landClaims = read(root, 'quality/claims.jsonl') ?? '';
+    const landLeaks = [authoring, realpathSync(authoring), root, realpathSync(root)].filter((h) => landClaims.includes(h));
+    check('land claims carry no authored foreign path or git root', landClaims.includes('behavior_preserved') && !landLeaks.length, landLeaks.join(' | ') + ' ' + landClaims.slice(0, 300));
   });
 
   await scenario('e2e hone work: same authored-foreign cd — the split-brain class closed on the subprocess path too', async (check) => {
@@ -957,6 +960,9 @@ export async function laneSelfTest({ verbose = false } = {}) {
     const r = await executeWork({ id: ID, repoRoot: root, makerName: 'claude', judgeName: 'codex', dryRun: false }, deps);
     check('landed — the work path shares the rewrite (verbatim = red-baseline block / revision burn)', r.outcome === 'landed', r.summary);
     check('every receipt line carries the rewrite marker', packetOnDisk(root).outcome.evidence_receipts.every((l) => /\[portable-path rewrite\]$/.test(l)), JSON.stringify(packetOnDisk(root).outcome.evidence_receipts));
+    const workClaims = read(root, 'quality/claims.jsonl') ?? '';
+    const workLeaks = [authoring, realpathSync(authoring), root, realpathSync(root)].filter((h) => workClaims.includes(h));
+    check('work land claims carry no authored foreign path or git root', workClaims.includes('behavior_preserved') && !workLeaks.length, workLeaks.join(' | ') + ' ' + workClaims.slice(0, 300));
   });
 
   await scenario('e2e: rung pointing into ANOTHER git checkout → refused, never executed, fail-closed', async (check) => {

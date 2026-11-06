@@ -134,7 +134,7 @@ for (const nested of [false, true]) {
   }
 
   // ---- 3. claims
-  const claims = buildLandClaims({ packet, id: packetId, reasoning: 'fixture', judgeProvider: 'fixture', receiptLines: [], receiptsDirRel: 'quality/receipts/x' });
+  const claims = buildLandClaims({ packet, id: packetId, reasoning: 'fixture', judgeProvider: 'fixture', receiptLines: [], receiptsDirRel: 'quality/receipts/x', pathCtx: { gitRoot: co.gitRoot, repoRoot: co.repoRoot, prefix: co.prefix } });
   const claimText = JSON.stringify(claims);
   ok(`${tag}: claims carry no absolute path and echo the relative rung command`, !leakNeedles(co).some((n) => claimText.includes(n)) && claimText.includes(JSON.stringify(expectTypecheck).slice(1, -1)), claimText.slice(0, 200));
 

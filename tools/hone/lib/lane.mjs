@@ -751,7 +751,7 @@ export async function executeLaneLand({ id, repoRoot, verdictRaw = null, usageRa
       pipelineLabel: `hone lane: maker=${makerLabel} judge=${judgeLabel}`,
       confidence: verdict.confidence, revisionCount,
     });
-    const claims = buildLandClaims({ packet, id, reasoning: verdict.reasoning, judgeProvider: judgeLabel, receiptLines: state.receiptLines, receiptsDirRel: state.receipts_dir_rel });
+    const claims = buildLandClaims({ packet, id, reasoning: verdict.reasoning, judgeProvider: judgeLabel, receiptLines: state.receiptLines, receiptsDirRel: state.receipts_dir_rel, pathCtx: { gitRoot: g.gitRoot, repoRoot, prefix: g.prefix } });
     return laneTerminal(base, {
       status: 'landed', commit,
       judgeVerdict: verdictLine,
@@ -1224,7 +1224,7 @@ export async function executeLaneBatchLand({ ids, repoRoot, verdictRaw = null, u
         pipelineLabel: `hone lane batch ${batchId} (${members.length} orders): maker=${makerLabel} judge=${judgeLabel}`,
         confidence: verdict.confidence, revisionCount: 0, allowedLeftover: remainingTouch,
       });
-      const claims = buildLandClaims({ packet: m.packet, id: m.id, reasoning: verdict.reasoning, judgeProvider: judgeLabel, receiptLines: m.state.receiptLines, receiptsDirRel: m.state.receipts_dir_rel });
+      const claims = buildLandClaims({ packet: m.packet, id: m.id, reasoning: verdict.reasoning, judgeProvider: judgeLabel, receiptLines: m.state.receiptLines, receiptsDirRel: m.state.receipts_dir_rel, pathCtx: { gitRoot: g.gitRoot, repoRoot, prefix: g.prefix } });
       const r = termFor(m, i === 0, judgeMeta, {
         status: 'landed', commit, judgeVerdict: verdictLine, lesson: null, claims,
         headline: `landed ${commit.slice(0, 12)} on ${g.branch} (batch ${batchId}, order ${i + 1}/${members.length})`,

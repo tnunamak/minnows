@@ -1211,13 +1211,23 @@ export function landCommit(g, { packet, id, touchTop, receiptsDirRel, pipelineLa
   return commit;
 }
 
+/**
+ * claims.jsonl is committed: record the portable command the rung ran as (the same rewrite the
+ * executor applies), never the authored form that may hold a foreign checkout path.
+ * pathCtx = {gitRoot, repoRoot, prefix}.
+ */
+function claimCommand(rung, pathCtx) {
+  const port = portableRungCommand(rung.command, pathCtx);
+  return receiptCommand({ rung, executedCommand: port.refused ? null : port.command, repoRoot: pathCtx.repoRoot, gitRoot: pathCtx.gitRoot });
+}
+
 /** the landed-path claim set: behavior_preserved + judged_design_claim (+ measured-cc verified_fact). */
-export function buildLandClaims({ packet, id, reasoning, judgeProvider, receiptLines, receiptsDirRel }) {
+export function buildLandClaims({ packet, id, reasoning, judgeProvider, receiptLines, receiptsDirRel, pathCtx }) {
   const claims = [
     {
       type: 'behavior_preserved',
       statement: `all ${packet.evidence_required.length} evidence_required rung(s) for ${id} green at baseline and post-change (${packet.evidence_required.map((r) => r.rung).join(', ')})`,
-      evidence: packet.evidence_required.map((r) => ({ command: r.command, output_digest: receiptLines.filter((l) => l.includes(`] ${r.rung}:`)).pop() ?? `see ${receiptsDirRel}/` })),
+      evidence: packet.evidence_required.map((r) => ({ command: claimCommand(r, pathCtx), output_digest: receiptLines.filter((l) => l.includes(`] ${r.rung}:`)).pop() ?? `see ${receiptsDirRel}/` })),
     },
     {
       type: 'judged_design_claim',
@@ -1231,7 +1241,7 @@ export function buildLandClaims({ packet, id, reasoning, judgeProvider, receiptL
     claims.push({
       type: 'verified_fact',
       statement: `measured cognitive-complexity reduction for ${id}: '${ccRung.expect}' satisfied post-change`,
-      evidence: [{ command: ccRung.command, output_digest: receiptLines.filter((l) => l.includes(`] ${ccRung.rung}:`)).pop() ?? `see ${receiptsDirRel}/` }],
+      evidence: [{ command: claimCommand(ccRung, pathCtx), output_digest: receiptLines.filter((l) => l.includes(`] ${ccRung.rung}:`)).pop() ?? `see ${receiptsDirRel}/` }],
     });
   }
   return claims;
@@ -1374,7 +1384,8 @@ async function executeWorkAttempt(opts, deps, signal) {
   };
   // portable rung execution: authored-worktree absolute paths are rewritten into THIS
   // tree (or the rung is refused fail-closed) — a rung must never measure another repo
-  const execRung = makeRungExecutor({ gitRoot: g.gitRoot, repoRoot, prefix: g.prefix, log, packetDefaultTimeoutS: packet.rung_timeout_s ?? null });
+  const pathCtx = { gitRoot: g.gitRoot, repoRoot, prefix: g.prefix };
+  const execRung = makeRungExecutor({ ...pathCtx, log, packetDefaultTimeoutS: packet.rung_timeout_s ?? null });
 
   let makerBriefCount = 0;
   /**
@@ -1683,7 +1694,7 @@ async function executeWorkAttempt(opts, deps, signal) {
           {
             type: 'behavior_preserved',
             statement: `all ${packet.evidence_required.length} deterministic evidence_required rung(s) for ${id} green at baseline and post-change; model judge deferred`,
-            evidence: packet.evidence_required.map((r) => ({ command: r.command, output_digest: receiptLines.filter((l) => l.includes(`] ${r.rung}:`)).pop() ?? `see ${receiptsDirRel}/` })),
+            evidence: packet.evidence_required.map((r) => ({ command: claimCommand(r, pathCtx), output_digest: receiptLines.filter((l) => l.includes(`] ${r.rung}:`)).pop() ?? `see ${receiptsDirRel}/` })),
           },
           {
             type: 'remaining_work',
@@ -1763,7 +1774,7 @@ async function executeWorkAttempt(opts, deps, signal) {
       pipelineLabel: `hone work: maker=${makerName} judge=${judgeName}`,
       confidence: verdict.confidence, revisionCount,
     });
-    const claims = buildLandClaims({ packet, id, reasoning: verdict.reasoning, judgeProvider: judgeName, receiptLines, receiptsDirRel });
+    const claims = buildLandClaims({ packet, id, reasoning: verdict.reasoning, judgeProvider: judgeName, receiptLines, receiptsDirRel, pathCtx });
     return terminalize({
       status: 'landed', commit,
       judgeVerdict: verdictLine(verdict),
