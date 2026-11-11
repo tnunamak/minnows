@@ -82,25 +82,18 @@ def usage_page(db, sql, params, deadline, short_read=True):
             db.set_progress_handler(lambda: int(time.monotonic() >= deadline), 1000)
 
 
-def paged_turn_rows(db, select_turn, where, params, close_batches, deadline, ordinal_not_null):
-    """Yield indexed turn pages with a stable key, including rows whose ordinal is null."""
-    after = None
+def paged_turn_rows(db, select_turn, where, params, close_batches, deadline):
+    """Yield indexed turn pages by rowid so each page can seek without sorting the whole thread."""
+    after_rowid = None
     while True:
         if deadline is not None and time.monotonic() >= deadline:
             raise BudgetExhausted
         sql = select_turn + ' ' + where
         page_params = params
-        if after is not None:
-            ordinal, rowid = after
-            if ordinal_not_null:
-                sql += ' AND (ordinal,rowid)>(?,?)'
-                page_params += (ordinal, rowid)
-            else:
-                sql += (' AND ((ordinal IS NULL AND ? IS NULL AND rowid>?) OR '
-                        '(? IS NULL AND ordinal IS NOT NULL) OR ordinal>? OR '
-                        '(ordinal=? AND rowid>?))')
-                page_params += (ordinal, rowid, ordinal, ordinal, ordinal, rowid)
-        page = usage_page(db, sql + ' ORDER BY ordinal,rowid LIMIT 500', page_params, deadline, close_batches)
+        if after_rowid is not None:
+            sql += ' AND rowid>?'
+            page_params += (after_rowid,)
+        page = usage_page(db, sql + ' ORDER BY rowid LIMIT 500', page_params, deadline, close_batches)
         if close_batches:
             db.commit()
         if not page:
@@ -108,10 +101,10 @@ def paged_turn_rows(db, select_turn, where, params, close_batches, deadline, ord
         yield page
         if len(page) < 500:
             return
-        next_after = (page[-1][2], page[-1][-1])
-        if next_after == after:
+        next_after = page[-1][-1]
+        if next_after == after_rowid:
             raise sqlite3.OperationalError('provider_turn_page_cursor_did_not_advance')
-        after = next_after
+        after_rowid = next_after
 
 
 def usage_unknown(state, reason=None):
@@ -155,7 +148,6 @@ def _read_child_usage(db, child_run_id, close_batches=False, deadline=None):
     thread_column = next((name for name in ('thread_id', 'provider_thread_id')
                           if name in attempt_columns and name in turn_columns
                           and has_index_prefix(db, turn_table, name)), None)
-    ordinal_not_null = any(row[1] == 'ordinal' and row[3] for row in db.execute(f'PRAGMA table_info({turn_table})'))
     if close_batches and not has_index_prefix(db, attempt_table, 'run_id'):
         return usage_unknown('unavailable', 'no_indexed_attempt_lookup')
     indexed_attempt_turn = has_index_prefix(db, turn_table, 'run_attempt_id')
@@ -208,7 +200,7 @@ def _read_child_usage(db, child_run_id, close_batches=False, deadline=None):
     # Preserve both sides of the old OR join, but use indexes for each branch.
     if indexed_attempt_turn:
         for attempt_id, _, _, _ in attempt_rows:
-            for page in paged_turn_rows(db, select_turn, 'WHERE run_attempt_id=?', (attempt_id,), close_batches, deadline, ordinal_not_null):
+            for page in paged_turn_rows(db, select_turn, 'WHERE run_attempt_id=?', (attempt_id,), close_batches, deadline):
                 for turn in page:
                     rows_by_attempt[attempt_id][turn[0]] = turn
     if indexed_thread_turn:
@@ -222,14 +214,14 @@ def _read_child_usage(db, child_run_id, close_batches=False, deadline=None):
                 placeholders = ','.join('?' for _ in page_attempts)
                 for page in paged_turn_rows(db, select_turn,
                                             f'WHERE {thread_column}=? AND run_attempt_id IN ({placeholders})',
-                                            (thread_id, *page_attempts), close_batches, deadline, ordinal_not_null):
+                                            (thread_id, *page_attempts), close_batches, deadline):
                     for turn in page:
                         rows_by_attempt[turn[1]][turn[0]] = turn
     if not indexed_attempt_turn and not close_batches:
         for attempt_id, _, thread_id, _ in attempt_rows:
             if indexed_thread_turn and thread_id:
                 continue
-            for page in paged_turn_rows(db, select_turn, 'WHERE run_attempt_id=?', (attempt_id,), close_batches, deadline, ordinal_not_null):
+            for page in paged_turn_rows(db, select_turn, 'WHERE run_attempt_id=?', (attempt_id,), close_batches, deadline):
                 for turn in page:
                     rows_by_attempt[attempt_id][turn[0]] = turn
     for attempt_id, _, _, provider_turn_id in attempt_rows:
