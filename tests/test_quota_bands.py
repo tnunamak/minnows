@@ -54,7 +54,7 @@ def add_prepaid(world, verified_until=None):
     unverified unless the account map holds a check that has not expired."""
     world.accounts['accounts']['claude-api'] = {'billing': 'metered', 'quota_provider': None, 'quota_source': None,
                                                 'funding': {'verified_until': verified_until}}
-    world.add_directive('allow-prepaid', 'allow-metered', 'account=claude-api', until='2026-10-12T00:00:00Z')
+    world.add_directive('allow-prepaid', 'allow-metered', 'account=claude-api', 'decision=probe', until='2026-10-12T00:00:00Z')
 
 
 def test_most_headroom_below_the_account_band_wins(world):
