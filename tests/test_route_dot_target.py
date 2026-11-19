@@ -125,7 +125,16 @@ def test_target_needs_its_token_and_limit(world, tmp_path):
     assert 'brief_token must be' in failing(world, config(tmp_path, row), *FLAGS)
 
 
+def test_verified_destination_credit_still_requires_owner_approval(pool):
+    pool.accounts['accounts']['pool'] = {'billing': 'metered', 'quota_provider': None, 'quota_source': None,
+                                          'funding': {'verified_until': '2099-01-01T00:00:00Z'}}
+    out = route(pool, pool.cfg, *FLAGS)
+    assert out['target'] is None and out['launch_ready'] is False and 'dispatch' not in out
+    assert out['waiting']['state'] == 'api_credit_needs_tim_approval' and nonnull_targets(out) == []
+
+
 def test_a_destination_target_on_an_unverified_funded_account_is_withheld(pool):
+    pool.add_directive('approve-pool', 'allow-metered', 'account=pool', 'decision=probe')
     pool.accounts['accounts']['pool'] = {'billing': 'metered', 'quota_provider': None, 'quota_source': None, 'funding': {'verified_until': None}}
     out = route(pool, pool.cfg, *FLAGS)
     assert out['target'] is None and out['launch_ready'] is False and 'dispatch' not in out
@@ -136,6 +145,8 @@ def test_a_destination_target_on_an_unverified_funded_account_is_withheld(pool):
 
 @pytest.mark.parametrize('case', ['not_in_catalog', 'decision_id_not_accepted'])
 def test_an_unverified_funded_destination_gets_no_hand_submit_offer_either(world, tmp_path, case):
+    world.add_directive('approve-pool', 'allow-metered', 'account=pool',
+                        'decision=a.b:c' if case == 'decision_id_not_accepted' else 'decision=probe')
     add_catalog_row(world, **({'enabled': False} if case == 'not_in_catalog' else {}))
     world.accounts['accounts']['pool'] = {'billing': 'metered', 'quota_provider': None, 'quota_source': None, 'funding': {'verified_until': None}}
     row = pool_entry(tmp_path, **({'request_id_pattern': r'[-\w]{8,120}'} if case != 'not_in_catalog' else {}))

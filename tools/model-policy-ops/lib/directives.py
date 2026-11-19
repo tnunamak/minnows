@@ -12,7 +12,7 @@ from decision_receipts import append_row, locked_private_rows, numbered_rows, va
 
 EFFECTS = ('avoid', 'prefer', 'authorize', 'allow-metered')
 SOURCES = ('owner', 'lead')
-MATCH_KEYS = ('provider', 'model', 'account', 'op')
+MATCH_KEYS = ('provider', 'model', 'account', 'op', 'decision')
 MAX_REASON = 280
 
 
@@ -68,7 +68,7 @@ def check_rows(numbered, name='directives.jsonl'):
                 fail('effect is not allowed')
             match = row.get('match')
             if not isinstance(match, dict) or not match or set(match) - set(MATCH_KEYS) or not all(isinstance(v, str) for v in match.values()):
-                fail('match must be a non-empty object of provider/model/account/op strings')
+                fail('match must be a non-empty object of provider/model/account/op/decision strings')
             try:
                 parse_time(row.get('until'), 'until')
                 parse_time(row.get('recorded_at'), 'recorded_at')
@@ -160,8 +160,12 @@ def view(record, at, max_days=None):
 
 
 def matching(directives, effect, **facts):
-    """Active directives of one effect whose every match key equals the pair's fact."""
-    return [d for d in directives if d['effect'] == effect and matches(d, **facts)]
+    """Matching active directives; metered spend requires owner approval naming the exact account."""
+    return [d for d in directives if d['effect'] == effect and matches(d, **facts)
+            and (effect != 'allow-metered' or
+                 (d['source'] == 'owner' and d['match'].get('account') is not None
+                  and d['match'].get('account') == facts.get('account') and d['match'].get('decision') is not None
+                  and d['match']['decision'] == facts.get('decision')))]
 
 
 def matches(directive, **facts):

@@ -6,6 +6,7 @@ rejects, ranks the rest by a lexicographic key, and explains each step in a trac
 from outcomes and it never dispatches work.
 """
 import allowance
+import api_credit
 import pacing
 import drain
 import quota_bands
@@ -26,7 +27,9 @@ INDEPENDENCE_LEVELS = ('vendor', 'family', 'model')
 EFFECTS = ('avoid', 'prefer', 'authorize', 'allow-metered')
 # The filter that removes a pair, in the order the contract applies them, and the reason that a bypass of it raises.
 FINAL_REASONS = {'not_runnable': 'final_not_runnable', 'requires_not_met': 'final_requires_not_met',
-                 'billing_not_subscription': 'final_metered_without_directive', 'funding_unverified': 'final_funding_unverified',
+                 'billing_not_subscription': 'final_metered_without_directive',
+                 'api_credit_needs_tim_approval': 'final_metered_without_directive',
+                 'api_credit_exhausted': 'final_api_credit_exhausted', 'funding_unverified': 'final_funding_unverified',
                  'avoid_directive': 'final_avoided',
                  'quota_exhausted': 'final_quota_exhausted', 'independence': 'final_independence_bypassed'}
 SUBSTITUTED = 'quota_substitution_exception'
@@ -58,6 +61,14 @@ def quota_view(quota, quota_meta, arm, entry, pace_windows, now, bands=None, dra
             'windows': [], 'exhausted': False, 'pace': 'unknown', 'pace_reason': 'unmapped_account', 'binding': None}
     if bands:
         view['banded'] = True
+    if api_credit.is_credit(entry):
+        if not entry.get('credit_pool'):
+            return view  # no credit mapping is unknown; never borrow the subscription's weekly windows
+        grant = api_credit.grant_pace(quota, quota_meta, entry, now)
+        return view | {'api_credit': grant, 'state': grant['state'], 'fetched_at': grant.get('observed_at'),
+                       'exhausted': grant['pace'] == 'exhausted',
+                       'pace': grant['pace'] if grant['pace'] in PACE_RANK else 'unknown',
+                       'pace_reason': 'grant_api_credit', 'banded': False}
     if not entry or not entry.get('quota_provider'):
         return view
     provider_id, source_id = entry['quota_provider'], entry.get('quota_source')
@@ -242,7 +253,7 @@ def assess_pair(ctx, op_id, arm, instance, requires, free_route=None):
     so the owner sees every filter that the override bypassed. `free_route` is the declared free route that
     a qualified candidate came from; it makes the pair free only on the declared account.
     """
-    facts = {'provider': arm['provider'], 'model': arm['model'], 'account': instance, 'op': op_id}
+    facts = {'provider': arm['provider'], 'model': arm['model'], 'account': instance, 'op': op_id, 'decision': ctx.get('decision_id')}
     matched = {effect: matching(ctx['directives'], effect, **facts) for effect in EFFECTS}
     entry = ctx['accounts'].get(instance)
     billing = entry['billing'] if entry else 'unmapped'
@@ -259,14 +270,15 @@ def assess_pair(ctx, op_id, arm, instance, requires, free_route=None):
         hits.append(('requires_not_met', {'proof_class': proof_class, 'requires': requires}))
     if free_route:
         billing = 'free'
-    if billing not in ('subscription', 'free') and not matched['allow-metered']:
-        hits.append(('billing_not_subscription', {'billing': billing}))
-    elif billing == 'metered' and 'funding' in entry and not funded(entry['funding'], ctx['now']):
+    credit = billing != 'free' and api_credit.is_credit(entry)
+    if (credit or billing not in ('subscription', 'free')) and not matched['allow-metered']:
+        hits.append(('api_credit_needs_tim_approval' if credit else 'billing_not_subscription', {'billing': billing}))
+    elif credit and not entry.get('credit_pool') and 'funding' in entry and not funded(entry['funding'], ctx['now']):
         hits.append(('funding_unverified', {'verified_until': entry['funding']['verified_until']}))
     if matched['avoid']:
         hits.append(('avoid_directive', {'directives': [d['id'] for d in matched['avoid']]}))
     if view['exhausted']:
-        hits.append(('quota_exhausted', {'windows': [w['name'] for w in view['windows'] if w['state'] == 'exhausted']}))
+        hits.append(('api_credit_exhausted' if credit else 'quota_exhausted', {'windows': [w['name'] for w in view['windows'] if w['state'] == 'exhausted']}))
     requested_only = False
     if ctx['level'] and ctx['maker']:
         ok, requested_only, why = independence_check(ctx['level'], ctx['maker'], arm, ctx['line_of'], ctx['vendor_of'])
@@ -321,7 +333,7 @@ def is_review(op, params):
 
 def make_context(op, params, *, available, available_meta, quota, quota_meta, accounts, directives, maker, independence,
                  proof_class, line_of, failures, freshness, now, substitution=None, critical_path=False,
-                 free_candidates=(), exhausted_pools=None, vendor_of=None):
+                 free_candidates=(), exhausted_pools=None, vendor_of=None, decision_id=None):
     """The inputs that every pair assessment shares. A review op without a pack `independence_default` requires `vendor`.
 
     `level_source` says where the level came from: the `flag`, the `pack` or the `mechanism_default`.
@@ -339,7 +351,7 @@ def make_context(op, params, *, available, available_meta, quota, quota_meta, ac
     else:
         level, source = None, None
     return {'available': available, 'available_meta': available_meta, 'quota': quota, 'quota_meta': quota_meta,
-            'accounts': accounts, 'directives': directives, 'maker': maker, 'level': level, 'level_source': source, 'review': review,
+            'accounts': accounts, 'directives': directives, 'decision_id': decision_id, 'maker': maker, 'level': level, 'level_source': source, 'review': review,
             'proof_class': proof_class, 'line_of': line_of, 'failures': failures, 'freshness': freshness,
             'pace_windows': params.get('pace_windows', []), 'bands': params.get('quota_bands'), 'now': now,
             'substitution': substitution, 'critical_path': critical_path is True, 'demote_count': params.get('failure_demote_count'),
@@ -354,7 +366,7 @@ def tag(reasons, applies_to):
 def final_view(ctx, op, arm, instance, views, free_route=None):
     """The final pair after an override, through the same filters and judgment rules as a routed pair.
 
-    The override stays allowed. The block records every filter that the override bypassed. The reasons
+    The block records every filter that the override bypassed; the final API-credit guard can still withhold it. The reasons
     are the routed-pair rules applied to the final pair, plus one `final_*` reason per bypassed filter.
     The final pair is matched to a pack candidate by exact provider, model and effort, because evidence
     is keyed on the exact arm; a pair that the pack does not name, including an effort change, is

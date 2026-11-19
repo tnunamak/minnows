@@ -3,7 +3,7 @@
 With forecast bands (see `quota_bands`) a subscription pair launches only with known positive headroom and no
 hysteresis hold. When the best pair cannot launch, in order:
 
-1. The first ranked pair that can launch wins: a verified prepaid or free account, or a subscription with headroom.
+1. The first ranked pair that can launch wins: a per-spend-approved prepaid or free account, or a subscription with headroom.
    A wait never precedes an eligible alternative that the filters already admitted.
 2. A caller that set the `critical_path` launch fact gets the eligible subscription with the least overshoot, which
    is the projected percent above that account's effective cap (band high or early-exhaustion cap), for the binding window. Unknown,
@@ -118,4 +118,4 @@ def cooldown(failures, instance, demote_count, classes):
 def prepaid_summary(trace):
     """Every metered pair that the filters saw, with the filter that removed it or `eligible`."""
     return [{'instance': row['instance'], 'arm_model': row['arm']['model'], 'state': row['removed_by'] or 'eligible'}
-            for row in trace if row.get('billing') == 'metered']
+            for row in trace if row.get('billing') in ('metered', 'prepaid')]

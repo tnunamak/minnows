@@ -190,7 +190,7 @@ def test_a_wait_reports_its_semantics_and_what_it_considered(world):
     assert wait['dispatches'] is False and 'schedule' in wait['retry'] and wait['retry_after'] == '2026-10-13T22:42:47-05:00'
     considered = wait['alternatives_considered']
     assert considered['prepaid'] == [{'instance': 'claude-api', 'arm_model': 'claude-sonnet-5-5', 'state': 'funding_unverified'},
-                                     {'instance': 'claude-api-alt', 'arm_model': 'claude-sonnet-5-5', 'state': 'billing_not_subscription'}]
+                                     {'instance': 'claude-api-alt', 'arm_model': 'claude-sonnet-5-5', 'state': 'api_credit_needs_tim_approval'}]
     assert considered['destination']['chosen'] == 'model'
     assert 'critical_path' not in wait
 
