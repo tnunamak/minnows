@@ -37,6 +37,7 @@ Each tool is a CLI that a person or an agent can run. Some also ship a `SKILL.md
 | **[convo](tools/convo/)** | ✓ | Read past agent conversations across Claude Code, Codex, Gemini, Qwen, Pi and DeepSeek. |
 | **[uncompact](tools/uncompact/)** | ✓ | Recover a Claude Code session lost to context compaction. |
 | **[slopgate](tools/slopgate/)** | ✓ | Measure and cut AI slop in a draft before you ship it. |
+| **[readerfit](tools/readerfit/)** | ✓ | Choose the kind, length, structure and words of a reply or document for its reader before writing it; check the draft and keep per-reader profiles. |
 | **[hone](tools/hone/)** | — | Repo-quality engine: inventory, ranked packets, maker ≠ judge. |
 | **[unfinished](tools/unfinished/)** | — | Find decisions, plans and promises in your agent sessions that were never finished, check them against git and GitHub, and keep a ledger. |
 | **[model-policy-ops](tools/model-policy-ops/)** | — | Read the `model-choice-policy` pack and expand an operating point into model and effort flags. |

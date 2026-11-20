@@ -1,0 +1,259 @@
+#!/usr/bin/env python3
+"""readerfit — check that a draft fits its reader's budget and medium; read reader profiles.
+
+The judgment (which kind of output, what to keep) lives in SKILL.md. This CLI covers
+what a script can check without a model: length against a budget, markup the medium
+does not want, back-references, repeated lines and undefined acronyms.
+
+Usage:
+  readerfit check --file DRAFT.md --budget 12 --medium chat [--reader anna] [--json]
+  readerfit check --stdin --medium slack
+  readerfit profile anna
+  readerfit profile --list
+
+Exit codes: check → 0 clean or only low/medium findings, 1 any high finding.
+profile → 0 found, 2 not found. Stdlib only.
+"""
+
+import argparse
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+MEDIA = ("chat", "slack", "doc")
+
+# Acronyms most readers know. A profile's "Knows" and "Words" sections extend this.
+COMMON_ACRONYMS = {
+    "AI", "API", "APIS", "CEO", "CTO", "CFO", "CI", "CLI", "CPU", "CSV", "DM", "EU", "FAQ",
+    "GPU", "HTML", "HTTP", "HTTPS", "ID", "IDS", "IP", "JSON", "LLM", "MB", "GB", "TB", "OK",
+    "PDF", "PR", "PRS", "Q", "QA", "SQL", "SSH", "UI", "UK", "URL", "URLS", "US", "USA", "USB",
+    "UTC", "UX", "VPN", "TL", "DR", "TLDR", "ETA", "FYI", "AM", "PM", "TV", "OS", "NB", "AWS",
+    "GCP", "DNS", "SDK", "MVP", "KPI", "OKR", "ASAP", "README", "TODO", "PST", "CET", "EST",
+}
+
+BACKREF_RE = re.compile(
+    r"(?:^|[.!?]\s+|^[-*\d.)\s]+)(This|That|These|Those|It)\s+"
+    r"(means|needs|is why|makes|requires|lets|matters|changes|implies)\b"
+)
+CHECKBOX_RE = re.compile(r"^\s*[-*]\s+\[[ xX]\]\s")
+HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s")
+BLOCKQUOTE_RE = re.compile(r"^\s*>\s?")
+BOLD_LEADIN_RE = re.compile(r"^\s*(?:[-*]\s+|\d+[.)]\s+)?\*\*[^*]{1,60}?[:.]\*\*|^\s*(?:[-*]\s+|\d+[.)]\s+)?\*\*[^*]{1,60}\*\*\s*[:—-]")
+TABLE_RE = re.compile(r"^\s*\|.*\|\s*$")
+ACRONYM_RE = re.compile(r"(?<![\w/#@.-])([A-Z][A-Z0-9]{1,6})s?(?![\w-])")
+BARE_REF_RE = re.compile(r"(?<![\w/(\[])#(\d{1,4})\b")
+PROCESS_RE = re.compile(r"(?:^|[.!?]\s+|^[-*\d.)\s]+)I\s+(ran|checked|looked|read|searched|verified|inspected|tried|grepped|opened)\b")
+
+
+def strip_code(lines):
+    out, fence = [], False
+    for ln in lines:
+        if ln.strip().startswith("```"):
+            fence = not fence
+            continue
+        out.append("" if fence else ln)
+    return out
+
+
+def tokens(s):
+    return set(re.findall(r"[a-z0-9]+", s.lower()))
+
+
+def profile_dirs():
+    dirs = [d for d in os.environ.get("READERFIT_PROFILES", "").split(":") if d]
+    dirs.append(str(Path.home() / ".config" / "readerfit" / "profiles"))
+    return [Path(d).expanduser() for d in dirs]
+
+
+def find_profile(name):
+    for d in profile_dirs():
+        p = d / f"{name.lower()}.md"
+        if p.is_file():
+            return p
+    return None
+
+
+def profile_terms(text):
+    """Acronyms the reader is recorded as knowing: anything in Knows or Words sections."""
+    terms, section = set(), None
+    for ln in text.splitlines():
+        if ln.startswith("## "):
+            section = ln[3:].strip().lower()
+            continue
+        if section in ("knows", "words"):
+            terms.update(m.group(1) for m in ACRONYM_RE.finditer(ln))
+    return terms
+
+
+def defined_acronyms(text):
+    out = set()
+    for m in re.finditer(r"\(([A-Z][A-Z0-9]{1,6})s?\)", text):
+        out.add(m.group(1))
+    for m in re.finditer(r"\b([A-Z][A-Z0-9]{1,6})s?\s*(?:\(|:|—|-\s|is\s|means\s|stands for\s)", text):
+        out.add(m.group(1))
+    return out
+
+
+def check(text, budget, medium, known_terms):
+    raw_lines = text.splitlines()
+    lines = strip_code(raw_lines)
+    nonempty = [(i + 1, ln) for i, ln in enumerate(lines) if ln.strip()]
+    findings = []
+
+    def add(sev, code, line, msg, fix):
+        findings.append({"severity": sev, "code": code, "line": line, "message": msg, "fix": fix})
+
+    if budget and len(nonempty) > budget:
+        add("high", "over-budget", None,
+            f"{len(nonempty)} non-empty lines; budget is {budget}.",
+            "Filter first: cut items that do not change the reader's next action. Then shorten.")
+
+    if nonempty:
+        first_no, first = nonempty[0]
+        if HEADING_RE.match(first) and medium != "doc":
+            add("high", "heading-first", first_no, "The reply opens with a heading, not the point.",
+                "Make line 1 the thing the reader must know or do.")
+        elif len(first) > 240:
+            add("medium", "long-first-line", first_no, f"Line 1 is {len(first)} characters.",
+                "Line 1 should state the point in one short sentence.")
+
+    headings = [(n, ln) for n, ln in nonempty if HEADING_RE.match(ln)]
+    for n, ln in nonempty:
+        if CHECKBOX_RE.match(ln):
+            add("high", "checkbox", n, "Checkbox markup.", "Use plain bullets or numbers unless the reader asked for a checklist.")
+        if medium in ("chat", "slack") and BLOCKQUOTE_RE.match(ln):
+            add("high", "blockquote", n, "Blockquote markup in a chat message.", "Write the text plainly; quote only the reader's own words, inline.")
+        if medium in ("chat", "slack") and BOLD_LEADIN_RE.match(ln):
+            add("medium", "bold-leadin", n, "Bold lead-in label.", "Drop the label; start the line with its content.")
+        if medium == "slack" and TABLE_RE.match(ln):
+            add("high", "table-in-slack", n, "Markdown table in a Slack message; Slack does not render it.", "Use a short list, or link a doc with the table.")
+        if BACKREF_RE.search(ln):
+            add("medium", "back-reference", n, "Sentence opens by pointing back (This/That ... means/needs).",
+                "Repeat the noun so the line stands alone.")
+        if PROCESS_RE.search(ln):
+            add("low", "process-narrative", n, "Describes what you did rather than what it means for the reader.",
+                "State the result and its consequence.")
+        for m in BARE_REF_RE.finditer(ln):
+            before = ln[max(0, m.start() - 12):m.start()].lower()
+            if not re.search(r"(pr|issue|pull|step|item|no\.?)\s*$", before):
+                add("low", "bare-number-ref", n, f"Bare reference #{m.group(1)}.",
+                    "Name the thing, or link it; the reader may not recall what the number is.")
+    if medium in ("chat", "slack") and headings and len(nonempty) < 30:
+        add("high", "headings-in-short-chat", headings[0][0],
+            f"{len(headings)} heading(s) in a {len(nonempty)}-line chat reply.",
+            "Drop headings; a short reply is one list or a few lines.")
+    if medium == "doc" and len(headings) > max(3, len(nonempty) // 6):
+        add("medium", "heading-dense", headings[0][0],
+            f"{len(headings)} headings for {len(nonempty)} lines.", "Merge sections; headings are for navigation, not decoration.")
+
+    # Repeated points: two lines that share most of their words.
+    seen = []
+    for n, ln in nonempty:
+        t = tokens(ln)
+        if len(t) < 5 or TABLE_RE.match(ln):
+            continue
+        for n2, t2 in seen:
+            j = len(t & t2) / len(t | t2)
+            if j >= 0.7:
+                add("medium", "repeated-point", n, f"Line {n} repeats line {n2}.", "Say each point once.")
+                break
+        seen.append((n, t))
+
+    # Undefined acronyms.
+    body = "\n".join(lines)
+    defined = defined_acronyms(body)
+    flagged = set()
+    for n, ln in nonempty:
+        if TABLE_RE.match(ln) and set(ln.strip()) <= set("|-: "):
+            continue
+        for m in ACRONYM_RE.finditer(ln):
+            a = m.group(1)
+            if a in COMMON_ACRONYMS or a in known_terms or a in defined or a in flagged or a.isdigit():
+                continue
+            if re.fullmatch(r"[A-Z]\d+|\d+[A-Z]*", a):
+                continue
+            if re.fullmatch(r"[IVXLC]{1,5}", a) and re.search(r"(clause|section|article|part|chapter|phase)\s+$", ln[:m.start()].lower()):
+                continue  # roman-numeral clause numbers
+            flagged.add(a)
+            add("medium" if medium != "doc" else "low", "undefined-acronym", n,
+                f"'{a}' is not defined and not in the reader's profile.",
+                "Replace it with plain words, or define it in one clause at first use.")
+
+    em = body.count("—")
+    if em >= 2:
+        add("low", "em-dash", None, f"{em} em dashes.", "Use full stops or commas; run slopgate for prose.")
+
+    order = {"high": 0, "medium": 1, "low": 2}
+    findings.sort(key=lambda f: (order[f["severity"]], f["line"] or 0))
+    return {"lines": len(nonempty), "budget": budget, "medium": medium, "findings": findings}
+
+
+def cmd_check(args):
+    if args.stdin:
+        text = sys.stdin.read()
+    elif args.file:
+        text = Path(args.file).read_text()
+    else:
+        print("readerfit check: give --file or --stdin", file=sys.stderr)
+        return 2
+    known = set()
+    if args.reader:
+        p = find_profile(args.reader)
+        if p:
+            known = profile_terms(p.read_text())
+        else:
+            print(f"readerfit: no profile for '{args.reader}' (searched {', '.join(map(str, profile_dirs()))})", file=sys.stderr)
+    res = check(text, args.budget, args.medium, known)
+    if args.json:
+        print(json.dumps(res, indent=2))
+    else:
+        if not res["findings"]:
+            print(f"clean ({res['lines']} lines{', budget ' + str(res['budget']) if res['budget'] else ''})")
+        for f in res["findings"]:
+            where = f"line {f['line']}: " if f["line"] else ""
+            print(f"{f['severity']:6} {f['code']}: {where}{f['message']} Fix: {f['fix']}")
+    return 1 if any(f["severity"] == "high" for f in res["findings"]) else 0
+
+
+def cmd_profile(args):
+    if args.list:
+        for d in profile_dirs():
+            if d.is_dir():
+                for p in sorted(d.glob("*.md")):
+                    print(f"{p.stem}\t{p}")
+        return 0
+    if not args.name:
+        print("readerfit profile: give a name or --list", file=sys.stderr)
+        return 2
+    p = find_profile(args.name)
+    if not p:
+        print(f"no profile for '{args.name}'. Searched: {', '.join(map(str, profile_dirs()))}. "
+              "Fill the card from the conversation instead; create one after the reader's first correction.")
+        return 2
+    print(p.read_text(), end="")
+    return 0
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(prog="readerfit", description=__doc__.split("\n\n")[0])
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    c = sub.add_parser("check", help="check a draft against a budget and medium")
+    c.add_argument("--file")
+    c.add_argument("--stdin", action="store_true")
+    c.add_argument("--budget", type=int, default=0, help="max non-empty lines (0 = no budget)")
+    c.add_argument("--medium", choices=MEDIA, default="chat")
+    c.add_argument("--reader", help="profile name; its Knows/Words terms count as known")
+    c.add_argument("--json", action="store_true")
+    c.set_defaults(fn=cmd_check)
+    p = sub.add_parser("profile", help="print a reader profile")
+    p.add_argument("name", nargs="?")
+    p.add_argument("--list", action="store_true")
+    p.set_defaults(fn=cmd_profile)
+    args = ap.parse_args(argv)
+    return args.fn(args)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
