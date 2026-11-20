@@ -14,12 +14,11 @@ check third.
 ## 1. Fill the card (silently, before writing)
 
 Six lines. Fill them from the request, the conversation and the reader's profile.
-Show the card only if the user asks, with one exception: **for a document or
-message someone will send in their own name, show them the card (kind, outline,
-length, the reason for the kind) and wait for their OK before drafting.** A
-wrong kind costs an hour; the card costs them seconds and carries facts only
-they have. When they question the form of a draft, rebuild the card; do not
-revise the draft.
+Show the card only if the user asks. **For a document someone will send in
+their own name, show them one finished section before writing the rest.**
+People judge a concrete draft faster and better than a plan. When they
+question the form of a draft, redo the card from line 1; do not patch the
+draft. Revise the existing document in place.
 
 The user's newest words about the reader or the output beat an anchor document
 and any profile line. Name the conflict on the card.
