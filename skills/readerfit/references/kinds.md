@@ -132,7 +132,9 @@ source material.
 - **Mixed readers:** the first layer must read without definitions for the
   reader with the least context. Precise terms go in a later section or tab.
 - **Anchor:** match the length and structure of a document this reader already
-  accepted, when one exists.
+  accepted, when one exists, unless the user said something newer that conflicts
+  with it ("this reader has less context", "they can't choose between these").
+  Newer words win.
 - **Fails when:** an executive gets an engineering design, an engineer gets an
   executive note, or a reader who must decide gets engineering choices they do
   not own. Move those to "for information" with defaults.
