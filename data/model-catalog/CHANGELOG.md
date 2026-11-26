@@ -2,6 +2,13 @@
 
 Newest first. The README links here; this file is the single record.
 
+## v0.5.18 — 2026-11-26
+
+- Pricing re-read at the vendor pages (`2026-11-26`): Anthropic (112 figures, none changed), OpenAI API, Codex credit rate card and xAI. New models at the sources (Claude Fable 5.2 and Mythos 5.2, GPT-6.2 and others) are listed in the PR and not added.
+- GPT-5.6 Sol: the OpenAI API promotional rate now has `valid_until` 2026-11-30 (OpenAI pricing page, 2026-11-26); the Codex credit rate no longer ends the promo, because the rate card gives no end date.
+- Removed because the Codex credit rate card no longer states them: `gpt-5.5`, `gpt-5.4` and `gpt-5.4-mini`. Removed because xAI ended them on 2026-11-19: `grok-build-0.1`.
+- The 2026-10-07 Sonnet 5.5 cache-read docs inconsistency is resolved: both Anthropic pages state $0.10 per M tokens, matching the stored value.
+
 ## v0.5.17 — 2026-10-29
 
 - Correct GPT-6.1 Terra's API model note: the OpenAI model page gives a 1,050,000-token context and 128,000-token maximum output, but does not state a separate input cap. The 922,000-token difference is derived, not a stated limit.
