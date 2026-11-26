@@ -3,17 +3,19 @@
  "schema_version": 1,
  "kind": "api_usd",
  "agent": "other",
- "retrieved_at": "2026-10-07",
+ "retrieved_at": "2026-11-26",
  "source_urls": [
   "https://developers.cloudflare.com/workers-ai/platform/pricing/",
   "https://developers.cloudflare.com/workers-ai/models/clef/"
  ],
  "source_ids": [
   "cloudflare-workers-ai-pricing",
-  "cloudflare-workers-ai-clef-page"
+  "cloudflare-workers-ai-clef-page",
+  "cloudflare-workers-ai-pricing-2026-11-26",
+  "cloudflare-workers-ai-clef-page-2026-11-26"
  ],
  "role": "reference",
- "notes": "Cloudflare Workers AI prices for Clef and Clef-flash. RAW UNIT is Neurons (billing_basis raw_units); the USD figure Cloudflare prints beside it is stored as fresh_input_per_m, and the neuron-to-USD conversion ($0.011 per 1,000 Neurons = 0.000011 USD per neuron) is stored separately with its source. 21,818 Neurons per million input tokens x $0.011 per 1,000 = $0.2400 (Clef); 8,182 x $0.011/1000 = $0.0900 (Clef-flash). Free allocation: 10,000 Neurons per day. Workers AI bills in neurons in the back end (\"per-model unit-based pricing presented, but still billing in neurons\"). No per-request fee and no output rate are listed. The hosted model page says \"Long text state is truncated to fit the model's token limit\" and lists a 65,536-token context window, while OpenRouter's listing says Workers AI \"currently truncates long text state to roughly the first 2K tokens\": cost per decision at long states may therefore buy less than the advertised context.",
+ "notes": "Cloudflare Workers AI prices for Clef and Clef-flash. RAW UNIT is Neurons (billing_basis raw_units); the USD figure Cloudflare prints beside it is stored as fresh_input_per_m, and the neuron-to-USD conversion ($0.011 per 1,000 Neurons = 0.000011 USD per neuron) is stored separately with its source. 21,818 Neurons per million input tokens x $0.011 per 1,000 = $0.2400 (Clef); 3,455 x $0.011/1000 = $0.0380 (Clef-flash). Free allocation: 10,000 Neurons per day. Workers AI bills in neurons in the back end (\"per-model unit-based pricing presented, but still billing in neurons\"). No per-request fee and no output rate are listed. The hosted model page says \"Long text state is truncated to fit the model's token limit\" and lists a 65,536-token context window, while OpenRouter's listing says Workers AI \"currently truncates long text state to roughly the first 2K tokens\": cost per decision at long states may therefore buy less than the advertised context. 2026-11-26 re-read: 10 figures compared; clef-flash input price changed $0.090 -> $0.038 per M input tokens and 8182 -> 3455 Neurons per M input tokens; pricing page now states \"Last updated Nov 18, 2026\"; all other figures unchanged.",
  "models": {
   "@cf/cloudflare/clef": {
    "billing_basis": "raw_units",
@@ -35,20 +37,20 @@
     "workers-ai-state-truncation-2k",
     "price-per-token-is-not-cost-per-decision"
    ],
-   "notes": "Published as \"$0.240 per M input tokens | 21818 neurons per M input tokens\". Derived: the 10,000 free Neurons per day cover about 458,337 input tokens per day. Pricing page \"Last updated Oct 1, 2026\". Whether output is billed is not stated on the pricing page (no output rate listed)."
+   "notes": "Published as \"$0.240 per M input tokens | 21818 neurons per M input tokens\". Derived: the 10,000 free Neurons per day cover about 458,337 input tokens per day. Pricing page \"Last updated Nov 18, 2026\". Whether output is billed is not stated on the pricing page (no output rate listed)."
   },
   "@cf/cloudflare/clef-flash": {
    "billing_basis": "raw_units",
-   "fresh_input_per_m": 0.09,
+   "fresh_input_per_m": 0.038,
    "raw_units": {
     "unit": "neurons",
-    "input_per_m": 8182,
+    "input_per_m": 3455,
     "notes": "Price in Neurons column on the Workers AI pricing page, per million input tokens. No output rate (neurons or USD) is listed for this model; OpenRouter and Requesty list completion $0 (third-party)."
    },
    "usd_conversion": {
     "usd_per_unit": 1.1e-05,
     "source_id": "cloudflare-workers-ai-pricing",
-    "note": "$0.011 per 1,000 Neurons (pricing page: \"priced at $0.011 per 1,000 Neurons\"); check: 8182 x $0.011/1000 = $0.0900 per M tokens. Free allocation 10,000 Neurons per day on Free and Paid plans."
+    "note": "$0.011 per 1,000 Neurons (pricing page: \"priced at $0.011 per 1,000 Neurons\"); check: 3455 x $0.011/1000 = $0.0380 per M tokens. Free allocation 10,000 Neurons per day on Free and Paid plans."
    },
    "source_id": "cloudflare-workers-ai-pricing",
    "confidence": "high",
@@ -57,7 +59,7 @@
     "workers-ai-state-truncation-2k",
     "price-per-token-is-not-cost-per-decision"
    ],
-   "notes": "Published as \"$0.090 per M input tokens | 8182 neurons per M input tokens\". Derived: the 10,000 free Neurons per day cover about 1,222,195 input tokens per day. Pricing page \"Last updated Oct 1, 2026\". Whether output is billed is not stated on the pricing page (no output rate listed)."
+   "notes": "Published as \"$0.038 per M input tokens | 3455 neurons per M input tokens\". Derived: the 10,000 free Neurons per day cover about 2,894,356 input tokens per day. Pricing page \"Last updated Nov 18, 2026\". Whether output is billed is not stated on the pricing page (no output rate listed)."
   }
  },
  "match": [

@@ -3,7 +3,7 @@
  "schema_version": 1,
  "kind": "api_usd",
  "agent": "other",
- "retrieved_at": "2026-10-07",
+ "retrieved_at": "2026-11-26",
  "source_urls": [
   "https://docs.perplexity.ai/docs/decisions/quickstart.md",
   "https://docs.perplexity.ai/docs/getting-started/pricing.md"
@@ -12,10 +12,15 @@
   "perplexity-decisions-quickstart",
   "perplexity-pricing",
   "openrouter-decisions-catalog",
-  "requesty-benchmark"
+  "requesty-benchmark",
+  "perplexity-decisions-quickstart-2026-11-26",
+  "perplexity-pricing-2026-11-26",
+  "perplexity-decisions-docs-2026-11-26",
+  "openrouter-decisions-catalog-perplexity-2026-11-26",
+  "requesty-benchmark-2026-11-26"
  ],
  "role": "reference",
- "notes": "Perplexity first-party Decisions API price: \"The Decisions API costs $0.02 per million input tokens. Output tokens are free, and there is no per-request fee.\" (quickstart; the pricing page JSON also shows decisions.input 0.02). Rate limit 10 requests per second per organization on every plan. PRICE CONFLICT: OpenRouter and Requesty list the same model at $0.04 per million input tokens (2x the direct price). Unresolved whether the routers add a markup or the direct price changed; both are recorded (see the openrouter and requesty pricing docs). pplx-decider-v1.1-27b is served under the same API; the v1 and v1.1 rows are the same rate. Cache fields: cache_read_per_m and cache_write_per_m are null with cache_rates_status \"not_published\": the vendor documents no caching discount or surcharge, so no cache rate is recorded (none is inferred from the input price).",
+ "notes": "Perplexity first-party Decisions API price: $0.02 per million input tokens, output tokens free, no per-request fee (pricing page Decisions table, 2026-11-26; the 2026-10 quickstart sentence quoting these figures was removed from the quickstart, which now covers install and a first request only). Rate limit 10 requests per second per organization, every plan (Decisions docs page). PRICE CONFLICT: Requesty still lists perplexity/pplx-decider-v1-27b at $0.04 per million input tokens (2x the direct price); OpenRouter no longer lists the v1-27b id at all, and its current decider ids (pplx-decider-v1.2/v1.3, flash, latest aliases) bill at $0.02 or less per million input tokens, matching the direct price. Unresolved whether Requesty adds a markup or its listing is stale; both are recorded (see the openrouter and requesty pricing docs). pplx-decider-v1.1-27b is a legacy alias of pplx-decider-v1-27b; the v1 and v1.1 rows are the same rate. Cache fields: cache_read_per_m and cache_write_per_m are null with cache_rates_status \"not_published\": the vendor documents no caching discount or surcharge, so no cache rate is recorded (none is inferred from the input price). 2026-11-26 re-read: 12 figures compared, 1 changed — OpenRouter conflict figure old $0.04 per million input tokens no longer stated (pplx-decider-v1-27b delisted from the OpenRouter decisions catalog; current OpenRouter decider ids bill at $0.02 or less per million input tokens); all other figures unchanged ($0.02 input both rows, free output, no per-request fee, 10 req/s per org, cache not published, Requesty $0.04/M listing and $0.023 per 1,000 items billed).",
  "models": {
   "pplx-decider-v1-27b": {
    "billing_basis": "per_token",

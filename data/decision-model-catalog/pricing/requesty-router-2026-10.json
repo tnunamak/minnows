@@ -3,17 +3,19 @@
  "schema_version": 1,
  "kind": "api_usd",
  "agent": "other",
- "retrieved_at": "2026-10-07",
+ "retrieved_at": "2026-11-26",
  "source_urls": [
   "https://www.requesty.ai/blog/decision-model-benchmark-clef-sference-cloudflare-perplexity",
   "https://docs.requesty.ai/features/decisions"
  ],
  "source_ids": [
   "requesty-benchmark",
-  "requesty-docs-decisions"
+  "requesty-docs-decisions",
+  "requesty-benchmark-2026-11-26",
+  "requesty-docs-decisions-2026-11-26"
  ],
  "role": "reference",
- "notes": "Requesty router prices as printed in its 2026-10-05 benchmark post: sference/clef $0.24/M input (output free, 64K), cloudflare/clef $0.24/M (output free, 64K), perplexity/pplx-decider-v1-27b $0.04/M (output free, 262K; conflicts with Perplexity direct $0.02). Requesty-billed cost on its gateway benchmark: Clef $0.131 and Perplexity decider $0.023 per 1,000 items (an item is one request answering 1-5 questions): see the Requesty performance doc. Jev price on Requesty (typesafe/jev-latest): NOT published in the pages read (missing; no row). Cache fields: cache_read_per_m and cache_write_per_m are null with cache_rates_status \"not_published\": the vendor documents no caching discount or surcharge, so no cache rate is recorded (none is inferred from the input price).",
+ "notes": "Requesty router prices as printed in its 2026-10-05 benchmark post: sference/clef $0.24/M input (output free, 64K), cloudflare/clef $0.24/M (output free, 64K), perplexity/pplx-decider-v1-27b $0.04/M (output free, 262K; conflicts with Perplexity direct $0.02). Requesty-billed cost on its gateway benchmark: Clef $0.131 and Perplexity decider $0.023 per 1,000 items (an item is one request answering 1-5 questions): see the Requesty performance doc. Jev price on Requesty (typesafe/jev-latest): NOT published in the pages read (missing; no row). Cache fields: cache_read_per_m and cache_write_per_m are null with cache_rates_status \"not_published\": the vendor documents no caching discount or surcharge, so no cache rate is recorded (none is inferred from the input price). 2026-11-26 re-read: 19 figures compared, unchanged.",
  "models": {
   "sference/clef": {
    "billing_basis": "per_token",

@@ -3,13 +3,14 @@
  "schema_version": 1,
  "kind": "performance",
  "provider": "jacoblincool",
- "retrieved_at": "2026-10-07",
+ "retrieved_at": "2026-11-26",
  "source_urls": [
   "https://jacoblincool.github.io/StreamDecisionBench/data.json"
  ],
- "notes": "StreamDecisionBench (single community author; arXiv 2609.38612; MIT): 480 stream states in 8 scenarios and 4 families, scored with an untimed accuracy and an in-force accuracy that penalises slow answers. 30 model settings; here the decision-model settings are stored (generative references Terra/Astra/Luna \"low\"/\"none\" are listed in claims by the labels the board prints, because their versions cannot be resolved to model-catalog ids). Clef (hosted path unknown) scores 38.96% untimed vs Perplexity 70.00% and Jev 62.36%; the hosted Workers AI 2K-token state truncation (OpenRouter note) is a POSSIBLE cause and is UNVERIFIED. Hosted vs self-hosted latency rows use separate metric ids. Weak provenance: one author, one snapshot.",
+ "notes": "StreamDecisionBench (single community author; arXiv 2609.38612; MIT): 480 stream states in 8 scenarios and 4 families, scored with an untimed accuracy and an in-force accuracy that penalises slow answers. 33 model settings; here the decision-model settings are stored (generative references Terra/Astra/Luna \"low\"/\"none\" are listed in claims by the labels the board prints, because their versions cannot be resolved to model-catalog ids). Clef (hosted path unknown) scores 38.96% untimed vs Perplexity 70.00% and Jev 62.36%; the hosted Workers AI 2K-token state truncation (OpenRouter note) is a POSSIBLE cause and is UNVERIFIED. Hosted vs self-hosted latency rows use separate metric ids. Weak provenance: one author, one snapshot. 2026-11-26 re-read: 107 figures compared (84 score rows, 23 claim figures), all stored values unchanged; the source's settings count changed 30 -> 33 after new rows Gemini Decision 1 (72.71 untimed / 63.73 in-force), Claude Haiku 5.5 low (95.35 / 36.56) and Claude Haiku 5.5 thinking off (25.56 / 19.38), which are not stored here.",
  "source_ids": [
-  "streamdecisionbench"
+  "streamdecisionbench",
+  "streamdecisionbench-2026-11-26"
  ],
  "claims": [
   {

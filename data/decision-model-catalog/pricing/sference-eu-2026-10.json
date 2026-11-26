@@ -3,17 +3,19 @@
  "schema_version": 1,
  "kind": "api_usd",
  "agent": "other",
- "retrieved_at": "2026-10-07",
+ "retrieved_at": "2026-11-26",
  "source_urls": [
   "https://www.sference.com/docs/models",
   "https://www.sference.com/docs/guides/decisions"
  ],
  "source_ids": [
   "sference-docs-models",
-  "sference-docs-decisions"
+  "sference-docs-decisions",
+  "sference-docs-models-2026-11-26",
+  "sference-docs-decisions-2026-11-26"
  ],
  "role": "reference",
- "notes": "sference (EU managed inference) price for Clef: docs table \"Cloudflare/clef | 64K | $0.24 | — |\" (Input, Output columns); text: \"Served on POST /v1/decisions (realtime only). It answers up to 16 choice, score, or yes/no questions about one input in a single call, generates no text, and is billed on input tokens only.\" Rates are \"confirmed per model at account provisioning\". EU GPUs; no batch/flex/background. Cache fields: cache_read_per_m and cache_write_per_m are null with cache_rates_status \"not_published\": the vendor documents no caching discount or surcharge, so no cache rate is recorded (none is inferred from the input price).",
+ "notes": "sference (EU managed inference) price for Clef: docs table \"Cloudflare/clef | 64K | $0.24 | — |\" (Input, Output columns); text: \"Served on POST /v1/decisions (realtime only). It answers up to 64 choice, score, or yes/no questions about one input in a single call, generates no text, and is billed on input tokens only.\" Rates are \"confirmed per model at account provisioning\". Decisions are realtime only — no batch/flex/background for decisions (chat models now have priority/flex/batch modes); the docs no longer state \"EU GPUs\" (off-peak window is 22:00–06:00 Europe/Berlin). Cache fields: cache_read_per_m and cache_write_per_m are null with cache_rates_status \"not_published\": the vendor documents no caching discount or surcharge, so no cache rate is recorded (none is inferred from the input price). 2026-11-26 re-read: 10 figures compared; questions-per-request limit changed 16 → 64 (docs now say \"up to 64 choice, score, or yes/no questions\"); the \"EU GPUs\" claim was removed (no longer stated by the source); all other figures (input $0.24, output —, 64K context, realtime-only, billed on input tokens only, rates confirmed at provisioning, cache not published for Clef) unchanged.",
  "models": {
   "sference/clef": {
    "billing_basis": "per_token",
@@ -32,7 +34,7 @@
     "same-weights-different-serving-limits-and-confidence",
     "price-per-token-is-not-cost-per-decision"
    ],
-   "notes": "<=16 questions per request; 64K context; billed on input tokens only; rate confirmed at account provisioning."
+   "notes": "<=64 questions per request; 64K context; billed on input tokens only; rate confirmed at account provisioning."
   }
  },
  "match": [
