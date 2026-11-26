@@ -1303,6 +1303,61 @@
           "evidence_basis": "owner_decision"
         }
       ]
+    },
+    {
+      "provider": "opencode",
+      "model": "opencode-go/glm-5.3",
+      "account": "opencode",
+      "status": "prepaid_as_of_2026-11-26",
+      "cost_usd": 0,
+      "authentication": {
+        "state": "none_observed_owner_smoke",
+        "official_docs": "inconclusive"
+      },
+      "rate_limits": "unknown",
+      "effort_option": "variant",
+      "effort_values_source": "live_t3_catalog",
+      "data_policy": {
+        "classification_required": "public",
+        "sensitive_flag_forces_refusal": true,
+        "provider_zero_retention": "Not established for the OpenCode Go plan. Treat submitted content as processed by OpenCode and its upstream provider.",
+        "unpaid_account_processing": "Prepaid OpenCode Go subscription, not an unpaid account. The owner has allowed GLM for public inputs only; the data decision for private repositories is not made, so they stay refused.",
+        "prohibited_inputs": [
+          "private_repositories",
+          "PDPP_data",
+          "secrets",
+          "Jev_text",
+          "personal_data"
+        ]
+      },
+      "known_risks": [
+        "shared_server_host_tools",
+        "injected_t3_thread_read_private_thread_access"
+      ],
+      "evidence": [
+        {
+          "url": "https://github.com/tnunamak/clawmeter/blob/main/docs/provider-maturity.md",
+          "accessed": "2026-11-26",
+          "supports": [
+            "opencode_go_windows_observed_in_clawmeter"
+          ]
+        }
+      ],
+      "operations": [
+        {
+          "id": "implement.oracle-bounded",
+          "basis": "owner_authorized",
+          "proof_classes": [
+            "oracle"
+          ],
+          "efforts": [
+            "high"
+          ],
+          "scope": "owner_asserted_bounded_public_work_with_deterministic_check_output_reviewed",
+          "evidence_ref": "evidence/glm-owner-decision-2026-11-26.json",
+          "evidence_basis": "owner_decision"
+        }
+      ]
     }
   ]
 }
