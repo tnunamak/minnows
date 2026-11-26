@@ -1,5 +1,9 @@
 # Decision model catalog changelog
 
+## v0.1.3 — 2026-11-26
+
+- Decision Index 0.4.1 rows now use `di04-*` metric ids; 0.3 rows keep `di03-*`. 63 new metrics are registered in `metrics.json` (each a copy of its `di03-*` twin with the 0.4.1 suite version, comparability group and score-row context); 3,556 score rows moved to them (902 headline, 159 latency, 2,495 per benchmark; 60 models). No score value changed. This closes the v0.1.2 note that `di03-*` ids still said 0.3.
+
 ## v0.1.2 — 2026-11-26
 
 Freshness refresh (minnows #149). Every pricing and performance file older than 45 days was re-read at its source and re-dated `2026-11-26`, each with a dated `SOURCES.json` entry. New models and rows at the sources were listed but not added.
