@@ -3,13 +3,14 @@
  "schema_version": 1,
  "kind": "performance",
  "provider": "anthus",
- "retrieved_at": "2026-10-07",
+ "retrieved_at": "2026-11-26",
  "source_urls": [
   "https://hard-decisions.anth.us/"
  ],
- "notes": "Hard-Decisions (Anthus AI Solutions; self-funded consultancy that also sells Jev-alignment services: a conflict of interest to keep in mind): ProofWriter multi-hop reasoning, 3,600 problems (1,800 open-world + 1,800 closed-world), depth 0 (answer written in the text) to 5 (five chained rules). GPT-6 Luna here is the generative model through Chat Completions with reasoning none and a strict JSON schema, NOT the OpenAI Decisions API (Anthus: \"OpenAI uses a specialized version of Luna\"). GLiDE was rerun on 2026-10-03 at the request of Fastino's CEO and scored lower (76.4 vs 82.9 open-world); the cause is unexplained and both runs are kept. Open models ran on an Apple M1 Max laptop (MLX): latency is NOT stored (hosted vs laptop is not like-for-like). Clef and Perplexity decider are not on this board. Jev is highest on both tasks; accuracy is non-monotonic by depth for Jev on closed-world (76.3 at depth 4, 89.3 at depth 5).",
+ "notes": "Hard-Decisions (Anthus AI Solutions; self-funded consultancy that also sells Jev-alignment services: a conflict of interest to keep in mind): ProofWriter multi-hop reasoning, 3,600 problems (1,800 open-world + 1,800 closed-world), depth 0 (answer written in the text) to 5 (five chained rules). GPT-6 Luna here is the generative model through Chat Completions with reasoning none and a strict JSON schema, NOT the OpenAI Decisions API (Anthus: \"OpenAI uses a specialized version of Luna\"). GLiDE was rerun on 2026-10-03 at the request of Fastino's CEO and scored lower (76.4 vs 82.9 open-world); the cause is unexplained and both runs are kept. Open models ran on an Apple M1 Max laptop (MLX): latency is NOT stored (hosted vs laptop is not like-for-like). Clef and Perplexity decider are not on this board. Jev is highest on both tasks; accuracy is non-monotonic by depth for Jev on closed-world (76.3 at depth 4, 89.3 at depth 5). 2026-11-26 re-read: 252 figures compared, unchanged (60 score rows incl. score, n and CI bounds plus 12 claim/notes figures; read from the site's /data/results.json, regenerated 2026-11-16, record commit b324cd3).",
  "source_ids": [
-  "hard-decisions"
+  "hard-decisions",
+  "hard-decisions-2026-11-26"
  ],
  "claims": [
   {

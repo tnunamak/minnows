@@ -3,36 +3,16 @@
  "schema_version": 1,
  "kind": "performance",
  "provider": "localllama",
- "retrieved_at": "2026-10-07",
+ "retrieved_at": "2026-11-26",
  "source_urls": [
   "https://huggingface.co/datasets/LocalLLaMA/typed-decisions"
  ],
- "notes": "LocalLLaMA/typed-decisions HF dataset card leaderboard (community, hand-maintained; says \"The benchmark is independent: it is not affiliated with TypeSafe\"). Stored: the first three zero-shot rows scored by the card author (meraGPT Decider 1, Liquid d1 d1:free, Jev 1.13.0). Not stored: the Featherless \"Simple Jev\" Qwen3.6-35B-A3B-classifier demo row (0.716, not the Decision Index Qwen3.8-27B entrant) and rows 5-10 (self-reported submitters, different hardware/units: prima-ratio, OpenDecider-small, Bongard-mini, Jeff-*). Fitted-on-train models are not comparable with the zero-shot table. Neither Clef nor Perplexity is on the card.",
+ "notes": "LocalLLaMA/typed-decisions HF dataset card leaderboard (community, hand-maintained; says \"The benchmark is independent: it is not affiliated with TypeSafe\"). Stored: the first three zero-shot rows scored by the card author (meraGPT Decider 1, Liquid d1 d1:free, Jev 1.13.0). Not stored: the Featherless \"Simple Jev\" Qwen3.6-35B-A3B-classifier demo row (0.716, not the Decision Index Qwen3.8-27B entrant) and rows 5-10 (self-reported submitters, different hardware/units: prima-ratio, OpenDecider-small, Bongard-mini, Jeff-*). Fitted-on-train models are not comparable with the zero-shot table. Neither Clef nor Perplexity is on the card. 2026-11-26 re-read: 20 figures compared, unchanged; the request-shape claim (Jev yes/no 0.843 one-per-request / 0.788 packed) was dropped from the card on 2026-10-22 and is retired; the zero-shot table now has 45 rows (Quyet-1.0-Large first at 0.791; clef, clef-flash, clef-omni and pplx-decider rows now present).",
  "source_ids": [
-  "hf-typed-decisions"
+  "hf-typed-decisions",
+  "hf-typed-decisions-2026-11-26"
  ],
- "claims": [
-  {
-   "models": [
-    "jev-1.13.0"
-   ],
-   "statement": "Card: \"Request shape matters: in a third-party run Jev's yes/no accuracy was 0.843 with one question per request and 0.788 alongside the others.\" Hosted rows are p50 end to end from a client, one request at a time.",
-   "task_families": [
-    "typed_decisions"
-   ],
-   "axes": [
-    "quality"
-   ],
-   "implication": "Test packed vs one-question requests; accuracy can change with the number of sibling questions.",
-   "source_id": "hf-typed-decisions",
-   "caveat_ids": [
-    "fanout-independence-holds-for-jev-only-per-vendor-evidence",
-    "public-benchmark-overfit-and-label-provenance",
-    "typed-decisions-teacher-labels",
-    "small-sample-and-single-run-evidence"
-   ]
-  }
- ],
+ "claims": [],
  "scores": [
   {"model":"meragpt-decider-1","metric":"typed-decisions card: accuracy vs teacher gold","metric_id":"td-accuracy","score":76.8,"unit":"accuracy","caveat":"meraGPT; KL 0.096; price $0.03 per 1M input on the card; agreement with a ~4B-class teacher, ceiling 0.735","source_id":"hf-typed-decisions","harness":"LocalLLaMA/typed-decisions test split: 400 cases, 2,000 decisions (600 noul, 600 choice, 800 score) across four workflows; zero-shot general models; whole case (state + all five questions) in one request; hosted rows p50 end to end from a client, one request at a time","task_family":"typed_decisions","source_type":"third_party_board","evidence_grade":"C","observed_at":"2026-10-01","comparability_group":"typed-decisions/accuracy","snapshot_id":"typed-decisions-card-2026-10-01","n":2000,"caveat_ids":["public-benchmark-overfit-and-label-provenance","typed-decisions-teacher-labels","small-sample-and-single-run-evidence"]},
   {"model":"meragpt-decider-1","metric":"typed-decisions card: Brier","metric_id":"td-brier","score":0.052,"unit":"brier","source_id":"hf-typed-decisions","harness":"LocalLLaMA/typed-decisions test split: 400 cases, 2,000 decisions (600 noul, 600 choice, 800 score) across four workflows; zero-shot general models; whole case (state + all five questions) in one request; hosted rows p50 end to end from a client, one request at a time","task_family":"calibration","source_type":"third_party_board","evidence_grade":"C","observed_at":"2026-10-01","comparability_group":"typed-decisions/brier","snapshot_id":"typed-decisions-card-2026-10-01","n":2000,"caveat_ids":["public-benchmark-overfit-and-label-provenance","typed-decisions-teacher-labels","small-sample-and-single-run-evidence"]},

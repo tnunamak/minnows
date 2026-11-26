@@ -885,6 +885,446 @@
    "retrieved_at": "2026-10-07",
    "kind": "vendor_docs",
    "notes": "JS-rendered page; the banner text was captured. Price detail is not on this page."
+  },
+  {
+   "id": "cloudflare-workers-ai-pricing-2026-11-26",
+   "url": "https://developers.cloudflare.com/workers-ai/platform/pricing/",
+   "title": "Workers AI pricing",
+   "publisher": "Cloudflare",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "vendor_docs",
+   "notes": "Re-read via direct curl of the HTML page and parsed the pricing table rows. Page states 'Last updated Nov 18, 2026'. Clef row: $0.240 per M input tokens, 21818 neurons per M input tokens (unchanged). Clef-flash row: $0.038 per M input tokens, 3455 neurons per M input tokens (was $0.090 / 8182 at the 2026-10-07 read). New row @cf/cloudflare/clef-omni: $0.150 per M input tokens, 13636 neurons per M input tokens. Neuron conversion unchanged: $0.011 per 1,000 Neurons on Workers Paid; free allocation unchanged at 10,000 Neurons per day. No output-token rate is listed for these models."
+  },
+  {
+   "id": "cloudflare-workers-ai-clef-page-2026-11-26",
+   "url": "https://developers.cloudflare.com/workers-ai/models/clef/",
+   "title": "Workers AI model page: @cf/cloudflare/clef",
+   "publisher": "Cloudflare",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "vendor_docs",
+   "notes": "Re-read via direct curl of the HTML page. Model page still states a 65,536-token context window and 'Long text state is truncated to fit the model's token limit.' The page itself lists no prices; pricing figures for this model come from the Workers AI pricing page."
+  },
+  {
+   "id": "liquid-docs-decision-models-2026-11-26",
+   "url": "https://docs.liquid.ai/lfm/models/decision-models.md",
+   "title": "Liquid docs: decision models (d1.2 family; earlier d1 deprecated)",
+   "publisher": "Liquid AI",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "vendor_docs",
+   "notes": "Direct curl + markdown read (curl -L -A 'Mozilla/5.0'). Page now lists d1.2-ultra and d1.2 (hosted, Liquid API) plus open-weight d1-2B (1.9B), d1-omni-2B (2.2B), d1-omni-600M (587M). Hosted pricing stated: billed on input tokens only, $0.02/M for d1.2 and $0.042/M for d1.2-ultra, output free. Deprecation note: 'd1.1, d1-ultra, and the earlier d1 are deprecated' (docs.liquid.ai/lfm/help/deprecations.md). The page no longer states any free d1 tier or d1:free text-only tier, and states no paid rate for the old d1. Billing note now: 'A request is billed its state, images, and audio once, and each question adds its own tokens.'"
+  },
+  {
+   "id": "openrouter-decisions-catalog-2026-11-26",
+   "url": "https://openrouter.ai/api/v1/models?output_modalities=decisions",
+   "title": "OpenRouter model catalog, output_modalities=decisions (44 ids)",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl + parsed JSON. 44 decision-model ids (was 14 at the 2026-10-07 read). Liquid rows now: liquid/d1.2-ultra (prompt $0.000000042/token = $0.042/M, completion 0, created 2026-11-16), liquid/d1.2 ($0.00000002 = $0.02/M, completion 0, created 2026-11-16), liquid/d1-ultra ($0.042/M, input_cache_read $0.042/M, slug d1-ultra-20261015, created 2026-10-15), plus aliases ~liquid/d1-latest (-> liquid/d1.2, $0.02/M) and ~liquid/d1-ultra-latest (-> liquid/d1.2-ultra, $0.042/M). No liquid/d1 and no liquid/d1:free entry exists in the catalog any more, so the $0.04/M paid-d1 figure the old note cited is no longer stated. Artificial-analysis decision_index where present: d1.2 68.7, d1.2-ultra 74.8, d1-ultra 70.6."
+  },
+  {
+   "id": "sference-docs-models-2026-11-26",
+   "url": "https://www.sference.com/docs/models",
+   "title": "sference docs: Models",
+   "publisher": "sference",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "vendor_docs",
+   "notes": "Re-read 2026-11-26 by direct curl of the page HTML and parsed table rows. Decisions-models table row: 'Cloudflare/clef | 64K | $0.24 | —' (Input/Output columns; em-dash output = no output price) — unchanged. Decisions-models text now reads 'It answers up to 64 choice, score, or yes/no questions about one input in a single call, generates no text, and is billed on input tokens only' (the limit was 16 at the 2026-10-07 read); 'Rates are confirmed per model at account provisioning' still stated. Page now also lists chat models zai-org/GLM-5.3 ($1.20/$4.20, cached $0.26), deepseek-ai/DeepSeek-V4.1-Flash-1017 ($0.35/$1.32, cached $0.03), zai-org/GLM-5.3-Flash ($0.20/$0.60, cached $0.07), deepseek-ai/DeepSeek-V4-Flash-0731 ($0.28/$0.56, cached $0.07), plus aliases; priority (1.3x)/flex/batch modes for chat models and an off-peak window 22:00-06:00 Europe/Berlin. No 'EU GPUs' statement remains; no cached-input rate is published for Cloudflare/clef."
+  },
+  {
+   "id": "sference-docs-decisions-2026-11-26",
+   "url": "https://www.sference.com/docs/guides/decisions",
+   "title": "sference docs: Decisions guide",
+   "publisher": "sference",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "vendor_docs",
+   "notes": "Re-read 2026-11-26 by direct curl of the page HTML. States: 'ask up to 64 choice, score, or yes/no questions about one input' and 'questions: 1-64 named questions' (limit was 16 at the 2026-10-07 read); 'Only successful decisions are billed, at $0.24 per 1M input tokens. The input count includes the rendered questions.'; 'Decisions are realtime only. They don't support batches, background responses, or the flex tier.'; decisions run on Clef (Cloudflare/clef), a 27B model, 64K-token context, 13 MiB request limit; 'It generates no text, so you pay for input tokens only.'"
+  },
+  {
+   "id": "openai-decisions-guide-2026-11-26",
+   "url": "https://developers.openai.com/api/docs/guides/decisions.md",
+   "title": "OpenAI docs: Decisions API guide",
+   "publisher": "OpenAI",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "vendor_docs",
+   "notes": "Re-read 2026-11-26 by direct curl of the .md endpoint (Mozilla/5.0 UA) with a regex comparison against data/decision-model-catalog/pricing/openai-decisions-api-2026-10.json. Guide now opens: \"The Decisions API is now generally available\" (public beta at the 2026-10-07 read). Pricing and availability section states: \"With gpt-6-luna, uncached input costs $0.10 per 1M tokens. Prompt cache hits receive discounted input pricing; cache writes are charged. Cache-read and cache-write rates match the standard gpt-6-luna prompt caching rates. Output tokens are not charged.\" and \"Regional processing premiums and long-context input pricing multipliers apply.\" The former sentence \"there are no cache-read, cache-write, or output-token charges\" is gone. New since beta: prompt caching (implicit breakpoint, 1,024-token minimum prefix), images in question instructions, JSON input, up to 400 questions per request (up from 200), hosted image URLs, conversation history, org usage reporting, GPT-Live integration, Private Link. gpt-6-luna is still the only supported model; no benchmark, latency or calibration number is published."
+  },
+  {
+   "id": "openai-luna-model-page-2026-11-26",
+   "url": "https://developers.openai.com/api/docs/models/gpt-6-luna.md",
+   "title": "OpenAI docs: gpt-6-luna model page",
+   "publisher": "OpenAI",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "vendor_docs",
+   "notes": "Re-read 2026-11-26 by direct curl of the .md endpoint; figures compared with the stored decisions-pricing row. Text-token pricing table (standard tier): Input $0.1, Cached input $0.01, Cache writes $0.125, Output $0.5 per 1M tokens. Cross-checked the same day against /api/docs/pricing.md, whose gpt-6-luna standard row matches ($0.10 / $0.50 / $0.01 cached / $0.125 30m write) and adds a 12h cache-write tier at $0.25. \"Prompts with more than 272K input tokens are priced at 2x input and cache rates and 1.5x output for the full request.\" \"Regional processing adds a 10% premium where available.\" Batch/Flex at 50%, Fast at 2x. Context window 1,050,000; max input 922,000. The Decisions guide says Decisions cache-read and cache-write rates match these standard prompt-caching rates; that statement plus this page's printed rates are the source of the decisions row's cache_read_per_m 0.01 and cache_write_per_m 0.125."
+  },
+  {
+   "id": "typesafe-docs-models-2026-11-26",
+   "url": "https://docs.typesafe.ai/models.md",
+   "title": "TypeSafe docs: Models (price, context, aliases)",
+   "publisher": "TypeSafe AI",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "vendor_docs",
+   "notes": "Direct curl + read of the markdown page (typesafe.ai/pricing now 302-redirects here). Read 2026-11-26: two current models, jev-1.13.0 and new jev-1.14.0 (available from October 14, 2026; adds Box questions and images), both priced \"| Price (per Btok / per Mtok) | $42 / $0.042 |\", \"You pay per input token. Output tokens are free.\" Context 64k per-request / 32k per-question; optional long-context raises both to 262k tokens via the TypeSafe-Danger-Zone-Long-Context header at the same per-token price, slower and less accurate. Rate limits section NO LONGER states fixed caps (2026-10-07 it said 100K tokens/s, 80 requests/s, \"adjusting dynamically\"): limits are now per organization, shown in the developer console, higher on custom/enterprise plans; crossing returns 429. No per-request fee, no free tier, no caching rates published. Aliases jev-latest and jev-preview both point to jev-1.14.0."
+  },
+  {
+   "id": "jevaihub-pricing-2026-11-26",
+   "url": "https://www.jevaihub.com/pricing/",
+   "title": "Jev AI Hub: pricing (THIRD PARTY, not official TypeSafe)",
+   "publisher": "Jev AI Hub (independent, unaffiliated)",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_blog",
+   "notes": "Direct curl of the HTML page, tags stripped and text parsed. Page states \"Last verified: 2026-11-12. Updated: 2026-11-12.\" It repeats the official rate for Jev 1.13 and 1.14: $0.042 per million / $42 per billion input tokens, output free, charged per input token. The old \"40 requests per second\" snapshot (of 2026-09-30) is GONE: the page now says the public models page no longer lists fixed token or request caps and limits are per organization in the TypeSafe developer console (429 on crossing; SDKs retry with backoff). Vercel AI Gateway figure CHANGED: the page now reports a starting price of $0.04 per million input tokens (previously $0.042 under typesafe-ai/jev), still gateway-side and not verified directly. Still marked \"not affiliated with or endorsed by TypeSafe\"; used only to record conflicts, never as a price source."
+  },
+  {
+   "id": "openrouter-jev-doc-2026-11-26",
+   "url": "https://openrouter.ai/docs/guides/community/jev.md",
+   "title": "OpenRouter docs: Jev",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "vendor_docs",
+   "notes": "Direct curl + read of the markdown guide. Read 2026-11-26: the guide now centers on typesafe/jev-1.14 (~typesafe/jev-latest alias; typesafe/jev-1.13 still available). Key facts block: input text and images, \"Context length is 262,144 tokens\" (was 32,000 in the 2026-10-07 version), output tokens free, you pay per input token at the price on the model page (no price figure on this doc itself; defers to https://openrouter.ai/typesafe/jev-1.14). FAQ repeats: context window 262,144 tokens; requests with more than about 32,000 bytes of text, or any request with an image, run in TypeSafe's long-context mode, which is slower and less accurate. Box questions need jev-1.14 (Jev 1.13 rejects with 400). Two API surfaces: POST /api/alpha/decisions and POST /api/v1/systemone, one OpenRouter key. Page states 22 decision models from 13 makers as of October 16, 2026."
+  },
+  {
+   "id": "perplexity-decisions-quickstart-2026-11-26",
+   "url": "https://docs.perplexity.ai/docs/decisions/quickstart.md",
+   "title": "Perplexity docs: Decisions quickstart",
+   "publisher": "Perplexity",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "vendor_docs",
+   "notes": "Re-read 2026-11-26 by direct curl of the .md page (2543 bytes). The quickstart no longer states the Decisions price sentence (\"The Decisions API costs $0.02 per million input tokens. Output tokens are free, and there is no per-request fee.\") or the 10 requests/s rate limit; it now covers install, auth, and a first request only, and points to the pricing page and the Decisions docs page for pricing and rate limits. The $0.02 input / free output / no per-request fee figures are now stated on the pricing page (perplexity-pricing-2026-11-26) and the 10 req/s per org limit on the Decisions docs page (perplexity-decisions-docs-2026-11-26)."
+  },
+  {
+   "id": "perplexity-pricing-2026-11-26",
+   "url": "https://docs.perplexity.ai/docs/getting-started/pricing.md",
+   "title": "Perplexity docs: pricing",
+   "publisher": "Perplexity",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "vendor_docs",
+   "notes": "Re-read 2026-11-26 by direct curl of the .md page. Decisions API Pricing table: pplx-decider-v1.3 $0.02/1M input tokens, output tokens Free, per-request fee None; pplx-decider-flash-v1.3 $0.01; pplx-decider-v1.2 $0.02; pplx-decider-flash-v1.2 $0.01. Alias note states pplx-decider-v1.1-27b is a legacy alias of pplx-decider-v1-27b and both bill at $0.02, and pplx-decider-latest selects v1.3. No cache-read or cache-write rates are documented for Decisions models. Web grounding adds $0.001 per search and $0.0005 per successful URL fetch."
+  },
+  {
+   "id": "perplexity-decisions-docs-2026-11-26",
+   "url": "https://docs.perplexity.ai/docs/decisions/decisions.md",
+   "title": "Perplexity docs: Decisions API reference",
+   "publisher": "Perplexity",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "vendor_docs",
+   "notes": "Re-read 2026-11-26 by direct curl of the .md page. Rate limits section states verbatim: \"Each organization can send 10 requests per second; per-minute token limits are 15,000,000 for pplx-decider-v1.3 and pplx-decider-v1.2 and 4,000,000 for the Flash models.\" Read to verify the stored 10 requests/s per organization rate limit after the quickstart dropped its pricing/rate-limit text; the 10 req/s figure is unchanged."
+  },
+  {
+   "id": "requesty-benchmark-2026-11-26",
+   "url": "https://www.requesty.ai/blog/decision-model-benchmark-clef-sference-cloudflare-perplexity",
+   "title": "Requesty ~22k-decision benchmark: Clef, sference, Cloudflare, Perplexity",
+   "publisher": "Requesty",
+   "published": "2026-10-05",
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_blog",
+   "notes": "Re-read 2026-11-26 by direct curl of the blog HTML (datePublished 2026-10-05) plus tesseract OCR of the /20-cost-per-1k-items.png chart. The model table still lists perplexity/pplx-decider-v1-27b at $0.04/M input (free output, 262K context); the FAQ text still states \"the Perplexity decider is $0.04\"; the cost chart's perplexity decider bar is still labelled $0.023 per 1,000 items (article text rounds to \"$0.02 per 1,000 items\"). Both stored Requesty figures ($0.04/M listing, $0.023/1k billed) unchanged."
+  },
+  {
+   "id": "requesty-docs-decisions-2026-11-26",
+   "url": "https://docs.requesty.ai/features/decisions",
+   "title": "Requesty docs: Decisions",
+   "publisher": "Requesty",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "vendor_docs",
+   "notes": "2026-11-26 re-read via direct curl (Mozilla UA) + text extraction. Still marked Experimental; still non-streaming only (stream: true returns 400); questions response format unchanged. Still publishes NO prices on this page (no Jev, Clef or Perplexity price; cache rates remain not_published). Models table now lists typesafe/jev-1.14.0, cloudflare/clef (mentions faster variant cloudflare/clef-flash), perplexity/pplx-decider-v1.1-27b, openai/gpt-6-luna (Decisions endpoint only) and azure/decision-1 (Decisions endpoint only); GET /v1/models/decision returns the full current list."
+  },
+  {
+   "id": "hf-model-repos-2026-11-26",
+   "url": "https://huggingface.co/api/models",
+   "title": "Hugging Face model API and cards (one per repo; see each model hf_repo)",
+   "publisher": "Hugging Face / repo owners",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "model_card",
+   "notes": "Freshness re-read of the 15 self-hosted open-weight rows in pricing/self-hosted-open-weights-2026-10.json. How read: direct curl (-L -A Mozilla/5.0, 60 s timeout) of the per-repo endpoints https://huggingface.co/api/models/<owner>/<name>, parsed as JSON. Results: 14 repos returned 200 and confirmed every stored figure - cardData license strings equal the stored ones in HF canonical lowercase (apache-2.0 for clef, clef-flash, pplx-decider-v1-27b, pplx-decider-v1.1-27b, decider-2b, decider-4b, jebadiah-27b, winnow-12b, xor-26b-a4b, kev-27b, surogate/rune-26b-a4b-GGUF; mit for Eikos-27B-FP8; cc-by-nc-4.0 for jpt-4b and jpt-9b) and safetensors total parameter counts consistent with each name's size (e.g. clef 27.357B, clef-flash 9.41B, decider-2b 1.882B, kev-27b 25.625B, xor-26b-a4b 25.806B, rune-26b-a4b-GGUF 25.806B; winnow-12b lists no safetensors total, name-size not contradicted). No figure changed. michaljach/jet (jet-v6.2) returned HTTP 401 'Invalid username or password.' on the initial read and on two retries 60 s apart; calibration showed HF returns that exact 401 for a definitely-nonexistent repo while gated-but-public repos (e.g. surogate/rune-26b-a4b-GGUF, gated auto) return 200, and the author scope https://huggingface.co/api/models?author=michaljach now lists only michaljach/soulkiller - so the jet-v6.2 source page is gone from public view and its row was retired."
+  },
+  {
+   "id": "openrouter-decisions-catalog-perplexity-2026-11-26",
+   "url": "https://openrouter.ai/api/v1/models?output_modalities=decisions",
+   "title": "OpenRouter model catalog, output_modalities=decisions (44 ids)",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Re-read 2026-11-26 by direct curl + parsed JSON. 44 decision model ids (14 at the 2026-10-07 read). perplexity/pplx-decider-v1-27b is no longer listed. Current Perplexity decider ids and prompt prices: pplx-decider-v1.2 and ~perplexity/pplx-decider-latest at $0.00000002/token ($0.02/1M); pplx-decider-flash-v1.2 and ~perplexity/pplx-decider-flash-latest at $0.00000001/token ($0.01/1M); perplexity/pplx-decider-v1.3:free and pplx-decider-flash-v1.3:free at $0. All completions $0. OpenRouter's current decider prices now match the direct $0.02/1M; the earlier $0.04/1M conflict listing is gone."
+  },
+  {
+   "id": "streamdecisionbench-2026-11-26",
+   "url": "https://jacoblincool.github.io/StreamDecisionBench/data.json",
+   "title": "StreamDecisionBench data.json (arXiv 2609.38612)",
+   "publisher": "Jacob Lin (community)",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl of the board's data.json (generated from docs/figures/data.json at repo commit 21f9ded7) + parsed JSON; also fetched docs/figures/data.json at the pre-existing snapshot commit 8417fd92 via raw.githubusercontent.com and via the GitHub commits page to date changes. Source now lists 33 settings (was 30 at the 2026-10-07 snapshot); 480 states, 8 scenarios, 4 families; passes 3 except Wity-1 (1). New since snapshot, not stored: GeminiDecision (Gemini Decision 1, Decisions API) 72.71 untimed / 63.73 in-force, p50 0.533 s hosted; HaikuLow (Claude Haiku 5.5 low) 95.35 / 36.56, p50 3.66 s; HaikuNoThink (Claude Haiku 5.5 thinking off) 25.56 / 19.38, p50 1.439 s. All 21 stored settings are byte-identical between the snapshot commit and the current data.json; all 84 stored score rows and all claim-statement figures re-compared exactly (accuracies at 2 dp, latencies whole-ms roundings of p50_s/p95_s) and are unchanged."
+  },
+  {
+   "id": "hard-decisions-2026-11-26",
+   "url": "https://hard-decisions.anth.us/",
+   "title": "Hard-Decisions (ProofWriter depth curves)",
+   "publisher": "Anthus AI Solutions",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Freshness re-read of the Hard-Decisions board. Read by direct curl of the landing page (found /data/results.json link in the HTML) then direct curl + parsed JSON of https://hard-decisions.anth.us/data/results.json (generated 2026-11-16, record commit b324cd3, version 0.1.0; same tasks proofwriter-owa/proofwriter-cwa, 1,800 problems each). Compared all 60 stored score rows (overall, depth-0 and depth-5 accuracy for both tasks across jev, glide Oct-2 and Oct-3-rerun, gpt-6-luna effort-none, kev-9b/4b/0.8b, gliner-2.5-decide with and without instructions, laya), each score, n and CI bounds: all equal to 1-dp score / 3-dp CI rounding of the live values, zero changes. Also verified 12 narrative figures: Jev 83.8 open-world / 89.3 closed-world overall, depth-0 lead +4.3 and depth-5 lead +34.9 over Luna, Luna >=99%-stated correctness 68.7 open-world / 68.1 closed-world, Jev >=99%-stated 99.4 / 98.5, GLiDE rerun 76.4 vs 82.9 open-world, Jev closed-world depth-4 76.3 / depth-5 89.3: all unchanged. New at source (not added): a full study for the OpenAI Decisions API engine openai-decisions-gpt-6-luna (54.0 open-world overall). Operator still sells Jev-alignment services (conflict of interest unchanged)."
+  },
+  {
+   "id": "hf-typed-decisions-2026-11-26",
+   "url": "https://huggingface.co/datasets/LocalLLaMA/typed-decisions",
+   "title": "LocalLLaMA/typed-decisions (HF dataset card leaderboard)",
+   "publisher": "LocalLLaMA (community)",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Freshness re-read 2026-11-26: direct curl of the dataset page, raw README.md (repo commit 93e940ed, 2026-11-24) and the datasets API; figures parsed from the leaderboard tables. Zero-shot table now has 45 rows; stored rows unchanged: meraGPT Decider 1 (accuracy 0.768, KL 0.096, Brier 0.052, ECE 0.180, p50 526 ms, $0.03/1M), Liquid AI d1 d1:free (0.742, KL 0.475, Brier 0.155, ECE 0.124, 525 ms), TypeSafe Jev 1.13.0 (0.727, KL 1.442, Brier 0.148, ECE 0.144, 710 ms, $0.042/1M); teacher self-agreement ceiling still 0.735; test split still 400 cases / 2,000 decisions. The request-shape caveat (Jev yes/no 0.843 one-per-request vs 0.788 packed) was dropped from the card on 2026-10-22 (commit log). New on the card since 2026-10-01 and not stored: Quyet-1.0-Large 0.791 (new zero-shot #1, via Decision Models), strands-decider-31B-gemma4-v2-2611, signpost-d-9b/-4b, Baseten Mammoth 1 / Elephant 1, Amos 1 medium/large, pplx-decider-v1.1-27b, clef / clef-flash / clef-omni, FastBrain-9B, Qwen3.8-27B base, d3 family (d3, d3-mini, d3-turbo, d3-flash, d3-nano, d3-lite, d3-edge), openjev, JEV-35B/JEV-27B-VL/JEV-27B, linne-oak 1.0, jev-vision-27b, Darwin-27B-ZTC, d1-3B/d1-2B/d1-2B-OptiQ-4bit, THX-01, plus a 54-row fitted-on-train table (Rev-gen1 series, ZhiPan series, K-Decision-9B/-v2, TypeCraft ens3, Oko-Erabu, SAP RPT 1.6, etc.)."
+  },
+  {
+   "id": "morrenhale-benchmark-2026-11-26",
+   "url": "https://huggingface.co/datasets/morrenhale/decision-benchmark-jev-laya-julia",
+   "title": "morrenhale/decision-benchmark-jev-laya-julia (HF dataset, results.json)",
+   "publisher": "morrenhale (independent individual)",
+   "published": "2026-09-27",
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Freshness re-read 2026-11-26: direct curl + parsed JSON of results.json (resolve URL), README.md, the datasets API metadata and the three predictions/*.latency.jsonl files. Dataset repo lastModified 2026-09-27T18:45:45Z, unchanged since the 2026-09-27 run. All 212 stored figures re-checked equal: 198 stored scores (accuracy / macro-F1 / Brier / ECE for jev-1.13.0, laya, julia-1 across typed-decisions, AG News, Emotion, Banking77, MASSIVE, overall, and the typed-choice/score/noul and massive-en/non-en slices; p50/p95 serial-probe latency for all 11 scopes), plus 14 claim/notes figures (paired-bootstrap deltas 0.0065 / CI -0.0155..0.0285 / 0.3705; per-set accuracies Emotion 0.9255 vs 0.5885, AG News 0.9274 vs 0.8924, MASSIVE 0.3016/0.4022/0.6767, Banking77 0.3761/0.8001; 19,776 decisions per engine, 0 failures), and 250 latency-probe rows per engine (n=50 per dataset). Zero mismatches; nothing new at the source."
+  },
+  {
+   "id": "s1mb-blog-2026-11-26",
+   "url": "https://huggingface.co/blog/hotchpotch/system-one-mosaic-benchmark",
+   "title": "S1MB: System One Mosaic Benchmark",
+   "publisher": "hotchpotch (community)",
+   "published": "2026-09-30",
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_blog",
+   "notes": "Freshness re-read 2026-11-26: direct curl of the blog page, HTML stripped to text, figures extracted from the tables. Substantively unchanged: published September 30, 2026; results collected September 30, 2026; Jev 1.13 first with Borda 86.51 / Task Avg 59.59, bekko-system-one-v0-400m second at 76.21 / 50.60, Open-Jev-9B (ZefanCai) third at 72.54 / 52.10; 137 benchmarks (59 Noul, 57 Choice, 21 Score); training manifest and evaluation manifest share 77 subset names; Clef, Clef-flash, Perplexity deciders and OpenAI Decisions still absent. Changed vs the stored catalog file: the results snapshot now states 23 models, every one of which completed all 137 benchmarks (the file had recorded 95 complete models); the current generalization table covers the same 23 models and no longer mentions Liquid d1."
+  },
+  {
+   "id": "jevbench-v1-6-1-2026-11-26",
+   "url": "https://benchmarkheaven.com/api/jevbench/v1.6.1",
+   "title": "JevBench v1.6.1 (Benchmark Heaven) JSON API",
+   "publisher": "Benchmark Heaven",
+   "published": "2026-10-05",
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl + parsed JSON (1.35 MB). Endpoint still serves frozen JevBench v1.6.1 (revision_history v1.6.0/v1.6.1, amendment 5 Oct 2026, scorer score-v161-3/out-O1S scored 2026-10-06 00:39:36 UTC, status published, n_ranked 135 of 140 systems, roster_count 173, sample 300 open + 1,200 sealed). All 132 stored open-weight/hosted score values re-compared and equal (composite and capability to 2 dp; USD per decision from cost.usd_per_1000; latency from speed.p50_s_raw/p50_s_adjusted in ms), and the 12 wity-1/-always/-off plus 4 Fastino GLiNER-2.5-Decide hosted-tab rows match this endpoint at the tab's 1-dp rounding. 26 composite rank annotations shifted vs the 2026-10-06 snapshot after additions a7/a8/a11/a12 added 34 systems to the v1.6.1 board on 2026-10-07/08 (e.g. Jev 1.13.0 rank 2 to 5, Perplexity Decider v1.1 41 to 66, Clef 53 to 78, Laya 96 to 127; Sage 1.3.0 stays rank 1). Perplexity Decider v1.1 is still rank 1 by capability. Newer live benchmark versions exist (v1.6.2 to v1.6.43, v1.7.x, v1.8.x releases; see the hosted-api-table entry) but per the task brief this file stays the v1.6.1 record and only the v1.6.1 endpoint was used for comparison."
+  },
+  {
+   "id": "jevbench-hosted-api-table-2026-11-26",
+   "url": "https://benchmarkheaven.com/jev-models/api",
+   "title": "JevBench hosted-API status table",
+   "publisher": "Benchmark Heaven",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl of the HTML page (3.4 MB) + parsed row markup (aria-labels, bar/carry attributes). The page is no longer a v1.6.1-era API tab: since release v1.7.42 (2026-10-10) it is a filter view of one merged current board, now running JevBench method v1.8 (10-second decision limit per decision, GPU-time cost basis) with releases through v1.8.21 and a fourth regular draw dated 2026-11-22. It now shows re-measured rows (e.g. d1 (Liquid AI) composite 72.8, official rank 17, tagged new) and no longer states the stored v1.6.1-era hosted-tab figures for models not measured on the v1.6 pool (d1, OpenAI Decisions, Instinct, Vansa, GPT-6 Luna low/medium, Autoloops, Fastino GLiDE, GPT-5.6 Luna, Instinct Dual 4B, Gemini 3.1 Flash-Lite, DeepSeek V4.1 Flash, decision-machine-1, Qwen3.8-27B Chutes TEE); per the task brief those rows are kept unchanged as the v1.6.1 record. The stored wity-1 (auto/always/off) and Fastino GLiNER-2.5-Decide hosted-tab values were verified equal against /api/jevbench/v1.6.1 (70.8/79.1/$0.0236 per 1k/1.57 s, 70.6/79.3/1.69 s, 49.4/63.0/0.28 s, 0.3/34.6/$0.064/0.44 s). The archived release page /jev-models/v1.6.1 (open-weights board, 135 ranked rows) and its v1.5.x carry table (28 rows measured on v1.5.0, e.g. Qwen3.8-27B capability 96.8, 6.49 s) also do not restate those v1.6.1-era tab figures."
+  },
+  {
+   "id": "openrouter-page-cloudflare-clef-2026-11-26",
+   "url": "https://openrouter.ai/cloudflare/clef",
+   "title": "OpenRouter model page: Cloudflare: Clef",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl of the server-rendered HTML; stat tiles parsed from tag-stripped text. Latency P50 best provider 0.29 s (1W, all locations; was 0.51 s at the 2026-10-06 capture); Uptime (3d) 100.00%. Provider table: Prime Intellect $0.24 (0.29 s), DeepInfra 20% off $0.24 -> $0.192 (0.53 s), Cloudflare $0.24 (0.32 s), all uptime 100.00%."
+  },
+  {
+   "id": "openrouter-page-cloudflare-clef-flash-2026-11-26",
+   "url": "https://openrouter.ai/cloudflare/clef-flash",
+   "title": "OpenRouter model page: Cloudflare: Clef Flash",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl of the server-rendered HTML; stat tiles parsed from tag-stripped text. Latency P50 best provider 0.15 s (1W, all locations; was 0.17 s at the 2026-10-06 capture); Uptime (3d) 100.00%; Availability (3d) 99.99%. Provider table: DeepInfra 50% off $0.038 -> $0.019 (0.51 s), Prime Intellect $0.038 (0.31 s), Cloudflare $0.038 (0.15 s), all uptime 100.00%."
+  },
+  {
+   "id": "openrouter-page-inception-mercury-decide-free-2026-11-26",
+   "url": "https://openrouter.ai/inception/mercury-decide:free",
+   "title": "OpenRouter model page: Inception: Mercury Decide (free)",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl: the page is now a tombstone - a static description card (Price Free, Context 66K, released Sep 30, 2026) with no latency, uptime or provider-pricing tiles, and the model is gone from the catalog listing and rankings data."
+  },
+  {
+   "id": "openrouter-page-jaredpalmer-kev-4b-2026-11-26",
+   "url": "https://openrouter.ai/jaredpalmer/kev-4b",
+   "title": "OpenRouter model page: Jared Palmer: Kev 4B",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl of the server-rendered HTML; stat tiles parsed from tag-stripped text. Latency P50 best provider 0.73 s (1W, all locations; was 3.06 s at the 2026-10-06 capture); Uptime (3d) 100.00%."
+  },
+  {
+   "id": "openrouter-page-liquid-d1-2026-11-26",
+   "url": "https://openrouter.ai/liquid/d1",
+   "title": "OpenRouter model page: LiquidAI: d1",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl: the page is now a tombstone - a static description card (Context 66K, released Oct 1, 2026) with no latency, uptime or provider-pricing tiles; the model is gone from the catalog listing. The rankings page still holds its last weekly row (2,728,394, window ended 2026-11-20)."
+  },
+  {
+   "id": "openrouter-page-openai-gpt-6-luna-decisions-2026-11-26",
+   "url": "https://openrouter.ai/openai/gpt-6-luna-decisions",
+   "title": "OpenRouter model page: OpenAI: GPT-6 Luna Decisions",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl of the server-rendered HTML; stat tiles parsed from tag-stripped text. Latency P50 best provider 0.19 s (badge 1W, all locations; 3-day window at the 2026-10-06 capture); Uptime (3d) 100.00%; Availability (3d) 99.31%. Provider table: Azure BYOK only $0.10 (0.69 s, no uptime) and OpenAI $0.10 (0.19 s, 100.00%)."
+  },
+  {
+   "id": "openrouter-page-perplexity-pplx-decider-v1-27b-2026-11-26",
+   "url": "https://openrouter.ai/perplexity/pplx-decider-v1-27b",
+   "title": "OpenRouter model page: Perplexity: Decider V1 27B",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl: the page is now a tombstone - a static description card (Context 262K, released Oct 1, 2026) with no latency, uptime or provider-pricing tiles, and the model is gone from the catalog listing and rankings data. No figures remain on the page."
+  },
+  {
+   "id": "openrouter-page-respan-span-01-2026-11-26",
+   "url": "https://openrouter.ai/respan/span-01",
+   "title": "OpenRouter model page: Respan: Span-01",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl of the server-rendered HTML; stat tiles parsed from tag-stripped text. Latency P50 best provider 0.21 s (1W, all locations) - unchanged from the 2026-10-06 capture; Uptime (3d) 100.00%."
+  },
+  {
+   "id": "openrouter-page-respan-span-01-lite-2026-11-26",
+   "url": "https://openrouter.ai/respan/span-01-lite",
+   "title": "OpenRouter model page: Respan: Span-01 Lite",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl of the server-rendered HTML; stat tiles parsed from tag-stripped text. Latency P50 best provider 0.20 s (1W, all locations; was 0.18 s at the 2026-10-06 capture); Uptime (3d) 100.00%."
+  },
+  {
+   "id": "openrouter-page-respan-span-01-lite-free-2026-11-26",
+   "url": "https://openrouter.ai/respan/span-01-lite:free",
+   "title": "OpenRouter model page: Respan: Span-01 Lite (free)",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl of the server-rendered HTML; stat tiles parsed from tag-stripped text. Latency P50 best provider 0.38 s (1W, all locations); Uptime (3d) 100.00%; free Respan route. (No score row cites this page directly; the span-01-lite rows share it.)"
+  },
+  {
+   "id": "openrouter-page-togethercomputer-tev1-4b-experimental-2026-11-26",
+   "url": "https://openrouter.ai/togethercomputer/tev1-4b-experimental",
+   "title": "OpenRouter model page: Together: Tev1 4B Experimental",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl of the server-rendered HTML; stat tiles parsed from tag-stripped text. Latency P50 best provider 0.24 s (1W, all locations; was 0.35 s at the 2026-10-06 capture); Uptime (3d) 100.00%; Availability (3d) 98.60%."
+  },
+  {
+   "id": "openrouter-page-typesafe-jev-1-13-2026-11-26",
+   "url": "https://openrouter.ai/typesafe/jev-1.13",
+   "title": "OpenRouter model page: TypeSafe: Jev 1.13",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl of the server-rendered HTML; stat tiles parsed from tag-stripped text. Latency P50 best provider 0.13 s (1W, all locations; was 0.21 s at the 2026-10-06 capture); Uptime (3d) 100.00%. Provider table: two TypeSafe endpoints at $0.042, latencies 0.13 s and 0.14 s, uptime 100.00%."
+  },
+  {
+   "id": "openrouter-page-upstage-solar-decide-2026-11-26",
+   "url": "https://openrouter.ai/upstage/solar-decide",
+   "title": "OpenRouter model page: Upstage: Solar Decide",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl of the server-rendered HTML; stat tiles parsed from tag-stripped text. Latency P50 best provider 0.82 s (1W, all locations; was 17.3 s at the 2026-10-06 capture); Uptime (3d) 100.00%. Provider table: two Upstage endpoints, both 50% off $0.10 -> $0.05 with cache read $0.05, latencies 5.20 s and 0.82 s, uptime 100.00%."
+  },
+  {
+   "id": "openrouter-rankings-decisions-2026-11-26",
+   "url": "https://openrouter.ai/rankings/decisions",
+   "title": "OpenRouter: Decision Model Rankings (usage)",
+   "publisher": "OpenRouter",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl of the server-rendered page; weekly request volumes read from the embedded leaderboard rows (one row per model, window dated 2026-11-25): jev-1.13 880,960,377; jev-1.14 679,632,552; luna 27,081,321; clef-flash 12,286,432; clef 5,416,441; span-01-lite standard 3,868,268 (free variant 28,577); kev-4b 601,471; solar-decide 503,603; tev1-4b 215,037; span-01 77,748; liquid/d1 last row window-ended 2026-11-20 at 2,728,394 (model since delisted). No rows for pplx-decider-v1-27b or mercury-decide."
+  },
+  {
+   "id": "jev-decision-index-data-2026-11-26",
+   "url": "https://multimodalart-jev-decision-index.static.hf.space/data/index.json",
+   "title": "Jev Decision Index 0.4.1: index.json (generated 2026-11-21T14:35:36Z)",
+   "publisher": "multimodalart (community, unofficial)",
+   "published": "2026-11-21",
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl + parsed JSON (4.7 MB). Edition 0.4.1 (release-v4; panel_id still decision-index-0.3): Full score now private-only (0.60 private same-skills + 0.40 private new-domains, public benchmarks no longer count), GSM8K rebuilt, ForecastBench retired, 345 entrants plus a Jev 1.14 hosted reference row; the per-model v03 block is a 0.3-named view of CURRENT values, not history (v03.v == scores.balanced_skill, v03.pub == scores.public_skill for every model). Read to refresh the three di03 files: 60 stored models matched by engine id (59 exact + decider-chat-gemma-4-31b -> decider-chat-gemma4-31b) and re-compared: headline 902 figures / 245 changed (full score, new-domains part and both ranks moved for all 60), per-benchmark 2495 figures / 1 changed, hosted reference RTT 524/536.1 ms."
+  },
+  {
+   "id": "jev-decision-index-methodology-2026-11-26",
+   "url": "https://multimodalart-jev-decision-index.static.hf.space/data/methodology.json",
+   "title": "Jev Decision Index: methodology.json (edition v0.4.1 dated 2026-10-21; generated_utc still 2026-09-28)",
+   "publisher": "multimodalart (community, unofficial)",
+   "published": "2026-10-21",
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Direct curl + parsed JSON (294 KB). Edition block now v0.4.1 (label Decision Index 0.4.1, date 2026-10-21) although generated_utc still reads 2026-09-28T00:39:48Z. Changelog 0.3 -> 0.3.1 -> 0.3.2 (same-skill set scoring fix) -> 0.4 (private-only Full score) -> 0.4.1. latency-v1 protocol unchanged (frozen 2026-09-26, seed 20260926, 750 timed rows). Jev release-v1 http_wall suite stats still published and unchanged (http_wall_ms median 252.8 / p95 436.6; total_wall_ms median 949.5 / p95 3743.3), but per-benchmark benchmarks[].jev.http_median_ms / http_p95_ms are now all null, so the 98 stored per-benchmark Jev http rows were retired."
+  },
+  {
+   "id": "jev-decision-index-github-2026-11-26",
+   "url": "https://github.com/apolinario/decision-index",
+   "title": "Decision Index repository (reproduction kit; last push 2026-10-20: Decision Index 0.4 docs)",
+   "publisher": "apolinario / multimodalart",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Read via GitHub REST API (repo metadata + latest commits on main). Last push 2026-10-20T13:51:50Z, 'Merge pull request #247 from apolinario/edition-0.4 - Decision Index 0.4'; 105 stars, 112 open issues. The repo is the reproduce-locally / HF-Job submission path, not the data source: index.json and methodology.json on the hf.space static site remain the live board data."
+  },
+  {
+   "id": "jevbench-hosted-api-wayback-20261006-2026-11-26",
+   "url": "https://web.archive.org/web/20261006220238/https://benchmarkheaven.com/jev-models/api",
+   "title": "JevBench hosted-API status table (Internet Archive capture, 2026-10-06 22:02:38 UTC)",
+   "publisher": "Benchmark Heaven (via Internet Archive)",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Internet Archive capture of the pre-merge JevBench v1.6.1 hosted-API board (JSON-LD version v1.6.1; 22 ranked API rows plus OpenAI Decisions as a preliminary unranked row). Read by direct curl of the raw id_ capture (927 KB HTML) and parsed with python from data-bh-jev14-bar aria-labels and data-bh-jev14-capability-row tooltips. States 53 of the file's 56 hosted-API-tab figures at the tab's rounding: for liquid-d1, instinct, vansa-3.4, gpt-6-luna (low and medium), autoloops, fastino-glide, gpt-5.6-luna, instinct-dual-4b, gemini-3.1-flash-lite, deepseek-flash, decision-machine-1 and qwen3.8-27b (Chutes TEE) the composite (data-bh-jev14-bar-value), capability score, cost per 1,000 decisions and median hosted latency all equal the stored values (e.g. d1 73.0/74.4/$0.0173 per 1k/0.27 s; OpenAI Decisions latency 0.30 s). It does NOT state the other three stored OpenAI Decisions figures: this capture predates the 600-item A5 U P equated re-run and still shows 37.2 composite, 68.8 capability, $0.10 per 1k. It also states the hosted-table rank quotes in claim 1: Sage 74.0 official rank 1, Liquid d1 73.0 official rank 2, Jev 71.5 official rank 3."
+  },
+  {
+   "id": "jevbench-hosted-api-wayback-20261011-2026-11-26",
+   "url": "https://web.archive.org/web/20261011220704/https://benchmarkheaven.com/jev-models/api",
+   "title": "JevBench hosted-API status table (Internet Archive capture, 2026-10-11 22:07:04 UTC)",
+   "publisher": "Benchmark Heaven (via Internet Archive)",
+   "published": null,
+   "retrieved_at": "2026-11-26",
+   "kind": "third_party_eval",
+   "notes": "Internet Archive capture of the frozen JevBench v1.6.1 hosted-API board one day after the v1.7.42 (2026-10-10) merge, before the v1.8 re-measurement landed (JSON-LD version v1.6.1; 27 ranked API rows, 19 equated API re-runs, still linked to /api/jevbench/v1.6.1). Read by direct curl of the wayback-wrapped capture (1.9 MB HTML) and parsed with python from data-bh-jev14-bar aria-labels and data-bh-jev14-capability-row tooltips. States ALL 56 stored hosted-API-tab figures at the tab's rounding, including the equated OpenAI Decisions row (composite 62.5 with 95% interval 51.6 to 64.6, capability 73.5, $0.0517 per 1,000 decisions, 0.30 s p50; official rank 8 in that capture's 27-row table) and unchanged values for the other 13 models (e.g. d1 73.0/74.4/$0.0173 per 1k/0.27 s, qwen3.8-27b Chutes TEE 0.0/98.2/$2.1784 per 1k/7.09 s). This is the keeping citation for the three OpenAI Decisions figures the 2026-10-06 capture does not state."
   }
  ]
 }

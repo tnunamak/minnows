@@ -3,13 +3,14 @@
  "schema_version": 1,
  "kind": "performance",
  "provider": "morrenhale",
- "retrieved_at": "2026-10-07",
+ "retrieved_at": "2026-11-26",
  "source_urls": [
   "https://huggingface.co/datasets/morrenhale/decision-benchmark-jev-laya-julia"
  ],
- "notes": "Independent individual benchmark (HF dataset, CC-BY-4.0, open predictions): 19,776 decisions x 3 engines (TypeSafe Jev 1.13.0 hosted API, Laya 0.3.20 base zero-shot on Apple MPS, Julia-1-ONNX on onnxruntime CPU), 0 failures. This is where the \"published Jev\" numbers in the Requesty charts come from (Banking77 0.8001, AG News 0.8924, typed 0.732, MASSIVE 0.6767, Emotion 0.5885). LATENCY IS NOT COMPUTE-NORMALIZED: Jev is hosted API + network RTT, Laya runs on Apple MPS, Julia on CPU; do not rank them on latency. Accuracy phase had Jev partly 6-way concurrent. MASSIVE uses bare label names as criteria (hard zero-shot): the Julia-1 card 71.5% used scenario descriptions and is not comparable with the 0.402 measured here. Quality scored from argmax; metrics stored as percent (accuracy, macro-F1) and as published (Brier, ECE).",
+ "notes": "Independent individual benchmark (HF dataset, CC-BY-4.0, open predictions): 19,776 decisions x 3 engines (TypeSafe Jev 1.13.0 hosted API, Laya 0.3.20 base zero-shot on Apple MPS, Julia-1-ONNX on onnxruntime CPU), 0 failures. This is where the \"published Jev\" numbers in the Requesty charts come from (Banking77 0.8001, AG News 0.8924, typed 0.732, MASSIVE 0.6767, Emotion 0.5885). LATENCY IS NOT COMPUTE-NORMALIZED: Jev is hosted API + network RTT, Laya runs on Apple MPS, Julia on CPU; do not rank them on latency. Accuracy phase had Jev partly 6-way concurrent. MASSIVE uses bare label names as criteria (hard zero-shot): the Julia-1 card 71.5% used scenario descriptions and is not comparable with the 0.402 measured here. Quality scored from argmax; metrics stored as percent (accuracy, macro-F1) and as published (Brier, ECE). 2026-11-26 re-read: 212 figures compared, unchanged (results.json, README and serial-probe latency files re-read; dataset repo unchanged since 2026-09-27).",
  "source_ids": [
-  "morrenhale-benchmark"
+  "morrenhale-benchmark",
+  "morrenhale-benchmark-2026-11-26"
  ],
  "claims": [
   {
