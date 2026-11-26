@@ -157,9 +157,10 @@ def test_every_pool_spent_falls_back_to_a_paid_arm(world):
                     event('antigravity', ANTIGRAVITY_LIMIT, at=EVENT_AT, model=GEMINI),
                     event('antigravity', ANTIGRAVITY_LIMIT, at=EVENT_AT, model=SONNET)]
     out = route(world, *PUBLIC)
-    free = [t for t in out['routing']['trace'] if t['arm']['provider'] in ('opencode', 'antigravity') and t.get('instance')]
+    pooled = {DEEPSEEK_FREE, GEMINI, SONNET}  # GLM through OpenCode Go declares no allowance block, so it never exhausts
+    free = [t for t in out['routing']['trace'] if t['arm']['model'] in pooled and t.get('instance')]
     assert free and all(t['removed_by'] == 'allowance_exhausted' for t in free)
-    assert out['routing']['chosen']['arm']['provider'] in ('codex', 'claude')
+    assert out['routing']['chosen']['arm']['model'] not in pooled
 
 
 def test_a_limit_without_a_model_exhausts_only_an_unambiguous_pool(world):

@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "title": "GLM through OpenCode Go: owner allows it for public inputs",
+  "decision_date": "2026-11-26",
+  "evidence_status": "owner assertion; no gate sample, board or matched evaluation backs adequacy",
+  "owner": "Tim Nunamaker",
+  "statement": "GLM (opencode) is allowed",
+  "recorded_by": "Lead thread order of 2026-11-26 to declare GLM in the pack for public inputs only",
+  "scope": {
+    "operations": [
+      "implement.oracle-bounded"
+    ],
+    "work": "bounded work with a deterministic check: tests, repros, fixture refreshes and docs checks",
+    "inputs": "Public inputs only (--data-classification public). Private-repository inputs stay refused: the owner has not made that data decision.",
+    "review": "Output gets a different-vendor check before merge."
+  },
+  "pool": "OpenCode Go prepaid plan; its windows (5 hours, 7 days, monthly) do not fit a daily_utc or weekly allowance, so the declaration has no allowance block and route does not track exhaustion for it.",
+  "authorizes": [
+    {
+      "op": "implement.oracle-bounded",
+      "provider": "opencode",
+      "model": "opencode-go/glm-5.3",
+      "account": "opencode",
+      "efforts": [
+        "high"
+      ],
+      "proof_classes": [
+        "oracle"
+      ]
+    }
+  ]
+}
