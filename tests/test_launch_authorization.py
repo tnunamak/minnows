@@ -13,6 +13,9 @@ CLI = Path(os.environ.get('LAUNCH_AUTH_CLI', TOOL / 'model-policy-ops'))
 PACK = TOOL.parents[1] / 'data/model-choice-policy/operating-points.json'
 FIXTURES = Path(tempfile.mkdtemp(prefix='launch-authorization-'))
 
+TASK_DIGEST = 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+OTHER_DIGEST = 'sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+
 
 class LaunchAuthorizationTests(unittest.TestCase):
     def setUp(self):
@@ -25,19 +28,20 @@ class LaunchAuthorizationTests(unittest.TestCase):
                                     'overrides': identity.copy(), 'reason': 'synthetic bounded public review'},
                         'launch_facts': {'proof_class': 'judged'},
                         'data_policy': {'state': 'allowed_public_normal', 'route': self.target['model'],
-                                        'targets': [identity.copy()]}}
+                                        'targets': [identity.copy()], 'task_digest': TASK_DIGEST}}
         self.directory = Path(tempfile.mkdtemp(prefix='case-', dir=FIXTURES))
 
-    def run_bridge(self, target=None, extra=()):
+    def run_bridge(self, target=None, extra=(), task_digest=TASK_DIGEST):
         policy = self.directory / 'policy.json'
         ledger = self.directory / 'receipts.jsonl'
         policy.write_text(json.dumps(self.policy))
         ledger.write_text(json.dumps(self.receipt) + '\n')
         ledger.chmod(0o600)
         before = ledger.read_bytes()
+        digest_args = [] if task_digest is None else ['--task-digest', task_digest]
         proc = subprocess.run([sys.executable, str(CLI), 'authorize-launch', '--json', '--policy', str(policy),
                                '--receipts', str(ledger), '--decision-id', 'launch-auth-test',
-                               '--launch-target', json.dumps(target or self.target), *extra],
+                               '--launch-target', json.dumps(target or self.target), *digest_args, *extra],
                               text=True, capture_output=True, stdin=subprocess.DEVNULL, timeout=10,
                               env={**os.environ, 'PYTHONDONTWRITEBYTECODE': '1'})
         self.assertEqual(ledger.read_bytes(), before, 'authorization must never mutate the receipt ledger')
@@ -71,6 +75,39 @@ class LaunchAuthorizationTests(unittest.TestCase):
             with self.subTest(ready=ready):
                 self.receipt['launch_ready'] = ready
                 self.authorization(False)
+
+    def test_a_public_receipt_is_bound_to_the_exact_task_digest(self):
+        for sent, stored, reason in (
+            (OTHER_DIGEST, TASK_DIGEST, 'task_digest_mismatch'),
+            (None, TASK_DIGEST, 'task_digest_missing_in_call'),
+            (TASK_DIGEST, None, 'task_digest_missing_in_receipt'),
+        ):
+            with self.subTest(reason=reason):
+                policy = self.receipt['data_policy']
+                if stored is None:
+                    policy.pop('task_digest', None)
+                else:
+                    policy['task_digest'] = stored
+                proc = self.run_bridge(task_digest=sent)
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+                result = json.loads(proc.stdout)
+                self.assertIs(result['authorized'], False)
+                self.assertEqual(result['reason'], reason)
+
+    def test_bad_task_digest_is_a_usage_error(self):
+        proc = self.run_bridge(task_digest='sha256:BAD')
+        self.assertNotEqual(proc.returncode, 0, proc.stdout)
+        self.assertIn('sha256:<64 lowercase hex>', proc.stderr)
+        self.assertEqual(proc.stdout, '')
+
+    def test_existing_refusal_keeps_its_result_shape_with_a_matching_digest(self):
+        self.receipt['data_policy']['state'] = 'refused'
+        proc = self.run_bridge()
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(json.loads(proc.stdout), {
+            'schema_version': 1, 'decision_id': 'launch-auth-test',
+            'authorized': False, 'target': None,
+        })
 
     def test_sensitive_unknown_and_recorded_refusal_never_authorize(self):
         for classification in ('sensitive', None):

@@ -1,5 +1,7 @@
 """Resolve advisory policy into an explicit target without dispatch."""
 import json
+import argparse
+import re
 import copy
 import math
 import os
@@ -30,6 +32,12 @@ import cost_report
 from delegation_audit import read_db, read_export, audit, normalize_since
 
 
+def task_digest_argument(value):
+    if re.fullmatch(r'sha256:[0-9a-f]{64}', value) is None:
+        raise argparse.ArgumentTypeError('expected sha256:<64 lowercase hex> for the exact task text')
+    return value
+
+
 def add_arguments(parser):
     parser.add_argument('--available', metavar='FILE|auto')
     parser.add_argument('--quota', metavar='FILE|auto')
@@ -41,6 +49,8 @@ def add_arguments(parser):
     parser.add_argument('--reason')
     parser.add_argument('--decision-id')
     parser.add_argument('--launch-target', metavar='JSON', help='authorize-launch: exact target to authorize read-only against the current free-route policy')
+    parser.add_argument('--task-digest', type=task_digest_argument, metavar='sha256:<64 lowercase hex>',
+                        help='bind the public declaration to the exact task text sent at launch')
     parser.add_argument('--record', action='store_true')
     parser.add_argument('--task-link', metavar='JSON', help='explicit consumer task, workflow, stage and role; top-level metadata')
     parser.add_argument('--choice', metavar='JSON', help='bounded caller choice; a reason authorizes pacing only for the eligible routed model')
@@ -412,6 +422,9 @@ def execute_locked(args, policy, stack):
         return authorize_launch(args, policy)
     if getattr(args, 'launch_target', None) is not None:
         raise ValueError('--launch-target applies to authorize-launch only')
+    task_digest = getattr(args, 'task_digest', None)
+    if task_digest is not None and args.command not in ('route', 'resolve'):
+        raise ValueError('--task-digest applies to route, resolve and authorize-launch only')
     extensions = receipt_extensions(args)
     if extensions and args.command not in ('resolve', 'route'):
         raise ValueError('--task-link and --choice apply only to resolve or route')
@@ -730,6 +743,9 @@ def execute_locked(args, policy, stack):
     if routing_block and (return_value.get('target') or proposed_destination):
         return_value = withhold_unfunded(return_value, accounts, at, return_value.get('target') or proposed_destination)
     apply_experimental_route_policy(return_value, policy, at, available=available, destination_target=proposed_destination)
+    data_policy = return_value.get('data_policy') or {}
+    if task_digest is not None and data_policy.get('state') == 'allowed_public_normal':
+        data_policy['task_digest'] = task_digest
 
     if simulation:
         simulated = return_value['target']
@@ -1054,7 +1070,7 @@ def authorize_launch(args, policy):
     if (args.now is not None or args.record or args.available is not None or args.quota is not None
             or args.op is not None or args.sensitive or args.data_classification is not None
             or not args.decision_id or not args.launch_target):
-        raise ValueError('authorize-launch requires --decision-id and --launch-target only (plus --receipts/--policy/--json); '
+        raise ValueError('authorize-launch requires --decision-id and --launch-target (plus --task-digest, --receipts/--policy/--json); '
                          'changed safety facts require a new route or resolve receipt')
     validate_id(args.decision_id)
     target = launch_target_identity(json.loads(args.launch_target))
@@ -1076,5 +1092,13 @@ def authorize_launch(args, policy):
     state = (checked.get('data_policy') or {}).get('state')
     if (state == 'allowed_public_normal' and isinstance(checked.get('target'), dict)
             and launch_target_identity(checked['target']) == target):
+        stored_digest = checked['data_policy'].get('task_digest')
+        supplied_digest = getattr(args, 'task_digest', None)
+        if not stored_digest:
+            return {**result, 'reason': 'task_digest_missing_in_receipt'}
+        if supplied_digest is None:
+            return {**result, 'reason': 'task_digest_missing_in_call'}
+        if supplied_digest != stored_digest:
+            return {**result, 'reason': 'task_digest_mismatch'}
         result.update(authorized=True, target=target)
     return result
