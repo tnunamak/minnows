@@ -10,6 +10,7 @@
 //                 anywhere in the test corpus. KNOWN-WEAK (`by_name_only: true`): the B-inventory
 //                 measured that dynamic dispatch / table-driven suites make 0-by-name ≠ untested.
 //                 A lead for evidence-generation, never a coverage verdict.
+import { repoRootArtifact } from '../lib/profile.mjs';
 import { join } from 'node:path';
 import { walkSourceFiles } from '../lib/util.mjs';
 
@@ -102,7 +103,7 @@ export function collectTestSignals(inv) {
 
   return {
     generated_from: {
-      repo_root: ctx.repoRoot, repo_sha: ctx.git.sha,
+      repo_root: repoRootArtifact(ctx.git), repo_sha: ctx.git.sha,
       test_files: testFiles.length,
       note: 'static signals only — no test run, no mutation testing',
     },

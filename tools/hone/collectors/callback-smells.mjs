@@ -14,6 +14,7 @@
 //         concern; queue as a behavior-CHANGING proposal, never auto-land.
 //
 // Marker lists come from the repo profile (markers.security/storage/public_contract).
+import { repoRootArtifact } from '../lib/profile.mjs';
 import { matchDiag } from './ast-scope.mjs';
 import { markerHits } from '../lib/util.mjs';
 
@@ -90,7 +91,7 @@ export function collectCallbackSmells(inv) {
 
   return {
     generated_from: {
-      repo_root: inv.ctx.repoRoot, repo_sha: inv.ctx.git.sha, cog_threshold: cog,
+      repo_root: repoRootArtifact(inv.ctx.git), repo_sha: inv.ctx.git.sha, cog_threshold: cog,
       callbacks: rows.length, total_excess_mass: rows.reduce((s, r) => s + r.excess, 0),
       resolver: 'ast-scope (TS compiler API)',
     },

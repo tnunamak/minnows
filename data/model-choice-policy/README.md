@@ -10,14 +10,14 @@ contaminate pricing or benchmark evidence.
 
 | | |
 |---|---|
-| **This version** | [data-model-choice-policy-v0.2.8](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.8) — unreleased; published by CI after merge to main |
+| **This version** | [data-model-choice-policy-v0.2.12](https://github.com/tnunamak/minnows/releases/tag/data-model-choice-policy-v0.2.12) — unreleased; published by CI after merge to main |
 | **Latest** | [releases](https://github.com/tnunamak/minnows/releases?q=data-model-choice-policy&expanded=true) |
 | **Facts catalog** | [model-catalog](../model-catalog/) — pin is `catalog_ref` in the policy file |
 
 ```bash
 ./scripts/fetch-data-pack.sh model-choice-policy
 # or
-TAG=data-model-choice-policy-v0.2.8
+TAG=data-model-choice-policy-v0.2.12
 curl -fsSL -L \
   "https://github.com/tnunamak/minnows/releases/download/${TAG}/${TAG}.tar.gz" \
   | tar -xz
@@ -154,6 +154,27 @@ not silently route by model name.
 | `grok.explore-only` | grok / grok-4.7 / medium |
 
 ## Changelog
+
+### v0.2.12 — 2026-11-26
+
+- Repin to catalog v0.5.18 (pricing re-read; GPT-5.6 Sol promo extended to 2026-11-30). No primary operating point changes.
+- Free and prepaid allowance pools: a free route can carry an `allowance` (pool, reset period, provider limit message), and `route` remembers an exhausted pool until its reset (evidence: `evidence/allowance-owner-decision-2026-11-05.json`).
+- Declare GLM through OpenCode Go (`opencode-go/glm-5.3`) as an owner-authorized, public-input-only route for `implement.oracle-bounded` at high effort (evidence: `evidence/glm-owner-decision-2026-11-26.json`). No allowance block: the Go plan windows (5 h, 7 d, monthly) do not fit the `daily_utc` or `weekly` pool shapes.
+
+### v0.2.11 — 2026-10-29
+
+- Repin to catalog v0.5.17. It corrects Terra's derived input-cap note and records aggregate Intelligence benchmark costs at low, medium and high effort; these costs do not establish operation cost per success. No primary operating point changes.
+
+### v0.2.10 — 2026-10-29
+
+- Add GPT-6.1 Terra as an unvalidated Codex candidate at the operating-point efforts wherever GPT-6.1 Sol is already a primary or candidate: `fanout.explore` (medium), `implement.standard` (medium), `implement.quota-tight` (medium), `implement.accuracy-first` (high), `review.audit` (high), `advisor.deep` (high), and `ui.computer-use` (medium). Primary arms do not change. The catalog's Artificial Analysis Intelligence Index v5.0 and Terminal-Bench 4.0 comparison places Terra below Sol at every policy-allowed effort; neither board is task-specific validation.
+- Catalog pin: **v0.5.16**.
+
+### v0.2.9 — 2026-10-28
+
+- Pins catalog v0.5.16. No operating point changes. The catalog adds GPT-6.1 Terra, and no op uses it. Terra trails GPT-6.1 Sol at every effort the policy allows (low, medium, high), by 6 to 8 points on Artificial Analysis Intelligence Index v5.0 and by 9.6 to 15.7 points on Terminal-Bench 4.0. At max, which the policy does not allow, Terra is 4 points behind Sol on v5.0 and within 0.5 points on Terminal-Bench 4.0. AA also lists Terra's aggregate Intelligence cost per task at low, medium and high ($0.07, $0.17, $0.26); those are benchmark-run costs, not cost per success for an operation, so they do not change any pick.
+- OpenCode's `deepseek-v4.1-flash-free` route was still listed as free "for a limited time" with no end date on 2026-10-28. `free_as_of` stays at 2026-10-15 because this release does not re-evaluate the operating point's evidence.
+- DeepSeek's `deepseek-flash` id now serves the V4.1-Flash-1017 snapshot at unchanged rates (2026-10-17). The DeepSeek evidence dated 2026-10-15 predates that move; this release does not re-evaluate it.
 
 ### v0.2.7 — unreleased
 

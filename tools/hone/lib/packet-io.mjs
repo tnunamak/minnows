@@ -5,7 +5,8 @@
 // schema-validated AND YAML round-trip-verified so a malformed packet can never corrupt
 // the packet stream (the stream IS the engine's memory).
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { hostScrubber, scrubDeep } from './portable.mjs';
 import { parseYaml, stringifyYaml } from './yaml.mjs';
 import { assertValidPacket } from './validate-packet.mjs';
 import { deepEqual } from './util.mjs';
@@ -29,7 +30,15 @@ export function loadPacket(repoRoot, id) {
   return { packet: parseYaml(rawText), path, rawText };
 }
 
+// evidence_required[].command / expect_check are AUTHORED input: the executor rewrites foreign
+// paths at run time (portableRungCommand) and validate-packet lints them; everything else is
+// free text bound for a committed file and gets host paths scrubbed on the way out.
+const AUTHORED_RUNG_FIELDS = new Set(['command', 'expect_check']);
+const isAuthoredRungField = (p) => p[0] === 'evidence_required' && p.length >= 3 && AUTHORED_RUNG_FIELDS.has(p[2]);
+
 export function writePacket(path, packet) {
+  // packets live at <repo>/quality/packets/<id>.yaml
+  packet = scrubDeep(packet, hostScrubber(dirname(dirname(dirname(path)))), isAuthoredRungField);
   assertValidPacket(packet, packet.candidate_id);
   const yaml = stringifyYaml(packet);
   const back = parseYaml(yaml);

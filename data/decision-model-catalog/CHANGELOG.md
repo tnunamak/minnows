@@ -1,5 +1,18 @@
 # Decision model catalog changelog
 
+## v0.1.3 — 2026-11-26
+
+- Decision Index 0.4.1 rows now use `di04-*` metric ids; 0.3 rows keep `di03-*`. 63 new metrics are registered in `metrics.json` (each a copy of its `di03-*` twin with the 0.4.1 suite version, comparability group and score-row context); 3,556 score rows moved to them (902 headline, 159 latency, 2,495 per benchmark; 60 models). No score value changed. This closes the v0.1.2 note that `di03-*` ids still said 0.3.
+
+## v0.1.2 — 2026-11-26
+
+Freshness refresh (minnows #149). Every pricing and performance file older than 45 days was re-read at its source and re-dated `2026-11-26`, each with a dated `SOURCES.json` entry. New models and rows at the sources were listed but not added.
+
+- Values changed: Cloudflare `clef-flash` $0.090 to $0.038 per M input; OpenRouter `clef` $0.24 to $0.192; OpenAI Decisions cache read $0.01 and write $0.125 are now published; sference questions-per-request limit 16 to 64; JevBench v1.6.1 composite ranks (34 systems joined that board after the snapshot; no score changed); OpenRouter latency, weekly-request and uptime figures.
+- Removed because the source no longer states them: the Liquid d1 pricing file (`pricing/liquid-ai-api-2026-10.json`, only `d1:free`), three OpenRouter models (`pplx-decider-v1-27b`, `liquid-d1`, `mercury-decide`), `jet-v6.2` from the self-hosted open-weights file, the sference "EU GPUs" claim, Typesafe rate limits, and 98 Jev per-benchmark latency figures that the source leaves empty.
+- Kept on cited archives: 56 JevBench hosted-API figures that the live board no longer states; two web.archive.org captures of the frozen v1.6.1 board (2026-10-06, 2026-10-11) still state them.
+- Jev Decision Index: the live index is now 0.4.1 (it was 0.3). 60 of the 112 stored models carry 0.4.1 rows with their own `snapshot_id` and comparability group; the other 52 keep their 0.3 rows. The `di03-*` metric ids still say 0.3 in `metrics.json`.
+
 ## v0.1.1 — 2026-10-11
 
 Data corrections from reviewed fix PRs (#34, #36, #37, #40, #41, #46). No new models or sources.

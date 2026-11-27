@@ -8,7 +8,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { buildContext, HONE_ROOT } from './profile.mjs';
+import { buildContext, HONE_ROOT, repoRootArtifact } from './profile.mjs';
 import { buildInventoryContext } from './inventory.mjs';
 import { collectTierMass } from '../collectors/tier-mass.mjs';
 import { collectCallbackSmells } from '../collectors/callback-smells.mjs';
@@ -17,6 +17,7 @@ import { collectTestSignals } from '../collectors/test-signals.mjs';
 import { parseYaml, stringifyYaml } from './yaml.mjs';
 import { validatePacket } from './validate-packet.mjs';
 import { deepEqual } from './util.mjs';
+import { writePacket } from './packet-io.mjs';
 import { extractFencedJson } from '../providers/provider.mjs';
 import { makeRungExecutor } from './work.mjs';
 import { buildRung, dbTestRung, mutantKillRung, seamPinRung } from './rung-builder.mjs';
@@ -67,9 +68,9 @@ async function collectFreshMeasurements({ repoRoot, max, targetDirs }) {
   write('test-signals.json', testSignals);
   write('meta.json', {
     repo_sha: ctx.git.sha,
-    repo_root: ctx.repoRoot,
-    git_root: ctx.git.gitRoot,
-    profile_source: ctx.profileSource,
+    repo_root: repoRootArtifact(ctx.git), // committed artifact: git-root-relative, never the host path
+    git_root: '.',
+    profile_source: ctx.profileSourceArtifact,
     owned_dirs: inv.ownedDirs,
     cog_threshold: inv.cog,
     seam_cc: inv.seamCc,
@@ -155,7 +156,7 @@ export async function executePlanOrders({ repoRoot, max = 10, classFilter = 'bot
       continue;
     }
     const path = join(outDir, `${order.candidate_id}.yaml`);
-    writeFileSync(path, yaml);
+    writePacket(path, order); // validated + host paths scrubbed from free text
     written.push({ candidate_id: order.candidate_id, path, action: order.action, proof_class: order.proof_class });
   }
   for (const bad of invalid) {

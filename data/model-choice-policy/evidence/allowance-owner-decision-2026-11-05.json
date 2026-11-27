@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0",
+  "title": "Free and prepaid allowance pools: owner decision to use them every period",
+  "decision_date": "2026-11-05",
+  "evidence_status": "owner assertion; no gate sample, board or matched evaluation backs adequacy",
+  "owner": "Tim Nunamaker",
+  "statement": "we are failing to utilize free deepseek and antigravity consistently",
+  "scope": {
+    "operations": [
+      "implement.oracle-bounded",
+      "docs.lookup",
+      "review.first-pass"
+    ],
+    "work": "bounded work with a deterministic check: tests, repros, fixture refreshes, docs checks, and first-pass reviews",
+    "inputs": "DeepSeek free: public only. Antigravity: any repository content except credential or signing work (--sensitive refuses) and the prohibited inputs in the declaration.",
+    "review": "Output from these arms gets a different-vendor check before merge. A first-pass review is advisory."
+  },
+  "pools": {
+    "deepseek_free": "daily cap that resets at 00:00 UTC",
+    "antigravity_gemini": "weekly cap, prepaid",
+    "antigravity_claude_gpt": "separate weekly cap, prepaid, idle at 0% on 2026-11-05"
+  },
+  "observed_limit": {
+    "antigravity_message": "Usage Limit Reached... resets in N days",
+    "deepseek_message": "Free usage limit reached. Connect a provider or subscribe to OpenCode Go to keep going, or switch models.",
+    "handling": "A launch that fails with the pool's limit message marks the pool exhausted until its known reset; route falls through to the next arm."
+  },
+  "authorizes": [
+    {
+      "op": "review.first-pass",
+      "provider": "opencode",
+      "model": "opencode/deepseek-v4.1-flash-free",
+      "account": "opencode",
+      "efforts": [
+        "high"
+      ],
+      "proof_classes": [
+        "judged"
+      ]
+    },
+    {
+      "op": "implement.oracle-bounded",
+      "provider": "antigravity",
+      "model": "gemini-3.8-flash",
+      "account": "antigravity",
+      "efforts": [
+        "medium"
+      ],
+      "proof_classes": [
+        "oracle"
+      ]
+    },
+    {
+      "op": "docs.lookup",
+      "provider": "antigravity",
+      "model": "gemini-3.8-flash",
+      "account": "antigravity",
+      "efforts": [
+        "medium"
+      ],
+      "proof_classes": [
+        "oracle"
+      ]
+    },
+    {
+      "op": "implement.oracle-bounded",
+      "provider": "antigravity",
+      "model": "claude-sonnet-4-6",
+      "account": "antigravity",
+      "efforts": [
+        "medium"
+      ],
+      "proof_classes": [
+        "oracle"
+      ]
+    },
+    {
+      "op": "docs.lookup",
+      "provider": "antigravity",
+      "model": "claude-sonnet-4-6",
+      "account": "antigravity",
+      "efforts": [
+        "medium"
+      ],
+      "proof_classes": [
+        "oracle"
+      ]
+    },
+    {
+      "op": "review.first-pass",
+      "provider": "antigravity",
+      "model": "gemini-3.8-flash",
+      "account": "antigravity",
+      "efforts": [
+        "medium"
+      ],
+      "proof_classes": [
+        "judged"
+      ]
+    }
+  ]
+}

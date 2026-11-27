@@ -3,26 +3,28 @@
  "schema_version": 1,
  "kind": "api_usd",
  "agent": "other",
- "retrieved_at": "2026-10-07",
+ "retrieved_at": "2026-11-26",
  "source_urls": [
   "https://developers.openai.com/api/docs/guides/decisions.md",
   "https://developers.openai.com/api/docs/models/gpt-6-luna.md"
  ],
  "source_ids": [
   "openai-decisions-guide",
-  "openai-luna-model-page"
+  "openai-luna-model-page",
+  "openai-decisions-guide-2026-11-26",
+  "openai-luna-model-page-2026-11-26"
  ],
  "role": "reference",
- "notes": "OpenAI Decisions API (POST /v1/decisions, gpt-6-luna) price from developers.openai.com: \"With gpt-6-luna, input costs $0.10 per 1M tokens. You pay only for input tokens: there are no cache-read, cache-write, or output-token charges.\" \"Regional processing premiums and long-context input pricing multipliers apply.\" The Luna model page prices prompts above 272K input tokens at 2x for the full request. Public beta at retrieval (\"we expect to GA in the coming weeks\"); earlier research (2026-10-01/03) found no price and a 403, now superseded. This is a different SKU from the generative gpt-6-luna priced in model-catalog. Cache fields: cache_read_per_m and cache_write_per_m are null with cache_rates_status \"vendor_states_none_charged\": the vendor sentence quoted above (\"there are no cache-read, cache-write, or output-token charges\") is recorded as a quote only and is not converted into a numeric rate.",
+ "notes": "OpenAI Decisions API (POST /v1/decisions, gpt-6-luna) price from developers.openai.com: \"With gpt-6-luna, uncached input costs $0.10 per 1M tokens. Prompt cache hits receive discounted input pricing; cache writes are charged. Cache-read and cache-write rates match the standard gpt-6-luna prompt caching rates. Output tokens are not charged.\" \"Regional processing premiums and long-context input pricing multipliers apply.\" The Luna model page prices prompts above 272K input tokens at 2x input and cache rates (1.5x output) for the full request. Generally available at the 2026-11-26 re-read (\"The Decisions API is now generally available\"); public beta at the 2026-10-07 retrieval (\"we expect to GA in the coming weeks\"); earlier research (2026-10-01/03) found no price and a 403, now superseded. This is a different SKU from the generative gpt-6-luna priced in model-catalog. Cache fields: cache_read_per_m 0.01 and cache_write_per_m 0.125 with cache_rates_status \"published\": the Decisions guide states cache-read and cache-write rates match the standard gpt-6-luna prompt caching rates, and the Luna model page prints those standard rates (\"Cached input $0.01 1M tokens\", \"Cache writes $0.125 1M tokens\"; the pricing page also lists a 12h cache-write tier at $0.25, not used here). At the 2026-10-07 retrieval the guide instead said \"there are no cache-read, cache-write, or output-token charges\" and both cache fields were null \"vendor_states_none_charged\"; that sentence is gone. 2026-11-26 re-read: 8 figures compared, 2 changed: cache_read_per_m null to 0.01, cache_write_per_m null to 0.125 (prompt caching added at GA); input $0.10, output free, the 272K/2x long-context statement and the regional-premium statement unchanged.",
  "models": {
   "openai-decisions-gpt-6-luna": {
    "billing_basis": "per_token",
    "fresh_input_per_m": 0.1,
-   "cache_read_per_m": null,
-   "cache_write_per_m": null,
+   "cache_read_per_m": 0.01,
+   "cache_write_per_m": 0.125,
    "cache_rates_status": {
-    "cache_read": "vendor_states_none_charged",
-    "cache_write": "vendor_states_none_charged"
+    "cache_read": "published",
+    "cache_write": "published"
    },
    "output_per_m": 0.0,
    "confidence": "high",
@@ -32,7 +34,7 @@
     "openai-decisions-status-changed",
     "price-per-token-is-not-cost-per-decision"
    ],
-   "notes": "Input only; no per-request fee listed; regional processing premiums and long-context multipliers apply (not quantified here). Nicia estimated $0.017 per 85-case pass from 170,494 input tokens at this base rate."
+   "notes": "Uncached input $0.10/1M; prompt-cache hits discounted and cache writes charged at the standard gpt-6-luna prompt-caching rates (cache_read $0.01, cache_write $0.125); output tokens not charged; no per-request fee listed; regional processing premiums and long-context multipliers apply (not quantified for /v1/decisions on the guide; the Luna model page states a 10% regional premium for the model generally). Nicia estimated $0.017 per 85-case pass from 170,494 input tokens at this base rate."
   }
  },
  "match": [

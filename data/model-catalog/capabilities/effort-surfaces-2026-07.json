@@ -1684,6 +1684,60 @@
       "notes": "Codex model documentation describes reasoning controls from Light through Ultra and says Max/Ultra depend on plan/settings; Light maps to the CLI/API low label. The docs recommend starting with the effort available by default in the client and do not state one fixed GPT-6.1 Sol CLI default. CORRECTED 2026-09-30: local codex-cli 0.156.1 `codex debug models` did not return this model; codex-cli 0.159.2 on the same host lists it, and a `codex exec -m gpt-6.1-sol` run completed with the rollout recording `gpt-6.1-sol` as the served model. The CLI default effort for this model is still not locally verified. UPDATED 2026-10-07: codex-cli 0.161.0 `codex debug models` on this host lists gpt-6.1-sol with default_reasoning_level=low (levels low/medium/high/xhigh/max/ultra, service tier priority = Fast, visibility=list), so the CLI default is now locally verified as low (the same read shows gpt-6.1-sol and gpt-5.6-sol as the only low defaults; astra/sol/luna default medium). The Codex changelog (0.159.1, 0.161.0) states GPT-6.1 Sol is the default model in the bundled catalog. Auth-scoped host evidence; the vendor docs still do not state a fixed default."
     },
     {
+      "provider": "openai",
+      "model": "gpt-6.1-terra",
+      "surface": "api",
+      "valid_efforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "default_effort": "medium",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        }
+      ],
+      "source_ids": [
+        "openai-api-model-page-gpt-6-1-terra-2026-10-28"
+      ],
+      "notes": "API model page (read 2026-10-28) lists reasoning.effort none, low, medium (default), high, xhigh and max. No API Fast tier is recorded for Terra; not checked against the pricing page's Fast table this pass."
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-6.1-terra",
+      "surface": "codex_cli",
+      "valid_efforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "ultra"
+      ],
+      "default_effort": "low",
+      "unsupported_behavior": "hard_fail",
+      "aliases": {},
+      "modes": [
+        {
+          "mode_id": "standard"
+        },
+        {
+          "mode_id": "fast",
+          "notes": "Speed tier (service tier priority, shown as Fast, 1.5x speed); separate from reasoning effort."
+        }
+      ],
+      "source_ids": [
+        "codex-debug-models-0-165-0-2026-10-28"
+      ],
+      "notes": "Local `codex debug models` on codex-cli 0.165.0 (2026-10-28) lists gpt-6.1-terra with default_reasoning_level low, levels low through ultra, additional_speed_tiers [fast], context_window 500000 and max_context_window 872000. Auth-scoped host evidence, not a public document."
+    },
+    {
       "provider": "xiaomi",
       "model": "mimo-v2.6-pro",
       "surface": "api",

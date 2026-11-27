@@ -4,7 +4,7 @@
 // One biome run + one AST-model pass are shared across all collectors; churn is computed once.
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { buildContext } from './profile.mjs';
+import { artifactPath, buildContext, repoRootArtifact } from './profile.mjs';
 import { loadTS, buildFileModel } from '../collectors/ast-scope.mjs';
 import { resolveOwnedDirs, biomeFlaggedUniverse } from '../collectors/biome.mjs';
 import { collectTierMass } from '../collectors/tier-mass.mjs';
@@ -51,7 +51,9 @@ export async function buildInventoryContext(ctx, flags = {}) {
   };
   const rel = (p) => {
     const s = String(p);
-    return s.startsWith(ctx.repoRoot + '/') ? s.slice(ctx.repoRoot.length + 1) : s;
+    if (s.startsWith(ctx.repoRoot + '/')) return s.slice(ctx.repoRoot.length + 1);
+    // out-of-tree absolute path: never write it into a committed sensor file
+    return s.startsWith('/') ? artifactPath(s, ctx.git.gitRoot) : s;
   };
   const bodyText = (abs, startLine, endLine) => srcOf(abs).split('\n').slice(startLine - 1, endLine).join('\n');
 
@@ -97,9 +99,9 @@ export async function runInventory(flags) {
   write('test-signals.json', testSignals);
   write('meta.json', {
     repo_sha: ctx.git.sha,
-    repo_root: ctx.repoRoot,
-    git_root: ctx.git.gitRoot,
-    profile_source: ctx.profileSource,
+    repo_root: repoRootArtifact(ctx.git), // committed artifact: git-root-relative, never the host path
+    git_root: '.',
+    profile_source: ctx.profileSourceArtifact,
     owned_dirs: inv.ownedDirs,
     cog_threshold: inv.cog,
     seam_cc: inv.seamCc,

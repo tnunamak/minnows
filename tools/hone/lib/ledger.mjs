@@ -8,6 +8,7 @@
 
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { hostScrubber } from './portable.mjs';
 
 export const CLAIM_TYPES = ['verified_fact', 'judged_design_claim', 'behavior_preserved',
   'behavior_changed', 'hypothesis', 'uncertainty', 'remaining_work'];
@@ -150,7 +151,10 @@ function appendValidated(path, obj, errs, what) {
 }
 
 export function appendClaim(repoRoot, claim) {
-  appendValidated(claimsPath(repoRoot), claim, validateClaim(claim), 'CLAIM');
+  // claims.jsonl is committed: the statement is free text (judge/maker prose), scrub host paths
+  // here so every writer (terminal, review-batch, ...) is covered
+  const scrubbed = { ...claim, statement: hostScrubber(repoRoot)(claim.statement) };
+  appendValidated(claimsPath(repoRoot), scrubbed, validateClaim(scrubbed), 'CLAIM');
 }
 
 export function appendCostEntry(repoRoot, entry) {

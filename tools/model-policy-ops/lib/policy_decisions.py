@@ -1,14 +1,16 @@
 """Resolve advisory policy into an explicit target without dispatch."""
 import json
 import copy
+import math
 import os
 import sys
 import time
 import uuid
 from contextlib import ExitStack
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import allowance
 import normal_free_routes
 from runtime_sources import digest, read_source, providers, provider_instance, driver_family, resolve_arm, quota_context
 from decision_receipts import read_receipts, find_receipt, append_receipt, validate_id, replay_receipt, validate_escalation_source
@@ -41,7 +43,7 @@ def add_arguments(parser):
     parser.add_argument('--launch-target', metavar='JSON', help='authorize-launch: exact target to authorize read-only against the current free-route policy')
     parser.add_argument('--record', action='store_true')
     parser.add_argument('--task-link', metavar='JSON', help='explicit consumer task, workflow, stage and role; top-level metadata')
-    parser.add_argument('--choice', metavar='JSON', help='bounded parent workflow choice; descriptive only, never dispatch control')
+    parser.add_argument('--choice', metavar='JSON', help='bounded caller choice; a reason authorizes pacing only for the eligible routed model')
     parser.add_argument('--task-result', metavar='JSON', help='close: explicit whole-consumer-result claim at referenced evidence standard')
     parser.add_argument('--receipts', type=Path, default=Path(os.environ.get('XDG_STATE_HOME', Path.home() / '.local/state')) / 'model-policy/decisions.jsonl')
     parser.add_argument('--parent-model')
@@ -58,6 +60,10 @@ def add_arguments(parser):
     parser.add_argument('--critical-path', action='store_true', help='route launch fact: this work must not wait on quota pacing; with forecast bands and no other launchable pair, take the subscription with the least overshoot above its own band. Exhausted, unknown, avoided, unfunded and independence-failing pairs stay excluded')
     parser.add_argument('--inputs', choices=outcomes.INPUTS, help='launch fact: where the task inputs are; absent means unknown')
     parser.add_argument('--data-classification', choices=['public', 'sensitive'], help='free routes require an explicit public declaration')
+    parser.add_argument('--allowance-state', type=Path, help='allowance exhaustion state; default allowance-exhaustion.json beside --receipts')
+    parser.add_argument('--pool', help='allowance limit|clear: the allowance pool name on --account')
+    parser.add_argument('--account', help='allowance limit|clear: the T3 provider instance of the pool')
+    parser.add_argument('--message', help='allowance limit: the provider limit message that the failed launch returned; a "resets in N days" phrase sets the reset')
     parser.add_argument('--experimental-route', action='store_true', help='retired: the legacy experimental free route is no longer declared, so this flag only refuses; omit it and use the normal free route')
     parser.add_argument('--input-mode', choices=destinations.INPUT_MODES, help='route: how a typed destination gets local inputs; only caller-text, only with --inputs local')
     parser.add_argument('--sensitive', action='store_true', help='launch fact: the task touches credential or signing code; absent means unknown')
@@ -115,18 +121,20 @@ def quota_authorized_by(args, params):
 def normal_free_candidates(args, policy, at):
     """The normal (non-experimental) zero-price routes that this request may route to, as pack-style candidates.
 
-    The caller's assertions gate them: explicit public inputs, no sensitive flag, and the proof class the
-    declaration names. The declaration gates the rest: operation, effort and current evidence. There is no
+    The caller's assertions gate them: explicit public inputs when the declaration requires them (a route that
+    declares `any` needs no assertion), no sensitive flag or classification, and the proof class the declaration names. The declaration gates the rest: operation, effort and current evidence. There is no
     experimental flag and no expiry. The router applies its ordinary filters (catalog, exact effort surface,
     avoid, independence) and the account's cooldown.
 
     A `qualified_free` item is selected on its qualified evidence. An `unvalidated` item stays a judgment-
     required alternate: it is chosen only by the ordinary ranking or an explicit override with a reason.
     """
-    if args.command != 'route' or args.data_classification != 'public' or args.sensitive:
+    if args.command != 'route' or args.data_classification == 'sensitive' or args.sensitive:
         return []
     found = []
     for route in policy.get('free_routes', []):
+        if normal_free_routes.requires_public(route) and args.data_classification != 'public':
+            continue
         for item in route.get('operations', []):
             if item['id'] != args.op:
                 continue
@@ -141,13 +149,55 @@ def normal_free_candidates(args, policy, at):
     return found
 
 
+LIMIT_LOOKBACK_HOURS = 48
+
+
+def run_allowance(args, policy, at):
+    """`allowance status|limit|clear`: show, record or clear the exhaustion of a declared allowance pool."""
+    routes = policy.get('free_routes', [])
+    path = args.allowance_state or allowance.default_path(args.receipts)
+    if args.op == 'status':
+        failures = route_inputs.read_failures(args.db, at, policy.get('routing', {}).get('failure_lookback_minutes') or 0, LIMIT_LOOKBACK_HOURS)
+        rows = allowance.sync(path, routes, failures['limit_events'], at, write=False)
+        return {'now': at.isoformat(), 'state_path': str(path), 'pools': allowance.status(routes, rows, at)}
+    if not args.account or not args.pool:
+        raise ValueError(f'allowance {args.op} needs --account and --pool')
+    if args.op == 'limit':
+        if not args.message:
+            raise ValueError('allowance limit needs --message: the limit text that the failed launch returned')
+        until = directive_store.parse_time(args.until, '--until') if args.until else None
+        key, row = allowance.record(path, routes, account=args.account, pool=args.pool, message=args.message, at=at, until=until)
+        return {'pool': key, 'exhausted_until': row['until'], 'state_path': str(path)}
+    if args.op == 'clear':
+        return {'cleared': allowance.clear(path, routes, account=args.account, pool=args.pool), 'state_path': str(path)}
+    raise ValueError('allowance takes status, limit or clear')
+
+
+def record_cap_from_close(args, policy, close):
+    """A close whose `--note` reads as a cap notice exhausts the pool that served the decision.
+
+    The note is the caller's own report of what the arm returned ("Usage Limit Reached ... resets in 6 days"). The
+    pool is the declared one for the receipt's target account and model. A replayed close is skipped: its first
+    recording already stored the row. The event time is the close's `recorded_at`, so the reset is the provider's
+    stated one, counted from the close.
+    """
+    routes = policy.get('free_routes', [])
+    if not args.note or close.get('replayed') or not allowance.pools(routes):
+        return
+    target = (find_receipt(args.receipts, args.op) or {}).get('target') or {}
+    event = {'instance': target.get('providerInstanceId'), 'model': target.get('model'), 'kind': 'message', 'source': 'close_note',
+             'at': close['recorded_at'], 'message': args.note}
+    path = args.allowance_state or allowance.default_path(args.receipts)
+    allowance.sync(path, routes, [event], directive_store.now(), write=True)
+
+
 def route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack):
     """Run the router and add the evidence snapshot and calibration notes. No state commit."""
     params = policy.get('routing', {})
     accounts, accounts_meta = route_inputs.read_accounts(args.accounts)
     records = directive_store.read_directives(args.directives)
     max_days = params.get('directive_max_days')
-    failures = route_inputs.read_failures(args.db, at, params.get('failure_lookback_minutes'))
+    failures = route_inputs.read_failures(args.db, at, params.get('failure_lookback_minutes'), LIMIT_LOOKBACK_HOURS)
     model_catalog = route_inputs.read_model_catalog(args.model_catalog or route_inputs.default_model_catalog_path())
     lineage_key = params.get('lineage_key')
     fresh = route_inputs.freshness(policy, providers(available), model_catalog, lineage_key)
@@ -156,11 +206,17 @@ def route_choice(args, policy, op, available, available_meta, quota, quota_meta,
         maker = route_inputs.resolve_maker(args.receipts, args.maker, args.maker_model, args.db, available,
                                            route_inputs.known_providers(policy, available, lineage_key))
     line_of = lambda provider, model: route_inputs.line_of(provider, model, model_catalog, lineage_key)
+    routes = policy.get('free_routes', [])
+    exhausted = allowance.sync(args.allowance_state or allowance.default_path(args.receipts), routes, failures['limit_events'],
+                               at, write=not args.now)
+    vendors = {(route['provider'], route['model']): route['vendor'] for route in routes if route.get('vendor')}
     ctx = routing.make_context(op, params, available=available, available_meta=available_meta, quota=quota, quota_meta=quota_meta,
                                accounts=accounts, directives=directive_store.active(records, at, max_days), maker=maker,
                                independence=args.independence, proof_class=args.proof_class, line_of=line_of,
                                failures=failures, freshness=fresh, now=at, critical_path=args.critical_path,
                                free_candidates=normal_free_candidates(args, policy, at),
+                               exhausted_pools={key: row for key, row in exhausted.items() if allowance.active(exhausted, key, at)},
+                               vendor_of=lambda provider, model: vendors.get((provider, model), provider),
                                substitution=routing.substitution_context(params, accounts, quota, quota_meta, at, args.quota_state, write=not args.now,
                                                               authorized_by=quota_authorized_by(args, params), stack=stack))
     block = routing.route(op, params, ctx)
@@ -268,11 +324,32 @@ def wait_detail(block, critical_path):
     return detail
 
 
-def withhold_without_headroom(value, critical_path=False):
-    """With forecast bands, a routed subscription pair is dispatchable only with known positive headroom on an
-    account that is not held constrained, unless `pacing` already picked a launchable alternative or the caller's
-    critical-path exception. Unknown, stale, at-risk and hysteresis-held pairs wait. A metered pair (verified
-    overflow) and an explicit override are not judged here."""
+def observed_room_without_forecast(view, at, prior_hold):
+    """Current usable quota is not a forecast. Never erase an observed constraint."""
+    if (view.get('state') != 'snapshot' or view.get('source_state') != 'snapshot'
+            or view.get('pace_reason') != 'no_forecast_or_expired_window'
+            or view.get('forecast_absent') is not True or view.get('runout')
+            or view.get('exhausted') or not view.get('windows')
+            or (view.get('cache') or {}).get('stale')):
+        return False
+    if prior_hold:
+        reset = quota_substitution.parse_time(prior_hold.get('resets_at'))
+        if reset is None or reset > at:
+            return False
+    for window in view['windows']:
+        use = window.get('utilization')
+        reset = quota_substitution.parse_time(window.get('resets_at'))
+        if (window.get('projected_pct') is not None or window.get('state') == 'stale'
+                or isinstance(use, bool) or not isinstance(use, (int, float))
+                or not math.isfinite(use) or not 0 <= use < 100 or reset is None or reset <= at):
+            return False
+    return True
+
+
+def withhold_without_headroom(value, critical_path=False, *, choice=None, at=None, prior_hold=None):
+    """Withhold pacing risk, not genuine forecast absence with fresh observed room.
+    An explicit caller reason authorizes the eligible pair, not a different arm or
+    bypass of hard filters. Keep all uncertainty and judgment reasons."""
     block = value['routing']
     chosen = block['chosen']
     if not block['params'].get('quota_bands') or block['final']['overridden'] or not chosen:
@@ -282,6 +359,14 @@ def withhold_without_headroom(value, critical_path=False):
     row = next(t for t in block['trace'] if t['removed_by'] is None and t['candidate'] == chosen['candidate'] and t['instance'] == chosen['instance'])
     held = (((block.get('quota_substitution') or {}).get('active_accounts') or {}).get(chosen['instance']) or {}).get('state') in quota_substitution.ACTIVE_STATES
     if row['billing'] != 'subscription' or (chosen['pace'] == 'on_track' and not held):
+        return value
+    selected_waiting = ((choice or {}).get('schedule') or {}).get('state') == 'selected_waiting'
+    if choice and choice.get('reason') and not selected_waiting:
+        block['pacing_authorization'] = {'source': 'caller_choice', 'reason': choice['reason'],
+                                         'scope': 'pacing only; selected eligible model; quota uncertainty retained'}
+        return value
+    view = block['quota'][row['quota']['ref']]
+    if not selected_waiting and not held and observed_room_without_forecast(view, at, prior_hold):
         return value
     return withheld(value, 'no_forecast_headroom', WAIT_BASIS, 'wait_no_forecast_headroom',
                     {'instance': chosen['instance'], 'pace': chosen['pace'], 'held_constrained': held},
@@ -350,6 +435,11 @@ def execute_locked(args, policy, stack):
     if args.now and not (args.command in ('route', 'calibrate') or (args.command == 'directive' and args.op == 'list')):
         name = args.command + (f' {args.op}' if args.command == 'directive' else '')
         raise ValueError(f'--now is not allowed for {name}: it is a read-only simulation clock and {name} writes state with the real clock')
+    if args.command == 'allowance':
+        outcomes.refuse_shared_ledger(args.receipts, args.allowance_state or allowance.default_path(args.receipts), '--allowance-state')
+        return run_allowance(args, policy, at)
+    if args.allowance_state is not None and args.command not in ('route', 'close'):
+        raise ValueError('--allowance-state applies to route, close and allowance only')
     if args.command == 'directive':
         outcomes.refuse_shared_ledger(args.receipts, args.directives, '--directives')
         max_days = policy.get('routing', {}).get('directive_max_days')
@@ -376,7 +466,10 @@ def execute_locked(args, policy, stack):
     if args.command == 'observe':
         return observe.execute(args)
     if args.command in ('close', 'followup'):
-        return outcomes.execute(args)
+        result = outcomes.execute(args)
+        if args.command == 'close':
+            record_cap_from_close(args, policy, result)
+        return result
     if args.command == 'audit':
         if bool(args.db) == bool(args.export):
             raise ValueError('audit requires exactly one of --db or --export')
@@ -474,7 +567,8 @@ def execute_locked(args, policy, stack):
             raise ValueError('relaunch source receipt not found or self-linked')
         relaunch = {'from': args.relaunch_of, 'why': args.why}
     available, available_meta = read_source(args.available, ['t3code', '--json', 'models', 'list'], retry_timeout=True)
-    quota, quota_meta = read_source(args.quota, ['clawmeter', '--json'])
+    quota_arg = 'auto' if route and policy.get('routing', {}).get('quota_bands') and args.quota is None else args.quota
+    quota, quota_meta = read_source(quota_arg, ['clawmeter', '--json'])
     if available_meta['state'] == 'snapshot' and not providers(available):
         available_meta['state'] = 'schema_mismatch'
     request.update({'available': available_meta, 'quota': quota_meta})
@@ -628,7 +722,11 @@ def execute_locked(args, policy, stack):
                                    'catalog unavailable; supply --available auto or a fresh catalog file and route again',
                                    'wait_catalog_unavailable', available_meta)
         else:
-            return_value = withhold_without_headroom(return_value, args.critical_path)
+            prior = (((ctx.get('substitution') or {}).get('state') or {}).get('_prior') or {})
+            chosen = routing_block['chosen']
+            return_value = withhold_without_headroom(
+                return_value, args.critical_path, choice=extensions.get('choice'), at=at,
+                prior_hold=prior.get(chosen['instance']) if chosen else None)
     if routing_block and (return_value.get('target') or proposed_destination):
         return_value = withhold_unfunded(return_value, accounts, at, return_value.get('target') or proposed_destination)
     apply_experimental_route_policy(return_value, policy, at, available=available, destination_target=proposed_destination)
@@ -721,7 +819,7 @@ def dispatch_identities(result, available=None, destination_target=None):
         if provider is None and account == 'opencode':
             provider = 'opencode'
         options = target.get('options') or {}
-        effort = next((options[key] for key in ('effort', 'reasoningEffort', 'thinking', 'variant') if key in options),
+        effort = next((options[key] for key in ('effort', 'reasoningEffort', 'thinking', 'variant', 'thinking_level') if key in options),
                       None)
         identity = {'provider': provider, 'model': model, 'account': account, 'effort': effort}
         if identity not in identities:
@@ -775,8 +873,10 @@ def normal_target_refusal(identity, request, sensitive, routes, evaluated_at, *,
         return model_route, ('account_not_declared_for_normal_route' if model_route else 'model_not_declared_for_normal_route')
     if sensitive:
         return route, 'sensitive_inputs'
-    if request.get('data_classification') != 'public':
+    if normal_free_routes.requires_public(route) and request.get('data_classification') != 'public':
         return route, 'public_classification_required'
+    if request.get('data_classification') == 'sensitive':
+        return route, 'sensitive_inputs'
     if generic_destination:
         return route, 'governed_destination_unsupported'
     op = request.get('op')

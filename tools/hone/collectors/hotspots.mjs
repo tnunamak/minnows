@@ -11,6 +11,7 @@
 //
 // Files matching the profile's nogo_path_pattern are RANKED AND FLAGGED, never hidden
 // (essential security complexity: classify + flag, don't auto-target).
+import { repoRootArtifact } from '../lib/profile.mjs';
 import { join } from 'node:path';
 import { walkSourceFiles } from '../lib/util.mjs';
 
@@ -53,7 +54,7 @@ export function collectHotspots(inv) {
 
   return {
     generated_from: {
-      repo_root: ctx.repoRoot, repo_sha: ctx.git.sha, window: inv.window,
+      repo_root: repoRootArtifact(ctx.git), repo_sha: ctx.git.sha, window: inv.window,
       cog_threshold: inv.cog, scan_depth: depth, files_considered: files.length,
       note: 'score = churn × (1+cog) × (1+coupling/10); size is context, never a gate; nogo files ranked+flagged, not hidden',
     },

@@ -5,13 +5,31 @@
 // no-go path pattern, biome invocation, thresholds) lives in <repo>/quality/hone.yaml,
 // deep-merged over profiles/default.yaml. See tools/hone/README.md for the format.
 import { readFileSync, existsSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import { parseYaml } from './yaml.mjs';
 import { deepMerge, makeSh } from './util.mjs';
 
 export const HONE_ROOT = dirname(dirname(fileURLToPath(import.meta.url))); // tools/hone
+
+/**
+ * ARTIFACT BOUNDARY: runtime context keeps absolute paths (reads, subprocess cwd); anything
+ * written into a committed quality/ artifact goes through these so it names no machine.
+ *   repoRootArtifact  the hone repo, relative to the git root ('.' at the root, else the prefix)
+ *   artifactPath      a file, relative to the git root; the engine's own files become
+ *                     $HONE_ROOT/… (readers resolve to the running engine); a path in neither
+ *                     collapses to its basename so no foreign directory leaks.
+ */
+export const repoRootArtifact = (git) => git.prefix || '.';
+
+export function artifactPath(abs, gitRoot) {
+  const p = resolve(abs);
+  const under = (root) => p === root || p.startsWith(root + '/');
+  if (under(gitRoot)) return relative(gitRoot, p) || '.';
+  if (under(HONE_ROOT)) return '$HONE_ROOT' + p.slice(HONE_ROOT.length);
+  return basename(p);
+}
 
 export function loadProfile(repoRoot) {
   const defPath = join(HONE_ROOT, 'profiles', 'default.yaml');
@@ -21,10 +39,10 @@ export function loadProfile(repoRoot) {
     const over = parseYaml(readFileSync(repoProfilePath, 'utf8'));
     const profile = deepMerge(def, over);
     validateAgendaProjection(profile.agenda, repoProfilePath);
-    return { profile, source: repoProfilePath };
+    return { profile, source: repoProfilePath, note: '' };
   }
   validateAgendaProjection(def.agenda, defPath);
-  return { profile: def, source: `${defPath} (no quality/hone.yaml in repo — generic defaults)` };
+  return { profile: def, source: defPath, note: ' (no quality/hone.yaml in repo — generic defaults)' };
 }
 
 /**
@@ -75,7 +93,11 @@ export function gitFacts(repoRoot) {
 export function buildContext(repoArg) {
   const repoRoot = resolve(repoArg || process.cwd());
   if (!existsSync(repoRoot)) throw new Error(`--repo path does not exist: ${repoRoot}`);
-  const { profile, source } = loadProfile(repoRoot);
+  const { profile, source, note } = loadProfile(repoRoot);
   const git = gitFacts(repoRoot);
-  return { repoRoot, profile, profileSource: source, git, sh: makeSh(repoRoot) };
+  return {
+    repoRoot, profile, git, sh: makeSh(repoRoot),
+    profileSource: source + note, // runtime/log form
+    profileSourceArtifact: artifactPath(source, git.gitRoot) + note, // committed-artifact form
+  };
 }

@@ -3,15 +3,16 @@
  "schema_version": 1,
  "kind": "api_usd",
  "agent": "other",
- "retrieved_at": "2026-10-07",
+ "retrieved_at": "2026-11-26",
  "source_urls": [
   "https://huggingface.co/api/models"
  ],
  "source_ids": [
-  "hf-model-repos"
+  "hf-model-repos",
+  "hf-model-repos-2026-11-26"
  ],
  "role": "reference",
- "notes": "Open-weight decision models: no vendor price. billing_basis self_host; cost per decision is a function of your GPU/CPU cost, utilization, state length and question packing (see local CPU measurements for scale). License strings are the Hugging Face cardData field and not verified against LICENSE files; JPT is CC-BY-NC-4.0 (non-commercial). The independent JevBench board prices self-hosted rows from a base-model reference, not from tariffs (see the JevBench doc).",
+ "notes": "Open-weight decision models: no vendor price. billing_basis self_host; cost per decision is a function of your GPU/CPU cost, utilization, state length and question packing (see local CPU measurements for scale). License strings are the Hugging Face cardData field and not verified against LICENSE files; JPT is CC-BY-NC-4.0 (non-commercial). The independent JevBench board prices self-hosted rows from a base-model reference, not from tariffs (see the JevBench doc). 2026-11-26 re-read: per-model HF API endpoints (huggingface.co/api/models/<owner>/<name>) checked for every row's repo; 14 rows re-read (existence, cardData license, safetensors parameter totals vs the size in each model name), all unchanged; jet-v6.2 retired because its repo michaljach/jet now returns 401 (HF's response for repos no longer publicly available; the author's only public model is now michaljach/soulkiller), so its row and match entry were removed.",
  "models": {
   "clef": {
    "billing_basis": "self_host",
@@ -106,15 +107,6 @@
    ],
    "notes": "Open weights, license Apache-2.0: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone)."
   },
-  "jet-v6.2": {
-   "billing_basis": "self_host",
-   "source_id": "hf-model-repos",
-   "confidence": "medium",
-   "caveat_ids": [
-    "self-hosting-friction-and-hardware-reality"
-   ],
-   "notes": "Open weights, license Apache-2.0: no license fee; cost is hardware and serving only (not computed here). Hardware reality: see capability and caveat notes (e.g. Clef 27B needs about 54 GB VRAM in bf16 per an independent report; community GGUF quants of Clef cover only the language backbone)."
-  },
   "jpt-4b": {
    "billing_basis": "self_host",
    "source_id": "hf-model-repos",
@@ -195,10 +187,6 @@
   {
    "pattern": "xor-26b-a4b",
    "model": "xor-26b-a4b"
-  },
-  {
-   "pattern": "jet-v6.2",
-   "model": "jet-v6.2"
   },
   {
    "pattern": "jpt-4b",

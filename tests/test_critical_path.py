@@ -92,10 +92,21 @@ def test_unknown_and_stale_accounts_have_no_overshoot(world):
     assert pick(route(world, CRITICAL))[0] == 'claudeAgent'
 
 
-def test_with_no_known_overshoot_critical_path_still_waits_and_says_why(world):
+def test_critical_path_missing_forecast_with_live_room_keeps_pace_unknown(world):
     for provider in world.quota['providers'].values():
         for source in provider.get('sources', [provider]):
             source['forecast']['windows'].clear()
+    out = route(world, CRITICAL)
+    assert out['target'] is not None and out['launch_ready'] is True and 'waiting' not in out
+    assert out['routing']['chosen']['pace'] == 'unknown' and out['routing']['judgment_required']
+    assert 'pace_not_on_track' in codes(out) and 'critical_path_pacing_exception' not in codes(out)
+
+
+def test_with_no_readings_critical_path_still_waits_and_says_why(world):
+    for provider in world.quota['providers'].values():
+        for source in provider.get('sources', [provider]):
+            source['forecast']['windows'].clear()
+            source['usage']['windows'].clear()
     out = route(world, CRITICAL)
     assert out['target'] is None and out['launch_ready'] is False and 'dispatch' not in out
     assert out['waiting']['critical_path']['satisfied'] is False and pacing(out)['state'] == 'critical_path_no_known_candidate'

@@ -54,7 +54,8 @@ def build_db(path, events, items=(), runs=()):
         db.execute(f'CREATE TABLE {PREFIX}runs (run_id TEXT, provider_instance_id TEXT, payload_json TEXT)')
         for number, event in enumerate(events):
             run = f'run-{number}'
-            db.execute(f'INSERT INTO {PREFIX}runs VALUES (?,?,?)', (run, event['instance'], '{}'))
+            db.execute(f'INSERT INTO {PREFIX}runs VALUES (?,?,?)',
+                       (run, event['instance'], json.dumps({'modelSelection': {'model': event['model']}}) if event.get('model') else '{}'))
             payload = {'startedAt': event['startedAt'], 'title': 'Provider error', 'failure': {'class': event['class'], 'message': event['message']}}
             db.execute(f'INSERT INTO {PREFIX}turn_items VALUES (?,?,?,?,?,?,?)',
                        (f'turn-item:provider:x:native-item:terminal-failure%3A{number}', 't', run, 'error', event['status'], event['startedAt'], json.dumps(payload)))
@@ -67,8 +68,8 @@ def build_db(path, events, items=(), runs=()):
         db.close()
 
 
-def event(instance, message, status='failed', klass='provider_error', at='2026-10-10T00:20:00.000Z'):
-    return {'instance': instance, 'status': status, 'startedAt': at, 'class': klass, 'message': message}
+def event(instance, message, status='failed', klass='provider_error', at='2026-10-10T00:20:00.000Z', model=None):
+    return {'instance': instance, 'status': status, 'startedAt': at, 'class': klass, 'message': message, **({'model': model} if model else {})}
 
 
 RATE = 'Claude API rate limit reached. Try again later.'

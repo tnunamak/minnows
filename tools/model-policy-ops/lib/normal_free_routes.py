@@ -18,7 +18,7 @@ only checks that each named evidence file exists beside the pack.
 """
 import json
 import re
-from datetime import date
+from datetime import date, datetime
 
 PROOF_CLASSES = ('oracle', 'judged', 'none')
 EFFORTS = ('low', 'medium', 'high', 'xhigh', 'max')
@@ -36,11 +36,16 @@ AUTH_DOC_STATES = {'inconclusive', 'none_documented', 'required_documented'}
 REQUIRED_PROHIBITED_INPUTS = {
     'private_repositories', 'PDPP_data', 'secrets', 'Jev_text', 'personal_data',
 }
-STATUS = re.compile(r'^free_as_of_(\d{4}-\d{2}-\d{2})$')
+STATUS = re.compile(r'^(?:free|prepaid)_as_of_(\d{4}-\d{2}-\d{2})$')
 ROUTE_KEYS = {
     'provider', 'model', 'account', 'status', 'cost_usd', 'authentication', 'rate_limits',
     'effort_option', 'effort_values_source', 'data_policy', 'known_risks', 'evidence', 'operations',
 }
+OPTIONAL_ROUTE_KEYS = {'allowance', 'vendor'}
+ALLOWANCE_PERIODS = ('daily_utc', 'weekly')
+# What a route's data policy may require. `public` means the caller must assert public inputs. `any` means the
+# route may take non-public inputs but still refuses credential and signing work (`--sensitive`).
+CLASSIFICATIONS = ('public', 'any')
 REQUIRED_KNOWN_RISKS = {
     'shared_server_host_tools', 'injected_t3_thread_read_private_thread_access',
 }
@@ -84,6 +89,11 @@ def is_current(route, evaluated_at):
     if len(accessed) != len(evidence) or any(value is None for value in accessed):
         return False
     return observed <= evaluated_at.date() and all(value <= evaluated_at.date() for value in accessed)
+
+
+def requires_public(route):
+    """True when the caller must assert public inputs. A route that declares `any` needs no such assertion."""
+    return route['data_policy']['classification_required'] == 'public'
 
 
 def declared(routes, provider, model):
@@ -140,8 +150,8 @@ def check_normal_free_routes(routes):
     errors, seen = [], set()
     for index, route in enumerate(routes):
         label = f'free_routes[{index}]'
-        if not isinstance(route, dict) or set(route) != ROUTE_KEYS:
-            errors.append(f'{label} must be an object with exactly {", ".join(sorted(ROUTE_KEYS))}')
+        if not isinstance(route, dict) or not ROUTE_KEYS <= set(route) <= ROUTE_KEYS | OPTIONAL_ROUTE_KEYS:
+            errors.append(f'{label} must be an object with {", ".join(sorted(ROUTE_KEYS))} and at most {", ".join(sorted(OPTIONAL_ROUTE_KEYS))}')
             continue
         identity = (route['provider'], route['model'], route['account'])
         if any(not isinstance(value, str) or not value for value in identity):
@@ -161,6 +171,10 @@ def check_normal_free_routes(routes):
                 errors.append(f'{label}.{key} must be a non-empty string')
         errors.extend(_data_policy_errors(route['data_policy'], f'{label}.data_policy'))
         errors.extend(_known_risk_errors(route['known_risks'], f'{label}.known_risks'))
+        if 'allowance' in route:
+            errors.extend(_allowance_errors(route['allowance'], f'{label}.allowance'))
+        if 'vendor' in route and (not isinstance(route['vendor'], str) or not route['vendor']):
+            errors.append(f'{label}.vendor must be a non-empty string: the vendor that trained the model, for checker independence')
         errors.extend(_evidence_errors(route['evidence'], f'{label}.evidence'))
         errors.extend(_operation_errors(route['operations'], label))
     return errors
@@ -179,20 +193,47 @@ def _rate_limit_errors(value, label):
     return [f'{label} must be unknown or a non-empty sourced object']
 
 
+def _allowance_errors(value, label):
+    keys = {'pool', 'period', 'limit_markers'}
+    if not isinstance(value, dict) or not keys <= set(value) <= keys | {'anchor'}:
+        return [f'{label} needs pool, period and limit_markers (and anchor for a weekly period)']
+    errors = []
+    if not isinstance(value['pool'], str) or not re.fullmatch(r'[a-z0-9][a-z0-9-]*', value['pool']):
+        errors.append(f'{label}.pool must be a lowercase slug')
+    if value['period'] not in ALLOWANCE_PERIODS:
+        errors.append(f'{label}.period must be one of {", ".join(ALLOWANCE_PERIODS)}')
+    markers = value['limit_markers']
+    if (not isinstance(markers, list) or not markers
+            or any(not isinstance(m, str) or not m or m != m.lower() for m in markers)):
+        errors.append(f'{label}.limit_markers must be a non-empty list of lowercase message fragments')
+    if value['period'] == 'weekly':
+        anchor = value.get('anchor')
+        try:
+            ok = isinstance(anchor, str) and datetime.fromisoformat(anchor.replace('Z', '+00:00')).tzinfo is not None
+        except ValueError:
+            ok = False
+        if not ok:
+            errors.append(f'{label}.anchor must be a zoned ISO time of one past reset for a weekly period')
+    elif 'anchor' in value:
+        errors.append(f'{label}.anchor applies to a weekly period only')
+    return errors
+
+
 def _data_policy_errors(value, label):
     keys = {'classification_required', 'sensitive_flag_forces_refusal', 'provider_zero_retention',
             'unpaid_account_processing', 'prohibited_inputs'}
     if not isinstance(value, dict) or set(value) != keys:
-        return [f'{label} must record the public floor for both processing layers']
+        return [f'{label} must record the input floor for both processing layers']
     errors = []
-    if value['classification_required'] != 'public' or value['sensitive_flag_forces_refusal'] is not True:
-        errors.append(f'{label} must require public inputs and refuse sensitive ones')
+    if value['classification_required'] not in CLASSIFICATIONS or value['sensitive_flag_forces_refusal'] is not True:
+        errors.append(f'{label} must require public or any inputs and refuse sensitive ones')
     for key in ('provider_zero_retention', 'unpaid_account_processing'):
         if not isinstance(value[key], str) or not value[key].strip():
             errors.append(f'{label}.{key} must be a non-empty string')
     prohibited = value['prohibited_inputs']
-    if not isinstance(prohibited, list) or not REQUIRED_PROHIBITED_INPUTS.issubset(prohibited):
-        errors.append(f'{label}.prohibited_inputs must include private repositories, PDPP data, secrets, Jev text and personal data')
+    required = REQUIRED_PROHIBITED_INPUTS if value['classification_required'] == 'public' else REQUIRED_PROHIBITED_INPUTS - {'private_repositories'}
+    if not isinstance(prohibited, list) or not required.issubset(prohibited):
+        errors.append(f'{label}.prohibited_inputs must include {", ".join(sorted(required))}')
     return errors
 
 

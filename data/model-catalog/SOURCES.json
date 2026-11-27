@@ -2290,6 +2290,16 @@
       "notes": "Re-read 2026-10-07 by direct curl (the page served full HTML this time). Credit-rate table per 1M tokens (input / cached input / output): GPT-6 Astra 250/25/1250; GPT-6.1 Sol 50/2.5/250; GPT-6 Sol 50/5/250; GPT-6 Luna 2.5/0.25/12.5; GPT-5.6 Sol 100/10/500; GPT-5.6 Terra 50/5/300; GPT-5.6 Luna 5/0.5/30; GPT-5.5 125/12.5/750. GPT-5.4 and GPT-5.4 mini are no longer listed. Fast mode 2x (purchased credits) / 2.5x (included usage); Astra Ultrafast 6x / 8x."
     },
     {
+      "id": "openai-codex-pricing-2026-11-26",
+      "url": "https://developers.openai.com/codex/pricing",
+      "title": "Pricing | Codex",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs",
+      "notes": "Re-read 2026-11-26 by direct curl. Credit-rate table per 1M tokens (input / cached input / output): GPT-5.6 Sol 100/10/500; GPT-5.6 Terra 50/5/300; GPT-5.6 Luna 5/0.5/30, unchanged from 2026-10-07. The page states 'GPT-5.6 Sol's promotional pricing is available at least through November 21, 2026.' and gives no later end date; the 100/10/500 row was still listed on 2026-11-26."
+    },
+    {
       "id": "openai-codex-models-2026-10-07",
       "url": "https://developers.openai.com/codex/models",
       "title": "Models | Codex",
@@ -5068,6 +5078,316 @@
       "retrieved_at": "2026-10-13",
       "kind": "third_party_eval",
       "notes": "HTTP 404 on 2026-10-13. Harvey LAB readings exist only on AA (Harvey LAB-AA) and Vals (HLAB)."
+    },
+    {
+      "id": "openai-api-changelog-2026-10-26",
+      "url": "https://developers.openai.com/api/docs/changelog",
+      "title": "OpenAI API changelog, GPT-6.1 Terra entry dated 2026-10-26",
+      "publisher": "OpenAI",
+      "published": "2026-10-26",
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Entry text 'Released GPT-6.1 Terra … a fast, efficient model' (cut by the fetch tool). Tag line: Feature · Model: gpt-6.1-terra · API: v1/responses · API: v1/chat/completions. Read through a summarizing fetch tool; the quote is as returned by that tool."
+    },
+    {
+      "id": "openai-api-model-page-gpt-6-1-terra-2026-10-28",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6.1-terra",
+      "title": "GPT-6.1 Terra model page (OpenAI API docs)",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Context 1,050,000 tokens; maximum output 128,000 (no separate input cap stated; 922,000 is context minus output, derived); reasoning effort none, low, medium, high, xhigh and max (default medium). No benchmark numbers on the page. Read through a summarizing fetch tool."
+    },
+    {
+      "id": "openai-api-pricing-2026-10-28",
+      "url": "https://developers.openai.com/api/docs/pricing",
+      "title": "OpenAI API pricing, Standard tab (GPT-6.1 Terra row)",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Row as read: | gpt-6.1-terra | $1.00 | $5.00 | $0.05 | $1.25 | $2.50 | $2.00 | $7.50 | $0.10 | $2.50 | $5.00 |. Short context is at or below 272K input tokens; long context is above 272K. Read through a summarizing fetch tool; the row is as the tool returned it."
+    },
+    {
+      "id": "openai-api-pricing-2026-11-26",
+      "url": "https://developers.openai.com/api/docs/pricing",
+      "title": "OpenAI API pricing, Standard tab (GPT-5.6 Sol row and promotion footnote)",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs",
+      "notes": "Read 2026-11-26 by direct curl of the page's embedded table data. Standard short-context row: gpt-5.6-sol 4 / 0.4 / 5 / 20 USD per 1M tokens (input / cached input / cache write / output), unchanged. Footnote: 'GPT-5.6 Sol's promotional pricing is available until November 30, 2026.'"
+    },
+    {
+      "id": "codex-debug-models-0-165-0-2026-10-28",
+      "url": "https://github.com/tnunamak/minnows/tree/main/data/model-catalog",
+      "title": "codex debug models (live, auth-scoped host output, codex-cli 0.165.0)",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "other",
+      "notes": "Not a public URL (the url field reuses the repo, as in the openai-codex-debug-models-2026-09-05 precedent). Local `codex debug models` output on this host, codex-cli 0.165.0, 2026-10-28: gpt-6.1-terra with default_reasoning_level low, levels low/medium/high/xhigh/max/ultra, additional_speed_tiers [fast], service tier priority named Fast at 1.5x speed, context_window 500000, max_context_window 872000."
+    },
+    {
+      "id": "aa-gpt-6-1-terra-article-2026-10-28",
+      "url": "https://artificialanalysis.ai/articles/gpt-6-1-terra-pushes-the-cost-efficiency-frontier",
+      "title": "GPT-6.1 Terra pushes the cost efficiency frontier (Artificial Analysis article)",
+      "publisher": "Artificial Analysis",
+      "published": "2026-10-26",
+      "retrieved_at": "2026-10-28",
+      "kind": "third_party_eval",
+      "notes": "Fetch-tool summary; quotes as returned by the tool. Max-effort cost per task for Terra $0.40 against $1.40 for GPT-5.6 Terra. Intelligence Index gap figures; the caption cites v4.3.2 while the comparison page labels v5.0. Coding Agent Index v2.0: Terra 48, Sol 54, GPT-6 Luna 31; no effort or harness stated. Charts are images and were not captured."
+    },
+    {
+      "id": "aa-gpt-6-1-terra-vs-sol-comparison-2026-10-28",
+      "url": "https://artificialanalysis.ai/models/releases/comparisons/gpt-6-1-terra-vs-gpt-6-1-sol",
+      "title": "GPT-6.1 Terra vs GPT-6.1 Sol (Artificial Analysis comparison)",
+      "publisher": "Artificial Analysis",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "third_party_eval",
+      "notes": "Labels Intelligence Index v5.0. Terra Intelligence 51, 45, 42, 38, 30 (non-reasoning), 29 at max, xhigh, high, medium, none, low. Terra Terminal-Bench 4.0 55.6%, 46.5%, 41.9%, 32.3%, 26.8%, 15.2% at the same efforts. Sol Intelligence 55, 52, 50, 46, 35 at max, xhigh, high, medium, low; Sol Terminal-Bench 4.0 56.1%, 54.0%, 51.5%, 48.0%, 30.8%. The page does not define the Terminal-Bench 4.0 metric and states no release date. Fetch-tool summary."
+    },
+    {
+      "id": "aa-intelligence-index-v5-article-2026-10-28",
+      "url": "https://artificialanalysis.ai/articles/artificial-analysis-intelligence-index-v5",
+      "title": "Artificial Analysis Intelligence Index v5 (article)",
+      "publisher": "Artificial Analysis",
+      "published": "2026-10-27",
+      "retrieved_at": "2026-10-28",
+      "kind": "third_party_eval",
+      "notes": "Nine benchmarks: new FrontierCode 2.0 and Terminal-Bench-Science; upgraded HLE-Diamond, AA-Omniscience v1.1 and CritPt v2; retained AA-Briefcase, AutomationBench-AA, GDP.pdf and Terminal-Bench 4.0; removed GDPval-AA v2.1, SciCode and AA-LCR v1.1. About 60% of the index uses private test sets or held-out answers. No statement on comparability with v4.x. Per Index task at max: GPT-6.1 Sol $1.27, GPT-6.1 Terra $0.96. Fetch-tool summary; not checked against raw HTML."
+    },
+    {
+      "id": "google-gemini-4-carbon-blog-2026-10-28",
+      "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-carbon/",
+      "title": "Gemini 4 Carbon: our next frontier model (Google blog)",
+      "publisher": "Google",
+      "published": "2026-10-28",
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_blog",
+      "notes": "Staged rollout: first a subset of cyber defenders, then more trusted partners through the Fairwind Program; wider release 'as soon as possible', no date. No model id, no API availability (developer access 'still to come'), no context window, no max output, no thinking or effort setting. Reports Artificial Analysis Intelligence Index v5.0 score 59; AA's own score is not in the fetched text. Benchmark table is an image and was not captured. Intro price $2 input and $10 output per M tokens, then $4 and $20. Fetch-tool text."
+    },
+    {
+      "id": "google-gemini-changelog-2026-10-28",
+      "url": "https://ai.google.dev/gemini-api/docs/changelog",
+      "title": "Gemini API changelog (October 8, 2026 deprecation entries; no Gemini 4 Carbon entry)",
+      "publisher": "Google",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Entries under the October 8, 2026 heading: 'Gemini 3.7 Flash deprecation' (gemini-3.7-flash is deprecated and replaced by gemini-3.8-flash; no longer available to select in Google AI Studio; API requests automatically routed to gemini-3.8-flash) and 'Gemini 3.5 Flash deprecation' (gemini-3.5-flash is deprecated and replaced by gemini-3.6-flash; same routing). The sweep dated these 2026-10-09; the changelog heading says October 8. No Gemini 4 Carbon entry in the fetched text."
+    },
+    {
+      "id": "google-gemini-deprecations-2026-10-28",
+      "url": "https://ai.google.dev/gemini-api/docs/deprecations",
+      "title": "Gemini API deprecations page",
+      "publisher": "Google",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Rows for gemini-3.7-flash and gemini-3.5-flash each say the model is not available to select in Google AI Studio, that the endpoint is not shutting down, and that API requests route automatically to gemini-3.8-flash and gemini-3.6-flash respectively."
+    },
+    {
+      "id": "google-gemini-pricing-2026-10-28",
+      "url": "https://ai.google.dev/gemini-api/docs/pricing",
+      "title": "Gemini API pricing (read 2026-10-28)",
+      "publisher": "Google",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Gemini 3.8 Flash: $0.75 input and $3.75 output per M tokens through 2026-12-31, then $1.50 and $7.50 from 2027-01-01. Cached input $0.075 through 2026-12-31, then $0.15; storage $0.50 then $1.00 per M tokens per hour. Read by curl on 2026-10-28."
+    },
+    {
+      "id": "opencode-zen-docs-2026-10-28",
+      "url": "https://opencode.ai/docs/zen/",
+      "title": "OpenCode Zen docs (model list and prices)",
+      "publisher": "OpenCode",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Lists deepseek-v4.1-flash-free as 'free on OpenCode for a limited time' (Free / Free / Free; no end date), and the paid deepseek-v4.1-flash at $0.30 / $0.006 / $1.20. Lists gemini-3.8-flash at $1.50 input and $7.50 output, which matches Google's 2027 rate rather than its current rate. Lists gemini-4-argon at $2.00 and $10.00, labelled '50% off' through 2026-11-30. Read through a summarizing fetch tool."
+    },
+    {
+      "id": "deepseek-updates-2026-10-28",
+      "url": "https://api-docs.deepseek.com/updates/",
+      "title": "DeepSeek API change log (read 2026-10-28)",
+      "publisher": "DeepSeek",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Raw HTML read by curl on 2026-10-28. Entry dated 2026-10-17: 'DeepSeek V4.1 Flash has been upgraded to DeepSeek-V4.1-Flash-1017' and 'The API calling method and pricing remain unchanged — simply use deepseek-flash to access the latest model.' Entry dated 2026-09-10 includes 'In response to user demand, we have decided to continue providing API services for DeepSeek V4 Pro after September 14, 2026, with the billing method remaining unchanged.'"
+    },
+    {
+      "id": "deepseek-pricing-2026-10-28",
+      "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "title": "DeepSeek API quick-start pricing page (read 2026-10-28)",
+      "publisher": "DeepSeek",
+      "published": null,
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_docs",
+      "notes": "Static HTML read by curl on 2026-10-28: model version DeepSeek-V4.1-Flash-1017 for deepseek-flash and DeepSeek-V4-Pro-0813 for deepseek-v4-pro. Legacy names: 'still accepted, but the corresponding models have been retired, their requests are served by the DeepSeek-V4.1-Flash-1017 model and billed at the Flash price.' Rate values are not in the static HTML; they come from the 2026-10-28 fetch-tool read recorded in the research entry."
+    },
+    {
+      "id": "deepseek-release-log-2026-09-10",
+      "url": "https://api-docs.deepseek.com/news/news260910/",
+      "title": "DeepSeek-V4.1-Flash release announcement (2026-09-10)",
+      "publisher": "DeepSeek",
+      "published": "2026-09-10",
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_blog",
+      "notes": "Read by curl on 2026-10-28. Says the legacy names deepseek-v4-flash and deepseek-v4-flash-vision-exp 'temporarily route to V4.1-Flash', and that 'Starting at 04:00 UTC on Sept 14, 2026, all deepseek-v4-pro requests will route to V4.1-Flash at V4.1-Flash rates. This will continue until V4.1-Pro launches.' Conflicts with the same-day change-log entry (deepseek-updates-2026-10-28); neither is reconciled in this catalog."
+    },
+    {
+      "id": "deepseek-1017-news-2026-10-28",
+      "url": "https://api-docs.deepseek.com/news/news261017/",
+      "title": "DeepSeek-V4.1-Flash-1017 announcement (2026-10-17)",
+      "publisher": "DeepSeek",
+      "published": "2026-10-17",
+      "retrieved_at": "2026-10-28",
+      "kind": "vendor_blog",
+      "notes": "Read by curl on 2026-10-28. Says 'DeepSeek-V4.1-Flash-1017 is here!' and 'Now live on our website, app, and API.' The page text read gives no API model string or price; the model id comes from the quick-start page and the change log."
+    },
+    {
+      "id": "xai-models-page-2026-11-26",
+      "url": "https://docs.x.ai/developers/models",
+      "title": "Grok Models & Pricing",
+      "notes": "Re-read 2026-11-26 via direct curl (User-Agent Mozilla/5.0) + plain-text extraction of the server-rendered page; 60s timeout. Priced text row: grok-4.7 only, 500k context, $2.00 in / $6.00 out per 1M tokens, reasoning 'Configurable'. Non-token SKUs (imagine image/video, voice STS/TTS/STT) shown without per-token rates. Page footer: last updated September 21, 2026. NOTE: the former https://docs.x.ai/docs/models URL now 308-redirects here (same content, fetched both). No promo windows or through-dates stated for any text model.",
+      "publisher": "xAI (SpaceXAI)",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs"
+    },
+    {
+      "id": "xai-grok-4-7-model-page-2026-11-26",
+      "url": "https://docs.x.ai/developers/models/grok-4.7",
+      "title": "Grok 4.7 model page",
+      "notes": "Re-read 2026-11-26 via direct curl + plain-text extraction. States: Input Tokens $2.00 / 1M, Cached tokens $0.50 / 1M, Output Tokens $6.00 / 1M, context window 500,000, text+image in / text out. Matches the stored flat (<200k-tier) row for grok-4.7 exactly. Page separately documents the doubled >=200k long-context tier ($4/$1/$12), which the flat schema does not model.",
+      "publisher": "xAI (SpaceXAI)",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs"
+    },
+    {
+      "id": "xai-release-notes-2026-11-26",
+      "url": "https://docs.x.ai/developers/release-notes",
+      "title": "Release Notes",
+      "notes": "Re-read 2026-11-26 via direct curl + plain-text extraction; page footer: last updated November 19, 2026. Entries since the 2026-10-07 read: 2026-10-14 grok-voice-3.0 available (non-token voice SKU, same price as Voice 2.0; grok-voice-2.0 deprecated); 2026-11-02 grok-imagine-image-quality retired (image SKU rerouting, lower per-image price); 2026-11-19 grok-build-0.1 END OF LIFE — 'no longer served on the API'. No new Grok text model, no text per-token price change, and no promo window after the 2026-09-21 Grok 4.7 entry ($2/$0.50/$6 below 200k, $4/$1/$12 above; Fast variant is Cursor/Grok-Build-only, 2x rates, not public API). The former https://docs.x.ai/docs/release-notes URL redirects here (same content, fetched both).",
+      "publisher": "xAI (SpaceXAI)",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs"
+    },
+    {
+      "id": "xai-grok-4-6-model-page-2026-11-26",
+      "url": "https://docs.x.ai/developers/models/grok-4.6",
+      "title": "Grok 4.6 model page",
+      "notes": "Re-read 2026-11-26 via direct curl + plain-text extraction. States: Input Tokens $2.00 / 1M, Cached tokens $0.50 / 1M, Output Tokens $6.00 / 1M, context window 500,000. Matches the stored grok-4.6 flat row (2.00/0.50/6.00) exactly; >=200k doubled tier documented on the page but not modeled in the flat schema.",
+      "publisher": "xAI (SpaceXAI)",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs"
+    },
+    {
+      "id": "xai-grok-4-5-model-page-2026-11-26",
+      "url": "https://docs.x.ai/developers/models/grok-4.5",
+      "title": "Grok 4.5 model page",
+      "notes": "Re-read 2026-11-26 via direct curl + plain-text extraction. Detail page still live (unlike in list-page readings, grok-4.5 remains documented): Input Tokens $2.00 / 1M, Cached tokens $0.30 / 1M, Output Tokens $6.00 / 1M, context window 500,000. Matches the stored grok-4.5 row (2.00/0.30/6.00) exactly. First per-figure verification of this row since 2026-09-05.",
+      "publisher": "xAI (SpaceXAI)",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs"
+    },
+    {
+      "id": "xai-grok-4-3-model-page-2026-11-26",
+      "url": "https://docs.x.ai/developers/models/grok-4.3",
+      "title": "Grok 4.3 model page",
+      "notes": "Re-read 2026-11-26 via direct curl + plain-text extraction. Detail page still live: Input Tokens $1.25 / 1M, Cached tokens $0.20 / 1M, Output Tokens $2.50 / 1M, context window 1,000,000. Matches the stored grok-4.3 row (1.25/0.20/2.50) exactly.",
+      "publisher": "xAI (SpaceXAI)",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs"
+    },
+    {
+      "id": "xai-grok-4-20-reasoning-model-page-2026-11-26",
+      "url": "https://docs.x.ai/developers/models/grok-4.20-0309-reasoning",
+      "title": "Grok 4.20-0309-reasoning model page",
+      "notes": "Re-read 2026-11-26 via direct curl + plain-text extraction. Detail page still live: Input Tokens $1.25 / 1M, Cached tokens $0.20 / 1M, Output Tokens $2.50 / 1M, context window 1,000,000. Matches the stored grok-4.20-0309-reasoning row (1.25/0.20/2.50) exactly.",
+      "publisher": "xAI (SpaceXAI)",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs"
+    },
+    {
+      "id": "xai-grok-4-20-non-reasoning-model-page-2026-11-26",
+      "url": "https://docs.x.ai/developers/models/grok-4.20-0309-non-reasoning",
+      "title": "Grok 4.20-0309-non-reasoning model page",
+      "notes": "Re-read 2026-11-26 via direct curl + plain-text extraction. Detail page still live: Input Tokens $1.25 / 1M, Cached tokens $0.20 / 1M, Output Tokens $2.50 / 1M, context window 1,000,000. Matches the stored grok-4.20-0309-non-reasoning row (1.25/0.20/2.50) exactly.",
+      "publisher": "xAI (SpaceXAI)",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs"
+    },
+    {
+      "id": "xai-grok-4-20-multi-agent-model-page-2026-11-26",
+      "url": "https://docs.x.ai/developers/models/grok-4.20-multi-agent-0309",
+      "title": "Grok 4.20-multi-agent-0309 model page",
+      "notes": "Re-read 2026-11-26 via direct curl + plain-text extraction. Detail page still live: Input Tokens $1.25 / 1M, Cached tokens $0.20 / 1M, Output Tokens $2.50 / 1M, context window 1,000,000. Matches the stored grok-4.20-multi-agent-0309 row (1.25/0.20/2.50) exactly.",
+      "publisher": "xAI (SpaceXAI)",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs"
+    },
+    {
+      "id": "openai-codex-pricing-full-2026-11-26",
+      "url": "https://developers.openai.com/codex/pricing",
+      "title": "Pricing | Codex",
+      "publisher": "OpenAI",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs",
+      "notes": "Full-table re-read 2026-11-26 by direct curl -L (page 308-redirects to learn.chatgpt.com/docs/pricing and served full HTML); credits-per-1M-tokens rate-card table parsed. Rows (input/cached-input/output): GPT-6.2 Astra 200/10/1000; GPT-6 Astra 250/25/1250; GPT-6.2 Sol 50/2.5/250; GPT-6.1 Sol 50/2.5/250; GPT-6.1 Terra 25/1.25/125; GPT-6 Sol 50/5/250; GPT-6 Luna 2.5/0.25/12.5; GPT-5.6 Sol 100/10/500; Daybreak Blue 100/10/500; Daybreak Red 312.5/31.25/1875; GPT-5.6 Terra 50/5/300; GPT-5.6 Luna 5/0.5/30; GPT-6 Rosalind Research 250/25/1250 (promo 'at least through December 31, 2026'); GPT-5.5 Rosalind Research 125/12.5/625; GPT-5.5 Rosalind Discovery 125/12.5/625; GPT-Image-2 (image) 200/50/750; GPT-Image-2 (text) 125/31.25/250. Plain GPT-5.5, GPT-5.4 and GPT-5.4 mini rows are ABSENT (gpt-5.5/5.4/5.4-mini retired from codex-credits-2026-07.json on this date; Rosalind rows not equated to plain gpt-5.5 by the vendor). GPT-5.6 Sol promo footnote still reads 'at least through November 21, 2026' with no end date stated. Page states 'Codex credit billing has no separate cache-write charge.' Page also states GPT-5.6 Sol/Terra/Luna rates remain unchanged."
+    },
+    {
+      "id": "anthropic-pricing-2026-11-26",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "title": "Pricing - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs",
+      "notes": "Freshness re-read for data/model-catalog/pricing/anthropic-api-2026-07.json. Direct curl (-L -A Mozilla/5.0) of the page's .md rendering; the model pricing table was parsed and compared figure-by-figure with python (112 figures total across this and three companion pages, 0 mismatches). Model pricing table as read: Fable 5.2 and Mythos 5.2 (limited availability) $8 input / $10 5m cache write / $16 1h cache write / $0.20 cache read (0.025x) / $40 output; Fable 5.1 and Mythos 5.1 (limited availability) $10/$12.50/$20/$0.25 (0.025x)/$50; Fable 5 and Mythos 5 (limited availability) $10/$12.50/$20/$1/$50; Opus 5.5 $4/$5/$8/$0.20 (0.05x)/$20; Opus 5, Opus 4.8, Opus 4.7, Opus 4.6 all $5/$6.25/$10/$0.50/$25; Sonnet 5.5 $2/$2.50/$4/$0.10 (0.05x)/$10; Sonnet 5 $2/$2.50/$4/$0.20/$10 with footnote that the $2/$10 intro price 'is now the standard price' and the Sep 1, 2026 increase 'will not occur'; Sonnet 4.6 and Sonnet 4.5 $3/$3.75/$6/$0.30/$15; Haiku 5.5 two prompt-length tiers — up to 100,000 tokens $0.10/$0.125/$0.20/$0.01/$0.50 and over 100,000 tokens $0.50/$0.625/$1/$0.05/$2.50; Haiku 4.5 $1/$1.25/$2/$0.10/$5. Cache multiplier table: 5m write 1.25x, 1h write 2x, cache read 0.1x standard, 0.025x on Fable/Mythos 5.2 and 5.1, 0.05x on Opus 5.5 and Sonnet 5.5. Fast mode: Fable 5.2 and Mythos 5.2 $16/$80, Opus 5.5 $8/$40, Opus 5 / Opus 4.8 $10/$50. Batch table lists 50% off for all rows. NOTE: the Sonnet 5.5 model-table cell now shows $0.10 cache read, resolving the table-vs-prose inconsistency recorded on 2026-10-07. All figures stored in anthropic-api-2026-07.json are unchanged; new rows Claude Fable 5.2 and Claude Mythos 5.2 were NOT ingested per refresh rules."
+    },
+    {
+      "id": "anthropic-models-overview-2026-11-26",
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs",
+      "notes": "Freshness re-read for data/model-catalog/pricing/anthropic-api-2026-07.json. Direct curl (-L -A Mozilla/5.0) of the page's .md rendering; base input/output rate columns parsed with python and compared against every stored model row (0 mismatches). Current lineup table: Claude Fable 5.2 ($8/$40, claude-fable-5-2, adaptive always-on thinking, default effort high, 1M context, 128K max output, retirement not sooner than 2027-11-09), Claude Opus 5.5 ($4/$20), Claude Sonnet 5.5 ($2/$10), Claude Haiku 5.5 (from $0.10/$0.50). NEW since the 2026-10-07 read: Claude Fable 5.2 and Claude Mythos 5.2 ($8/$40, Mythos limited availability) — not ingested per refresh rules. All-models table re-verified the input/output rates for Opus 5.5, Opus 5, Opus 4.8/4.7/4.6, Sonnet 5.5, Sonnet 5, Sonnet 4.6/4.5, Fable 5.1/5, Mythos 5.1/5, Haiku 5.5 (from $0.10/$0.50), Haiku 4.5. Retirement commitments: Opus 5.5 not sooner than 2027-09-22, Sonnet 5.5 not sooner than 2027-09-28, Haiku 5.5 not sooner than 2027-10-07."
+    },
+    {
+      "id": "anthropic-haiku-5-5-model-page-2026-11-26",
+      "url": "https://platform.claude.com/docs/en/models/haiku-5-5/overview",
+      "title": "Claude Haiku 5.5 - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs",
+      "notes": "Freshness re-read for data/model-catalog/pricing/anthropic-api-2026-07.json. Direct curl (-L -A Mozilla/5.0) of the page's .md rendering; pricing table parsed with python and compared figure-by-figure (0 mismatches). Pricing as read: Input $0.10/MTok for prompts up to 100,000 tokens and $0.50/MTok over 100,000; Output $0.50 and $2.50; 5m cache write $0.125 and $0.625; 1h cache write $0.20 and $1; Cache read $0.01 and $0.05; Batch API 50% off. All five rate pairs and the 100,000-token threshold match the stored claude-haiku-5-5 base and long_prompt rows exactly. Also re-confirmed: released 2026-10-07, retirement not sooner than 2027-10-07, 1M context, 128K max output (300K on Message Batches with output-300k-2026-03-24 beta), default effort medium, newer tokenizer ~30% more tokens than Haiku 4.5. The comparison-table footnote now names Claude Fable 5.2 among the 0.025x cache-read models."
+    },
+    {
+      "id": "anthropic-sonnet-5-5-model-page-2026-11-26",
+      "url": "https://platform.claude.com/docs/en/models/sonnet-5-5/overview",
+      "title": "Claude Sonnet 5.5 - Claude Platform Docs",
+      "publisher": "Anthropic",
+      "published": null,
+      "retrieved_at": "2026-11-26",
+      "kind": "vendor_docs",
+      "notes": "Freshness re-read for data/model-catalog/pricing/anthropic-api-2026-07.json. Direct curl (-L -A Mozilla/5.0) of the page's .md rendering; pricing table parsed with python and compared figure-by-figure (0 mismatches). Pricing as read: Input $2/MTok, Output $10/MTok, 5m cache write $2.50/MTok, 1h cache write $4/MTok, Cache read $0.10/MTok, Batch API 50% off. IMPORTANT: this page's Cache read value is now $0.10/MTok, matching the pricing page's model table cell and caching prose (0.05x base) — the 2026-10-07 entry recorded this cell still showing $0.20 as a docs inconsistency; it is now resolved and the stored claude-sonnet-5-5 cache_read_per_m of 0.1 is confirmed by both pages. Also re-confirmed: released 2026-09-28, retirement not sooner than 2027-09-28, 1M context, 128K max output (300K on Message Batches beta), default effort high, knowledge cutoff Jun 2026."
     }
   ]
 }
