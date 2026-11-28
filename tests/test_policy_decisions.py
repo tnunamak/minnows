@@ -719,3 +719,18 @@ def test_audit_database_malformed_child_options(setup, tmp_path, options):
     assert result.returncode == 0, result.stderr
     assert report['delegations'][0]['child_request_match'] is False
     assert report['delegations'][0]['options_state']['child'] == 'malformed'
+
+
+@pytest.mark.parametrize('account,state', [('claude-one', 'catalog_present'), ('dondo', 'unavailable_account')])
+def test_default_line_names_the_instances_when_an_override_account_is_not_one(setup, account, state):
+    """A mistyped `--override account=` once read as an account outage; the line must say which ids are valid."""
+    _, available, quota, receipts = setup
+    out = subprocess.run([str(TOOL), 'resolve', 'implement.standard', '--available', str(available), '--quota', str(quota),
+                          '--receipts', str(receipts), '--override', 'account=' + account, '--reason', 'test'], capture_output=True, text=True)
+    assert out.returncode == 0, out.stderr
+    line = json.loads(out.stdout)
+    if state == 'catalog_present':
+        assert 'selection' not in line and line['target']
+    else:
+        assert line['target'] is None
+        assert line['selection'] == {'state': 'unavailable_account', 'accounts': ['claude-one']}
