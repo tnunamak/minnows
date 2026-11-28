@@ -686,6 +686,8 @@ def child_thread_facts(db, run_id, decision, ids, run_owner=None, include_thread
     if include_thread_snapshot:
         try:
             found += pull_request_facts(db, thread, run_id, decision, ids, run_owner or {}, deadline, call_db)
+        except BudgetExhausted as error:
+            raise BudgetExhausted(found + error.observations) from None
         except sqlite3.Error:
             if deadline is not None and time.monotonic() >= deadline:
                 raise BudgetExhausted(found) from None
@@ -1019,7 +1021,8 @@ def collect_indexed_thread_facts(db_path, call_db, scope_ids, run_owner, deadlin
                     try:
                         facts = child_thread_facts(db, run_id, decision, {'run_id': run_id}, run_owner,
                                                    include_thread_snapshot=True, deadline=deadline, call_db=call_db)
-                    except BudgetExhausted:
+                    except BudgetExhausted as error:
+                        found.extend(error.observations)
                         return found, subjects, after, False
                     found.extend(facts)
                     subjects += 1
@@ -1151,7 +1154,7 @@ def incremental_t3(db_path, scope_ids, targets, state_path, deadline, ledger_mar
                 remember_calls(call_db, calls, commit=False)
                 run_owner = indexed_run_owners(call_db, [c.get('child_run_id') for c in calls])
                 batch = collect_t3(db_path, scope_ids, targets, calls_override=calls, deadline=refresh_deadline,
-                                   run_owner_override=run_owner, include_thread_snapshot=True,
+                                   run_owner_override=run_owner, include_thread_snapshot=cursor >= high,
                                    call_db=call_db) if calls else result('ok')
                 if batch['state'] not in ('ok', 'unavailable', 'partial'):
                     raise sqlite3.OperationalError(batch.get('reason') or 'T3 row failed')
@@ -1213,10 +1216,10 @@ def incremental_t3(db_path, scope_ids, targets, state_path, deadline, ledger_mar
             call_db.commit()
         if completed_page and len(settled_page) < settled_limit:
             refresh_after = 0
+        remaining_active = call_db.execute('SELECT count(*) FROM known_calls WHERE settled=0 AND source_rowid>?',
+                                           (refresh_unsettled_after,)).fetchone()[0]
+        refresh_done = remaining_active == 0 and not details_deferred and not refresh_error
         if completed_page:
-            remaining_active = call_db.execute('SELECT count(*) FROM known_calls WHERE settled=0 AND source_rowid>?',
-                                               (refresh_unsettled_after,)).fetchone()[0]
-            refresh_done = remaining_active == 0 and not details_deferred and not refresh_error
             if len(active_page) < active_limit:
                 refresh_unsettled_after = 0
         retry_deadline = time.monotonic() + max(0, deadline - time.monotonic()) * 0.1
