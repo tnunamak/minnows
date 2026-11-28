@@ -2261,3 +2261,14 @@ def test_old_reader_replays_new_assessment_without_evidence_changes(proof_world,
                                    '--followup-id', 'old-reader-followup', '--finding', 'no_rework_found', '--checked-scope', 'fixture')
     assert code == 0, stderr
     assert 'op_proof_assessment' not in json.loads(stdout)
+
+
+def test_forecast_absent_looks_only_at_the_windows_the_router_reads():
+    """A young 7d window beside a known model-specific window (clawmeter's `7d Fable`) is still a missing forecast."""
+    quota = load('clawmeter.json')
+    windows = quota['providers']['openai']['forecast']['windows']
+    windows['7d'].update(projected_pct=0, indicator='unknown')
+    windows['7d Other'] = {'projected_pct': 12.5, 'indicator': '13%'}
+    assert not quota_forecast_absent(quota, 'openai'), 'a known window exists on the account'
+    assert quota_forecast_absent(quota, 'openai', names={'7d'})
+    assert not quota_forecast_absent(quota, 'openai', names={'7d', '7d Other'})

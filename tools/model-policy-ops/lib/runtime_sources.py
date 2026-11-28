@@ -244,8 +244,12 @@ def quota_forecast(value, provider_id, source_id=None):
     return {name: w['projected_pct'] for name, w in windows.items() if projection_is_known(w)}
 
 
-def quota_forecast_absent(value, provider_id, source_id=None):
-    """True only when this exact account has no supplied projections, valid or invalid."""
+def quota_forecast_absent(value, provider_id, source_id=None, names=None):
+    """True only when this exact account has no supplied projections, valid or invalid.
+
+    With `names`, only those windows are examined: another window of the account (a model-specific one the arm does
+    not use) must not decide whether the windows the router reads are young or missing.
+    """
     rows = value.get('providers')
     row = rows.get(provider_id) if isinstance(rows, dict) else None
     if not isinstance(row, dict):
@@ -263,10 +267,12 @@ def quota_forecast_absent(value, provider_id, source_id=None):
     windows = forecast.get('windows')
     if windows is None:
         return True
-    return isinstance(windows, dict) and all(
+    if not isinstance(windows, dict):
+        return False
+    return all(
         isinstance(name, str) and isinstance(window, dict)
         and (window.get('projected_pct') is None or window.get('indicator') in NO_FORECAST_INDICATORS)
-        for name, window in windows.items())
+        for name, window in windows.items() if names is None or name in names)
 
 
 def quota_runout(value, provider_id, source_id=None):
