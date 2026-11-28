@@ -11,7 +11,7 @@ from quota_substitution import parse_time
 from runtime_sources import digest, driver_family, provider_instance, providers
 
 PREFIX = 'orchestration_v2_projection_'
-BILLING = ('subscription', 'metered')
+BILLING = ('subscription', 'metered', 'prepaid')
 
 
 def default_accounts_path():
@@ -23,7 +23,8 @@ def read_accounts(path):
 
     `substitution_rank` is optional: the owner's order among accounts for quota substitution, lower first.
     `funding` is optional: `{verified_until}` is the zoned time until which the owner's own check of the account's
-    credit holds (null: not verified). An account with a `funding` key is metered work only while it holds.
+    credit holds (null: not verified). Prepaid API credit has its own grant-expiry budget;
+    credit verification never grants permission to spend it.
     """
     try:
         value = json.loads(Path(path).read_text(encoding='utf-8'))
@@ -36,7 +37,7 @@ def read_accounts(path):
         raise ValueError('accounts file needs schema_version 1 and an "accounts" object')
     for instance, entry in rows.items():
         if not isinstance(entry, dict) or entry.get('billing') not in BILLING:
-            raise ValueError(f'accounts.{instance}: billing must be subscription or metered')
+            raise ValueError(f'accounts.{instance}: billing must be subscription, metered or prepaid')
         for key in ('quota_provider', 'quota_source'):
             if entry.get(key) is not None and not isinstance(entry[key], str):
                 raise ValueError(f'accounts.{instance}.{key} must be a string or null')
@@ -48,6 +49,12 @@ def read_accounts(path):
             until = funding.get('verified_until') if isinstance(funding, dict) else 0
             if not isinstance(funding, dict) or set(funding) != {'verified_until'} or (until is not None and parse_time(until) is None):
                 raise ValueError(f'accounts.{instance}.funding must be {{"verified_until": zoned ISO time or null}}')
+        if 'credit_pool' in entry:
+            pool = entry['credit_pool']
+            if (not isinstance(pool, dict) or set(pool) - {'provider', 'source', 'organization'} or
+                    not all(isinstance(pool.get(k), str) and pool[k] for k in ('provider', 'organization')) or
+                    (pool.get('source') is not None and not isinstance(pool['source'], str))):
+                raise ValueError(f'accounts.{instance}.credit_pool needs provider, organization and optional source')
     return rows, {'state': 'loaded', 'sha256': digest(rows)}
 
 

@@ -102,7 +102,7 @@ def test_docs_lookup_is_qualified_too(world):
     assert route_at(world, LATER, op='docs.lookup')['routing']['chosen']['basis'] != 'qualified_free'
 
 
-# ---- dot and verified prepaid come first --------------------------------------------------------------------------------
+# ---- dot and per-spend-approved prepaid come first --------------------------------------------------------------------------------
 
 def test_a_destination_precedes_the_free_route(world, tmp_path):
     add_catalog_row(world)
@@ -116,7 +116,7 @@ def test_a_destination_precedes_the_free_route(world, tmp_path):
 def allow_prepaid(world, verified_until):
     """The metered account of `add_prepaid`, with an owner directive that is current at LATER."""
     add_prepaid(world, verified_until)
-    world.add_directive('allow-prepaid-later', 'allow-metered', 'account=claude-api', until='2026-10-17T00:00:00Z', recorded_at='2026-10-16T00:00:00+00:00')
+    world.add_directive('allow-prepaid-later', 'allow-metered', 'account=claude-api', 'decision=auto', until='2026-10-17T00:00:00Z', recorded_at='2026-10-16T00:00:00+00:00')
 
 
 def test_verified_prepaid_is_considered_and_serves_when_the_free_route_cools(world):
@@ -127,7 +127,14 @@ def test_verified_prepaid_is_considered_and_serves_when_the_free_route_cools(wor
     assert next(t for t in out['routing']['trace'] if t['arm']['provider'] == 'opencode')['removed_by'] == 'cooling_down'
     free = route_at(world, '2026-10-16T01:11:00Z', *PUBLIC)
     assert selected(free)
-    assert next(t for t in free['routing']['trace'] if t.get('instance') == 'claude-api')['removed_by'] is None, 'verified prepaid stays a ranked alternative'
+    assert next(t for t in free['routing']['trace'] if t.get('instance') == 'claude-api')['removed_by'] is None, 'owner-approved verified prepaid stays a ranked alternative'
+
+
+def test_verified_prepaid_without_approval_is_removed_before_free_route_pacing(world):
+    allow_prepaid(world, '2026-10-17T00:00:00Z')
+    world.receipts.with_name('directives.jsonl').unlink()
+    out = route_at(world, LATER, *PUBLIC)
+    assert next(t for t in out['routing']['trace'] if t.get('instance') == 'claude-api')['removed_by'] == 'api_credit_needs_tim_approval'
 
 
 def test_unverified_prepaid_does_not_stop_the_free_route(world):

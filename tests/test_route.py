@@ -509,7 +509,7 @@ def test_snapshot_exhausted_account_and_metered_instances_are_never_chosen(world
         assert chosen(out)['instance'] not in ('claude-alt', 'claude-api', 'claude-api-alt')
     out = world.route('implement.standard')
     assert entry(out, 'claude-alt')['removed_by'] == 'quota_exhausted'
-    assert entry(out, 'claude-api')['removed_by'] == 'billing_not_subscription'
+    assert entry(out, 'claude-api')['removed_by'] == 'api_credit_needs_tim_approval'
     assert entry(out, 'claude-api-alt')['detail'] == {'billing': 'metered'}
 
 
@@ -534,17 +534,65 @@ def test_filter_billing_unknown_and_unmapped_are_excluded_like_metered(world):
     assert chosen(out)['instance'] == 'claude-work'
 
 
+@pytest.mark.parametrize('billing', ['metered', 'prepaid'])
+@pytest.mark.parametrize('approval', ['none', 'provider', 'lead', 'expired', 'other', 'standing', 'owner'])
+def test_api_credit_requires_current_owner_approval_for_exact_account(world, approval, billing):
+    world.accounts['accounts']['claude-api']['billing'] = billing
+    world.accounts['accounts']['claude-api']['funding'] = {'verified_until': '2026-10-12T00:00:00Z'}
+    if approval != 'none':
+        world.add_directive('approval', 'allow-metered',
+                            'provider=claude' if approval == 'provider' else
+                            'account=claude-api-alt' if approval == 'other' else 'account=claude-api',
+                            *(['decision=probe'] if approval != 'standing' else []),
+                            source='lead' if approval == 'lead' else 'owner',
+                            until='2026-10-10T00:30:00Z' if approval == 'expired' else '2026-10-11T00:00:00Z')
+    row = entry(world.route('implement.quota-tight'), 'claude-api', 0)
+    assert row['removed_by'] == (None if approval == 'owner' else 'api_credit_needs_tim_approval')
+    assert (row.get('rank') is not None) == (approval == 'owner')
+
+
+@pytest.mark.parametrize('command', ['route', 'resolve'])
+def test_api_credit_override_cannot_replace_owner_approval(world, command):
+    world.accounts['accounts']['claude-api']['funding'] = {'verified_until': '2026-10-12T00:00:00Z'}
+    result, out = world.cli(command, 'implement.quota-tight', *world.args(), '--decision-id', 'api-override',
+                            '--proof-class', 'judged', '--override', 'account=claude-api', '--reason', 'verified credit')
+    assert result.returncode == 0, result.stderr
+    assert out['target'] is None
+    assert out['launch_ready'] is False
+    assert out['waiting']['state'] == 'api_credit_needs_tim_approval'
+    assert 'dispatch' not in out
+    world.add_directive('approval', 'allow-metered', 'account=claude-api', 'decision=api-approved')
+    result, out = world.cli(command, 'implement.quota-tight', *world.args(), '--decision-id', 'api-approved',
+                            '--proof-class', 'judged', '--override', 'account=claude-api', '--reason', 'approved')
+    assert result.returncode == 0, result.stderr
+    assert out['target']['providerInstanceId'] == 'claude-api'
+
+
+def test_api_credit_replay_requires_approval_that_is_still_current(world):
+    world.add_directive('approval', 'allow-metered', 'account=claude-api', 'decision=api-replay', until='2026-10-10T00:40:00Z')
+    args = ('route', 'implement.quota-tight', *world.args(), '--decision-id', 'api-replay',
+            '--record', '--parent-model', 'pm', '--parent-provider-instance', 'pp', '--parent-thread', 'pt',
+            '--proof-class', 'judged', '--override', 'account=claude-api', '--reason', 'approved')
+    result, out = world.cli(*args)
+    assert result.returncode == 0, result.stderr
+    assert out['target']['providerInstanceId'] == 'claude-api'
+    result, out = world.cli(*args, evaluation_time='2026-10-10T00:40:00Z')
+    assert result.returncode == 0, result.stderr
+    assert out['replayed'] is True and out['target'] is None
+    assert out['waiting']['state'] == 'api_credit_needs_tim_approval'
+
+
 def test_filter_allow_metered_directive_passes_a_metered_pair(world):
-    world.add_directive('metered-ok', 'allow-metered', 'account=claude-api', 'op=implement.quota-tight')
+    world.add_directive('metered-ok', 'allow-metered', 'account=claude-api', 'decision=probe', 'op=implement.quota-tight')
     out = world.route('implement.quota-tight')
     assert entry(out, 'claude-api', 0)['removed_by'] is None
-    assert entry(out, 'claude-api-alt', 0)['removed_by'] == 'billing_not_subscription'
+    assert entry(out, 'claude-api-alt', 0)['removed_by'] == 'api_credit_needs_tim_approval'
     assert 'metered-ok' in out['routing']['directives_applied']
 
 
 def test_filter_unmapped_account_with_allow_metered_still_has_unknown_pace(world):
     del world.accounts['accounts']['claude-api']
-    world.add_directive('open', 'allow-metered', 'account=claude-api')
+    world.add_directive('open', 'allow-metered', 'account=claude-api', 'decision=probe')
     row = entry(world.route('implement.quota-tight'), 'claude-api', 0)
     assert row['removed_by'] is None and row['quota']['pace'] == 'unknown' and row['quota']['pace_reason'] == 'unmapped_account'
 
@@ -640,7 +688,7 @@ def test_directive_prefer_is_a_rank_key_after_eligibility_and_never_defeats_a_fi
     out = world.route('implement.quota-tight')
     assert entry(out, 'claude-alt', 0)['removed_by'] == 'quota_exhausted' and chosen(out)['instance'] == 'claude-work'
     world.add_directive('metered', 'prefer', 'account=claude-api')
-    assert entry(world.route('implement.quota-tight'), 'claude-api', 0)['removed_by'] == 'billing_not_subscription'
+    assert entry(world.route('implement.quota-tight'), 'claude-api', 0)['removed_by'] == 'api_credit_needs_tim_approval'
     world.add_directive('opus', 'prefer', 'model=claude-opus-5-5', 'op=review.audit')
     out = world.route('review.audit', '--maker-model', 'claude:claude-haiku-5-5', '--independence', 'model')
     assert chosen(out)['arm']['model'] == 'gpt-6.1-sol', 'prefer cannot lift an unvalidated candidate above an eligible primary'
@@ -1369,14 +1417,14 @@ def test_f3_route_flags_a_newer_openai_generation_for_the_chosen_model(world):
     assert any(r['code'] == 'newer_ga_model_not_in_pack' and r['detail']['newer_model'] == 'gpt-6-sol' for r in out['routing']['judgment_reasons'])
 
 
-def test_f4_override_to_a_metered_account_records_billing_and_raises_judgment(world):
+def test_f4_override_to_a_metered_account_waits_for_owner_approval(world):
     out = world.route('implement.quota-tight', '--override', 'account=claude-api', '--reason', 'owner', record='ov')
     final = out['routing']['final']
-    assert out['target']['providerInstanceId'] == 'claude-api', 'the override stays allowed'
+    assert out['target'] is None and out['waiting']['state'] == 'api_credit_needs_tim_approval'
     assert final['billing'] == 'metered' and final['pace'] == 'unknown'
-    assert [b['filter'] for b in final['filters_bypassed']] == ['billing_not_subscription']
+    assert [b['filter'] for b in final['filters_bypassed']] == ['api_credit_needs_tim_approval']
     assert 'final_metered_without_directive' in codes(out) and out['routing']['judgment_required'] is True
-    world.add_directive('metered-ok', 'allow-metered', 'account=claude-api')
+    world.add_directive('metered-ok', 'allow-metered', 'account=claude-api', 'decision=probe')
     out = world.route('implement.quota-tight', '--override', 'account=claude-api', '--reason', 'owner')
     assert out['routing']['final']['filters_bypassed'] == [] and 'final_metered_without_directive' not in codes(out)
 
@@ -1616,7 +1664,7 @@ def test_r2_directive_add_refuses_now_and_records_the_real_clock(world):
 
 
 def test_r2_a_row_beyond_the_cap_is_ignored_reported_and_listed_rejected(world):
-    world.add_directive('hand', 'allow-metered', 'account=claude-api', until='2099-01-01T00:00:00Z')
+    world.add_directive('hand', 'allow-metered', 'account=claude-api', 'decision=probe', until='2099-01-01T00:00:00Z')
     out = world.route('implement.quota-tight', '--override', 'account=claude-api', '--reason', 'x')
     rejected = out['routing']['directives_rejected']
     assert [r['id'] for r in rejected] == ['hand'] and 'directive_max_days' in rejected[0]['reason']

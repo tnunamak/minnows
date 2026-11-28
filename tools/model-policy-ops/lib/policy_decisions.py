@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import allowance
+import api_credit
 import normal_free_routes
 from runtime_sources import digest, read_source, providers, provider_instance, driver_family, resolve_arm, quota_context
 from decision_receipts import read_receipts, find_receipt, append_receipt, validate_id, replay_receipt, validate_escalation_source
@@ -189,7 +190,7 @@ def record_cap_from_close(args, policy, close):
     allowance.sync(path, routes, [event], directive_store.now(), write=True)
 
 
-def route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack):
+def route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack, decision_id):
     """Run the router and add the evidence snapshot and calibration notes. No state commit."""
     params = policy.get('routing', {})
     accounts, accounts_meta = route_inputs.read_accounts(args.accounts)
@@ -212,7 +213,7 @@ def route_choice(args, policy, op, available, available_meta, quota, quota_meta,
                                accounts=accounts, directives=directive_store.active(records, at, max_days), maker=maker,
                                independence=args.independence, proof_class=args.proof_class, line_of=line_of,
                                failures=failures, freshness=fresh, now=at, critical_path=args.critical_path,
-                               free_candidates=normal_free_candidates(args, policy, at),
+                               free_candidates=normal_free_candidates(args, policy, at), decision_id=decision_id,
                                exhausted_pools={key: row for key, row in exhausted.items() if allowance.active(exhausted, key, at)},
                                vendor_of=lambda provider, model: vendors.get((provider, model), provider),
                                substitution=routing.substitution_context(params, accounts, quota, quota_meta, at, args.quota_state, write=not args.now,
@@ -296,8 +297,9 @@ UNFUNDED_BASIS = 'the target account declares funding and its verified_until is 
 
 def withheld(value, state, basis, code, detail, extra=None):
     """The receipt with every target cleared, `launch_ready` false and a `waiting` state. The evidence stays."""
-    value['routing']['judgment_reasons'].append({'code': code, 'applies_to': 'routed', 'detail': detail})
-    value['routing']['judgment_required'] = True
+    if value.get('routing'):
+        value['routing']['judgment_reasons'].append({'code': code, 'applies_to': 'routed', 'detail': detail})
+        value['routing']['judgment_required'] = True
     value = clear_targets(value, refuse_submission=True)
     return value | {'launch_ready': False, 'launch_readiness_basis': basis,
                     'waiting': {'state': state, 'assertion': 'router_evidence', 'reason': basis} | (extra or {})}
@@ -371,6 +373,40 @@ def withhold_without_headroom(value, critical_path=False, *, choice=None, at=Non
                     wait_detail(block, critical_path))
 
 
+def withhold_unapproved_api_credit(value, args, policy, at, target, quota=None, quota_meta=None):
+    """Require current owner approval for the exact API account, including overrides and replay."""
+    if not target:
+        return value
+    account = target['providerInstanceId']
+    final = (value.get('routing') or {}).get('final') or {}
+    if final.get('billing') == 'free' and not value.get('destination') and final.get('account') == account:
+        return value
+    arm = value['selection']['arm']
+    free_route = normal_free_routes.declared(policy.get('free_routes', []), arm['provider'], target['model'])
+    if free_route and free_route['account'] == account and not value.get('destination'):
+        return value
+    accounts, _ = route_inputs.read_accounts(args.accounts)
+    entry = accounts.get(account) or {}
+    if not api_credit.is_credit(entry or {'billing': final.get('billing')}):
+        return value
+    records = directive_store.read_directives(args.directives)
+    active = directive_store.active(records, at, policy.get('routing', {}).get('directive_max_days'))
+    approved = directive_store.matching(active, 'allow-metered', account=account,
+                                         provider=arm['provider'], model=target['model'], op=args.op, decision=value['decision_id'])
+    if quota is None:
+        quota, quota_meta = read_source(args.quota, ['clawmeter', '--json'])
+    value['api_credit'] = {'account': account, 'approval': [d['id'] for d in approved],
+                           'grant_pace': api_credit.grant_pace(quota, quota_meta, entry, at)}
+    if approved:
+        if value['api_credit']['grant_pace']['pace'] == 'exhausted':
+            return withheld(value, 'api_credit_exhausted', 'the API-credit grant has expired or its balance is exhausted',
+                            'wait_api_credit_exhausted', {'account': account})
+        return value
+    return withheld(value, 'api_credit_needs_tim_approval',
+                    'API credit requires an unexpired owner allow-metered directive naming this exact account and decision',
+                    'wait_api_credit_needs_tim_approval', {'account': account})
+
+
 def withhold_unfunded(value, accounts, at, target):
     """The funding check for the final target, whoever chose it: the router, an override or a destination. A
     destination's proposed target counts even when the catalog does not list it and the caller would submit by hand."""
@@ -378,7 +414,7 @@ def withhold_unfunded(value, accounts, at, target):
     if final['billing'] == 'free' and not value.get('destination') and final['account'] == (target or {}).get('providerInstanceId'):
         return value  # the exact declared free tuple is not paid credit, whatever the account map says
     entry = accounts.get((target or {}).get('providerInstanceId')) or {}
-    if entry.get('billing') != 'metered' or 'funding' not in entry or routing.funded(entry['funding'], at):
+    if not api_credit.is_credit(entry) or entry.get('credit_pool') or 'funding' not in entry or routing.funded(entry['funding'], at):
         return value
     return withheld(value, 'funding_unverified', UNFUNDED_BASIS, 'wait_funding_unverified',
                     {'account': target['providerInstanceId'], 'verified_until': entry['funding']['verified_until']})
@@ -549,6 +585,7 @@ def execute_locked(args, policy, stack):
         replayed = replay_receipt(old, request, facts, extensions)
         proposed = next((entry.get('target') for entry in dest_entries if entry['name'] == replayed.get('destination')), None)
         apply_experimental_route_policy(replayed, policy, datetime.now(timezone.utc), replay=True, destination_target=proposed)
+        replayed = withhold_unapproved_api_credit(replayed, args, policy, at, replayed.get('target') or proposed)
         return destinations.historical_handoff(replayed)
     # Exact historical replay wins. Validate known fresh routes (including simulations)
     # before reading runtime sources, running probes or acquiring writable quota state.
@@ -595,7 +632,7 @@ def execute_locked(args, policy, stack):
     declared_route = normal_free_routes.declared(policy.get('free_routes', []), arm['provider'], arm['model'])
     routing_block = None
     if route:
-        routing_block, accounts, ctx = route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack)
+        routing_block, accounts, ctx = route_choice(args, policy, op, available, available_meta, quota, quota_meta, at, stack, decision_id)
         routing_block['user_policy'] = getattr(args, 'user_policy_info', None)
         chosen = routing_block['chosen']
         routed = {'arm': chosen['arm'], 'account': chosen['instance']} if chosen else None
@@ -723,6 +760,7 @@ def execute_locked(args, policy, stack):
                 prior_hold=prior.get(chosen['instance']) if chosen else None)
     if routing_block and (return_value.get('target') or proposed_destination):
         return_value = withhold_unfunded(return_value, accounts, at, return_value.get('target') or proposed_destination)
+    return_value = withhold_unapproved_api_credit(return_value, args, policy, at, return_value.get('target') or proposed_destination, quota, quota_meta)
     apply_experimental_route_policy(return_value, policy, at, available=available, destination_target=proposed_destination)
 
     if simulation:
@@ -760,6 +798,7 @@ def execute_locked(args, policy, stack):
         if recorded.get('replayed'):
             proposed = next((entry.get('target') for entry in dest_entries if entry['name'] == recorded.get('destination')), None)
             apply_experimental_route_policy(recorded, policy, datetime.now(timezone.utc), replay=True, destination_target=proposed)
+            recorded = withhold_unapproved_api_credit(recorded, args, policy, at, recorded.get('target') or proposed)
             return destinations.historical_handoff(recorded)
         commit_quota()
         return recorded
