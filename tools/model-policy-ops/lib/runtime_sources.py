@@ -211,6 +211,17 @@ def quota_context(value, metadata, arm, provider_id=None, source_id=None, now=No
     return result
 
 
+# clawmeter writes a numeric zero beside these indicators as a placeholder, not a forecast
+# (clawmeter docs/machine-interface.md: read `projected_pct` only when `indicator` is a percentage).
+NO_FORECAST_INDICATORS = ('unknown', 'stale')
+
+
+def projection_is_known(window):
+    """A clawmeter forecast window that carries a real projection: a number, and an indicator that is not `unknown` or `stale`."""
+    return (isinstance(window, dict) and isinstance(window.get('projected_pct'), (int, float))
+            and not isinstance(window['projected_pct'], bool) and window.get('indicator') not in NO_FORECAST_INDICATORS)
+
+
 def quota_forecast(value, provider_id, source_id=None):
     """clawmeter `forecast.windows.<name>.projected_pct` for one provider, or one of its sources.
 
@@ -230,8 +241,7 @@ def quota_forecast(value, provider_id, source_id=None):
     windows = forecast.get('windows') if isinstance(forecast, dict) else None
     if not isinstance(windows, dict):
         return None
-    return {name: w['projected_pct'] for name, w in windows.items()
-            if isinstance(w, dict) and isinstance(w.get('projected_pct'), (int, float)) and not isinstance(w['projected_pct'], bool)}
+    return {name: w['projected_pct'] for name, w in windows.items() if projection_is_known(w)}
 
 
 def quota_forecast_absent(value, provider_id, source_id=None):
@@ -254,7 +264,8 @@ def quota_forecast_absent(value, provider_id, source_id=None):
     if windows is None:
         return True
     return isinstance(windows, dict) and all(
-        isinstance(name, str) and isinstance(window, dict) and window.get('projected_pct') is None
+        isinstance(name, str) and isinstance(window, dict)
+        and (window.get('projected_pct') is None or window.get('indicator') in NO_FORECAST_INDICATORS)
         for name, window in windows.items())
 
 

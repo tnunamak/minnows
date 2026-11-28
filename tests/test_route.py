@@ -26,7 +26,7 @@ sys.path.insert(0, str(REPO / 'tools/model-policy-ops/lib'))
 
 import route_inputs  # noqa: E402
 from route_inputs import classify_failure  # noqa: E402
-from runtime_sources import quota_forecast  # noqa: E402
+from runtime_sources import quota_forecast, quota_forecast_absent  # noqa: E402
 
 
 def soon(**delta):
@@ -466,6 +466,17 @@ def test_quota_forecast_reads_source_and_provider_level_and_rejects_bad_shapes()
     assert quota_forecast(quota, 'missing') is None
     quota['providers']['openai']['forecast']['windows']['7d']['projected_pct'] = 'high'
     assert quota_forecast(quota, 'openai') == {}
+
+
+def test_quota_forecast_ignores_the_numeric_zero_beside_an_unknown_or_stale_indicator():
+    quota = load('clawmeter.json')
+    window = quota['providers']['openai']['forecast']['windows']['7d']
+    window.update(projected_pct=0, indicator='unknown')
+    assert quota_forecast(quota, 'openai') == {} and quota_forecast_absent(quota, 'openai')
+    window['indicator'] = 'stale'
+    assert quota_forecast(quota, 'openai') == {}
+    window['indicator'] = '134%'
+    assert quota_forecast(quota, 'openai') == {'7d': 0} and not quota_forecast_absent(quota, 'openai')
 
 
 # ---- AC4: pinned live snapshot --------------------------------------------------------------------------------------
