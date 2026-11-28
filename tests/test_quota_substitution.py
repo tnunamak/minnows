@@ -414,7 +414,7 @@ def reading(world, monkeypatch, at, utilization, projected, resets_at=NEW_RESET)
 def test_a_constraint_never_crosses_a_reset_even_inside_the_hysteresis_band(world, monkeypatch):
     out = reading(world, monkeypatch, '2026-10-11T03:50:00Z', 99, 170, OLD_RESET)
     assert active(out) == {'codex': 'activated'}
-    out = reading(world, monkeypatch, '2026-10-11T09:00:00Z', 20, 92)
+    out = reading(world, monkeypatch, '2026-10-12T09:00:00Z', 20, 92)
     row = block(out)['active_accounts']['codex']
     assert row['state'] == 'released' and row['previous_window'] == {'window': '7d', 'resets_at': OLD_RESET}
     assert pick(out)[0] == 'codex', '92 is below activation, and the 99 belonged to the old window'
@@ -423,37 +423,46 @@ def test_a_constraint_never_crosses_a_reset_even_inside_the_hysteresis_band(worl
 
 def test_a_fresh_reset_burst_activates_from_the_activation_threshold(world, monkeypatch):
     reading(world, monkeypatch, '2026-10-11T03:50:00Z', 99, 170, OLD_RESET)
-    out = reading(world, monkeypatch, '2026-10-11T04:01:00Z', 0, 0)
+    out = reading(world, monkeypatch, '2026-10-12T04:01:00Z', 0, 0)
     assert active(out) == {'codex': 'released'}
-    out = reading(world, monkeypatch, '2026-10-11T04:03:00Z', 1, 3360)
+    out = reading(world, monkeypatch, '2026-10-12T04:03:00Z', 1, 3360)
     row = block(out)['active_accounts']['codex']
     assert row == {'projected_pct': 3360, 'utilization': 1, 'window': '7d', 'resets_at': NEW_RESET,
-                   'state': 'activated', 'since': '2026-10-11T04:03:00+00:00'}, 'observed use and the forecast stay separate'
+                   'state': 'activated', 'since': '2026-10-12T04:03:00+00:00'}, 'observed use and the forecast stay separate'
     assert pick(out)[0] != 'codex', 'the router does not second-guess the source forecast'
+
+
+def test_a_burst_in_the_first_tenth_of_a_new_window_starts_no_constraint(world, monkeypatch):
+    """The fresh-reset tests above read the new window after its first tenth (16.8 h of 7 d), where a projection counts.
+    Minutes after the reset, 1% used projects to 3360%; routing reads that as no forecast, not as a constraint."""
+    out = reading(world, monkeypatch, '2026-10-11T04:03:00Z', 1, 3360)
+    assert 'activated' not in active(out).values(), 'a projection from the first tenth of the window starts nothing'
+    out = reading(world, monkeypatch, '2026-10-12T04:10:00Z', 5, 3360)
+    assert active(out) == {'codex': 'activated'}, 'the same reading after the first tenth counts'
 
 
 def test_a_reset_seen_first_through_a_new_window_drops_the_old_constraint_then_judges_afresh(world, monkeypatch):
     reading(world, monkeypatch, '2026-10-11T03:50:00Z', 99, 170, OLD_RESET)
-    out = reading(world, monkeypatch, '2026-10-11T04:10:00Z', 4, 4032)
+    out = reading(world, monkeypatch, '2026-10-12T04:10:00Z', 4, 4032)
     row = block(out)['active_accounts']['codex']
-    assert row['state'] == 'activated' and row['since'] == '2026-10-11T04:10:00+00:00', 'a new activation, not a carried one'
+    assert row['state'] == 'activated' and row['since'] == '2026-10-12T04:10:00+00:00', 'a new activation, not a carried one'
     assert row['previous_window'] == {'window': '7d', 'resets_at': OLD_RESET}
     assert world.stored()['codex']['resets_at'] == NEW_RESET
 
 
 def test_sustained_burn_in_the_new_window_stays_constrained_and_keeps_its_activation_time(world, monkeypatch):
-    for at, utilization, projected in [('2026-10-11T04:10:00Z', 4, 4032), ('2026-10-11T07:00:00Z', 17, 952),
-                                       ('2026-10-11T09:00:00Z', 22, 739)]:
+    for at, utilization, projected in [('2026-10-12T04:10:00Z', 4, 4032), ('2026-10-12T07:00:00Z', 17, 952),
+                                       ('2026-10-12T09:00:00Z', 22, 739)]:
         out = reading(world, monkeypatch, at, utilization, projected)
         row = block(out)['active_accounts']['codex']
-        assert row['state'] == 'activated' and row['since'] == '2026-10-11T04:10:00+00:00', at
+        assert row['state'] == 'activated' and row['since'] == '2026-10-12T04:10:00+00:00', at
         assert 'previous_window' not in row and pick(out)[0] != 'codex'
 
 
 def test_reset_time_jitter_inside_one_window_is_the_same_window(world, monkeypatch):
-    reading(world, monkeypatch, '2026-10-11T05:00:00Z', 30, 98)
+    reading(world, monkeypatch, '2026-10-12T05:00:00Z', 30, 98)
     before = world.state.stat().st_mtime_ns
-    out = reading(world, monkeypatch, '2026-10-11T05:10:00Z', 31, 92, '2026-10-18T04:00:01Z')
+    out = reading(world, monkeypatch, '2026-10-12T05:10:00Z', 31, 92, '2026-10-18T04:00:01Z')
     assert active(out) == {'codex': 'held_by_hysteresis'} and 'previous_window' not in block(out)['active_accounts']['codex']
     assert world.state.stat().st_mtime_ns == before and world.stored()['codex']['resets_at'] == NEW_RESET, 'jitter writes nothing'
 
@@ -471,7 +480,7 @@ def test_unknown_quota_after_the_stored_window_reset_ends_the_constraint_but_is_
 
 
 def test_unknown_quota_inside_the_stored_window_still_holds(world, monkeypatch):
-    reading(world, monkeypatch, '2026-10-11T05:00:00Z', 30, 98)
+    reading(world, monkeypatch, '2026-10-12T05:00:00Z', 30, 98)
     del world.quota['providers']['openai']['forecast']
     monkeypatch.setattr(test_route, 'NOW', '2026-10-12T05:00:00Z')
     out = world.route('review.audit')
@@ -481,12 +490,12 @@ def test_unknown_quota_inside_the_stored_window_still_holds(world, monkeypatch):
 
 def test_a_legacy_row_without_a_reset_time_keeps_hysteresis_and_records_identity(world, monkeypatch):
     world.state.parent.mkdir(mode=0o700)
-    world.state.write_text(json.dumps({'schema_version': 1, 'accounts': {'codex': {'since': '2026-10-11T04:03:00+00:00', 'window': '7d'}}}))
+    world.state.write_text(json.dumps({'schema_version': 1, 'accounts': {'codex': {'since': '2026-10-12T04:03:00+00:00', 'window': '7d'}}}))
     world.state.chmod(0o600)
-    out = reading(world, monkeypatch, '2026-10-11T09:00:00Z', 22, 92)
+    out = reading(world, monkeypatch, '2026-10-12T09:00:00Z', 22, 92)
     row = block(out)['active_accounts']['codex']
     assert row['state'] == 'held_by_hysteresis' and row['previous_window'] == 'not_recorded', 'no fabricated reset'
-    assert world.stored()['codex'] == {'since': '2026-10-11T04:03:00+00:00', 'window': '7d', 'resets_at': NEW_RESET}
+    assert world.stored()['codex'] == {'since': '2026-10-12T04:03:00+00:00', 'window': '7d', 'resets_at': NEW_RESET}
 
 
 def test_a_legacy_row_with_unknown_quota_stays_held(world, monkeypatch):
@@ -507,9 +516,9 @@ def test_a_stored_reset_time_that_is_not_a_zoned_iso_time_is_unreadable(world, v
 
 @pytest.mark.parametrize('offset, same', [(60, True), (61, False)])
 def test_the_same_window_tolerance_is_sixty_seconds(world, monkeypatch, offset, same):
-    reading(world, monkeypatch, '2026-10-11T05:00:00Z', 30, 98)
+    reading(world, monkeypatch, '2026-10-12T05:00:00Z', 30, 98)
     later = f'2026-10-18T04:01:{offset - 60:02d}Z'
-    row = block(reading(world, monkeypatch, '2026-10-11T05:10:00Z', 31, 92, later))['active_accounts']['codex']
+    row = block(reading(world, monkeypatch, '2026-10-12T05:10:00Z', 31, 92, later))['active_accounts']['codex']
     assert row['state'] == ('held_by_hysteresis' if same else 'released')
 
 
@@ -529,8 +538,8 @@ def test_a_source_reset_time_without_a_zone_is_never_stored_and_a_name_change_st
 
 
 def test_an_observed_reset_time_that_cannot_be_parsed_is_not_comparable_and_keeps_the_stored_one(world, monkeypatch):
-    reading(world, monkeypatch, '2026-10-11T05:00:00Z', 30, 98)
-    row = block(reading(world, monkeypatch, '2026-10-11T05:10:00Z', 31, 92, 'soon'))['active_accounts']['codex']
+    reading(world, monkeypatch, '2026-10-12T05:00:00Z', 30, 98)
+    row = block(reading(world, monkeypatch, '2026-10-12T05:10:00Z', 31, 92, 'soon'))['active_accounts']['codex']
     assert row['state'] == 'held_by_hysteresis' and row['previous_window'] == 'not_comparable'
     assert world.stored()['codex']['resets_at'] == NEW_RESET
 
@@ -557,7 +566,7 @@ def test_each_account_window_resets_on_its_own(world, monkeypatch):
     world.set_claude(98, 'claude-alt')
     reading(world, monkeypatch, '2026-10-11T03:50:00Z', 99, 170, OLD_RESET)
     alt = next(s for s in world.quota['providers']['claude']['sources'] if s['source']['id'] == 'alt')
-    out = reading(world, monkeypatch, '2026-10-11T09:00:00Z', 20, 92)
+    out = reading(world, monkeypatch, '2026-10-12T09:00:00Z', 20, 92)
     states = block(out)['active_accounts']
     assert states['codex']['state'] == 'released' and states['claude-alt']['state'] == 'activated'
     assert 'previous_window' not in states['claude-alt'] and world.stored()['claude-alt']['resets_at'] == alt['usage']['windows'][0]['resets_at']

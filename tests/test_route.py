@@ -745,6 +745,47 @@ def test_rank_binding_window_is_the_highest_projection_among_the_pace_windows(wo
     assert row['quota']['pace'] == 'at_risk' and row['quota']['projected_pct'] == 150
 
 
+def young_default_7d(world, hours_in, utilization=4, projected=117, keep_5h=False):
+    """The Dondo reading: a 7d window `hours_in` hours old, lightly used, whose average-since-reset projection is high.
+    Dondo reports no 5h window while it is idle, so by default the 5h window is dropped."""
+    row = next(s for s in world.quota['providers']['claude']['sources'] if s['source']['id'] == 'default')
+    if not keep_5h:
+        row['usage']['windows'] = [w for w in row['usage']['windows'] if w['name'] != '5h']
+        row['forecast']['windows'].pop('5h', None)
+    window = next(w for w in row['usage']['windows'] if w['name'] == '7d All')
+    window.update(utilization=utilization, resets_at=(datetime(2026, 10, 10, 0, 30, tzinfo=timezone.utc) + timedelta(hours=168 - hours_in)).strftime('%Y-%m-%dT%H:%M:%SZ'))
+    row['forecast']['windows']['7d All'] = {'projected_pct': projected, 'indicator': f'{projected}%'}
+
+
+def test_a_projection_from_a_window_under_a_tenth_elapsed_is_unknown_for_routing(world):
+    """6 hours into a 7-day window, 4% used projects to 117%. That early number is shown by clawmeter, but it must not make the
+    account at_risk or start a quota constraint: routing reads the pace as unknown, with its own elapsed check."""
+    young_default_7d(world, hours_in=6)
+    view = quota_of(world.route('implement.quota-tight'), entry(world.route('implement.quota-tight'), 'claudeAgent', 0))
+    assert view['pace'] == 'unknown' and view['pace_reason'] == 'no_forecast_or_expired_window' and view['binding'] is None
+    assert view['forecast_absent'] is True
+    window = next(w for w in view['windows'] if w['name'] == '7d All')
+    assert window['projected_pct'] is None and window['utilization'] == 4, 'use stays visible; only the projection is unknown'
+
+
+def test_a_young_window_beside_a_known_5h_forecast_is_unknown_and_creates_no_constraint(world):
+    young_default_7d(world, hours_in=6, keep_5h=True)
+    out = world.route('implement.quota-tight')
+    view = quota_of(out, entry(out, 'claudeAgent', 0))
+    assert view['pace'] == 'unknown' and view['binding'] is None
+
+
+def test_the_same_projection_binds_once_a_tenth_of_the_window_has_elapsed(world):
+    """The boundary: 16.8 hours is a tenth of 168. At 16 hours the projection is unknown; at 17 it is read as before."""
+    young_default_7d(world, hours_in=16)
+    out = world.route('implement.quota-tight')
+    assert quota_of(out, entry(out, 'claudeAgent', 0))['pace'] == 'unknown'
+    young_default_7d(world, hours_in=17)
+    out = world.route('implement.quota-tight')
+    view = quota_of(out, entry(out, 'claudeAgent', 0))
+    assert view['pace'] == 'at_risk' and view['binding']['window'] == '7d All'
+
+
 def test_quota_output_records_fetched_at_cache_and_resets_at(world):
     out = world.route('implement.quota-tight')
     quota = quota_of(out, entry(out, 'claudeAgent', 0))
