@@ -393,7 +393,8 @@ def line_decision(result: dict, receipts: Path, *, recorded: bool) -> dict:
         line["destination_offer"] = brief["destination_offer"]   # needed only for a hand submit
     selection = result.get("selection") or {}
     if result.get("target") is None and brief["destination"] == "model" and selection.get("state") not in (None, "catalog_present"):
-        # Why a model arm has no target: for an account or model mismatch, the instances the arm's provider offers.
+        # Why a model arm has no target (the selection state), with the instances its provider offers: a mistyped
+        # or wrong-family account override shows the valid ids.
         line["selection"] = {"state": selection["state"], "accounts": selection.get("accounts", [])}
     line["more"] = "--brief for judgment details and notes; --json for the full receipt"
     return line

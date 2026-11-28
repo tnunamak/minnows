@@ -602,8 +602,9 @@ By default `route` and `resolve` print one small JSON line (revision 27): `decis
 `destination`, `launch_ready`, `dispatch`, `judgment_required`, `judgment` (each reason as
 `APPLIES_TO:CODE`), `reason` (one sentence: the chosen candidate and basis, any override, and why a
 destination was not used), `receipt` (the ledger path, or why nothing was stored) and `replayed`,
-plus `waiting`, `data_policy`, the simulation keys, and `destination_offer` only when a hand submit
-needs it. The ledger always keeps the full receipt. Use `--json` for the full receipt on stdout.
+plus `waiting`, `data_policy`, the simulation keys, `selection` (`state` and the provider's `accounts`)
+only when a model arm has no target because its catalog selection is not `catalog_present`, and
+`destination_offer` only when a hand submit needs it. The ledger always keeps the full receipt. Use `--json` for the full receipt on stdout.
 
 Use `--brief` with `route` or `resolve` for the larger compact JSON line described below, with
 judgment details and calibration notes. `--brief --json` is rejected, as is `--brief` on every
