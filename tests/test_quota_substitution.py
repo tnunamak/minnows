@@ -727,3 +727,22 @@ def test_simulation_with_an_unreadable_state_directory_decides_without_memory(tm
     out = qs.evaluate(tmp_path / 'locked' / 'quota-substitution.json', {'activate_projected_pct': 97, 'release_projected_pct': 85},
                       {'codex': {'projected_pct': 105.0, 'window': '7d'}}, datetime.now(timezone.utc), write=False)
     assert out['state'] == 'unreadable' and out['constrained'] == {'codex': out['constrained']['codex']}
+
+
+def mark_unknown(world, projected=0):
+    """What clawmeter writes while a window is too young to forecast: a numeric zero beside the indicator `unknown`."""
+    set_forecast(world, 'openai', None, '7d', projected)
+    world.quota['providers']['openai']['forecast']['windows']['7d']['indicator'] = 'unknown'
+
+
+def test_a_window_too_young_to_forecast_is_unknown_pace_with_no_constraint(world, monkeypatch):
+    """clawmeter's `unknown` indicator carries projected_pct 0 as a placeholder. Read as a forecast it made the
+    account look on track; unknown is neutral: not on_track, not at_risk, and no constraint is created."""
+    monkeypatch.setattr(test_route, 'NOW', '2026-10-11T04:03:00Z')
+    world.quota['providers']['openai']['usage']['windows'][0].update(utilization=3, resets_at=NEW_RESET)
+    mark_unknown(world)
+    out = world.route('review.audit')
+    trace = next(r['quota'] for r in out['routing']['trace'] if r.get('instance') == 'codex')
+    assert trace['pace'] == 'unknown' and trace['pace_reason'] == 'no_forecast_or_expired_window'
+    assert active(out) == {} and block(out)['unknown_accounts'] == ['codex'] and world.stored() == {}
+    assert pick(out)[0] == 'codex', 'a young window is not a reason to leave the account'
