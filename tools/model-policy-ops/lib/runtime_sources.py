@@ -3,7 +3,7 @@ import hashlib
 import json
 import math
 import subprocess
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -222,41 +222,6 @@ def projection_is_known(window):
             and not isinstance(window['projected_pct'], bool) and window.get('indicator') not in NO_FORECAST_INDICATORS)
 
 
-# Routing's own warm-up. A window projects usage so far to the reset, and 4% used 6 hours into a 7-day window reads as 117%.
-# clawmeter shows that early number to people; routing must not rank or constrain an account on it. The router judges "too
-# early" itself, from the window's length and reset time, and does not depend on clawmeter's indicator or its warm-up rule.
-WARMUP_FRACTION = 0.1
-WINDOW_LENGTHS = (('5h', timedelta(hours=5)), ('7d', timedelta(days=7)))     # a window name is its length: `5h`, `7d`, `7d All`, `7d Fable`
-
-
-def window_length(name):
-    """How long the named usage window runs, or None for a name whose length routing does not know."""
-    if not isinstance(name, str):
-        return None
-    return next((length for prefix, length in WINDOW_LENGTHS if name == prefix or name.startswith(prefix + ' ')), None)
-
-
-def young_windows(windows, now):
-    """Names of the usage windows with less than WARMUP_FRACTION of their length elapsed at `now`.
-
-    A window of unknown length, or with no usable reset time, is never young. A reset time further away than the
-    window's own length is a malformed reading, not a young window, and is left to the existing checks.
-    """
-    young = set()
-    for window in windows:
-        length = window_length(window.get('name'))
-        try:
-            reset = datetime.fromisoformat(window['resets_at'].replace('Z', '+00:00'))
-        except (KeyError, ValueError, TypeError, AttributeError):
-            continue
-        if length is None or reset.tzinfo is None:
-            continue
-        elapsed = length - (reset - now)
-        if timedelta(0) <= elapsed < length * WARMUP_FRACTION:
-            young.add(window['name'])
-    return young
-
-
 def quota_forecast(value, provider_id, source_id=None):
     """clawmeter `forecast.windows.<name>.projected_pct` for one provider, or one of its sources.
 
@@ -279,12 +244,11 @@ def quota_forecast(value, provider_id, source_id=None):
     return {name: w['projected_pct'] for name, w in windows.items() if projection_is_known(w)}
 
 
-def quota_forecast_absent(value, provider_id, source_id=None, names=None, unknown=()):
+def quota_forecast_absent(value, provider_id, source_id=None, names=None):
     """True only when this exact account has no supplied projections, valid or invalid.
 
     With `names`, only those windows are examined: another window of the account (a model-specific one the arm does
-    not use) must not decide whether the windows the router reads are young or missing. A window named in `unknown` is one
-    routing judged too young to project (see `young_windows`): its projection counts as absent.
+    not use) must not decide whether the windows the router reads are young or missing.
     """
     rows = value.get('providers')
     row = rows.get(provider_id) if isinstance(rows, dict) else None
@@ -307,7 +271,7 @@ def quota_forecast_absent(value, provider_id, source_id=None, names=None, unknow
         return False
     return all(
         isinstance(name, str) and isinstance(window, dict)
-        and (window.get('projected_pct') is None or window.get('indicator') in NO_FORECAST_INDICATORS or name in unknown)
+        and (window.get('projected_pct') is None or window.get('indicator') in NO_FORECAST_INDICATORS)
         for name, window in windows.items() if names is None or name in names)
 
 
