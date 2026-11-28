@@ -405,7 +405,7 @@ def main() -> int:
     parser.add_argument("--policy", type=Path, default=None)
     parser.add_argument("--user-policy", type=Path, default=None, help="per-user routing overlay; default ~/.config/model-policy/user-policy.json (a missing default means none; a missing named file is an error)")
     parser.add_argument("--no-user-policy", action="store_true", help="ignore the per-user overlay")
-    parser.add_argument("command", nargs="?", choices=("check", "list", "show", "resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe", "report", "allowance"))
+    parser.add_argument("command", nargs="?", choices=("check", "list", "show", "resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe", "report", "authorize-launch", "allowance"))
     parser.add_argument("op", nargs="?")
     parser.add_argument("--brief", action="store_true", help="compact one-line JSON for route/resolve; full receipts are unchanged")
     from policy_decisions import add_arguments, execute
@@ -452,9 +452,9 @@ def main() -> int:
         return merged
     if args.target and args.command != "directive":
         parser.error(f"unrecognized arguments: {args.target}")
-    if args.command in ("resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe", "report", "allowance"):
+    if args.command in ("resolve", "route", "audit", "close", "followup", "directive", "calibrate", "observe", "report", "authorize-launch", "allowance"):
         try:
-            needs_policy = args.command in ("resolve", "route", "calibrate", "allowance") or (args.command == "directive" and args.op in ("add", "list"))
+            needs_policy = args.command in ("resolve", "route", "calibrate", "authorize-launch", "allowance") or (args.command == "directive" and args.op in ("add", "list"))
             # A close with a note reads the declared pools (raw, unchecked) to see whether the note reports a spent cap.
             policy = load_policy(args.policy) if needs_policy or (args.command == "close" and args.note) else {}
             if needs_policy and not isinstance(policy, dict):

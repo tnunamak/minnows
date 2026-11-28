@@ -1,5 +1,8 @@
 """Resolve advisory policy into an explicit target without dispatch."""
 import json
+import argparse
+import re
+import copy
 import math
 import os
 import sys
@@ -29,6 +32,12 @@ import cost_report
 from delegation_audit import read_db, read_export, audit, normalize_since
 
 
+def task_digest_argument(value):
+    if re.fullmatch(r'sha256:[0-9a-f]{64}', value) is None:
+        raise argparse.ArgumentTypeError('expected sha256:<64 lowercase hex> for the exact task text')
+    return value
+
+
 def add_arguments(parser):
     parser.add_argument('--available', metavar='FILE|auto')
     parser.add_argument('--quota', metavar='FILE|auto')
@@ -39,6 +48,9 @@ def add_arguments(parser):
     parser.add_argument('--no-op', action='store_true')
     parser.add_argument('--reason')
     parser.add_argument('--decision-id')
+    parser.add_argument('--launch-target', metavar='JSON', help='authorize-launch: exact target to authorize read-only against the current free-route policy')
+    parser.add_argument('--task-digest', type=task_digest_argument, metavar='sha256:<64 lowercase hex>',
+                        help='bind the public declaration to the exact task text sent at launch')
     parser.add_argument('--record', action='store_true')
     parser.add_argument('--task-link', metavar='JSON', help='explicit consumer task, workflow, stage and role; top-level metadata')
     parser.add_argument('--choice', metavar='JSON', help='bounded caller choice; a reason authorizes pacing only for the eligible routed model')
@@ -406,6 +418,13 @@ def execute(args, policy):
 
 
 def execute_locked(args, policy, stack):
+    if args.command == 'authorize-launch':
+        return authorize_launch(args, policy)
+    if getattr(args, 'launch_target', None) is not None:
+        raise ValueError('--launch-target applies to authorize-launch only')
+    task_digest = getattr(args, 'task_digest', None)
+    if task_digest is not None and args.command not in ('route', 'resolve'):
+        raise ValueError('--task-digest applies to route, resolve and authorize-launch only')
     extensions = receipt_extensions(args)
     if extensions and args.command not in ('resolve', 'route'):
         raise ValueError('--task-link and --choice apply only to resolve or route')
@@ -724,6 +743,9 @@ def execute_locked(args, policy, stack):
     if routing_block and (return_value.get('target') or proposed_destination):
         return_value = withhold_unfunded(return_value, accounts, at, return_value.get('target') or proposed_destination)
     apply_experimental_route_policy(return_value, policy, at, available=available, destination_target=proposed_destination)
+    data_policy = return_value.get('data_policy') or {}
+    if task_digest is not None and data_policy.get('state') == 'allowed_public_normal':
+        data_policy['task_digest'] = task_digest
 
     if simulation:
         simulated = return_value['target']
@@ -1016,3 +1038,67 @@ def apply_experimental_route_policy(result, policy, evaluated_at, *, available=N
                                                       'detail': result['data_policy']['refusal'],
                                                       'applies_to': 'final'})
         result['routing']['judgment_required'] = True
+
+
+def launch_target_identity(target):
+    """Normalize options encoding only; preserve the exact effort carrier and all other target fields."""
+    if not isinstance(target, dict):
+        raise ValueError('launch target must be an object')
+    target = copy.deepcopy(target)
+    for key in ('providerInstanceId', 'model'):
+        if not isinstance(target.get(key), str) or not target[key]:
+            raise ValueError('launch target needs an exact ' + key)
+    options = target.get('options', {})
+    if isinstance(options, list):
+        if any(not isinstance(o, dict) or set(o) != {'id', 'value'} or not isinstance(o['id'], str) for o in options):
+            raise ValueError('invalid launch options')
+        if len({o['id'] for o in options}) != len(options):
+            raise ValueError('duplicate launch option')
+        options = {o['id']: o['value'] for o in options}
+    if not isinstance(options, dict) or any(not isinstance(v, (str, bool)) for v in options.values()):
+        raise ValueError('invalid launch options')
+    target['options'] = options
+    return target
+
+
+def authorize_launch(args, policy):
+    """Read-only gate bridge: replay current governed-route checks, never resolve, dispatch or record.
+
+    A recorded refusal remains a refusal, even if a later declaration would allow the target.
+    No availability/quota helper, account reader or destination command is executed here.
+    """
+    if (args.now is not None or args.record or args.available is not None or args.quota is not None
+            or args.op is not None or args.sensitive or args.data_classification is not None
+            or not args.decision_id or not args.launch_target):
+        raise ValueError('authorize-launch requires --decision-id and --launch-target (plus --task-digest, --receipts/--policy/--json); '
+                         'changed safety facts require a new route or resolve receipt')
+    validate_id(args.decision_id)
+    target = launch_target_identity(json.loads(args.launch_target))
+    receipt = find_receipt(args.receipts, args.decision_id)
+    result = {'schema_version': 1, 'decision_id': args.decision_id, 'authorized': False, 'target': None}
+    if (not isinstance(receipt, dict) or type(receipt.get('schema_version')) is not int
+            or receipt['schema_version'] != 1 or receipt.get('launch_ready') is not True
+            or (receipt.get('data_policy') or {}).get('state') == 'refused'
+            or not isinstance(receipt.get('target'), dict)
+            or launch_target_identity(receipt['target']) != target):
+        return result
+    if not any(row['account'] == target['providerInstanceId'] and row['model'] == target['model']
+               for row in policy.get('free_routes', [])):
+        return result
+    checked = copy.deepcopy(receipt)
+    # Existing binding validation uses the catalog's object encoding; list encoding is semantically identical.
+    checked['target'] = launch_target_identity(checked['target'])
+    apply_experimental_route_policy(checked, policy, directive_store.now(), replay=True)
+    state = (checked.get('data_policy') or {}).get('state')
+    if (state == 'allowed_public_normal' and isinstance(checked.get('target'), dict)
+            and launch_target_identity(checked['target']) == target):
+        stored_digest = checked['data_policy'].get('task_digest')
+        supplied_digest = getattr(args, 'task_digest', None)
+        if not stored_digest:
+            return {**result, 'reason': 'task_digest_missing_in_receipt'}
+        if supplied_digest is None:
+            return {**result, 'reason': 'task_digest_missing_in_call'}
+        if supplied_digest != stored_digest:
+            return {**result, 'reason': 'task_digest_mismatch'}
+        result.update(authorized=True, target=target)
+    return result
